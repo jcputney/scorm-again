@@ -8537,7 +8537,458 @@ ${stackTrace}`);
     }
   }
 
-  const HIDE_LMS_UI_TOKENS = ["continue", "previous", "exit", "exitAll", "abandon", "abandonAll", "suspendAll"];
+  var SelectionTiming = /* @__PURE__ */(SelectionTiming2 => {
+    SelectionTiming2["NEVER"] = "never";
+    SelectionTiming2["ONCE"] = "once";
+    SelectionTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
+    return SelectionTiming2;
+  })(SelectionTiming || {});
+  var RandomizationTiming = /* @__PURE__ */(RandomizationTiming2 => {
+    RandomizationTiming2["NEVER"] = "never";
+    RandomizationTiming2["ONCE"] = "once";
+    RandomizationTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
+    return RandomizationTiming2;
+  })(RandomizationTiming || {});
+  class SequencingControls extends BaseCMI {
+    /**
+     * Constructor for SequencingControls
+     */
+    constructor() {
+      super("sequencingControls");
+      // Sequencing Control Modes
+      this._enabled = true;
+      this._choice = true;
+      this._choiceExit = true;
+      // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
+      this._flow = true;
+      this._forwardOnly = false;
+      this._useCurrentAttemptObjectiveInfo = true;
+      this._useCurrentAttemptProgressInfo = true;
+      // Constrain Choice Controls
+      this._preventActivation = false;
+      this._constrainChoice = false;
+      // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
+      this._stopForwardTraversal = false;
+      // Rollup Controls
+      this._rollupObjectiveSatisfied = true;
+      this._rollupProgressCompletion = true;
+      this._objectiveMeasureWeight = 1;
+      // Selection Controls
+      this._selectionTiming = "never" /* NEVER */;
+      this._selectCount = null;
+      this._selectionCountStatus = false;
+      this._randomizeChildren = false;
+      // Randomization Controls
+      this._randomizationTiming = "never" /* NEVER */;
+      this._reorderChildren = false;
+      // Auto-completion/satisfaction controls
+      this._completionSetByContent = false;
+      this._objectiveSetByContent = false;
+      // Delivery Controls
+      this._tracked = true;
+    }
+    /**
+     * Reset the sequencing controls to their default values
+     */
+    reset() {
+      this._initialized = false;
+      this._enabled = true;
+      this._choice = true;
+      this._choiceExit = true;
+      this._flow = true;
+      this._forwardOnly = false;
+      this._useCurrentAttemptObjectiveInfo = true;
+      this._useCurrentAttemptProgressInfo = true;
+      this._preventActivation = false;
+      this._constrainChoice = false;
+      this._stopForwardTraversal = false;
+      this._rollupObjectiveSatisfied = true;
+      this._rollupProgressCompletion = true;
+      this._objectiveMeasureWeight = 1;
+      this._selectionTiming = "never" /* NEVER */;
+      this._selectCount = null;
+      this._selectionCountStatus = false;
+      this._randomizeChildren = false;
+      this._randomizationTiming = "never" /* NEVER */;
+      this._reorderChildren = false;
+      this._completionSetByContent = false;
+      this._objectiveSetByContent = false;
+      this._tracked = true;
+    }
+    /**
+     * Getter for enabled
+     * @return {boolean}
+     */
+    get enabled() {
+      return this._enabled;
+    }
+    /**
+     * Setter for enabled
+     * @param {boolean} enabled
+     */
+    set enabled(enabled) {
+      this._enabled = enabled;
+    }
+    /**
+     * Getter for choice
+     * @return {boolean}
+     */
+    get choice() {
+      return this._choice;
+    }
+    /**
+     * Setter for choice
+     * @param {boolean} choice
+     */
+    set choice(choice) {
+      this._choice = choice;
+    }
+    /**
+     * Getter for choiceExit
+     * @return {boolean}
+     */
+    get choiceExit() {
+      return this._choiceExit;
+    }
+    /**
+     * Setter for choiceExit
+     * @param {boolean} choiceExit
+     */
+    set choiceExit(choiceExit) {
+      this._choiceExit = choiceExit;
+    }
+    /**
+     * Getter for flow
+     * @return {boolean}
+     */
+    get flow() {
+      return this._flow;
+    }
+    /**
+     * Setter for flow
+     * @param {boolean} flow
+     */
+    set flow(flow) {
+      this._flow = flow;
+    }
+    /**
+     * Getter for forwardOnly
+     * @return {boolean}
+     */
+    get forwardOnly() {
+      return this._forwardOnly;
+    }
+    /**
+     * Setter for forwardOnly
+     * @param {boolean} forwardOnly
+     */
+    set forwardOnly(forwardOnly) {
+      this._forwardOnly = forwardOnly;
+    }
+    /**
+     * Getter for useCurrentAttemptObjectiveInfo
+     * @return {boolean}
+     */
+    get useCurrentAttemptObjectiveInfo() {
+      return this._useCurrentAttemptObjectiveInfo;
+    }
+    /**
+     * Setter for useCurrentAttemptObjectiveInfo
+     * @param {boolean} useCurrentAttemptObjectiveInfo
+     */
+    set useCurrentAttemptObjectiveInfo(useCurrentAttemptObjectiveInfo) {
+      this._useCurrentAttemptObjectiveInfo = useCurrentAttemptObjectiveInfo;
+    }
+    /**
+     * Getter for useCurrentAttemptProgressInfo
+     * @return {boolean}
+     */
+    get useCurrentAttemptProgressInfo() {
+      return this._useCurrentAttemptProgressInfo;
+    }
+    /**
+     * Setter for useCurrentAttemptProgressInfo
+     * @param {boolean} useCurrentAttemptProgressInfo
+     */
+    set useCurrentAttemptProgressInfo(useCurrentAttemptProgressInfo) {
+      this._useCurrentAttemptProgressInfo = useCurrentAttemptProgressInfo;
+    }
+    /**
+     * Getter for preventActivation
+     * @return {boolean}
+     */
+    get preventActivation() {
+      return this._preventActivation;
+    }
+    /**
+     * Setter for preventActivation
+     * @param {boolean} preventActivation
+     */
+    set preventActivation(preventActivation) {
+      this._preventActivation = preventActivation;
+    }
+    /**
+     * Getter for constrainChoice
+     * @return {boolean}
+     */
+    get constrainChoice() {
+      return this._constrainChoice;
+    }
+    /**
+     * Setter for constrainChoice
+     * @param {boolean} constrainChoice
+     */
+    set constrainChoice(constrainChoice) {
+      this._constrainChoice = constrainChoice;
+    }
+    /**
+     * Getter for stopForwardTraversal
+     * @return {boolean}
+     */
+    get stopForwardTraversal() {
+      return this._stopForwardTraversal;
+    }
+    /**
+     * Setter for stopForwardTraversal
+     * @param {boolean} stopForwardTraversal
+     */
+    set stopForwardTraversal(stopForwardTraversal) {
+      this._stopForwardTraversal = stopForwardTraversal;
+    }
+    /**
+     * Getter for rollupObjectiveSatisfied
+     * @return {boolean}
+     */
+    get rollupObjectiveSatisfied() {
+      return this._rollupObjectiveSatisfied;
+    }
+    /**
+     * Setter for rollupObjectiveSatisfied
+     * @param {boolean} rollupObjectiveSatisfied
+     */
+    set rollupObjectiveSatisfied(rollupObjectiveSatisfied) {
+      this._rollupObjectiveSatisfied = rollupObjectiveSatisfied;
+    }
+    /**
+     * Getter for rollupProgressCompletion
+     * @return {boolean}
+     */
+    get rollupProgressCompletion() {
+      return this._rollupProgressCompletion;
+    }
+    /**
+     * Setter for rollupProgressCompletion
+     * @param {boolean} rollupProgressCompletion
+     */
+    set rollupProgressCompletion(rollupProgressCompletion) {
+      this._rollupProgressCompletion = rollupProgressCompletion;
+    }
+    /**
+     * Getter for objectiveMeasureWeight
+     * @return {number}
+     */
+    get objectiveMeasureWeight() {
+      return this._objectiveMeasureWeight;
+    }
+    /**
+     * Setter for objectiveMeasureWeight
+     * @param {number} objectiveMeasureWeight
+     */
+    set objectiveMeasureWeight(objectiveMeasureWeight) {
+      if (objectiveMeasureWeight >= 0) {
+        this._objectiveMeasureWeight = objectiveMeasureWeight;
+      }
+    }
+    /**
+     * Check if choice navigation is allowed
+     * @return {boolean} - True if choice navigation is allowed, false otherwise
+     */
+    isChoiceNavigationAllowed() {
+      return this._enabled && !this._constrainChoice;
+    }
+    /**
+     * Check if flow navigation is allowed
+     * @return {boolean} - True if flow navigation is allowed, false otherwise
+     */
+    isFlowNavigationAllowed() {
+      return this._enabled && this._flow;
+    }
+    /**
+     * Check if forward navigation is allowed
+     * @return {boolean} - True if forward navigation is allowed, false otherwise
+     */
+    isForwardNavigationAllowed() {
+      return this._enabled && this._flow;
+    }
+    /**
+     * Check if backward navigation is allowed
+     * @return {boolean} - True if backward navigation is allowed, false otherwise
+     */
+    isBackwardNavigationAllowed() {
+      return this._enabled && this._flow && !this._forwardOnly;
+    }
+    /**
+     * Getter for selectionTiming
+     * @return {SelectionTiming}
+     */
+    get selectionTiming() {
+      return this._selectionTiming;
+    }
+    /**
+     * Setter for selectionTiming
+     * @param {SelectionTiming} selectionTiming
+     */
+    set selectionTiming(selectionTiming) {
+      this._selectionTiming = selectionTiming;
+    }
+    /**
+     * Getter for selectCount
+     * @return {number | null}
+     */
+    get selectCount() {
+      return this._selectCount;
+    }
+    /**
+     * Setter for selectCount
+     * @param {number | null} selectCount
+     */
+    set selectCount(selectCount) {
+      if (selectCount === null || selectCount > 0) {
+        this._selectCount = selectCount;
+      }
+    }
+    /**
+     * Getter for selectionCountStatus
+     * @return {boolean}
+     */
+    get selectionCountStatus() {
+      return this._selectionCountStatus;
+    }
+    /**
+     * Setter for selectionCountStatus
+     * @param {boolean} selectionCountStatus
+     */
+    set selectionCountStatus(selectionCountStatus) {
+      this._selectionCountStatus = selectionCountStatus;
+    }
+    /**
+     * Getter for randomizeChildren
+     * @return {boolean}
+     */
+    get randomizeChildren() {
+      return this._randomizeChildren;
+    }
+    /**
+     * Setter for randomizeChildren
+     * @param {boolean} randomizeChildren
+     */
+    set randomizeChildren(randomizeChildren) {
+      this._randomizeChildren = randomizeChildren;
+    }
+    /**
+     * Getter for randomizationTiming
+     * @return {RandomizationTiming}
+     */
+    get randomizationTiming() {
+      return this._randomizationTiming;
+    }
+    /**
+     * Setter for randomizationTiming
+     * @param {RandomizationTiming} randomizationTiming
+     */
+    set randomizationTiming(randomizationTiming) {
+      this._randomizationTiming = randomizationTiming;
+    }
+    /**
+     * Getter for reorderChildren
+     * @return {boolean}
+     */
+    get reorderChildren() {
+      return this._reorderChildren;
+    }
+    /**
+     * Setter for reorderChildren
+     * @param {boolean} reorderChildren
+     */
+    set reorderChildren(reorderChildren) {
+      this._reorderChildren = reorderChildren;
+    }
+    /**
+     * Getter for completionSetByContent
+     * @return {boolean}
+     */
+    get completionSetByContent() {
+      return this._completionSetByContent;
+    }
+    /**
+     * Setter for completionSetByContent
+     * @param {boolean} completionSetByContent
+     */
+    set completionSetByContent(completionSetByContent) {
+      this._completionSetByContent = completionSetByContent;
+    }
+    /**
+     * Getter for objectiveSetByContent
+     * @return {boolean}
+     */
+    get objectiveSetByContent() {
+      return this._objectiveSetByContent;
+    }
+    /**
+     * Setter for objectiveSetByContent
+     * @param {boolean} objectiveSetByContent
+     */
+    set objectiveSetByContent(objectiveSetByContent) {
+      this._objectiveSetByContent = objectiveSetByContent;
+    }
+    /**
+     * Getter for tracked
+     * @return {boolean}
+     */
+    get tracked() {
+      return this._tracked;
+    }
+    /**
+     * Setter for tracked
+     * @param {boolean} tracked
+     */
+    set tracked(tracked) {
+      this._tracked = tracked;
+    }
+    /**
+     * toJSON for SequencingControls
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        enabled: this._enabled,
+        choice: this._choice,
+        choiceExit: this._choiceExit,
+        flow: this._flow,
+        forwardOnly: this._forwardOnly,
+        useCurrentAttemptObjectiveInfo: this._useCurrentAttemptObjectiveInfo,
+        useCurrentAttemptProgressInfo: this._useCurrentAttemptProgressInfo,
+        preventActivation: this._preventActivation,
+        constrainChoice: this._constrainChoice,
+        stopForwardTraversal: this._stopForwardTraversal,
+        rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
+        rollupProgressCompletion: this._rollupProgressCompletion,
+        objectiveMeasureWeight: this._objectiveMeasureWeight,
+        selectionTiming: this._selectionTiming,
+        selectCount: this._selectCount,
+        selectionCountStatus: this._selectionCountStatus,
+        randomizeChildren: this._randomizeChildren,
+        randomizationTiming: this._randomizationTiming,
+        reorderChildren: this._reorderChildren,
+        completionSetByContent: this._completionSetByContent,
+        objectiveSetByContent: this._objectiveSetByContent,
+        tracked: this._tracked
+      };
+      this.jsonString = false;
+      return result;
+    }
+  }
 
   var RuleConditionOperator = /* @__PURE__ */(RuleConditionOperator2 => {
     RuleConditionOperator2["NOT"] = "not";
@@ -9565,460 +10016,7 @@ ${stackTrace}`);
     }
   }
 
-  const ValidLanguages = ["aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as", "av", "ay", "az", "ba", "be", "bg", "bh", "bi", "bm", "bn", "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu", "cv", "cy", "da", "de", "dv", "dz", "ee", "el", "en", "eo", "es", "et", "eu", "fa", "ff", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "gv", "ha", "he", "hi", "ho", "hr", "ht", "hu", "hy", "hz", "ia", "id", "ie", "ig", "ii", "ik", "io", "is", "it", "iu", "ja", "jv", "ka", "kg", "ki", "kj", "kk", "kl", "km", "kn", "ko", "kr", "ks", "ku", "kv", "kw", "ky", "la", "lb", "lg", "li", "ln", "lo", "lt", "lu", "lv", "mg", "mh", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "nb", "nd", "ne", "ng", "nl", "nn", "no", "nr", "nv", "ny", "oc", "oj", "om", "or", "os", "pa", "pi", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ty", "ug", "uk", "ur", "uz", "ve", "vi", "vo", "wa", "wo", "xh", "yi", "yo", "za", "zh", "zu", "aar", "abk", "ave", "afr", "aka", "amh", "arg", "ara", "asm", "ava", "aym", "aze", "bak", "bel", "bul", "bih", "bis", "bam", "ben", "tib", "bod", "bre", "bos", "cat", "che", "cha", "cos", "cre", "cze", "ces", "chu", "chv", "wel", "cym", "dan", "ger", "deu", "div", "dzo", "ewe", "gre", "ell", "eng", "epo", "spa", "est", "baq", "eus", "per", "fas", "ful", "fin", "fij", "fao", "fre", "fra", "fry", "gle", "gla", "glg", "grn", "guj", "glv", "hau", "heb", "hin", "hmo", "hrv", "hat", "hun", "arm", "hye", "her", "ina", "ind", "ile", "ibo", "iii", "ipk", "ido", "ice", "isl", "ita", "iku", "jpn", "jav", "geo", "kat", "kon", "kik", "kua", "kaz", "kal", "khm", "kan", "kor", "kau", "kas", "kur", "kom", "cor", "kir", "lat", "ltz", "lug", "lim", "lin", "lao", "lit", "lub", "lav", "mlg", "mah", "mao", "mri", "mac", "mkd", "mal", "mon", "mol", "mar", "may", "msa", "mlt", "bur", "mya", "nau", "nob", "nde", "nep", "ndo", "dut", "nld", "nno", "nor", "nbl", "nav", "nya", "oci", "oji", "orm", "ori", "oss", "pan", "pli", "pol", "pus", "por", "que", "roh", "run", "rum", "ron", "rus", "kin", "san", "srd", "snd", "sme", "sag", "slo", "sin", "slk", "slv", "smo", "sna", "som", "alb", "sqi", "srp", "ssw", "sot", "sun", "swe", "swa", "tam", "tel", "tgk", "tha", "tir", "tuk", "tgl", "tsn", "ton", "tur", "tso", "tat", "twi", "tah", "uig", "ukr", "urd", "uzb", "ven", "vie", "vol", "wln", "wol", "xho", "yid", "yor", "zha", "chi", "zho", "zul"];
-
-  var SelectionTiming = /* @__PURE__ */(SelectionTiming2 => {
-    SelectionTiming2["NEVER"] = "never";
-    SelectionTiming2["ONCE"] = "once";
-    SelectionTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
-    return SelectionTiming2;
-  })(SelectionTiming || {});
-  var RandomizationTiming = /* @__PURE__ */(RandomizationTiming2 => {
-    RandomizationTiming2["NEVER"] = "never";
-    RandomizationTiming2["ONCE"] = "once";
-    RandomizationTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
-    return RandomizationTiming2;
-  })(RandomizationTiming || {});
-  class SequencingControls extends BaseCMI {
-    /**
-     * Constructor for SequencingControls
-     */
-    constructor() {
-      super("sequencingControls");
-      // Sequencing Control Modes
-      this._enabled = true;
-      this._choice = true;
-      this._choiceExit = true;
-      // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
-      this._flow = true;
-      this._forwardOnly = false;
-      this._useCurrentAttemptObjectiveInfo = true;
-      this._useCurrentAttemptProgressInfo = true;
-      // Constrain Choice Controls
-      this._preventActivation = false;
-      this._constrainChoice = false;
-      // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
-      this._stopForwardTraversal = false;
-      // Rollup Controls
-      this._rollupObjectiveSatisfied = true;
-      this._rollupProgressCompletion = true;
-      this._objectiveMeasureWeight = 1;
-      // Selection Controls
-      this._selectionTiming = "never" /* NEVER */;
-      this._selectCount = null;
-      this._selectionCountStatus = false;
-      this._randomizeChildren = false;
-      // Randomization Controls
-      this._randomizationTiming = "never" /* NEVER */;
-      this._reorderChildren = false;
-      // Auto-completion/satisfaction controls
-      this._completionSetByContent = false;
-      this._objectiveSetByContent = false;
-      // Delivery Controls
-      this._tracked = true;
-    }
-    /**
-     * Reset the sequencing controls to their default values
-     */
-    reset() {
-      this._initialized = false;
-      this._enabled = true;
-      this._choice = true;
-      this._choiceExit = true;
-      this._flow = true;
-      this._forwardOnly = false;
-      this._useCurrentAttemptObjectiveInfo = true;
-      this._useCurrentAttemptProgressInfo = true;
-      this._preventActivation = false;
-      this._constrainChoice = false;
-      this._stopForwardTraversal = false;
-      this._rollupObjectiveSatisfied = true;
-      this._rollupProgressCompletion = true;
-      this._objectiveMeasureWeight = 1;
-      this._selectionTiming = "never" /* NEVER */;
-      this._selectCount = null;
-      this._selectionCountStatus = false;
-      this._randomizeChildren = false;
-      this._randomizationTiming = "never" /* NEVER */;
-      this._reorderChildren = false;
-      this._completionSetByContent = false;
-      this._objectiveSetByContent = false;
-      this._tracked = true;
-    }
-    /**
-     * Getter for enabled
-     * @return {boolean}
-     */
-    get enabled() {
-      return this._enabled;
-    }
-    /**
-     * Setter for enabled
-     * @param {boolean} enabled
-     */
-    set enabled(enabled) {
-      this._enabled = enabled;
-    }
-    /**
-     * Getter for choice
-     * @return {boolean}
-     */
-    get choice() {
-      return this._choice;
-    }
-    /**
-     * Setter for choice
-     * @param {boolean} choice
-     */
-    set choice(choice) {
-      this._choice = choice;
-    }
-    /**
-     * Getter for choiceExit
-     * @return {boolean}
-     */
-    get choiceExit() {
-      return this._choiceExit;
-    }
-    /**
-     * Setter for choiceExit
-     * @param {boolean} choiceExit
-     */
-    set choiceExit(choiceExit) {
-      this._choiceExit = choiceExit;
-    }
-    /**
-     * Getter for flow
-     * @return {boolean}
-     */
-    get flow() {
-      return this._flow;
-    }
-    /**
-     * Setter for flow
-     * @param {boolean} flow
-     */
-    set flow(flow) {
-      this._flow = flow;
-    }
-    /**
-     * Getter for forwardOnly
-     * @return {boolean}
-     */
-    get forwardOnly() {
-      return this._forwardOnly;
-    }
-    /**
-     * Setter for forwardOnly
-     * @param {boolean} forwardOnly
-     */
-    set forwardOnly(forwardOnly) {
-      this._forwardOnly = forwardOnly;
-    }
-    /**
-     * Getter for useCurrentAttemptObjectiveInfo
-     * @return {boolean}
-     */
-    get useCurrentAttemptObjectiveInfo() {
-      return this._useCurrentAttemptObjectiveInfo;
-    }
-    /**
-     * Setter for useCurrentAttemptObjectiveInfo
-     * @param {boolean} useCurrentAttemptObjectiveInfo
-     */
-    set useCurrentAttemptObjectiveInfo(useCurrentAttemptObjectiveInfo) {
-      this._useCurrentAttemptObjectiveInfo = useCurrentAttemptObjectiveInfo;
-    }
-    /**
-     * Getter for useCurrentAttemptProgressInfo
-     * @return {boolean}
-     */
-    get useCurrentAttemptProgressInfo() {
-      return this._useCurrentAttemptProgressInfo;
-    }
-    /**
-     * Setter for useCurrentAttemptProgressInfo
-     * @param {boolean} useCurrentAttemptProgressInfo
-     */
-    set useCurrentAttemptProgressInfo(useCurrentAttemptProgressInfo) {
-      this._useCurrentAttemptProgressInfo = useCurrentAttemptProgressInfo;
-    }
-    /**
-     * Getter for preventActivation
-     * @return {boolean}
-     */
-    get preventActivation() {
-      return this._preventActivation;
-    }
-    /**
-     * Setter for preventActivation
-     * @param {boolean} preventActivation
-     */
-    set preventActivation(preventActivation) {
-      this._preventActivation = preventActivation;
-    }
-    /**
-     * Getter for constrainChoice
-     * @return {boolean}
-     */
-    get constrainChoice() {
-      return this._constrainChoice;
-    }
-    /**
-     * Setter for constrainChoice
-     * @param {boolean} constrainChoice
-     */
-    set constrainChoice(constrainChoice) {
-      this._constrainChoice = constrainChoice;
-    }
-    /**
-     * Getter for stopForwardTraversal
-     * @return {boolean}
-     */
-    get stopForwardTraversal() {
-      return this._stopForwardTraversal;
-    }
-    /**
-     * Setter for stopForwardTraversal
-     * @param {boolean} stopForwardTraversal
-     */
-    set stopForwardTraversal(stopForwardTraversal) {
-      this._stopForwardTraversal = stopForwardTraversal;
-    }
-    /**
-     * Getter for rollupObjectiveSatisfied
-     * @return {boolean}
-     */
-    get rollupObjectiveSatisfied() {
-      return this._rollupObjectiveSatisfied;
-    }
-    /**
-     * Setter for rollupObjectiveSatisfied
-     * @param {boolean} rollupObjectiveSatisfied
-     */
-    set rollupObjectiveSatisfied(rollupObjectiveSatisfied) {
-      this._rollupObjectiveSatisfied = rollupObjectiveSatisfied;
-    }
-    /**
-     * Getter for rollupProgressCompletion
-     * @return {boolean}
-     */
-    get rollupProgressCompletion() {
-      return this._rollupProgressCompletion;
-    }
-    /**
-     * Setter for rollupProgressCompletion
-     * @param {boolean} rollupProgressCompletion
-     */
-    set rollupProgressCompletion(rollupProgressCompletion) {
-      this._rollupProgressCompletion = rollupProgressCompletion;
-    }
-    /**
-     * Getter for objectiveMeasureWeight
-     * @return {number}
-     */
-    get objectiveMeasureWeight() {
-      return this._objectiveMeasureWeight;
-    }
-    /**
-     * Setter for objectiveMeasureWeight
-     * @param {number} objectiveMeasureWeight
-     */
-    set objectiveMeasureWeight(objectiveMeasureWeight) {
-      if (objectiveMeasureWeight >= 0) {
-        this._objectiveMeasureWeight = objectiveMeasureWeight;
-      }
-    }
-    /**
-     * Check if choice navigation is allowed
-     * @return {boolean} - True if choice navigation is allowed, false otherwise
-     */
-    isChoiceNavigationAllowed() {
-      return this._enabled && !this._constrainChoice;
-    }
-    /**
-     * Check if flow navigation is allowed
-     * @return {boolean} - True if flow navigation is allowed, false otherwise
-     */
-    isFlowNavigationAllowed() {
-      return this._enabled && this._flow;
-    }
-    /**
-     * Check if forward navigation is allowed
-     * @return {boolean} - True if forward navigation is allowed, false otherwise
-     */
-    isForwardNavigationAllowed() {
-      return this._enabled && this._flow;
-    }
-    /**
-     * Check if backward navigation is allowed
-     * @return {boolean} - True if backward navigation is allowed, false otherwise
-     */
-    isBackwardNavigationAllowed() {
-      return this._enabled && this._flow && !this._forwardOnly;
-    }
-    /**
-     * Getter for selectionTiming
-     * @return {SelectionTiming}
-     */
-    get selectionTiming() {
-      return this._selectionTiming;
-    }
-    /**
-     * Setter for selectionTiming
-     * @param {SelectionTiming} selectionTiming
-     */
-    set selectionTiming(selectionTiming) {
-      this._selectionTiming = selectionTiming;
-    }
-    /**
-     * Getter for selectCount
-     * @return {number | null}
-     */
-    get selectCount() {
-      return this._selectCount;
-    }
-    /**
-     * Setter for selectCount
-     * @param {number | null} selectCount
-     */
-    set selectCount(selectCount) {
-      if (selectCount === null || selectCount > 0) {
-        this._selectCount = selectCount;
-      }
-    }
-    /**
-     * Getter for selectionCountStatus
-     * @return {boolean}
-     */
-    get selectionCountStatus() {
-      return this._selectionCountStatus;
-    }
-    /**
-     * Setter for selectionCountStatus
-     * @param {boolean} selectionCountStatus
-     */
-    set selectionCountStatus(selectionCountStatus) {
-      this._selectionCountStatus = selectionCountStatus;
-    }
-    /**
-     * Getter for randomizeChildren
-     * @return {boolean}
-     */
-    get randomizeChildren() {
-      return this._randomizeChildren;
-    }
-    /**
-     * Setter for randomizeChildren
-     * @param {boolean} randomizeChildren
-     */
-    set randomizeChildren(randomizeChildren) {
-      this._randomizeChildren = randomizeChildren;
-    }
-    /**
-     * Getter for randomizationTiming
-     * @return {RandomizationTiming}
-     */
-    get randomizationTiming() {
-      return this._randomizationTiming;
-    }
-    /**
-     * Setter for randomizationTiming
-     * @param {RandomizationTiming} randomizationTiming
-     */
-    set randomizationTiming(randomizationTiming) {
-      this._randomizationTiming = randomizationTiming;
-    }
-    /**
-     * Getter for reorderChildren
-     * @return {boolean}
-     */
-    get reorderChildren() {
-      return this._reorderChildren;
-    }
-    /**
-     * Setter for reorderChildren
-     * @param {boolean} reorderChildren
-     */
-    set reorderChildren(reorderChildren) {
-      this._reorderChildren = reorderChildren;
-    }
-    /**
-     * Getter for completionSetByContent
-     * @return {boolean}
-     */
-    get completionSetByContent() {
-      return this._completionSetByContent;
-    }
-    /**
-     * Setter for completionSetByContent
-     * @param {boolean} completionSetByContent
-     */
-    set completionSetByContent(completionSetByContent) {
-      this._completionSetByContent = completionSetByContent;
-    }
-    /**
-     * Getter for objectiveSetByContent
-     * @return {boolean}
-     */
-    get objectiveSetByContent() {
-      return this._objectiveSetByContent;
-    }
-    /**
-     * Setter for objectiveSetByContent
-     * @param {boolean} objectiveSetByContent
-     */
-    set objectiveSetByContent(objectiveSetByContent) {
-      this._objectiveSetByContent = objectiveSetByContent;
-    }
-    /**
-     * Getter for tracked
-     * @return {boolean}
-     */
-    get tracked() {
-      return this._tracked;
-    }
-    /**
-     * Setter for tracked
-     * @param {boolean} tracked
-     */
-    set tracked(tracked) {
-      this._tracked = tracked;
-    }
-    /**
-     * toJSON for SequencingControls
-     * @return {object}
-     */
-    toJSON() {
-      this.jsonString = true;
-      const result = {
-        enabled: this._enabled,
-        choice: this._choice,
-        choiceExit: this._choiceExit,
-        flow: this._flow,
-        forwardOnly: this._forwardOnly,
-        useCurrentAttemptObjectiveInfo: this._useCurrentAttemptObjectiveInfo,
-        useCurrentAttemptProgressInfo: this._useCurrentAttemptProgressInfo,
-        preventActivation: this._preventActivation,
-        constrainChoice: this._constrainChoice,
-        stopForwardTraversal: this._stopForwardTraversal,
-        rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
-        rollupProgressCompletion: this._rollupProgressCompletion,
-        objectiveMeasureWeight: this._objectiveMeasureWeight,
-        selectionTiming: this._selectionTiming,
-        selectCount: this._selectCount,
-        selectionCountStatus: this._selectionCountStatus,
-        randomizeChildren: this._randomizeChildren,
-        randomizationTiming: this._randomizationTiming,
-        reorderChildren: this._reorderChildren,
-        completionSetByContent: this._completionSetByContent,
-        objectiveSetByContent: this._objectiveSetByContent,
-        tracked: this._tracked
-      };
-      this.jsonString = false;
-      return result;
-    }
-  }
+  const HIDE_LMS_UI_TOKENS = ["continue", "previous", "exit", "exitAll", "abandon", "abandonAll", "suspendAll"];
 
   class ActivityObjective {
     constructor(id) {
@@ -12380,81 +12378,283 @@ ${stackTrace}`);
     }
   }
 
-  class RollupProcess {
-    constructor(eventCallback) {
-      this.rollupStateLog = [];
-      this.eventCallback = null;
-      this.eventCallback = eventCallback || null;
+  class RollupChildFilter {
+    /**
+     * Check Child For Rollup Subprocess
+     * Determines if a child activity contributes to rollup based on its individual consideration settings
+     * This implements the full SCORM 2004 RB.1.4.2 specification
+     *
+     * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+     * @param child - The child activity to check
+     * @param rollupType - Type of rollup ("measure", "objective", "progress")
+     * @param rollupAction - Specific rollup action (satisfied, notSatisfied, completed, incomplete)
+     * @returns True if child contributes to rollup
+     */
+    checkChildForRollupSubprocess(child, rollupType, rollupAction) {
+      if (child.sequencingControls.tracked === false) {
+        return false;
+      }
+      let included = false;
+      if (rollupType === "measure" || rollupType === "objective") {
+        if (!child.sequencingControls.rollupObjectiveSatisfied) {
+          return false;
+        }
+        included = true;
+        const requiredForSatisfied = child.requiredForSatisfied;
+        const requiredForNotSatisfied = child.requiredForNotSatisfied;
+        if (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSuspended" || rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSuspended") {
+          if (!child.attemptProgressStatus || child.attemptCount > 0 && child.isSuspended) {
+            included = false;
+          }
+        } else if (rollupAction === "satisfied" && requiredForSatisfied === "ifAttempted" || rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifAttempted") {
+          if (!child.attemptProgressStatus || child.attemptCount === 0) {
+            included = false;
+          }
+        } else if (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSkipped" || rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSkipped") {
+          if (child.wasSkipped) {
+            included = false;
+          }
+        }
+      }
+      if (rollupType === "progress") {
+        if (!child.sequencingControls.rollupProgressCompletion) {
+          return false;
+        }
+        included = true;
+        const requiredForCompleted = child.requiredForCompleted;
+        const requiredForIncomplete = child.requiredForIncomplete;
+        if (rollupAction === "completed" && requiredForCompleted === "ifNotSuspended" || rollupAction === "incomplete" && requiredForIncomplete === "ifNotSuspended") {
+          if (!child.attemptProgressStatus || child.attemptCount > 0 && child.isSuspended) {
+            included = false;
+          }
+        } else if (rollupAction === "completed" && requiredForCompleted === "ifAttempted" || rollupAction === "incomplete" && requiredForIncomplete === "ifAttempted") {
+          if (!child.attemptProgressStatus || child.attemptCount === 0) {
+            included = false;
+          }
+        } else if (rollupAction === "completed" && requiredForCompleted === "ifNotSkipped" || rollupAction === "incomplete" && requiredForIncomplete === "ifNotSkipped") {
+          if (child.wasSkipped) {
+            included = false;
+          }
+        }
+      }
+      if (included && !child.isAvailable) {
+        return false;
+      }
+      return included;
     }
     /**
-     * Overall Rollup Process
-     * Performs rollup from a given activity up through its ancestors
-     * OPTIMIZATION: Stops propagating rollup when status stops changing (SCORM 2004 4.6.1)
-     * @spec SN Book: RB.1.5 (Overall Rollup Process)
-     * @param {Activity} activity - The activity to start rollup from
-     * @return {Activity[]} - Array of activities that had status changes
+     * Filter children based on rollup type and mode
+     *
+     * @param children - Child activities to filter
+     * @param rollupType - Type of rollup ("objective" | "progress")
+     * @param mode - Rollup action mode
+     * @param considerations - Parent-level rollup considerations config
+     * @returns Filtered array of children that should contribute to rollup
      */
-    overallRollupProcess(activity) {
-      const affectedActivities = [];
-      let currentActivity = activity.parent;
-      let onlyDurationRollup = false;
-      let isFirst = true;
-      while (currentActivity) {
-        if (currentActivity.children.length > 0) {
-          this.durationRollupProcess(currentActivity);
-        }
-        if (!onlyDurationRollup) {
-          const beforeStatus = currentActivity.captureRollupStatus();
-          if (currentActivity.sequencingControls.rollupObjectiveSatisfied || currentActivity.sequencingControls.rollupProgressCompletion) {
-            if (currentActivity.children.length > 0) {
-              this.measureRollupProcess(currentActivity);
-              this.completionMeasureRollupProcess(currentActivity);
-            }
-            if (currentActivity.sequencingControls.rollupObjectiveSatisfied) {
-              this.objectiveRollupProcess(currentActivity);
-            }
-            if (currentActivity.sequencingControls.rollupProgressCompletion) {
-              this.activityProgressRollupProcess(currentActivity);
-            }
-          }
-          const afterStatus = currentActivity.captureRollupStatus();
-          if (!isFirst) {
-            const changed = !Activity.compareRollupStatus(beforeStatus, afterStatus);
-            if (!changed) {
-              this.eventCallback?.("rollup_optimization_activated", {
-                activityId: currentActivity.id,
-                depth: affectedActivities.length
-              });
-              onlyDurationRollup = true;
-            }
-          }
-          if (isFirst || !Activity.compareRollupStatus(beforeStatus, afterStatus)) {
-            affectedActivities.push(currentActivity);
-          }
-        }
-        currentActivity = currentActivity.parent;
-        isFirst = false;
+    filterChildrenForRequirement(children, rollupType, mode, considerations) {
+      return children.filter(child => this.shouldIncludeChildForRollup(child, rollupType, mode, considerations));
+    }
+    /**
+     * Check if a specific child should be included in rollup
+     *
+     * @param child - Child activity to check
+     * @param rollupType - Type of rollup ("objective" | "progress")
+     * @param mode - Rollup action mode
+     * @param considerations - Parent-level rollup considerations config
+     * @returns True if child should be included
+     */
+    shouldIncludeChildForRollup(child, rollupType, mode, considerations) {
+      if (!this.checkChildForRollupSubprocess(child, rollupType, mode)) {
+        return false;
       }
-      return affectedActivities;
+      if (rollupType === "objective" && !considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
+        return false;
+      }
+      return true;
+    }
+    /**
+     * Check if child is satisfied for rollup
+     * Evaluates objective satisfaction status and success status
+     *
+     * @param child - Child activity to check
+     * @returns True if child is considered satisfied
+     */
+    isChildSatisfiedForRollup(child) {
+      if (child.objectiveSatisfiedStatus === true) {
+        return true;
+      }
+      if (child.objectiveSatisfiedStatus === false) {
+        return false;
+      }
+      if (child.successStatus === SuccessStatus.PASSED) {
+        return true;
+      }
+      if (child.successStatus === SuccessStatus.FAILED) {
+        return false;
+      }
+      return false;
+    }
+    /**
+     * Check if child is completed for rollup
+     * Evaluates completion status
+     *
+     * @param child - Child activity to check
+     * @returns True if child is considered completed
+     */
+    isChildCompletedForRollup(child) {
+      if (child.completionStatus === "completed" || child.isCompleted) {
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Get trackable children for rollup operations
+     * Filters out activities with tracked=false from rollup calculations
+     *
+     * @param activity - The parent activity
+     * @returns Array of trackable children
+     */
+    getTrackableChildren(activity) {
+      return activity.children.filter(child => child.sequencingControls.tracked !== false);
+    }
+  }
+
+  class RollupRuleEvaluator {
+    /**
+     * Create a new RollupRuleEvaluator
+     *
+     * @param childFilter - RollupChildFilter instance for filtering children
+     */
+    constructor(childFilter) {
+      this.childFilter = childFilter;
+    }
+    /**
+     * Evaluate a rollup rule
+     * Determines if a rollup rule applies to an activity based on its children
+     *
+     * @spec SN Book: RB.1.4 (Rollup Rule Check)
+     * @param activity - The parent activity
+     * @param rule - The rule to evaluate
+     * @returns True if the rule applies
+     */
+    evaluateRollupRule(activity, rule) {
+      const children = activity.getAvailableChildren();
+      let contributingChildren = 0;
+      let satisfiedCount = 0;
+      for (const child of children) {
+        let isIncluded = false;
+        switch (rule.action) {
+          case RollupActionType.SATISFIED:
+            isIncluded = this.childFilter.checkChildForRollupSubprocess(child, "objective", "satisfied");
+            break;
+          case RollupActionType.NOT_SATISFIED:
+            isIncluded = this.childFilter.checkChildForRollupSubprocess(child, "objective", "notSatisfied");
+            break;
+          case RollupActionType.COMPLETED:
+            isIncluded = this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed");
+            break;
+          case RollupActionType.INCOMPLETE:
+            isIncluded = this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete");
+            break;
+        }
+        if (isIncluded) {
+          contributingChildren++;
+          if (this.evaluateRollupConditionsSubprocess(child, rule)) {
+            satisfiedCount++;
+          }
+        }
+      }
+      if (rule.consideration === RollupConsiderationType.ALL) {
+        return contributingChildren > 0 && satisfiedCount === contributingChildren;
+      } else if (rule.minimumCount !== null) {
+        return satisfiedCount >= rule.minimumCount;
+      } else if (rule.minimumPercent !== null) {
+        const percent = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
+        return percent >= rule.minimumPercent;
+      }
+      return contributingChildren > 0 && satisfiedCount === contributingChildren;
+    }
+    /**
+     * Evaluate Rollup Conditions Subprocess
+     * Evaluates if rollup rule conditions are met for a given activity
+     *
+     * @spec SN Book: RB.1.4.1 (Evaluate Rollup Conditions Subprocess)
+     * @param child - The child activity to evaluate
+     * @param rule - The rollup rule containing conditions to evaluate
+     * @returns True if all conditions are met, false otherwise
+     */
+    evaluateRollupConditionsSubprocess(child, rule) {
+      if (rule.conditions.length === 0) {
+        return true;
+      }
+      switch (rule.consideration) {
+        case RollupConsiderationType.ALL:
+          return rule.conditions.every(condition => condition.evaluate(child));
+        case RollupConsiderationType.ANY:
+          return rule.conditions.some(condition => condition.evaluate(child));
+        case RollupConsiderationType.NONE:
+          return !rule.conditions.some(condition => condition.evaluate(child));
+        case RollupConsiderationType.AT_LEAST_COUNT:
+        case RollupConsiderationType.AT_LEAST_PERCENT:
+          return rule.conditions.every(condition => condition.evaluate(child));
+        default:
+          return false;
+      }
+    }
+    /**
+     * Evaluate rules for a specific action type
+     * Finds and evaluates all rules matching the specified action
+     *
+     * @param activity - The parent activity
+     * @param rules - Array of rollup rules to evaluate
+     * @param actionType - The action type to filter by
+     * @returns True if any matching rule applies, false if none apply, null if no matching rules
+     */
+    evaluateRulesForAction(activity, rules, actionType) {
+      const matchingRules = rules.filter(rule => rule.action === actionType);
+      if (matchingRules.length === 0) {
+        return null;
+      }
+      for (const rule of matchingRules) {
+        if (this.evaluateRollupRule(activity, rule)) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  class MeasureRollupProcessor {
+    /**
+     * Create a new MeasureRollupProcessor
+     *
+     * @param childFilter - RollupChildFilter instance for filtering children
+     * @param eventCallback - Optional callback for firing events
+     */
+    constructor(childFilter, eventCallback) {
+      this.childFilter = childFilter;
+      this.eventCallback = eventCallback || null;
     }
     /**
      * Measure Rollup Process
      * Rolls up objective measure (score) from children to parent
-     * INTEGRATION: Uses complex weighted measure calculation
+     * Uses complex weighted measure calculation
+     *
      * @spec SN Book: RB.1.1 (Measure Rollup Process)
-     * @param {Activity} activity - The parent activity
+     * @param activity - The parent activity
+     * @returns Array of identified activity clusters (for cross-cluster processing)
      */
     measureRollupProcess(activity) {
       if (!activity.sequencingControls.rollupObjectiveSatisfied) {
-        return;
+        return [];
       }
       const children = activity.getAvailableChildren();
       if (children.length === 0) {
-        return;
+        return [];
       }
       const rollupConsiderations = activity.rollupConsiderations;
       const contributingChildren = children.filter(child => {
-        if (!this.checkChildForRollupSubprocess(child, "measure")) {
+        if (!this.childFilter.checkChildForRollupSubprocess(child, "measure")) {
           return false;
         }
         if (!child.objectiveMeasureStatus || child.objectiveNormalizedMeasure === null) {
@@ -12467,129 +12667,22 @@ ${stackTrace}`);
       });
       if (contributingChildren.length === 0) {
         activity.objectiveMeasureStatus = false;
-        return;
+        return [];
       }
       const complexWeightedMeasure = this.calculateComplexWeightedMeasure(activity, contributingChildren, {
         enableThresholdBias: false
       });
       activity.objectiveNormalizedMeasure = complexWeightedMeasure;
       activity.objectiveMeasureStatus = true;
-      const clusters = this.identifyActivityClusters(contributingChildren);
-      if (clusters.length > 1) {
-        this.processCrossClusterDependencies(activity, clusters);
-      }
-    }
-    /**
-     * Objective Rollup Process
-     * Determines objective satisfaction status using rules, measure, or default
-     * @spec SN Book: RB.1.2 (Objective Rollup Process)
-     * @param {Activity} activity - The parent activity
-     */
-    objectiveRollupProcess(activity) {
-      const rollupRules = activity.rollupRules;
-      const ruleResult = this.objectiveRollupUsingRules(activity, rollupRules.rules);
-      if (ruleResult !== null) {
-        activity.objectiveSatisfiedStatus = ruleResult;
-        this.syncPrimaryObjectiveFromActivity(activity);
-        return;
-      }
-      const measureResult = this.objectiveRollupUsingMeasure(activity);
-      if (measureResult !== null) {
-        activity.objectiveSatisfiedStatus = measureResult;
-        this.syncPrimaryObjectiveFromActivity(activity);
-        return;
-      }
-      activity.objectiveSatisfiedStatus = this.objectiveRollupUsingDefault(activity);
-      this.syncPrimaryObjectiveFromActivity(activity);
-    }
-    /**
-     * Sync primary objective status from activity properties
-     * Ensures the primary objective reflects the activity's rollup-derived status
-     */
-    syncPrimaryObjectiveFromActivity(activity) {
-      if (activity.primaryObjective) {
-        activity.primaryObjective.satisfiedStatus = activity.objectiveSatisfiedStatus;
-        activity.primaryObjective.satisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
-        activity.primaryObjective.measureStatus = activity.objectiveMeasureStatus;
-        activity.primaryObjective.normalizedMeasure = activity.objectiveNormalizedMeasure;
-        activity.primaryObjective.progressMeasure = activity.progressMeasure;
-        activity.primaryObjective.progressMeasureStatus = activity.progressMeasureStatus;
-        activity.primaryObjective.completionStatus = activity.completionStatus;
-      }
-    }
-    /**
-     * Objective Rollup Using Rules
-     * @spec SN Book: RB.1.2.b (Objective Rollup Using Rules)
-     * @param {Activity} activity - The parent activity
-     * @param {RollupRule[]} rules - The rollup rules to evaluate
-     * @return {boolean | null} - True if satisfied, false if not, null if no rule applies
-     */
-    objectiveRollupUsingRules(activity, rules) {
-      const satisfiedRules = rules.filter(rule => rule.action === RollupActionType.SATISFIED);
-      const notSatisfiedRules = rules.filter(rule => rule.action === RollupActionType.NOT_SATISFIED);
-      for (const rule of satisfiedRules) {
-        if (this.evaluateRollupRule(activity, rule)) {
-          return true;
-        }
-      }
-      for (const rule of notSatisfiedRules) {
-        if (this.evaluateRollupRule(activity, rule)) {
-          return false;
-        }
-      }
-      return null;
-    }
-    /**
-     * Objective Rollup Using Measure
-     * @spec SN Book: RB.1.2.a (Objective Rollup Using Measure)
-     * @param {Activity} activity - The parent activity
-     * @return {boolean | null} - True if satisfied, false if not, null if no measure
-     */
-    objectiveRollupUsingMeasure(activity) {
-      if (!activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
-        return null;
-      }
-      return activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
-    }
-    /**
-     * Objective Rollup Using Default
-     * For default rollup (no explicit rules), a child is included only if it
-     * passes BOTH requiredForSatisfied AND requiredForNotSatisfied considerations.
-     * This ensures symmetric exclusion: setting either consideration excludes
-     * the child from the entire objective rollup evaluation.
-     * @spec SN Book: RB.1.2.c (Objective Rollup Using Default)
-     * @param {Activity} activity - The parent activity
-     * @return {boolean} - True if all tracked children are satisfied
-     */
-    objectiveRollupUsingDefault(activity) {
-      const children = activity.getAvailableChildren();
-      if (children.length === 0) {
-        return false;
-      }
-      const considerations = activity.rollupConsiderations;
-      const contributors = children.filter(child => {
-        if (!this.checkChildForRollupSubprocess(child, "objective", "satisfied") || !this.checkChildForRollupSubprocess(child, "objective", "notSatisfied")) {
-          return false;
-        }
-        if (!considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-          return false;
-        }
-        return true;
-      });
-      if (contributors.length === 0) {
-        return false;
-      }
-      if (contributors.some(child => !this.isChildSatisfiedForRollup(child))) {
-        return false;
-      }
-      return contributors.every(child => this.isChildSatisfiedForRollup(child));
+      return this.identifyActivityClusters(contributingChildren);
     }
     /**
      * Completion Measure Rollup Process
      * Rolls up attemptCompletionAmount from children to parent using weighted averaging
      * 4th Edition Addition: Supports completion measure rollup for progress tracking
+     *
      * @spec SN Book: RB.1.1.b (Completion Measure Rollup Process)
-     * @param {Activity} activity - The parent activity
+     * @param activity - The parent activity
      */
     completionMeasureRollupProcess(activity) {
       const children = activity.getAvailableChildren();
@@ -12615,36 +12708,251 @@ ${stackTrace}`);
       }
     }
     /**
-     * Activity Progress Rollup Using Measure
-     * Determines completion status using attemptCompletionAmount threshold comparison
-     * 4th Edition Addition: Measure-based completion determination
-     * @spec SN Book: RB.1.3.a (Activity Progress Rollup Using Measure)
-     * @param {Activity} activity - The activity to evaluate
-     * @return {boolean} - True if measure-based evaluation was applied, false otherwise
+     * Calculate Complex Weighted Measure
+     * Handles complex objective weighting scenarios with dependency chains
+     * Supports weighted rollup calculations with various adjustment factors
+     *
+     * @spec Priority 5 Gap Implementation
+     * @param activity - The parent activity
+     * @param children - Child activities to weight
+     * @param options - Configuration options for the calculation
+     * @returns Calculated weighted measure
      */
-    activityProgressRollupUsingMeasure(activity) {
-      if (!activity.completedByMeasure) {
+    calculateComplexWeightedMeasure(activity, children, options) {
+      let totalWeightedMeasure = 0;
+      let totalWeight = 0;
+      const weightingLog = [];
+      const enableBias = options?.enableThresholdBias ?? true;
+      for (const child of children) {
+        if (!this.childFilter.checkChildForRollupSubprocess(child, "measure")) {
+          continue;
+        }
+        if (child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null) {
+          const baseWeight = child.sequencingControls.objectiveMeasureWeight;
+          const adjustedWeight = this.calculateAdjustedWeight(child, baseWeight, enableBias);
+          const contribution = child.objectiveNormalizedMeasure * adjustedWeight;
+          totalWeightedMeasure += contribution;
+          totalWeight += adjustedWeight;
+          weightingLog.push({
+            childId: child.id,
+            measure: child.objectiveNormalizedMeasure,
+            weight: adjustedWeight
+          });
+        }
+      }
+      this.eventCallback?.("complex_weighting_calculated", {
+        activityId: activity.id,
+        weightingDetails: weightingLog,
+        totalWeight,
+        totalWeightedMeasure,
+        result: totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0
+      });
+      return totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0;
+    }
+    /**
+     * Calculate adjusted weight for complex weighting scenarios
+     * Applies various adjustment factors based on activity state
+     *
+     * @param child - Child activity to calculate weight for
+     * @param baseWeight - Base weight from sequencing controls
+     * @param enableBias - Whether to apply threshold bias adjustments
+     * @returns Adjusted weight value
+     */
+    calculateAdjustedWeight(child, baseWeight) {
+      let enableBias = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      let adjustedWeight = baseWeight;
+      if (child.completionStatus !== "completed") {
+        adjustedWeight *= 0.8;
+      }
+      if (child.attemptCount > 1) {
+        const attemptPenalty = Math.max(0.5, 1 - (child.attemptCount - 1) * 0.1);
+        adjustedWeight *= attemptPenalty;
+      }
+      if (child.hasAttemptLimitExceeded()) {
+        adjustedWeight *= 0.6;
+      }
+      if (enableBias && child.objectiveMeasureStatus) {
+        const threshold = child.scaledPassingScore ?? 0.7;
+        if (child.objectiveNormalizedMeasure >= threshold) {
+          adjustedWeight *= 1.05;
+        } else {
+          adjustedWeight *= 0.95;
+        }
+      }
+      return Math.max(0, adjustedWeight);
+    }
+    /**
+     * Identify Activity Clusters
+     * Identifies clusters among child activities for cross-cluster dependency processing
+     *
+     * @param children - Child activities to analyze
+     * @returns Array of identified clusters
+     */
+    identifyActivityClusters(children) {
+      const clusters = [];
+      for (const child of children) {
+        if (child.children.length > 0 && child.sequencingControls.flow) {
+          clusters.push(child);
+        }
+      }
+      return clusters;
+    }
+  }
+
+  class ObjectiveRollupProcessor {
+    /**
+     * Create a new ObjectiveRollupProcessor
+     *
+     * @param childFilter - RollupChildFilter instance for filtering children
+     * @param ruleEvaluator - RollupRuleEvaluator instance for evaluating rules
+     * @param eventCallback - Optional callback for firing events
+     */
+    constructor(childFilter, ruleEvaluator, eventCallback) {
+      this.childFilter = childFilter;
+      this.ruleEvaluator = ruleEvaluator;
+      this.eventCallback = eventCallback || null;
+    }
+    /**
+     * Objective Rollup Process
+     * Determines objective satisfaction status using rules, measure, or default
+     *
+     * @spec SN Book: RB.1.2 (Objective Rollup Process)
+     * @param activity - The parent activity
+     */
+    objectiveRollupProcess(activity) {
+      const rollupRules = activity.rollupRules;
+      const ruleResult = this.objectiveRollupUsingRules(activity, rollupRules.rules);
+      if (ruleResult !== null) {
+        activity.objectiveSatisfiedStatus = ruleResult;
+        this.syncPrimaryObjectiveFromActivity(activity);
+        return;
+      }
+      const measureResult = this.objectiveRollupUsingMeasure(activity);
+      if (measureResult !== null) {
+        activity.objectiveSatisfiedStatus = measureResult;
+        this.syncPrimaryObjectiveFromActivity(activity);
+        return;
+      }
+      activity.objectiveSatisfiedStatus = this.objectiveRollupUsingDefault(activity);
+      this.syncPrimaryObjectiveFromActivity(activity);
+    }
+    /**
+     * Objective Rollup Using Rules
+     * Evaluates rollup rules to determine objective satisfaction
+     *
+     * @spec SN Book: RB.1.2.b (Objective Rollup Using Rules)
+     * @param activity - The parent activity
+     * @param rules - The rollup rules to evaluate
+     * @returns True if satisfied, false if not, null if no rule applies
+     */
+    objectiveRollupUsingRules(activity, rules) {
+      const satisfiedRules = rules.filter(rule => rule.action === RollupActionType.SATISFIED);
+      const notSatisfiedRules = rules.filter(rule => rule.action === RollupActionType.NOT_SATISFIED);
+      for (const rule of satisfiedRules) {
+        if (this.ruleEvaluator.evaluateRollupRule(activity, rule)) {
+          return true;
+        }
+      }
+      for (const rule of notSatisfiedRules) {
+        if (this.ruleEvaluator.evaluateRollupRule(activity, rule)) {
+          return false;
+        }
+      }
+      return null;
+    }
+    /**
+     * Objective Rollup Using Measure
+     * Determines satisfaction based on objective measure vs passing score
+     *
+     * @spec SN Book: RB.1.2.a (Objective Rollup Using Measure)
+     * @param activity - The parent activity
+     * @returns True if satisfied, false if not, null if no measure
+     */
+    objectiveRollupUsingMeasure(activity) {
+      if (!activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
+        return null;
+      }
+      return activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
+    }
+    /**
+     * Objective Rollup Using Default
+     * For default rollup (no explicit rules), a child is included only if it
+     * passes BOTH requiredForSatisfied AND requiredForNotSatisfied considerations.
+     * This ensures symmetric exclusion: setting either consideration excludes
+     * the child from the entire objective rollup evaluation.
+     *
+     * @spec SN Book: RB.1.2.c (Objective Rollup Using Default)
+     * @param activity - The parent activity
+     * @returns True if all tracked children are satisfied
+     */
+    objectiveRollupUsingDefault(activity) {
+      const children = activity.getAvailableChildren();
+      if (children.length === 0) {
         return false;
       }
-      if (!activity.attemptCompletionAmountStatus) {
-        activity.completionStatus = CompletionStatus.UNKNOWN;
-        this.syncPrimaryObjectiveFromActivity(activity);
+      const considerations = activity.rollupConsiderations;
+      const contributors = children.filter(child => {
+        if (!this.childFilter.checkChildForRollupSubprocess(child, "objective", "satisfied") || !this.childFilter.checkChildForRollupSubprocess(child, "objective", "notSatisfied")) {
+          return false;
+        }
+        if (!considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
+          return false;
+        }
         return true;
+      });
+      if (contributors.length === 0) {
+        return false;
       }
-      if (activity.attemptCompletionAmount >= activity.minProgressMeasure) {
-        activity.completionStatus = CompletionStatus.COMPLETED;
-      } else {
-        activity.completionStatus = CompletionStatus.INCOMPLETE;
+      if (contributors.some(child => !this.childFilter.isChildSatisfiedForRollup(child))) {
+        return false;
       }
-      this.syncPrimaryObjectiveFromActivity(activity);
-      return true;
+      return contributors.every(child => this.childFilter.isChildSatisfiedForRollup(child));
+    }
+    /**
+     * Sync primary objective status from activity properties
+     * Ensures the primary objective reflects the activity's rollup-derived status
+     *
+     * Note: This method is intentionally public as it is used by other rollup
+     * processors (e.g., ProgressRollupProcessor) to synchronize primary objective
+     * state after modifying activity completion status.
+     *
+     * @param activity - The activity to sync
+     */
+    syncPrimaryObjectiveFromActivity(activity) {
+      if (activity.primaryObjective) {
+        activity.primaryObjective.satisfiedStatus = activity.objectiveSatisfiedStatus;
+        activity.primaryObjective.satisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
+        activity.primaryObjective.measureStatus = activity.objectiveMeasureStatus;
+        activity.primaryObjective.normalizedMeasure = activity.objectiveNormalizedMeasure;
+        activity.primaryObjective.progressMeasure = activity.progressMeasure;
+        activity.primaryObjective.progressMeasureStatus = activity.progressMeasureStatus;
+        activity.primaryObjective.completionStatus = activity.completionStatus;
+      }
+    }
+  }
+
+  class ProgressRollupProcessor {
+    /**
+     * Create a new ProgressRollupProcessor
+     *
+     * @param childFilter - RollupChildFilter instance for filtering children
+     * @param ruleEvaluator - RollupRuleEvaluator instance for evaluating rules
+     * @param objectiveProcessor - ObjectiveRollupProcessor for syncing objectives
+     * @param eventCallback - Optional callback for firing events
+     */
+    constructor(childFilter, ruleEvaluator, objectiveProcessor, eventCallback) {
+      this.childFilter = childFilter;
+      this.ruleEvaluator = ruleEvaluator;
+      this.objectiveProcessor = objectiveProcessor;
+      this.eventCallback = eventCallback || null;
     }
     /**
      * Activity Progress Rollup Process
      * Determines activity completion status
-     * MODIFIED: Now tries measure-based rollup first
+     * Tries measure-based rollup first, then rules-based, then default
+     *
      * @spec SN Book: RB.1.3 (Activity Progress Rollup Process)
-     * @param {Activity} activity - The parent activity
+     * @param activity - The parent activity
      */
     activityProgressRollupProcess(activity) {
       if (this.activityProgressRollupUsingMeasure(activity)) {
@@ -12654,41 +12962,79 @@ ${stackTrace}`);
       const completedRules = rollupRules.rules.filter(rule => rule.action === RollupActionType.COMPLETED);
       const incompleteRules = rollupRules.rules.filter(rule => rule.action === RollupActionType.INCOMPLETE);
       for (const rule of completedRules) {
-        if (this.evaluateRollupRule(activity, rule)) {
-          activity.completionStatus = "completed";
-          this.syncPrimaryObjectiveFromActivity(activity);
+        if (this.ruleEvaluator.evaluateRollupRule(activity, rule)) {
+          activity.completionStatus = CompletionStatus.COMPLETED;
+          this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
           return;
         }
       }
       for (const rule of incompleteRules) {
-        if (this.evaluateRollupRule(activity, rule)) {
-          activity.completionStatus = "incomplete";
-          this.syncPrimaryObjectiveFromActivity(activity);
+        if (this.ruleEvaluator.evaluateRollupRule(activity, rule)) {
+          activity.completionStatus = CompletionStatus.INCOMPLETE;
+          this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
           return;
         }
       }
       const children = activity.getAvailableChildren();
-      const contributors = children.filter(child => this.checkChildForRollupSubprocess(child, "progress", "completed") && this.checkChildForRollupSubprocess(child, "progress", "incomplete"));
+      const contributors = children.filter(child => this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete"));
       if (contributors.length === 0) {
-        activity.completionStatus = "incomplete";
-        this.syncPrimaryObjectiveFromActivity(activity);
+        activity.completionStatus = CompletionStatus.INCOMPLETE;
+        this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
         return;
       }
-      if (contributors.some(child => !this.isChildCompletedForRollup(child))) {
-        activity.completionStatus = "incomplete";
-        this.syncPrimaryObjectiveFromActivity(activity);
+      if (contributors.some(child => !this.childFilter.isChildCompletedForRollup(child))) {
+        activity.completionStatus = CompletionStatus.INCOMPLETE;
+        this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
         return;
       }
-      activity.completionStatus = "completed";
-      this.syncPrimaryObjectiveFromActivity(activity);
+      activity.completionStatus = CompletionStatus.COMPLETED;
+      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+    }
+    /**
+     * Activity Progress Rollup Using Measure
+     * Determines completion status using attemptCompletionAmount threshold comparison
+     * 4th Edition Addition: Measure-based completion determination
+     *
+     * @spec SN Book: RB.1.3.a (Activity Progress Rollup Using Measure)
+     * @param activity - The activity to evaluate
+     * @returns True if measure-based evaluation was applied, false otherwise
+     */
+    activityProgressRollupUsingMeasure(activity) {
+      if (!activity.completedByMeasure) {
+        return false;
+      }
+      if (!activity.attemptCompletionAmountStatus) {
+        activity.completionStatus = CompletionStatus.UNKNOWN;
+        this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+        return true;
+      }
+      if (activity.attemptCompletionAmount >= activity.minProgressMeasure) {
+        activity.completionStatus = CompletionStatus.COMPLETED;
+      } else {
+        activity.completionStatus = CompletionStatus.INCOMPLETE;
+      }
+      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+      return true;
+    }
+  }
+
+  class DurationRollupProcessor {
+    /**
+     * Create a new DurationRollupProcessor
+     *
+     * @param eventCallback - Optional callback for firing events
+     */
+    constructor(eventCallback) {
+      this.eventCallback = eventCallback || null;
     }
     /**
      * Duration Rollup Process
      * Aggregates duration information from child activities to parent cluster
      * Called ALWAYS for cluster activities, even when other rollup is skipped due to optimization
+     *
      * @spec SN Book: RB.1.4 (Duration Rollup Process)
      * @spec Reference: Overall Rollup Process [RB.1.5] - duration rollup happens before optimization check
-     * @param {Activity} activity - The parent cluster activity
+     * @param activity - The parent cluster activity
      */
     durationRollupProcess(activity) {
       if (activity.children.length === 0) {
@@ -12767,216 +13113,174 @@ ${stackTrace}`);
         });
       }
     }
+  }
+
+  const MAX_CLUSTER_DEPTH = 10;
+  class CrossClusterProcessor {
     /**
-     * Get trackable children for rollup operations
-     * Filters out activities with tracked=false from rollup calculations
-     * @param {Activity} activity - The parent activity
-     * @return {Activity[]} - Array of trackable children
+     * Create a new CrossClusterProcessor
+     *
+     * @param measureProcessor - MeasureRollupProcessor for measure rollup
+     * @param objectiveProcessor - ObjectiveRollupProcessor for objective rollup
+     * @param progressProcessor - ProgressRollupProcessor for progress rollup
+     * @param eventCallback - Optional callback for firing events
      */
-    getTrackableChildren(activity) {
-      return activity.children.filter(child => child.sequencingControls.tracked !== false);
-    }
-    /**
-     * Check Child For Rollup Subprocess
-     * Determines if a child activity contributes to rollup based on its individual consideration settings
-     * This implements the full SCORM 2004 RB.1.4.2 specification
-     * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
-     * @param {Activity} child - The child activity to check
-     * @param {string} rollupType - Type of rollup ("measure", "objective", "progress")
-     * @param {string} [rollupAction] - Specific rollup action (satisfied, notSatisfied, completed, incomplete)
-     * @return {boolean} - True if child contributes to rollup
-     */
-    checkChildForRollupSubprocess(child, rollupType, rollupAction) {
-      if (child.sequencingControls.tracked === false) {
-        return false;
-      }
-      let included = false;
-      if (rollupType === "measure" || rollupType === "objective") {
-        if (!child.sequencingControls.rollupObjectiveSatisfied) {
-          return false;
-        }
-        included = true;
-        const requiredForSatisfied = child.requiredForSatisfied;
-        const requiredForNotSatisfied = child.requiredForNotSatisfied;
-        if (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSuspended" || rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSuspended") {
-          if (!child.attemptProgressStatus || child.attemptCount > 0 && child.isSuspended) {
-            included = false;
-          }
-        } else if (rollupAction === "satisfied" && requiredForSatisfied === "ifAttempted" || rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifAttempted") {
-          if (!child.attemptProgressStatus || child.attemptCount === 0) {
-            included = false;
-          }
-        } else if (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSkipped" || rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSkipped") {
-          if (child.wasSkipped) {
-            included = false;
-          }
-        }
-      }
-      if (rollupType === "progress") {
-        if (!child.sequencingControls.rollupProgressCompletion) {
-          return false;
-        }
-        included = true;
-        const requiredForCompleted = child.requiredForCompleted;
-        const requiredForIncomplete = child.requiredForIncomplete;
-        if (rollupAction === "completed" && requiredForCompleted === "ifNotSuspended" || rollupAction === "incomplete" && requiredForIncomplete === "ifNotSuspended") {
-          if (!child.attemptProgressStatus || child.attemptCount > 0 && child.isSuspended) {
-            included = false;
-          }
-        } else if (rollupAction === "completed" && requiredForCompleted === "ifAttempted" || rollupAction === "incomplete" && requiredForIncomplete === "ifAttempted") {
-          if (!child.attemptProgressStatus || child.attemptCount === 0) {
-            included = false;
-          }
-        } else if (rollupAction === "completed" && requiredForCompleted === "ifNotSkipped" || rollupAction === "incomplete" && requiredForIncomplete === "ifNotSkipped") {
-          if (child.wasSkipped) {
-            included = false;
-          }
-        }
-      }
-      if (included && !child.isAvailable) {
-        return false;
-      }
-      return included;
-    }
-    filterChildrenForRequirement(children, requirement, rollupType, mode, considerations) {
-      return children.filter(child => this.shouldIncludeChildForRollup(child, requirement, rollupType, mode, considerations));
-    }
-    shouldIncludeChildForRollup(child, requirement, rollupType, mode, considerations) {
-      if (!this.checkChildForRollupSubprocess(child, rollupType, mode)) {
-        return false;
-      }
-      if (rollupType === "objective" && !considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-        return false;
-      }
-      return true;
-    }
-    isChildSatisfiedForRollup(child) {
-      if (child.objectiveSatisfiedStatus === true) {
-        return true;
-      }
-      if (child.objectiveSatisfiedStatus === false) {
-        return false;
-      }
-      if (child.successStatus === SuccessStatus.PASSED) {
-        return true;
-      }
-      if (child.successStatus === SuccessStatus.FAILED) {
-        return false;
-      }
-      return false;
-    }
-    isChildCompletedForRollup(child) {
-      if (child.completionStatus === "completed" || child.isCompleted) {
-        return true;
-      }
-      return false;
+    constructor(measureProcessor, objectiveProcessor, progressProcessor, eventCallback) {
+      this.processingClusters = /* @__PURE__ */new Set();
+      this.measureProcessor = measureProcessor;
+      this.objectiveProcessor = objectiveProcessor;
+      this.progressProcessor = progressProcessor;
+      this.eventCallback = eventCallback || null;
     }
     /**
-     * Evaluate a rollup rule
-     * @param {Activity} activity - The parent activity
-     * @param {RollupRule} rule - The rule to evaluate
-     * @return {boolean} - True if the rule applies
+     * Handle cross-cluster dependencies in rollup
+     * Manages dependencies between activity clusters for accurate rollup
+     *
+     * @param activity - The activity to process
+     * @param clusters - Related activity clusters
+     * @param depth - Current recursion depth (default 0)
      */
-    evaluateRollupRule(activity, rule) {
-      const children = activity.getAvailableChildren();
-      let contributingChildren = 0;
-      let satisfiedCount = 0;
-      for (const child of children) {
-        let isIncluded = false;
-        switch (rule.action) {
-          case RollupActionType.SATISFIED:
-            isIncluded = this.checkChildForRollupSubprocess(child, "objective", "satisfied");
-            break;
-          case RollupActionType.NOT_SATISFIED:
-            isIncluded = this.checkChildForRollupSubprocess(child, "objective", "notSatisfied");
-            break;
-          case RollupActionType.COMPLETED:
-            isIncluded = this.checkChildForRollupSubprocess(child, "progress", "completed");
-            break;
-          case RollupActionType.INCOMPLETE:
-            isIncluded = this.checkChildForRollupSubprocess(child, "progress", "incomplete");
-            break;
-        }
-        if (isIncluded) {
-          contributingChildren++;
-          if (this.evaluateRollupConditionsSubprocess(child, rule)) {
-            satisfiedCount++;
-          }
-        }
+    processCrossClusterDependencies(activity, clusters) {
+      let depth = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+      if (depth >= MAX_CLUSTER_DEPTH) {
+        this.eventCallback?.("cross_cluster_max_depth_reached", {
+          activityId: activity.id,
+          depth,
+          maxDepth: MAX_CLUSTER_DEPTH
+        });
+        return;
       }
-      if (rule.consideration === RollupConsiderationType.ALL) {
-        return contributingChildren > 0 && satisfiedCount === contributingChildren;
-      } else if (rule.minimumCount !== null) {
-        return satisfiedCount >= rule.minimumCount;
-      } else if (rule.minimumPercent !== null) {
-        const percent = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
-        return percent >= rule.minimumPercent;
+      if (this.processingClusters.has(activity.id)) {
+        this.eventCallback?.("cross_cluster_skip_reentrant", {
+          activityId: activity.id
+        });
+        return;
       }
-      return contributingChildren > 0 && satisfiedCount === contributingChildren;
-    }
-    /**
-     * Evaluate Rollup Conditions Subprocess
-     * Evaluates if rollup rule conditions are met for a given activity
-     * @spec SN Book: RB.1.4.1 (Evaluate Rollup Conditions Subprocess)
-     * @param {Activity} child - The child activity to evaluate
-     * @param {RollupRule} rule - The rollup rule containing conditions to evaluate
-     * @return {boolean} - True if all conditions are met, false otherwise
-     */
-    evaluateRollupConditionsSubprocess(child, rule) {
-      if (rule.conditions.length === 0) {
-        return true;
-      }
-      switch (rule.consideration) {
-        case RollupConsiderationType.ALL:
-          return rule.conditions.every(condition => condition.evaluate(child));
-        case RollupConsiderationType.ANY:
-          return rule.conditions.some(condition => condition.evaluate(child));
-        case RollupConsiderationType.NONE:
-          return !rule.conditions.some(condition => condition.evaluate(child));
-        case RollupConsiderationType.AT_LEAST_COUNT:
-        case RollupConsiderationType.AT_LEAST_PERCENT:
-          return rule.conditions.every(condition => condition.evaluate(child));
-        default:
-          return false;
-      }
-    }
-    /**
-     * Priority 5 Gap: Validate rollup state consistency across the activity tree
-     * Ensures that rollup states are consistent and valid before processing
-     * @param {Activity} rootActivity - The root activity to validate from
-     * @return {boolean} - True if state is consistent, false otherwise
-     */
-    validateRollupStateConsistency(rootActivity) {
       try {
-        this.eventCallback?.("rollup_validation_started", {
-          activityId: rootActivity.id,
-          timestamp: (/* @__PURE__ */new Date()).toISOString()
+        this.processingClusters.add(activity.id);
+        this.eventCallback?.("cross_cluster_processing_started", {
+          activityId: activity.id,
+          clusterCount: clusters.length,
+          depth
         });
-        const inconsistencies = [];
-        this.validateActivityRollupState(rootActivity, inconsistencies);
-        if (inconsistencies.length > 0) {
-          this.eventCallback?.("rollup_state_inconsistencies", {
-            activityId: rootActivity.id,
-            inconsistencies,
-            count: inconsistencies.length
-          });
-          return false;
+        const dependencyMap = /* @__PURE__ */new Map();
+        for (const cluster of clusters) {
+          this.analyzeCrossClusterDependencies(cluster, dependencyMap);
         }
-        this.eventCallback?.("rollup_validation_completed", {
-          activityId: rootActivity.id,
-          result: "consistent"
+        const processOrder = this.resolveDependencyOrder(dependencyMap);
+        for (const clusterId of processOrder) {
+          const cluster = clusters.find(c => c.id === clusterId);
+          if (cluster) {
+            this.processClusterRollup(cluster, depth);
+          }
+        }
+        this.eventCallback?.("cross_cluster_processing_completed", {
+          activityId: activity.id,
+          processedClusters: processOrder.length,
+          dependencyMap: Array.from(dependencyMap.entries())
         });
-        return true;
       } catch (error) {
-        this.eventCallback?.("rollup_validation_error", {
-          activityId: rootActivity.id,
+        this.eventCallback?.("cross_cluster_processing_error", {
+          activityId: activity.id,
           error: error instanceof Error ? error.message : String(error)
         });
-        return false;
+      } finally {
+        this.processingClusters.delete(activity.id);
       }
     }
     /**
-     * Priority 5 Gap: Process global objective mapping for shared objectives
+     * Identify Activity Clusters
+     * Identifies clusters among child activities for cross-cluster dependency processing
+     *
+     * @param children - Child activities to analyze
+     * @returns Array of identified clusters
+     */
+    identifyActivityClusters(children) {
+      const clusters = [];
+      for (const child of children) {
+        if (child.children.length > 0 && child.sequencingControls.flow) {
+          clusters.push(child);
+        }
+      }
+      return clusters;
+    }
+    /**
+     * Analyze cross-cluster dependencies
+     * Builds dependency relationships based on sequencing rules and prerequisites
+     *
+     * @param cluster - The cluster to analyze
+     * @param dependencyMap - Map to store dependencies
+     */
+    analyzeCrossClusterDependencies(cluster, dependencyMap) {
+      const dependencies = [];
+      const sequencingRules = cluster.sequencingRules;
+      if (sequencingRules && sequencingRules.preConditionRules.length > 0) ;
+      dependencyMap.set(cluster.id, dependencies);
+    }
+    /**
+     * Resolve dependency processing order
+     * Uses topological sort to determine correct processing order
+     *
+     * @param dependencyMap - Map of dependencies
+     * @returns Ordered array of cluster IDs
+     */
+    resolveDependencyOrder(dependencyMap) {
+      const resolved = [];
+      const resolving = /* @__PURE__ */new Set();
+      const resolve = id => {
+        if (resolved.includes(id)) return;
+        if (resolving.has(id)) {
+          this.eventCallback?.("circular_dependency_detected", {
+            activityId: id
+          });
+          return;
+        }
+        resolving.add(id);
+        const dependencies = dependencyMap.get(id) || [];
+        for (const depId of dependencies) {
+          resolve(depId);
+        }
+        resolving.delete(id);
+        resolved.push(id);
+      };
+      for (const id of Array.from(dependencyMap.keys())) {
+        resolve(id);
+      }
+      return resolved;
+    }
+    /**
+     * Process rollup for a specific cluster
+     * Performs standard rollup process for the cluster
+     *
+     * @param cluster - The cluster to process
+     * @param depth - Current recursion depth for nested cluster handling
+     */
+    processClusterRollup(cluster) {
+      let depth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      const nestedClusters = this.measureProcessor.measureRollupProcess(cluster);
+      if (cluster.sequencingControls.rollupObjectiveSatisfied) {
+        this.objectiveProcessor.objectiveRollupProcess(cluster);
+      }
+      if (cluster.sequencingControls.rollupProgressCompletion) {
+        this.progressProcessor.activityProgressRollupProcess(cluster);
+      }
+      if (nestedClusters.length > 1) {
+        this.processCrossClusterDependencies(cluster, nestedClusters, depth + 1);
+      }
+    }
+  }
+
+  class GlobalObjectiveSynchronizer {
+    /**
+     * Create a new GlobalObjectiveSynchronizer
+     *
+     * @param eventCallback - Optional callback for firing events
+     */
+    constructor(eventCallback) {
+      this.eventCallback = eventCallback || null;
+    }
+    /**
+     * Process global objective mapping for shared objectives
      * Handles cross-activity objective synchronization and global state management
      *
      * IMPORTANT: Uses two-pass approach to ensure correct synchronization order:
@@ -12986,8 +13290,8 @@ ${stackTrace}`);
      * This ensures that when activity A writes to a global and activity B reads from it,
      * B will see A's data regardless of tree traversal order.
      *
-     * @param {Activity} activity - The root activity to start processing from
-     * @param {Map<string, any>} globalObjectives - Global objective map
+     * @param activity - The root activity to start processing from
+     * @param globalObjectives - Global objective map
      */
     processGlobalObjectiveMapping(activity, globalObjectives) {
       try {
@@ -13016,6 +13320,9 @@ ${stackTrace}`);
     }
     /**
      * Collect all activities in the tree recursively
+     *
+     * @param activity - Current activity
+     * @param result - Array to collect activities into
      */
     collectActivitiesRecursive(activity, result) {
       result.push(activity);
@@ -13025,6 +13332,9 @@ ${stackTrace}`);
     }
     /**
      * Write phase: Write local objective state TO global objectives
+     *
+     * @param activity - The activity to process
+     * @param globalObjectives - Global objective map
      */
     syncGlobalObjectivesWritePhase(activity, globalObjectives) {
       const objectives = activity.getAllObjectives();
@@ -13032,7 +13342,7 @@ ${stackTrace}`);
         const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
         for (const mapInfo of mapInfos) {
           const targetId = mapInfo.targetObjectiveID || objective.id;
-          const globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective, mapInfo);
+          const globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective);
           if (mapInfo.writeSatisfiedStatus && objective.measureStatus && objective.isDirty("satisfiedStatus")) {
             globalObjective.satisfiedStatus = objective.satisfiedStatus;
             globalObjective.satisfiedStatusKnown = true;
@@ -13067,6 +13377,9 @@ ${stackTrace}`);
     }
     /**
      * Read phase: Read FROM global objectives into local state
+     *
+     * @param activity - The activity to process
+     * @param globalObjectives - Global objective map
      */
     syncGlobalObjectivesReadPhase(activity, globalObjectives) {
       const objectives = activity.getAllObjectives();
@@ -13109,139 +13422,11 @@ ${stackTrace}`);
       }
     }
     /**
-     * Priority 5 Gap: Handle complex objective weighting scenarios
-     * Supports weighted rollup calculations with complex dependency chains
-     * INTEGRATION: Now properly integrated into measureRollupProcess
-     * @param {Activity} activity - The parent activity
-     * @param {Activity[]} children - Child activities to weight
-     * @return {number} - Calculated weighted measure
-     */
-    calculateComplexWeightedMeasure(activity, children, options) {
-      let totalWeightedMeasure = 0;
-      let totalWeight = 0;
-      const weightingLog = [];
-      const enableBias = options?.enableThresholdBias ?? true;
-      for (const child of children) {
-        if (!this.checkChildForRollupSubprocess(child, "measure")) {
-          continue;
-        }
-        if (child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null) {
-          const baseWeight = child.sequencingControls.objectiveMeasureWeight;
-          const adjustedWeight = this.calculateAdjustedWeight(child, baseWeight, enableBias);
-          const contribution = child.objectiveNormalizedMeasure * adjustedWeight;
-          totalWeightedMeasure += contribution;
-          totalWeight += adjustedWeight;
-          weightingLog.push({
-            childId: child.id,
-            measure: child.objectiveNormalizedMeasure,
-            weight: adjustedWeight
-          });
-        }
-      }
-      this.eventCallback?.("complex_weighting_calculated", {
-        activityId: activity.id,
-        weightingDetails: weightingLog,
-        totalWeight,
-        totalWeightedMeasure,
-        result: totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0
-      });
-      return totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0;
-    }
-    /**
-     * Priority 5 Gap: Handle cross-cluster dependencies in rollup
-     * Manages dependencies between activity clusters for accurate rollup
-     * INTEGRATION: Now properly integrated into rollup process
-     * @param {Activity} activity - The activity to process
-     * @param {Activity[]} clusters - Related activity clusters
-     */
-    processCrossClusterDependencies(activity, clusters) {
-      try {
-        this.eventCallback?.("cross_cluster_processing_started", {
-          activityId: activity.id,
-          clusterCount: clusters.length
-        });
-        const dependencyMap = /* @__PURE__ */new Map();
-        for (const cluster of clusters) {
-          this.analyzeCrossClusterDependencies(cluster, dependencyMap);
-        }
-        const processOrder = this.resolveDependencyOrder(dependencyMap);
-        for (const clusterId of processOrder) {
-          const cluster = clusters.find(c => c.id === clusterId);
-          if (cluster) {
-            this.processClusterRollup(cluster);
-          }
-        }
-        this.eventCallback?.("cross_cluster_processing_completed", {
-          activityId: activity.id,
-          processedClusters: processOrder.length,
-          dependencyMap: Array.from(dependencyMap.entries())
-        });
-      } catch (error) {
-        this.eventCallback?.("cross_cluster_processing_error", {
-          activityId: activity.id,
-          error: error instanceof Error ? error.message : String(error)
-        });
-      }
-    }
-    // Helper Methods for Priority 5 Gap Implementation
-    /**
-     * Validate rollup state for a single activity
-     */
-    validateActivityRollupState(activity, inconsistencies) {
-      const activityId = activity.id;
-      if (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure === null) {
-        inconsistencies.push(`Activity ${activityId}: measure status true but normalized measure is null`);
-      }
-      if (activity.objectiveMeasureStatus && activity.scaledPassingScore !== null && activity.successStatus !== "unknown") {
-        const expectedSatisfied = activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
-        if (activity.objectiveSatisfiedStatus !== expectedSatisfied) {
-          inconsistencies.push(`Activity ${activityId}: satisfaction status inconsistent with measure`);
-        }
-      }
-      const controls = activity.sequencingControls;
-      if (!controls.rollupObjectiveSatisfied && !controls.rollupProgressCompletion) {
-        if (activity.children.length > 0) {
-          if (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure !== 0) ;
-        }
-      }
-      if (activity.requiredForSatisfied === "ifAttempted" && activity.attemptCount === 0) ;
-      if (activity.requiredForSatisfied === "ifNotSuspended" && activity.isSuspended && activity.attemptCount > 0) ;
-      if (activity.requiredForSatisfied === "ifNotSkipped" && activity.wasSkipped) ;
-      const children = activity.getAvailableChildren();
-      if (children.length > 0 && controls.rollupObjectiveSatisfied) {
-        const satisfiedChildren = children.filter(child => this.checkChildForRollupSubprocess(child, "objective", "satisfied") && this.isChildSatisfiedForRollup(child));
-        const notSatisfiedChildren = children.filter(child => this.checkChildForRollupSubprocess(child, "objective", "notSatisfied") && !this.isChildSatisfiedForRollup(child));
-        if (satisfiedChildren.length > 0 && notSatisfiedChildren.length === 0) {
-          if (activity.objectiveSatisfiedStatus === false && activity.rollupRules.rules.length === 0) {
-            inconsistencies.push(`Activity ${activityId}: all children satisfied but parent is not satisfied (no rollup rules to override)`);
-          }
-        }
-      }
-      if (children.length > 0 && controls.rollupProgressCompletion) {
-        const completedChildren = children.filter(child => this.checkChildForRollupSubprocess(child, "progress", "completed") && this.isChildCompletedForRollup(child));
-        const incompleteChildren = children.filter(child => this.checkChildForRollupSubprocess(child, "progress", "incomplete") && !this.isChildCompletedForRollup(child));
-        if (completedChildren.length > 0 && incompleteChildren.length === 0) {
-          if (activity.completionStatus !== "completed" && activity.rollupRules.rules.length === 0) {
-            inconsistencies.push(`Activity ${activityId}: all children completed but parent is incomplete (no rollup rules to override)`);
-          }
-        }
-      }
-      for (const child of children) {
-        this.validateActivityRollupState(child, inconsistencies);
-      }
-      this.rollupStateLog.push({
-        activity: activityId,
-        timestamp: (/* @__PURE__ */new Date()).toISOString(),
-        state: {
-          measureStatus: activity.objectiveMeasureStatus,
-          measure: activity.objectiveNormalizedMeasure,
-          satisfiedStatus: activity.objectiveSatisfiedStatus,
-          completionStatus: activity.completionStatus
-        }
-      });
-    }
-    /**
      * Synchronize global objectives with activity-specific objectives
+     * Combined read/write operation for backward compatibility
+     *
+     * @param activity - The activity to synchronize
+     * @param globalObjectives - Global objective map
      */
     synchronizeGlobalObjectives(activity, globalObjectives) {
       const objectives = activity.getAllObjectives();
@@ -13249,92 +13434,19 @@ ${stackTrace}`);
         const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
         for (const mapInfo of mapInfos) {
           const targetId = mapInfo.targetObjectiveID || objective.id;
-          const globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective, mapInfo);
+          const globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective);
           this.syncObjectiveState(activity, objective, mapInfo, globalObjective);
         }
       }
     }
     /**
-     * Calculate adjusted weight for complex weighting scenarios
-     */
-    calculateAdjustedWeight(child, baseWeight) {
-      let enableBias = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-      let adjustedWeight = baseWeight;
-      if (child.completionStatus !== "completed") {
-        adjustedWeight *= 0.8;
-      }
-      if (child.attemptCount > 1) {
-        const attemptPenalty = Math.max(0.5, 1 - (child.attemptCount - 1) * 0.1);
-        adjustedWeight *= attemptPenalty;
-      }
-      if (child.hasAttemptLimitExceeded()) {
-        adjustedWeight *= 0.6;
-      }
-      if (enableBias && child.objectiveMeasureStatus) {
-        const threshold = child.scaledPassingScore ?? 0.7;
-        if (child.objectiveNormalizedMeasure >= threshold) {
-          adjustedWeight *= 1.05;
-        } else {
-          adjustedWeight *= 0.95;
-        }
-      }
-      return Math.max(0, adjustedWeight);
-    }
-    /**
-     * Analyze cross-cluster dependencies
-     */
-    analyzeCrossClusterDependencies(cluster, dependencyMap) {
-      const dependencies = [];
-      cluster.sequencingRules;
-      dependencyMap.set(cluster.id, dependencies);
-    }
-    /**
-     * Resolve dependency processing order
-     */
-    resolveDependencyOrder(dependencyMap) {
-      const resolved = [];
-      const resolving = /* @__PURE__ */new Set();
-      const resolve = id => {
-        if (resolved.includes(id)) return;
-        if (resolving.has(id)) {
-          this.eventCallback?.("circular_dependency_detected", {
-            activityId: id
-          });
-          return;
-        }
-        resolving.add(id);
-        const dependencies = dependencyMap.get(id) || [];
-        for (const depId of dependencies) {
-          resolve(depId);
-        }
-        resolving.delete(id);
-        resolved.push(id);
-      };
-      for (const id of Array.from(dependencyMap.keys())) {
-        resolve(id);
-      }
-      return resolved;
-    }
-    /**
-     * Process rollup for a specific cluster
-     */
-    processClusterRollup(cluster) {
-      this.measureRollupProcess(cluster);
-      if (cluster.sequencingControls.rollupObjectiveSatisfied) {
-        this.objectiveRollupProcess(cluster);
-      }
-      if (cluster.sequencingControls.rollupProgressCompletion) {
-        this.activityProgressRollupProcess(cluster);
-      }
-    }
-    /**
-     * Get activity objectives (implementation depends on objective model)
-     */
-    getActivityObjectives(activity) {
-      return activity.getAllObjectives().map(objective => objective.id);
-    }
-    /**
-     * Synchronize objective state between local and global according to SCORM 2004 specification
+     * Synchronize objective state between local and global
+     * Full sync operation with both read and write
+     *
+     * @param activity - The activity
+     * @param objective - The objective to sync
+     * @param mapInfo - Map info for this objective
+     * @param globalObjective - The global objective
      */
     syncObjectiveState(activity, objective, mapInfo, globalObjective) {
       try {
@@ -13403,7 +13515,92 @@ ${stackTrace}`);
       }
     }
     /**
+     * Ensure global objective entry exists
+     *
+     * @param globalObjectives - Global objectives map
+     * @param targetId - Target objective ID
+     * @param objective - Source objective
+     * @returns The global objective entry
+     */
+    ensureGlobalObjectiveEntry(globalObjectives, targetId, objective) {
+      if (!globalObjectives.has(targetId)) {
+        globalObjectives.set(targetId, {
+          id: targetId,
+          satisfiedStatus: objective.satisfiedStatus,
+          satisfiedStatusKnown: objective.satisfiedStatusKnown,
+          normalizedMeasure: objective.normalizedMeasure,
+          normalizedMeasureKnown: objective.measureStatus,
+          progressMeasure: objective.progressMeasure,
+          progressMeasureKnown: objective.progressMeasureStatus,
+          completionStatus: objective.completionStatus,
+          completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+          satisfiedByMeasure: objective.satisfiedByMeasure,
+          minNormalizedMeasure: objective.minNormalizedMeasure
+        });
+      }
+      return globalObjectives.get(targetId);
+    }
+    /**
+     * Create default map info for an objective
+     * Default map info should only WRITE to global objectives, not READ
+     * Reading should only happen when explicitly configured via mapInfo
+     * This prevents unintended overwrites of RTE-transferred data
+     *
+     * @param objective - The objective to create default map info for
+     * @returns Default map info
+     */
+    createDefaultMapInfo(objective) {
+      return {
+        targetObjectiveID: objective.id,
+        readSatisfiedStatus: false,
+        writeSatisfiedStatus: true,
+        readNormalizedMeasure: false,
+        writeNormalizedMeasure: true,
+        readCompletionStatus: false,
+        writeCompletionStatus: true,
+        readProgressMeasure: false,
+        writeProgressMeasure: true,
+        updateAttemptData: objective.isPrimary
+      };
+    }
+    /**
+     * Get local objective state
+     *
+     * @param activity - The activity
+     * @param objective - The objective
+     * @param isPrimary - Whether this is the primary objective
+     * @returns Local objective state
+     */
+    getLocalObjectiveState(activity, objective, isPrimary) {
+      if (isPrimary) {
+        return {
+          id: objective.id,
+          satisfiedStatus: activity.objectiveSatisfiedStatus,
+          measureStatus: activity.objectiveMeasureStatus,
+          normalizedMeasure: activity.objectiveNormalizedMeasure,
+          progressMeasure: activity.progressMeasure,
+          progressMeasureStatus: activity.progressMeasureStatus,
+          completionStatus: activity.completionStatus,
+          scaledPassingScore: activity.scaledPassingScore
+        };
+      }
+      return {
+        id: objective.id,
+        satisfiedStatus: objective.satisfiedStatus,
+        measureStatus: objective.measureStatus,
+        normalizedMeasure: objective.normalizedMeasure,
+        progressMeasure: objective.progressMeasure,
+        progressMeasureStatus: objective.progressMeasureStatus,
+        completionStatus: objective.completionStatus,
+        scaledPassingScore: objective.minNormalizedMeasure
+      };
+    }
+    /**
      * Update activity attempt data based on global objective state
+     *
+     * @param activity - The activity to update
+     * @param globalObjective - Global objective state
+     * @param objective - The local objective
      */
     updateActivityAttemptData(activity, globalObjective, objective) {
       try {
@@ -13412,8 +13609,8 @@ ${stackTrace}`);
         }
         const hasCompletionRollupRules = activity.rollupRules.rules.some(rule => rule.action === "completed" || rule.action === "incomplete");
         if (globalObjective.satisfiedStatusKnown && globalObjective.satisfiedStatus) {
-          if (!hasCompletionRollupRules && (activity.completionStatus === "unknown" || activity.completionStatus === "incomplete")) {
-            activity.completionStatus = "completed";
+          if (!hasCompletionRollupRules && (activity.completionStatus === CompletionStatus.UNKNOWN || activity.completionStatus === CompletionStatus.INCOMPLETE)) {
+            activity.completionStatus = CompletionStatus.COMPLETED;
           }
           if (activity.successStatus === "unknown") {
             activity.successStatus = "passed";
@@ -13451,79 +13648,293 @@ ${stackTrace}`);
         });
       }
     }
+  }
+
+  class RollupStateValidator {
     /**
-     * Get local objective state
+     * Create a new RollupStateValidator
+     *
+     * @param childFilter - RollupChildFilter instance for filtering children
+     * @param eventCallback - Optional callback for firing events
      */
-    getLocalObjectiveState(activity, objective, isPrimary) {
-      if (isPrimary) {
-        return {
-          id: objective.id,
-          satisfiedStatus: activity.objectiveSatisfiedStatus,
-          measureStatus: activity.objectiveMeasureStatus,
-          normalizedMeasure: activity.objectiveNormalizedMeasure,
-          progressMeasure: activity.progressMeasure,
-          progressMeasureStatus: activity.progressMeasureStatus,
-          completionStatus: activity.completionStatus,
-          scaledPassingScore: activity.scaledPassingScore
-        };
-      }
-      return {
-        id: objective.id,
-        satisfiedStatus: objective.satisfiedStatus,
-        measureStatus: objective.measureStatus,
-        normalizedMeasure: objective.normalizedMeasure,
-        progressMeasure: objective.progressMeasure,
-        progressMeasureStatus: objective.progressMeasureStatus,
-        completionStatus: objective.completionStatus,
-        scaledPassingScore: objective.minNormalizedMeasure
-      };
+    constructor(childFilter, eventCallback) {
+      this.rollupStateLog = [];
+      this.childFilter = childFilter;
+      this.eventCallback = eventCallback || null;
     }
-    ensureGlobalObjectiveEntry(globalObjectives, targetId, objective, mapInfo) {
-      if (!globalObjectives.has(targetId)) {
-        globalObjectives.set(targetId, {
-          id: targetId,
-          satisfiedStatus: objective.satisfiedStatus,
-          satisfiedStatusKnown: objective.satisfiedStatusKnown,
-          normalizedMeasure: objective.normalizedMeasure,
-          normalizedMeasureKnown: objective.measureStatus,
-          progressMeasure: objective.progressMeasure,
-          progressMeasureKnown: objective.progressMeasureStatus,
-          completionStatus: objective.completionStatus,
-          completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
-          satisfiedByMeasure: objective.satisfiedByMeasure,
-          minNormalizedMeasure: objective.minNormalizedMeasure
+    /**
+     * Validate rollup state consistency across the activity tree
+     * Ensures that rollup states are consistent and valid before processing
+     *
+     * @param rootActivity - The root activity to validate from
+     * @returns True if state is consistent, false otherwise
+     */
+    validateRollupStateConsistency(rootActivity) {
+      try {
+        this.eventCallback?.("rollup_validation_started", {
+          activityId: rootActivity.id,
+          timestamp: (/* @__PURE__ */new Date()).toISOString()
         });
+        const inconsistencies = [];
+        this.validateActivityRollupState(rootActivity, inconsistencies);
+        if (inconsistencies.length > 0) {
+          this.eventCallback?.("rollup_state_inconsistencies", {
+            activityId: rootActivity.id,
+            inconsistencies,
+            count: inconsistencies.length
+          });
+          return false;
+        }
+        this.eventCallback?.("rollup_validation_completed", {
+          activityId: rootActivity.id,
+          result: "consistent"
+        });
+        return true;
+      } catch (error) {
+        this.eventCallback?.("rollup_validation_error", {
+          activityId: rootActivity.id,
+          error: error instanceof Error ? error.message : String(error)
+        });
+        return false;
       }
-      return globalObjectives.get(targetId);
-    }
-    createDefaultMapInfo(objective) {
-      return {
-        targetObjectiveID: objective.id,
-        readSatisfiedStatus: false,
-        writeSatisfiedStatus: true,
-        readNormalizedMeasure: false,
-        writeNormalizedMeasure: true,
-        readCompletionStatus: false,
-        writeCompletionStatus: true,
-        readProgressMeasure: false,
-        writeProgressMeasure: true,
-        updateAttemptData: objective.isPrimary
-      };
     }
     /**
-     * INTEGRATION: Identify Activity Clusters
-     * Identifies clusters among child activities for cross-cluster dependency processing
-     * @param {Activity[]} children - Child activities to analyze
-     * @return {Activity[]} - Array of identified clusters
+     * Validate rollup state for a single activity
+     *
+     * @param activity - The activity to validate
+     * @param inconsistencies - Array to collect inconsistencies into
      */
-    identifyActivityClusters(children) {
-      const clusters = [];
-      for (const child of children) {
-        if (child.children.length > 0 && child.sequencingControls.flow) {
-          clusters.push(child);
+    validateActivityRollupState(activity, inconsistencies) {
+      const activityId = activity.id;
+      if (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure === null) {
+        inconsistencies.push(`Activity ${activityId}: measure status true but normalized measure is null`);
+      }
+      if (activity.objectiveMeasureStatus && activity.scaledPassingScore !== null && activity.successStatus !== "unknown") {
+        const expectedSatisfied = activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
+        if (activity.objectiveSatisfiedStatus !== expectedSatisfied) {
+          inconsistencies.push(`Activity ${activityId}: satisfaction status inconsistent with measure`);
         }
       }
-      return clusters;
+      const controls = activity.sequencingControls;
+      const children = activity.getAvailableChildren();
+      if (children.length > 0 && controls.rollupObjectiveSatisfied) {
+        const satisfiedChildren = children.filter(child => this.childFilter.checkChildForRollupSubprocess(child, "objective", "satisfied") && this.childFilter.isChildSatisfiedForRollup(child));
+        const notSatisfiedChildren = children.filter(child => this.childFilter.checkChildForRollupSubprocess(child, "objective", "notSatisfied") && !this.childFilter.isChildSatisfiedForRollup(child));
+        if (satisfiedChildren.length > 0 && notSatisfiedChildren.length === 0) {
+          if (activity.objectiveSatisfiedStatus === false && activity.rollupRules.rules.length === 0) {
+            inconsistencies.push(`Activity ${activityId}: all children satisfied but parent is not satisfied (no rollup rules to override)`);
+          }
+        }
+      }
+      if (children.length > 0 && controls.rollupProgressCompletion) {
+        const completedChildren = children.filter(child => this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && this.childFilter.isChildCompletedForRollup(child));
+        const incompleteChildren = children.filter(child => this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete") && !this.childFilter.isChildCompletedForRollup(child));
+        if (completedChildren.length > 0 && incompleteChildren.length === 0) {
+          if (activity.completionStatus !== "completed" && activity.rollupRules.rules.length === 0) {
+            inconsistencies.push(`Activity ${activityId}: all children completed but parent is incomplete (no rollup rules to override)`);
+          }
+        }
+      }
+      for (const child of children) {
+        this.validateActivityRollupState(child, inconsistencies);
+      }
+      this.rollupStateLog.push({
+        activity: activityId,
+        timestamp: (/* @__PURE__ */new Date()).toISOString(),
+        state: {
+          measureStatus: activity.objectiveMeasureStatus,
+          measure: activity.objectiveNormalizedMeasure,
+          satisfiedStatus: activity.objectiveSatisfiedStatus,
+          completionStatus: activity.completionStatus
+        }
+      });
+    }
+    /**
+     * Get rollup state log
+     *
+     * @returns Array of rollup state log entries
+     */
+    getRollupStateLog() {
+      return [...this.rollupStateLog];
+    }
+    /**
+     * Clear rollup state log
+     */
+    clearRollupStateLog() {
+      this.rollupStateLog = [];
+    }
+  }
+
+  class RollupProcess {
+    /**
+     * Create a new RollupProcess orchestrator
+     *
+     * @param eventCallback - Optional callback for firing events
+     */
+    constructor(eventCallback) {
+      this.eventCallback = eventCallback || null;
+      this.childFilter = new RollupChildFilter();
+      this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter);
+      this.measureProcessor = new MeasureRollupProcessor(this.childFilter, eventCallback);
+      this.objectiveProcessor = new ObjectiveRollupProcessor(this.childFilter, this.ruleEvaluator, eventCallback);
+      this.progressProcessor = new ProgressRollupProcessor(this.childFilter, this.ruleEvaluator, this.objectiveProcessor, eventCallback);
+      this.durationProcessor = new DurationRollupProcessor(eventCallback);
+      this.globalObjectiveSynchronizer = new GlobalObjectiveSynchronizer(eventCallback);
+      this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
+      this.crossClusterProcessor = new CrossClusterProcessor(this.measureProcessor, this.objectiveProcessor, this.progressProcessor, eventCallback);
+    }
+    /**
+     * Overall Rollup Process
+     * Performs rollup from a given activity up through its ancestors
+     * OPTIMIZATION: Stops propagating rollup when status stops changing (SCORM 2004 4.6.1)
+     *
+     * @spec SN Book: RB.1.5 (Overall Rollup Process)
+     * @param activity - The activity to start rollup from
+     * @returns Array of activities that had status changes
+     */
+    overallRollupProcess(activity) {
+      const affectedActivities = [];
+      let currentActivity = activity.parent;
+      let onlyDurationRollup = false;
+      let isFirst = true;
+      while (currentActivity) {
+        if (currentActivity.children.length > 0) {
+          this.durationProcessor.durationRollupProcess(currentActivity);
+        }
+        if (!onlyDurationRollup) {
+          const beforeStatus = currentActivity.captureRollupStatus();
+          if (currentActivity.sequencingControls.rollupObjectiveSatisfied || currentActivity.sequencingControls.rollupProgressCompletion) {
+            if (currentActivity.children.length > 0) {
+              const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
+              this.measureProcessor.completionMeasureRollupProcess(currentActivity);
+              if (clusters.length > 1) {
+                this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
+              }
+            }
+            if (currentActivity.sequencingControls.rollupObjectiveSatisfied) {
+              this.objectiveProcessor.objectiveRollupProcess(currentActivity);
+            }
+            if (currentActivity.sequencingControls.rollupProgressCompletion) {
+              this.progressProcessor.activityProgressRollupProcess(currentActivity);
+            }
+          }
+          const afterStatus = currentActivity.captureRollupStatus();
+          if (!isFirst) {
+            const changed = !Activity.compareRollupStatus(beforeStatus, afterStatus);
+            if (!changed) {
+              this.eventCallback?.("rollup_optimization_activated", {
+                activityId: currentActivity.id,
+                depth: affectedActivities.length
+              });
+              onlyDurationRollup = true;
+            }
+          }
+          if (isFirst || !Activity.compareRollupStatus(beforeStatus, afterStatus)) {
+            affectedActivities.push(currentActivity);
+          }
+        }
+        currentActivity = currentActivity.parent;
+        isFirst = false;
+      }
+      return affectedActivities;
+    }
+    // ============================================================================
+    // Public API Methods - Delegate to specialized processors
+    // ============================================================================
+    /**
+     * Validate rollup state consistency across the activity tree
+     *
+     * @param rootActivity - The root activity to validate from
+     * @returns True if state is consistent, false otherwise
+     */
+    validateRollupStateConsistency(rootActivity) {
+      return this.stateValidator.validateRollupStateConsistency(rootActivity);
+    }
+    /**
+     * Process global objective mapping for shared objectives
+     *
+     * @param activity - The root activity to start processing from
+     * @param globalObjectives - Global objective map
+     */
+    processGlobalObjectiveMapping(activity, globalObjectives) {
+      this.globalObjectiveSynchronizer.processGlobalObjectiveMapping(activity, globalObjectives);
+    }
+    /**
+     * Calculate complex weighted measure for an activity
+     *
+     * @param activity - The parent activity
+     * @param children - Child activities to weight
+     * @param options - Configuration options
+     * @returns Calculated weighted measure
+     */
+    calculateComplexWeightedMeasure(activity, children, options) {
+      return this.measureProcessor.calculateComplexWeightedMeasure(activity, children, options);
+    }
+    /**
+     * Handle cross-cluster dependencies in rollup
+     *
+     * @param activity - The activity to process
+     * @param clusters - Related activity clusters
+     */
+    processCrossClusterDependencies(activity, clusters) {
+      this.crossClusterProcessor.processCrossClusterDependencies(activity, clusters);
+    }
+    // ============================================================================
+    // Accessor methods for individual processors (for advanced use cases)
+    // ============================================================================
+    /**
+     * Get the child filter processor
+     */
+    getChildFilter() {
+      return this.childFilter;
+    }
+    /**
+     * Get the rule evaluator processor
+     */
+    getRuleEvaluator() {
+      return this.ruleEvaluator;
+    }
+    /**
+     * Get the measure rollup processor
+     */
+    getMeasureProcessor() {
+      return this.measureProcessor;
+    }
+    /**
+     * Get the objective rollup processor
+     */
+    getObjectiveProcessor() {
+      return this.objectiveProcessor;
+    }
+    /**
+     * Get the progress rollup processor
+     */
+    getProgressProcessor() {
+      return this.progressProcessor;
+    }
+    /**
+     * Get the duration rollup processor
+     */
+    getDurationProcessor() {
+      return this.durationProcessor;
+    }
+    /**
+     * Get the global objective synchronizer
+     */
+    getGlobalObjectiveSynchronizer() {
+      return this.globalObjectiveSynchronizer;
+    }
+    /**
+     * Get the state validator
+     */
+    getStateValidator() {
+      return this.stateValidator;
+    }
+    /**
+     * Get the cross-cluster processor
+     */
+    getCrossClusterProcessor() {
+      return this.crossClusterProcessor;
     }
   }
 
@@ -20162,276 +20573,277 @@ ${stackTrace}`);
     }
   }
 
-  class Scorm2004API extends BaseAPI {
+  const ValidLanguages = ["aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as", "av", "ay", "az", "ba", "be", "bg", "bh", "bi", "bm", "bn", "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu", "cv", "cy", "da", "de", "dv", "dz", "ee", "el", "en", "eo", "es", "et", "eu", "fa", "ff", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "gv", "ha", "he", "hi", "ho", "hr", "ht", "hu", "hy", "hz", "ia", "id", "ie", "ig", "ii", "ik", "io", "is", "it", "iu", "ja", "jv", "ka", "kg", "ki", "kj", "kk", "kl", "km", "kn", "ko", "kr", "ks", "ku", "kv", "kw", "ky", "la", "lb", "lg", "li", "ln", "lo", "lt", "lu", "lv", "mg", "mh", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "nb", "nd", "ne", "ng", "nl", "nn", "no", "nr", "nv", "ny", "oc", "oj", "om", "or", "os", "pa", "pi", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ty", "ug", "uk", "ur", "uz", "ve", "vi", "vo", "wa", "wo", "xh", "yi", "yo", "za", "zh", "zu", "aar", "abk", "ave", "afr", "aka", "amh", "arg", "ara", "asm", "ava", "aym", "aze", "bak", "bel", "bul", "bih", "bis", "bam", "ben", "tib", "bod", "bre", "bos", "cat", "che", "cha", "cos", "cre", "cze", "ces", "chu", "chv", "wel", "cym", "dan", "ger", "deu", "div", "dzo", "ewe", "gre", "ell", "eng", "epo", "spa", "est", "baq", "eus", "per", "fas", "ful", "fin", "fij", "fao", "fre", "fra", "fry", "gle", "gla", "glg", "grn", "guj", "glv", "hau", "heb", "hin", "hmo", "hrv", "hat", "hun", "arm", "hye", "her", "ina", "ind", "ile", "ibo", "iii", "ipk", "ido", "ice", "isl", "ita", "iku", "jpn", "jav", "geo", "kat", "kon", "kik", "kua", "kaz", "kal", "khm", "kan", "kor", "kau", "kas", "kur", "kom", "cor", "kir", "lat", "ltz", "lug", "lim", "lin", "lao", "lit", "lub", "lav", "mlg", "mah", "mao", "mri", "mac", "mkd", "mal", "mon", "mol", "mar", "may", "msa", "mlt", "bur", "mya", "nau", "nob", "nde", "nep", "ndo", "dut", "nld", "nno", "nor", "nbl", "nav", "nya", "oci", "oji", "orm", "ori", "oss", "pan", "pli", "pol", "pus", "por", "que", "roh", "run", "rum", "ron", "rus", "kin", "san", "srd", "snd", "sme", "sag", "slo", "sin", "slk", "slv", "smo", "sna", "som", "alb", "sqi", "srp", "ssw", "sot", "sun", "swe", "swa", "tam", "tel", "tgk", "tha", "tir", "tuk", "tgl", "tsn", "ton", "tur", "tso", "tat", "twi", "tah", "uig", "ukr", "urd", "uzb", "ven", "vie", "vol", "wln", "wol", "xho", "yid", "yor", "zha", "chi", "zho", "zul"];
+
+  class Scorm2004ResponseValidator {
+    constructor(context) {
+      this.context = context;
+    }
     /**
-     * Constructor for SCORM 2004 API
-     * @param {Settings} settings
-     * @param {IHttpService} httpService - Optional HTTP service instance
+     * Checks for valid response types
+     * @param {string} CMIElement - The CMI element path
+     * @param {ResponseType} response_type - The response type configuration
+     * @param {any} value - The value to validate
+     * @param {string} interaction_type - The type of interaction
      */
-    constructor(settings, httpService) {
-      const settingsCopy = settings ? {
-        ...settings
-      } : void 0;
-      if (settingsCopy) {
-        if (settingsCopy.mastery_override === void 0) {
-          settingsCopy.mastery_override = false;
+    checkValidResponseType(CMIElement, response_type, value, interaction_type) {
+      let nodes = [];
+      if (response_type?.delimiter) {
+        nodes = String(value).split(response_type.delimiter);
+      } else {
+        nodes[0] = value;
+      }
+      if (nodes.length > 0 && nodes.length <= response_type.max) {
+        if (this.context.checkCorrectResponseValue) {
+          this.context.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
+        } else {
+          this.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
         }
+      } else if (nodes.length > response_type.max) {
+        this.context.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Pattern Too Long: ${value}`);
       }
-      super(scorm2004_errors$1, settingsCopy, httpService);
-      this._version = "1.0";
-      this._globalObjectives = [];
-      this._sequencingService = null;
-      this._extractedScoItemIds = [];
-      this._sequencingCollections = {};
-      this.cmi = new CMI();
-      this.adl = new ADL();
-      this._sequencing = new Sequencing();
-      this.adl.sequencing = this._sequencing;
-      if (settingsCopy?.sequencing) {
-        this.configureSequencing(settingsCopy.sequencing);
-      }
-      this.initializeSequencingService(settingsCopy);
-      this.Initialize = this.lmsInitialize;
-      this.Terminate = this.lmsFinish;
-      this.GetValue = this.lmsGetValue;
-      this.SetValue = this.lmsSetValue;
-      this.Commit = this.lmsCommit;
-      this.GetLastError = this.lmsGetLastError;
-      this.GetErrorString = this.lmsGetErrorString;
-      this.GetDiagnostic = this.lmsGetDiagnostic;
     }
     /**
-     * Called when the API needs to be reset
-     *
-     * This method is designed for transitioning between SCOs in a sequenced course.
-     * When called, it resets SCO-specific data while preserving global objectives.
-     *
-     * What gets reset:
-     * - SCO-specific CMI data (location, entry, session time, interactions, score)
-     * - Sequencing state (activity tree, current activity, etc.)
-     * - ADL navigation state
-     *
-     * What is preserved:
-     * - Global objectives (_globalObjectives array) - these persist across SCO transitions
-     *   to allow activities to share objective data via mapInfo
-     *
-     * According to SCORM 2004 Sequencing and Navigation (SN) Book:
-     * - Content Delivery Environment Process (DB.2) requires API reset between SCOs
-     * - Global objectives must persist to support cross-activity objective tracking
-     * - SCO-specific objectives in cmi.objectives are reset (via objectives.reset(false))
-     *   but the array structure is maintained
-     *
-     * @param {Settings} settings - Optional new settings to merge with existing settings
+     * Checks for duplicate 'choice' responses
+     * @param {string} CMIElement - The CMI element path
+     * @param {CMIInteractionsObject} interaction - The interaction object
+     * @param {any} value - The value to check for duplicates
      */
-    reset(settings) {
-      this.commonReset(settings);
-      this.cmi?.reset();
-      this.adl?.reset();
-    }
-    /**
-     * Getter for _version
-     * @return {string}
-     */
-    get version() {
-      return this._version;
-    }
-    /**
-     * Getter for _globalObjectives
-     *
-     * Global objectives persist across SCO transitions and are used for cross-activity
-     * objective tracking via mapInfo (SCORM 2004 SN Book SB.2.4).
-     *
-     * These objectives are NOT reset when reset() is called, allowing activities
-     * to share objective data across SCO boundaries.
-     *
-     * @return {CMIObjectivesObject[]} Array of global objective objects
-     */
-    get globalObjectives() {
-      return this._globalObjectives;
-    }
-    /**
-     * Initialize - Begins a communication session with the LMS
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.1:
-     * - Parameter must be empty string ("")
-     * - Returns "true" on success, "false" on failure
-     * - Sets error 103 if already initialized
-     * - Sets error 104 if already terminated
-     * - Sets error 101 if parameter is not an empty string
-     * - Initializes the CMI data model for the current attempt
-     *
-     * @param {string} parameter - Must be an empty string per SCORM 2004 specification
-     * @return {string} "true" or "false"
-     */
-    lmsInitialize() {
-      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
-      if (parameter !== "") {
-        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
-        return global_constants.SCORM_FALSE;
-      }
-      this.cmi.initialize();
-      const result = this.initialize("Initialize", "LMS was already initialized!", "LMS is already finished!");
-      if (result === global_constants.SCORM_TRUE && this._sequencingService) {
-        this._sequencingService.initialize();
-      }
-      if (result === global_constants.SCORM_TRUE) {
-        this.restoreGlobalObjectivesToCMI();
-      }
-      if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence) {
-        this.loadSequencingState().catch(() => {
-          this.apiLog("lmsInitialize", "Failed to auto-load sequencing state", LogLevelEnum.WARN);
-        });
-      }
-      return result;
-    }
-    /**
-     * Terminate - Ends the communication session and persists data
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.2:
-     * - Parameter must be empty string ("")
-     * - Returns "true" on success, "false" on failure
-     * - Commits all data to persistent storage
-     * - Sets error 112 if not initialized
-     * - Sets error 113 if already terminated
-     * - Sets error 101 if parameter is not an empty string
-     * - Processes navigation requests set via adl.nav.request
-     *
-     * @param {string} parameter - Must be an empty string per SCORM 2004 specification
-     * @return {string} "true" or "false"
-     */
-    lmsFinish() {
-      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
-      if (parameter !== "") {
-        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
-        return global_constants.SCORM_FALSE;
-      }
-      const pendingNavRequest = this.adl?.nav?.request || "_none_";
-      const exitType = this.cmi?.getExitValueInternal() || "";
-      const wasAlreadyTerminated = this.isTerminated();
-      const deliveryInProgress = this._sequencingService?.isDeliveryInProgress() ?? false;
-      const result = this.terminate("Terminate", true);
-      if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
-        let navigationHandled = false;
-        let processedSequencingRequest = null;
-        let normalizedRequest = pendingNavRequest;
-        let normalizedTarget = "";
-        const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
-        if (pendingNavRequest !== "_none_") {
-          const matches = pendingNavRequest.match(choiceJumpRegex);
-          if (matches) {
-            if (matches.groups?.choice_target) {
-              normalizedTarget = matches.groups?.choice_target;
-              normalizedRequest = "choice";
-            } else if (matches.groups?.jump_target) {
-              normalizedTarget = matches.groups?.jump_target;
-              normalizedRequest = "jump";
-            }
+    checkDuplicateChoiceResponse(CMIElement, interaction, value) {
+      const interaction_count = interaction.correct_responses._count;
+      if (interaction.type === "choice") {
+        for (let i = 0; i < interaction_count && this.context.getLastErrorCode() === "0"; i++) {
+          const response = interaction.correct_responses.childArray[i];
+          if (response?.pattern === value) {
+            this.context.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `${value}`);
           }
         }
-        if (this._sequencingService) {
-          try {
-            let requestToProcess = null;
-            let targetForProcessing;
-            if (normalizedRequest !== "_none_") {
-              requestToProcess = normalizedRequest;
-              targetForProcessing = normalizedTarget || void 0;
-            } else if (this._sequencing.getCurrentActivity()) {
-              requestToProcess = "exit";
-            }
-            if (requestToProcess) {
-              navigationHandled = this._sequencingService.processNavigationRequest(requestToProcess, targetForProcessing, exitType);
-              processedSequencingRequest = requestToProcess;
-            }
-          } catch (error) {
-            navigationHandled = false;
-          }
-        }
-        if (!navigationHandled) {
-          if (pendingNavRequest !== "_none_") {
-            const navActions = {
-              continue: "SequenceNext",
-              previous: "SequencePrevious",
-              choice: "SequenceChoice",
-              jump: "SequenceJump",
-              exit: "SequenceExit",
-              exitAll: "SequenceExitAll",
-              abandon: "SequenceAbandon",
-              abandonAll: "SequenceAbandonAll"
-            };
-            const action = navActions[normalizedRequest];
-            if (action) {
-              this.processListeners(action, "adl.nav.request", normalizedTarget);
-            }
-          } else if (this.settings.autoProgress) {
-            this.processListeners("SequenceNext", void 0, "next");
-          }
-        }
-        if (this._sequencingService && processedSequencingRequest && ["exitAll", "abandonAll", "suspendAll"].includes(processedSequencingRequest)) {
-          this._sequencingService.terminate();
-        }
-        this.adl.nav.request = "_none_";
       }
-      return result;
     }
     /**
-     * GetValue - Retrieves a value from the CMI data model
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.3:
-     * - Returns the value of the specified CMI element
-     * - Returns empty string if element has no value
-     * - Sets error 122 if not initialized
-     * - Sets error 123 if already terminated
-     * - Sets error 401 if element is not implemented (invalid element)
-     * - Sets error 405 if element is write-only
-     * - Sets error 403 if element is not readable
-     *
-     * @param {string} CMIElement - The CMI element path (e.g., "cmi.completion_status")
-     * @return {string} The value of the element, or empty string
+     * Validate correct response
+     * @param {string} CMIElement - The CMI element path
+     * @param {CMIInteractionsObject} interaction - The interaction object
+     * @param {*} value - The value to validate
      */
-    lmsGetValue(CMIElement) {
-      if (CMIElement === "adl.nav.request") {
-        this.throwSCORMError(CMIElement, scorm2004_errors$1.WRITE_ONLY_ELEMENT, "adl.nav.request is write-only");
-        return "";
+    validateCorrectResponse(CMIElement, interaction, value) {
+      const parts = CMIElement.split(".");
+      const pattern_index = Number(parts[4]);
+      if (!interaction) {
+        this.context.throwSCORMError(CMIElement, scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
+        return;
       }
-      const adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=([a-zA-Z0-9-_]+)}$";
-      if (stringMatches(CMIElement, adlNavRequestRegex)) {
-        const matches = CMIElement.match(adlNavRequestRegex);
-        if (matches) {
-          const request = matches[1];
-          const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
-          if (request === "choice" || request === "jump") {
-            const overallProcess = this._sequencing?.overallSequencingProcess;
-            if (this.settings.scoItemIdValidator) {
-              return String(this.settings.scoItemIdValidator(target));
-            }
-            if (overallProcess?.predictChoiceEnabled && request === "choice") {
-              return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
-            } else if (overallProcess?.predictJumpEnabled && request === "jump") {
-              return overallProcess.predictJumpEnabled(target) ? "true" : "false";
+      const interaction_count = interaction.correct_responses._count;
+      this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
+      const response_type = CorrectResponses[interaction.type];
+      if (response_type && (typeof response_type.limit === "undefined" || interaction_count < response_type.limit)) {
+        this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
+        if (this.context.getLastErrorCode() === "0" && (!response_type.duplicate || !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value)) || this.context.getLastErrorCode() === "0" && value === "") ; else {
+          if (this.context.getLastErrorCode() === "0") {
+            this.context.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Pattern Already Exists: ${CMIElement} - ${value}`);
+          }
+        }
+      } else {
+        this.context.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Collection Limit Reached: ${CMIElement} - ${value}`);
+      }
+    }
+    /**
+     * Check to see if a correct_response value has been duplicated
+     * @param {CMIArray} correct_response - The correct responses array
+     * @param {number} current_index - The current index to skip
+     * @param {*} value - The value to check for duplicates
+     * @return {boolean} True if pattern is duplicated
+     */
+    checkDuplicatedPattern(correct_response, current_index, value) {
+      let found = false;
+      const count = correct_response._count;
+      for (let i = 0; i < count && !found; i++) {
+        if (i !== current_index) {
+          const item = correct_response.childArray[i];
+          const existingPattern = item?.pattern;
+          if (existingPattern === value) {
+            found = true;
+          }
+        }
+      }
+      return found;
+    }
+    /**
+     * Checks for a valid correct_response value
+     * @param {string} CMIElement - The CMI element path
+     * @param {string} interaction_type - The type of interaction
+     * @param {Array} nodes - Array of parsed response nodes
+     * @param {*} value - The original value
+     */
+    checkCorrectResponseValue(CMIElement, interaction_type, nodes, value) {
+      const response = CorrectResponses[interaction_type];
+      if (!response) {
+        this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `Incorrect Response Type: ${interaction_type}`);
+        return;
+      }
+      const formatRegex = new RegExp(response.format);
+      for (let i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++) {
+        if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
+          nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
+        }
+        if (response?.delimiter2) {
+          const values = nodes[i].split(response.delimiter2);
+          if (values.length === 2) {
+            const matches = values[0].match(formatRegex);
+            if (!matches) {
+              this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
             } else {
-              if (this._extractedScoItemIds.length > 0) {
-                return String(this._extractedScoItemIds.includes(target));
+              if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
+                this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
               }
-              return String(this.settings?.scoItemIds?.includes(target));
+            }
+          } else {
+            this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+          }
+        } else {
+          const matches = nodes[i].match(formatRegex);
+          if (!matches && value !== "" || !matches && interaction_type === "true-false") {
+            this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+          } else {
+            if (interaction_type === "numeric" && nodes.length > 1) {
+              if (Number(nodes[0]) > Number(nodes[1])) {
+                this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+              }
+            } else {
+              if (nodes[i] !== "" && response.unique) {
+                for (let j = 0; j < i && this.context.getLastErrorCode() === "0"; j++) {
+                  if (nodes[i] === nodes[j]) {
+                    this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+                  }
+                }
+              }
             }
           }
         }
       }
-      if (this.isTerminated()) {
-        this.lastErrorCode = String(scorm2004_errors$1.RETRIEVE_AFTER_TERM);
-        return "";
+    }
+    /**
+     * Remove prefixes from correct_response
+     * @param {string} CMIElement - The CMI element path
+     * @param {string} node - The node string with potential prefixes
+     * @return {*} The node with prefixes removed
+     */
+    removeCorrectResponsePrefixes(CMIElement, node) {
+      let seenOrder = false;
+      let seenCase = false;
+      let seenLang = false;
+      const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
+      let matches = node.match(prefixRegex);
+      let langMatches = null;
+      while (matches) {
+        switch (matches[2]) {
+          case "lang":
+            langMatches = node.match(scorm2004_regex.CMILangcr);
+            if (langMatches) {
+              const lang = langMatches[3];
+              if (lang !== void 0 && lang.length > 0) {
+                if (!ValidLanguages.includes(lang.toLowerCase())) {
+                  this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
+                }
+              }
+            }
+            seenLang = true;
+            break;
+          case "case_matters":
+            if (!seenLang && !seenOrder && !seenCase) {
+              if (matches[3] !== "true" && matches[3] !== "false") {
+                this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
+              }
+            }
+            seenCase = true;
+            break;
+          case "order_matters":
+            if (!seenCase && !seenLang && !seenOrder) {
+              if (matches[3] !== "true" && matches[3] !== "false") {
+                this.context.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
+              }
+            }
+            seenOrder = true;
+            break;
+        }
+        node = node.substring(matches[1]?.length || 0);
+        matches = node.match(prefixRegex);
       }
-      if (!this.isInitialized()) {
-        this.lastErrorCode = String(scorm2004_errors$1.RETRIEVE_BEFORE_INIT);
-        return "";
+      return node;
+    }
+  }
+
+  class Scorm2004CMIHandler {
+    constructor(context, responseValidator) {
+      this.context = context;
+      this.responseValidator = responseValidator;
+    }
+    /**
+     * Gets or builds a new child element to add to the array
+     *
+     * @param {string} CMIElement - The CMI element path
+     * @param {any} value - The value being set
+     * @param {boolean} foundFirstIndex - Whether the first index was found
+     * @return {BaseCMI|null} The child element or null
+     */
+    getChildElement(CMIElement, value, foundFirstIndex) {
+      if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+        return new CMIObjectivesObject();
       }
-      if (CMIElement === "cmi.completion_status") {
-        return this.evaluateCompletionStatus();
+      if (foundFirstIndex) {
+        if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+          return this.createCorrectResponsesObject(CMIElement, value);
+        } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+          return new CMIInteractionsObjectivesObject();
+        }
+      } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
+        return new CMIInteractionsObject();
       }
-      if (CMIElement === "cmi.success_status") {
-        return this.evaluateSuccessStatus();
+      if (stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
+        return new CMICommentsObject();
+      } else if (stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
+        return new CMICommentsObject(true);
       }
-      return this.getValue("GetValue", true, CMIElement);
+      if (stringMatches(CMIElement, "adl\\.data\\.\\d+")) {
+        return new ADLDataObject();
+      }
+      return null;
+    }
+    /**
+     * Creates a correct responses object for an interaction
+     *
+     * @param {string} CMIElement - The CMI element path
+     * @param {any} value - The value being set
+     * @return {BaseCMI|null} The correct responses object or null
+     */
+    createCorrectResponsesObject(CMIElement, value) {
+      const parts = CMIElement.split(".");
+      const index = Number(parts[2]);
+      const interaction = this.context.cmi.interactions.childArray[index];
+      if (this.context.isInitialized()) {
+        if (typeof interaction === "undefined" || !interaction.type) {
+          this.context.throwSCORMError(CMIElement, scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
+          return null;
+        } else {
+          const interaction_count = interaction.correct_responses._count;
+          const response_type = CorrectResponses[interaction.type];
+          if (response_type && typeof response_type.limit !== "undefined" && interaction_count >= response_type.limit) {
+            this.context.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Collection Limit Reached: ${CMIElement}`);
+            return null;
+          }
+          this.responseValidator.checkDuplicateChoiceResponse(CMIElement, interaction, value);
+          if (response_type) {
+            this.responseValidator.checkValidResponseType(CMIElement, response_type, value, interaction.type);
+          } else {
+            this.context.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Incorrect Response Type: ${interaction.type}`);
+            return null;
+          }
+        }
+      }
+      if (this.context.getLastErrorCode() === "0") {
+        return new CMIInteractionsCorrectResponsesObject(interaction?.type);
+      }
+      return null;
     }
     /**
      * Evaluates completion_status per SCORM 2004 RTE Table 4.2.4.1a
@@ -20448,9 +20860,9 @@ ${stackTrace}`);
      * @returns {string} The evaluated completion status
      */
     evaluateCompletionStatus() {
-      const threshold = this.cmi.completion_threshold;
-      const progressMeasure = this.cmi.progress_measure;
-      const storedStatus = this.cmi.completion_status;
+      const threshold = this.context.cmi.completion_threshold;
+      const progressMeasure = this.context.cmi.progress_measure;
+      const storedStatus = this.context.cmi.completion_status;
       if (threshold !== "" && threshold !== null && threshold !== void 0) {
         const thresholdValue = parseFloat(String(threshold));
         if (!isNaN(thresholdValue)) {
@@ -20480,9 +20892,9 @@ ${stackTrace}`);
      * @returns {string} The evaluated success status
      */
     evaluateSuccessStatus() {
-      const scaledPassingScore = this.cmi.scaled_passing_score;
-      const scaledScore = this.cmi.score.scaled;
-      const storedStatus = this.cmi.success_status;
+      const scaledPassingScore = this.context.cmi.scaled_passing_score;
+      const scaledScore = this.context.cmi.score.scaled;
+      const storedStatus = this.context.cmi.success_status;
       if (scaledPassingScore !== "" && scaledPassingScore !== null && scaledPassingScore !== void 0) {
         const passingScoreValue = parseFloat(String(scaledPassingScore));
         if (!isNaN(passingScoreValue)) {
@@ -20497,907 +20909,9 @@ ${stackTrace}`);
       }
       return storedStatus || SuccessStatus.UNKNOWN;
     }
-    /**
-     * SetValue - Sets a value in the CMI data model
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.4:
-     * - Sets the value of the specified CMI element
-     * - Returns "true" on success, "false" on failure
-     * - Sets error 132 if not initialized
-     * - Sets error 133 if already terminated
-     * - Sets error 401 if element is not implemented (invalid element)
-     * - Sets error 403 if element is read-only
-     * - Sets error 406 if incorrect data type
-     * - Sets error 407 if element is a keyword and value is not valid
-     * - Triggers autocommit if enabled
-     *
-     * @param {string} CMIElement - The CMI element path (e.g., "cmi.completion_status")
-     * @param {any} value - The value to set
-     * @return {string} "true" or "false"
-     */
-    lmsSetValue(CMIElement, value) {
-      let oldValue = null;
-      try {
-        oldValue = this.getCMIValue(CMIElement);
-      } catch (error) {
-        oldValue = null;
-      }
-      const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
-      if (result === global_constants.SCORM_TRUE && this._sequencingService) {
-        try {
-          this._sequencingService.triggerRollupOnCMIChange(CMIElement, oldValue, value);
-        } catch (rollupError) {
-          console.warn(`Sequencing rollup failed for ${CMIElement}: ${rollupError}`);
-        }
-      }
-      if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence?.autoSaveOn === "setValue") {
-        const sequencingElements = ["cmi.completion_status", "cmi.success_status", "cmi.score.scaled", "cmi.objectives", "adl.nav.request"];
-        if (sequencingElements.some(element => CMIElement.startsWith(element))) {
-          this.saveSequencingState().catch(() => {
-            this.apiLog("lmsSetValue", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
-          });
-        }
-      }
-      return result;
-    }
-    /**
-     * Commit - Requests immediate persistence of data to the LMS
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.5:
-     * - Parameter must be empty string ("")
-     * - Requests persistence of all data set since last successful commit
-     * - Returns "true" on success, "false" on failure
-     * - Sets error 142 if not initialized
-     * - Sets error 143 if already terminated
-     * - Sets error 101 if parameter is not an empty string
-     * - Sets error 391 if commit failed
-     * - Does not terminate the communication session
-     *
-     * @param {string} parameter - Must be an empty string per SCORM 2004 specification
-     * @return {string} "true" or "false"
-     */
-    lmsCommit() {
-      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
-      if (parameter !== "") {
-        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
-        return global_constants.SCORM_FALSE;
-      }
-      if (this.settings.throttleCommits) {
-        this.scheduleCommit(500, "Commit");
-        return global_constants.SCORM_TRUE;
-      } else {
-        const result = this.commit("Commit", true);
-        if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence?.autoSaveOn === "commit") {
-          this.saveSequencingState().catch(() => {
-            this.apiLog("lmsCommit", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
-          });
-        }
-        return result;
-      }
-    }
-    /**
-     * GetLastError - Returns the error code from the last API call
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.6:
-     * - Returns the error code that resulted from the last API call
-     * - Returns "0" if no error occurred
-     * - Can be called at any time (even before Initialize)
-     * - Does not change the current error state
-     * - Should be called after each API call to check for errors
-     *
-     * @return {string} Error code as a string (e.g., "0", "103", "401")
-     */
-    lmsGetLastError() {
-      return this.getLastError("GetLastError");
-    }
-    /**
-     * GetErrorString - Returns a short description for an error code
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.7:
-     * - Returns a textual description for the specified error code
-     * - Returns empty string if error code is not recognized
-     * - Can be called at any time (even before Initialize)
-     * - Does not change the current error state
-     * - Used to provide user-friendly error messages
-     *
-     * @param {string|number} CMIErrorCode - The error code to get the description for
-     * @return {string} Short error description
-     */
-    lmsGetErrorString(CMIErrorCode) {
-      return this.getErrorString("GetErrorString", CMIErrorCode);
-    }
-    /**
-     * GetDiagnostic - Returns detailed diagnostic information for an error
-     *
-     * Per SCORM 2004 RTE Section 3.1.2.8:
-     * - Returns detailed diagnostic information for the specified error code
-     * - Implementation-specific; can include additional context or debugging info
-     * - Returns empty string if no diagnostic information is available
-     * - Can be called at any time (even before Initialize)
-     * - Does not change the current error state
-     * - Used for debugging and troubleshooting
-     *
-     * @param {string|number} CMIErrorCode - The error code to get diagnostic information for
-     * @return {string} Detailed diagnostic information
-     */
-    lmsGetDiagnostic(CMIErrorCode) {
-      return this.getDiagnostic("GetDiagnostic", CMIErrorCode);
-    }
-    /**
-     * Sets a value on the CMI Object - delegates to CMIValueHandlerModule
-     *
-     * @param {string} CMIElement
-     * @param {any} value
-     * @return {string}
-     */
-    setCMIValue(CMIElement, value) {
-      if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
-        const parts = CMIElement.split(".");
-        const index = Number(parts[2]);
-        const element_base = `cmi.objectives.${index}`;
-        let objective_id;
-        const setting_id = stringMatches(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
-        if (setting_id) {
-          objective_id = value;
-        } else {
-          const objective = this.cmi.objectives.findObjectiveByIndex(index);
-          objective_id = objective ? objective.id : void 0;
-        }
-        const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
-        if (is_global) {
-          let global_index = this._globalObjectives.findIndex(obj => obj.id === objective_id);
-          if (global_index === -1) {
-            global_index = this._globalObjectives.length;
-            const newGlobalObjective = new CMIObjectivesObject();
-            newGlobalObjective.id = objective_id;
-            this._globalObjectives.push(newGlobalObjective);
-          }
-          const global_element = CMIElement.replace(element_base, `_globalObjectives.${global_index}`);
-          this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
-          const updatedObjective = this._globalObjectives[global_index];
-          if (objective_id && updatedObjective) {
-            this.updateGlobalObjectiveFromCMI(objective_id, updatedObjective);
-          }
-        }
-      }
-      return this._commonSetCMIValue("SetValue", true, CMIElement, value);
-    }
-    /**
-     * Gets or builds a new child element to add to the array - delegates to CMIElementHandlerModule
-     *
-     * @param {string} CMIElement
-     * @param {any} value
-     * @param {boolean} foundFirstIndex
-     * @return {BaseCMI|null}
-     */
-    getChildElement(CMIElement, value, foundFirstIndex) {
-      if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
-        return new CMIObjectivesObject();
-      }
-      if (foundFirstIndex) {
-        if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-          return this.createCorrectResponsesObject(CMIElement, value);
-        } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
-          return new CMIInteractionsObjectivesObject();
-        }
-      } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
-        return new CMIInteractionsObject();
-      }
-      if (stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
-        return new CMICommentsObject();
-      } else if (stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
-        return new CMICommentsObject(true);
-      }
-      if (stringMatches(CMIElement, "adl\\.data\\.\\d+")) {
-        return new ADLDataObject();
-      }
-      return null;
-    }
-    /**
-     * Creates a correct responses object for an interaction - delegates to CMIElementHandlerModule
-     *
-     * @param {string} CMIElement
-     * @param {any} value
-     * @return {BaseCMI|null}
-     */
-    createCorrectResponsesObject(CMIElement, value) {
-      const parts = CMIElement.split(".");
-      const index = Number(parts[2]);
-      const interaction = this.cmi.interactions.childArray[index];
-      if (this.isInitialized()) {
-        if (typeof interaction === "undefined" || !interaction.type) {
-          this.throwSCORMError(CMIElement, scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
-          return null;
-        } else {
-          const interaction_count = interaction.correct_responses._count;
-          const response_type = CorrectResponses[interaction.type];
-          if (response_type && typeof response_type.limit !== "undefined" && interaction_count >= response_type.limit) {
-            this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Collection Limit Reached: ${CMIElement}`);
-            return null;
-          }
-          this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
-          if (response_type) {
-            this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
-          } else {
-            this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Incorrect Response Type: ${interaction.type}`);
-            return null;
-          }
-        }
-      }
-      if (this.lastErrorCode === "0") {
-        return new CMIInteractionsCorrectResponsesObject(interaction?.type);
-      }
-      return null;
-    }
-    /**
-     * Checks for valid response types - delegates to ValidationModule
-     * @param {string} CMIElement
-     * @param {ResponseType} response_type
-     * @param {any} value
-     * @param {string} interaction_type
-     */
-    checkValidResponseType(CMIElement, response_type, value, interaction_type) {
-      let nodes = [];
-      if (response_type?.delimiter) {
-        nodes = String(value).split(response_type.delimiter);
-      } else {
-        nodes[0] = value;
-      }
-      if (nodes.length > 0 && nodes.length <= response_type.max) {
-        this.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
-      } else if (nodes.length > response_type.max) {
-        this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Pattern Too Long: ${value}`);
-      }
-    }
-    /**
-     * Checks for duplicate 'choice' responses - delegates to ValidationModule
-     * @param {string} CMIElement
-     * @param {CMIInteractionsObject} interaction
-     * @param {any} value
-     */
-    checkDuplicateChoiceResponse(CMIElement, interaction, value) {
-      const interaction_count = interaction.correct_responses._count;
-      if (interaction.type === "choice") {
-        for (let i = 0; i < interaction_count && this.lastErrorCode === "0"; i++) {
-          const response = interaction.correct_responses.childArray[i];
-          if (response?.pattern === value) {
-            this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `${value}`);
-          }
-        }
-      }
-    }
-    /**
-     * Validate correct response - delegates to ValidationModule
-     * @param {string} CMIElement
-     * @param {*} value
-     */
-    validateCorrectResponse(CMIElement, value) {
-      const parts = CMIElement.split(".");
-      const index = Number(parts[2]);
-      const pattern_index = Number(parts[4]);
-      const interaction = this.cmi.interactions.childArray[index];
-      if (!interaction) {
-        this.throwSCORMError(CMIElement, scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
-        return;
-      }
-      const interaction_count = interaction.correct_responses._count;
-      this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
-      const response_type = CorrectResponses[interaction.type];
-      if (response_type && (typeof response_type.limit === "undefined" || interaction_count < response_type.limit)) {
-        this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
-        if (this.lastErrorCode === "0" && (!response_type.duplicate || !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value)) || this.lastErrorCode === "0" && value === "") ; else {
-          if (this.lastErrorCode === "0") {
-            this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Pattern Already Exists: ${CMIElement} - ${value}`);
-          }
-        }
-      } else {
-        this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Collection Limit Reached: ${CMIElement} - ${value}`);
-      }
-    }
-    /**
-     * Gets a value from the CMI Object - delegates to CMIValueHandlerModule
-     *
-     * @param {string} CMIElement
-     * @return {*}
-     */
-    getCMIValue(CMIElement) {
-      return this._commonGetCMIValue("GetValue", true, CMIElement);
-    }
-    /**
-     * Returns the message that corresponds to errorNumber.
-     *
-     * @param {(string|number)} errorNumber
-     * @param {boolean} detail
-     * @return {string}
-     */
-    getLmsErrorMessageDetails(errorNumber, detail) {
-      let basicMessage = "";
-      let detailMessage = "";
-      errorNumber = String(errorNumber);
-      const errorDescription = scorm2004_constants.error_descriptions[errorNumber];
-      if (errorDescription) {
-        basicMessage = errorDescription.basicMessage;
-        detailMessage = errorDescription.detailMessage;
-      }
-      return detail ? detailMessage : basicMessage;
-    }
-    /**
-     * Check to see if a correct_response value has been duplicated - delegates to ValidationModule
-     * @param {CMIArray} correct_response
-     * @param {number} current_index
-     * @param {*} value
-     * @return {boolean}
-     */
-    checkDuplicatedPattern(correct_response, current_index, value) {
-      let found = false;
-      const count = correct_response._count;
-      for (let i = 0; i < count && !found; i++) {
-        if (i !== current_index) {
-          const item = correct_response.childArray[i];
-          const existingPattern = item?.pattern;
-          if (existingPattern === value) {
-            found = true;
-          }
-        }
-      }
-      return found;
-    }
-    /**
-     * Checks for a valid correct_response value - delegates to ValidationModule
-     * @param {string} CMIElement
-     * @param {string} interaction_type
-     * @param {Array} nodes
-     * @param {*} value
-     */
-    checkCorrectResponseValue(CMIElement, interaction_type, nodes, value) {
-      const response = CorrectResponses[interaction_type];
-      if (!response) {
-        this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `Incorrect Response Type: ${interaction_type}`);
-        return;
-      }
-      const formatRegex = new RegExp(response.format);
-      for (let i = 0; i < nodes.length && this.lastErrorCode === "0"; i++) {
-        if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
-          nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
-        }
-        if (response?.delimiter2) {
-          const values = nodes[i].split(response.delimiter2);
-          if (values.length === 2) {
-            const matches = values[0].match(formatRegex);
-            if (!matches) {
-              this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
-            } else {
-              if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
-                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
-              }
-            }
-          } else {
-            this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
-          }
-        } else {
-          const matches = nodes[i].match(formatRegex);
-          if (!matches && value !== "" || !matches && interaction_type === "true-false") {
-            this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
-          } else {
-            if (interaction_type === "numeric" && nodes.length > 1) {
-              if (Number(nodes[0]) > Number(nodes[1])) {
-                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
-              }
-            } else {
-              if (nodes[i] !== "" && response.unique) {
-                for (let j = 0; j < i && this.lastErrorCode === "0"; j++) {
-                  if (nodes[i] === nodes[j]) {
-                    this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    /**
-     * Remove prefixes from correct_response - delegates to ValidationModule
-     * @param {string} CMIElement
-     * @param {string} node
-     * @return {*}
-     */
-    removeCorrectResponsePrefixes(CMIElement, node) {
-      let seenOrder = false;
-      let seenCase = false;
-      let seenLang = false;
-      const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
-      let matches = node.match(prefixRegex);
-      let langMatches = null;
-      while (matches) {
-        switch (matches[2]) {
-          case "lang":
-            langMatches = node.match(scorm2004_regex.CMILangcr);
-            if (langMatches) {
-              const lang = langMatches[3];
-              if (lang !== void 0 && lang.length > 0) {
-                if (!ValidLanguages.includes(lang.toLowerCase())) {
-                  this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
-                }
-              }
-            }
-            seenLang = true;
-            break;
-          case "case_matters":
-            if (!seenLang && !seenOrder && !seenCase) {
-              if (matches[3] !== "true" && matches[3] !== "false") {
-                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
-              }
-            }
-            seenCase = true;
-            break;
-          case "order_matters":
-            if (!seenCase && !seenLang && !seenOrder) {
-              if (matches[3] !== "true" && matches[3] !== "false") {
-                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
-              }
-            }
-            seenOrder = true;
-            break;
-        }
-        node = node.substring(matches[1]?.length || 0);
-        matches = node.match(prefixRegex);
-      }
-      return node;
-    }
-    /**
-     * Replace the whole API with another
-     * @param {Scorm2004API} newAPI
-     */
-    replaceWithAnotherScormAPI(newAPI) {
-      this.cmi = newAPI.cmi;
-      this.adl = newAPI.adl;
-    }
-    /**
-     * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
-     *
-     * @param {boolean} terminateCommit - Whether this is a termination commit
-     * @param {boolean} includeTotalTime - Whether to include total time in the commit data
-     * @return {object|Array}
-     */
-    renderCommitCMI(terminateCommit) {
-      let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      const cmiExport = this.renderCMIToJSONObject();
-      if (terminateCommit || includeTotalTime) {
-        cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
-      } else {
-        delete cmiExport.cmi.total_time;
-      }
-      const result = [];
-      const flattened = flatten(cmiExport);
-      switch (this.settings.dataCommitFormat) {
-        case "flattened":
-          return flatten(cmiExport);
-        case "params":
-          for (const item in flattened) {
-            if ({}.hasOwnProperty.call(flattened, item)) {
-              result.push(`${item}=${flattened[item]}`);
-            }
-          }
-          return result;
-        case "json":
-        default:
-          return cmiExport;
-      }
-    }
-    /**
-     * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
-     * @param {boolean} terminateCommit - Whether this is a termination commit
-     * @param {boolean} includeTotalTime - Whether to include total time in the commit data
-     * @return {CommitObject}
-     */
-    renderCommitObject(terminateCommit) {
-      let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
-      const calculateTotalTime = terminateCommit || includeTotalTime;
-      const totalTimeDuration = calculateTotalTime ? this.cmi.getCurrentTotalTime() : "";
-      const totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
-      let completionStatus = CompletionStatus.UNKNOWN;
-      let successStatus = SuccessStatus.UNKNOWN;
-      if (this.cmi.completion_status) {
-        if (this.cmi.completion_status === "completed") {
-          completionStatus = CompletionStatus.COMPLETED;
-        } else if (this.cmi.completion_status === "incomplete") {
-          completionStatus = CompletionStatus.INCOMPLETE;
-        }
-      }
-      if (this.cmi.success_status) {
-        if (this.cmi.success_status === "passed") {
-          successStatus = SuccessStatus.PASSED;
-        } else if (this.cmi.success_status === "failed") {
-          successStatus = SuccessStatus.FAILED;
-        }
-      }
-      const scoreObject = this.cmi?.score?.getScoreObject() || {};
-      const commitObject = {
-        completionStatus,
-        successStatus,
-        totalTimeSeconds,
-        runtimeData: cmiExport
-      };
-      if (scoreObject) {
-        commitObject.score = scoreObject;
-      }
-      if (this.settings.autoPopulateCommitMetadata) {
-        if (this.settings.courseId) {
-          commitObject.courseId = this.settings.courseId;
-        }
-        if (this.settings.scoId) {
-          commitObject.scoId = this.settings.scoId;
-        }
-        if (this.cmi.learner_id) {
-          commitObject.learnerId = this.cmi.learner_id;
-        }
-        if (this.cmi.learner_name) {
-          commitObject.learnerName = this.cmi.learner_name;
-        }
-        const sequencingState = this._sequencingService?.getSequencingState();
-        if (sequencingState?.currentActivity?.id) {
-          commitObject.activityId = sequencingState.currentActivity.id;
-        }
-      }
-      this.syncCmiToSequencingActivity(completionStatus, successStatus, scoreObject);
-      return commitObject;
-    }
-    /**
-     * Synchronize CMI runtime data to the current sequencing activity
-     * When cmi.success_status or cmi.completion_status are set, update the
-     * current activity's primary objective accordingly
-     *
-     * @param {CompletionStatus} completionStatus
-     * @param {SuccessStatus} successStatus
-     * @param {ScoreObject} scoreObject
-     * @private
-     */
-    syncCmiToSequencingActivity(completionStatus, successStatus, scoreObject) {
-      if (!this._sequencing) {
-        return;
-      }
-      const currentActivity = this._sequencing.getCurrentActivity();
-      if (!currentActivity || !currentActivity.primaryObjective) {
-        return;
-      }
-      const primaryObjective = currentActivity.primaryObjective;
-      if (successStatus !== SuccessStatus.UNKNOWN) {
-        primaryObjective.satisfiedStatus = successStatus === SuccessStatus.PASSED;
-        primaryObjective.satisfiedStatusKnown = true;
-        primaryObjective.measureStatus = true;
-        currentActivity.objectiveMeasureStatus = true;
-        currentActivity.objectiveSatisfiedStatus = successStatus === SuccessStatus.PASSED;
-        currentActivity.objectiveSatisfiedStatusKnown = true;
-      }
-      if (completionStatus !== CompletionStatus.UNKNOWN) {
-        primaryObjective.completionStatus = completionStatus;
-      }
-      if (scoreObject?.scaled !== void 0 && scoreObject.scaled !== null) {
-        primaryObjective.normalizedMeasure = scoreObject.scaled;
-        primaryObjective.measureStatus = true;
-      }
-    }
-    /**
-     * Attempts to store the data to the LMS - delegates to DataSerializationModule
-     *
-     * @param {boolean} terminateCommit
-     * @return {ResultObject}
-     */
-    storeData(terminateCommit) {
-      if (terminateCommit) {
-        if (this.cmi.mode === "normal") {
-          if (this.cmi.credit === "credit") {
-            if (this.cmi.completion_threshold && this.cmi.progress_measure) {
-              if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
-                this.cmi.completion_status = "completed";
-              } else {
-                this.cmi.completion_status = "incomplete";
-              }
-            }
-            if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
-              if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
-                this.cmi.success_status = "passed";
-              } else {
-                this.cmi.success_status = "failed";
-              }
-            }
-          }
-        }
-      }
-      let navRequest = false;
-      if (this.adl.nav.request !== this.startingData?.adl?.nav?.request && this.adl.nav.request !== "_none_") {
-        navRequest = true;
-      }
-      const commitObject = this.getCommitObject(terminateCommit);
-      const scoreObject = this.cmi?.score?.getScoreObject() || {};
-      let completionStatusEnum = CompletionStatus.UNKNOWN;
-      if (this.cmi.completion_status === "completed") {
-        completionStatusEnum = CompletionStatus.COMPLETED;
-      } else if (this.cmi.completion_status === "incomplete") {
-        completionStatusEnum = CompletionStatus.INCOMPLETE;
-      }
-      let successStatusEnum = SuccessStatus.UNKNOWN;
-      if (this.cmi.success_status === "passed") {
-        successStatusEnum = SuccessStatus.PASSED;
-      } else if (this.cmi.success_status === "failed") {
-        successStatusEnum = SuccessStatus.FAILED;
-      }
-      this.syncCmiToSequencingActivity(completionStatusEnum, successStatusEnum, scoreObject);
-      if (typeof this.settings.lmsCommitUrl === "string") {
-        const result = this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
-        if (navRequest && result.navRequest !== void 0 && result.navRequest !== "" && typeof result.navRequest === "string") {
-          const parsed = parseNavigationRequest(result.navRequest);
-          if (!parsed.valid) {
-            this.apiLog("storeData", `Invalid navigation request from LMS: ${parsed.error}`, LogLevelEnum.WARN);
-          } else {
-            const navEventMap = {
-              start: "SequenceStart",
-              resumeAll: "SequenceResumeAll",
-              continue: "SequenceNext",
-              previous: "SequencePrevious",
-              choice: "SequenceChoice",
-              jump: "SequenceJump",
-              exit: "SequenceExit",
-              exitAll: "SequenceExitAll",
-              abandon: "SequenceAbandon",
-              abandonAll: "SequenceAbandonAll",
-              suspendAll: "SequenceSuspendAll"
-            };
-            const eventName = navEventMap[parsed.command];
-            if (eventName) {
-              this.processListeners(eventName, "adl.nav.request", parsed.targetActivityId);
-            }
-          }
-        } else if (result?.navRequest && !navRequest) {
-          if (typeof result.navRequest === "object" && Object.hasOwnProperty.call(result.navRequest, "name") && result.navRequest.name) {
-            this.processListeners(result.navRequest.name, result.navRequest.data);
-          }
-        }
-        return result;
-      }
-      return {
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0
-      };
-    }
-    /**
-     * Configure sequencing based on provided settings
-     * @param {SequencingSettings} sequencingSettings - The sequencing settings
-     */
-    configureSequencing(sequencingSettings) {
-      this._sequencingCollections = this.sanitizeSequencingCollections(sequencingSettings.collections);
-      if (sequencingSettings.activityTree) {
-        this.configureActivityTree(sequencingSettings.activityTree);
-      }
-      if (sequencingSettings.sequencingRules) {
-        this.configureSequencingRules(sequencingSettings.sequencingRules);
-      }
-      if (sequencingSettings.sequencingControls) {
-        this.configureSequencingControls(sequencingSettings.sequencingControls);
-      }
-      if (sequencingSettings.rollupRules) {
-        this.configureRollupRules(sequencingSettings.rollupRules);
-      }
-      if (sequencingSettings.hideLmsUi) {
-        this._sequencing.hideLmsUi = this.sanitizeHideLmsUi(sequencingSettings.hideLmsUi);
-      } else {
-        this._sequencing.hideLmsUi = [];
-      }
-      if (sequencingSettings.auxiliaryResources) {
-        this._sequencing.auxiliaryResources = this.sanitizeAuxiliaryResources(sequencingSettings.auxiliaryResources);
-      } else {
-        this._sequencing.auxiliaryResources = [];
-      }
-    }
-    /**
-     * Configure activity tree based on provided settings
-     * @param {ActivitySettings} activityTreeSettings - The activity tree settings
-     */
-    configureActivityTree(activityTreeSettings) {
-      const rootActivity = this.createActivity(activityTreeSettings);
-      const activityTree = this._sequencing.activityTree;
-      activityTree.root = rootActivity;
-      this._extractedScoItemIds = this.extractActivityIds(rootActivity);
-    }
-    /**
-     * Extract all activity IDs from an activity and its children
-     * @param {Activity} activity - The activity to extract IDs from
-     * @return {string[]} - Array of activity IDs
-     */
-    extractActivityIds(activity) {
-      const ids = [activity.id];
-      for (const child of activity.children) {
-        ids.push(...this.extractActivityIds(child));
-      }
-      return ids;
-    }
-    /**
-     * Create an activity from settings
-     * @param {ActivitySettings} activitySettings - The activity settings
-     * @return {Activity} - The created activity
-     */
-    createActivity(activitySettings) {
-      const activity = new Activity(activitySettings.id, activitySettings.title);
-      const selectionStates = [];
-      const collectionRefs = this.normalizeCollectionRefs(activitySettings.sequencingCollectionRefs);
-      for (const ref of collectionRefs) {
-        const collection = this._sequencingCollections[ref];
-        if (collection) {
-          this.applySequencingCollection(activity, collection, selectionStates);
-        }
-      }
-      if (activitySettings.isVisible !== void 0) {
-        activity.isVisible = activitySettings.isVisible;
-      }
-      if (activitySettings.isActive !== void 0) {
-        activity.isActive = activitySettings.isActive;
-      }
-      if (activitySettings.isSuspended !== void 0) {
-        activity.isSuspended = activitySettings.isSuspended;
-      }
-      if (activitySettings.isCompleted !== void 0) {
-        activity.isCompleted = activitySettings.isCompleted;
-      }
-      if (activitySettings.isHiddenFromChoice !== void 0) {
-        activity.isHiddenFromChoice = activitySettings.isHiddenFromChoice;
-      }
-      if (activitySettings.isAvailable !== void 0) {
-        activity.isAvailable = activitySettings.isAvailable;
-      }
-      if (activitySettings.attemptLimit !== void 0) {
-        activity.attemptLimit = activitySettings.attemptLimit;
-      }
-      if (activitySettings.attemptAbsoluteDurationLimit !== void 0) {
-        activity.attemptAbsoluteDurationLimit = activitySettings.attemptAbsoluteDurationLimit;
-      }
-      if (activitySettings.activityAbsoluteDurationLimit !== void 0) {
-        activity.activityAbsoluteDurationLimit = activitySettings.activityAbsoluteDurationLimit;
-      }
-      if (activitySettings.timeLimitAction !== void 0) {
-        activity.timeLimitAction = activitySettings.timeLimitAction;
-      }
-      if (activitySettings.timeLimitDuration !== void 0) {
-        activity.timeLimitDuration = activitySettings.timeLimitDuration;
-      }
-      if (activitySettings.beginTimeLimit !== void 0) {
-        activity.beginTimeLimit = activitySettings.beginTimeLimit;
-      }
-      if (activitySettings.endTimeLimit !== void 0) {
-        activity.endTimeLimit = activitySettings.endTimeLimit;
-      }
-      if (activitySettings.primaryObjective) {
-        const primaryObjective = this.createActivityObjectiveFromSettings(activitySettings.primaryObjective, true);
-        activity.primaryObjective = primaryObjective;
-        if (primaryObjective.minNormalizedMeasure !== null) {
-          activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
-        }
-      }
-      if (activitySettings.objectives) {
-        for (const objectiveSettings of activitySettings.objectives) {
-          const isPrimary = objectiveSettings.isPrimary === true;
-          const objective = this.createActivityObjectiveFromSettings(objectiveSettings, isPrimary);
-          if (isPrimary) {
-            activity.primaryObjective = objective;
-          } else {
-            activity.addObjective(objective);
-          }
-        }
-      }
-      if (activitySettings.sequencingControls) {
-        this.applySequencingControlsSettings(activity.sequencingControls, activitySettings.sequencingControls);
-      }
-      if (activitySettings.sequencingRules) {
-        this.applySequencingRulesSettings(activity.sequencingRules, activitySettings.sequencingRules);
-      }
-      if (activitySettings.rollupRules) {
-        this.applyRollupRulesSettings(activity.rollupRules, activitySettings.rollupRules);
-      }
-      if (activitySettings.rollupConsiderations) {
-        activity.applyRollupConsiderations(activitySettings.rollupConsiderations);
-      }
-      if (activitySettings.hideLmsUi) {
-        const mergedHide = this.mergeHideLmsUi(activity.hideLmsUi, activitySettings.hideLmsUi);
-        if (mergedHide.length > 0) {
-          activity.hideLmsUi = mergedHide;
-        }
-      }
-      if (activitySettings.auxiliaryResources) {
-        const sanitizedAux = this.sanitizeAuxiliaryResources(activitySettings.auxiliaryResources);
-        if (sanitizedAux.length > 0) {
-          activity.auxiliaryResources = this.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
-        }
-      }
-      if (activitySettings.children) {
-        for (const childSettings of activitySettings.children) {
-          const childActivity = this.createActivity(childSettings);
-          activity.addChild(childActivity);
-        }
-      }
-      if (activitySettings.selectionRandomizationState) {
-        selectionStates.push(this.cloneSelectionRandomizationState(activitySettings.selectionRandomizationState));
-      }
-      for (const state of selectionStates) {
-        this.applySelectionRandomizationState(activity, state);
-      }
-      return activity;
-    }
-    /**
-     * Configure sequencing rules based on provided settings
-     * @param {SequencingRulesSettings} sequencingRulesSettings - The sequencing rules settings
-     */
-    configureSequencingRules(sequencingRulesSettings) {
-      this.applySequencingRulesSettings(this._sequencing.sequencingRules, sequencingRulesSettings);
-    }
-    /**
-     * Create a sequencing rule from settings
-     * @param {SequencingRuleSettings} ruleSettings - The sequencing rule settings
-     * @return {SequencingRule} - The created sequencing rule
-     */
-    createSequencingRule(ruleSettings) {
-      const rule = new SequencingRule(ruleSettings.action, ruleSettings.conditionCombination);
-      for (const conditionSettings of ruleSettings.conditions) {
-        const condition = new RuleCondition(conditionSettings.condition, conditionSettings.operator, new Map(Object.entries(conditionSettings.parameters || {})));
-        if (conditionSettings.referencedObjective) {
-          condition.referencedObjective = conditionSettings.referencedObjective;
-        }
-        rule.addCondition(condition);
-      }
-      return rule;
-    }
-    /**
-     * Configure sequencing controls based on provided settings
-     * @param {SequencingControlsSettings} sequencingControlsSettings - The sequencing controls settings
-     */
-    configureSequencingControls(sequencingControlsSettings) {
-      this.applySequencingControlsSettings(this._sequencing.sequencingControls, sequencingControlsSettings);
-    }
-    /**
-     * Applies the selection randomization state to the given activity by updating its sequencing controls
-     * and configuring visibility, availability, and order of its child elements.
-     *
-     * @param {Activity} activity - The activity to which the selection randomization state is applied.
-     * @param {SelectionRandomizationStateSettings} state - The settings object defining the selection
-     * randomization state, including properties for selection count status, child order, reorder controls,
-     * selected child IDs, and hidden child IDs.
-     * @return {void} This method does not return a value.
-     */
-    applySelectionRandomizationState(activity, state) {
-      const sequencingControls = activity.sequencingControls;
-      if (state.selectionCountStatus !== void 0) {
-        sequencingControls.selectionCountStatus = state.selectionCountStatus;
-      }
-      if (state.reorderChildren !== void 0) {
-        sequencingControls.reorderChildren = state.reorderChildren;
-      }
-      const selectedSet = state.selectedChildIds ? new Set(state.selectedChildIds) : null;
-      const hiddenSet = state.hiddenFromChoiceChildIds ? new Set(state.hiddenFromChoiceChildIds) : null;
-      if (state.childOrder && state.childOrder.length > 0) {
-        activity.setChildOrder(state.childOrder);
-      }
-      let selectionTouched = false;
-      if (selectedSet || hiddenSet) {
-        for (const child of activity.children) {
-          if (selectedSet) {
-            const isSelected = selectedSet.has(child.id);
-            child.isAvailable = isSelected;
-            if (!hiddenSet) {
-              child.isHiddenFromChoice = !isSelected;
-            }
-            selectionTouched = true;
-          }
-          if (hiddenSet) {
-            child.isHiddenFromChoice = hiddenSet.has(child.id);
-            selectionTouched = true;
-          }
-        }
-      }
-      const shouldSetProcessedChildren = selectionTouched || !!selectedSet || state.selectionCountStatus !== void 0 || state.reorderChildren !== void 0 || state.childOrder && state.childOrder.length > 0;
-      if (shouldSetProcessedChildren) {
-        activity.setProcessedChildren(activity.children.filter(child => child.isAvailable));
-      }
-    }
+  }
+
+  class SequencingConfigurationBuilder {
     /**
      * Applies the given sequencing controls settings to the specified target.
      *
@@ -21501,6 +21015,22 @@ ${stackTrace}`);
       }
     }
     /**
+     * Create a sequencing rule from settings
+     * @param {SequencingRuleSettings} ruleSettings - The sequencing rule settings
+     * @return {SequencingRule} - The created sequencing rule
+     */
+    createSequencingRule(ruleSettings) {
+      const rule = new SequencingRule(ruleSettings.action, ruleSettings.conditionCombination);
+      for (const conditionSettings of ruleSettings.conditions) {
+        const condition = new RuleCondition(conditionSettings.condition, conditionSettings.operator, new Map(Object.entries(conditionSettings.parameters || {})));
+        if (conditionSettings.referencedObjective) {
+          condition.referencedObjective = conditionSettings.referencedObjective;
+        }
+        rule.addCondition(condition);
+      }
+      return rule;
+    }
+    /**
      * Applies rollup rules settings to the specified target object.
      * This method processes the provided settings and adds the corresponding
      * rollup rules to the target.
@@ -21519,43 +21049,17 @@ ${stackTrace}`);
       }
     }
     /**
-     * Clones the given SelectionRandomizationStateSettings object, creating a new object with identical properties.
-     *
-     * @param {SelectionRandomizationStateSettings} state - The SelectionRandomizationStateSettings object to be cloned.
-     * @return {SelectionRandomizationStateSettings} A new instance of SelectionRandomizationStateSettings with the same properties as the input object.
+     * Create a rollup rule from settings
+     * @param {RollupRuleSettings} ruleSettings - The rollup rule settings
+     * @return {RollupRule} - The created rollup rule
      */
-    cloneSelectionRandomizationState(state) {
-      const clone = {};
-      if (state.childOrder) {
-        clone.childOrder = [...state.childOrder];
+    createRollupRule(ruleSettings) {
+      const rule = new RollupRule(ruleSettings.action, ruleSettings.consideration, ruleSettings.minimumCount, ruleSettings.minimumPercent);
+      for (const conditionSettings of ruleSettings.conditions) {
+        const condition = new RollupCondition(conditionSettings.condition, new Map(Object.entries(conditionSettings.parameters || {})));
+        rule.addCondition(condition);
       }
-      if (state.selectedChildIds) {
-        clone.selectedChildIds = [...state.selectedChildIds];
-      }
-      if (state.hiddenFromChoiceChildIds) {
-        clone.hiddenFromChoiceChildIds = [...state.hiddenFromChoiceChildIds];
-      }
-      if (state.selectionCountStatus !== void 0) {
-        clone.selectionCountStatus = state.selectionCountStatus;
-      }
-      if (state.reorderChildren !== void 0) {
-        clone.reorderChildren = state.reorderChildren;
-      }
-      return clone;
-    }
-    /**
-     * Merges the current array of HideLmsUiItem objects with an optional additional array,
-     * and sanitizes the combined result.
-     *
-     * @param {HideLmsUiItem[]} current - The current array of HideLmsUiItem objects.
-     * @param {HideLmsUiItem[]} [additional] - An optional array of additional HideLmsUiItem objects to merge.
-     * @return {HideLmsUiItem[]} The sanitized merged array of HideLmsUiItem objects.
-     */
-    mergeHideLmsUi(current, additional) {
-      if (!additional || additional.length === 0) {
-        return current;
-      }
-      return this.sanitizeHideLmsUi([...current, ...additional]);
+      return rule;
     }
     /**
      * Sanitizes and processes a collection of sequencing settings. This involves ensuring that
@@ -21738,6 +21242,43 @@ ${stackTrace}`);
       }
     }
     /**
+     * Filters and sanitizes a list of items by removing duplicates and ensuring
+     * only valid items are included according to a predefined set of valid tokens.
+     *
+     * @param {HideLmsUiItem[] | undefined} items - The list of items to be sanitized.
+     * Can be undefined, in which case an empty array is returned.
+     * @return {HideLmsUiItem[]} The sanitized list of unique and valid items.
+     */
+    sanitizeHideLmsUi(items) {
+      if (!items) {
+        return [];
+      }
+      const valid = new Set(HIDE_LMS_UI_TOKENS);
+      const seen = /* @__PURE__ */new Set();
+      const sanitized = [];
+      for (const item of items) {
+        if (valid.has(item) && !seen.has(item)) {
+          seen.add(item);
+          sanitized.push(item);
+        }
+      }
+      return sanitized;
+    }
+    /**
+     * Merges the current array of HideLmsUiItem objects with an optional additional array,
+     * and sanitizes the combined result.
+     *
+     * @param {HideLmsUiItem[]} current - The current array of HideLmsUiItem objects.
+     * @param {HideLmsUiItem[]} [additional] - An optional array of additional HideLmsUiItem objects to merge.
+     * @return {HideLmsUiItem[]} The sanitized merged array of HideLmsUiItem objects.
+     */
+    mergeHideLmsUi(current, additional) {
+      if (!additional || additional.length === 0) {
+        return current;
+      }
+      return this.sanitizeHideLmsUi([...current, ...additional]);
+    }
+    /**
      * Sanitizes and filters the given auxiliary resources by removing duplicates,
      * trimming unnecessary whitespace, and ensuring valid data integrity.
      *
@@ -21797,53 +21338,216 @@ ${stackTrace}`);
       return merged;
     }
     /**
-     * Filters and sanitizes a list of items by removing duplicates and ensuring
-     * only valid items are included according to a predefined set of valid tokens.
+     * Clones the given SelectionRandomizationStateSettings object, creating a new object with identical properties.
      *
-     * @param {HideLmsUiItem[] | undefined} items - The list of items to be sanitized.
-     * Can be undefined, in which case an empty array is returned.
-     * @return {HideLmsUiItem[]} The sanitized list of unique and valid items.
+     * @param {SelectionRandomizationStateSettings} state - The SelectionRandomizationStateSettings object to be cloned.
+     * @return {SelectionRandomizationStateSettings} A new instance of SelectionRandomizationStateSettings with the same properties as the input object.
      */
-    sanitizeHideLmsUi(items) {
-      if (!items) {
-        return [];
+    cloneSelectionRandomizationState(state) {
+      const clone = {};
+      if (state.childOrder) {
+        clone.childOrder = [...state.childOrder];
       }
-      const valid = new Set(HIDE_LMS_UI_TOKENS);
-      const seen = /* @__PURE__ */new Set();
-      const sanitized = [];
-      for (const item of items) {
-        if (valid.has(item) && !seen.has(item)) {
-          seen.add(item);
-          sanitized.push(item);
+      if (state.selectedChildIds) {
+        clone.selectedChildIds = [...state.selectedChildIds];
+      }
+      if (state.hiddenFromChoiceChildIds) {
+        clone.hiddenFromChoiceChildIds = [...state.hiddenFromChoiceChildIds];
+      }
+      if (state.selectionCountStatus !== void 0) {
+        clone.selectionCountStatus = state.selectionCountStatus;
+      }
+      if (state.reorderChildren !== void 0) {
+        clone.reorderChildren = state.reorderChildren;
+      }
+      return clone;
+    }
+    /**
+     * Applies the selection randomization state to the given activity by updating its sequencing controls
+     * and configuring visibility, availability, and order of its child elements.
+     *
+     * @param {Activity} activity - The activity to which the selection randomization state is applied.
+     * @param {SelectionRandomizationStateSettings} state - The settings object defining the selection
+     * randomization state, including properties for selection count status, child order, reorder controls,
+     * selected child IDs, and hidden child IDs.
+     * @return {void} This method does not return a value.
+     */
+    applySelectionRandomizationState(activity, state) {
+      const sequencingControls = activity.sequencingControls;
+      if (state.selectionCountStatus !== void 0) {
+        sequencingControls.selectionCountStatus = state.selectionCountStatus;
+      }
+      if (state.reorderChildren !== void 0) {
+        sequencingControls.reorderChildren = state.reorderChildren;
+      }
+      const selectedSet = state.selectedChildIds ? new Set(state.selectedChildIds) : null;
+      const hiddenSet = state.hiddenFromChoiceChildIds ? new Set(state.hiddenFromChoiceChildIds) : null;
+      if (state.childOrder && state.childOrder.length > 0) {
+        activity.setChildOrder(state.childOrder);
+      }
+      let selectionTouched = false;
+      if (selectedSet || hiddenSet) {
+        for (const child of activity.children) {
+          if (selectedSet) {
+            const isSelected = selectedSet.has(child.id);
+            child.isAvailable = isSelected;
+            if (!hiddenSet) {
+              child.isHiddenFromChoice = !isSelected;
+            }
+            selectionTouched = true;
+          }
+          if (hiddenSet) {
+            child.isHiddenFromChoice = hiddenSet.has(child.id);
+            selectionTouched = true;
+          }
         }
       }
-      return sanitized;
-    }
-    /**
-     * Configure rollup rules based on provided settings
-     * @param {RollupRulesSettings} rollupRulesSettings - The rollup rules settings
-     */
-    configureRollupRules(rollupRulesSettings) {
-      this.applyRollupRulesSettings(this._sequencing.rollupRules, rollupRulesSettings);
-    }
-    /**
-     * Create a rollup rule from settings
-     * @param {RollupRuleSettings} ruleSettings - The rollup rule settings
-     * @return {RollupRule} - The created rollup rule
-     */
-    createRollupRule(ruleSettings) {
-      const rule = new RollupRule(ruleSettings.action, ruleSettings.consideration, ruleSettings.minimumCount, ruleSettings.minimumPercent);
-      for (const conditionSettings of ruleSettings.conditions) {
-        const condition = new RollupCondition(conditionSettings.condition, new Map(Object.entries(conditionSettings.parameters || {})));
-        rule.addCondition(condition);
+      const shouldSetProcessedChildren = selectionTouched || !!selectedSet || state.selectionCountStatus !== void 0 || state.reorderChildren !== void 0 || state.childOrder && state.childOrder.length > 0;
+      if (shouldSetProcessedChildren) {
+        activity.setProcessedChildren(activity.children.filter(child => child.isAvailable));
       }
-      return rule;
+    }
+  }
+
+  class ActivityTreeBuilder {
+    constructor(collections, sequencingConfigBuilder) {
+      this.sequencingCollections = collections || {};
+      this.sequencingConfigBuilder = sequencingConfigBuilder || new SequencingConfigurationBuilder();
+    }
+    /**
+     * Updates the sequencing collections
+     * @param {Record<string, SequencingCollectionSettings>} collections - The new collections
+     */
+    setSequencingCollections(collections) {
+      this.sequencingCollections = collections;
+    }
+    /**
+     * Create an activity from settings
+     * @param {ActivitySettings} activitySettings - The activity settings
+     * @return {Activity} - The created activity
+     */
+    createActivity(activitySettings) {
+      const activity = new Activity(activitySettings.id, activitySettings.title);
+      const selectionStates = [];
+      const collectionRefs = this.sequencingConfigBuilder.normalizeCollectionRefs(activitySettings.sequencingCollectionRefs);
+      for (const ref of collectionRefs) {
+        const collection = this.sequencingCollections[ref];
+        if (collection) {
+          this.sequencingConfigBuilder.applySequencingCollection(activity, collection, selectionStates);
+        }
+      }
+      if (activitySettings.isVisible !== void 0) {
+        activity.isVisible = activitySettings.isVisible;
+      }
+      if (activitySettings.isActive !== void 0) {
+        activity.isActive = activitySettings.isActive;
+      }
+      if (activitySettings.isSuspended !== void 0) {
+        activity.isSuspended = activitySettings.isSuspended;
+      }
+      if (activitySettings.isCompleted !== void 0) {
+        activity.isCompleted = activitySettings.isCompleted;
+      }
+      if (activitySettings.isHiddenFromChoice !== void 0) {
+        activity.isHiddenFromChoice = activitySettings.isHiddenFromChoice;
+      }
+      if (activitySettings.isAvailable !== void 0) {
+        activity.isAvailable = activitySettings.isAvailable;
+      }
+      if (activitySettings.attemptLimit !== void 0) {
+        activity.attemptLimit = activitySettings.attemptLimit;
+      }
+      if (activitySettings.attemptAbsoluteDurationLimit !== void 0) {
+        activity.attemptAbsoluteDurationLimit = activitySettings.attemptAbsoluteDurationLimit;
+      }
+      if (activitySettings.activityAbsoluteDurationLimit !== void 0) {
+        activity.activityAbsoluteDurationLimit = activitySettings.activityAbsoluteDurationLimit;
+      }
+      if (activitySettings.timeLimitAction !== void 0) {
+        activity.timeLimitAction = activitySettings.timeLimitAction;
+      }
+      if (activitySettings.timeLimitDuration !== void 0) {
+        activity.timeLimitDuration = activitySettings.timeLimitDuration;
+      }
+      if (activitySettings.beginTimeLimit !== void 0) {
+        activity.beginTimeLimit = activitySettings.beginTimeLimit;
+      }
+      if (activitySettings.endTimeLimit !== void 0) {
+        activity.endTimeLimit = activitySettings.endTimeLimit;
+      }
+      if (activitySettings.primaryObjective) {
+        const primaryObjective = this.createActivityObjectiveFromSettings(activitySettings.primaryObjective, true);
+        activity.primaryObjective = primaryObjective;
+        if (primaryObjective.minNormalizedMeasure !== null) {
+          activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
+        }
+      }
+      if (activitySettings.objectives) {
+        for (const objectiveSettings of activitySettings.objectives) {
+          const isPrimary = objectiveSettings.isPrimary === true;
+          const objective = this.createActivityObjectiveFromSettings(objectiveSettings, isPrimary);
+          if (isPrimary) {
+            activity.primaryObjective = objective;
+          } else {
+            activity.addObjective(objective);
+          }
+        }
+      }
+      if (activitySettings.sequencingControls) {
+        this.sequencingConfigBuilder.applySequencingControlsSettings(activity.sequencingControls, activitySettings.sequencingControls);
+      }
+      if (activitySettings.sequencingRules) {
+        this.sequencingConfigBuilder.applySequencingRulesSettings(activity.sequencingRules, activitySettings.sequencingRules);
+      }
+      if (activitySettings.rollupRules) {
+        this.sequencingConfigBuilder.applyRollupRulesSettings(activity.rollupRules, activitySettings.rollupRules);
+      }
+      if (activitySettings.rollupConsiderations) {
+        activity.applyRollupConsiderations(activitySettings.rollupConsiderations);
+      }
+      if (activitySettings.hideLmsUi) {
+        const mergedHide = this.sequencingConfigBuilder.mergeHideLmsUi(activity.hideLmsUi, activitySettings.hideLmsUi);
+        if (mergedHide.length > 0) {
+          activity.hideLmsUi = mergedHide;
+        }
+      }
+      if (activitySettings.auxiliaryResources) {
+        const sanitizedAux = this.sequencingConfigBuilder.sanitizeAuxiliaryResources(activitySettings.auxiliaryResources);
+        if (sanitizedAux.length > 0) {
+          activity.auxiliaryResources = this.sequencingConfigBuilder.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
+        }
+      }
+      if (activitySettings.children) {
+        for (const childSettings of activitySettings.children) {
+          const childActivity = this.createActivity(childSettings);
+          activity.addChild(childActivity);
+        }
+      }
+      if (activitySettings.selectionRandomizationState) {
+        selectionStates.push(this.sequencingConfigBuilder.cloneSelectionRandomizationState(activitySettings.selectionRandomizationState));
+      }
+      for (const state of selectionStates) {
+        this.sequencingConfigBuilder.applySelectionRandomizationState(activity, state);
+      }
+      return activity;
+    }
+    /**
+     * Extract all activity IDs from an activity and its children
+     * @param {Activity} activity - The activity to extract IDs from
+     * @return {string[]} - Array of activity IDs
+     */
+    extractActivityIds(activity) {
+      const ids = [activity.id];
+      for (const child of activity.children) {
+        ids.push(...this.extractActivityIds(child));
+      }
+      return ids;
     }
     /**
      * Create an activity objective from settings
-     * @param {ObjectiveSettings} objectiveSettings
-     * @param {boolean} isPrimary
-     * @return {ActivityObjective}
+     * @param {ObjectiveSettings} objectiveSettings - The objective settings
+     * @param {boolean} isPrimary - Whether this is a primary objective
+     * @return {ActivityObjective} - The created objective
      */
     createActivityObjectiveFromSettings(objectiveSettings, isPrimary) {
       const mapInfo = (objectiveSettings.mapInfo || []).map(info => ({
@@ -21872,32 +21576,37 @@ ${stackTrace}`);
         isPrimary
       });
     }
+  }
+
+  class GlobalObjectiveManager {
+    constructor(context) {
+      this._globalObjectives = [];
+      this.context = context;
+    }
     /**
-     * Initialize the sequencing service
-     * @param {Settings} settings - API settings that may include sequencing configuration
+     * Get global objectives array
+     *
+     * Global objectives persist across SCO transitions and are used for cross-activity
+     * objective tracking via mapInfo (SCORM 2004 SN Book SB.2.4).
+     *
+     * @return {CMIObjectivesObject[]} Array of global objective objects
      */
-    initializeSequencingService(settings) {
-      try {
-        const sequencingConfig = {
-          autoRollupOnCMIChange: settings?.sequencing?.autoRollupOnCMIChange ?? true,
-          autoProgressOnCompletion: settings?.sequencing?.autoProgressOnCompletion ?? false,
-          validateNavigationRequests: settings?.sequencing?.validateNavigationRequests ?? true,
-          enableEventSystem: settings?.sequencing?.enableEventSystem ?? true,
-          logLevel: settings?.sequencing?.logLevel ?? "info"
-        };
-        this._sequencingService = new SequencingService(this._sequencing, this.cmi, this.adl, this.eventService || this,
-        // Use eventService if available, fallback to this
-        this.loggingService,
-        // loggingService is always initialized in BaseAPI constructor
-        sequencingConfig);
-        if (settings?.sequencing?.eventListeners) {
-          this._sequencingService.setEventListeners(settings.sequencing.eventListeners);
-        }
-        this.syncGlobalObjectiveIdsFromSequencing();
-      } catch (error) {
-        console.warn("Failed to initialize sequencing service:", error);
-        this._sequencingService = null;
-      }
+    get globalObjectives() {
+      return this._globalObjectives;
+    }
+    /**
+     * Set global objectives array (for deserialization)
+     * @param {CMIObjectivesObject[]} objectives - Array of objectives to set
+     */
+    set globalObjectives(objectives) {
+      this._globalObjectives = objectives;
+    }
+    /**
+     * Update the sequencing service reference
+     * @param {SequencingService | null} service - The sequencing service instance
+     */
+    updateSequencingService(service) {
+      this.context.sequencingService = service;
     }
     /**
      * Syncs global objective IDs from the sequencing service's globalObjectiveMap
@@ -21909,10 +21618,10 @@ ${stackTrace}`);
      * transitions and be available for cross-activity objective tracking.
      */
     syncGlobalObjectiveIdsFromSequencing() {
-      if (!this._sequencingService) {
+      if (!this.context.sequencingService) {
         return;
       }
-      const overallProcess = this._sequencingService.getOverallSequencingProcess();
+      const overallProcess = this.context.sequencingService.getOverallSequencingProcess();
       if (!overallProcess) {
         return;
       }
@@ -21921,9 +21630,10 @@ ${stackTrace}`);
         return;
       }
       const globalIds = Array.from(globalObjectiveMap.keys());
-      const existingIds = this.settings.globalObjectiveIds || [];
+      const settings = this.context.getSettings();
+      const existingIds = settings.globalObjectiveIds || [];
       const mergedIds = Array.from(new Set(existingIds.concat(globalIds)));
-      this.settings.globalObjectiveIds = mergedIds;
+      settings.globalObjectiveIds = mergedIds;
     }
     /**
      * Restores global objectives from _globalObjectives to cmi.objectives
@@ -21942,352 +21652,134 @@ ${stackTrace}`);
         if (!globalObj || !globalObj.id) {
           continue;
         }
-        const existingObjective = this.cmi.objectives.findObjectiveById(globalObj.id);
+        const existingObjective = this.context.cmi.objectives.findObjectiveById(globalObj.id);
         if (existingObjective) {
           continue;
         }
-        const index = this.cmi.objectives.childArray.length;
-        this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.id`, globalObj.id);
+        const index = this.context.cmi.objectives.childArray.length;
+        this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.id`, globalObj.id);
         if (globalObj.success_status && globalObj.success_status !== "unknown") {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.success_status`, globalObj.success_status);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.success_status`, globalObj.success_status);
         }
         if (globalObj.completion_status && globalObj.completion_status !== "unknown") {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.completion_status`, globalObj.completion_status);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.completion_status`, globalObj.completion_status);
         }
         if (globalObj.score.scaled !== "" && globalObj.score.scaled !== null) {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.scaled`, globalObj.score.scaled);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.scaled`, globalObj.score.scaled);
         }
         if (globalObj.score.raw !== "" && globalObj.score.raw !== null) {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.raw`, globalObj.score.raw);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.raw`, globalObj.score.raw);
         }
         if (globalObj.score.min !== "" && globalObj.score.min !== null) {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.min`, globalObj.score.min);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.min`, globalObj.score.min);
         }
         if (globalObj.score.max !== "" && globalObj.score.max !== null) {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.max`, globalObj.score.max);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.score.max`, globalObj.score.max);
         }
         if (globalObj.progress_measure !== "" && globalObj.progress_measure !== null) {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.progress_measure`, globalObj.progress_measure);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.progress_measure`, globalObj.progress_measure);
         }
         if (globalObj.description !== "") {
-          this._commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.description`, globalObj.description);
+          this.context.commonSetCMIValue("RestoreGlobalObjective", true, `cmi.objectives.${index}.description`, globalObj.description);
         }
       }
     }
     /**
-     * Get the sequencing service (for advanced sequencing operations)
-     * @return {SequencingService | null}
-     */
-    getSequencingService() {
-      return this._sequencingService;
-    }
-    /**
-     * Set sequencing event listeners
-     * @param {SequencingEventListeners} listeners - Event listeners for sequencing events
-     */
-    setSequencingEventListeners(listeners) {
-      if (this._sequencingService) {
-        this._sequencingService.setEventListeners(listeners);
-      }
-    }
-    /**
-     * Update sequencing configuration
-     * @param {SequencingConfiguration} config - New sequencing configuration
-     */
-    updateSequencingConfiguration(config) {
-      if (this._sequencingService) {
-        this._sequencingService.updateConfiguration(config);
-      }
-    }
-    /**
-     * Get current sequencing state information
-     * @return {object} Current sequencing state
-     */
-    getSequencingState() {
-      if (this._sequencingService) {
-        return this._sequencingService.getSequencingState();
-      }
-      return {
-        isInitialized: false,
-        isActive: false,
-        currentActivity: null,
-        rootActivity: this._sequencing.getRootActivity(),
-        lastSequencingResult: null
-      };
-    }
-    /**
-     * Process a navigation request directly (for advanced use)
-     * @param {string} request - Navigation request
-     * @param {string} targetActivityId - Target activity ID for choice/jump requests
-     * @return {boolean} True if request was processed successfully
-     */
-    processNavigationRequest(request, targetActivityId) {
-      if (this._sequencingService) {
-        return this._sequencingService.processNavigationRequest(request, targetActivityId);
-      }
-      return false;
-    }
-    /**
-     * Reset sequencing state explicitly (primarily for tests/tools, not normal LMS flow)
-     */
-    resetSequencingState() {
-      this._sequencing?.reset();
-      this._sequencingService?.setEventListeners({});
-    }
-    /**
-     * Get tracking data for a specific activity
-     * Useful for players to update UI based on activity status
-     * @param {string} activityId - The activity ID
-     * @return {object | null} Tracking data for the activity or null if not found
-     */
-    getActivityTrackingData(activityId) {
-      if (!this._sequencing?.activityTree) {
-        return null;
-      }
-      const activity = this._sequencing.activityTree.getActivity(activityId);
-      if (!activity) {
-        return null;
-      }
-      return {
-        completionStatus: activity.completionStatus || "unknown",
-        successStatus: activity.successStatus || "unknown",
-        progressMeasure: activity.progressMeasure ?? null,
-        score: activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure : null
-      };
-    }
-    /**
-     * Save current sequencing state to persistent storage
-     * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
-     * @return {Promise<boolean>} Promise resolving to success status
-     */
-    async saveSequencingState(metadata) {
-      if (!this.settings.sequencingStatePersistence) {
-        this.apiLog("saveSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
-        return false;
-      }
-      try {
-        const stateData = this.serializeSequencingState();
-        const fullMetadata = {
-          learnerId: this.cmi.learner_id || "unknown",
-          courseId: this.settings.courseId || "unknown",
-          attemptNumber: 1,
-          lastUpdated: (/* @__PURE__ */new Date()).toISOString(),
-          version: this.settings.sequencingStatePersistence.stateVersion || "1.0",
-          ...metadata
-        };
-        const config = this.settings.sequencingStatePersistence;
-        let dataToSave = stateData;
-        if (config.compress !== false) {
-          dataToSave = this.compressStateData(stateData);
-        }
-        if (config.maxStateSize && dataToSave.length > config.maxStateSize) {
-          throw new Error(`State size ${dataToSave.length} exceeds limit ${config.maxStateSize}`);
-        }
-        const success = await config.persistence.saveState(dataToSave, fullMetadata);
-        if (config.debugPersistence) {
-          this.apiLog("saveSequencingState", `State save ${success ? "succeeded" : "failed"}: size=${dataToSave.length}`, success ? LogLevelEnum.INFO : LogLevelEnum.WARN);
-        }
-        return success;
-      } catch (error) {
-        this.apiLog("saveSequencingState", `Error saving sequencing state: ${error instanceof Error ? error.message : String(error)}`, LogLevelEnum.ERROR);
-        return false;
-      }
-    }
-    /**
-     * Load sequencing state from persistent storage
-     * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
-     * @return {Promise<boolean>} Promise resolving to success status
-     */
-    async loadSequencingState(metadata) {
-      if (!this.settings.sequencingStatePersistence) {
-        this.apiLog("loadSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
-        return false;
-      }
-      try {
-        const fullMetadata = {
-          learnerId: this.cmi.learner_id || "unknown",
-          courseId: this.settings.courseId || "unknown",
-          attemptNumber: 1,
-          version: this.settings.sequencingStatePersistence.stateVersion || "1.0",
-          ...metadata
-        };
-        const config = this.settings.sequencingStatePersistence;
-        const stateData = await config.persistence.loadState(fullMetadata);
-        if (!stateData) {
-          if (config.debugPersistence) {
-            this.apiLog("loadSequencingState", "No sequencing state found to load", LogLevelEnum.INFO);
-          }
-          return false;
-        }
-        let dataToLoad = stateData;
-        if (config.compress !== false) {
-          dataToLoad = this.decompressStateData(stateData);
-        }
-        const success = this.deserializeSequencingState(dataToLoad);
-        if (config.debugPersistence) {
-          this.apiLog("loadSequencingState", `State load ${success ? "succeeded" : "failed"}: size=${stateData.length}`, success ? LogLevelEnum.INFO : LogLevelEnum.WARN);
-        }
-        return success;
-      } catch (error) {
-        this.apiLog("loadSequencingState", `Error loading sequencing state: ${error instanceof Error ? error.message : String(error)}`, LogLevelEnum.ERROR);
-        return false;
-      }
-    }
-    /**
-     * Determines the appropriate cmi.entry value based on previous exit state.
-     * Per SCORM 2004 RTE 4.2.11 (cmi.entry) and 4.2.12 (cmi.exit):
+     * Updates the global objective map in the sequencing service from CMI objective data.
      *
-     * - If previous exit was "suspend": "resume" (learner suspended, wants to continue)
-     * - If previous exit was "logout": "" (deprecated, attempt ended)
-     * - If previous exit was "normal": "" (attempt completed normally)
-     * - If previous exit was "time-out":
-     *   - With suspend data: "resume" (resuming from interrupted session)
-     *   - Without suspend data: "" (session ended)
-     * - If no previous exit or unrecognized: "ab-initio" (fresh start)
+     * This method synchronizes global objectives between:
+     * - _globalObjectives array (persists across SCO transitions)
+     * - Sequencing service global objective map (used for sequencing decisions)
      *
-     * @param {string} previousExit - The cmi.exit value from the previous session
-     * @param {boolean} hasSuspendData - Whether suspend_data exists from previous session
-     * @return {string} The appropriate cmi.entry value ("ab-initio", "resume", or "")
+     * When a SCO writes to a global objective via SetValue, this method ensures
+     * the sequencing service is updated so that sequencing rules can evaluate
+     * the objective status correctly.
+     *
+     * According to SCORM 2004 SN Book SB.2.4, global objectives must be synchronized
+     * across all activities that reference them via mapInfo.
+     *
+     * @param {string} objectiveId - The global objective ID
+     * @param {CMIObjectivesObject} objective - The CMI objective object with updated values
      */
-    determineEntryValue(previousExit, hasSuspendData) {
-      const trimmedExit = previousExit?.trim();
-      if (previousExit === "" || previousExit === void 0 || previousExit === null || trimmedExit === "") {
-        return "ab-initio";
+    updateGlobalObjectiveFromCMI(objectiveId, objective) {
+      if (!objectiveId || !this.context.sequencingService) {
+        return;
       }
-      if (previousExit === "suspend") {
-        return "resume";
+      const overallProcess = this.context.sequencingService.getOverallSequencingProcess();
+      if (!overallProcess) {
+        return;
       }
-      if (previousExit === "logout" || previousExit === "normal") {
-        return "";
+      const map = overallProcess.getGlobalObjectiveMap();
+      if (!map.has(objectiveId)) {
+        const fallbackEntry = this.buildObjectiveMapEntryFromCMI(objective);
+        overallProcess.updateGlobalObjective(objectiveId, fallbackEntry);
+        return;
       }
-      if (previousExit === "time-out") {
-        return hasSuspendData ? "resume" : "";
+      const updatePayload = {};
+      if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
+        updatePayload.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
+        updatePayload.satisfiedStatusKnown = true;
       }
-      return "";
+      const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
+      if (normalizedMeasure !== null) {
+        updatePayload.normalizedMeasure = normalizedMeasure;
+        updatePayload.normalizedMeasureKnown = true;
+      }
+      const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
+      if (progressMeasure !== null) {
+        updatePayload.progressMeasure = progressMeasure;
+        updatePayload.progressMeasureKnown = true;
+      }
+      if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
+        updatePayload.completionStatus = objective.completion_status;
+        updatePayload.completionStatusKnown = true;
+      }
+      if (Object.keys(updatePayload).length === 0) {
+        return;
+      }
+      overallProcess.updateGlobalObjective(objectiveId, updatePayload);
     }
     /**
-     * Serialize current sequencing state to JSON string
-     * @return {string} Serialized state
+     * Builds a map entry from the given CMI objectives object to a standardized GlobalObjectiveMapEntry.
+     *
+     * @param {CMIObjectivesObject} objective - The CMI objectives object containing data about a specific learning objective.
+     * @return {GlobalObjectiveMapEntry} An object containing mapped properties and their values based on the provided objective.
      */
-    serializeSequencingState() {
-      const state = {
-        version: this.settings.sequencingStatePersistence?.stateVersion || "1.0",
-        timestamp: (/* @__PURE__ */new Date()).toISOString(),
-        sequencing: null,
-        currentActivityId: null,
-        globalObjectives: this._globalObjectives.map(obj => obj.toJSON()),
-        globalObjectiveMap: {},
-        adlNavState: {
-          request: this.adl.nav.request,
-          request_valid: this.adl.nav.request_valid
-        },
-        contentDelivered: false
+    buildObjectiveMapEntryFromCMI(objective) {
+      const entry = {
+        id: objective.id,
+        satisfiedStatusKnown: false,
+        normalizedMeasureKnown: false,
+        progressMeasureKnown: false,
+        completionStatusKnown: false,
+        readSatisfiedStatus: true,
+        writeSatisfiedStatus: true,
+        readNormalizedMeasure: true,
+        writeNormalizedMeasure: true,
+        readCompletionStatus: true,
+        writeCompletionStatus: true,
+        readProgressMeasure: true,
+        writeProgressMeasure: true
       };
-      if (this._sequencingService) {
-        const overallProcess = this._sequencingService.getOverallSequencingProcess();
-        if (overallProcess) {
-          const sequencingState = overallProcess.getSequencingState();
-          state.sequencing = sequencingState;
-          state.contentDelivered = overallProcess.hasContentBeenDelivered();
-          state.globalObjectiveMap = this.captureGlobalObjectiveSnapshot(overallProcess);
-        }
-        const currentActivity = this._sequencing.getCurrentActivity();
-        if (currentActivity) {
-          state.currentActivityId = currentActivity.id;
-        }
+      if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
+        entry.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
+        entry.satisfiedStatusKnown = true;
       }
-      if (!state.globalObjectiveMap || Object.keys(state.globalObjectiveMap).length === 0) {
-        state.globalObjectiveMap = this.captureGlobalObjectiveSnapshot();
+      const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
+      if (normalizedMeasure !== null) {
+        entry.normalizedMeasure = normalizedMeasure;
+        entry.normalizedMeasureKnown = true;
       }
-      return JSON.stringify(state);
-    }
-    /**
-     * Deserialize sequencing state from JSON string
-     * @param {string} stateData - Serialized state data
-     * @return {boolean} Success status
-     */
-    deserializeSequencingState(stateData) {
-      try {
-        const state = JSON.parse(stateData);
-        const expectedVersion = this.settings.sequencingStatePersistence?.stateVersion || "1.0";
-        if (state.version !== expectedVersion) {
-          this.apiLog("deserializeSequencingState", `State version mismatch: ${state.version} vs expected ${expectedVersion}`, LogLevelEnum.WARN);
-        }
-        if (state.globalObjectiveMap && state.sequencing && !state.sequencing.globalObjectiveMap) {
-          state.sequencing.globalObjectiveMap = state.globalObjectiveMap;
-        }
-        if (state.sequencing && this._sequencingService) {
-          const overallProcess = this._sequencingService.getOverallSequencingProcess();
-          if (overallProcess) {
-            overallProcess.restoreSequencingState(state.sequencing);
-            if (state.contentDelivered) {
-              overallProcess.setContentDelivered(true);
-            }
-          }
-        }
-        const restoredObjectives = /* @__PURE__ */new Map();
-        if (Array.isArray(state.globalObjectives)) {
-          for (const objData of state.globalObjectives) {
-            const objective = this.buildCMIObjectiveFromJSON(objData);
-            if (objective.id) {
-              restoredObjectives.set(objective.id, objective);
-            }
-          }
-        }
-        if (state.globalObjectiveMap && typeof state.globalObjectiveMap === "object") {
-          const objectivesFromMap = this.buildCMIObjectivesFromMap(state.globalObjectiveMap);
-          for (const objective of objectivesFromMap) {
-            if (!objective.id) {
-              continue;
-            }
-            if (!restoredObjectives.has(objective.id)) {
-              restoredObjectives.set(objective.id, objective);
-            }
-          }
-        }
-        if (restoredObjectives.size > 0) {
-          this._globalObjectives = Array.from(restoredObjectives.values());
-          this._globalObjectives.forEach(objective => {
-            if (objective.id) {
-              this.updateGlobalObjectiveFromCMI(objective.id, objective);
-            }
-          });
-        }
-        if (state.adlNavState) {
-          this.adl.nav.request = state.adlNavState.request || "_none_";
-          this.adl.nav.request_valid = state.adlNavState.request_valid || {};
-        }
-        return true;
-      } catch (error) {
-        this.apiLog("deserializeSequencingState", `Error deserializing sequencing state: ${error instanceof Error ? error.message : String(error)}`, LogLevelEnum.ERROR);
-        return false;
+      const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
+      if (progressMeasure !== null) {
+        entry.progressMeasure = progressMeasure;
+        entry.progressMeasureKnown = true;
       }
-    }
-    /**
-     * Captures the global objective snapshot by collecting data from the provided overall process
-     * or the internally managed sequencing service if no process is provided.
-     *
-     * @param {OverallSequencingProcess | null} [overallProcess] - An optional parameter representing the overall sequencing process. If not provided, it attempts to use the internal sequencing service.
-     * @return {Record<string, GlobalObjectiveMapEntry>} A record containing the snapshot of the global objectives, with each objective's identifier as the key and its corresponding data as the value.
-     */
-    captureGlobalObjectiveSnapshot(overallProcess) {
-      const snapshot = {};
-      const process = overallProcess ?? this._sequencingService?.getOverallSequencingProcess() ?? null;
-      if (process) {
-        const processSnapshot = process.getGlobalObjectiveMapSnapshot();
-        for (const [id, data] of Object.entries(processSnapshot)) {
-          snapshot[id] = {
-            ...data
-          };
-        }
+      if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
+        entry.completionStatus = objective.completion_status;
+        entry.completionStatusKnown = true;
       }
-      for (const objective of this._globalObjectives) {
-        if (!objective.id || snapshot[objective.id]) {
-          continue;
-        }
-        snapshot[objective.id] = this.buildObjectiveMapEntryFromCMI(objective);
-      }
-      return snapshot;
+      return entry;
     }
     /**
      * Constructs an array of `CMIObjectivesObject` instances from a given snapshot map.
@@ -22380,102 +21872,30 @@ ${stackTrace}`);
       return objective;
     }
     /**
-     * Builds a map entry from the given CMI objectives object to a standardized GlobalObjectiveMapEntry.
+     * Captures the global objective snapshot by collecting data from the provided overall process
+     * or the internally managed sequencing service if no process is provided.
      *
-     * @param {CMIObjectivesObject} objective - The CMI objectives object containing data about a specific learning objective.
-     * @return {GlobalObjectiveMapEntry} An object containing mapped properties and their values based on the provided objective.
+     * @param {OverallSequencingProcess | null} [overallProcess] - An optional parameter representing the overall sequencing process. If not provided, it attempts to use the internal sequencing service.
+     * @return {Record<string, GlobalObjectiveMapEntry>} A record containing the snapshot of the global objectives, with each objective's identifier as the key and its corresponding data as the value.
      */
-    buildObjectiveMapEntryFromCMI(objective) {
-      const entry = {
-        id: objective.id,
-        satisfiedStatusKnown: false,
-        normalizedMeasureKnown: false,
-        progressMeasureKnown: false,
-        completionStatusKnown: false,
-        readSatisfiedStatus: true,
-        writeSatisfiedStatus: true,
-        readNormalizedMeasure: true,
-        writeNormalizedMeasure: true,
-        readCompletionStatus: true,
-        writeCompletionStatus: true,
-        readProgressMeasure: true,
-        writeProgressMeasure: true
-      };
-      if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
-        entry.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
-        entry.satisfiedStatusKnown = true;
+    captureGlobalObjectiveSnapshot(overallProcess) {
+      const snapshot = {};
+      const process = overallProcess ?? this.context.sequencingService?.getOverallSequencingProcess() ?? null;
+      if (process) {
+        const processSnapshot = process.getGlobalObjectiveMapSnapshot();
+        for (const [id, data] of Object.entries(processSnapshot)) {
+          snapshot[id] = {
+            ...data
+          };
+        }
       }
-      const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
-      if (normalizedMeasure !== null) {
-        entry.normalizedMeasure = normalizedMeasure;
-        entry.normalizedMeasureKnown = true;
+      for (const objective of this._globalObjectives) {
+        if (!objective.id || snapshot[objective.id]) {
+          continue;
+        }
+        snapshot[objective.id] = this.buildObjectiveMapEntryFromCMI(objective);
       }
-      const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
-      if (progressMeasure !== null) {
-        entry.progressMeasure = progressMeasure;
-        entry.progressMeasureKnown = true;
-      }
-      if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
-        entry.completionStatus = objective.completion_status;
-        entry.completionStatusKnown = true;
-      }
-      return entry;
-    }
-    /**
-     * Updates the global objective map in the sequencing service from CMI objective data.
-     *
-     * This method synchronizes global objectives between:
-     * - _globalObjectives array (persists across SCO transitions)
-     * - Sequencing service global objective map (used for sequencing decisions)
-     *
-     * When a SCO writes to a global objective via SetValue, this method ensures
-     * the sequencing service is updated so that sequencing rules can evaluate
-     * the objective status correctly.
-     *
-     * According to SCORM 2004 SN Book SB.2.4, global objectives must be synchronized
-     * across all activities that reference them via mapInfo.
-     *
-     * @param {string} objectiveId - The global objective ID
-     * @param {CMIObjectivesObject} objective - The CMI objective object with updated values
-     * @private
-     */
-    updateGlobalObjectiveFromCMI(objectiveId, objective) {
-      if (!objectiveId || !this._sequencingService) {
-        return;
-      }
-      const overallProcess = this._sequencingService.getOverallSequencingProcess();
-      if (!overallProcess) {
-        return;
-      }
-      const map = overallProcess.getGlobalObjectiveMap();
-      if (!map.has(objectiveId)) {
-        const fallbackEntry = this.buildObjectiveMapEntryFromCMI(objective);
-        overallProcess.updateGlobalObjective(objectiveId, fallbackEntry);
-        return;
-      }
-      const updatePayload = {};
-      if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
-        updatePayload.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
-        updatePayload.satisfiedStatusKnown = true;
-      }
-      const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
-      if (normalizedMeasure !== null) {
-        updatePayload.normalizedMeasure = normalizedMeasure;
-        updatePayload.normalizedMeasureKnown = true;
-      }
-      const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
-      if (progressMeasure !== null) {
-        updatePayload.progressMeasure = progressMeasure;
-        updatePayload.progressMeasureKnown = true;
-      }
-      if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
-        updatePayload.completionStatus = objective.completion_status;
-        updatePayload.completionStatusKnown = true;
-      }
-      if (Object.keys(updatePayload).length === 0) {
-        return;
-      }
-      overallProcess.updateGlobalObjective(objectiveId, updatePayload);
+      return snapshot;
     }
     /**
      * Parses the given value into a finite number if possible, otherwise returns null.
@@ -22492,6 +21912,245 @@ ${stackTrace}`);
       }
       const parsed = parseFloat(String(value));
       return Number.isFinite(parsed) ? parsed : null;
+    }
+    /**
+     * Synchronize CMI runtime data to the current sequencing activity
+     * When cmi.success_status or cmi.completion_status are set, update the
+     * current activity's primary objective accordingly
+     *
+     * @param {CompletionStatus} completionStatus
+     * @param {SuccessStatus} successStatus
+     * @param {ScoreObject} scoreObject
+     */
+    syncCmiToSequencingActivity(completionStatus, successStatus, scoreObject) {
+      if (!this.context.sequencing) {
+        return;
+      }
+      const currentActivity = this.context.sequencing.getCurrentActivity();
+      if (!currentActivity || !currentActivity.primaryObjective) {
+        return;
+      }
+      const primaryObjective = currentActivity.primaryObjective;
+      if (successStatus !== SuccessStatus.UNKNOWN) {
+        primaryObjective.satisfiedStatus = successStatus === SuccessStatus.PASSED;
+        primaryObjective.satisfiedStatusKnown = true;
+        primaryObjective.measureStatus = true;
+        currentActivity.objectiveMeasureStatus = true;
+        currentActivity.objectiveSatisfiedStatus = successStatus === SuccessStatus.PASSED;
+        currentActivity.objectiveSatisfiedStatusKnown = true;
+      }
+      if (completionStatus !== CompletionStatus.UNKNOWN) {
+        primaryObjective.completionStatus = completionStatus;
+      }
+      if (scoreObject?.scaled !== void 0 && scoreObject.scaled !== null) {
+        primaryObjective.normalizedMeasure = scoreObject.scaled;
+        primaryObjective.measureStatus = true;
+      }
+    }
+    /**
+     * Find or create a global objective by ID
+     * @param {string} objectiveId - The objective ID
+     * @return {{ index: number; objective: CMIObjectivesObject }} The index and objective
+     */
+    findOrCreateGlobalObjective(objectiveId) {
+      let index = this._globalObjectives.findIndex(obj => obj.id === objectiveId);
+      if (index === -1) {
+        index = this._globalObjectives.length;
+        const newGlobalObjective = new CMIObjectivesObject();
+        newGlobalObjective.id = objectiveId;
+        this._globalObjectives.push(newGlobalObjective);
+      }
+      return {
+        index,
+        objective: this._globalObjectives[index]
+      };
+    }
+  }
+
+  class SequencingStatePersistence {
+    constructor(context, globalObjectiveManager) {
+      this.context = context;
+      this.globalObjectiveManager = globalObjectiveManager;
+    }
+    /**
+     * Save current sequencing state to persistent storage
+     * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
+     * @return {Promise<boolean>} Promise resolving to success status
+     */
+    async saveSequencingState(metadata) {
+      const settings = this.context.getSettings();
+      if (!settings.sequencingStatePersistence) {
+        this.context.apiLog("saveSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+        return false;
+      }
+      try {
+        const stateData = this.serializeSequencingState();
+        const fullMetadata = {
+          learnerId: this.context.learnerId || "unknown",
+          courseId: settings.courseId || "unknown",
+          attemptNumber: 1,
+          lastUpdated: (/* @__PURE__ */new Date()).toISOString(),
+          version: settings.sequencingStatePersistence.stateVersion || "1.0",
+          ...metadata
+        };
+        const config = settings.sequencingStatePersistence;
+        let dataToSave = stateData;
+        if (config.compress !== false) {
+          dataToSave = this.compressStateData(stateData);
+        }
+        if (config.maxStateSize && dataToSave.length > config.maxStateSize) {
+          throw new Error(`State size ${dataToSave.length} exceeds limit ${config.maxStateSize}`);
+        }
+        const success = await config.persistence.saveState(dataToSave, fullMetadata);
+        if (config.debugPersistence) {
+          this.context.apiLog("saveSequencingState", `State save ${success ? "succeeded" : "failed"}: size=${dataToSave.length}`, success ? LogLevelEnum.INFO : LogLevelEnum.WARN);
+        }
+        return success;
+      } catch (error) {
+        this.context.apiLog("saveSequencingState", `Error saving sequencing state: ${error instanceof Error ? error.message : String(error)}`, LogLevelEnum.ERROR);
+        return false;
+      }
+    }
+    /**
+     * Load sequencing state from persistent storage
+     * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
+     * @return {Promise<boolean>} Promise resolving to success status
+     */
+    async loadSequencingState(metadata) {
+      const settings = this.context.getSettings();
+      if (!settings.sequencingStatePersistence) {
+        this.context.apiLog("loadSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+        return false;
+      }
+      try {
+        const fullMetadata = {
+          learnerId: this.context.learnerId || "unknown",
+          courseId: settings.courseId || "unknown",
+          attemptNumber: 1,
+          version: settings.sequencingStatePersistence.stateVersion || "1.0",
+          ...metadata
+        };
+        const config = settings.sequencingStatePersistence;
+        const stateData = await config.persistence.loadState(fullMetadata);
+        if (!stateData) {
+          if (config.debugPersistence) {
+            this.context.apiLog("loadSequencingState", "No sequencing state found to load", LogLevelEnum.INFO);
+          }
+          return false;
+        }
+        let dataToLoad = stateData;
+        if (config.compress !== false) {
+          dataToLoad = this.decompressStateData(stateData);
+        }
+        const success = this.deserializeSequencingState(dataToLoad);
+        if (config.debugPersistence) {
+          this.context.apiLog("loadSequencingState", `State load ${success ? "succeeded" : "failed"}: size=${stateData.length}`, success ? LogLevelEnum.INFO : LogLevelEnum.WARN);
+        }
+        return success;
+      } catch (error) {
+        this.context.apiLog("loadSequencingState", `Error loading sequencing state: ${error instanceof Error ? error.message : String(error)}`, LogLevelEnum.ERROR);
+        return false;
+      }
+    }
+    /**
+     * Serialize current sequencing state to JSON string
+     * @return {string} Serialized state
+     */
+    serializeSequencingState() {
+      const settings = this.context.getSettings();
+      const state = {
+        version: settings.sequencingStatePersistence?.stateVersion || "1.0",
+        timestamp: (/* @__PURE__ */new Date()).toISOString(),
+        sequencing: null,
+        currentActivityId: null,
+        globalObjectives: this.globalObjectiveManager.globalObjectives.map(obj => obj.toJSON()),
+        globalObjectiveMap: {},
+        adlNavState: {
+          request: this.context.adl.nav.request,
+          request_valid: this.context.adl.nav.request_valid
+        },
+        contentDelivered: false
+      };
+      if (this.context.sequencingService) {
+        const overallProcess = this.context.sequencingService.getOverallSequencingProcess();
+        if (overallProcess) {
+          const sequencingState = overallProcess.getSequencingState();
+          state.sequencing = sequencingState;
+          state.contentDelivered = overallProcess.hasContentBeenDelivered();
+          state.globalObjectiveMap = this.globalObjectiveManager.captureGlobalObjectiveSnapshot(overallProcess);
+        }
+        const currentActivity = this.context.sequencing.getCurrentActivity();
+        if (currentActivity) {
+          state.currentActivityId = currentActivity.id;
+        }
+      }
+      if (!state.globalObjectiveMap || Object.keys(state.globalObjectiveMap).length === 0) {
+        state.globalObjectiveMap = this.globalObjectiveManager.captureGlobalObjectiveSnapshot();
+      }
+      return JSON.stringify(state);
+    }
+    /**
+     * Deserialize sequencing state from JSON string
+     * @param {string} stateData - Serialized state data
+     * @return {boolean} Success status
+     */
+    deserializeSequencingState(stateData) {
+      try {
+        const state = JSON.parse(stateData);
+        const settings = this.context.getSettings();
+        const expectedVersion = settings.sequencingStatePersistence?.stateVersion || "1.0";
+        if (state.version !== expectedVersion) {
+          this.context.apiLog("deserializeSequencingState", `State version mismatch: ${state.version} vs expected ${expectedVersion}`, LogLevelEnum.WARN);
+        }
+        if (state.globalObjectiveMap && state.sequencing && !state.sequencing.globalObjectiveMap) {
+          state.sequencing.globalObjectiveMap = state.globalObjectiveMap;
+        }
+        if (state.sequencing && this.context.sequencingService) {
+          const overallProcess = this.context.sequencingService.getOverallSequencingProcess();
+          if (overallProcess) {
+            overallProcess.restoreSequencingState(state.sequencing);
+            if (state.contentDelivered) {
+              overallProcess.setContentDelivered(true);
+            }
+          }
+        }
+        const restoredObjectives = /* @__PURE__ */new Map();
+        if (Array.isArray(state.globalObjectives)) {
+          for (const objData of state.globalObjectives) {
+            const objective = this.globalObjectiveManager.buildCMIObjectiveFromJSON(objData);
+            if (objective.id) {
+              restoredObjectives.set(objective.id, objective);
+            }
+          }
+        }
+        if (state.globalObjectiveMap && typeof state.globalObjectiveMap === "object") {
+          const objectivesFromMap = this.globalObjectiveManager.buildCMIObjectivesFromMap(state.globalObjectiveMap);
+          for (const objective of objectivesFromMap) {
+            if (!objective.id) {
+              continue;
+            }
+            if (!restoredObjectives.has(objective.id)) {
+              restoredObjectives.set(objective.id, objective);
+            }
+          }
+        }
+        if (restoredObjectives.size > 0) {
+          this.globalObjectiveManager.globalObjectives = Array.from(restoredObjectives.values());
+          this.globalObjectiveManager.globalObjectives.forEach(objective => {
+            if (objective.id) {
+              this.globalObjectiveManager.updateGlobalObjectiveFromCMI(objective.id, objective);
+            }
+          });
+        }
+        if (state.adlNavState) {
+          this.context.adl.nav.request = state.adlNavState.request || "_none_";
+          this.context.adl.nav.request_valid = state.adlNavState.request_valid || {};
+        }
+        return true;
+      } catch (error) {
+        this.context.apiLog("deserializeSequencingState", `Error deserializing sequencing state: ${error instanceof Error ? error.message : String(error)}`, LogLevelEnum.ERROR);
+        return false;
+      }
     }
     /**
      * Simple compression using base64 encoding
@@ -22518,6 +22177,1103 @@ ${stackTrace}`);
         }
       }
       return data;
+    }
+  }
+
+  class Scorm2004DataSerializer {
+    constructor(context, globalObjectiveManager) {
+      this.context = context;
+      this.globalObjectiveManager = globalObjectiveManager || null;
+    }
+    /**
+     * Set the global objective manager (for deferred initialization)
+     * @param {GlobalObjectiveManager} manager - The global objective manager
+     */
+    setGlobalObjectiveManager(manager) {
+      this.globalObjectiveManager = manager;
+    }
+    /**
+     * Update the sequencing service reference
+     * @param {SequencingService | null} service - The sequencing service instance
+     */
+    updateSequencingService(service) {
+      this.context.sequencingService = service;
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit
+     *
+     * @param {boolean} terminateCommit - Whether this is a termination commit
+     * @param {boolean} includeTotalTime - Whether to include total time in the commit data
+     * @return {object|Array} The rendered CMI data
+     */
+    renderCommitCMI(terminateCommit) {
+      let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      const cmiExport = this.context.renderCMIToJSONObject();
+      if (terminateCommit || includeTotalTime) {
+        cmiExport.cmi.total_time = this.context.cmi.getCurrentTotalTime();
+      } else {
+        delete cmiExport.cmi.total_time;
+      }
+      const result = [];
+      const flattened = flatten(cmiExport);
+      const settings = this.context.getSettings();
+      switch (settings.dataCommitFormat) {
+        case "flattened":
+          return flatten(cmiExport);
+        case "params":
+          for (const item in flattened) {
+            if ({}.hasOwnProperty.call(flattened, item)) {
+              result.push(`${item}=${flattened[item]}`);
+            }
+          }
+          return result;
+        case "json":
+        default:
+          return cmiExport;
+      }
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit
+     * @param {boolean} terminateCommit - Whether this is a termination commit
+     * @param {boolean} includeTotalTime - Whether to include total time in the commit data
+     * @return {CommitObject} The commit object
+     */
+    renderCommitObject(terminateCommit) {
+      let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
+      const calculateTotalTime = terminateCommit || includeTotalTime;
+      const totalTimeDuration = calculateTotalTime ? this.context.cmi.getCurrentTotalTime() : "";
+      const totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
+      let completionStatus = CompletionStatus.UNKNOWN;
+      let successStatus = SuccessStatus.UNKNOWN;
+      if (this.context.cmi.completion_status) {
+        if (this.context.cmi.completion_status === "completed") {
+          completionStatus = CompletionStatus.COMPLETED;
+        } else if (this.context.cmi.completion_status === "incomplete") {
+          completionStatus = CompletionStatus.INCOMPLETE;
+        }
+      }
+      if (this.context.cmi.success_status) {
+        if (this.context.cmi.success_status === "passed") {
+          successStatus = SuccessStatus.PASSED;
+        } else if (this.context.cmi.success_status === "failed") {
+          successStatus = SuccessStatus.FAILED;
+        }
+      }
+      const scoreObject = this.context.cmi?.score?.getScoreObject() || {};
+      const commitObject = {
+        completionStatus,
+        successStatus,
+        totalTimeSeconds,
+        runtimeData: cmiExport
+      };
+      if (scoreObject) {
+        commitObject.score = scoreObject;
+      }
+      const metaSettings = this.context.getSettings();
+      if (metaSettings.autoPopulateCommitMetadata) {
+        if (metaSettings.courseId) {
+          commitObject.courseId = metaSettings.courseId;
+        }
+        if (metaSettings.scoId) {
+          commitObject.scoId = metaSettings.scoId;
+        }
+        if (this.context.cmi.learner_id) {
+          commitObject.learnerId = this.context.cmi.learner_id;
+        }
+        if (this.context.cmi.learner_name) {
+          commitObject.learnerName = this.context.cmi.learner_name;
+        }
+        const sequencingState = this.context.sequencingService?.getSequencingState();
+        if (sequencingState?.currentActivity?.id) {
+          commitObject.activityId = sequencingState.currentActivity.id;
+        }
+      }
+      if (this.globalObjectiveManager) {
+        this.globalObjectiveManager.syncCmiToSequencingActivity(completionStatus, successStatus, scoreObject);
+      }
+      return commitObject;
+    }
+    /**
+     * Determines the appropriate cmi.entry value based on previous exit state.
+     * Per SCORM 2004 RTE 4.2.11 (cmi.entry) and 4.2.12 (cmi.exit):
+     *
+     * - If previous exit was "suspend": "resume" (learner suspended, wants to continue)
+     * - If previous exit was "logout": "" (deprecated, attempt ended)
+     * - If previous exit was "normal": "" (attempt completed normally)
+     * - If previous exit was "time-out":
+     *   - With suspend data: "resume" (resuming from interrupted session)
+     *   - Without suspend data: "" (session ended)
+     * - If no previous exit or unrecognized: "ab-initio" (fresh start)
+     *
+     * @param {string} previousExit - The cmi.exit value from the previous session
+     * @param {boolean} hasSuspendData - Whether suspend_data exists from previous session
+     * @return {string} The appropriate cmi.entry value ("ab-initio", "resume", or "")
+     */
+    determineEntryValue(previousExit, hasSuspendData) {
+      const trimmedExit = previousExit?.trim();
+      if (previousExit === "" || previousExit === void 0 || previousExit === null || trimmedExit === "") {
+        return "ab-initio";
+      }
+      if (previousExit === "suspend") {
+        return "resume";
+      }
+      if (previousExit === "logout" || previousExit === "normal") {
+        return "";
+      }
+      if (previousExit === "time-out") {
+        return hasSuspendData ? "resume" : "";
+      }
+      return "";
+    }
+  }
+
+  class Scorm2004API extends BaseAPI {
+    /**
+     * Constructor for SCORM 2004 API
+     * @param {Settings} settings
+     * @param {IHttpService} httpService - Optional HTTP service instance
+     */
+    constructor(settings, httpService) {
+      const settingsCopy = settings ? {
+        ...settings
+      } : void 0;
+      if (settingsCopy) {
+        if (settingsCopy.mastery_override === void 0) {
+          settingsCopy.mastery_override = false;
+        }
+      }
+      super(scorm2004_errors$1, settingsCopy, httpService);
+      this._version = "1.0";
+      this._sequencingService = null;
+      this._extractedScoItemIds = [];
+      this._sequencingCollections = {};
+      this._statePersistence = null;
+      this.cmi = new CMI();
+      this.adl = new ADL();
+      this._sequencing = new Sequencing();
+      this.adl.sequencing = this._sequencing;
+      this._sequencingConfigBuilder = new SequencingConfigurationBuilder();
+      this._activityTreeBuilder = new ActivityTreeBuilder({}, this._sequencingConfigBuilder);
+      const validationContext = {
+        throwSCORMError: (element, errorCode, message) => this.throwSCORMError(element, errorCode, message),
+        getLastErrorCode: () => this.lastErrorCode,
+        checkCorrectResponseValue: (CMIElement, interaction_type, nodes, value) => this.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value)
+      };
+      this._responseValidator = new Scorm2004ResponseValidator(validationContext);
+      const cmiHandlerContext = {
+        cmi: this.cmi,
+        isInitialized: () => this.isInitialized(),
+        throwSCORMError: (element, errorCode, message) => this.throwSCORMError(element, errorCode, message),
+        getLastErrorCode: () => this.lastErrorCode
+      };
+      this._cmiHandler = new Scorm2004CMIHandler(cmiHandlerContext, this._responseValidator);
+      const globalObjectiveContext = {
+        getSettings: () => this.settings,
+        cmi: this.cmi,
+        sequencing: this._sequencing,
+        sequencingService: this._sequencingService,
+        commonSetCMIValue: this._commonSetCMIValue.bind(this)
+      };
+      this._globalObjectiveManager = new GlobalObjectiveManager(globalObjectiveContext);
+      const dataSerializerContext = {
+        getSettings: () => this.settings,
+        cmi: this.cmi,
+        sequencingService: this._sequencingService,
+        renderCMIToJSONObject: this.renderCMIToJSONObject.bind(this)
+      };
+      this._dataSerializer = new Scorm2004DataSerializer(dataSerializerContext, this._globalObjectiveManager);
+      if (settingsCopy?.sequencing) {
+        this.configureSequencing(settingsCopy.sequencing);
+      }
+      this.initializeSequencingService(settingsCopy);
+      this.Initialize = this.lmsInitialize;
+      this.Terminate = this.lmsFinish;
+      this.GetValue = this.lmsGetValue;
+      this.SetValue = this.lmsSetValue;
+      this.Commit = this.lmsCommit;
+      this.GetLastError = this.lmsGetLastError;
+      this.GetErrorString = this.lmsGetErrorString;
+      this.GetDiagnostic = this.lmsGetDiagnostic;
+    }
+    /**
+     * Called when the API needs to be reset
+     *
+     * @param {Settings} settings - Optional new settings to merge with existing settings
+     */
+    reset(settings) {
+      this.commonReset(settings);
+      this.cmi?.reset();
+      this.adl?.reset();
+    }
+    /**
+     * Getter for _version
+     * @return {string}
+     */
+    get version() {
+      return this._version;
+    }
+    /**
+     * Getter for _globalObjectives
+     * @return {CMIObjectivesObject[]} Array of global objective objects
+     */
+    get globalObjectives() {
+      return this._globalObjectiveManager.globalObjectives;
+    }
+    /**
+     * Setter for _globalObjectives (for backward compatibility)
+     * @param {CMIObjectivesObject[]} objectives - Array of global objective objects
+     */
+    set _globalObjectives(objectives) {
+      this._globalObjectiveManager.globalObjectives = objectives;
+    }
+    /**
+     * Getter for _globalObjectives (for backward compatibility with tests using bracket notation)
+     * @return {CMIObjectivesObject[]} Array of global objective objects
+     */
+    get _globalObjectives() {
+      return this._globalObjectiveManager.globalObjectives;
+    }
+    /**
+     * Build an objective map entry from a CMI objectives object
+     * @param {CMIObjectivesObject} objective - The CMI objectives object
+     * @return {object} The objective map entry
+     */
+    buildObjectiveMapEntryFromCMI(objective) {
+      return this._globalObjectiveManager.buildObjectiveMapEntryFromCMI(objective);
+    }
+    /**
+     * Capture a snapshot of global objectives
+     * @return {object} The global objectives snapshot
+     */
+    captureGlobalObjectiveSnapshot() {
+      return this._globalObjectiveManager.captureGlobalObjectiveSnapshot();
+    }
+    /**
+     * Update a global objective from CMI data
+     * @param {string} objectiveId - The objective ID
+     * @param {CMIObjectivesObject} objective - The CMI objectives object
+     */
+    updateGlobalObjectiveFromCMI(objectiveId, objective) {
+      this._globalObjectiveManager.updateGlobalObjectiveFromCMI(objectiveId, objective);
+    }
+    /**
+     * Parse an objective number value
+     * @param {any} value - The value to parse
+     * @return {number | null} The parsed number or null
+     */
+    parseObjectiveNumber(value) {
+      return this._globalObjectiveManager.parseObjectiveNumber(value);
+    }
+    /**
+     * Build a CMI objectives object from JSON data
+     * @param {any} data - The JSON data
+     * @return {CMIObjectivesObject} The CMI objectives object
+     */
+    buildCMIObjectiveFromJSON(data) {
+      return this._globalObjectiveManager.buildCMIObjectiveFromJSON(data);
+    }
+    /**
+     * Build CMI objectives from a snapshot map
+     * @param {Record<string, any>} snapshot - The snapshot map
+     * @return {CMIObjectivesObject[]} Array of CMI objectives objects
+     */
+    buildCMIObjectivesFromMap(snapshot) {
+      return this._globalObjectiveManager.buildCMIObjectivesFromMap(snapshot);
+    }
+    /**
+     * Creates a correct responses object for an interaction
+     * @param {string} CMIElement - The CMI element path
+     * @param {any} value - The value being set
+     * @return {BaseCMI|null} The correct responses object or null
+     */
+    createCorrectResponsesObject(CMIElement, value) {
+      return this._cmiHandler.createCorrectResponsesObject(CMIElement, value);
+    }
+    /**
+     * Compress state data (delegates to persistence class)
+     * @param {string} data - Data to compress
+     * @return {string} Compressed data
+     */
+    compressStateData(data) {
+      if (this._statePersistence) {
+        return this._statePersistence.compressStateData(data);
+      }
+      if (typeof btoa !== "undefined") {
+        return btoa(encodeURIComponent(data));
+      }
+      return data;
+    }
+    /**
+     * Decompress state data (delegates to persistence class)
+     * @param {string} data - Data to decompress
+     * @return {string} Decompressed data
+     */
+    decompressStateData(data) {
+      if (this._statePersistence) {
+        return this._statePersistence.decompressStateData(data);
+      }
+      if (typeof atob !== "undefined") {
+        try {
+          return decodeURIComponent(atob(data));
+        } catch {
+          return data;
+        }
+      }
+      return data;
+    }
+    /**
+     * Initialize - Begins a communication session with the LMS
+     *
+     * @param {string} parameter - Must be an empty string per SCORM 2004 specification
+     * @return {string} "true" or "false"
+     */
+    lmsInitialize() {
+      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      if (parameter !== "") {
+        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+        return global_constants.SCORM_FALSE;
+      }
+      this.cmi.initialize();
+      const result = this.initialize("Initialize", "LMS was already initialized!", "LMS is already finished!");
+      if (result === global_constants.SCORM_TRUE && this._sequencingService) {
+        this._sequencingService.initialize();
+      }
+      if (result === global_constants.SCORM_TRUE) {
+        this._globalObjectiveManager.restoreGlobalObjectivesToCMI();
+      }
+      if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence) {
+        this.loadSequencingState().catch(() => {
+          this.apiLog("lmsInitialize", "Failed to auto-load sequencing state", LogLevelEnum.WARN);
+        });
+      }
+      return result;
+    }
+    /**
+     * Terminate - Ends the communication session and persists data
+     *
+     * @param {string} parameter - Must be an empty string per SCORM 2004 specification
+     * @return {string} "true" or "false"
+     */
+    lmsFinish() {
+      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      if (parameter !== "") {
+        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+        return global_constants.SCORM_FALSE;
+      }
+      const pendingNavRequest = this.adl?.nav?.request || "_none_";
+      const exitType = this.cmi?.getExitValueInternal() || "";
+      const wasAlreadyTerminated = this.isTerminated();
+      const deliveryInProgress = this._sequencingService?.isDeliveryInProgress() ?? false;
+      const result = this.terminate("Terminate", true);
+      if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
+        let navigationHandled = false;
+        let processedSequencingRequest = null;
+        let normalizedRequest = pendingNavRequest;
+        let normalizedTarget = "";
+        const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
+        if (pendingNavRequest !== "_none_") {
+          const matches = pendingNavRequest.match(choiceJumpRegex);
+          if (matches) {
+            if (matches.groups?.choice_target) {
+              normalizedTarget = matches.groups?.choice_target;
+              normalizedRequest = "choice";
+            } else if (matches.groups?.jump_target) {
+              normalizedTarget = matches.groups?.jump_target;
+              normalizedRequest = "jump";
+            }
+          }
+        }
+        if (this._sequencingService) {
+          try {
+            let requestToProcess = null;
+            let targetForProcessing;
+            if (normalizedRequest !== "_none_") {
+              requestToProcess = normalizedRequest;
+              targetForProcessing = normalizedTarget || void 0;
+            } else if (this._sequencing.getCurrentActivity()) {
+              requestToProcess = "exit";
+            }
+            if (requestToProcess) {
+              navigationHandled = this._sequencingService.processNavigationRequest(requestToProcess, targetForProcessing, exitType);
+              processedSequencingRequest = requestToProcess;
+            }
+          } catch (error) {
+            navigationHandled = false;
+          }
+        }
+        if (!navigationHandled) {
+          if (pendingNavRequest !== "_none_") {
+            const navActions = {
+              continue: "SequenceNext",
+              previous: "SequencePrevious",
+              choice: "SequenceChoice",
+              jump: "SequenceJump",
+              exit: "SequenceExit",
+              exitAll: "SequenceExitAll",
+              abandon: "SequenceAbandon",
+              abandonAll: "SequenceAbandonAll"
+            };
+            const action = navActions[normalizedRequest];
+            if (action) {
+              this.processListeners(action, "adl.nav.request", normalizedTarget);
+            }
+          } else if (this.settings.autoProgress) {
+            this.processListeners("SequenceNext", void 0, "next");
+          }
+        }
+        if (this._sequencingService && processedSequencingRequest && ["exitAll", "abandonAll", "suspendAll"].includes(processedSequencingRequest)) {
+          this._sequencingService.terminate();
+        }
+        this.adl.nav.request = "_none_";
+      }
+      return result;
+    }
+    /**
+     * GetValue - Retrieves a value from the CMI data model
+     *
+     * @param {string} CMIElement - The CMI element path
+     * @return {string} The value of the element, or empty string
+     */
+    lmsGetValue(CMIElement) {
+      if (CMIElement === "adl.nav.request") {
+        this.throwSCORMError(CMIElement, scorm2004_errors$1.WRITE_ONLY_ELEMENT, "adl.nav.request is write-only");
+        return "";
+      }
+      const adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=([a-zA-Z0-9-_]+)}$";
+      if (stringMatches(CMIElement, adlNavRequestRegex)) {
+        const matches = CMIElement.match(adlNavRequestRegex);
+        if (matches) {
+          const request = matches[1];
+          const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
+          if (request === "choice" || request === "jump") {
+            const overallProcess = this._sequencing?.overallSequencingProcess;
+            if (this.settings.scoItemIdValidator) {
+              return String(this.settings.scoItemIdValidator(target));
+            }
+            if (overallProcess?.predictChoiceEnabled && request === "choice") {
+              return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
+            } else if (overallProcess?.predictJumpEnabled && request === "jump") {
+              return overallProcess.predictJumpEnabled(target) ? "true" : "false";
+            } else {
+              if (this._extractedScoItemIds.length > 0) {
+                return String(this._extractedScoItemIds.includes(target));
+              }
+              return String(this.settings?.scoItemIds?.includes(target));
+            }
+          }
+        }
+      }
+      if (this.isTerminated()) {
+        this.lastErrorCode = String(scorm2004_errors$1.RETRIEVE_AFTER_TERM);
+        return "";
+      }
+      if (!this.isInitialized()) {
+        this.lastErrorCode = String(scorm2004_errors$1.RETRIEVE_BEFORE_INIT);
+        return "";
+      }
+      if (CMIElement === "cmi.completion_status") {
+        return this._cmiHandler.evaluateCompletionStatus();
+      }
+      if (CMIElement === "cmi.success_status") {
+        return this._cmiHandler.evaluateSuccessStatus();
+      }
+      return this.getValue("GetValue", true, CMIElement);
+    }
+    /**
+     * SetValue - Sets a value in the CMI data model
+     *
+     * @param {string} CMIElement - The CMI element path
+     * @param {any} value - The value to set
+     * @return {string} "true" or "false"
+     */
+    lmsSetValue(CMIElement, value) {
+      let oldValue = null;
+      try {
+        oldValue = this.getCMIValue(CMIElement);
+      } catch (error) {
+        oldValue = null;
+      }
+      const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
+      if (result === global_constants.SCORM_TRUE && this._sequencingService) {
+        try {
+          this._sequencingService.triggerRollupOnCMIChange(CMIElement, oldValue, value);
+        } catch (rollupError) {
+          console.warn(`Sequencing rollup failed for ${CMIElement}: ${rollupError}`);
+        }
+      }
+      if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence?.autoSaveOn === "setValue") {
+        const sequencingElements = ["cmi.completion_status", "cmi.success_status", "cmi.score.scaled", "cmi.objectives", "adl.nav.request"];
+        if (sequencingElements.some(element => CMIElement.startsWith(element))) {
+          this.saveSequencingState().catch(() => {
+            this.apiLog("lmsSetValue", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+          });
+        }
+      }
+      return result;
+    }
+    /**
+     * Commit - Requests immediate persistence of data to the LMS
+     *
+     * @param {string} parameter - Must be an empty string per SCORM 2004 specification
+     * @return {string} "true" or "false"
+     */
+    lmsCommit() {
+      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      if (parameter !== "") {
+        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+        return global_constants.SCORM_FALSE;
+      }
+      if (this.settings.throttleCommits) {
+        this.scheduleCommit(500, "Commit");
+        return global_constants.SCORM_TRUE;
+      } else {
+        const result = this.commit("Commit", true);
+        if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence?.autoSaveOn === "commit") {
+          this.saveSequencingState().catch(() => {
+            this.apiLog("lmsCommit", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+          });
+        }
+        return result;
+      }
+    }
+    /**
+     * GetLastError - Returns the error code from the last API call
+     * @return {string} Error code as a string
+     */
+    lmsGetLastError() {
+      return this.getLastError("GetLastError");
+    }
+    /**
+     * GetErrorString - Returns a short description for an error code
+     * @param {string|number} CMIErrorCode - The error code
+     * @return {string} Short error description
+     */
+    lmsGetErrorString(CMIErrorCode) {
+      return this.getErrorString("GetErrorString", CMIErrorCode);
+    }
+    /**
+     * GetDiagnostic - Returns detailed diagnostic information for an error
+     * @param {string|number} CMIErrorCode - The error code
+     * @return {string} Detailed diagnostic information
+     */
+    lmsGetDiagnostic(CMIErrorCode) {
+      return this.getDiagnostic("GetDiagnostic", CMIErrorCode);
+    }
+    /**
+     * Sets a value on the CMI Object
+     * @param {string} CMIElement
+     * @param {any} value
+     * @return {string}
+     */
+    setCMIValue(CMIElement, value) {
+      if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+        const parts = CMIElement.split(".");
+        const index = Number(parts[2]);
+        const element_base = `cmi.objectives.${index}`;
+        let objective_id;
+        const setting_id = stringMatches(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
+        if (setting_id) {
+          objective_id = value;
+        } else {
+          const objective = this.cmi.objectives.findObjectiveByIndex(index);
+          objective_id = objective ? objective.id : void 0;
+        }
+        const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
+        if (is_global) {
+          const {
+            index: global_index
+          } = this._globalObjectiveManager.findOrCreateGlobalObjective(objective_id);
+          const global_element = CMIElement.replace(element_base, `_globalObjectives.${global_index}`);
+          this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
+          const updatedObjective = this._globalObjectiveManager.globalObjectives[global_index];
+          if (objective_id && updatedObjective) {
+            this._globalObjectiveManager.updateGlobalObjectiveFromCMI(objective_id, updatedObjective);
+          }
+        }
+      }
+      return this._commonSetCMIValue("SetValue", true, CMIElement, value);
+    }
+    /**
+     * Gets or builds a new child element to add to the array
+     * @param {string} CMIElement
+     * @param {any} value
+     * @param {boolean} foundFirstIndex
+     * @return {BaseCMI|null}
+     */
+    getChildElement(CMIElement, value, foundFirstIndex) {
+      return this._cmiHandler.getChildElement(CMIElement, value, foundFirstIndex);
+    }
+    /**
+     * Validate correct response
+     * @param {string} CMIElement
+     * @param {*} value
+     */
+    validateCorrectResponse(CMIElement, value) {
+      const parts = CMIElement.split(".");
+      const index = Number(parts[2]);
+      const interaction = this.cmi.interactions.childArray[index];
+      if (!interaction) {
+        this.throwSCORMError(CMIElement, scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
+        return;
+      }
+      this._responseValidator.validateCorrectResponse(CMIElement, interaction, value);
+    }
+    /**
+     * Checks for valid response types (delegated to response validator)
+     * @param {string} CMIElement
+     * @param {ResponseType} response_type
+     * @param {any} value
+     * @param {string} interaction_type
+     */
+    checkValidResponseType(CMIElement, response_type, value, interaction_type) {
+      this._responseValidator.checkValidResponseType(CMIElement, response_type, value, interaction_type);
+    }
+    /**
+     * Checks for duplicate 'choice' responses (delegated to response validator)
+     * @param {string} CMIElement
+     * @param {CMIInteractionsObject} interaction
+     * @param {any} value
+     */
+    checkDuplicateChoiceResponse(CMIElement, interaction, value) {
+      this._responseValidator.checkDuplicateChoiceResponse(CMIElement, interaction, value);
+    }
+    /**
+     * Check to see if a correct_response value has been duplicated (delegated to response validator)
+     * @param {CMIArray} correct_response
+     * @param {number} current_index
+     * @param {*} value
+     * @return {boolean}
+     */
+    checkDuplicatedPattern(correct_response, current_index, value) {
+      return this._responseValidator.checkDuplicatedPattern(correct_response, current_index, value);
+    }
+    /**
+     * Checks for a valid correct_response value (delegated to response validator)
+     * @param {string} CMIElement
+     * @param {string} interaction_type
+     * @param {Array} nodes
+     * @param {*} value
+     */
+    checkCorrectResponseValue(CMIElement, interaction_type, nodes, value) {
+      this._responseValidator.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
+    }
+    /**
+     * Remove prefixes from correct_response (delegated to response validator)
+     * @param {string} CMIElement
+     * @param {string} node
+     * @return {any}
+     */
+    removeCorrectResponsePrefixes(CMIElement, node) {
+      return this._responseValidator.removeCorrectResponsePrefixes(CMIElement, node);
+    }
+    /**
+     * Gets a value from the CMI Object
+     * @param {string} CMIElement
+     * @return {*}
+     */
+    getCMIValue(CMIElement) {
+      return this._commonGetCMIValue("GetValue", true, CMIElement);
+    }
+    /**
+     * Returns the message that corresponds to errorNumber.
+     * @param {(string|number)} errorNumber
+     * @param {boolean} detail
+     * @return {string}
+     */
+    getLmsErrorMessageDetails(errorNumber, detail) {
+      let basicMessage = "";
+      let detailMessage = "";
+      errorNumber = String(errorNumber);
+      const errorDescription = scorm2004_constants.error_descriptions[errorNumber];
+      if (errorDescription) {
+        basicMessage = errorDescription.basicMessage;
+        detailMessage = errorDescription.detailMessage;
+      }
+      return detail ? detailMessage : basicMessage;
+    }
+    /**
+     * Replace the whole API with another
+     * @param {Scorm2004API} newAPI
+     */
+    replaceWithAnotherScormAPI(newAPI) {
+      this.cmi = newAPI.cmi;
+      this.adl = newAPI.adl;
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit
+     * @param {boolean} terminateCommit
+     * @param {boolean} includeTotalTime
+     * @return {object|Array}
+     */
+    renderCommitCMI(terminateCommit) {
+      let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      return this._dataSerializer.renderCommitCMI(terminateCommit, includeTotalTime);
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit
+     * @param {boolean} terminateCommit
+     * @param {boolean} includeTotalTime
+     * @return {CommitObject}
+     */
+    renderCommitObject(terminateCommit) {
+      let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      return this._dataSerializer.renderCommitObject(terminateCommit, includeTotalTime);
+    }
+    /**
+     * Attempts to store the data to the LMS
+     * @param {boolean} terminateCommit
+     * @return {ResultObject}
+     */
+    storeData(terminateCommit) {
+      if (terminateCommit) {
+        if (this.cmi.mode === "normal") {
+          if (this.cmi.credit === "credit") {
+            if (this.cmi.completion_threshold && this.cmi.progress_measure) {
+              if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+                this.cmi.completion_status = "completed";
+              } else {
+                this.cmi.completion_status = "incomplete";
+              }
+            }
+            if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
+              if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+                this.cmi.success_status = "passed";
+              } else {
+                this.cmi.success_status = "failed";
+              }
+            }
+          }
+        }
+      }
+      let navRequest = false;
+      if (this.adl.nav.request !== this.startingData?.adl?.nav?.request && this.adl.nav.request !== "_none_") {
+        navRequest = true;
+      }
+      const commitObject = this.getCommitObject(terminateCommit);
+      const scoreObject = this.cmi?.score?.getScoreObject() || {};
+      let completionStatusEnum = CompletionStatus.UNKNOWN;
+      if (this.cmi.completion_status === "completed") {
+        completionStatusEnum = CompletionStatus.COMPLETED;
+      } else if (this.cmi.completion_status === "incomplete") {
+        completionStatusEnum = CompletionStatus.INCOMPLETE;
+      }
+      let successStatusEnum = SuccessStatus.UNKNOWN;
+      if (this.cmi.success_status === "passed") {
+        successStatusEnum = SuccessStatus.PASSED;
+      } else if (this.cmi.success_status === "failed") {
+        successStatusEnum = SuccessStatus.FAILED;
+      }
+      this._globalObjectiveManager.syncCmiToSequencingActivity(completionStatusEnum, successStatusEnum, scoreObject);
+      if (typeof this.settings.lmsCommitUrl === "string") {
+        const result = this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
+        if (navRequest && result.navRequest !== void 0 && result.navRequest !== "" && typeof result.navRequest === "string") {
+          const parsed = parseNavigationRequest(result.navRequest);
+          if (!parsed.valid) {
+            this.apiLog("storeData", `Invalid navigation request from LMS: ${parsed.error}`, LogLevelEnum.WARN);
+          } else {
+            const navEventMap = {
+              start: "SequenceStart",
+              resumeAll: "SequenceResumeAll",
+              continue: "SequenceNext",
+              previous: "SequencePrevious",
+              choice: "SequenceChoice",
+              jump: "SequenceJump",
+              exit: "SequenceExit",
+              exitAll: "SequenceExitAll",
+              abandon: "SequenceAbandon",
+              abandonAll: "SequenceAbandonAll",
+              suspendAll: "SequenceSuspendAll"
+            };
+            const eventName = navEventMap[parsed.command];
+            if (eventName) {
+              this.processListeners(eventName, "adl.nav.request", parsed.targetActivityId);
+            }
+          }
+        } else if (result?.navRequest && !navRequest) {
+          if (typeof result.navRequest === "object" && Object.hasOwnProperty.call(result.navRequest, "name") && result.navRequest.name) {
+            this.processListeners(result.navRequest.name, result.navRequest.data);
+          }
+        }
+        return result;
+      }
+      return {
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0
+      };
+    }
+    /**
+     * Configure sequencing based on provided settings
+     * @param {SequencingSettings} sequencingSettings
+     */
+    configureSequencing(sequencingSettings) {
+      this._sequencingCollections = this._sequencingConfigBuilder.sanitizeSequencingCollections(sequencingSettings.collections);
+      this._activityTreeBuilder.setSequencingCollections(this._sequencingCollections);
+      if (sequencingSettings.activityTree) {
+        this.configureActivityTree(sequencingSettings.activityTree);
+      }
+      if (sequencingSettings.sequencingRules) {
+        this.configureSequencingRules(sequencingSettings.sequencingRules);
+      }
+      if (sequencingSettings.sequencingControls) {
+        this.configureSequencingControls(sequencingSettings.sequencingControls);
+      }
+      if (sequencingSettings.rollupRules) {
+        this.configureRollupRules(sequencingSettings.rollupRules);
+      }
+      if (sequencingSettings.hideLmsUi) {
+        this._sequencing.hideLmsUi = this._sequencingConfigBuilder.sanitizeHideLmsUi(sequencingSettings.hideLmsUi);
+      } else {
+        this._sequencing.hideLmsUi = [];
+      }
+      if (sequencingSettings.auxiliaryResources) {
+        this._sequencing.auxiliaryResources = this._sequencingConfigBuilder.sanitizeAuxiliaryResources(sequencingSettings.auxiliaryResources);
+      } else {
+        this._sequencing.auxiliaryResources = [];
+      }
+    }
+    /**
+     * Configure activity tree based on provided settings
+     * @param {ActivitySettings} activityTreeSettings
+     */
+    configureActivityTree(activityTreeSettings) {
+      const rootActivity = this._activityTreeBuilder.createActivity(activityTreeSettings);
+      const activityTree = this._sequencing.activityTree;
+      activityTree.root = rootActivity;
+      this._extractedScoItemIds = this._activityTreeBuilder.extractActivityIds(rootActivity);
+    }
+    /**
+     * Configure sequencing rules based on provided settings
+     * @param {SequencingRulesSettings} sequencingRulesSettings
+     */
+    configureSequencingRules(sequencingRulesSettings) {
+      this._sequencingConfigBuilder.applySequencingRulesSettings(this._sequencing.sequencingRules, sequencingRulesSettings);
+    }
+    /**
+     * Configure sequencing controls based on provided settings
+     * @param {SequencingControlsSettings} sequencingControlsSettings
+     */
+    configureSequencingControls(sequencingControlsSettings) {
+      this._sequencingConfigBuilder.applySequencingControlsSettings(this._sequencing.sequencingControls, sequencingControlsSettings);
+    }
+    /**
+     * Configure rollup rules based on provided settings
+     * @param {RollupRulesSettings} rollupRulesSettings
+     */
+    configureRollupRules(rollupRulesSettings) {
+      this._sequencingConfigBuilder.applyRollupRulesSettings(this._sequencing.rollupRules, rollupRulesSettings);
+    }
+    /**
+     * Initialize the sequencing service
+     * @param {Settings} settings
+     */
+    initializeSequencingService(settings) {
+      try {
+        const sequencingConfig = {
+          autoRollupOnCMIChange: settings?.sequencing?.autoRollupOnCMIChange ?? true,
+          autoProgressOnCompletion: settings?.sequencing?.autoProgressOnCompletion ?? false,
+          validateNavigationRequests: settings?.sequencing?.validateNavigationRequests ?? true,
+          enableEventSystem: settings?.sequencing?.enableEventSystem ?? true,
+          logLevel: settings?.sequencing?.logLevel ?? "info"
+        };
+        this._sequencingService = new SequencingService(this._sequencing, this.cmi, this.adl, this.eventService || this, this.loggingService, sequencingConfig);
+        if (settings?.sequencing?.eventListeners) {
+          this._sequencingService.setEventListeners(settings.sequencing.eventListeners);
+        }
+        this._globalObjectiveManager.updateSequencingService(this._sequencingService);
+        this._dataSerializer.updateSequencingService(this._sequencingService);
+        if (settings?.sequencingStatePersistence) {
+          const persistenceContext = {
+            getSettings: () => this.settings,
+            apiLog: this.apiLog.bind(this),
+            adl: this.adl,
+            sequencing: this._sequencing,
+            sequencingService: this._sequencingService,
+            learnerId: this.cmi.learner_id
+          };
+          this._statePersistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+        }
+        this._globalObjectiveManager.syncGlobalObjectiveIdsFromSequencing();
+      } catch (error) {
+        console.warn("Failed to initialize sequencing service:", error);
+        this._sequencingService = null;
+      }
+    }
+    /**
+     * Get the sequencing service
+     * @return {SequencingService | null}
+     */
+    getSequencingService() {
+      return this._sequencingService;
+    }
+    /**
+     * Set sequencing event listeners
+     * @param {SequencingEventListeners} listeners
+     */
+    setSequencingEventListeners(listeners) {
+      if (this._sequencingService) {
+        this._sequencingService.setEventListeners(listeners);
+      }
+    }
+    /**
+     * Update sequencing configuration
+     * @param {SequencingConfiguration} config
+     */
+    updateSequencingConfiguration(config) {
+      if (this._sequencingService) {
+        this._sequencingService.updateConfiguration(config);
+      }
+    }
+    /**
+     * Get current sequencing state information
+     * @return {object}
+     */
+    getSequencingState() {
+      if (this._sequencingService) {
+        return this._sequencingService.getSequencingState();
+      }
+      return {
+        isInitialized: false,
+        isActive: false,
+        currentActivity: null,
+        rootActivity: this._sequencing.getRootActivity(),
+        lastSequencingResult: null
+      };
+    }
+    /**
+     * Process a navigation request directly
+     * @param {string} request
+     * @param {string} targetActivityId
+     * @return {boolean}
+     */
+    processNavigationRequest(request, targetActivityId) {
+      if (this._sequencingService) {
+        return this._sequencingService.processNavigationRequest(request, targetActivityId);
+      }
+      return false;
+    }
+    /**
+     * Reset sequencing state explicitly
+     */
+    resetSequencingState() {
+      this._sequencing?.reset();
+      this._sequencingService?.setEventListeners({});
+    }
+    /**
+     * Get tracking data for a specific activity
+     * @param {string} activityId
+     * @return {object | null}
+     */
+    getActivityTrackingData(activityId) {
+      if (!this._sequencing?.activityTree) {
+        return null;
+      }
+      const activity = this._sequencing.activityTree.getActivity(activityId);
+      if (!activity) {
+        return null;
+      }
+      return {
+        completionStatus: activity.completionStatus || "unknown",
+        successStatus: activity.successStatus || "unknown",
+        progressMeasure: activity.progressMeasure ?? null,
+        score: activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure : null
+      };
+    }
+    /**
+     * Save current sequencing state to persistent storage
+     * @param {Partial<SequencingStateMetadata>} metadata
+     * @return {Promise<boolean>}
+     */
+    async saveSequencingState(metadata) {
+      if (this._statePersistence) {
+        return this._statePersistence.saveSequencingState(metadata);
+      }
+      if (!this.settings.sequencingStatePersistence) {
+        this.apiLog("saveSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+        return false;
+      }
+      const persistenceContext = {
+        getSettings: () => this.settings,
+        apiLog: this.apiLog.bind(this),
+        adl: this.adl,
+        sequencing: this._sequencing,
+        sequencingService: this._sequencingService,
+        learnerId: this.cmi.learner_id
+      };
+      const persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+      return persistence.saveSequencingState(metadata);
+    }
+    /**
+     * Load sequencing state from persistent storage
+     * @param {Partial<SequencingStateMetadata>} metadata
+     * @return {Promise<boolean>}
+     */
+    async loadSequencingState(metadata) {
+      if (this._statePersistence) {
+        return this._statePersistence.loadSequencingState(metadata);
+      }
+      if (!this.settings.sequencingStatePersistence) {
+        this.apiLog("loadSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+        return false;
+      }
+      const persistenceContext = {
+        getSettings: () => this.settings,
+        apiLog: this.apiLog.bind(this),
+        adl: this.adl,
+        sequencing: this._sequencing,
+        sequencingService: this._sequencingService,
+        learnerId: this.cmi.learner_id
+      };
+      const persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+      return persistence.loadSequencingState(metadata);
+    }
+    /**
+     * Serialize current sequencing state to JSON string
+     * @return {string} Serialized state
+     */
+    serializeSequencingState() {
+      if (this._statePersistence) {
+        return this._statePersistence.serializeSequencingState();
+      }
+      const persistenceContext = {
+        getSettings: () => this.settings,
+        apiLog: this.apiLog.bind(this),
+        adl: this.adl,
+        sequencing: this._sequencing,
+        sequencingService: this._sequencingService,
+        learnerId: this.cmi.learner_id
+      };
+      const persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+      return persistence.serializeSequencingState();
+    }
+    /**
+     * Deserialize sequencing state from JSON string
+     * @param {string} stateData - Serialized state data
+     * @return {boolean} Success status
+     */
+    deserializeSequencingState(stateData) {
+      if (this._statePersistence) {
+        return this._statePersistence.deserializeSequencingState(stateData);
+      }
+      const persistenceContext = {
+        getSettings: () => this.settings,
+        apiLog: this.apiLog.bind(this),
+        adl: this.adl,
+        sequencing: this._sequencing,
+        sequencingService: this._sequencingService,
+        learnerId: this.cmi.learner_id
+      };
+      const persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+      return persistence.deserializeSequencingState(stateData);
+    }
+    /**
+     * Determines the appropriate cmi.entry value based on previous exit state.
+     * @param {string} previousExit
+     * @param {boolean} hasSuspendData
+     * @return {string}
+     */
+    determineEntryValue(previousExit, hasSuspendData) {
+      return this._dataSerializer.determineEntryValue(previousExit, hasSuspendData);
     }
   }
 
