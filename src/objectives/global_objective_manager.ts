@@ -67,6 +67,14 @@ export class GlobalObjectiveManager {
   }
 
   /**
+   * Update the sequencing service reference
+   * @param {SequencingService | null} service - The sequencing service instance
+   */
+  updateSequencingService(service: SequencingService | null): void {
+    this.context.sequencingService = service;
+  }
+
+  /**
    * Syncs global objective IDs from the sequencing service's globalObjectiveMap
    * to settings.globalObjectiveIds. This ensures that objectives referenced via
    * mapInfo in the activity tree are recognized as global objectives when
@@ -555,6 +563,6 @@ export class GlobalObjectiveManager {
       this._globalObjectives.push(newGlobalObjective);
     }
 
-    return { index, objective: this._globalObjectives[index] };
+    return { index, objective: this._globalObjectives[index]! };
   }
 }

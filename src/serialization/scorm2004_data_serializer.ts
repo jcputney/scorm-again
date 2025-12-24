@@ -1,5 +1,6 @@
 import { CMI } from "../cmi/scorm2004/cmi";
-import { CommitObject, ScoreObject, Settings, StringKeyMap } from "../types/api_types";
+import { CommitObject, ScoreObject, Settings } from "../types/api_types";
+import { StringKeyMap } from "../utilities";
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import { scorm2004_regex } from "../constants/regex";
 import * as Utilities from "../utilities";
@@ -49,6 +50,14 @@ export class Scorm2004DataSerializer {
    */
   setGlobalObjectiveManager(manager: GlobalObjectiveManager): void {
     this.globalObjectiveManager = manager;
+  }
+
+  /**
+   * Update the sequencing service reference
+   * @param {SequencingService | null} service - The sequencing service instance
+   */
+  updateSequencingService(service: SequencingService | null): void {
+    this.context.sequencingService = service;
   }
 
   /**

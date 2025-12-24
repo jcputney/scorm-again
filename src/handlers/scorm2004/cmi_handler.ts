@@ -101,7 +101,7 @@ export class Scorm2004CMIHandler {
       if (typeof interaction === "undefined" || !interaction.type) {
         this.context.throwSCORMError(
           CMIElement,
-          scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+          scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED!,
           CMIElement,
         );
         return null;
@@ -117,7 +117,7 @@ export class Scorm2004CMIHandler {
         ) {
           this.context.throwSCORMError(
             CMIElement,
-            scorm2004_errors.GENERAL_SET_FAILURE,
+            scorm2004_errors.GENERAL_SET_FAILURE!,
             `Data Model Element Collection Limit Reached: ${CMIElement}`,
           );
           return null;
@@ -134,7 +134,7 @@ export class Scorm2004CMIHandler {
         } else {
           this.context.throwSCORMError(
             CMIElement,
-            scorm2004_errors.GENERAL_SET_FAILURE,
+            scorm2004_errors.GENERAL_SET_FAILURE!,
             `Incorrect Response Type: ${interaction.type}`,
           );
           return null;

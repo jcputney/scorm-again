@@ -69,7 +69,7 @@ export class Scorm2004ResponseValidator {
     } else if (nodes.length > response_type.max) {
       this.context.throwSCORMError(
         CMIElement,
-        scorm2004_errors.GENERAL_SET_FAILURE,
+        scorm2004_errors.GENERAL_SET_FAILURE!,
         `Data Model Element Pattern Too Long: ${value}`,
       );
     }
@@ -93,7 +93,7 @@ export class Scorm2004ResponseValidator {
           | CMIInteractionsCorrectResponsesObject
           | undefined;
         if (response?.pattern === value) {
-          this.context.throwSCORMError(CMIElement, scorm2004_errors.GENERAL_SET_FAILURE, `${value}`);
+          this.context.throwSCORMError(CMIElement, scorm2004_errors.GENERAL_SET_FAILURE!, `${value}`);
         }
       }
     }
@@ -112,7 +112,7 @@ export class Scorm2004ResponseValidator {
     if (!interaction) {
       this.context.throwSCORMError(
         CMIElement,
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED!,
         CMIElement,
       );
       return;
@@ -143,7 +143,7 @@ export class Scorm2004ResponseValidator {
         if (this.context.getLastErrorCode() === "0") {
           this.context.throwSCORMError(
             CMIElement,
-            scorm2004_errors.GENERAL_SET_FAILURE,
+            scorm2004_errors.GENERAL_SET_FAILURE!,
             `Data Model Element Pattern Already Exists: ${CMIElement} - ${value}`,
           );
         }
@@ -151,7 +151,7 @@ export class Scorm2004ResponseValidator {
     } else {
       this.context.throwSCORMError(
         CMIElement,
-        scorm2004_errors.GENERAL_SET_FAILURE,
+        scorm2004_errors.GENERAL_SET_FAILURE!,
         `Data Model Element Collection Limit Reached: ${CMIElement} - ${value}`,
       );
     }
@@ -198,7 +198,7 @@ export class Scorm2004ResponseValidator {
     if (!response) {
       this.context.throwSCORMError(
         CMIElement,
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH!,
         `Incorrect Response Type: ${interaction_type}`,
       );
       return;
@@ -216,14 +216,14 @@ export class Scorm2004ResponseValidator {
           if (!matches) {
             this.context.throwSCORMError(
               CMIElement,
-              scorm2004_errors.TYPE_MISMATCH,
+              scorm2004_errors.TYPE_MISMATCH!,
               `${interaction_type}: ${value}`,
             );
           } else {
             if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
               this.context.throwSCORMError(
                 CMIElement,
-                scorm2004_errors.TYPE_MISMATCH,
+                scorm2004_errors.TYPE_MISMATCH!,
                 `${interaction_type}: ${value}`,
               );
             }
@@ -231,7 +231,7 @@ export class Scorm2004ResponseValidator {
         } else {
           this.context.throwSCORMError(
             CMIElement,
-            scorm2004_errors.TYPE_MISMATCH,
+            scorm2004_errors.TYPE_MISMATCH!,
             `${interaction_type}: ${value}`,
           );
         }
@@ -240,7 +240,7 @@ export class Scorm2004ResponseValidator {
         if ((!matches && value !== "") || (!matches && interaction_type === "true-false")) {
           this.context.throwSCORMError(
             CMIElement,
-            scorm2004_errors.TYPE_MISMATCH,
+            scorm2004_errors.TYPE_MISMATCH!,
             `${interaction_type}: ${value}`,
           );
         } else {
@@ -248,7 +248,7 @@ export class Scorm2004ResponseValidator {
             if (Number(nodes[0]) > Number(nodes[1])) {
               this.context.throwSCORMError(
                 CMIElement,
-                scorm2004_errors.TYPE_MISMATCH,
+                scorm2004_errors.TYPE_MISMATCH!,
                 `${interaction_type}: ${value}`,
               );
             }
@@ -258,7 +258,7 @@ export class Scorm2004ResponseValidator {
                 if (nodes[i] === nodes[j]) {
                   this.context.throwSCORMError(
                     CMIElement,
-                    scorm2004_errors.TYPE_MISMATCH,
+                    scorm2004_errors.TYPE_MISMATCH!,
                     `${interaction_type}: ${value}`,
                   );
                 }
@@ -292,7 +292,7 @@ export class Scorm2004ResponseValidator {
             const lang = langMatches[3];
             if (lang !== undefined && lang.length > 0) {
               if (!ValidLanguages.includes(lang.toLowerCase())) {
-                this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
+                this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
               }
             }
           }
@@ -301,7 +301,7 @@ export class Scorm2004ResponseValidator {
         case "case_matters":
           if (!seenLang && !seenOrder && !seenCase) {
             if (matches[3] !== "true" && matches[3] !== "false") {
-              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
+              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
             }
           }
 
@@ -310,7 +310,7 @@ export class Scorm2004ResponseValidator {
         case "order_matters":
           if (!seenCase && !seenLang && !seenOrder) {
             if (matches[3] !== "true" && matches[3] !== "false") {
-              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
+              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
             }
           }
 

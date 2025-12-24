@@ -1064,8 +1064,8 @@ class Scorm2004API extends BaseAPI {
       }
 
       // Update context references after sequencing service is created
-      (this._globalObjectiveManager as any).context.sequencingService = this._sequencingService;
-      (this._dataSerializer as any).context.sequencingService = this._sequencingService;
+      this._globalObjectiveManager.updateSequencingService(this._sequencingService);
+      this._dataSerializer.updateSequencingService(this._sequencingService);
 
       // Initialize state persistence
       if (settings?.sequencingStatePersistence) {
