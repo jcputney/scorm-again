@@ -111,7 +111,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         } as unknown as CMIArray,
       } as CMIInteractionsObject;
 
-      scorm2004API.checkDuplicateChoiceResponse("api", interaction, "choice1");
+      scorm2004API["_responseValidator"].checkDuplicateChoiceResponse("api", interaction, "choice1");
 
       expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
     });
@@ -126,7 +126,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         } as CMIArray,
       } as CMIInteractionsObject;
 
-      scorm2004API.checkDuplicateChoiceResponse("api", interaction, "choice2");
+      scorm2004API["_responseValidator"].checkDuplicateChoiceResponse("api", interaction, "choice2");
 
       expect(scorm2004API.lmsGetLastError()).toBe("0");
     });
@@ -141,7 +141,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         },
       } as CMIInteractionsObject;
 
-      scorm2004API.checkDuplicateChoiceResponse("api", interaction, "true");
+      scorm2004API["_responseValidator"].checkDuplicateChoiceResponse("api", interaction, "true");
 
       expect(scorm2004API.lmsGetLastError()).toBe("0");
     });
@@ -487,7 +487,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Create a value with more nodes than the maximum allowed
       const value = "value1,value2,value3"; // 3 nodes, max is 2
 
-      scorm2004API.checkValidResponseType("api", response_type, value, "choice");
+      scorm2004API["_responseValidator"].checkValidResponseType("api", response_type, value, "choice");
 
       expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
     });
@@ -504,10 +504,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Create a value with a valid number of nodes
       const value = "value1,value2"; // 2 nodes, max is 2
 
-      // Spy on checkCorrectResponseValue
-      const checkCorrectResponseValueSpy = vi.spyOn(scorm2004API, "checkCorrectResponseValue");
+      // Spy on checkCorrectResponseValue on the validator
+      const checkCorrectResponseValueSpy = vi.spyOn(
+        scorm2004API["_responseValidator"],
+        "checkCorrectResponseValue",
+      );
 
-      scorm2004API.checkValidResponseType("api", response_type, value, "choice");
+      scorm2004API["_responseValidator"].checkValidResponseType("api", response_type, value, "choice");
 
       expect(checkCorrectResponseValueSpy).toHaveBeenCalledOnce();
       expect(
@@ -529,7 +532,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with an invalid interaction type
-      scorm2004API.checkCorrectResponseValue("api", "invalid-type", ["value"], "value");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "invalid-type", ["value"], "value");
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
@@ -549,7 +552,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Call with a matching interaction type but invalid first value
       // Matching format should be a short identifier, but we're using an invalid character
-      scorm2004API.checkCorrectResponseValue(
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
         "api",
         "matching",
         ["invalid@id.validId"],
@@ -574,7 +577,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Call with a matching interaction type but invalid second value
       // First value is a valid short identifier, but second value is invalid
-      scorm2004API.checkCorrectResponseValue(
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
         "api",
         "matching",
         ["validId.invalid@id"],
@@ -598,7 +601,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a matching interaction type but with only one value (no delimiter)
-      scorm2004API.checkCorrectResponseValue("api", "matching", ["singleValue"], "singleValue");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "matching", ["singleValue"], "singleValue");
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
@@ -617,7 +620,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a numeric interaction type where first value is greater than second value
-      scorm2004API.checkCorrectResponseValue("api", "numeric", ["10", "5"], "10:5");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "numeric", ["10", "5"], "10:5");
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(
@@ -638,7 +641,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a choice interaction type (which has unique=true) and duplicate values
-      scorm2004API.checkCorrectResponseValue(
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
         "api",
         "choice",
         ["value1", "value2", "value1"],
@@ -667,7 +670,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call createCorrectResponsesObject with an index that doesn't exist
-      scorm2004API["createCorrectResponsesObject"](
+      scorm2004API["_cmiHandler"].createCorrectResponsesObject(
         "cmi.interactions.999.correct_responses.0.pattern",
         "true",
       );
@@ -694,7 +697,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call createCorrectResponsesObject
-      scorm2004API["createCorrectResponsesObject"](
+      scorm2004API["_cmiHandler"].createCorrectResponsesObject(
         "cmi.interactions.0.correct_responses.0.pattern",
         "true",
       );
@@ -728,7 +731,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call createCorrectResponsesObject
-      scorm2004API["createCorrectResponsesObject"](
+      scorm2004API["_cmiHandler"].createCorrectResponsesObject(
         "cmi.interactions.0.correct_responses.0.pattern",
         "true",
       );
@@ -1463,7 +1466,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         };
 
         // Access private method via type casting
-        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+        const objective = scorm2004API["_globalObjectiveManager"].buildCMIObjectiveFromJSON(data);
 
         expect(objective.id).toBe("obj-1");
         expect(objective.success_status).toBe("passed");
@@ -1478,13 +1481,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       it("should handle null or invalid data gracefully", (): void => {
         const scorm2004API = api();
 
-        const objective1 = scorm2004API["buildCMIObjectiveFromJSON"](null);
+        const objective1 = scorm2004API["_globalObjectiveManager"].buildCMIObjectiveFromJSON(null);
         expect(objective1.id).toBe("");
 
-        const objective2 = scorm2004API["buildCMIObjectiveFromJSON"](undefined);
+        const objective2 = scorm2004API["_globalObjectiveManager"].buildCMIObjectiveFromJSON(undefined);
         expect(objective2.id).toBe("");
 
-        const objective3 = scorm2004API["buildCMIObjectiveFromJSON"]("not an object");
+        const objective3 = scorm2004API["_globalObjectiveManager"].buildCMIObjectiveFromJSON("not an object");
         expect(objective3.id).toBe("");
       });
 
@@ -1501,7 +1504,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           },
         };
 
-        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+        const objective = scorm2004API["_globalObjectiveManager"].buildCMIObjectiveFromJSON(data);
 
         expect(objective.score.scaled).toBe("0.75");
         expect(objective.score.raw).toBe("75");
@@ -1517,7 +1520,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           progress_measure: "",
         };
 
-        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+        const objective = scorm2004API["_globalObjectiveManager"].buildCMIObjectiveFromJSON(data);
 
         expect(objective.progress_measure).toBe("");
       });
@@ -1530,7 +1533,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           success_status: "passed",
         };
 
-        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+        const objective = scorm2004API["_globalObjectiveManager"].buildCMIObjectiveFromJSON(data);
 
         expect(objective.id).toBe("obj-4");
         expect(objective.success_status).toBe("passed");
@@ -1562,7 +1565,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           },
         };
 
-        const objectives = scorm2004API["buildCMIObjectivesFromMap"](snapshot);
+        const objectives = scorm2004API["_globalObjectiveManager"].buildCMIObjectivesFromMap(snapshot);
 
         expect(objectives.length).toBe(2);
         expect(objectives[0].id).toBe("obj-1");
@@ -1578,13 +1581,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       it("should return empty array for null or invalid snapshot", (): void => {
         const scorm2004API = api();
 
-        const objectives1 = scorm2004API["buildCMIObjectivesFromMap"](null as any);
+        const objectives1 = scorm2004API["_globalObjectiveManager"].buildCMIObjectivesFromMap(null as any);
         expect(objectives1).toEqual([]);
 
-        const objectives2 = scorm2004API["buildCMIObjectivesFromMap"](undefined as any);
+        const objectives2 = scorm2004API["_globalObjectiveManager"].buildCMIObjectivesFromMap(undefined as any);
         expect(objectives2).toEqual([]);
 
-        const objectives3 = scorm2004API["buildCMIObjectivesFromMap"]("not an object" as any);
+        const objectives3 = scorm2004API["_globalObjectiveManager"].buildCMIObjectivesFromMap("not an object" as any);
         expect(objectives3).toEqual([]);
       });
 
@@ -1606,7 +1609,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           },
         };
 
-        const objectives = scorm2004API["buildCMIObjectivesFromMap"](snapshot);
+        const objectives = scorm2004API["_globalObjectiveManager"].buildCMIObjectivesFromMap(snapshot);
 
         expect(objectives.length).toBe(2);
         expect(objectives[0].id).toBe("obj-1");
@@ -1626,7 +1629,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           },
         };
 
-        const objectives = scorm2004API["buildCMIObjectivesFromMap"](snapshot);
+        const objectives = scorm2004API["_globalObjectiveManager"].buildCMIObjectivesFromMap(snapshot);
 
         expect(objectives.length).toBe(1);
         expect(objectives[0].id).toBe("obj-1");
@@ -1639,40 +1642,40 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       it("should parse valid numeric values", (): void => {
         const scorm2004API = api();
 
-        expect(scorm2004API["parseObjectiveNumber"](42)).toBe(42);
-        expect(scorm2004API["parseObjectiveNumber"](0.85)).toBe(0.85);
-        expect(scorm2004API["parseObjectiveNumber"](-10.5)).toBe(-10.5);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(42)).toBe(42);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(0.85)).toBe(0.85);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(-10.5)).toBe(-10.5);
       });
 
       it("should parse string numbers", (): void => {
         const scorm2004API = api();
 
-        expect(scorm2004API["parseObjectiveNumber"]("42")).toBe(42);
-        expect(scorm2004API["parseObjectiveNumber"]("0.85")).toBe(0.85);
-        expect(scorm2004API["parseObjectiveNumber"]("-10.5")).toBe(-10.5);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber("42")).toBe(42);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber("0.85")).toBe(0.85);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber("-10.5")).toBe(-10.5);
       });
 
       it("should return null for null and undefined", (): void => {
         const scorm2004API = api();
 
-        expect(scorm2004API["parseObjectiveNumber"](null)).toBe(null);
-        expect(scorm2004API["parseObjectiveNumber"](undefined)).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(null)).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(undefined)).toBe(null);
       });
 
       it("should return null for non-finite numbers", (): void => {
         const scorm2004API = api();
 
-        expect(scorm2004API["parseObjectiveNumber"](Infinity)).toBe(null);
-        expect(scorm2004API["parseObjectiveNumber"](-Infinity)).toBe(null);
-        expect(scorm2004API["parseObjectiveNumber"](NaN)).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(Infinity)).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(-Infinity)).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber(NaN)).toBe(null);
       });
 
       it("should return null for non-numeric strings", (): void => {
         const scorm2004API = api();
 
-        expect(scorm2004API["parseObjectiveNumber"]("not a number")).toBe(null);
-        expect(scorm2004API["parseObjectiveNumber"]("abc")).toBe(null);
-        expect(scorm2004API["parseObjectiveNumber"]("")).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber("not a number")).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber("abc")).toBe(null);
+        expect(scorm2004API["_globalObjectiveManager"].parseObjectiveNumber("")).toBe(null);
       });
     });
 
@@ -1706,7 +1709,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.completion_status = "completed";
 
         // Call the update method
-        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("global-obj-1", objective);
 
         // Verify the update was applied
         const sequencingService = scorm2004API["_sequencingService"];
@@ -1732,7 +1735,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.success_status = "passed";
 
         // Should not throw, just return early
-        scorm2004API["updateGlobalObjectiveFromCMI"]("", objective);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("", objective);
       });
 
       it("should return early when sequencing service is not available", (): void => {
@@ -1743,7 +1746,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.success_status = "passed";
 
         // Should not throw, just return early
-        scorm2004API["updateGlobalObjectiveFromCMI"]("obj-1", objective);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("obj-1", objective);
       });
 
       it("should create new entry when objective not in map", (): void => {
@@ -1763,7 +1766,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.success_status = "passed";
         objective.score.scaled = "0.9";
 
-        scorm2004API["updateGlobalObjectiveFromCMI"]("new-obj", objective);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("new-obj", objective);
 
         const sequencingService = scorm2004API["_sequencingService"];
         const overallProcess = sequencingService?.getOverallSequencingProcess();
@@ -1797,7 +1800,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.completion_status = "unknown";
 
         // Should return early without updating
-        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("global-obj-1", objective);
       });
 
       it("should update only specified properties", (): void => {
@@ -1823,28 +1826,28 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective1.id = "global-obj-1";
         objective1.success_status = "passed";
 
-        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective1);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("global-obj-1", objective1);
 
         // Update with only score
         const objective2 = new CMIObjectivesObject();
         objective2.id = "global-obj-1";
         objective2.score.scaled = "0.75";
 
-        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective2);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("global-obj-1", objective2);
 
         // Update with only progress_measure
         const objective3 = new CMIObjectivesObject();
         objective3.id = "global-obj-1";
         objective3.progress_measure = "0.8";
 
-        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective3);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("global-obj-1", objective3);
 
         // Update with only completion_status
         const objective4 = new CMIObjectivesObject();
         objective4.id = "global-obj-1";
         objective4.completion_status = "completed";
 
-        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective4);
+        scorm2004API["_globalObjectiveManager"].updateGlobalObjectiveFromCMI("global-obj-1", objective4);
       });
     });
 
@@ -1926,7 +1929,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         scorm2004API.lmsSetValue("cmi.objectives.0.id", "global-obj-1");
         scorm2004API.lmsSetValue("cmi.objectives.0.success_status", "passed");
 
-        const snapshot = scorm2004API["captureGlobalObjectiveSnapshot"]();
+        const snapshot = scorm2004API["_globalObjectiveManager"].captureGlobalObjectiveSnapshot();
 
         expect(snapshot).toBeDefined();
         expect(typeof snapshot).toBe("object");
@@ -1942,7 +1945,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         globalObj.success_status = "passed";
         scorm2004API["_globalObjectives"] = [globalObj];
 
-        const snapshot = scorm2004API["captureGlobalObjectiveSnapshot"]();
+        const snapshot = scorm2004API["_globalObjectiveManager"].captureGlobalObjectiveSnapshot();
 
         expect(snapshot).toBeDefined();
         expect(snapshot["obj-1"]).toBeDefined();
@@ -1960,7 +1963,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.progress_measure = "1.0";
         objective.score.scaled = "0.85";
 
-        const entry = scorm2004API["buildObjectiveMapEntryFromCMI"](objective);
+        const entry = scorm2004API["_globalObjectiveManager"].buildObjectiveMapEntryFromCMI(objective);
 
         expect(entry.id).toBe("test-obj");
         expect(entry.satisfiedStatus).toBe(true);
@@ -1980,7 +1983,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.id = "test-obj";
         objective.success_status = "failed";
 
-        const entry = scorm2004API["buildObjectiveMapEntryFromCMI"](objective);
+        const entry = scorm2004API["_globalObjectiveManager"].buildObjectiveMapEntryFromCMI(objective);
 
         expect(entry.satisfiedStatus).toBe(false);
         expect(entry.satisfiedStatusKnown).toBe(true);
@@ -1994,7 +1997,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         objective.success_status = "unknown";
         objective.completion_status = "unknown";
 
-        const entry = scorm2004API["buildObjectiveMapEntryFromCMI"](objective);
+        const entry = scorm2004API["_globalObjectiveManager"].buildObjectiveMapEntryFromCMI(objective);
 
         expect(entry.id).toBe("test-obj");
         // Known flags should be false or not set for unknown status
