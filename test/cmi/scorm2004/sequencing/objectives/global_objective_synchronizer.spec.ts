@@ -177,8 +177,7 @@ describe("GlobalObjectiveSynchronizer", () => {
 
     it("should write completion status to global objective when dirty", () => {
       const objective = new ActivityObjective("obj1");
-      objective.completionStatus = CompletionStatus.UNKNOWN; // Default
-      objective.completionStatus = CompletionStatus.COMPLETED; // Change triggers dirty
+      objective.completionStatus = CompletionStatus.COMPLETED; // Change from default triggers dirty
       objective.mapInfo = [
         {
           targetObjectiveID: "global-obj-1",

@@ -90,8 +90,8 @@ describe("SequencingStatePersistence", () => {
       await persistence.saveSequencingState();
 
       const savedData = saveFn.mock.calls[0][0];
-      // Compressed data should be base64 encoded
-      expect(savedData).not.toContain("{"); // Not plain JSON
+      // Compressed data should be base64 encoded - validate with proper regex
+      expect(savedData).toMatch(/^[A-Za-z0-9+/=]+$/); // Valid base64 format
     });
 
     it("should not compress when disabled", async () => {

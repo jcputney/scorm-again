@@ -12,20 +12,12 @@ import { CompletionStatus, SuccessStatus } from "../../src/constants/enums";
 import { MeasureRollupProcessor } from "../../src/cmi/scorm2004/sequencing/rollup/measure_rollup";
 import { ObjectiveRollupProcessor } from "../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
 import { ProgressRollupProcessor } from "../../src/cmi/scorm2004/sequencing/rollup/progress_rollup";
-import {
-  GlobalObjectiveMapEntry,
-  Settings,
-  SequencingStateMetadata,
-} from "../../src/types/api_types";
+import { GlobalObjectiveMapEntry, Settings } from "../../src/types/api_types";
 import { CMI } from "../../src/cmi/scorm2004/cmi";
 import { ADL } from "../../src/cmi/scorm2004/adl";
 import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
 import { SequencingService } from "../../src/services/SequencingService";
-import { OverallSequencingProcess } from "../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {
-  GlobalObjectiveContext,
-  GlobalObjectiveManager,
-} from "../../src/objectives/global_objective_manager";
+import { GlobalObjectiveContext } from "../../src/objectives/global_objective_manager";
 import { PersistenceContext } from "../../src/persistence/sequencing_state_persistence";
 
 // ============================================================================

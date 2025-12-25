@@ -577,8 +577,7 @@ describe("ChoiceConstraintValidator", () => {
       root.addChild(emptyParent);
 
       emptyParent.sequencingControls.forwardOnly = true;
-      const orphan = new Activity("orphan", "Orphan");
-      // Don't add orphan to parent, just set parent reference
+      // Test with empty siblings array
 
       const result = validator.validateFlowConstraints(emptyParent, []);
       expect(result.valid).toBe(false);
