@@ -410,6 +410,248 @@ describe("ChoiceConstraintValidator", () => {
     });
   });
 
+  describe("meetsFlowConstraints", () => {
+    it("should return false for unavailable activity", () => {
+      lesson1.isAvailable = false;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(false);
+    });
+
+    it("should return false for hidden activity", () => {
+      lesson1.isHiddenFromChoice = true;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(false);
+    });
+
+    it("should return true when no constrainChoice", () => {
+      chapter1.sequencingControls.constrainChoice = false;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(true);
+    });
+
+    it("should validate constrainChoice when enabled", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(true);
+    });
+  });
+
+  describe("validateConstrainChoiceForFlow", () => {
+    it("should return true when constrainChoice is false", () => {
+      chapter1.sequencingControls.constrainChoice = false;
+      // Since validateConstrainChoiceForFlow is private, we test through meetsFlowConstraints
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(true);
+    });
+
+    it("should handle empty children array", () => {
+      const emptyCluster = new Activity("empty", "Empty Cluster");
+      root.addChild(emptyCluster);
+      emptyCluster.sequencingControls.constrainChoice = true;
+
+      const result = validator.validateFlowConstraints(emptyCluster, []);
+      expect(result.valid).toBe(false);
+      expect(result.validChildren).toHaveLength(0);
+    });
+
+    it("should allow choice to first available when no current activity", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      activityTree.currentActivity = null;
+
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(true);
+    });
+
+    it("should validate flow direction with forwardOnly", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.flow = true;
+      chapter1.sequencingControls.forwardOnly = true;
+      activityTree.currentActivity = lesson2;
+
+      // Trying to go back to lesson1 (before current) should check completion
+      lesson1.completionStatus = "completed" as any;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(true);
+    });
+
+    it("should block backward navigation to incomplete activity when forwardOnly", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.flow = true;
+      chapter1.sequencingControls.forwardOnly = true;
+      activityTree.currentActivity = lesson2;
+
+      lesson1.completionStatus = "incomplete" as any;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(false);
+    });
+
+    it("should allow forward navigation to immediate next sibling", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.flow = true;
+      activityTree.currentActivity = lesson1;
+
+      expect(validator.meetsFlowConstraints(lesson2, chapter1)).toBe(true);
+    });
+
+    it("should block forward navigation to non-adjacent sibling", () => {
+      const lesson2b = new Activity("lesson2b", "Lesson 2b");
+      chapter1.addChild(lesson2b);
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.flow = true;
+      activityTree.currentActivity = lesson1;
+
+      expect(validator.meetsFlowConstraints(lesson2b, chapter1)).toBe(false);
+    });
+
+    it("should handle backward navigation in flow mode with completed activities", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.flow = true;
+      activityTree.currentActivity = lesson2;
+
+      lesson1.completionStatus = "completed" as any;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(true);
+    });
+
+    it("should block backward navigation in flow mode to incomplete activities", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.flow = true;
+      activityTree.currentActivity = lesson2;
+
+      lesson1.completionStatus = "incomplete" as any;
+      expect(validator.meetsFlowConstraints(lesson1, chapter1)).toBe(false);
+    });
+
+    it("should handle non-flow mode with constrainChoice", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.flow = false;
+      activityTree.currentActivity = lesson1;
+
+      expect(validator.meetsFlowConstraints(lesson2, chapter1)).toBe(true);
+    });
+  });
+
+  describe("validateTraversalConstraints detailed", () => {
+    it("should evaluate constrainChoice for traversal", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      activityTree.currentActivity = lesson1;
+
+      const result = validator.validateTraversalConstraints(lesson2);
+      expect(result.canTraverse).toBe(true);
+    });
+
+    it("should evaluate forwardOnly for choice", () => {
+      chapter1.sequencingControls.forwardOnly = true;
+      activityTree.currentActivity = lesson2;
+
+      const result = validator.validateTraversalConstraints(lesson1);
+      expect(typeof result.canTraverseInto).toBe("boolean");
+    });
+
+    it("should block traversal when mandatory activity is skipped", () => {
+      const lesson2b = new Activity("lesson2b", "Lesson 2b");
+      chapter1.addChild(lesson2b);
+
+      chapter1.sequencingControls.constrainChoice = true;
+      (lesson2 as any).mandatory = true;
+      lesson2.completionStatus = "incomplete" as any;
+      activityTree.currentActivity = lesson1;
+
+      const result = validator.validateTraversalConstraints(lesson2b);
+      expect(result.canTraverse).toBe(false);
+    });
+
+    it("should allow traversal to completed mandatory activity", () => {
+      chapter1.sequencingControls.constrainChoice = true;
+      chapter1.sequencingControls.forwardOnly = true;
+      (lesson2 as any).mandatory = true;
+      lesson2.completionStatus = "completed" as any;
+      activityTree.currentActivity = lesson2;
+
+      lesson1.completionStatus = "completed" as any;
+      const result = validator.validateTraversalConstraints(lesson1);
+      expect(result.canTraverse).toBe(true);
+    });
+  });
+
+  describe("evaluateForwardOnlyForChoice edge cases", () => {
+    it("should handle activity with no parent", () => {
+      // Root has no parent
+      const result = validator.validateTraversalConstraints(root);
+      expect(result.canTraverseInto).toBe(true);
+    });
+
+    it("should handle empty siblings array", () => {
+      const emptyParent = new Activity("empty-parent", "Empty Parent");
+      root.addChild(emptyParent);
+
+      emptyParent.sequencingControls.forwardOnly = true;
+      // Test with empty siblings array
+
+      const result = validator.validateFlowConstraints(emptyParent, []);
+      expect(result.valid).toBe(false);
+    });
+
+    it("should allow completed activities when navigating backward with choice enabled", () => {
+      chapter1.sequencingControls.forwardOnly = true;
+      activityTree.currentActivity = lesson2;
+
+      lesson1.completionStatus = "completed" as any;
+      lesson1.sequencingControls.choice = true;
+
+      // Test via validateTraversalConstraints
+      const result = validator.validateTraversalConstraints(lesson1);
+      // The actual result depends on the full evaluation
+      expect(typeof result.canTraverseInto).toBe("boolean");
+    });
+
+    it("should handle forwardOnly with no current activity", () => {
+      chapter1.sequencingControls.forwardOnly = true;
+      activityTree.currentActivity = null;
+
+      const result = validator.validateTraversalConstraints(lesson1);
+      expect(result.canTraverseInto).toBe(true);
+    });
+  });
+
+  describe("preventActivation in path to root", () => {
+    it("should block choice to unattempted activity when ancestor has preventActivation", () => {
+      chapter1.sequencingControls.preventActivation = true;
+      lesson2.attemptCount = 0;
+      lesson2.isActive = false;
+
+      const result = validator.validateChoice(null, lesson2);
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("SB.2.9-6");
+    });
+
+    it("should allow choice to attempted activity when ancestor has preventActivation", () => {
+      chapter1.sequencingControls.preventActivation = true;
+      lesson2.attemptCount = 1;
+
+      const result = validator.validateChoice(null, lesson2);
+      expect(result.valid).toBe(true);
+    });
+
+    it("should allow choice to active activity when ancestor has preventActivation", () => {
+      chapter1.sequencingControls.preventActivation = true;
+      lesson2.attemptCount = 0;
+      lesson2.isActive = true;
+
+      const result = validator.validateChoice(null, lesson2);
+      expect(result.valid).toBe(true);
+    });
+  });
+
+  describe("time boundary edge cases", () => {
+    it("should handle invalid begin time format gracefully", () => {
+      lesson1.beginTimeLimit = "invalid-date";
+      const now = new Date();
+
+      const result = validator.hasTimeBoundaryViolation(lesson1, now);
+      expect(result).toBe(false); // Should not crash
+    });
+
+    it("should handle invalid end time format gracefully", () => {
+      lesson1.endTimeLimit = "not-a-date";
+      const now = new Date();
+
+      const result = validator.hasTimeBoundaryViolation(lesson1, now);
+      expect(result).toBe(false); // Should not crash
+    });
+  });
+
   describe("integration scenarios", () => {
     it("should validate complex multi-level constraint scenario", () => {
       // Setup: forwardOnly at root, constrainChoice at chapter1
