@@ -4,47 +4,22 @@ import {
   GlobalObjectiveContext,
 } from "../../src/objectives/global_objective_manager";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
-import { CMI } from "../../src/cmi/scorm2004/cmi";
 import { SuccessStatus, CompletionStatus } from "../../src/constants/enums";
 import { GlobalObjectiveMapEntry, Settings } from "../../src/types/api_types";
 import { SequencingService } from "../../src/services/SequencingService";
 import { OverallSequencingProcess } from "../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
-
-// Helper to create mock context
-function createMockContext(
-  overrides: Partial<GlobalObjectiveContext> = {},
-): GlobalObjectiveContext {
-  return {
-    getSettings: vi.fn().mockReturnValue({ globalObjectiveIds: [] }),
-    cmi: {
-      objectives: {
-        findObjectiveById: vi.fn().mockReturnValue(null),
-        childArray: [],
-      },
-    } as unknown as CMI,
-    sequencing: null,
-    sequencingService: null,
-    commonSetCMIValue: vi.fn().mockReturnValue("true"),
-    ...overrides,
-  };
-}
-
-// Helper to create mock overall process
-function createMockOverallProcess(globalObjectiveMap?: Map<string, GlobalObjectiveMapEntry>) {
-  return {
-    getGlobalObjectiveMap: vi.fn().mockReturnValue(globalObjectiveMap ?? new Map()),
-    updateGlobalObjective: vi.fn(),
-    getGlobalObjectiveMapSnapshot: vi.fn().mockReturnValue({}),
-  } as unknown as OverallSequencingProcess;
-}
+import {
+  createMockGlobalObjectiveContext,
+  createMockOverallProcess,
+} from "../helpers/mock-factories";
 
 describe("GlobalObjectiveManager", () => {
   let manager: GlobalObjectiveManager;
   let mockContext: GlobalObjectiveContext;
 
   beforeEach(() => {
-    mockContext = createMockContext();
+    mockContext = createMockGlobalObjectiveContext();
     manager = new GlobalObjectiveManager(mockContext);
   });
 
@@ -127,7 +102,7 @@ describe("GlobalObjectiveManager", () => {
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi
           .fn()
-          .mockReturnValue(createMockOverallProcess(globalObjectiveMap)),
+          .mockReturnValue(createMockOverallProcess({ globalObjectiveMap })),
       } as unknown as SequencingService;
 
       manager.syncGlobalObjectiveIdsFromSequencing();
@@ -146,7 +121,7 @@ describe("GlobalObjectiveManager", () => {
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi
           .fn()
-          .mockReturnValue(createMockOverallProcess(globalObjectiveMap)),
+          .mockReturnValue(createMockOverallProcess({ globalObjectiveMap })),
       } as unknown as SequencingService;
 
       manager.syncGlobalObjectiveIdsFromSequencing();
@@ -323,7 +298,7 @@ describe("GlobalObjectiveManager", () => {
     });
 
     it("should create fallback entry when objective not in map", () => {
-      const mockProcess = createMockOverallProcess();
+      const mockProcess = createMockOverallProcess() as unknown as OverallSequencingProcess;
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
       } as unknown as SequencingService;
@@ -344,7 +319,9 @@ describe("GlobalObjectiveManager", () => {
     it("should update existing objective with success status", () => {
       const globalObjectiveMap = new Map<string, GlobalObjectiveMapEntry>();
       globalObjectiveMap.set("existingObj", {} as GlobalObjectiveMapEntry);
-      const mockProcess = createMockOverallProcess(globalObjectiveMap);
+      const mockProcess = createMockOverallProcess({
+        globalObjectiveMap,
+      }) as unknown as OverallSequencingProcess;
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
       } as unknown as SequencingService;
@@ -368,7 +345,9 @@ describe("GlobalObjectiveManager", () => {
     it("should update existing objective with failed status", () => {
       const globalObjectiveMap = new Map<string, GlobalObjectiveMapEntry>();
       globalObjectiveMap.set("obj", {} as GlobalObjectiveMapEntry);
-      const mockProcess = createMockOverallProcess(globalObjectiveMap);
+      const mockProcess = createMockOverallProcess({
+        globalObjectiveMap,
+      }) as unknown as OverallSequencingProcess;
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
       } as unknown as SequencingService;
@@ -392,7 +371,9 @@ describe("GlobalObjectiveManager", () => {
     it("should update existing objective with normalized measure", () => {
       const globalObjectiveMap = new Map<string, GlobalObjectiveMapEntry>();
       globalObjectiveMap.set("obj", {} as GlobalObjectiveMapEntry);
-      const mockProcess = createMockOverallProcess(globalObjectiveMap);
+      const mockProcess = createMockOverallProcess({
+        globalObjectiveMap,
+      }) as unknown as OverallSequencingProcess;
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
       } as unknown as SequencingService;
@@ -416,7 +397,9 @@ describe("GlobalObjectiveManager", () => {
     it("should update existing objective with progress measure", () => {
       const globalObjectiveMap = new Map<string, GlobalObjectiveMapEntry>();
       globalObjectiveMap.set("obj", {} as GlobalObjectiveMapEntry);
-      const mockProcess = createMockOverallProcess(globalObjectiveMap);
+      const mockProcess = createMockOverallProcess({
+        globalObjectiveMap,
+      }) as unknown as OverallSequencingProcess;
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
       } as unknown as SequencingService;
@@ -440,7 +423,9 @@ describe("GlobalObjectiveManager", () => {
     it("should update existing objective with completion status", () => {
       const globalObjectiveMap = new Map<string, GlobalObjectiveMapEntry>();
       globalObjectiveMap.set("obj", {} as GlobalObjectiveMapEntry);
-      const mockProcess = createMockOverallProcess(globalObjectiveMap);
+      const mockProcess = createMockOverallProcess({
+        globalObjectiveMap,
+      }) as unknown as OverallSequencingProcess;
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
       } as unknown as SequencingService;
@@ -464,7 +449,9 @@ describe("GlobalObjectiveManager", () => {
     it("should not update when no values changed", () => {
       const globalObjectiveMap = new Map<string, GlobalObjectiveMapEntry>();
       globalObjectiveMap.set("obj", {} as GlobalObjectiveMapEntry);
-      const mockProcess = createMockOverallProcess(globalObjectiveMap);
+      const mockProcess = createMockOverallProcess({
+        globalObjectiveMap,
+      }) as unknown as OverallSequencingProcess;
       mockContext.sequencingService = {
         getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
       } as unknown as SequencingService;

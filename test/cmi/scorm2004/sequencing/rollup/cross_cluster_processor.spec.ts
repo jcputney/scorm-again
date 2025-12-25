@@ -1,37 +1,14 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
-import {
-  CrossClusterProcessor,
-  EventCallback,
-} from "../../../../../src/cmi/scorm2004/sequencing/rollup/cross_cluster_processor";
+import { CrossClusterProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/cross_cluster_processor";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import { MeasureRollupProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/measure_rollup";
 import { ObjectiveRollupProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
 import { ProgressRollupProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/progress_rollup";
-
-// Helper to create mock activity
-function createMockActivity(options: Partial<{
-  id: string;
-  children: Activity[];
-  sequencingControls: {
-    flow: boolean;
-    rollupObjectiveSatisfied: boolean;
-    rollupProgressCompletion: boolean;
-  };
-  sequencingRules: {
-    preConditionRules: unknown[];
-  };
-}> = {}): Activity {
-  return {
-    id: options.id ?? `activity-${Math.random().toString(36).substring(2, 11)}`,
-    children: options.children ?? [],
-    sequencingControls: {
-      flow: options.sequencingControls?.flow ?? false,
-      rollupObjectiveSatisfied: options.sequencingControls?.rollupObjectiveSatisfied ?? false,
-      rollupProgressCompletion: options.sequencingControls?.rollupProgressCompletion ?? false,
-    },
-    sequencingRules: options.sequencingRules ?? { preConditionRules: [] },
-  } as unknown as Activity;
-}
+import {
+  createMockActivity,
+  createMockProcessors,
+  getEventCallsByType,
+} from "../../../../helpers/mock-factories";
 
 describe("CrossClusterProcessor", () => {
   let processor: CrossClusterProcessor;
@@ -41,17 +18,10 @@ describe("CrossClusterProcessor", () => {
   let eventCallback: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    mockMeasureProcessor = {
-      measureRollupProcess: vi.fn().mockReturnValue([]),
-    } as unknown as MeasureRollupProcessor;
-
-    mockObjectiveProcessor = {
-      objectiveRollupProcess: vi.fn(),
-    } as unknown as ObjectiveRollupProcessor;
-
-    mockProgressProcessor = {
-      activityProgressRollupProcess: vi.fn(),
-    } as unknown as ProgressRollupProcessor;
+    const processors = createMockProcessors();
+    mockMeasureProcessor = processors.measureProcessor;
+    mockObjectiveProcessor = processors.objectiveProcessor;
+    mockProgressProcessor = processors.progressProcessor;
 
     eventCallback = vi.fn();
 
@@ -235,17 +205,23 @@ describe("CrossClusterProcessor", () => {
       const cluster = createMockActivity({
         id: "cluster",
         children: [child1] as Activity[],
-        sequencingControls: { flow: true, rollupObjectiveSatisfied: false, rollupProgressCompletion: false },
+        flow: true,
+        rollupObjectiveSatisfied: false,
+        rollupProgressCompletion: false,
       });
       const nonCluster = createMockActivity({
         id: "non-cluster",
         children: [],
-        sequencingControls: { flow: true, rollupObjectiveSatisfied: false, rollupProgressCompletion: false },
+        flow: true,
+        rollupObjectiveSatisfied: false,
+        rollupProgressCompletion: false,
       });
       const noFlowCluster = createMockActivity({
         id: "no-flow",
         children: [child1] as Activity[],
-        sequencingControls: { flow: false, rollupObjectiveSatisfied: false, rollupProgressCompletion: false },
+        flow: false,
+        rollupObjectiveSatisfied: false,
+        rollupProgressCompletion: false,
       });
 
       const result = processor.identifyActivityClusters([cluster, nonCluster, noFlowCluster]);
@@ -369,11 +345,9 @@ describe("CrossClusterProcessor", () => {
     it("should call objective processor when rollupObjectiveSatisfied is true", () => {
       const cluster = createMockActivity({
         id: "cluster",
-        sequencingControls: {
-          flow: false,
-          rollupObjectiveSatisfied: true,
-          rollupProgressCompletion: false,
-        },
+        flow: false,
+        rollupObjectiveSatisfied: true,
+        rollupProgressCompletion: false,
       });
 
       processor.processClusterRollup(cluster);
@@ -384,11 +358,9 @@ describe("CrossClusterProcessor", () => {
     it("should not call objective processor when rollupObjectiveSatisfied is false", () => {
       const cluster = createMockActivity({
         id: "cluster",
-        sequencingControls: {
-          flow: false,
-          rollupObjectiveSatisfied: false,
-          rollupProgressCompletion: false,
-        },
+        flow: false,
+        rollupObjectiveSatisfied: false,
+        rollupProgressCompletion: false,
       });
 
       processor.processClusterRollup(cluster);
@@ -399,11 +371,9 @@ describe("CrossClusterProcessor", () => {
     it("should call progress processor when rollupProgressCompletion is true", () => {
       const cluster = createMockActivity({
         id: "cluster",
-        sequencingControls: {
-          flow: false,
-          rollupObjectiveSatisfied: false,
-          rollupProgressCompletion: true,
-        },
+        flow: false,
+        rollupObjectiveSatisfied: false,
+        rollupProgressCompletion: true,
       });
 
       processor.processClusterRollup(cluster);
@@ -414,11 +384,9 @@ describe("CrossClusterProcessor", () => {
     it("should not call progress processor when rollupProgressCompletion is false", () => {
       const cluster = createMockActivity({
         id: "cluster",
-        sequencingControls: {
-          flow: false,
-          rollupObjectiveSatisfied: false,
-          rollupProgressCompletion: false,
-        },
+        flow: false,
+        rollupObjectiveSatisfied: false,
+        rollupProgressCompletion: false,
       });
 
       processor.processClusterRollup(cluster);
@@ -459,9 +427,7 @@ describe("CrossClusterProcessor", () => {
       processor.processClusterRollup(cluster, 0);
 
       // Should not have called cross_cluster_processing_started for nested
-      const startedCalls = eventCallback.mock.calls.filter(
-        (call: [string, unknown]) => call[0] === "cross_cluster_processing_started",
-      );
+      const startedCalls = getEventCallsByType(eventCallback, "cross_cluster_processing_started");
       expect(startedCalls).toHaveLength(0);
     });
 
@@ -494,21 +460,17 @@ describe("CrossClusterProcessor", () => {
       const cluster1 = createMockActivity({
         id: "cluster1",
         children: [leaf1] as Activity[],
-        sequencingControls: {
-          flow: true,
-          rollupObjectiveSatisfied: true,
-          rollupProgressCompletion: true,
-        },
+        flow: true,
+        rollupObjectiveSatisfied: true,
+        rollupProgressCompletion: true,
       });
 
       const cluster2 = createMockActivity({
         id: "cluster2",
         children: [leaf2] as Activity[],
-        sequencingControls: {
-          flow: true,
-          rollupObjectiveSatisfied: true,
-          rollupProgressCompletion: true,
-        },
+        flow: true,
+        rollupObjectiveSatisfied: true,
+        rollupProgressCompletion: true,
       });
 
       const root = createMockActivity({

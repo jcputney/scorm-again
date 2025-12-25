@@ -1,54 +1,11 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { RollupChildFilter } from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
-import { Activity, RollupConsiderationsConfig } from "../../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../../src/constants/enums";
-
-// Helper to create mock activity
-function createMockActivity(options: Partial<{
-  tracked: boolean;
-  rollupObjectiveSatisfied: boolean;
-  rollupProgressCompletion: boolean;
-  attemptProgressStatus: boolean;
-  attemptCount: number;
-  isSuspended: boolean;
-  wasSkipped: boolean;
-  isAvailable: boolean;
-  requiredForSatisfied: string;
-  requiredForNotSatisfied: string;
-  requiredForCompleted: string;
-  requiredForIncomplete: string;
-  objectiveSatisfiedStatus: boolean | null;
-  successStatus: SuccessStatus;
-  completionStatus: string;
-  isCompleted: boolean;
-  activityAttemptActive: boolean;
-  isActive: boolean;
-  children: Activity[];
-}> = {}): Activity {
-  return {
-    sequencingControls: {
-      tracked: options.tracked !== false,
-      rollupObjectiveSatisfied: options.rollupObjectiveSatisfied !== false,
-      rollupProgressCompletion: options.rollupProgressCompletion !== false,
-    },
-    attemptProgressStatus: options.attemptProgressStatus ?? true,
-    attemptCount: options.attemptCount ?? 1,
-    isSuspended: options.isSuspended ?? false,
-    wasSkipped: options.wasSkipped ?? false,
-    isAvailable: options.isAvailable !== false,
-    requiredForSatisfied: options.requiredForSatisfied ?? "always",
-    requiredForNotSatisfied: options.requiredForNotSatisfied ?? "always",
-    requiredForCompleted: options.requiredForCompleted ?? "always",
-    requiredForIncomplete: options.requiredForIncomplete ?? "always",
-    objectiveSatisfiedStatus: options.objectiveSatisfiedStatus ?? null,
-    successStatus: options.successStatus ?? SuccessStatus.UNKNOWN,
-    completionStatus: options.completionStatus ?? "unknown",
-    isCompleted: options.isCompleted ?? false,
-    activityAttemptActive: options.activityAttemptActive ?? false,
-    isActive: options.isActive ?? false,
-    children: options.children ?? [],
-  } as unknown as Activity;
-}
+import {
+  createMockActivity,
+  createMockRollupConsiderations,
+} from "../../../../helpers/mock-factories";
 
 describe("RollupChildFilter", () => {
   let filter: RollupChildFilter;
@@ -408,13 +365,7 @@ describe("RollupChildFilter", () => {
       const trackedChild = createMockActivity({ tracked: true });
       const untrackedChild = createMockActivity({ tracked: false });
       const children = [trackedChild, untrackedChild];
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       const result = filter.filterChildrenForRequirement(children, "objective", "satisfied", considerations);
 
@@ -426,13 +377,7 @@ describe("RollupChildFilter", () => {
       const untrackedChild1 = createMockActivity({ tracked: false });
       const untrackedChild2 = createMockActivity({ tracked: false });
       const children = [untrackedChild1, untrackedChild2];
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       const result = filter.filterChildrenForRequirement(children, "objective", "satisfied", considerations);
 
@@ -443,13 +388,7 @@ describe("RollupChildFilter", () => {
       const child1 = createMockActivity({ tracked: true });
       const child2 = createMockActivity({ tracked: true });
       const children = [child1, child2];
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       const result = filter.filterChildrenForRequirement(children, "objective", "satisfied", considerations);
 
@@ -466,13 +405,7 @@ describe("RollupChildFilter", () => {
         rollupProgressCompletion: false,
       });
       const children = [trackedChild, noProgressChild];
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       const result = filter.filterChildrenForRequirement(children, "progress", "completed", considerations);
 
@@ -484,26 +417,14 @@ describe("RollupChildFilter", () => {
   describe("shouldIncludeChildForRollup", () => {
     it("should include child when checkChildForRollupSubprocess returns true", () => {
       const child = createMockActivity({ tracked: true });
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       expect(filter.shouldIncludeChildForRollup(child, "objective", "satisfied", considerations)).toBe(true);
     });
 
     it("should exclude child when checkChildForRollupSubprocess returns false", () => {
       const child = createMockActivity({ tracked: false });
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       expect(filter.shouldIncludeChildForRollup(child, "objective", "satisfied", considerations)).toBe(false);
     });
@@ -513,13 +434,7 @@ describe("RollupChildFilter", () => {
         tracked: true,
         activityAttemptActive: true,
       });
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: false,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations({ measureSatisfactionIfActive: false });
 
       expect(filter.shouldIncludeChildForRollup(activeChild, "objective", "satisfied", considerations)).toBe(false);
     });
@@ -529,13 +444,7 @@ describe("RollupChildFilter", () => {
         tracked: true,
         isActive: true,
       });
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: false,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations({ measureSatisfactionIfActive: false });
 
       expect(filter.shouldIncludeChildForRollup(activeChild, "objective", "satisfied", considerations)).toBe(false);
     });
@@ -545,13 +454,7 @@ describe("RollupChildFilter", () => {
         tracked: true,
         activityAttemptActive: true,
       });
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       expect(filter.shouldIncludeChildForRollup(activeChild, "objective", "satisfied", considerations)).toBe(true);
     });
@@ -562,13 +465,7 @@ describe("RollupChildFilter", () => {
         activityAttemptActive: true,
         rollupProgressCompletion: true,
       });
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: false,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations({ measureSatisfactionIfActive: false });
 
       expect(filter.shouldIncludeChildForRollup(activeChild, "progress", "completed", considerations)).toBe(true);
     });
@@ -723,13 +620,7 @@ describe("RollupChildFilter", () => {
         requiredForSatisfied: "ifNotSuspended",
       });
 
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       // Filter for satisfied action
       const filtered = filter.filterChildrenForRequirement(
@@ -765,13 +656,7 @@ describe("RollupChildFilter", () => {
         requiredForCompleted: "ifNotSkipped",
       });
 
-      const considerations: RollupConsiderationsConfig = {
-        measureSatisfactionIfActive: true,
-        requiredForSatisfied: "always",
-        requiredForNotSatisfied: "always",
-        requiredForCompleted: "always",
-        requiredForIncomplete: "always",
-      };
+      const considerations = createMockRollupConsiderations();
 
       const filtered = filter.filterChildrenForRequirement(
         [completedChild, incompleteChild, skippedChild],

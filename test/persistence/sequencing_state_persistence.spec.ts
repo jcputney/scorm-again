@@ -3,105 +3,20 @@ import {
   SequencingStatePersistence,
   PersistenceContext,
 } from "../../src/persistence/sequencing_state_persistence";
-import {
-  GlobalObjectiveManager,
-  GlobalObjectiveContext,
-} from "../../src/objectives/global_objective_manager";
+import { GlobalObjectiveManager } from "../../src/objectives/global_objective_manager";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
-import { ADL } from "../../src/cmi/scorm2004/adl";
-import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
-import { SequencingService } from "../../src/services/SequencingService";
-import { Settings, SequencingStateMetadata } from "../../src/types/api_types";
+import { Settings } from "../../src/types/api_types";
 import { LogLevelEnum } from "../../src/constants/enums";
-
-// Helper to create mock ADL
-function createMockADL(): ADL {
-  return {
-    nav: {
-      request: "_none_",
-      request_valid: {},
-    },
-  } as unknown as ADL;
-}
-
-// Helper to create mock sequencing
-function createMockSequencing(currentActivity?: { id: string }): Sequencing {
-  return {
-    getCurrentActivity: vi.fn().mockReturnValue(currentActivity ?? null),
-  } as unknown as Sequencing;
-}
-
-// Helper to create mock overall process
-function createMockOverallProcess(options?: {
-  sequencingState?: any;
-  contentDelivered?: boolean;
-  globalObjectiveMap?: Map<string, any>;
-}) {
-  return {
-    getSequencingState: vi.fn().mockReturnValue(options?.sequencingState ?? {}),
-    hasContentBeenDelivered: vi.fn().mockReturnValue(options?.contentDelivered ?? false),
-    restoreSequencingState: vi.fn(),
-    setContentDelivered: vi.fn(),
-    getGlobalObjectiveMap: vi.fn().mockReturnValue(options?.globalObjectiveMap ?? new Map()),
-    getGlobalObjectiveMapSnapshot: vi.fn().mockReturnValue({}),
-    updateGlobalObjective: vi.fn(),
-  };
-}
-
-// Helper to create mock sequencing service
-function createMockSequencingService(overallProcess?: ReturnType<typeof createMockOverallProcess>) {
-  return {
-    getOverallSequencingProcess: vi.fn().mockReturnValue(overallProcess ?? null),
-  } as unknown as SequencingService;
-}
-
-// Helper to create mock settings
-function createMockSettings(
-  persistenceConfig?: Partial<Settings["sequencingStatePersistence"]>,
-): Settings {
-  return {
-    sequencingStatePersistence: persistenceConfig
-      ? {
-          stateVersion: "1.0",
-          persistence: {
-            saveState: vi.fn().mockResolvedValue(true),
-            loadState: vi.fn().mockResolvedValue(null),
-          },
-          ...persistenceConfig,
-        }
-      : undefined,
-    courseId: "test-course",
-  } as Settings;
-}
-
-// Helper to create persistence context
-function createMockPersistenceContext(overrides?: Partial<PersistenceContext>): PersistenceContext {
-  return {
-    getSettings: vi.fn().mockReturnValue(createMockSettings()),
-    apiLog: vi.fn(),
-    adl: createMockADL(),
-    sequencing: createMockSequencing(),
-    sequencingService: null,
-    learnerId: "test-learner",
-    ...overrides,
-  };
-}
-
-// Helper to create mock global objective manager context
-function createMockGOMContext(): GlobalObjectiveContext {
-  return {
-    getSettings: vi.fn().mockReturnValue({ globalObjectiveIds: [] }),
-    cmi: {
-      objectives: {
-        findObjectiveById: vi.fn().mockReturnValue(null),
-        childArray: [],
-      },
-    } as any,
-    sequencing: null,
-    sequencingService: null,
-    commonSetCMIValue: vi.fn().mockReturnValue("true"),
-  };
-}
+import {
+  createMockADL,
+  createMockSequencing,
+  createMockOverallProcess,
+  createMockSequencingService,
+  createMockSettings,
+  createMockPersistenceContext,
+  createMockGlobalObjectiveContext,
+  MockPersistenceConfig,
+} from "../helpers/mock-factories";
 
 describe("SequencingStatePersistence", () => {
   let persistence: SequencingStatePersistence;
@@ -110,7 +25,7 @@ describe("SequencingStatePersistence", () => {
 
   beforeEach(() => {
     mockContext = createMockPersistenceContext();
-    mockGOM = new GlobalObjectiveManager(createMockGOMContext());
+    mockGOM = new GlobalObjectiveManager(createMockGlobalObjectiveContext());
     persistence = new SequencingStatePersistence(mockContext, mockGOM);
   });
 
@@ -135,10 +50,8 @@ describe("SequencingStatePersistence", () => {
     it("should save state successfully", async () => {
       const saveFn = vi.fn().mockResolvedValue(true);
       const settings = createMockSettings({
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -151,10 +64,8 @@ describe("SequencingStatePersistence", () => {
     it("should include metadata in save", async () => {
       const saveFn = vi.fn().mockResolvedValue(true);
       const settings = createMockSettings({
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -174,10 +85,8 @@ describe("SequencingStatePersistence", () => {
       const saveFn = vi.fn().mockResolvedValue(true);
       const settings = createMockSettings({
         compress: true,
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -192,10 +101,8 @@ describe("SequencingStatePersistence", () => {
       const saveFn = vi.fn().mockResolvedValue(true);
       const settings = createMockSettings({
         compress: false,
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -210,10 +117,8 @@ describe("SequencingStatePersistence", () => {
       const settings = createMockSettings({
         compress: false,
         maxStateSize: 10, // Very small limit
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -231,10 +136,8 @@ describe("SequencingStatePersistence", () => {
       const saveFn = vi.fn().mockResolvedValue(true);
       const settings = createMockSettings({
         debugPersistence: true,
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -251,10 +154,8 @@ describe("SequencingStatePersistence", () => {
       const saveFn = vi.fn().mockResolvedValue(false);
       const settings = createMockSettings({
         debugPersistence: true,
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -271,10 +172,8 @@ describe("SequencingStatePersistence", () => {
     it("should handle save exception", async () => {
       const saveFn = vi.fn().mockRejectedValue(new Error("Save error"));
       const settings = createMockSettings({
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -291,10 +190,8 @@ describe("SequencingStatePersistence", () => {
     it("should handle non-Error exception", async () => {
       const saveFn = vi.fn().mockRejectedValue("string error");
       const settings = createMockSettings({
-        persistence: {
-          saveState: saveFn,
-          loadState: vi.fn(),
-        },
+        saveState: saveFn,
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -320,10 +217,8 @@ describe("SequencingStatePersistence", () => {
       const loadFn = vi.fn().mockResolvedValue(null);
       const settings = createMockSettings({
         debugPersistence: true,
-        persistence: {
-          saveState: vi.fn(),
-          loadState: loadFn,
-        },
+        saveState: vi.fn(),
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -343,10 +238,8 @@ describe("SequencingStatePersistence", () => {
       const loadFn = vi.fn().mockResolvedValue(compressedData);
       const settings = createMockSettings({
         compress: true,
-        persistence: {
-          saveState: vi.fn(),
-          loadState: loadFn,
-        },
+        saveState: vi.fn(),
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -360,10 +253,8 @@ describe("SequencingStatePersistence", () => {
       const loadFn = vi.fn().mockResolvedValue(stateData);
       const settings = createMockSettings({
         compress: false,
-        persistence: {
-          saveState: vi.fn(),
-          loadState: loadFn,
-        },
+        saveState: vi.fn(),
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -378,10 +269,8 @@ describe("SequencingStatePersistence", () => {
       const settings = createMockSettings({
         compress: false,
         debugPersistence: true,
-        persistence: {
-          saveState: vi.fn(),
-          loadState: loadFn,
-        },
+        saveState: vi.fn(),
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -397,10 +286,8 @@ describe("SequencingStatePersistence", () => {
     it("should handle load exception", async () => {
       const loadFn = vi.fn().mockRejectedValue(new Error("Load error"));
       const settings = createMockSettings({
-        persistence: {
-          saveState: vi.fn(),
-          loadState: loadFn,
-        },
+        saveState: vi.fn(),
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -417,10 +304,8 @@ describe("SequencingStatePersistence", () => {
     it("should handle non-Error exception", async () => {
       const loadFn = vi.fn().mockRejectedValue("string error");
       const settings = createMockSettings({
-        persistence: {
-          saveState: vi.fn(),
-          loadState: loadFn,
-        },
+        saveState: vi.fn(),
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -433,10 +318,8 @@ describe("SequencingStatePersistence", () => {
       const loadFn = vi.fn().mockResolvedValue(JSON.stringify({ version: "1.0" }));
       const settings = createMockSettings({
         compress: false,
-        persistence: {
-          saveState: vi.fn(),
-          loadState: loadFn,
-        },
+        saveState: vi.fn(),
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -537,7 +420,8 @@ describe("SequencingStatePersistence", () => {
       const stateData = JSON.stringify({ version: "2.0" });
       const settings = createMockSettings({
         stateVersion: "1.0",
-        persistence: { saveState: vi.fn(), loadState: vi.fn() },
+        saveState: vi.fn(),
+        loadState: vi.fn(),
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 
@@ -751,10 +635,8 @@ describe("SequencingStatePersistence", () => {
 
       const settings = createMockSettings({
         compress: false,
-        persistence: {
-          saveState: saveFn,
-          loadState: loadFn,
-        },
+        saveState: saveFn,
+        loadState: loadFn,
       });
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
 

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { RollupRuleEvaluator } from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_rule_evaluator";
 import { RollupChildFilter } from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
@@ -6,16 +6,9 @@ import {
   RollupActionType,
   RollupConsiderationType,
   RollupRule,
-  RollupCondition,
 } from "../../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus } from "../../../../../src/constants/enums";
-
-// Helper to create a mock RollupCondition with a typed evaluate function
-function createMockCondition(evaluateFn: (activity: Activity) => boolean): RollupCondition {
-  return {
-    evaluate: evaluateFn,
-  } as unknown as RollupCondition;
-}
+import { createMockCondition } from "../../../../helpers/mock-factories";
 
 describe("RollupRuleEvaluator", () => {
   let evaluator: RollupRuleEvaluator;
@@ -187,9 +180,9 @@ describe("RollupRuleEvaluator", () => {
       });
 
       it("should fail when minimum count is not met", () => {
-        const conditionThatChecksSatisfied: RollupCondition = {
-          evaluate: (activity: Activity) => activity.objectiveSatisfiedStatus === true,
-        } as unknown as RollupCondition;
+        const conditionThatChecksSatisfied = createMockCondition(
+          (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+        );
 
         child1.objectiveSatisfiedStatus = true;
         child2.objectiveSatisfiedStatus = false;
@@ -232,9 +225,9 @@ describe("RollupRuleEvaluator", () => {
       });
 
       it("should fail when minimum percent is not met", () => {
-        const conditionThatChecksSatisfied: RollupCondition = {
-          evaluate: (activity: Activity) => activity.objectiveSatisfiedStatus === true,
-        } as unknown as RollupCondition;
+        const conditionThatChecksSatisfied = createMockCondition(
+          (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+        );
 
         child1.objectiveSatisfiedStatus = true;
         child2.objectiveSatisfiedStatus = false;
@@ -309,12 +302,8 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with ALL consideration", () => {
       it("should return true when all conditions are met", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => true);
+        const condition2 = createMockCondition(() => true);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -330,12 +319,8 @@ describe("RollupRuleEvaluator", () => {
       });
 
       it("should return false when not all conditions are met", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(false),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => true);
+        const condition2 = createMockCondition(() => false);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -353,12 +338,8 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with ANY consideration", () => {
       it("should return true when at least one condition is met", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(false),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => false);
+        const condition2 = createMockCondition(() => true);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -374,12 +355,8 @@ describe("RollupRuleEvaluator", () => {
       });
 
       it("should return false when no conditions are met", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(false),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(false),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => false);
+        const condition2 = createMockCondition(() => false);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -397,12 +374,8 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with NONE consideration", () => {
       it("should return true when no conditions are met", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(false),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(false),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => false);
+        const condition2 = createMockCondition(() => false);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -418,12 +391,8 @@ describe("RollupRuleEvaluator", () => {
       });
 
       it("should return false when any condition is met", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(false),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => true);
+        const condition2 = createMockCondition(() => false);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -441,12 +410,8 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with AT_LEAST_COUNT consideration", () => {
       it("should treat as ALL for individual condition evaluation", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => true);
+        const condition2 = createMockCondition(() => true);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -464,12 +429,8 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with AT_LEAST_PERCENT consideration", () => {
       it("should treat as ALL for individual condition evaluation", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
-        const condition2: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => true);
+        const condition2 = createMockCondition(() => true);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -487,9 +448,7 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with unknown consideration type", () => {
       it("should return false for unknown consideration type", () => {
-        const condition1: RollupCondition = {
-          evaluate: vi.fn().mockReturnValue(true),
-        } as unknown as RollupCondition;
+        const condition1 = createMockCondition(() => true);
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
@@ -555,9 +514,9 @@ describe("RollupRuleEvaluator", () => {
     });
 
     it("should return false when no matching rule applies", () => {
-      const conditionThatChecksSatisfied: RollupCondition = {
-        evaluate: (activity: Activity) => activity.objectiveSatisfiedStatus === true,
-      } as unknown as RollupCondition;
+      const conditionThatChecksSatisfied = createMockCondition(
+        (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+      );
 
       child1.objectiveSatisfiedStatus = false;
       child2.objectiveSatisfiedStatus = false;
@@ -664,9 +623,7 @@ describe("RollupRuleEvaluator", () => {
       child3.objectiveSatisfiedStatus = false;
       child3.objectiveMeasureStatus = true;
 
-      const condition: RollupCondition = {
-        evaluate: vi.fn().mockReturnValue(true),
-      } as unknown as RollupCondition;
+      const condition = createMockCondition(() => true);
 
       const rule: RollupRule = {
         action: RollupActionType.SATISFIED,
