@@ -102,7 +102,7 @@ export function createMockActivity(options: MockActivityOptions = {}): Activity 
     isActive: options.isActive ?? false,
     children: options.children ?? [],
     sequencingRules: options.sequencingRules ?? { preConditionRules: [] },
-  } as unknown as Activity;
+  } satisfies Partial<Activity> as unknown as Activity;
 }
 
 // ============================================================================
@@ -118,7 +118,7 @@ export function createMockActivity(options: MockActivityOptions = {}): Activity 
 export function createMockCondition(evaluateFn: (activity: Activity) => boolean): RollupCondition {
   return {
     evaluate: evaluateFn,
-  } as unknown as RollupCondition;
+  } satisfies Pick<RollupCondition, "evaluate"> as unknown as RollupCondition;
 }
 
 // ============================================================================
@@ -149,13 +149,6 @@ export function createMockRollupConsiderations(
 // ============================================================================
 
 /**
- * Mock function type for processors
- */
-type MockedFunction<T extends (...args: unknown[]) => unknown> = ReturnType<
-  typeof vi.fn<Parameters<T>, ReturnType<T>>
->;
-
-/**
  * Options for mock processors
  */
 export interface MockProcessorOptions {
@@ -163,9 +156,21 @@ export interface MockProcessorOptions {
 }
 
 /**
- * Creates mock rollup processors for testing CrossClusterProcessor
+ * Return type for createMockProcessors
  */
-export function createMockProcessors(options: MockProcessorOptions = {}) {
+export interface MockProcessors {
+  measureProcessor: MeasureRollupProcessor;
+  objectiveProcessor: ObjectiveRollupProcessor;
+  progressProcessor: ProgressRollupProcessor;
+}
+
+/**
+ * Creates mock rollup processors for testing CrossClusterProcessor
+ *
+ * @param options - Configuration options for the mock processors
+ * @returns An object containing mock measure, objective, and progress processors
+ */
+export function createMockProcessors(options: MockProcessorOptions = {}): MockProcessors {
   const measureProcessor = {
     measureRollupProcess: vi.fn().mockReturnValue(options.measureRollupResult ?? []),
   } satisfies Pick<MeasureRollupProcessor, "measureRollupProcess">;
@@ -200,9 +205,27 @@ export interface MockOverallProcessOptions {
 }
 
 /**
- * Creates a mock OverallSequencingProcess for testing
+ * Return type for createMockOverallProcess
  */
-export function createMockOverallProcess(options: MockOverallProcessOptions = {}) {
+export interface MockOverallProcess {
+  getSequencingState: ReturnType<typeof vi.fn>;
+  hasContentBeenDelivered: ReturnType<typeof vi.fn>;
+  restoreSequencingState: ReturnType<typeof vi.fn>;
+  setContentDelivered: ReturnType<typeof vi.fn>;
+  getGlobalObjectiveMap: ReturnType<typeof vi.fn>;
+  getGlobalObjectiveMapSnapshot: ReturnType<typeof vi.fn>;
+  updateGlobalObjective: ReturnType<typeof vi.fn>;
+}
+
+/**
+ * Creates a mock OverallSequencingProcess for testing
+ *
+ * @param options - Configuration options for the mock process
+ * @returns A mock OverallSequencingProcess object
+ */
+export function createMockOverallProcess(
+  options: MockOverallProcessOptions = {},
+): MockOverallProcess {
   return {
     getSequencingState: vi.fn().mockReturnValue(options.sequencingState ?? {}),
     hasContentBeenDelivered: vi.fn().mockReturnValue(options.contentDelivered ?? false),
@@ -213,9 +236,7 @@ export function createMockOverallProcess(options: MockOverallProcessOptions = {}
       .fn()
       .mockReturnValue(options.globalObjectiveMapSnapshot ?? {}),
     updateGlobalObjective: vi.fn(),
-  } satisfies Partial<{
-    [K in keyof OverallSequencingProcess]: ReturnType<typeof vi.fn>;
-  }>;
+  } satisfies MockOverallProcess;
 }
 
 /**
@@ -247,6 +268,9 @@ export interface MockPersistenceConfig {
 
 /**
  * Creates mock Settings object for testing
+ *
+ * @param persistenceConfig - Optional configuration for sequencing state persistence
+ * @returns A mock Settings object
  */
 export function createMockSettings(persistenceConfig?: MockPersistenceConfig): Settings {
   return {
@@ -264,7 +288,7 @@ export function createMockSettings(persistenceConfig?: MockPersistenceConfig): S
       : undefined,
     courseId: "test-course",
     globalObjectiveIds: [],
-  } as Settings;
+  } satisfies Partial<Settings> as Settings;
 }
 
 // ============================================================================
@@ -339,18 +363,39 @@ export function createMockPersistenceContext(
 // ============================================================================
 
 /**
- * Type guard to check if a value is a mock function
+ * Type guard to check if a value is a Vitest mock function
+ *
+ * Performs robust checking to verify the value has the expected mock structure
+ * including the mock.calls array that Vitest provides.
+ *
+ * @param value - The value to check
+ * @returns True if the value is a Vitest mock function
  */
 export function isMockFunction(value: unknown): value is ReturnType<typeof vi.fn> {
-  return typeof value === "function" && "mock" in value;
+  if (typeof value !== "function" || !("mock" in value)) {
+    return false;
+  }
+
+  const mockValue = value as { mock?: unknown };
+  if (typeof mockValue.mock !== "object" || mockValue.mock === null) {
+    return false;
+  }
+
+  const mock = mockValue.mock as { calls?: unknown };
+  return Array.isArray(mock.calls);
 }
 
 /**
- * Gets mock calls from an event callback
+ * Filters mock calls from an event callback by event type
+ *
+ * @typeParam T - The type of the event payload
+ * @param eventCallback - The mock event callback function
+ * @param eventType - The event type string to filter by
+ * @returns An array of matching event calls as [eventType, payload] tuples
  */
-export function getEventCallsByType(
+export function getEventCallsByType<T = unknown>(
   eventCallback: ReturnType<typeof vi.fn>,
   eventType: string,
-): Array<[string, unknown]> {
-  return eventCallback.mock.calls.filter((call: [string, unknown]) => call[0] === eventType);
+): Array<[string, T]> {
+  return eventCallback.mock.calls.filter((call): call is [string, T] => call[0] === eventType);
 }

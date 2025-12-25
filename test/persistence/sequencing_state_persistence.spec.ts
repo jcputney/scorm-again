@@ -5,17 +5,14 @@ import {
 } from "../../src/persistence/sequencing_state_persistence";
 import { GlobalObjectiveManager } from "../../src/objectives/global_objective_manager";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
-import { Settings } from "../../src/types/api_types";
 import { LogLevelEnum } from "../../src/constants/enums";
 import {
-  createMockADL,
-  createMockSequencing,
   createMockOverallProcess,
+  createMockSequencing,
   createMockSequencingService,
   createMockSettings,
   createMockPersistenceContext,
   createMockGlobalObjectiveContext,
-  MockPersistenceConfig,
 } from "../helpers/mock-factories";
 
 describe("SequencingStatePersistence", () => {
