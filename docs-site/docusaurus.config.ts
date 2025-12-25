@@ -7,7 +7,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 const config: Config = {
   title: "scorm-again",
   tagline: "A modern SCORM runtime for JavaScript",
-  favicon: "img/favicon.ico",
+  favicon: "img/favicon.svg",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -113,7 +113,8 @@ const config: Config = {
       title: "scorm-again",
       logo: {
         alt: "scorm-again Logo",
-        src: "img/scorm-again-logo-small.svg"
+        src: "img/scorm-again-logo-small.svg",
+        srcDark: "img/scorm-again-logo-small-dark.svg"
       },
       items: [
         {
