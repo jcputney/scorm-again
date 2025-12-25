@@ -113,7 +113,8 @@ const config: Config = {
       title: "scorm-again",
       logo: {
         alt: "scorm-again Logo",
-        src: "img/scorm-again-logo-small.svg"
+        src: "img/scorm-again-logo-small.svg",
+        srcDark: "img/scorm-again-logo-small-dark.svg"
       },
       items: [
         {
