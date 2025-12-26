@@ -216,8 +216,8 @@ export const scorm2004_regex = {
    * URN format is validated separately if string starts with "urn:"
    */
   CMIIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
-  /** CMIShortIdentifier - Short identifier with word chars/punctuation, max 250 chars (RTE C.1.10) */
-  CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
+  /** CMIShortIdentifier - Short identifier conforming to URI syntax, max 250 chars (RTE C.1.10) */
+  CMIShortIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
   /** CMILongIdentifier - Long identifier supporting URN format, max 4000 chars (RTE C.1.11) */
   CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
   /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */

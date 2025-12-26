@@ -89,46 +89,48 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
         expect(correctResponse.pattern).toBe("step1.3..14");
       });
 
-      it("should reject performance patterns with invalid step_name format", () => {
-        // step_name with special characters not allowed in CMIShortIdentifier
-        expect(() => {
-          correctResponse.pattern = "step@1.value1";
-        }).toThrow(Scorm2004ValidationError);
+      it("should accept performance patterns with valid URI characters in step_name", () => {
+        // URI characters like @, #, : are valid in CMIShortIdentifier per RFC 3986
+        correctResponse.pattern = "step@1.value1";
+        expect(correctResponse.pattern).toBe("step@1.value1");
 
+        correctResponse.pattern = "step#1.value1";
+        expect(correctResponse.pattern).toBe("step#1.value1");
+
+        correctResponse.pattern = "step:1.value1";
+        expect(correctResponse.pattern).toBe("step:1.value1");
+      });
+
+      it("should reject performance patterns with whitespace in step_name", () => {
+        // Whitespace is not allowed in CMIShortIdentifier
         expect(() => {
           correctResponse.pattern = "step 1.value1";
         }).toThrow(Scorm2004ValidationError);
-
-        expect(() => {
-          correctResponse.pattern = "step#1.value1";
-        }).toThrow(Scorm2004ValidationError);
       });
 
-      it("should reject performance patterns with invalid step_answer format", () => {
-        // step_answer with special characters not allowed in CMIShortIdentifier
-        // and not matching the numeric pattern
-        expect(() => {
-          correctResponse.pattern = "step1.value@1";
-        }).toThrow(Scorm2004ValidationError);
+      it("should accept performance patterns with valid URI characters in step_answer", () => {
+        // URI characters like @, #, : are valid in CMIShortIdentifier per RFC 3986
+        correctResponse.pattern = "step1.value@1";
+        expect(correctResponse.pattern).toBe("step1.value@1");
 
+        correctResponse.pattern = "step1.value#1";
+        expect(correctResponse.pattern).toBe("step1.value#1");
+
+        correctResponse.pattern = "step1.3:4:5";
+        expect(correctResponse.pattern).toBe("step1.3:4:5");
+      });
+
+      it("should reject performance patterns with whitespace in step_answer", () => {
+        // Whitespace is not allowed in CMIShortIdentifier
         expect(() => {
           correctResponse.pattern = "step1.answer 1";
         }).toThrow(Scorm2004ValidationError);
-
-        expect(() => {
-          correctResponse.pattern = "step1.value#1";
-        }).toThrow(Scorm2004ValidationError);
       });
 
-      it("should reject performance patterns with invalid numeric range format", () => {
-        // Too many colons in range
+      it("should reject performance patterns with empty components", () => {
+        // Empty step_answer after dot
         expect(() => {
-          correctResponse.pattern = "step1.3:4:5";
-        }).toThrow(Scorm2004ValidationError);
-
-        // Colon without numbers
-        expect(() => {
-          correctResponse.pattern = "step1.:";
+          correctResponse.pattern = "step1.";
         }).toThrow(Scorm2004ValidationError);
       });
     });
