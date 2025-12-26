@@ -46,7 +46,7 @@ jobs:
       - name: Run tests
         run: |
           npm run test:min
-          npx playwright test --reporter=list
+          npx playwright test --project=chromium --reporter=list
 
       # Determine npm tag based on version
       - name: Determine npm tag
