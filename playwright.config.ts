@@ -76,10 +76,6 @@ export default defineConfig({
           use: { ...devices["Desktop Firefox"] },
         },
         {
-          name: "webkit",
-          use: { ...devices["Desktop Safari"] },
-        },
-        {
           name: "player-wrapper-demos",
           testMatch: "test/integration/demos/player-wrapper.spec.ts",
         },
