@@ -110,18 +110,6 @@ export default abstract class BaseAPI implements IBaseAPI {
       }
     }
 
-    // BACKWARDS COMPATIBILITY: Handle deprecated useBeaconInsteadOfFetch setting
-    if (
-      settings?.useBeaconInsteadOfFetch !== undefined &&
-      settings.asyncModeBeaconBehavior === undefined
-    ) {
-      console.warn(
-        "DEPRECATED: 'useBeaconInsteadOfFetch' setting is deprecated and will be removed in a future version. " +
-          "Use 'asyncModeBeaconBehavior' instead. Note: This setting only affects asynchronous commit mode.",
-      );
-      this.settings.asyncModeBeaconBehavior = settings.useBeaconInsteadOfFetch;
-    }
-
     // VALIDATION: Enforce throttleCommits incompatibility with sync commits
     if (!this.settings.useAsynchronousCommits && this.settings.throttleCommits) {
       console.warn(

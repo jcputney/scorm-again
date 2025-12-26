@@ -438,7 +438,6 @@ New settings for offline operation:
 ### Recommended (Backwards Compatible But Deprecated)
 
 - [ ] Replace `asyncCommit` with `useAsynchronousCommits` + `throttleCommits` (still works with warning)
-- [ ] Replace `useBeaconInsteadOfFetch` with `asyncModeBeaconBehavior` (still works with warning)
 
 ### High Priority
 
@@ -471,7 +470,6 @@ New settings for offline operation:
 |----------------|-------------------|
 | `asyncCommit: true` | `useAsynchronousCommits: true, throttleCommits: true` |
 | `asyncCommit: false` | (default - no change needed) |
-| `useBeaconInsteadOfFetch` | `asyncModeBeaconBehavior` (only affects async mode) |
 
 | New v3.0.0 Settings | Default | Purpose |
 |---------------------|---------|---------|

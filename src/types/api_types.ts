@@ -52,11 +52,6 @@ export type Settings = {
    * and regular commits use synchronous XMLHttpRequest - this setting is ignored.
    */
   asyncModeBeaconBehavior?: "always" | "on-terminate" | "never" | undefined;
-  /**
-   * @deprecated Use `asyncModeBeaconBehavior` instead.
-   * This setting only applies when useAsynchronousCommits is true.
-   */
-  useBeaconInsteadOfFetch?: "always" | "on-terminate" | "never" | undefined;
 
   // Offline support settings
   enableOfflineSupport?: boolean | undefined;
