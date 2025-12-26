@@ -755,7 +755,8 @@ export default abstract class BaseAPI implements IBaseAPI {
         this.currentState = global_constants.STATE_TERMINATED;
         // Only clear error if there was no error
         if (checkTerminated) this.lastErrorCode = "0";
-        returnValue = result?.result ?? global_constants.SCORM_TRUE;
+        const resultValue = result?.result ?? global_constants.SCORM_TRUE;
+        returnValue = typeof resultValue === "boolean" ? String(resultValue) : resultValue;
       }
 
       this.processListeners(callbackName);
@@ -924,7 +925,8 @@ export default abstract class BaseAPI implements IBaseAPI {
         }
         this.throwSCORMError("api", result.errorCode);
       }
-      returnValue = result?.result ?? global_constants.SCORM_FALSE;
+      const resultValue = result?.result ?? global_constants.SCORM_FALSE;
+      returnValue = typeof resultValue === "boolean" ? String(resultValue) : resultValue;
 
       this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
 
