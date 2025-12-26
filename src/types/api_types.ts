@@ -41,6 +41,21 @@ export type Settings = {
   scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
   globalObjectiveIds?: string[] | undefined;
   sequencing?: SequencingSettings | undefined;
+  /**
+   * Controls when sendBeacon is used instead of fetch for async HTTP commits.
+   * Only applies when useAsynchronousCommits is true.
+   * - "always": Use sendBeacon for all commits
+   * - "on-terminate": Use sendBeacon only for termination commits
+   * - "never": Always use fetch API
+   *
+   * Note: In synchronous mode (default), termination always uses sendBeacon
+   * and regular commits use synchronous XMLHttpRequest - this setting is ignored.
+   */
+  asyncModeBeaconBehavior?: "always" | "on-terminate" | "never" | undefined;
+  /**
+   * @deprecated Use `asyncModeBeaconBehavior` instead.
+   * This setting only applies when useAsynchronousCommits is true.
+   */
   useBeaconInsteadOfFetch?: "always" | "on-terminate" | "never" | undefined;
 
   // Offline support settings
@@ -97,7 +112,7 @@ export type InternalSettings = {
   scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
   globalObjectiveIds?: string[] | undefined;
   sequencing?: SequencingSettings | undefined;
-  useBeaconInsteadOfFetch: "always" | "on-terminate" | "never";
+  asyncModeBeaconBehavior: "always" | "on-terminate" | "never";
 
   // Offline support settings
   enableOfflineSupport?: boolean | undefined;

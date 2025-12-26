@@ -24,7 +24,7 @@ export const DefaultSettings: InternalSettings = {
   xhrHeaders: {},
   xhrWithCredentials: false,
   fetchMode: "cors",
-  useBeaconInsteadOfFetch: "never",
+  asyncModeBeaconBehavior: "never",
   responseHandler: async function (response: Response): Promise<ResultObject> {
     if (typeof response !== "undefined") {
       let httpResult = null;
