@@ -33,7 +33,7 @@ export type Settings = {
     scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
     globalObjectiveIds?: string[] | undefined;
     sequencing?: SequencingSettings | undefined;
-    useBeaconInsteadOfFetch?: "always" | "on-terminate" | "never" | undefined;
+    asyncModeBeaconBehavior?: "always" | "on-terminate" | "never" | undefined;
     enableOfflineSupport?: boolean | undefined;
     courseId?: string | undefined;
     syncOnInitialize?: boolean | undefined;
@@ -75,7 +75,7 @@ export type InternalSettings = {
     scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
     globalObjectiveIds?: string[] | undefined;
     sequencing?: SequencingSettings | undefined;
-    useBeaconInsteadOfFetch: "always" | "on-terminate" | "never";
+    asyncModeBeaconBehavior: "always" | "on-terminate" | "never";
     enableOfflineSupport?: boolean | undefined;
     courseId?: string | undefined;
     syncOnInitialize?: boolean | undefined;
@@ -93,7 +93,7 @@ export type RefObject = {
 export type RefValue = string | number | boolean | null | undefined | RefArray;
 export type RefArray = ReadonlyArray<RefValue>;
 export type ResultObject = {
-    result: string;
+    result: string | boolean;
     errorCode: number;
     navRequest?: string | StringKeyMap;
     errorMessage?: string;

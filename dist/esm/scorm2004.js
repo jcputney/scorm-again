@@ -720,7 +720,7 @@ const DefaultSettings = {
   xhrHeaders: {},
   xhrWithCredentials: false,
   fetchMode: "cors",
-  useBeaconInsteadOfFetch: "never",
+  asyncModeBeaconBehavior: "never",
   responseHandler: async function(response) {
     if (typeof response !== "undefined") {
       let httpResult = null;
@@ -898,8 +898,8 @@ const scorm2004_regex = {
    * - Up to 18 digits after decimal (maintains precision for scientific use)
    */
   CMIDecimal: "^-?([0-9]{1,10})(\\.[0-9]{1,18})?$",
-  /** CMIShortIdentifier - Short identifier with word chars/punctuation, max 250 chars (RTE C.1.10) */
-  CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
+  /** CMIShortIdentifier - Short identifier conforming to URI syntax, max 250 chars (RTE C.1.10) */
+  CMIShortIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
   /** CMILongIdentifier - Long identifier supporting URN format, max 4000 chars (RTE C.1.11) */
   CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
   /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */
@@ -4848,7 +4848,7 @@ class AsynchronousHttpService {
     try {
       const processedParams = this.settings.requestHandler(params);
       let response;
-      if (immediate && this.settings.useBeaconInsteadOfFetch !== "never") {
+      if (immediate && this.settings.asyncModeBeaconBehavior !== "never") {
         response = await this.performBeacon(url, processedParams);
       } else {
         response = await this.performFetch(url, processedParams);
@@ -4884,7 +4884,7 @@ class AsynchronousHttpService {
    * @private
    */
   async performFetch(url, params) {
-    if (this.settings.useBeaconInsteadOfFetch === "always") {
+    if (this.settings.asyncModeBeaconBehavior === "always") {
       return this.performBeacon(url, params);
     }
     const { body, contentType } = this._prepareRequestBody(params);
@@ -15476,7 +15476,8 @@ class BaseAPI {
       } else {
         this.currentState = global_constants.STATE_TERMINATED;
         if (checkTerminated) this.lastErrorCode = "0";
-        returnValue = result?.result ?? global_constants.SCORM_TRUE;
+        const resultValue = result?.result ?? global_constants.SCORM_TRUE;
+        returnValue = typeof resultValue === "boolean" ? String(resultValue) : resultValue;
       }
       this.processListeners(callbackName);
     }
@@ -15599,7 +15600,8 @@ class BaseAPI {
         }
         this.throwSCORMError("api", result.errorCode);
       }
-      returnValue = result?.result ?? global_constants.SCORM_FALSE;
+      const resultValue = result?.result ?? global_constants.SCORM_FALSE;
+      returnValue = typeof resultValue === "boolean" ? String(resultValue) : resultValue;
       this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
       if (checkTerminated) this.lastErrorCode = "0";
       this.processListeners(callbackName);
