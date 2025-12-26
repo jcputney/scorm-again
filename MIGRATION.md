@@ -168,7 +168,18 @@ await api.internalFinish();  // Existed
 
 These changes are likely to affect most users upgrading.
 
-### 7. CMI Default Value Changes
+### 7. CMI and Setting Default Value Changes
+
+**SCORM 1.2 `mastery_override` setting (IMPORTANT):**
+```javascript
+// v2.6.5: false (LMS does NOT override lesson_status based on score)
+// v3.0.0: true  (LMS WILL override lesson_status based on mastery score - per SCORM 1.2 spec)
+```
+
+This means if a learner's score meets or exceeds the mastery score, `lesson_status` will automatically be set to `passed` (or `failed` if below). To preserve v2.6.5 behavior:
+```javascript
+const api = new Scorm12API({ mastery_override: false });
+```
 
 **SCORM 2004 `cmi.total_time`:**
 ```javascript
@@ -253,13 +264,44 @@ CompletionStatus.COMPLETED   // UPPERCASE
 SuccessStatus.PASSED         // UPPERCASE
 ```
 
+### 13. API Methods Now Accept Optional Parameter
+
+Per SCORM specification, `LMSInitialize()`, `LMSFinish()`, and `LMSCommit()` now accept an optional parameter that **must be an empty string** if provided:
+
+```javascript
+// v2.6.5 - No parameter
+api.LMSInitialize();
+api.LMSFinish();
+api.LMSCommit();
+
+// v3.0.0 - Parameter optional, but must be empty string if provided
+api.LMSInitialize("");      // OK
+api.LMSInitialize();        // OK (defaults to "")
+api.LMSInitialize("test");  // ERROR 310 (Argument Error), returns "false"
+```
+
+Same applies to SCORM 2004: `Initialize("")`, `Terminate("")`, `Commit("")`.
+
+**TypeScript signatures changed:**
+```typescript
+// v2.6.5
+LMSInitialize: () => string;
+LMSFinish: () => string;
+LMSCommit: () => string;
+
+// v3.0.0
+LMSInitialize: (parameter?: string) => string;
+LMSFinish: (parameter?: string) => string;
+LMSCommit: (parameter?: string) => string;
+```
+
 ---
 
 ## Medium-Impact Changes
 
 These changes may affect some users depending on their implementation.
 
-### 13. SCORM 1.2 Validation Now Stricter
+### 15. SCORM 1.2 Validation Now Stricter
 
 New validation added to previously unvalidated fields:
 
@@ -269,7 +311,7 @@ New validation added to previously unvalidated fields:
 - `cmi.core.lesson_mode` - Now validates against CMILessonMode regex
 - `cmi.core.exit` - Accepts "normal" (SCORM 2004 value) with warning, normalizes to ""
 
-### 14. `setStartTime()` Can Only Be Called Once
+### 16. `setStartTime()` Can Only Be Called Once
 
 ```javascript
 // v2.6.5 - Could be called multiple times
@@ -281,7 +323,7 @@ api.cmi.setStartTime();
 api.cmi.setStartTime();  // ERROR: "Start time has already been set."
 ```
 
-### 15. SCORM 2004 `adl.data` Validation Stricter
+### 17. SCORM 2004 `adl.data` Validation Stricter
 
 ```javascript
 // adl.data.n.id is READ-ONLY after Initialize()
@@ -298,7 +340,7 @@ api.SetValue("adl.data.0.store", "value");  // Now OK
 api.GetValue("adl.data.0.store");  // ERROR 403 if never set
 ```
 
-### 16. Type Changes: `RefObject` → `StringKeyMap`
+### 18. Type Changes: `RefObject` → `StringKeyMap`
 
 ```typescript
 // v2.6.5
@@ -310,7 +352,7 @@ type StringKeyMap = Record<string, unknown>;
 xhrHeaders?: StringKeyMap;
 ```
 
-### 17. Regex Pattern Changes
+### 19. Regex Pattern Changes
 
 Most patterns are now more permissive:
 
@@ -328,7 +370,7 @@ Most patterns are now more permissive:
 
 These are non-breaking additions available in v3.0.0.
 
-### 18. CrossFrame Communication
+### 20. CrossFrame Communication
 
 New feature for sandboxed iframe SCORM content:
 - `CrossFrameAPI` - Child frame proxy with synchronous API
@@ -338,7 +380,7 @@ New feature for sandboxed iframe SCORM content:
 
 See [Cross-Frame Communication](https://jcputney.github.io/scorm-again/docs/lms-integration/cross-frame-communication) for details.
 
-### 19. SCORM 2004 Sequencing Engine
+### 21. SCORM 2004 Sequencing Engine
 
 Complete implementation of SCORM 2004 4th Edition sequencing:
 - Activity tree management
@@ -350,7 +392,7 @@ Complete implementation of SCORM 2004 4th Edition sequencing:
 
 **Note:** If you don't configure sequencing, behavior is unchanged from v2.6.5.
 
-### 20. Offline Storage Support
+### 22. Offline Storage Support
 
 New settings for offline operation:
 - `enableOfflineSupport` - Enable offline data storage
@@ -358,22 +400,29 @@ New settings for offline operation:
 - `syncOnTerminate` - Sync when API terminates
 - `maxSyncAttempts` - Maximum retry attempts
 
-### 21. sendBeacon for Termination
+### 23. sendBeacon for Termination
 
-Termination commits now use `navigator.sendBeacon()` by default for reliable delivery during page unload.
+**In synchronous mode (default):** Termination commits automatically use `navigator.sendBeacon()` for reliable delivery during page unload. This is hardcoded behavior and cannot be disabled.
 
-### 22. New Settings
+**In asynchronous mode:** The `asyncModeBeaconBehavior` setting controls when sendBeacon is used:
+- `"never"` (default) - Always use fetch API
+- `"on-terminate"` - Use sendBeacon for termination commits only
+- `"always"` - Use sendBeacon for all commits
+
+### 24. New Settings
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `useAsynchronousCommits` | `boolean` | `false` | Use async HTTP (NOT SCORM-compliant) |
 | `throttleCommits` | `boolean` | `false` | Throttle rapid commits (requires async) |
-| `useBeaconInsteadOfFetch` | `string` | `"never"` | When to use sendBeacon |
+| `asyncModeBeaconBehavior` | `string` | `"never"` | When to use sendBeacon in async mode |
 | `enableOfflineSupport` | `boolean` | `false` | Enable offline storage |
 | `courseId` | `string` | `""` | Course identifier for offline storage |
 | `scoId` | `string` | `""` | SCO identifier for multi-SCO courses |
 | `httpService` | `IHttpService` | `null` | Custom HTTP service |
 | `sequencing` | `object` | `undefined` | SCORM 2004 sequencing config |
+| `autoCompleteLessonStatus` | `boolean` | `false` | SCORM 1.2: Auto-complete status on terminate |
+| `globalStudentPreferences` | `boolean` | `false` | SCORM 1.2: Share learner prefs across SCOs |
 
 ---
 
@@ -393,6 +442,7 @@ Termination commits now use `navigator.sendBeacon()` by default for reliable del
 ### High Priority
 
 - [ ] Test commit behavior - commits now block by default
+- [ ] Set `mastery_override: false` if you need v2.6.5 SCORM 1.2 behavior
 - [ ] Update enum references to UPPERCASE (`COMPLETED`, `PASSED`, etc.)
 - [ ] Review custom error handling for new error format
 - [ ] Test `cmi.total_time` handling - now defaults to "PT0S" for SCORM 2004
@@ -410,7 +460,7 @@ Termination commits now use `navigator.sendBeacon()` by default for reliable del
 - [ ] Enable offline support for disconnected scenarios
 - [ ] Evaluate CrossFrame for sandboxed iframes
 - [ ] Explore SCORM 2004 sequencing for multi-SCO courses
-- [ ] Consider `useBeaconInsteadOfFetch: "on-terminate"` for reliability
+- [ ] Use tree-shakeable imports (`import Scorm12API from 'scorm-again/scorm12'`)
 
 ---
 
@@ -425,11 +475,13 @@ Termination commits now use `navigator.sendBeacon()` by default for reliable del
 |---------------------|---------|---------|
 | `useAsynchronousCommits` | `false` | Enable async HTTP (legacy mode) |
 | `throttleCommits` | `false` | Batch rapid commits with 500ms delay |
-| `useBeaconInsteadOfFetch` | `"never"` | Use sendBeacon for commits |
+| `asyncModeBeaconBehavior` | `"never"` | Use sendBeacon in async mode |
 | `enableOfflineSupport` | `false` | Enable offline storage |
 | `httpService` | `null` | Inject custom HTTP service |
 | `sequencing` | `undefined` | SCORM 2004 sequencing config |
 | `xhrResponseHandler` | (built-in) | Handler for sync XHR responses |
+| `autoCompleteLessonStatus` | `false` | Auto-complete SCORM 1.2 lesson_status |
+| `globalStudentPreferences` | `false` | Share learner prefs across SCOs |
 
 ---
 

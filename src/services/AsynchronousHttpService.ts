@@ -88,7 +88,7 @@ export class AsynchronousHttpService implements IHttpService {
         | Array<any>;
 
       let response: Response;
-      if (immediate && this.settings.useBeaconInsteadOfFetch !== "never") {
+      if (immediate && this.settings.asyncModeBeaconBehavior !== "never") {
         response = await this.performBeacon(url, processedParams);
       } else {
         response = await this.performFetch(url, processedParams);
@@ -137,7 +137,7 @@ export class AsynchronousHttpService implements IHttpService {
    */
   private async performFetch(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
     // Use Beacon API if specified in settings
-    if (this.settings.useBeaconInsteadOfFetch === "always") {
+    if (this.settings.asyncModeBeaconBehavior === "always") {
       return this.performBeacon(url, params);
     }
 
