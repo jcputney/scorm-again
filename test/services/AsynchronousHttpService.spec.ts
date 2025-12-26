@@ -37,7 +37,7 @@ describe("AsynchronousHttpService", () => {
         const text = await response.text();
         return text ? JSON.parse(text) : { result: global_constants.SCORM_TRUE, errorCode: 0 };
       },
-      useBeaconInsteadOfFetch: "never",
+      asyncModeBeaconBehavior: "never",
     } as InternalSettings;
 
     // Create mock error codes
@@ -126,10 +126,10 @@ describe("AsynchronousHttpService", () => {
       expect(sendBeaconStub).not.toHaveBeenCalled();
     });
 
-    it("should use sendBeacon for immediate requests when useBeaconInsteadOfFetch is 'on-terminate'", async () => {
+    it("should use sendBeacon for immediate requests when asyncModeBeaconBehavior is 'on-terminate'", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
-      settings.useBeaconInsteadOfFetch = "on-terminate";
+      settings.asyncModeBeaconBehavior = "on-terminate";
       httpService.updateSettings(settings);
 
       const result = await httpService.processHttpRequest(
@@ -147,10 +147,10 @@ describe("AsynchronousHttpService", () => {
       expect(sendBeaconStub).toHaveBeenCalledWith(url, expect.any(Blob));
     });
 
-    it("should use sendBeacon for all requests when useBeaconInsteadOfFetch is 'always'", async () => {
+    it("should use sendBeacon for all requests when asyncModeBeaconBehavior is 'always'", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
-      settings.useBeaconInsteadOfFetch = "always";
+      settings.asyncModeBeaconBehavior = "always";
       httpService.updateSettings(settings);
 
       const result = await httpService.processHttpRequest(
@@ -171,7 +171,7 @@ describe("AsynchronousHttpService", () => {
     it("should handle array params with sendBeacon", async () => {
       const url = "https://example.com/api";
       const params = ["param1=value1", "param2=value2"];
-      settings.useBeaconInsteadOfFetch = "always";
+      settings.asyncModeBeaconBehavior = "always";
       httpService.updateSettings(settings);
 
       const result = await httpService.processHttpRequest(
@@ -195,7 +195,7 @@ describe("AsynchronousHttpService", () => {
     it("should handle sendBeacon failure with optimistic success", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
-      settings.useBeaconInsteadOfFetch = "always";
+      settings.asyncModeBeaconBehavior = "always";
       httpService.updateSettings(settings);
 
       // Mock sendBeacon to fail
@@ -224,7 +224,7 @@ describe("AsynchronousHttpService", () => {
     it("should test the mock response json method from performBeacon", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
-      settings.useBeaconInsteadOfFetch = "always";
+      settings.asyncModeBeaconBehavior = "always";
       httpService.updateSettings(settings);
 
       // Mock sendBeacon to succeed
@@ -255,7 +255,7 @@ describe("AsynchronousHttpService", () => {
     it("should test the mock response text method from performBeacon", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
-      settings.useBeaconInsteadOfFetch = "always";
+      settings.asyncModeBeaconBehavior = "always";
       httpService.updateSettings(settings);
 
       // Mock sendBeacon to succeed
@@ -276,7 +276,7 @@ describe("AsynchronousHttpService", () => {
     it("should test the mock response json method from performBeacon when sendBeacon fails", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
-      settings.useBeaconInsteadOfFetch = "always";
+      settings.asyncModeBeaconBehavior = "always";
       httpService.updateSettings(settings);
 
       // Mock sendBeacon to fail
@@ -295,7 +295,7 @@ describe("AsynchronousHttpService", () => {
     it("should test the mock response text method from performBeacon when sendBeacon fails", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
-      settings.useBeaconInsteadOfFetch = "always";
+      settings.asyncModeBeaconBehavior = "always";
       httpService.updateSettings(settings);
 
       // Mock sendBeacon to fail
@@ -604,6 +604,7 @@ describe("AsynchronousHttpService", () => {
         [200, global_constants.SCORM_FALSE, false], // Success status but failed result
         [200, "true", true], // String "true" should work too
         [200, true, true], // Boolean true should also be treated as success
+        [200, false, false], // Boolean false should be treated as failure
         [200, undefined, false], // Undefined result
       ];
 
@@ -613,6 +614,42 @@ describe("AsynchronousHttpService", () => {
 
         expect(httpServiceAny._isSuccessResponse(response, result)).toBe(expected);
       }
+    });
+
+    it("should handle boolean true result from LMS and trigger CommitSuccess", async () => {
+      const url = "https://example.com/api";
+      const params = { data: "test" };
+      const mockResponse = new Response(
+        JSON.stringify({ result: true, errorCode: 0 }), // Boolean true instead of string
+        { status: 200 },
+      );
+      fetchStub.mockImplementation(() => mockResponse);
+      processListenersStub.mockClear();
+
+      httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
+
+      // Wait for async operation to complete
+      await vi.waitFor(() => {
+        expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
+      });
+    });
+
+    it("should handle boolean false result from LMS and trigger CommitError", async () => {
+      const url = "https://example.com/api";
+      const params = { data: "test" };
+      const mockResponse = new Response(
+        JSON.stringify({ result: false, errorCode: 101 }), // Boolean false instead of string
+        { status: 200 }, // HTTP success but LMS result is false
+      );
+      fetchStub.mockImplementation(() => mockResponse);
+      processListenersStub.mockClear();
+
+      httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
+
+      // Wait for async operation to complete
+      await vi.waitFor(() => {
+        expect(processListenersStub).toHaveBeenCalledWith("CommitError", undefined, 101);
+      });
     });
 
     it("should handle response parsing errors with detailed error info", async () => {
