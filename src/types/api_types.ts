@@ -150,7 +150,7 @@ export type RefArray = ReadonlyArray<RefValue>;
  * Represents the result of an API operation.
  */
 export type ResultObject = {
-  result: string;
+  result: string | boolean;
   errorCode: number;
   navRequest?: string | StringKeyMap;
   errorMessage?: string;
