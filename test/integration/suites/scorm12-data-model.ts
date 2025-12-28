@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { ensureApiInitialized, getCmiValue, setCmiValue } from "../helpers/scorm-common-helpers";
+import {
+  ensureApiInitialized,
+  getCmiValue,
+  setCmiValue,
+  waitForPageReady
+} from "../helpers/scorm-common-helpers";
 
 export type WrapperConfig = {
   name: string;
@@ -24,7 +29,7 @@ export function scorm12DataModelTests(
 ) {
   test("should handle data model interactions correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -74,7 +79,7 @@ export function scorm12DataModelTests(
 
   test("should handle student data elements", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -97,7 +102,7 @@ export function scorm12DataModelTests(
 
   test("should handle student preference settings", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -152,7 +157,7 @@ export function scorm12DataModelTests(
 
   test("should handle read-only data model elements", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -179,7 +184,7 @@ export function scorm12DataModelTests(
 
   test("should handle exit values correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -202,7 +207,7 @@ export function scorm12DataModelTests(
 
   test("should handle lesson_status values correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -228,7 +233,7 @@ export function scorm12DataModelTests(
 
   test("should handle total_time correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -243,7 +248,7 @@ export function scorm12DataModelTests(
 
   test("should handle interactions array correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -316,7 +321,7 @@ export function scorm12DataModelTests(
 
   test("should handle objectives array correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 
@@ -347,7 +352,7 @@ export function scorm12DataModelTests(
 
   test("should handle comments correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     await ensureApiInitialized(page, module.apiName);
 

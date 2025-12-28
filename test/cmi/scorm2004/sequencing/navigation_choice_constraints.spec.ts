@@ -1,18 +1,18 @@
-import { describe, expect, beforeEach, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("OverallSequencingProcess choice constraints", () => {

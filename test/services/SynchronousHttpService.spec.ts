@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SynchronousHttpService } from "../../src/services/SynchronousHttpService";
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { scorm12_errors } from "../../src/constants/error_codes";

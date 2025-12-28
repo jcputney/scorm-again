@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { CMIStudentData } from "../../../src/cmi/scorm12/student_data";
 import { Scorm12ValidationError } from "../../../src/exceptions/scorm12_exceptions";
 
@@ -174,7 +174,7 @@ describe("CMIStudentData Edge Cases", () => {
       expect(json).toEqual({
         mastery_score: "",
         max_time_allowed: "",
-        time_limit_action: "",
+        time_limit_action: ""
       });
     });
 
@@ -187,7 +187,7 @@ describe("CMIStudentData Edge Cases", () => {
       expect(json).toEqual({
         mastery_score: "80",
         max_time_allowed: "01:00:00",
-        time_limit_action: "exit,message",
+        time_limit_action: "exit,message"
       });
     });
 
@@ -199,7 +199,7 @@ describe("CMIStudentData Edge Cases", () => {
       expect(json).toEqual({
         mastery_score: "75",
         max_time_allowed: "",
-        time_limit_action: "",
+        time_limit_action: ""
       });
     });
   });

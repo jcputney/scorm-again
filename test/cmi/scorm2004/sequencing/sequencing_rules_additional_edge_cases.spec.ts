@@ -4,7 +4,7 @@ import {
   RuleCondition,
   RuleConditionType,
   SequencingRule,
-  SequencingRules,
+  SequencingRules
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../src/constants/enums";

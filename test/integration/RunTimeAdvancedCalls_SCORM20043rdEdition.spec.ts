@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 import {
   CommitRequestTracker,
+  completeAssessmentSCO,
+  completeContentSCO,
   configureApiForHttpCommits,
   ensureApiInitialized,
   getCmiValue,
@@ -8,8 +11,6 @@ import {
   injectQuizFunctions,
   setCmiValue,
   setupCommitMocking,
-  completeContentSCO,
-  completeAssessmentSCO,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
@@ -78,7 +79,7 @@ wrappers.forEach((wrapper) => {
 
     test("should initialize API and load launchpage with objectives", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -99,7 +100,7 @@ wrappers.forEach((wrapper) => {
 
     test("should track location during multi-page navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -128,7 +129,7 @@ wrappers.forEach((wrapper) => {
 
     test("should track progress measure during navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -160,7 +161,7 @@ wrappers.forEach((wrapper) => {
 
     test("should track objective progress during navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -212,7 +213,7 @@ wrappers.forEach((wrapper) => {
 
     test("should update objective completion status when all pages visited", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -285,7 +286,7 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to the module
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
       await injectQuizFunctions(page);
@@ -320,7 +321,7 @@ wrappers.forEach((wrapper) => {
 
     test("should use manifest-defined passing score (0.8)", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -355,7 +356,7 @@ wrappers.forEach((wrapper) => {
 
     test("should handle completion status updates during navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -410,7 +411,7 @@ wrappers.forEach((wrapper) => {
 
     test("should handle previous/next navigation buttons", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -459,7 +460,7 @@ wrappers.forEach((wrapper) => {
 
     test("should handle exit button with suspend/exit navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -492,7 +493,7 @@ wrappers.forEach((wrapper) => {
 
     test("should record session time during navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -519,7 +520,7 @@ wrappers.forEach((wrapper) => {
 
     test("should handle all four learning objectives", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -577,7 +578,7 @@ wrappers.forEach((wrapper) => {
 
     test("should update overall progress measure correctly", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -619,7 +620,7 @@ wrappers.forEach((wrapper) => {
       await setupCommitMocking(page, tracker, { success: true });
 
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 

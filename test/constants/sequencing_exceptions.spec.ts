@@ -1,22 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  NavigationExceptions,
-  TerminationExceptions,
-  FlowTreeTraversalExceptions,
-  FlowActivityTraversalExceptions,
-  ContinueExceptions,
-  PreviousExceptions,
   ChoiceExceptions,
   ChoiceTraversalExceptions,
-  RetryExceptions,
+  ContinueExceptions,
   ExitExceptions,
-  SequencingRequestExceptions,
-  JumpExceptions,
-  StartExceptions,
-  ResumeExceptions,
-  SuspendExceptions,
-  SequencingExceptions,
+  FlowActivityTraversalExceptions,
+  FlowTreeTraversalExceptions,
   getExceptionDescription,
+  JumpExceptions,
+  NavigationExceptions,
+  PreviousExceptions,
+  ResumeExceptions,
+  RetryExceptions,
+  SequencingExceptions,
+  SequencingRequestExceptions,
+  StartExceptions,
+  SuspendExceptions,
+  TerminationExceptions,
 } from "../../src/constants/sequencing_exceptions";
 
 describe("Sequencing Exceptions Constants", () => {

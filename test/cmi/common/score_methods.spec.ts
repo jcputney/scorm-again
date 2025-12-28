@@ -8,7 +8,7 @@ describe("CMIScore Methods", () => {
     it("should return only default max when no scores are explicitly set", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       const result: ScoreObject = score.getScoreObject();
@@ -21,7 +21,7 @@ describe("CMIScore Methods", () => {
     it("should return raw and default max when only raw is set", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "75";
@@ -31,7 +31,7 @@ describe("CMIScore Methods", () => {
       // Default max is "100", so it will be included
       expect(result).toEqual({
         raw: 75,
-        max: 100,
+        max: 100
       });
       expect(result.raw).toBe(75);
       expect(result.min).toBeUndefined();
@@ -41,7 +41,7 @@ describe("CMIScore Methods", () => {
     it("should return min and default max when only min is set", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.min = "10";
@@ -51,7 +51,7 @@ describe("CMIScore Methods", () => {
       // Default max is "100", so it will be included
       expect(result).toEqual({
         min: 10,
-        max: 100,
+        max: 100
       });
       expect(result.min).toBe(10);
       expect(result.raw).toBeUndefined();
@@ -62,7 +62,7 @@ describe("CMIScore Methods", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
         max: "",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.max = "100";
@@ -70,7 +70,7 @@ describe("CMIScore Methods", () => {
       const result: ScoreObject = score.getScoreObject();
 
       expect(result).toEqual({
-        max: 100,
+        max: 100
       });
       expect(result.max).toBe(100);
       expect(result.raw).toBeUndefined();
@@ -80,7 +80,7 @@ describe("CMIScore Methods", () => {
     it("should return all scores when all are set", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "85";
@@ -92,14 +92,14 @@ describe("CMIScore Methods", () => {
       expect(result).toEqual({
         raw: 85,
         min: 0,
-        max: 100,
+        max: 100
       });
     });
 
     it("should convert string scores to numeric values", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "95.5";
@@ -119,7 +119,7 @@ describe("CMIScore Methods", () => {
     it("should handle decimal scores correctly", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "87.75";
@@ -137,7 +137,7 @@ describe("CMIScore Methods", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
         max: "",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // raw and min default to empty strings
@@ -148,7 +148,7 @@ describe("CMIScore Methods", () => {
       const result: ScoreObject = score.getScoreObject();
 
       expect(result).toEqual({
-        raw: 90,
+        raw: 90
       });
       expect(result.min).toBeUndefined();
       expect(result.max).toBeUndefined();
@@ -157,7 +157,7 @@ describe("CMIScore Methods", () => {
     it("should handle partial score set (raw and max only)", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "80";
@@ -168,7 +168,7 @@ describe("CMIScore Methods", () => {
 
       expect(result).toEqual({
         raw: 80,
-        max: 100,
+        max: 100
       });
       expect(result.min).toBeUndefined();
     });
@@ -176,7 +176,7 @@ describe("CMIScore Methods", () => {
     it("should handle partial score set (min and max only)", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.min = "0";
@@ -187,7 +187,7 @@ describe("CMIScore Methods", () => {
 
       expect(result).toEqual({
         min: 0,
-        max: 100,
+        max: 100
       });
       expect(result.raw).toBeUndefined();
     });
@@ -195,7 +195,7 @@ describe("CMIScore Methods", () => {
     it("should handle zero values correctly", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "0";
@@ -207,14 +207,14 @@ describe("CMIScore Methods", () => {
       expect(result).toEqual({
         raw: 0,
         min: 0,
-        max: 0,
+        max: 0
       });
     });
 
     it("should handle negative min values", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "50";
@@ -226,14 +226,14 @@ describe("CMIScore Methods", () => {
       expect(result).toEqual({
         raw: 50,
         min: -100,
-        max: 100,
+        max: 100
       });
     });
 
     it("should return empty object after reset", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Set all scores
@@ -259,14 +259,14 @@ describe("CMIScore Methods", () => {
     it("should handle max with default value of 100", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Default max is "100" per constructor
       const result: ScoreObject = score.getScoreObject();
 
       expect(result).toEqual({
-        max: 100,
+        max: 100
       });
     });
 
@@ -274,7 +274,7 @@ describe("CMIScore Methods", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
         max: "",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // max is empty string, should not be in result
@@ -286,7 +286,7 @@ describe("CMIScore Methods", () => {
     it("should preserve precision for decimal values", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "87.123456";
@@ -303,7 +303,7 @@ describe("CMIScore Methods", () => {
     it("should handle leading zeros in string scores", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "007";
@@ -321,7 +321,7 @@ describe("CMIScore Methods", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
         max: "",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Internal state could have empty strings
@@ -342,7 +342,7 @@ describe("CMIScore Methods", () => {
     it("should handle very large numeric values", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "999999999";
@@ -359,7 +359,7 @@ describe("CMIScore Methods", () => {
     it("should handle very small decimal values", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       score.raw = "0.00001";
@@ -378,7 +378,7 @@ describe("CMIScore Methods", () => {
     it("should throw error when attempting to set _children", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       expect(() => {
@@ -389,7 +389,7 @@ describe("CMIScore Methods", () => {
     it("should throw error with correct CMI element path", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       try {
@@ -406,7 +406,7 @@ describe("CMIScore Methods", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
         score_children: "raw,min,max",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Getter should still work

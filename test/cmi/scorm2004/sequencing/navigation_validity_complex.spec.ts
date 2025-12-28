@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
-  SequencingProcess,
-  SequencingRequestType,
   DeliveryRequestType,
+  SequencingProcess,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 
@@ -158,7 +158,7 @@ describe("Navigation Validity - Complex Activity States", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "b1",
+        "b1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -189,7 +189,7 @@ describe("Navigation Validity - Complex Activity States", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "a",
+        "a"
       );
 
       expect(result.exception).toBe("SB.2.9-5");
@@ -222,7 +222,7 @@ describe("Navigation Validity - Complex Activity States", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "a3",
+        "a3"
       );
 
       expect(result.exception).toBe("SB.2.9-7");
@@ -252,7 +252,7 @@ describe("Navigation Validity - Complex Activity States", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "b",
+        "b"
       );
 
       expect(result.exception).toBe("SB.2.9-6");
@@ -277,7 +277,7 @@ describe("Navigation Validity - Complex Activity States", () => {
       const validation = sequencingProcess.validateNavigationRequest(
         SequencingRequestType.CONTINUE,
         null,
-        a,
+        a
       );
 
       expect(validation.valid).toBe(false);
@@ -305,7 +305,7 @@ describe("Navigation Validity - Complex Activity States", () => {
       const validation = sequencingProcess.validateNavigationRequest(
         SequencingRequestType.PREVIOUS,
         null,
-        b,
+        b
       );
 
       expect(validation.valid).toBe(false);
@@ -326,7 +326,7 @@ describe("Navigation Validity - Complex Activity States", () => {
       const validation = sequencingProcess.validateNavigationRequest(
         SequencingRequestType.CHOICE,
         "nonexistent",
-        a,
+        a
       );
 
       expect(validation.valid).toBe(false);
@@ -353,7 +353,7 @@ describe("Navigation Validity - Complex Activity States", () => {
       const validation = sequencingProcess.validateNavigationRequest(
         SequencingRequestType.CONTINUE,
         null,
-        a,
+        a
       );
 
       expect(validation.valid).toBe(true);
@@ -427,7 +427,7 @@ describe("Navigation Validity - Complex Activity States", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "b1",
+        "b1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -447,7 +447,7 @@ describe("Navigation Validity - Complex Activity States", () => {
       const validation1 = sequencingProcess.validateNavigationRequest(
         SequencingRequestType.CHOICE,
         "root",
-        null,
+        null
       );
       expect(validation1.exception).toBe("SB.2.9-3");
 
@@ -455,7 +455,7 @@ describe("Navigation Validity - Complex Activity States", () => {
       const validation2 = sequencingProcess.validateNavigationRequest(
         SequencingRequestType.CHOICE,
         "a",
-        null,
+        null
       );
       expect(validation2.exception).toBe("SB.2.9-4");
     });
@@ -484,14 +484,14 @@ describe("Navigation Validity - Complex Activity States", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       const prevResult = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS,
+        SequencingRequestType.PREVIOUS
       );
       expect(prevResult.exception).toBe("SB.2.9-5");
 
       activityTree.currentActivity = a;
       a.isActive = false;
       const contResult = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
+        SequencingRequestType.CONTINUE
       );
       expect(contResult.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
       expect(contResult.targetActivity).toBe(b);
@@ -533,7 +533,7 @@ describe("Navigation Validity - Complex Activity States", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "a1",
+        "a1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -574,7 +574,7 @@ describe("Navigation Validity - Complex Activity States", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "b3",
+        "b3"
       );
 
       expect(result.exception).toBe("SB.2.9-7");

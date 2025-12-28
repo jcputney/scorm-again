@@ -1,8 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { SequencingProcess, SequencingRequestType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { SequencingRule, RuleCondition, RuleActionType, RuleConditionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import {
+  SequencingProcess,
+  SequencingRequestType
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Exit Action Rules Subprocess (TB.2.1)", () => {
   let activityTree: ActivityTree;
@@ -57,7 +65,7 @@ describe("Exit Action Rules Subprocess (TB.2.1)", () => {
       // Check that child1 and its descendants are terminated
       expect(childActivity1.isActive).toBe(false);
       expect(grandchildActivity.isActive).toBe(false);
-      
+
       // But parent and siblings should still be active
       expect(parentActivity.isActive).toBe(true);
       expect(rootActivity.isActive).toBe(true);
@@ -89,7 +97,7 @@ describe("Exit Action Rules Subprocess (TB.2.1)", () => {
       expect(childActivity1.isActive).toBe(false);
       expect(childActivity2.isActive).toBe(false);
       expect(grandchildActivity.isActive).toBe(false);
-      
+
       // But root should still be active
       expect(rootActivity.isActive).toBe(true);
     });

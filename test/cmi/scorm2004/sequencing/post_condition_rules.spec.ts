@@ -1,8 +1,17 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { SequencingProcess, SequencingRequestType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { SequencingRule, RuleCondition, RuleActionType, RuleConditionType, RuleConditionOperator } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import {
+  SequencingProcess,
+  SequencingRequestType
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionOperator,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 
 describe("Post-Condition Rules Subprocess (TB.2.2)", () => {

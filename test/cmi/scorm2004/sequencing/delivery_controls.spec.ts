@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import {
+  OverallSequencingProcess
+} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 
 describe("Delivery Controls", () => {

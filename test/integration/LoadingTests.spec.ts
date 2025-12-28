@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 
 /**
  * Integration test to verify all SCORM modules can load without errors
@@ -10,7 +11,7 @@ test.describe("Module Loading Tests", () => {
     await page.goto(`http://localhost:3000/test/integration/dist_test.html`);
 
     // Wait for the page to load and the SCORM API to be initialized
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Wait for the tests to complete (we'll look for a specific element)
     await page.waitForSelector("#test-summary");

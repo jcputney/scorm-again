@@ -6,14 +6,25 @@
   <title>SCORM 1.2 Wrapper</title>
   <script src="/dist/scorm12.js"></script>
   <script>
-    // Initialize the SCORM 1.2 API
-    window.API = new Scorm12API({
+    // Resolve wrapper config (injected by tests via page.addInitScript)
+    function resolveWrapperConfig() {
+      const config = window.__SCORM_WRAPPER_CONFIG__ || {};
+      delete window.__SCORM_WRAPPER_CONFIG__;
+      return config;
+    }
+
+    const wrapperConfig = resolveWrapperConfig();
+    const apiOptions = {
       autocommit: true,
       logLevel: 1, // Debug level
       mastery_override: false,
-    });
+      ...(wrapperConfig.apiOptions || {}),
+    };
 
-    window.API.loadFromJSON({
+    // Initialize the SCORM 1.2 API
+    window.API = new Scorm12API(apiOptions);
+
+    const baseCmi = {
       cmi: {
         core: {
           student_id: "123456",
@@ -38,7 +49,14 @@
           lesson_status: "not attempted",
         },
       },
-    });
+    };
+
+    // Merge with any initial CMI from config
+    const initialCmi = Object.assign(
+      JSON.parse(JSON.stringify(baseCmi)),
+      wrapperConfig.initialCmi || {}
+    );
+    window.API.loadFromJSON(initialCmi);
 
     // Function to load the SCORM module
     function loadModule(modulePath) {

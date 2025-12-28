@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
-  RollupRule,
+  RollupActionType,
   RollupCondition,
   RollupConditionType,
-  RollupActionType,
   RollupConsiderationType,
+  RollupRule
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 

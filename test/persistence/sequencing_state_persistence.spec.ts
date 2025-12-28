@@ -1,18 +1,18 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  SequencingStatePersistence,
   PersistenceContext,
+  SequencingStatePersistence,
 } from "../../src/persistence/sequencing_state_persistence";
 import { GlobalObjectiveManager } from "../../src/objectives/global_objective_manager";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
 import { LogLevelEnum } from "../../src/constants/enums";
 import {
+  createMockGlobalObjectiveContext,
   createMockOverallProcess,
+  createMockPersistenceContext,
   createMockSequencing,
   createMockSequencingService,
   createMockSettings,
-  createMockPersistenceContext,
-  createMockGlobalObjectiveContext,
 } from "../helpers/mock-factories";
 
 describe("SequencingStatePersistence", () => {

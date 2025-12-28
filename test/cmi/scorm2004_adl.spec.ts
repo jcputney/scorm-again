@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ADL, ADLData, ADLDataObject, ADLNav, ADLNavRequestValid } from "../../src";
 import { NAVBoolean } from "../../src/constants/enums";
 import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";

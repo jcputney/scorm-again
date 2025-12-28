@@ -1,13 +1,13 @@
 // noinspection DuplicatedCode
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import {
   SequencingProcess,
-  SequencingRequestType,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";

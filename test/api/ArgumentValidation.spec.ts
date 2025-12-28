@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import Scorm2004API from "../../src/Scorm2004API";
 import { LogLevelEnum } from "../../src/constants/enums";

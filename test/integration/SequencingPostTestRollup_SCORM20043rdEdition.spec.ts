@@ -1,20 +1,13 @@
 import { expect, test } from "@playwright/test";
 import {
-  CommitRequestTracker,
-  setupCommitMocking,
-  configureApiForHttpCommits,
-  waitForModuleFrame,
-  verifyApiAccessibleFromModule,
-  getCmiValue,
-  getWrapperConfigs,
-  completeContentSCO,
-  completeAssessmentSCO,
-  initializeSequencedModule,
-  getNavigationValidity,
   clickSequencingButton,
+  completeAssessmentSCO,
+  completeContentSCO,
+  getNavigationValidity,
+  getWrapperConfigs,
+  initializeSequencedModule,
+  waitForModuleFrame,
   waitForScoContent,
-  getModuleFramePath,
-  advanceScoPages,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";

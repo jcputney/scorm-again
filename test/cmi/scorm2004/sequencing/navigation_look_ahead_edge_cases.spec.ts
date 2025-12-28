@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { NavigationLookAhead } from "../../../../src/cmi/scorm2004/sequencing/navigation_look_ahead";
+import {
+  NavigationLookAhead
+} from "../../../../src/cmi/scorm2004/sequencing/navigation_look_ahead";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { SequencingRules } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";

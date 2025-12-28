@@ -323,7 +323,7 @@ describe("SCORM 2004 Objectives Classes", () => {
           completion_status: "completed",
           progress_measure: "0.8",
           description: "Test description",
-          score: objective.score,
+          score: objective.score
         });
       });
     });
@@ -341,8 +341,8 @@ describe("SCORM 2004 Objectives Classes", () => {
             scaled: "0.5",
             raw: "50",
             min: "0",
-            max: "100",
-          },
+            max: "100"
+          }
         };
 
         objective.fromJSON(data);
@@ -361,7 +361,7 @@ describe("SCORM 2004 Objectives Classes", () => {
       it("should handle missing properties gracefully", () => {
         const objective = new CMIObjectivesObject();
         const data = {
-          id: "partial_id",
+          id: "partial_id"
         };
 
         expect(() => {

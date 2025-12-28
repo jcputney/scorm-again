@@ -1,5 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { RuleCondition, RuleConditionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import { describe, expect, it } from "vitest";
+import {
+  RuleCondition,
+  RuleConditionType
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 
 /**

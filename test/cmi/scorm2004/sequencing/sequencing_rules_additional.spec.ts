@@ -5,7 +5,7 @@ import {
   RuleCondition,
   RuleConditionOperator,
   RuleConditionType,
-  SequencingRule,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { CompletionStatus } from "../../../../src/constants/enums";
@@ -40,7 +40,7 @@ describe("Additional SequencingRules Tests", () => {
         const condition = new RuleCondition(
           RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
           null,
-          parameters,
+          parameters
         );
         const activity = new Activity();
 

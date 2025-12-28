@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-  SequencingProcess,
-  SequencingRequestType,
   DeliveryRequestType,
+  SequencingProcess,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
-  SequencingRule,
-  RuleCondition,
   RuleActionType,
+  RuleCondition,
   RuleConditionType,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 /**
@@ -348,7 +348,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Add DISABLED rule to lesson3
       const disabledCondition = new RuleCondition(RuleConditionType.ALWAYS);
       const disabledRule = new SequencingRule(RuleActionType.DISABLED, [
-        disabledCondition,
+        disabledCondition
       ]);
       lesson3.sequencingRules.preConditionRules.push(disabledRule);
 

@@ -1,12 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { RuleEvaluationEngine } from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
-import { SequencingRequestType } from "../../../../../src/cmi/scorm2004/sequencing/rules/sequencing_request_types";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  RuleEvaluationEngine
+} from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
+import {
+  SequencingRequestType
+} from "../../../../../src/cmi/scorm2004/sequencing/rules/sequencing_request_types";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import {
-  SequencingRule,
   RuleActionType,
   RuleCondition,
-  RuleConditionType
+  RuleConditionType,
+  SequencingRule
 } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("RuleEvaluationEngine", () => {
@@ -330,7 +334,9 @@ describe("RuleEvaluationEngine", () => {
 
     it("should return 0 when hook throws error", () => {
       const engineWithBadHook = new RuleEvaluationEngine({
-        getAttemptElapsedSecondsHook: () => { throw new Error("oops"); }
+        getAttemptElapsedSecondsHook: () => {
+          throw new Error("oops");
+        }
       });
 
       expect(engineWithBadHook.getElapsedSeconds(activity)).toBe(0);

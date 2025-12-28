@@ -205,14 +205,14 @@
     });
 
     const crossFrameServer = createCrossFrameServer(
-      "2004",
-      {
-        ...apiOptions,
-        sequencing: sequencingDefaults,
-      },
-      {
-        cmi: initialCmi,
-      },
+        "2004",
+        {
+          ...apiOptions,
+          sequencing: sequencingDefaults,
+        },
+        {
+          cmi: initialCmi,
+        },
     );
 
     function loadModule(modulePath) {

@@ -1,18 +1,17 @@
 import { expect, test } from "@playwright/test";
 import {
   CommitRequestTracker,
-  setupCommitMocking,
-  configureApiForHttpCommits,
-  waitForModuleFrame,
-  verifyApiAccessibleFromModule,
+  completeAssessmentSCO,
+  completeContentSCO,
+  ensureApiInitialized,
+  exitScorm2004Course,
   getCmiValue,
   getWrapperConfigs,
-  ensureApiInitialized,
   injectQuizFunctions,
-  completeContentSCO,
-  completeAssessmentSCO,
-  exitScorm2004Course,
+  setupCommitMocking,
+  verifyApiAccessibleFromModule,
 } from "./helpers/scorm2004-helpers";
+import { configureWrapper, waitForPageReady } from "./helpers/scorm-common-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
 
@@ -69,7 +68,7 @@ wrappers.forEach((wrapper) => {
 
     test("should initialize API and load launchpage", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -88,7 +87,7 @@ wrappers.forEach((wrapper) => {
 
     test("should track cmi.location (bookmarking) during navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -119,7 +118,7 @@ wrappers.forEach((wrapper) => {
 
     test("should handle bookmark restoration on resume", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -150,7 +149,7 @@ wrappers.forEach((wrapper) => {
 
       // Reload the page to simulate a resume
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
@@ -165,7 +164,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -226,7 +225,7 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to the module
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -262,7 +261,7 @@ wrappers.forEach((wrapper) => {
 
     test("should track total_time and treat session_time as write-only", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -295,7 +294,7 @@ wrappers.forEach((wrapper) => {
 
     test("should handle previous/next navigation buttons", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -344,7 +343,7 @@ wrappers.forEach((wrapper) => {
 
     test("should exit via UI without breaking API availability", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
@@ -363,14 +362,22 @@ wrappers.forEach((wrapper) => {
       // Setup route interception before navigating
       await setupCommitMocking(page, tracker, { success: true });
 
+      // Configure API with commit URL at initialization time
+      // Use async commits so the API uses fetch() which Playwright can intercept in all browsers
+      // (sync XHR is not interceptable in webkit due to Playwright bug #22812)
+      await configureWrapper(page, {
+        apiOptions: {
+          lmsCommitUrl: "http://localhost:3000/api/commit",
+          useAsynchronousCommits: true,
+        },
+      });
+
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 
       await injectQuizFunctions(page);
-
-      await configureApiForHttpCommits(page);
 
       // Wait for launchpage to initialize
       await page.waitForTimeout(2000);
@@ -389,7 +396,7 @@ wrappers.forEach((wrapper) => {
 
     test("should handle all content sections navigation", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       await ensureApiInitialized(page);
 

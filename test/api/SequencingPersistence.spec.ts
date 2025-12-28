@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import Scorm2004API from "../../src/Scorm2004API";
-import { Settings, SequencingStateMetadata } from "../../src/types/api_types";
+import { SequencingStateMetadata, Settings } from "../../src/types/api_types";
 import { SelectionRandomization } from "../../src/cmi/scorm2004/sequencing/selection_randomization";
 import {
   RandomizationTiming,

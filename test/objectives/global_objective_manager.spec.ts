@@ -1,10 +1,10 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  GlobalObjectiveManager,
   GlobalObjectiveContext,
+  GlobalObjectiveManager,
 } from "../../src/objectives/global_objective_manager";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
-import { SuccessStatus, CompletionStatus } from "../../src/constants/enums";
+import { CompletionStatus, SuccessStatus } from "../../src/constants/enums";
 import { GlobalObjectiveMapEntry, Settings } from "../../src/types/api_types";
 import { SequencingService } from "../../src/services/SequencingService";
 import { OverallSequencingProcess } from "../../src/cmi/scorm2004/sequencing/overall_sequencing_process";

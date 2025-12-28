@@ -1,16 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 import {
-  CommitRequestTracker,
-  setupCommitMocking,
-  configureApiForHttpCommits,
-  waitForModuleFrame,
-  verifyApiAccessibleFromModule,
-  getCmiValue,
-  setCmiValue,
-  getWrapperConfigs,
-  ensureApiInitialized,
-  completeContentSCO,
   completeAssessmentSCO,
+  ensureApiInitialized,
+  getCmiValue,
+  getWrapperConfigs,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
@@ -411,7 +405,7 @@ wrappers.forEach((wrapper) => {
 
     test("should initialize API with sequencing configuration", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration after page loads
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -476,7 +470,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -528,7 +522,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -578,7 +572,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -657,7 +651,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -697,7 +691,7 @@ wrappers.forEach((wrapper) => {
      */
     test("should support progress measure rollup per SCORM 2004 4th Edition", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -755,7 +749,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -810,7 +804,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -866,7 +860,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -903,7 +897,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -993,7 +987,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1049,7 +1043,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1121,7 +1115,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1177,7 +1171,7 @@ wrappers.forEach((wrapper) => {
      */
     test("should support shared data buckets per SCORM 2004 4th Edition", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1226,7 +1220,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1270,7 +1264,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1339,7 +1333,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1398,7 +1392,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1509,7 +1503,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1617,7 +1611,7 @@ wrappers.forEach((wrapper) => {
       const assessmentPath =
         "/test/integration/modules/SequencingPostTestRollup4thEd_SCORM20044thEdition/shared/launchpage.html?content=assessment";
       await page.goto(`${wrapper.path}?module=${assessmentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1658,7 +1652,7 @@ wrappers.forEach((wrapper) => {
       const assessmentPath =
         "/test/integration/modules/SequencingPostTestRollup4thEd_SCORM20044thEdition/shared/launchpage.html?content=assessment";
       await page.goto(`${wrapper.path}?module=${assessmentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);

@@ -1,14 +1,14 @@
-import {beforeEach, describe, expect, it} from "vitest";
-import {Activity, ActivityObjective} from "../../../../src/cmi/scorm2004/sequencing/activity";
-import {SequencingControls} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { beforeEach, describe, expect, it } from "vitest";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {ADLNav} from "../../../../src/cmi/scorm2004/adl";
-import {SequencingRules} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
+import { SequencingRules } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Auto-Completion and Auto-Satisfaction Logic", () => {
   let activityTree: ActivityTree;
@@ -24,7 +24,7 @@ describe("Auto-Completion and Auto-Satisfaction Logic", () => {
     leafActivity = new Activity("leaf1", "Leaf Activity 1");
 
     // Create primary objective for leaf activity
-    const primaryObjective = new ActivityObjective("obj1", {isPrimary: true});
+    const primaryObjective = new ActivityObjective("obj1", { isPrimary: true });
     leafActivity.primaryObjective = primaryObjective;
 
     root.addChild(leafActivity);
@@ -38,19 +38,19 @@ describe("Auto-Completion and Auto-Satisfaction Logic", () => {
     adlNav = new ADLNav();
 
     sequencingProcess = new SequencingProcess(
-        activityTree,
-        sequencingRules,
-        sequencingControls,
-        adlNav
+      activityTree,
+      sequencingRules,
+      sequencingControls,
+      adlNav
     );
 
     rollupProcess = new RollupProcess();
 
     overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav
+      activityTree,
+      sequencingProcess,
+      rollupProcess,
+      adlNav
     );
   });
 
@@ -232,7 +232,7 @@ describe("Auto-Completion and Auto-Satisfaction Logic", () => {
       root.isActive = true;
 
       // Create primary objective for root
-      const primaryObjective = new ActivityObjective("rootObj", {isPrimary: true});
+      const primaryObjective = new ActivityObjective("rootObj", { isPrimary: true });
       root.primaryObjective = primaryObjective;
       primaryObjective.progressStatus = false;
 

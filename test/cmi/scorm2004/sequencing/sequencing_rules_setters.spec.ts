@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   RuleActionType,
-  SequencingRule,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Sequencing Rules Setters", () => {

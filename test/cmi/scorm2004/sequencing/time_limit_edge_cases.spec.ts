@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   SequencingProcess,
-  SequencingRequestType,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import {
-  SequencingRule,
-  RuleCondition,
   RuleActionType,
+  RuleCondition,
   RuleConditionType,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Time Limit Edge Cases (UP.1)", () => {
@@ -65,7 +65,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Test: Condition should be false, activity should be deliverable
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Activity should be deliverable (not skipped)
@@ -91,7 +91,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Exactly at limit should NOT exceed (need to be strictly greater)
@@ -117,7 +117,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (limit exceeded)
@@ -143,7 +143,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (0.6s > 0.5s)
@@ -170,7 +170,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (6s > 5s using fallback limit)
@@ -197,7 +197,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (hook returns 15s > 10s limit)
@@ -225,7 +225,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped using timestamp fallback (12s > 10s)
@@ -255,7 +255,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped using timestamp fallback (12s > 10s)
@@ -276,7 +276,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
 
       // Should not throw, should return deliverable
       expect(() =>
-        sequencingProcess.sequencingRequestProcess(SequencingRequestType.CHOICE, "test"),
+        sequencingProcess.sequencingRequestProcess(SequencingRequestType.CHOICE, "test")
       ).not.toThrow();
     });
 
@@ -291,7 +291,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be deliverable (invalid limit = no limit = false condition)
@@ -311,14 +311,14 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule on outside time range
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (before begin time)
@@ -336,14 +336,14 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (after end time)
@@ -365,13 +365,13 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be deliverable (within range)
@@ -389,14 +389,14 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (before begin time)
@@ -413,14 +413,14 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (11:00 UTC < 12:00 UTC)
@@ -437,14 +437,14 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (15:00 UTC > 14:00 UTC)
@@ -463,14 +463,14 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (before begin)
@@ -489,13 +489,13 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be deliverable (after begin, no end limit)
@@ -516,13 +516,13 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be deliverable (before end, no begin limit)
@@ -541,14 +541,14 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (after end)
@@ -563,13 +563,13 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be deliverable (no limits = always inside range)
@@ -583,7 +583,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
       rule.addCondition(
-        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE),
+        new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE)
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
@@ -591,7 +591,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
 
       // Should not throw, should treat as no limit
       expect(() =>
-        sequencingProcess.sequencingRequestProcess(SequencingRequestType.CHOICE, "test"),
+        sequencingProcess.sequencingRequestProcess(SequencingRequestType.CHOICE, "test")
       ).not.toThrow();
     });
   });
@@ -617,7 +617,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should handle complex duration (implementation detail: approximate conversions used)
@@ -643,7 +643,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (15 days > 14 days)
@@ -668,7 +668,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be skipped (2s > 1.5s)
@@ -686,7 +686,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be deliverable (invalid duration treated as no limit)
@@ -704,7 +704,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test",
+        "test"
       );
 
       // Should be deliverable (invalid duration treated as no limit)

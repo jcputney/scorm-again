@@ -9,16 +9,16 @@
  * - 4th Edition specific behavior
  */
 
-import {beforeEach, describe, expect, it} from "vitest";
-import {Activity, ActivityObjective} from "../../../../src/cmi/scorm2004/sequencing/activity";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { beforeEach, describe, expect, it } from "vitest";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   CMIDataForTransfer,
   OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {CompletionStatus} from "../../../../src/constants/enums";
+import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import { CompletionStatus } from "../../../../src/constants/enums";
 
 describe("RTE Data Transfer", () => {
   let activityTree: ActivityTree;
@@ -57,9 +57,9 @@ describe("RTE Data Transfer", () => {
     // Create sequencing processes
     rollupProcess = new RollupProcess();
     sequencingProcess = new SequencingProcess(
-        activityTree,
-        rootActivity.sequencingRules,
-        rootActivity.sequencingControls
+      activityTree,
+      rootActivity.sequencingRules,
+      rootActivity.sequencingControls
     );
   });
 
@@ -67,24 +67,24 @@ describe("RTE Data Transfer", () => {
     it("should transfer completion status from CMI to activity", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "completed",
-        success_status: "unknown",
+        success_status: "unknown"
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       // Trigger data transfer via endAttemptProcess (internal method tested via navigation)
       const navResult = overallSequencingProcess.processNavigationRequest(
-          "exit" as any,
-          null
+        "exit" as any,
+        null
       );
 
       expect(leafActivity.completionStatus).toBe(CompletionStatus.COMPLETED);
@@ -94,18 +94,18 @@ describe("RTE Data Transfer", () => {
     it("should transfer success status from CMI to activity", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
-        success_status: "passed",
+        success_status: "passed"
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -121,19 +121,19 @@ describe("RTE Data Transfer", () => {
         completion_status: "unknown",
         success_status: "unknown",
         score: {
-          scaled: "0.85",
-        },
+          scaled: "0.85"
+        }
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -148,18 +148,18 @@ describe("RTE Data Transfer", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
-        progress_measure: "0.75",
+        progress_measure: "0.75"
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -174,8 +174,8 @@ describe("RTE Data Transfer", () => {
   describe("Non-Primary Objective Data Transfer", () => {
     it("should transfer multiple objective data by ID matching", () => {
       // Add additional objectives to activity
-      const objective1 = new ActivityObjective("obj1", {isPrimary: false});
-      const objective2 = new ActivityObjective("obj2", {isPrimary: false});
+      const objective1 = new ActivityObjective("obj1", { isPrimary: false });
+      const objective2 = new ActivityObjective("obj2", { isPrimary: false });
       leafActivity.addObjective(objective1);
       leafActivity.addObjective(objective2);
 
@@ -187,26 +187,26 @@ describe("RTE Data Transfer", () => {
             id: "obj1",
             success_status: "passed",
             completion_status: "completed",
-            score: {scaled: "0.9"},
+            score: { scaled: "0.9" }
           },
           {
             id: "obj2",
             success_status: "failed",
             completion_status: "incomplete",
-            score: {scaled: "0.4"},
-          },
-        ],
+            score: { scaled: "0.4" }
+          }
+        ]
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -237,20 +237,20 @@ describe("RTE Data Transfer", () => {
         objectives: [
           {
             id: "non_existent",
-            success_status: "passed",
-          },
-        ],
+            success_status: "passed"
+          }
+        ]
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       // Should not throw error
@@ -267,20 +267,20 @@ describe("RTE Data Transfer", () => {
         objectives: [
           {
             id: "primary_obj",
-            success_status: "failed", // Try to override via objectives
-          },
-        ],
+            success_status: "failed" // Try to override via objectives
+          }
+        ]
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -300,19 +300,19 @@ describe("RTE Data Transfer", () => {
           scaled: "0.85",
           raw: "50",
           min: "0",
-          max: "100",
-        },
+          max: "100"
+        }
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -328,19 +328,19 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "75",
           min: "0",
-          max: "100",
-        },
+          max: "100"
+        }
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -357,19 +357,19 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "50",
           min: "20",
-          max: "80",
-        },
+          max: "80"
+        }
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -385,19 +385,19 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "150",
           min: "0",
-          max: "100",
-        },
+          max: "100"
+        }
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -413,19 +413,19 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "50",
           min: "50",
-          max: "50",
-        },
+          max: "50"
+        }
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -435,7 +435,7 @@ describe("RTE Data Transfer", () => {
     });
 
     it("should normalize scores for non-primary objectives", () => {
-      const objective1 = new ActivityObjective("obj1", {isPrimary: false});
+      const objective1 = new ActivityObjective("obj1", { isPrimary: false });
       leafActivity.addObjective(objective1);
 
       const cmiData: CMIDataForTransfer = {
@@ -447,21 +447,21 @@ describe("RTE Data Transfer", () => {
             score: {
               raw: "80",
               min: "0",
-              max: "100",
-            },
-          },
-        ],
+              max: "100"
+            }
+          }
+        ]
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -478,7 +478,7 @@ describe("RTE Data Transfer", () => {
       // The current implementation transfers all non-unknown values
       // More sophisticated change tracking could be added in the future
 
-      const objective1 = new ActivityObjective("global_obj", {isPrimary: false});
+      const objective1 = new ActivityObjective("global_obj", { isPrimary: false });
       objective1.satisfiedStatus = true; // Pre-existing global objective status
       leafActivity.addObjective(objective1);
 
@@ -488,20 +488,20 @@ describe("RTE Data Transfer", () => {
         objectives: [
           {
             id: "global_obj",
-            success_status: "unknown", // Unchanged/unknown should not overwrite
-          },
-        ],
+            success_status: "unknown" // Unchanged/unknown should not overwrite
+          }
+        ]
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -519,18 +519,18 @@ describe("RTE Data Transfer", () => {
 
       const cmiData: CMIDataForTransfer = {
         completion_status: "incomplete", // Content set incomplete
-        success_status: "unknown",
+        success_status: "unknown"
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -546,18 +546,18 @@ describe("RTE Data Transfer", () => {
 
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown", // Content didn't set
-        success_status: "unknown",
+        success_status: "unknown"
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -571,14 +571,14 @@ describe("RTE Data Transfer", () => {
   describe("No CMI Data Provider", () => {
     it("should handle missing getCMIData callback gracefully", () => {
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            // No getCMIData callback provided
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          // No getCMIData callback provided
+        }
       );
 
       // Should not throw error
@@ -593,18 +593,18 @@ describe("RTE Data Transfer", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
-        score: {}, // Empty score
+        score: {} // Empty score
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       expect(() => {
@@ -616,18 +616,18 @@ describe("RTE Data Transfer", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
-        objectives: [],
+        objectives: []
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       expect(() => {
@@ -642,20 +642,20 @@ describe("RTE Data Transfer", () => {
         objectives: [
           {
             id: "", // Missing ID
-            success_status: "passed",
-          },
-        ],
+            success_status: "passed"
+          }
+        ]
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       expect(() => {
@@ -671,20 +671,20 @@ describe("RTE Data Transfer", () => {
           scaled: "not-a-number",
           raw: "invalid",
           min: "bad",
-          max: "worse",
+          max: "worse"
         },
-        progress_measure: "NaN",
+        progress_measure: "NaN"
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-          activityTree,
-          sequencingProcess,
-          rollupProcess,
-          null,
-          null,
-          {
-            getCMIData: () => cmiData
-          }
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData
+        }
       );
 
       expect(() => {
@@ -699,7 +699,7 @@ describe("RTE Data Transfer", () => {
 
   describe("ActivityObjective initializeFromCMI method", () => {
     it("should mark satisfiedStatus as dirty even when set to default value (false)", () => {
-      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+      const objective = new ActivityObjective("test_obj", { isPrimary: false });
 
       // Initially not dirty
       expect(objective.isDirty("satisfiedStatus")).toBe(false);
@@ -714,7 +714,7 @@ describe("RTE Data Transfer", () => {
     });
 
     it("should mark normalizedMeasure as dirty even when set to default value (0)", () => {
-      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+      const objective = new ActivityObjective("test_obj", { isPrimary: false });
 
       // Initially not dirty
       expect(objective.isDirty("normalizedMeasure")).toBe(false);
@@ -729,7 +729,7 @@ describe("RTE Data Transfer", () => {
     });
 
     it("should set measureStatus from parameter", () => {
-      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+      const objective = new ActivityObjective("test_obj", { isPrimary: false });
 
       expect(objective.measureStatus).toBe(false);
 
@@ -739,7 +739,7 @@ describe("RTE Data Transfer", () => {
     });
 
     it("should set both satisfiedStatus and normalizedMeasure together", () => {
-      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+      const objective = new ActivityObjective("test_obj", { isPrimary: false });
 
       objective.initializeFromCMI(true, 0.75, true);
 
@@ -751,7 +751,7 @@ describe("RTE Data Transfer", () => {
     });
 
     it("should set measureStatus to false when parameter is false", () => {
-      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+      const objective = new ActivityObjective("test_obj", { isPrimary: false });
       objective.initializeFromCMI(true, 0.8, true);
       expect(objective.measureStatus).toBe(true);
 

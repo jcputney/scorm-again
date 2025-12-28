@@ -2,7 +2,6 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { Settings } from "../../src/types/api_types";
-import { ADLNav } from "../../src";
 
 const api = (settings?: Settings): Scorm2004API => {
   return new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });

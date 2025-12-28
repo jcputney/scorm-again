@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeEach } from "vitest";
-import { ADL, ADLData, ADLDataObject } from "../../../src/cmi/scorm2004/adl";
+import { beforeEach, describe, expect, it } from "vitest";
+import { ADLDataObject } from "../../../src/cmi/scorm2004/adl";
 import Scorm2004API from "../../../src/Scorm2004API";
 import { scorm2004_errors } from "../../../src/constants/error_codes";
 import { LogLevelEnum } from "../../../src/constants/enums";

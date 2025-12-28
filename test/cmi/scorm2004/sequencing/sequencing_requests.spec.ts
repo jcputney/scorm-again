@@ -1,16 +1,16 @@
-import {beforeEach, describe, expect, it} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
@@ -231,8 +231,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       activityTree.currentActivity = null;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "lesson2_1"
+        SequencingRequestType.CHOICE,
+        "lesson2_1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -241,8 +241,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
     it("should fail if target doesn't exist (SB.2.9-1)", () => {
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "nonexistent"
+        SequencingRequestType.CHOICE,
+        "nonexistent"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -253,8 +253,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       const orphan = new Activity("orphan", "Orphan");
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "orphan"
+        SequencingRequestType.CHOICE,
+        "orphan"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -263,8 +263,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
     it("should fail if choosing root (SB.2.9-3)", () => {
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "root"
+        SequencingRequestType.CHOICE,
+        "root"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -275,8 +275,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       lesson2_1.isHiddenFromChoice = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "lesson2_1"
+        SequencingRequestType.CHOICE,
+        "lesson2_1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -287,8 +287,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       module2.sequencingControls.choice = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "lesson2_1"
+        SequencingRequestType.CHOICE,
+        "lesson2_1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -300,8 +300,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       lesson1_1.isActive = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "lesson2_1"
+        SequencingRequestType.CHOICE,
+        "lesson2_1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -310,8 +310,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
     it("should flow from cluster to leaf (SB.2.9-7)", () => {
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "module2"
+        SequencingRequestType.CHOICE,
+        "module2"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -324,8 +324,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       module2.attemptCount = 1;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "lesson2_1"
+        SequencingRequestType.CHOICE,
+        "lesson2_1"
       );
 
       // Should fail activity check
@@ -339,8 +339,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       lesson1_2.isActive = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "lesson2_1"
+        SequencingRequestType.CHOICE,
+        "lesson2_1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -505,8 +505,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
   describe("Choice Flow Subprocesses", () => {
     it("should use choice flow subprocess for clusters", () => {
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "module1"
+        SequencingRequestType.CHOICE,
+        "module1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -517,8 +517,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       module1.sequencingControls.constrainChoice = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "module1"
+        SequencingRequestType.CHOICE,
+        "module1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -530,8 +530,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       lesson1_1.isHiddenFromChoice = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "module1"
+        SequencingRequestType.CHOICE,
+        "module1"
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);

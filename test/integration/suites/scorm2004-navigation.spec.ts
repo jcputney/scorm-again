@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "../helpers/scorm-common-helpers";
 import { ensureApiInitialized } from "../helpers/scorm2004-helpers";
 
 export type WrapperConfig = {
@@ -24,7 +25,7 @@ export function scorm2004NavigationTests(
   // Tests are added to the current describe block context
   test("should handle navigation requests", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -71,7 +72,7 @@ export function scorm2004NavigationTests(
 
   test("should handle all navigation request types", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -130,7 +131,7 @@ export function scorm2004NavigationTests(
 
   test("should handle navigation button state", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -170,7 +171,7 @@ export function scorm2004NavigationTests(
 
   test("should handle Abandon and Suspend All buttons", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -208,7 +209,7 @@ export function scorm2004NavigationTests(
 
   test("should handle hidden navigation buttons", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);

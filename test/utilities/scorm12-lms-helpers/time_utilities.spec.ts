@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  parseScormTime,
-  formatScormTime,
   addScormTime,
   compareScormTime,
-  hasExceededTimeLimit,
   formatHumanReadable,
-  scormTimeToHumanReadable,
+  formatScormTime,
+  hasExceededTimeLimit,
+  parseScormTime,
+  scormTimeToHumanReadable
 } from "../../../src/utilities/scorm12-lms-helpers/time_utilities";
 
 describe("SCORM 1.2 Time Utilities", () => {
@@ -91,7 +91,7 @@ describe("SCORM 1.2 Time Utilities", () => {
 
     it("should return positive when first is larger", () => {
       expect(compareScormTime("0001:00:00.00", "0000:30:00.00")).toBeGreaterThan(
-        0,
+        0
       );
     });
 

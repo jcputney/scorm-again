@@ -138,13 +138,14 @@ jobs:
           retention-days: 1
 
   integration-tests:
-    name: Integration Tests (Shard ${{ matrix.shard }}/${{ strategy.job-total }})
+    name: Integration (${{ matrix.browser }}, Shard ${{ matrix.shard }}/4)
     needs: build-and-unit
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        browser: [chromium, firefox]
         shard: [ 1, 2, 3, 4 ]
     steps:
       - name: Checkout code
@@ -170,37 +171,37 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Install Playwright browsers
+      - name: Install Playwright browser
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Install Playwright deps only
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps
+        run: npx playwright install-deps ${{ matrix.browser }}
 
       - name: Create coverage directories
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: mkdir -p coverage/e2e/shard-${{ matrix.shard }}
 
-      - name: Run integration tests (shard ${{ matrix.shard }}/4)
+      - name: Run integration tests (${{ matrix.browser }}, shard ${{ matrix.shard }}/4)
         env:
-          COVERAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && 'true' || 'false' }}
+          COVERAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.browser == 'chromium' && 'true' || 'false' }}
           SHARD_INDEX: ${{ matrix.shard }}
-        run: npx playwright test --project=chromium --shard=${{ matrix.shard }}/4
+        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/4
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-results-shard-${{ matrix.shard }}
+          name: playwright-results-${{ matrix.browser }}-shard-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
           if-no-files-found: ignore
 
       - name: Upload coverage artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.browser == 'chromium'
         uses: actions/upload-artifact@v6
         with:
           name: coverage-shard-${{ matrix.shard }}

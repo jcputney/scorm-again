@@ -1,4 +1,4 @@
-import { ValidationError } from "../exceptions";
+import { ValidationError } from "./base_exceptions";
 import { scorm2004_constants } from "../constants/api_constants";
 
 const scorm2004_errors = scorm2004_constants.error_descriptions;

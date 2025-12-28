@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { NavigationLookAhead } from "../../../../src/cmi/scorm2004/sequencing/navigation_look_ahead";
-import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import {
+  NavigationLookAhead
+} from "../../../../src/cmi/scorm2004/sequencing/navigation_look_ahead";
 
 describe("NavigationLookAhead", () => {
   let activityTree: ActivityTree;

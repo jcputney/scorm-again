@@ -1,12 +1,12 @@
-import {beforeEach, describe, expect, it} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess,
+  OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {SequencingProcess,} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
   RuleCondition,
@@ -58,9 +58,9 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
     rollupProcess = new RollupProcess();
 
     overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess
+      activityTree,
+      sequencingProcess,
+      rollupProcess
     );
   });
 
@@ -68,7 +68,7 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
     it("should properly deactivate old current activity when bypassing setter at line 674", () => {
       // Set up activity with post-condition that will NOT trigger
       const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-          new SequencingRule(RuleActionType.CONTINUE);
+        new SequencingRule(RuleActionType.CONTINUE);
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;

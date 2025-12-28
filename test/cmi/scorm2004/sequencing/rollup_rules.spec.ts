@@ -7,7 +7,7 @@ import {
   RollupConditionType,
   RollupConsiderationType,
   RollupRule,
-  RollupRules,
+  RollupRules
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
@@ -26,7 +26,7 @@ describe("RollupRules", () => {
         const parameters = new Map([["threshold", 0.8]]);
         const condition = new RollupCondition(
           RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
-          parameters,
+          parameters
         );
         expect(condition.condition).toBe(RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN);
         expect(condition.parameters).toBe(parameters);
@@ -64,7 +64,7 @@ describe("RollupRules", () => {
         const parameters = new Map([["threshold", 0.5]]);
         const condition = new RollupCondition(
           RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
-          parameters,
+          parameters
         );
         const activity = new Activity();
 
@@ -127,14 +127,14 @@ describe("RollupRules", () => {
         const parameters = new Map([["threshold", 0.8]]);
         const condition = new RollupCondition(
           RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
-          parameters,
+          parameters
         );
 
         const result = condition.toJSON();
 
         expect(result).toHaveProperty(
           "condition",
-          RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
+          RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN
         );
         expect(result).toHaveProperty("parameters");
         expect((result as any).parameters).toEqual({ threshold: 0.8 });
@@ -158,7 +158,7 @@ describe("RollupRules", () => {
           RollupActionType.NOT_SATISFIED,
           RollupConsiderationType.AT_LEAST_COUNT,
           2,
-          0,
+          0
         );
         expect(rule.action).toBe(RollupActionType.NOT_SATISFIED);
         expect(rule.consideration).toBe(RollupConsiderationType.AT_LEAST_COUNT);
@@ -322,7 +322,7 @@ describe("RollupRules", () => {
           RollupActionType.SATISFIED,
           RollupConsiderationType.AT_LEAST_COUNT,
           2,
-          0,
+          0
         );
         const condition = new RollupCondition(RollupConditionType.COMPLETED);
         rule.addCondition(condition);
@@ -361,7 +361,7 @@ describe("RollupRules", () => {
           RollupActionType.SATISFIED,
           RollupConsiderationType.AT_LEAST_PERCENT,
           0,
-          60,
+          60
         );
         const condition = new RollupCondition(RollupConditionType.COMPLETED);
         rule.addCondition(condition);
@@ -412,7 +412,7 @@ describe("RollupRules", () => {
           RollupActionType.NOT_SATISFIED,
           RollupConsiderationType.AT_LEAST_COUNT,
           2,
-          0,
+          0
         );
         const condition = new RollupCondition(RollupConditionType.COMPLETED);
 
@@ -526,7 +526,7 @@ describe("RollupRules", () => {
         // Add a rule for completion
         const completionRule = new RollupRule(
           RollupActionType.COMPLETED,
-          RollupConsiderationType.ALL,
+          RollupConsiderationType.ALL
         );
         const completionCondition = new RollupCondition(RollupConditionType.COMPLETED);
         completionRule.addCondition(completionCondition);

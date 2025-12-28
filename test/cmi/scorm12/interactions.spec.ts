@@ -1,9 +1,9 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   CMIInteractions,
-  CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
   CMIInteractionsCorrectResponsesObject,
+  CMIInteractionsObject,
+  CMIInteractionsObjectivesObject
 } from "../../../src/cmi/scorm12/interactions";
 import { Scorm12ValidationError } from "../../../src/exceptions/scorm12_exceptions";
 import { scorm12_errors } from "../../../src/constants/error_codes";
@@ -79,8 +79,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.id",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
     });
@@ -102,8 +102,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.time",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
     });
@@ -118,7 +118,7 @@ describe("SCORM 1.2 Interactions Tests", () => {
           "performance",
           "sequencing",
           "likert",
-          "numeric",
+          "numeric"
         ];
 
         validTypes.forEach((type) => {
@@ -137,8 +137,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.type",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
     });
@@ -160,8 +160,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.weighting",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
     });
@@ -183,8 +183,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.student_response",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
     });
@@ -209,8 +209,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.result",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
     });
@@ -232,8 +232,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.latency",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
     });
@@ -293,7 +293,7 @@ describe("SCORM 1.2 Interactions Tests", () => {
           result: "correct",
           latency: "00:00:10",
           objectives: interaction.objectives,
-          correct_responses: interaction.correct_responses,
+          correct_responses: interaction.correct_responses
         });
       });
     });
@@ -332,8 +332,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.correct_responses.n.pattern",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
 
@@ -376,7 +376,7 @@ describe("SCORM 1.2 Interactions Tests", () => {
         const json = correctResponse.toJSON();
 
         expect(json).toEqual({
-          pattern: "my-pattern",
+          pattern: "my-pattern"
         });
       });
     });
@@ -391,7 +391,7 @@ describe("SCORM 1.2 Interactions Tests", () => {
         objective.id = "objective-1";
 
         // Verify via JSON serialization
-        expect(JSON.stringify(objective)).toContain('"id":"objective-1"');
+        expect(JSON.stringify(objective)).toContain("\"id\":\"objective-1\"");
       });
 
       it("should throw WRITE_ONLY_ELEMENT (404) error when attempting to read id directly", () => {
@@ -405,8 +405,8 @@ describe("SCORM 1.2 Interactions Tests", () => {
         }).toThrow(
           new Scorm12ValidationError(
             "cmi.interactions.n.objectives.n.id",
-            scorm12_errors.WRITE_ONLY_ELEMENT as number,
-          ),
+            scorm12_errors.WRITE_ONLY_ELEMENT as number
+          )
         );
       });
 
@@ -424,7 +424,7 @@ describe("SCORM 1.2 Interactions Tests", () => {
 
         // Valid identifier should work
         objective.id = "valid-id_123";
-        expect(JSON.stringify(objective)).toContain('"id":"valid-id_123"');
+        expect(JSON.stringify(objective)).toContain("\"id\":\"valid-id_123\"");
 
         // Invalid format should throw (if validation is implemented)
         // Note: This depends on check12ValidFormat implementation

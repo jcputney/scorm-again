@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-  SequencingProcess,
-  SequencingRequestType,
   DeliveryRequestType,
+  SequencingProcess,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
-  SequencingRule,
-  RuleCondition,
   RuleActionType,
+  RuleCondition,
   RuleConditionType,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 /**
@@ -228,7 +228,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       const condition2 = new RuleCondition(RuleConditionType.COMPLETED);
       const rule = new SequencingRule(RuleActionType.DISABLED, [
         condition1,
-        condition2,
+        condition2
       ]);
       // Default combination mode is "all"
       lesson3.sequencingRules.preConditionRules.push(rule);
@@ -256,7 +256,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       const condition2 = new RuleCondition(RuleConditionType.COMPLETED);
       const rule = new SequencingRule(RuleActionType.DISABLED, [
         condition1,
-        condition2,
+        condition2
       ]);
       lesson3.sequencingRules.preConditionRules.push(rule);
 

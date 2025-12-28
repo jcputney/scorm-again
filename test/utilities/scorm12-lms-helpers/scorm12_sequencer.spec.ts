@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Scorm12Sequencer } from "../../../src/utilities/scorm12-lms-helpers/scorm12_sequencer";
 import { ScoStateTracker } from "../../../src/utilities/scorm12-lms-helpers/sco_state_tracker";
 import { ScoDefinition } from "../../../src/utilities/scorm12-lms-helpers/types";
@@ -16,21 +16,21 @@ describe("Scorm12Sequencer", () => {
         id: "intro",
         title: "Introduction",
         launchUrl: "intro/index.html",
-        sequenceIndex: 0,
+        sequenceIndex: 0
       },
       {
         id: "module1",
         title: "Module 1",
         launchUrl: "module1/index.html",
         masteryScore: 80,
-        sequenceIndex: 1,
+        sequenceIndex: 1
       },
       {
         id: "module2",
         title: "Module 2",
         launchUrl: "module2/index.html",
         masteryScore: 80,
-        sequenceIndex: 2,
+        sequenceIndex: 2
       },
       {
         id: "assessment",
@@ -39,8 +39,8 @@ describe("Scorm12Sequencer", () => {
         masteryScore: 70,
         maxTimeAllowed: "0001:00:00.00",
         timeLimitAction: "exit,message",
-        sequenceIndex: 3,
-      },
+        sequenceIndex: 3
+      }
     ];
 
     sequencer = new Scorm12Sequencer(scoDefinitions, tracker);
@@ -56,7 +56,7 @@ describe("Scorm12Sequencer", () => {
       const unorderedDefs: ScoDefinition[] = [
         { id: "b", title: "B", launchUrl: "b.html", sequenceIndex: 2 },
         { id: "a", title: "A", launchUrl: "a.html", sequenceIndex: 0 },
-        { id: "c", title: "C", launchUrl: "c.html", sequenceIndex: 1 },
+        { id: "c", title: "C", launchUrl: "c.html", sequenceIndex: 1 }
       ];
 
       const seq = new Scorm12Sequencer(unorderedDefs, new ScoStateTracker());
@@ -146,10 +146,10 @@ describe("Scorm12Sequencer", () => {
 
     it("should exclude completed SCOs", () => {
       tracker.updateFromCmiData("intro", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       const incomplete = sequencer.getIncompleteScos();
@@ -208,7 +208,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should suggest continue after passed", () => {
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       const suggestion = sequencer.processExitAction("module1", "");
@@ -219,7 +219,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should suggest retry after failed", () => {
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "failed" },
+        core: { lesson_status: "failed" }
       });
 
       const suggestion = sequencer.processExitAction("module1", "");
@@ -230,7 +230,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should suggest exit at end of course after completion", () => {
       tracker.updateFromCmiData("assessment", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       const suggestion = sequencer.processExitAction("assessment", "");
@@ -241,7 +241,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should handle time-out with exit action", () => {
       tracker.updateFromCmiData("assessment", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
 
       const suggestion = sequencer.processExitAction("assessment", "time-out");
@@ -254,7 +254,7 @@ describe("Scorm12Sequencer", () => {
   describe("getStartingSco", () => {
     it("should return first incomplete SCO", () => {
       tracker.updateFromCmiData("intro", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
 
       const starting = sequencer.getStartingSco();
@@ -263,7 +263,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should return suspended SCO if exists", () => {
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "incomplete", exit: "suspend" },
+        core: { lesson_status: "incomplete", exit: "suspend" }
       });
 
       const starting = sequencer.getStartingSco();
@@ -278,7 +278,7 @@ describe("Scorm12Sequencer", () => {
     it("should return first available when all completed", () => {
       for (const sco of scoDefinitions) {
         tracker.updateFromCmiData(sco.id, {
-          core: { lesson_status: "completed" },
+          core: { lesson_status: "completed" }
         });
       }
 
@@ -290,10 +290,10 @@ describe("Scorm12Sequencer", () => {
   describe("getProgress", () => {
     it("should return correct progress", () => {
       tracker.updateFromCmiData("intro", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       const progress = sequencer.getProgress();
@@ -328,7 +328,7 @@ describe("Scorm12Sequencer", () => {
 
       // Complete intro
       tracker.updateFromCmiData("intro", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
 
       expect(sequencer.isScoAvailable("module1")).toBe(true);
@@ -355,7 +355,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should handle normal exit with incomplete status", () => {
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
 
       const suggestion = sequencer.processExitAction("module1", "");
@@ -372,17 +372,17 @@ describe("Scorm12Sequencer", () => {
           title: "Quiz",
           launchUrl: "quiz.html",
           timeLimitAction: "continue,message",
-          sequenceIndex: 0,
-        },
+          sequenceIndex: 0
+        }
       ];
 
       const continueSequencer = new Scorm12Sequencer(
         continueDefs,
-        continueTracker,
+        continueTracker
       );
 
       continueTracker.updateFromCmiData("quiz", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
 
       const suggestion = continueSequencer.processExitAction("quiz", "time-out");
@@ -393,7 +393,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should handle time-out with exit action when completed and has next", () => {
       tracker.updateFromCmiData("assessment", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       // Add another SCO after assessment
@@ -403,26 +403,26 @@ describe("Scorm12Sequencer", () => {
           id: "final",
           title: "Final",
           launchUrl: "final.html",
-          sequenceIndex: 4,
-        },
+          sequenceIndex: 4
+        }
       ];
 
       const extendedSequencer = new Scorm12Sequencer(
         extendedDefs,
-        new ScoStateTracker(),
+        new ScoStateTracker()
       );
 
       // Update with exit,message on assessment
       const assessmentWithExit = extendedDefs.find(
-        (s) => s.id === "assessment",
+        (s) => s.id === "assessment"
       )!;
       extendedSequencer["_stateTracker"].updateFromCmiData("assessment", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       const suggestion = extendedSequencer.processExitAction(
         "assessment",
-        "time-out",
+        "time-out"
       );
       expect(suggestion.action).toBe("continue");
       expect(suggestion.targetScoId).toBe("final");
@@ -431,7 +431,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should handle completed status in normal exit", () => {
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
 
       const suggestion = sequencer.processExitAction("module1", "");
@@ -448,7 +448,7 @@ describe("Scorm12Sequencer", () => {
     it("should skip all unavailable SCOs in getNextSco", () => {
       // Make module1 and module2 unavailable
       sequencer.setAvailabilityFilter(
-        (sco) => sco.id !== "module1" && sco.id !== "module2",
+        (sco) => sco.id !== "module1" && sco.id !== "module2"
       );
 
       const next = sequencer.getNextSco("intro");
@@ -458,7 +458,7 @@ describe("Scorm12Sequencer", () => {
     it("should skip all unavailable SCOs in getPreviousSco", () => {
       // Make intro and module1 unavailable
       sequencer.setAvailabilityFilter(
-        (sco) => sco.id !== "intro" && sco.id !== "module1",
+        (sco) => sco.id !== "intro" && sco.id !== "module1"
       );
 
       const prev = sequencer.getPreviousSco("assessment");
@@ -468,7 +468,7 @@ describe("Scorm12Sequencer", () => {
     it("should return null from getPreviousSco when all previous are unavailable", () => {
       // Make all SCOs before module2 unavailable
       sequencer.setAvailabilityFilter(
-        (sco) => sco.id === "module2" || sco.id === "assessment",
+        (sco) => sco.id === "module2" || sco.id === "assessment"
       );
 
       const prev = sequencer.getPreviousSco("module2");
@@ -485,7 +485,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should handle suspended SCO that is not available", () => {
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "incomplete", exit: "suspend" },
+        core: { lesson_status: "incomplete", exit: "suspend" }
       });
 
       // Make suspended SCO unavailable
@@ -498,7 +498,7 @@ describe("Scorm12Sequencer", () => {
 
     it("should handle default case in processExitAction", () => {
       tracker.updateFromCmiData("module1", {
-        core: { lesson_status: "browsed" },
+        core: { lesson_status: "browsed" }
       });
 
       const suggestion = sequencer.processExitAction("module1", "custom-exit");
@@ -523,18 +523,18 @@ describe("Scorm12Sequencer", () => {
           id: "quiz",
           title: "Quiz",
           launchUrl: "quiz.html",
-          sequenceIndex: 0,
+          sequenceIndex: 0
           // timeLimitAction not specified
-        },
+        }
       ];
 
       const noActionSequencer = new Scorm12Sequencer(
         noActionDefs,
-        noActionTracker,
+        noActionTracker
       );
 
       noActionTracker.updateFromCmiData("quiz", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
 
       const suggestion = noActionSequencer.processExitAction("quiz", "time-out");
@@ -551,14 +551,14 @@ describe("Scorm12Sequencer", () => {
           title: "Final",
           launchUrl: "final.html",
           timeLimitAction: "exit,message",
-          sequenceIndex: 0,
-        },
+          sequenceIndex: 0
+        }
       ];
 
       const singleSequencer = new Scorm12Sequencer(singleDefs, singleTracker);
 
       singleTracker.updateFromCmiData("final", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
 
       const suggestion = singleSequencer.processExitAction("final", "time-out");
@@ -575,14 +575,14 @@ describe("Scorm12Sequencer", () => {
           title: "Only SCO",
           launchUrl: "only.html",
           timeLimitAction: "exit,message",
-          sequenceIndex: 0,
-        },
+          sequenceIndex: 0
+        }
       ];
 
       const singleSequencer = new Scorm12Sequencer(singleDefs, singleTracker);
 
       singleTracker.updateFromCmiData("only", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
 
       const suggestion = singleSequencer.processExitAction("only", "time-out");

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   RuleCondition,
   RuleConditionOperator,
-  RuleConditionType,
+  RuleConditionType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("RuleCondition Setters", () => {
@@ -77,7 +77,7 @@ describe("RuleCondition Setters", () => {
       const condition = new RuleCondition(RuleConditionType.ALWAYS);
       const activity = {
         successStatus: "passed",
-        isCompleted: false,
+        isCompleted: false
       } as any;
 
       // With ALWAYS, evaluate should return true
@@ -95,7 +95,7 @@ describe("RuleCondition Setters", () => {
     it("should use updated operator in evaluate", () => {
       const condition = new RuleCondition(RuleConditionType.COMPLETED);
       const activity = {
-        isCompleted: true,
+        isCompleted: true
       } as any;
 
       // Without operator, evaluate should return true for completed activity
@@ -110,11 +110,11 @@ describe("RuleCondition Setters", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        new Map([["threshold", 0.5]]),
+        new Map([["threshold", 0.5]])
       );
       const activity = {
         objectiveMeasureStatus: true,
-        objectiveNormalizedMeasure: 0.4,
+        objectiveNormalizedMeasure: 0.4
       } as any;
 
       // With threshold 0.5, evaluate should return false for measure 0.4

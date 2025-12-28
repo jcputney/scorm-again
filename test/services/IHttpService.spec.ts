@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { IHttpService } from "../../src/interfaces/services";
-import { ResultObject } from "../../src/types/api_types";
 import { global_constants } from "../../src/constants/api_constants";
 
 describe("IHttpService Interface", () => {

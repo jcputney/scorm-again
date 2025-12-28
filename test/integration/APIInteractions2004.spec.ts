@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 import { Scorm2004API } from "../../index";
 
 /**
@@ -45,7 +46,7 @@ wrappers.forEach((wrapper) => {
       );
 
       // Wait for the page to load and the SCORM API to be initialized
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Verify that the SCORM API is available
       const apiExists = await page.evaluate(() => {
@@ -196,7 +197,7 @@ wrappers.forEach((wrapper) => {
       );
 
       // Wait for the page to load and the SCORM API to be initialized
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Test interactions with more complex data model elements
       const advancedInteractions = await page.evaluate(() => {

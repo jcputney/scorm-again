@@ -1,6 +1,6 @@
 // noinspection DuplicatedCode
 
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sequencing } from "../../../../src/cmi/scorm2004/sequencing/sequencing";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -59,7 +59,7 @@ describe("Sequencing", () => {
     it("should return current activity from activity tree", () => {
       const activity = new Activity("test", "Test Activity");
       sequencing.activityTree.currentActivity = activity;
-      
+
       expect(sequencing.getCurrentActivity()).toBe(activity);
     });
 
@@ -72,7 +72,7 @@ describe("Sequencing", () => {
     it("should return root activity from activity tree", () => {
       const root = new Activity("root", "Root Activity");
       sequencing.activityTree.root = root;
-      
+
       expect(sequencing.getRootActivity()).toBe(root);
     });
 
@@ -87,18 +87,18 @@ describe("Sequencing", () => {
       const child1 = new Activity("child1", "Child 1");
       const child2 = new Activity("child2", "Child 2");
       const grandChild = new Activity("grandchild", "Grand Child");
-      
+
       root.addChild(child1);
       root.addChild(child2);
       child1.addChild(grandChild);
-      
+
       sequencing.activityTree.root = root;
-      
+
       // Spy on the rollup rules processRollup method
       const processRollupSpy = vi.spyOn(sequencing.rollupRules, "processRollup");
-      
+
       sequencing.processRollup();
-      
+
       // Should be called for all activities (grandChild, child1, child2, root)
       expect(processRollupSpy).toHaveBeenCalledTimes(4);
       expect(processRollupSpy).toHaveBeenCalledWith(grandChild);
@@ -110,11 +110,11 @@ describe("Sequencing", () => {
     it("should handle empty activity tree gracefully", () => {
       // No root activity set
       sequencing.activityTree.root = null;
-      
+
       const processRollupSpy = vi.spyOn(sequencing.rollupRules, "processRollup");
-      
+
       sequencing.processRollup();
-      
+
       // Should not call processRollup if no root
       expect(processRollupSpy).not.toHaveBeenCalled();
     });
@@ -125,22 +125,22 @@ describe("Sequencing", () => {
       const child2 = new Activity("child2", "Child 2");
       const grandChild1 = new Activity("grandchild1", "Grand Child 1");
       const grandChild2 = new Activity("grandchild2", "Grand Child 2");
-      
+
       root.addChild(child1);
       root.addChild(child2);
       child1.addChild(grandChild1);
       child1.addChild(grandChild2);
-      
+
       sequencing.activityTree.root = root;
-      
+
       const callOrder: Activity[] = [];
       const processRollupSpy = vi.spyOn(sequencing.rollupRules, "processRollup")
         .mockImplementation((activity: Activity) => {
           callOrder.push(activity);
         });
-      
+
       sequencing.processRollup();
-      
+
       // Should process children before parents
       expect(callOrder).toEqual([grandChild1, grandChild2, child1, child2, root]);
     });
@@ -200,15 +200,15 @@ describe("Sequencing", () => {
   describe("adlNav setter", () => {
     it("should store ADLNav reference when set", () => {
       const adlNav = new ADLNav();
-      
+
       sequencing.adlNav = adlNav;
-      
+
       expect(sequencing.adlNav).toBe(adlNav);
     });
 
     it("should handle null adlNav", () => {
       sequencing.adlNav = null;
-      
+
       expect(sequencing.adlNav).toBeNull();
     });
   });
@@ -217,7 +217,7 @@ describe("Sequencing", () => {
   describe("toJSON", () => {
     it("should return JSON representation", () => {
       const json = sequencing.toJSON();
-      
+
       expect(json).toHaveProperty("activityTree");
       expect(json).toHaveProperty("sequencingRules");
       expect(json).toHaveProperty("sequencingControls");

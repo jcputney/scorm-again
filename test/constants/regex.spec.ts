@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scorm2004_regex, scorm12_regex } from "../../src/constants/regex";
+import { scorm12_regex, scorm2004_regex } from "../../src/constants/regex";
 
 describe("Regex Constants", () => {
   describe("SCORM 2004 CMIDecimal", () => {

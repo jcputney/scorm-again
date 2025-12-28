@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 import {
   CommitRequestTracker,
   configureApiForHttpCommits,
@@ -70,7 +71,7 @@ wrappers.forEach((wrapper) => {
 
       // Navigate and configure API with commit URL
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -114,7 +115,7 @@ wrappers.forEach((wrapper) => {
       await setupCommitMocking(page, tracker, { success: false, errorCode: 101 });
 
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -157,7 +158,7 @@ wrappers.forEach((wrapper) => {
       await setupCommitMocking(page, tracker, { success: true });
 
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -253,7 +254,7 @@ wrappers.forEach((wrapper) => {
       await setupCommitMocking(page, tracker, { success: true });
 
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -295,7 +296,7 @@ wrappers.forEach((wrapper) => {
       const contentPath =
         "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Etiquette/Course.html";
       await page.goto(`${wrapper.path}?module=${contentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -346,7 +347,7 @@ wrappers.forEach((wrapper) => {
       const assessmentPath =
         "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/shared/assessmenttemplate.html?questions=Etiquette";
       await page.goto(`${wrapper.path}?module=${assessmentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -454,7 +455,7 @@ wrappers.forEach((wrapper) => {
       const assessmentPath =
         "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/shared/assessmenttemplate.html?questions=Etiquette";
       await page.goto(`${wrapper.path}?module=${assessmentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -582,7 +583,7 @@ wrappers.forEach((wrapper) => {
       const contentPath =
         "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Playing/Par.html";
       await page.goto(`${wrapper.path}?module=${contentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -628,7 +629,7 @@ wrappers.forEach((wrapper) => {
       const firstPagePath =
         "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Etiquette/Course.html";
       await page.goto(`${wrapper.path}?module=${firstPagePath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       let moduleFrame = page.frameLocator("#moduleFrame");
       await page.waitForTimeout(1000); // Wait for iframe to load
@@ -646,7 +647,7 @@ wrappers.forEach((wrapper) => {
       const secondPagePath =
         "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Playing/Par.html";
       await page.goto(`${wrapper.path}?module=${secondPagePath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized after page navigation
       await ensureApiInitialized(page);
@@ -680,7 +681,7 @@ wrappers.forEach((wrapper) => {
       const contentPath =
         "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Handicapping/Overview.html";
       await page.goto(`${wrapper.path}?module=${contentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -716,7 +717,7 @@ wrappers.forEach((wrapper) => {
 
     test("should display and update auxiliary resources", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -760,7 +761,7 @@ wrappers.forEach((wrapper) => {
 
       for (const section of contentSections) {
         await page.goto(`${wrapper.path}?module=${section.path}`);
-        await page.waitForLoadState("networkidle");
+        await waitForPageReady(page);
 
         // Ensure API is initialized
         await ensureApiInitialized(page);
@@ -796,7 +797,7 @@ wrappers.forEach((wrapper) => {
         // Load the assessment template with different question sets
         const assessmentPath = `/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/shared/assessmenttemplate.html?questions=${questionSet}`;
         await page.goto(`${wrapper.path}?module=${assessmentPath}`);
-        await page.waitForLoadState("networkidle");
+        await waitForPageReady(page);
 
         // Ensure API is initialized
         await ensureApiInitialized(page);
@@ -857,7 +858,7 @@ wrappers.forEach((wrapper) => {
       // since they're only relevant for sequenced content with multiple activities
 
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);

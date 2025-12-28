@@ -1,12 +1,12 @@
-import {beforeEach, describe, expect, it} from "vitest";
-import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { beforeEach, describe, expect, it } from "vitest";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {SequencingControls} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 
 describe("Early Availability Check in Choice Sequencing Request Process", () => {
   let activityTree: ActivityTree;
@@ -67,8 +67,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
   describe("Early return when target activity is unavailable", () => {
     it("should return SB.2.9-7 exception when choosing an unavailable activity", () => {
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       expect(result.exception).toBe("SB.2.9-7");
@@ -81,8 +81,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       activityTree.currentActivity = null;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       expect(result.exception).toBe("SB.2.9-7");
@@ -95,8 +95,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       leaf1.isActive = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       expect(result.exception).toBe("SB.2.9-7");
@@ -114,8 +114,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       const initialActiveState = leaf1.isActive;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       // Verify early return happened
@@ -134,12 +134,12 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       unavailableLeaf.sequencingRules = {
         preConditionRules: [],
         postConditionRules: [],
-        exitConditionRules: [],
+        exitConditionRules: []
       };
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       // Should return early with SB.2.9-7, not fail during path evaluation
@@ -160,8 +160,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       const newProcess = new SequencingProcess(newTree);
 
       const result = newProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailableCluster"
+        SequencingRequestType.CHOICE,
+        "unavailableCluster"
       );
 
       // Should return early, not attempt to flow into children
@@ -177,8 +177,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       leaf1.isActive = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "leaf2"
+        SequencingRequestType.CHOICE,
+        "leaf2"
       );
 
       expect(result.exception).toBeNull();
@@ -188,8 +188,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
 
     it("should successfully choose an available cluster and flow to first leaf", () => {
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "cluster1"
+        SequencingRequestType.CHOICE,
+        "cluster1"
       );
 
       expect(result.exception).toBeNull();
@@ -202,8 +202,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       activityTree.currentActivity = null;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "leaf1"
+        SequencingRequestType.CHOICE,
+        "leaf1"
       );
 
       expect(result.exception).toBeNull();
@@ -214,8 +214,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
     it("should not affect other exception scenarios", () => {
       // Test that choosing the root still returns the correct exception
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "root"
+        SequencingRequestType.CHOICE,
+        "root"
       );
 
       expect(result.exception).toBe("SB.2.9-3"); // Cannot choose root
@@ -227,8 +227,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       cluster1.sequencingControls.choice = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "leaf1"
+        SequencingRequestType.CHOICE,
+        "leaf1"
       );
 
       expect(result.exception).toBe("SB.2.9-5"); // Choice control is not allowed
@@ -239,8 +239,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
   describe("Correct exception code SB.2.9-7 is returned", () => {
     it("should use SB.2.9-7 for unavailable activity (not other exception codes)", () => {
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       // Must be SB.2.9-7 specifically
@@ -260,8 +260,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
 
       // Even if flow would fail later, we should get SB.2.9-7 first
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       expect(result.exception).toBe("SB.2.9-7");
@@ -274,8 +274,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       unavailableLeaf.isHiddenFromChoice = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable"
+        SequencingRequestType.CHOICE,
+        "unavailable"
       );
 
       // Should get hidden from choice exception first (earlier in the code)
@@ -287,8 +287,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       leaf2.isAvailable = true;
 
       let result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "leaf2"
+        SequencingRequestType.CHOICE,
+        "leaf2"
       );
 
       expect(result.exception).toBeNull();
@@ -298,8 +298,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       leaf2.isAvailable = false;
 
       result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "leaf2"
+        SequencingRequestType.CHOICE,
+        "leaf2"
       );
 
       expect(result.exception).toBe("SB.2.9-7");
@@ -314,8 +314,8 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       unavailableLeaf.isAvailable = true; // Make it available now
 
       const result = sequencingProcess.sequencingRequestProcess(
-          SequencingRequestType.CHOICE,
-          "unavailable" // ID still "unavailable" but activity is now available
+        SequencingRequestType.CHOICE,
+        "unavailable" // ID still "unavailable" but activity is now available
       );
 
       // Should not get SB.2.9-7 since the activity is available

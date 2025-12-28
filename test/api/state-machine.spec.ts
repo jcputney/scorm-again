@@ -1,7 +1,7 @@
 // State Machine Tests - Testing SCORM API state transitions and illegal state operations
 // Spec Reference: SCORM 1.2 RTE Section 3.4, SCORM 2004 RTE Section 3.1.5
 
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import Scorm2004API from "../../src/Scorm2004API";
 import { LogLevelEnum } from "../../src/constants/enums";

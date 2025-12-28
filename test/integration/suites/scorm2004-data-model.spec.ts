@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "../helpers/scorm-common-helpers";
 import { ensureApiInitialized } from "../helpers/scorm2004-helpers";
 
 export type WrapperConfig = {
@@ -25,7 +26,7 @@ export function scorm2004DataModelTests(
   // Tests are added to the current describe block context
   test("should handle data model interactions correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -115,7 +116,7 @@ export function scorm2004DataModelTests(
 
   test("should handle learner preference settings", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -162,7 +163,7 @@ export function scorm2004DataModelTests(
 
   test("should handle read-only data model elements", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -208,7 +209,7 @@ export function scorm2004DataModelTests(
 
   test("should handle exit values correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -246,7 +247,7 @@ export function scorm2004DataModelTests(
 
   test("should handle progress_measure", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -274,7 +275,7 @@ export function scorm2004DataModelTests(
 
   test("should handle _children queries", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);

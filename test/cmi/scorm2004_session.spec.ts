@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CMISession } from "../../src/cmi/scorm2004/session";
 import { scorm2004_errors } from "../../src";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";

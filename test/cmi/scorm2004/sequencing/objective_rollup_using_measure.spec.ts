@@ -1,6 +1,12 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { RollupRules, RollupRule, RollupCondition, RollupActionType, RollupConditionType } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
+import {
+  RollupActionType,
+  RollupCondition,
+  RollupConditionType,
+  RollupRule,
+  RollupRules
+} from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { SuccessStatus } from "../../../../src/constants/enums";
 
 describe("Objective Rollup Using Measure (RB.1.2.a)", () => {

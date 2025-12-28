@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import { LogLevelEnum } from "../../src/constants/enums";
-import { Settings } from "../../src/types/api_types";
 
 describe("SCORM 1.2 Global Learner Preferences Tests", () => {
   beforeEach(() => {

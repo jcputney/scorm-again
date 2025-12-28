@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { RollupRuleEvaluator } from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_rule_evaluator";
-import { RollupChildFilter } from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
+import {
+  RollupRuleEvaluator
+} from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_rule_evaluator";
+import {
+  RollupChildFilter
+} from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RollupActionType,
   RollupConsiderationType,
-  RollupRule,
+  RollupRule
 } from "../../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus } from "../../../../../src/constants/enums";
 import { createMockCondition } from "../../../../helpers/mock-factories";
@@ -57,7 +61,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -67,7 +71,7 @@ describe("RollupRuleEvaluator", () => {
       it("should return false when not all children satisfy conditions", () => {
         // Create conditions that check objectiveSatisfiedStatus
         const conditionThatChecksSatisfied = createMockCondition(
-          (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+          (activity: Activity) => activity.objectiveSatisfiedStatus === true
         );
 
         child1.objectiveSatisfiedStatus = true;
@@ -80,7 +84,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [conditionThatChecksSatisfied],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -103,7 +107,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -126,7 +130,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -149,7 +153,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -172,7 +176,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: 2,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -181,7 +185,7 @@ describe("RollupRuleEvaluator", () => {
 
       it("should fail when minimum count is not met", () => {
         const conditionThatChecksSatisfied = createMockCondition(
-          (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+          (activity: Activity) => activity.objectiveSatisfiedStatus === true
         );
 
         child1.objectiveSatisfiedStatus = true;
@@ -194,7 +198,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [conditionThatChecksSatisfied],
           minimumCount: 2,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -217,7 +221,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: 0.5, // 50%
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -226,7 +230,7 @@ describe("RollupRuleEvaluator", () => {
 
       it("should fail when minimum percent is not met", () => {
         const conditionThatChecksSatisfied = createMockCondition(
-          (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+          (activity: Activity) => activity.objectiveSatisfiedStatus === true
         );
 
         child1.objectiveSatisfiedStatus = true;
@@ -239,7 +243,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [conditionThatChecksSatisfied],
           minimumCount: null,
           minimumPercent: 0.75, // 75%
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -258,7 +262,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: 0.5,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(parent, rule);
@@ -276,7 +280,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupRule(emptyParent, rule);
@@ -293,7 +297,7 @@ describe("RollupRuleEvaluator", () => {
         conditions: [],
         minimumCount: null,
         minimumPercent: null,
-        childActivitySet: "all",
+        childActivitySet: "all"
       };
 
       const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -311,7 +315,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -328,7 +332,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -347,7 +351,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -364,7 +368,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -383,7 +387,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -400,7 +404,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -419,7 +423,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: 1,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -438,7 +442,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1, condition2],
           minimumCount: null,
           minimumPercent: 0.5,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -456,7 +460,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [condition1],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
@@ -474,8 +478,8 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
-        },
+          childActivitySet: "all"
+        }
       ];
 
       const result = evaluator.evaluateRulesForAction(
@@ -501,8 +505,8 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
-        },
+          childActivitySet: "all"
+        }
       ];
 
       const result = evaluator.evaluateRulesForAction(
@@ -515,7 +519,7 @@ describe("RollupRuleEvaluator", () => {
 
     it("should return false when no matching rule applies", () => {
       const conditionThatChecksSatisfied = createMockCondition(
-        (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+        (activity: Activity) => activity.objectiveSatisfiedStatus === true
       );
 
       child1.objectiveSatisfiedStatus = false;
@@ -529,8 +533,8 @@ describe("RollupRuleEvaluator", () => {
           conditions: [conditionThatChecksSatisfied],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
-        },
+          childActivitySet: "all"
+        }
       ];
 
       const result = evaluator.evaluateRulesForAction(
@@ -556,7 +560,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         },
         {
           action: RollupActionType.SATISFIED,
@@ -564,8 +568,8 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: 1,
           minimumPercent: null,
-          childActivitySet: "all",
-        },
+          childActivitySet: "all"
+        }
       ];
 
       const result = evaluator.evaluateRulesForAction(
@@ -591,7 +595,7 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: null,
           minimumPercent: null,
-          childActivitySet: "all",
+          childActivitySet: "all"
         },
         {
           action: RollupActionType.SATISFIED,
@@ -599,8 +603,8 @@ describe("RollupRuleEvaluator", () => {
           conditions: [],
           minimumCount: 2,
           minimumPercent: null,
-          childActivitySet: "all",
-        },
+          childActivitySet: "all"
+        }
       ];
 
       const result = evaluator.evaluateRulesForAction(
@@ -631,7 +635,7 @@ describe("RollupRuleEvaluator", () => {
         conditions: [condition],
         minimumCount: null,
         minimumPercent: 0.66, // Need 66% of children
-        childActivitySet: "all",
+        childActivitySet: "all"
       };
 
       const result = evaluator.evaluateRollupRule(parent, rule);

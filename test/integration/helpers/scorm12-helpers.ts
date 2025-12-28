@@ -1,4 +1,4 @@
-import { expect, Page, FrameLocator } from "@playwright/test";
+import { expect, FrameLocator, Page } from "@playwright/test";
 import { Scorm12API } from "../../../index";
 import {
   ensureApiInitialized as ensureApiInitializedCommon,
@@ -326,7 +326,7 @@ export async function navigateThroughContentSCO(
     attempts++;
 
     // Check if Next button exists and is enabled
-    const nextButton = moduleFrame.locator('input[type="button"][value*="Next"], button:has-text("Next")');
+    const nextButton = moduleFrame.locator("input[type=\"button\"][value*=\"Next\"], button:has-text(\"Next\")");
     const isVisible = await nextButton.isVisible({ timeout: 1000 }).catch(() => false);
     const isEnabled = isVisible ? await nextButton.isEnabled().catch(() => false) : false;
 
@@ -367,7 +367,7 @@ export async function completeContentSCO(
  */
 async function getQuizContentFrame(page: Page, moduleFrame: FrameLocator): Promise<FrameLocator> {
   // The quiz is in a nested iframe with id="contentFrame"
-  return moduleFrame.frameLocator('#contentFrame');
+  return moduleFrame.frameLocator("#contentFrame");
 }
 
 /**
@@ -385,21 +385,21 @@ export async function answerQuizCorrectly(
   await page.waitForTimeout(1000);
 
   // Find all correct answer divs (they have class "correctAnswer")
-  const correctAnswerDivs = contentFrame.locator('div.correctAnswer');
+  const correctAnswerDivs = contentFrame.locator("div.correctAnswer");
   const count = await correctAnswerDivs.count();
 
   for (let i = 0; i < count; i++) {
     try {
       // Within each correct answer div, find the input (radio button or text input)
       const correctDiv = correctAnswerDivs.nth(i);
-      const input = correctDiv.locator('input[type="radio"], input[type="text"]');
-      
-      const inputType = await input.getAttribute('type').catch(() => null);
-      
-      if (inputType === 'radio') {
+      const input = correctDiv.locator("input[type=\"radio\"], input[type=\"text\"]");
+
+      const inputType = await input.getAttribute("type").catch(() => null);
+
+      if (inputType === "radio") {
         // For radio buttons, just click it
         await input.click({ timeout: 2000 });
-      } else if (inputType === 'text') {
+      } else if (inputType === "text") {
         // For numeric questions, get the correct value from the parent div text
         const parentText = await correctDiv.textContent();
         const match = parentText?.match(/\((\d+)\)/);
@@ -407,7 +407,7 @@ export async function answerQuizCorrectly(
           await input.fill(match[1]);
         }
       }
-      
+
       await page.waitForTimeout(200);
     } catch (e) {
       // Continue if element not found
@@ -431,46 +431,46 @@ export async function answerQuizIncorrectly(
   await page.waitForTimeout(1000);
 
   // Find all question divs
-  const questionDivs = contentFrame.locator('div.question');
+  const questionDivs = contentFrame.locator("div.question");
   const questionCount = await questionDivs.count();
 
   for (let i = 0; i < questionCount; i++) {
     try {
       const questionDiv = questionDivs.nth(i);
-      
+
       // Find all answer divs within this question
-      const answerDivs = questionDiv.locator('div.answer, div.correctAnswer');
+      const answerDivs = questionDiv.locator("div.answer, div.correctAnswer");
       const answerCount = await answerDivs.count();
-      
+
       if (answerCount > 0) {
         // Find the correct answer div (has class "correctAnswer")
-        const correctAnswerDiv = questionDiv.locator('div.correctAnswer');
+        const correctAnswerDiv = questionDiv.locator("div.correctAnswer");
         const correctExists = await correctAnswerDiv.count() > 0;
-        
+
         if (correctExists) {
           // Find an incorrect answer (any answer div that's NOT the correct one)
-          const incorrectAnswerDiv = questionDiv.locator('div.answer').first();
+          const incorrectAnswerDiv = questionDiv.locator("div.answer").first();
           const incorrectExists = await incorrectAnswerDiv.count() > 0;
-          
+
           if (incorrectExists) {
             // Click the first incorrect answer
-            const input = incorrectAnswerDiv.locator('input[type="radio"]');
+            const input = incorrectAnswerDiv.locator("input[type=\"radio\"]");
             await input.click({ timeout: 2000 });
           }
         } else {
           // No correct answer marked, just click the first answer
-          const firstInput = questionDiv.locator('input[type="radio"]').first();
+          const firstInput = questionDiv.locator("input[type=\"radio\"]").first();
           await firstInput.click({ timeout: 2000 });
         }
       } else {
         // For numeric questions, enter a wrong value
-        const textInput = questionDiv.locator('input[type="text"]');
+        const textInput = questionDiv.locator("input[type=\"text\"]");
         const inputExists = await textInput.count() > 0;
         if (inputExists) {
-          await textInput.fill('999');
+          await textInput.fill("999");
         }
       }
-      
+
       await page.waitForTimeout(200);
     } catch (e) {
       // Continue if element not found
@@ -488,7 +488,7 @@ export async function exitScorm12Course(
   { preserveProgress = true }: { preserveProgress?: boolean } = {}
 ): Promise<void> {
   const moduleFrame = page.frameLocator("#moduleFrame");
-  const exitButton = moduleFrame.locator('button:has-text("Exit"), input[value*="Exit"]');
+  const exitButton = moduleFrame.locator("button:has-text(\"Exit\"), input[value*=\"Exit\"]");
 
   const isVisible = await exitButton.isVisible({ timeout: 3000 }).catch(() => false);
   if (!isVisible) {
@@ -518,7 +518,7 @@ export async function exitScorm12Course(
 /**
  * Complete an assessment SCO by answering questions and submitting
  * This lets the module's own code set score and lesson_status
- * 
+ *
  * @param page - Playwright page
  * @param shouldPass - If true, answer correctly to pass. If false, answer incorrectly to fail.
  * @param passThreshold - The score threshold for passing (default 70)
@@ -527,7 +527,7 @@ export async function completeAssessmentSCO(
   page: Page,
   shouldPass: boolean = true,
   passThreshold: number = 70
-): Promise<{score: number; lessonStatus: string | null}> {
+): Promise<{ score: number; lessonStatus: string | null }> {
   await injectQuizFunctions(page);
   const moduleFrame = await waitForModuleFrame(page);
   await page.waitForTimeout(2000); // Wait for quiz to load
@@ -542,10 +542,10 @@ export async function completeAssessmentSCO(
   // Submit the quiz (submit button is in the contentFrame)
   const contentFrame = await getQuizContentFrame(page, moduleFrame);
   const submitButton = contentFrame.locator(
-    'input[type="button"][value*="Submit"], button:has-text("Submit")'
+    "input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")"
   );
   const submitVisible = await submitButton.isVisible({ timeout: 2000 }).catch(() => false);
-  
+
   if (submitVisible) {
     await submitButton.click();
 

@@ -17,7 +17,7 @@ describe("CMIArray Methods", () => {
     toJSON() {
       return {
         id: this.id,
-        value: this.value,
+        value: this.value
       };
     }
   }
@@ -26,7 +26,7 @@ describe("CMIArray Methods", () => {
     it("should serialize empty array", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id,value",
+        children: "id,value"
       });
 
       const result = array.toJSON();
@@ -38,7 +38,7 @@ describe("CMIArray Methods", () => {
     it("should serialize array with single child", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id,value",
+        children: "id,value"
       });
 
       const child = new MockChild("child1", "value1");
@@ -49,15 +49,15 @@ describe("CMIArray Methods", () => {
       expect(result).toEqual({
         "0": {
           id: "child1",
-          value: "value1",
-        },
+          value: "value1"
+        }
       });
     });
 
     it("should serialize array with multiple children", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id,value",
+        children: "id,value"
       });
 
       const child1 = new MockChild("child1", "value1");
@@ -72,23 +72,23 @@ describe("CMIArray Methods", () => {
       expect(result).toEqual({
         "0": {
           id: "child1",
-          value: "value1",
+          value: "value1"
         },
         "1": {
           id: "child2",
-          value: "value2",
+          value: "value2"
         },
         "2": {
           id: "child3",
-          value: "value3",
-        },
+          value: "value3"
+        }
       });
     });
 
     it("should use string indices", () => {
       const array = new CMIArray({
         CMIElement: "cmi.objectives",
-        children: "id",
+        children: "id"
       });
 
       const child1 = new MockChild("obj1", "val1");
@@ -107,7 +107,7 @@ describe("CMIArray Methods", () => {
     it("should set and reset jsonString flag during serialization", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // jsonString should be false initially
@@ -116,10 +116,10 @@ describe("CMIArray Methods", () => {
       // Create a spy to check jsonString during toJSON
       const child = {
         id: "test",
-        toJSON: function () {
+        toJSON: function() {
           // During serialization, jsonString should be true
           return { id: this.id };
-        },
+        }
       };
       array.childArray.push(child);
 
@@ -134,7 +134,7 @@ describe("CMIArray Methods", () => {
     it("should throw error when attempting to set _children", () => {
       const array = new CMIArray({
         CMIElement: "cmi.objectives",
-        children: "id,status",
+        children: "id,status"
       });
 
       expect(() => {
@@ -145,7 +145,7 @@ describe("CMIArray Methods", () => {
     it("should throw error with correct CMI element path", () => {
       const array = new CMIArray({
         CMIElement: "cmi.interactions",
-        children: "id,type",
+        children: "id,type"
       });
 
       try {
@@ -162,7 +162,7 @@ describe("CMIArray Methods", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
         children: "id",
-        errorCode: scorm12_errors.CHILDREN_ERROR,
+        errorCode: scorm12_errors.CHILDREN_ERROR
       });
 
       try {
@@ -178,7 +178,7 @@ describe("CMIArray Methods", () => {
     it("should throw error with default GENERAL error code when not provided", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       try {
@@ -194,7 +194,7 @@ describe("CMIArray Methods", () => {
     it("should not affect _children getter", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id,value,status",
+        children: "id,value,status"
       });
 
       // Getter should still work
@@ -216,7 +216,7 @@ describe("CMIArray Methods", () => {
     it("should throw error when attempting to set _count", () => {
       const array = new CMIArray({
         CMIElement: "cmi.objectives",
-        children: "id",
+        children: "id"
       });
 
       expect(() => {
@@ -227,7 +227,7 @@ describe("CMIArray Methods", () => {
     it("should throw error with correct CMI element path", () => {
       const array = new CMIArray({
         CMIElement: "cmi.interactions",
-        children: "id",
+        children: "id"
       });
 
       try {
@@ -244,7 +244,7 @@ describe("CMIArray Methods", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
         children: "id",
-        errorCode: scorm12_errors.COUNT_ERROR,
+        errorCode: scorm12_errors.COUNT_ERROR
       });
 
       try {
@@ -260,7 +260,7 @@ describe("CMIArray Methods", () => {
     it("should throw error with default GENERAL error code when not provided", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       try {
@@ -276,7 +276,7 @@ describe("CMIArray Methods", () => {
     it("should not affect _count getter", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // Add some children
@@ -300,7 +300,7 @@ describe("CMIArray Methods", () => {
     it("should throw error even when setting to zero", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       expect(() => {
@@ -311,7 +311,7 @@ describe("CMIArray Methods", () => {
     it("should throw error even when setting to current count value", () => {
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       array.childArray.push(new MockChild("1", "val1"));

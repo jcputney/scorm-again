@@ -1,19 +1,19 @@
-import {beforeEach, describe, expect, it} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess,
+  OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {SequencingProcess,} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
   SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import {CompletionStatus} from "../../../../src/constants/enums";
+import { CompletionStatus } from "../../../../src/constants/enums";
 
 /**
  * Post-Condition Loop in Termination Request Process (TB.2.3)
@@ -69,9 +69,9 @@ describe("Post-Condition Loop in Termination Request Process", () => {
     rollupProcess = new RollupProcess();
 
     overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess
+      activityTree,
+      sequencingProcess,
+      rollupProcess
     );
   });
 

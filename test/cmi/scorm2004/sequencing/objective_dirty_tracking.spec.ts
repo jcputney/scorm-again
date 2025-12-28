@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { CompletionStatus } from "../../../../src/constants/enums";
@@ -8,10 +8,10 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
   describe("initial state", () => {
     it("should not be dirty initially", () => {
       const objective = new ActivityObjective("test");
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
-      expect(objective.isDirty('completionStatus')).toBe(false);
-      expect(objective.isDirty('progressMeasure')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
+      expect(objective.isDirty("completionStatus")).toBe(false);
+      expect(objective.isDirty("progressMeasure")).toBe(false);
     });
   });
 
@@ -19,72 +19,72 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
     it("should be dirty after setter changes satisfiedStatus value", () => {
       const objective = new ActivityObjective("test");
       objective.satisfiedStatus = true; // default is false
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
     });
 
     it("should not be dirty if satisfiedStatus setter value unchanged", () => {
       const objective = new ActivityObjective("test");
       objective.satisfiedStatus = false; // same as default
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
     });
 
     it("should be dirty after setter changes normalizedMeasure value", () => {
       const objective = new ActivityObjective("test");
       objective.normalizedMeasure = 0.5; // default is 0
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
     });
 
     it("should not be dirty if normalizedMeasure setter value unchanged", () => {
       const objective = new ActivityObjective("test");
       objective.normalizedMeasure = 0; // same as default
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
     });
 
     it("should be dirty after setter changes completionStatus value", () => {
       const objective = new ActivityObjective("test");
       objective.completionStatus = CompletionStatus.COMPLETED; // default is UNKNOWN
-      expect(objective.isDirty('completionStatus')).toBe(true);
+      expect(objective.isDirty("completionStatus")).toBe(true);
     });
 
     it("should not be dirty if completionStatus setter value unchanged", () => {
       const objective = new ActivityObjective("test");
       objective.completionStatus = CompletionStatus.UNKNOWN; // same as default
-      expect(objective.isDirty('completionStatus')).toBe(false);
+      expect(objective.isDirty("completionStatus")).toBe(false);
     });
 
     it("should be dirty after setter changes progressMeasure value", () => {
       const objective = new ActivityObjective("test");
       objective.progressMeasure = 0.8; // default is 0
-      expect(objective.isDirty('progressMeasure')).toBe(true);
+      expect(objective.isDirty("progressMeasure")).toBe(true);
     });
 
     it("should not be dirty if progressMeasure setter value unchanged", () => {
       const objective = new ActivityObjective("test");
       objective.progressMeasure = 0; // same as default
-      expect(objective.isDirty('progressMeasure')).toBe(false);
+      expect(objective.isDirty("progressMeasure")).toBe(false);
     });
 
     it("should track multiple dirty flags independently", () => {
       const objective = new ActivityObjective("test");
 
       objective.satisfiedStatus = true;
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
 
       objective.normalizedMeasure = 0.5;
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
     });
 
     it("should set dirty flag when value changes from non-default to different value", () => {
       const objective = new ActivityObjective("test");
 
       objective.satisfiedStatus = true;
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
 
       // Change again to different value
       objective.satisfiedStatus = false;
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
     });
   });
 
@@ -92,37 +92,37 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
     it("should clear individual dirty flag for satisfiedStatus", () => {
       const objective = new ActivityObjective("test");
       objective.satisfiedStatus = true;
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
 
-      objective.clearDirty('satisfiedStatus');
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
+      objective.clearDirty("satisfiedStatus");
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
     });
 
     it("should clear individual dirty flag for normalizedMeasure", () => {
       const objective = new ActivityObjective("test");
       objective.normalizedMeasure = 0.5;
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
 
-      objective.clearDirty('normalizedMeasure');
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
+      objective.clearDirty("normalizedMeasure");
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
     });
 
     it("should clear individual dirty flag for completionStatus", () => {
       const objective = new ActivityObjective("test");
       objective.completionStatus = CompletionStatus.COMPLETED;
-      expect(objective.isDirty('completionStatus')).toBe(true);
+      expect(objective.isDirty("completionStatus")).toBe(true);
 
-      objective.clearDirty('completionStatus');
-      expect(objective.isDirty('completionStatus')).toBe(false);
+      objective.clearDirty("completionStatus");
+      expect(objective.isDirty("completionStatus")).toBe(false);
     });
 
     it("should clear individual dirty flag for progressMeasure", () => {
       const objective = new ActivityObjective("test");
       objective.progressMeasure = 0.8;
-      expect(objective.isDirty('progressMeasure')).toBe(true);
+      expect(objective.isDirty("progressMeasure")).toBe(true);
 
-      objective.clearDirty('progressMeasure');
-      expect(objective.isDirty('progressMeasure')).toBe(false);
+      objective.clearDirty("progressMeasure");
+      expect(objective.isDirty("progressMeasure")).toBe(false);
     });
 
     it("should clear only specified dirty flag, not others", () => {
@@ -130,9 +130,9 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       objective.satisfiedStatus = true;
       objective.normalizedMeasure = 0.5;
 
-      objective.clearDirty('satisfiedStatus');
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      objective.clearDirty("satisfiedStatus");
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
     });
   });
 
@@ -144,17 +144,17 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       objective.completionStatus = CompletionStatus.COMPLETED;
       objective.progressMeasure = 0.8;
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
-      expect(objective.isDirty('completionStatus')).toBe(true);
-      expect(objective.isDirty('progressMeasure')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
+      expect(objective.isDirty("completionStatus")).toBe(true);
+      expect(objective.isDirty("progressMeasure")).toBe(true);
 
       objective.clearAllDirty();
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
-      expect(objective.isDirty('completionStatus')).toBe(false);
-      expect(objective.isDirty('progressMeasure')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
+      expect(objective.isDirty("completionStatus")).toBe(false);
+      expect(objective.isDirty("progressMeasure")).toBe(false);
     });
 
     it("should work on objective with no dirty flags", () => {
@@ -162,8 +162,8 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
 
       expect(() => objective.clearAllDirty()).not.toThrow();
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
     });
   });
 
@@ -173,13 +173,13 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       objective.satisfiedStatus = true;
       objective.normalizedMeasure = 0.5;
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
 
       objective.resetState();
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
     });
 
     it("should reset values and clear dirty flags", () => {
@@ -198,10 +198,10 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       expect(objective.progressMeasure).toBe(0);
 
       // Check dirty flags are cleared
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
-      expect(objective.isDirty('completionStatus')).toBe(false);
-      expect(objective.isDirty('progressMeasure')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
+      expect(objective.isDirty("completionStatus")).toBe(false);
+      expect(objective.isDirty("progressMeasure")).toBe(false);
     });
   });
 
@@ -214,8 +214,8 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       const objective = new ActivityObjective("test");
       objective.updateFromActivity(activity);
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
     });
 
     it("should not set dirty flag when updating from activity with same value", () => {
@@ -226,8 +226,8 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       const objective = new ActivityObjective("test");
       objective.updateFromActivity(activity);
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
     });
 
     it("should update dirty flags for all changed properties", () => {
@@ -240,10 +240,10 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       const objective = new ActivityObjective("test");
       objective.updateFromActivity(activity);
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
-      expect(objective.isDirty('progressMeasure')).toBe(true);
-      expect(objective.isDirty('completionStatus')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
+      expect(objective.isDirty("progressMeasure")).toBe(true);
+      expect(objective.isDirty("completionStatus")).toBe(true);
     });
   });
 
@@ -255,8 +255,8 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
       objective.initializeFromCMI(false, 0, false);
 
       // Should still be marked dirty because CMI data should be written to global
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
     });
 
     it("should set dirty flags when initializing from CMI with non-default values", () => {
@@ -264,8 +264,8 @@ describe("ActivityObjective Dirty Flag Tracking", () => {
 
       objective.initializeFromCMI(true, 0.8, true);
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
       expect(objective.satisfiedStatus).toBe(true);
       expect(objective.normalizedMeasure).toBe(0.8);
       expect(objective.measureStatus).toBe(true);
@@ -282,60 +282,60 @@ describe("Activity Objective Dirty Flag Tracking", () => {
 
   describe("initial state", () => {
     it("should not be dirty initially", () => {
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(false);
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(false);
-      expect(activity.isObjectiveDirty('measureStatus')).toBe(false);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(false);
+      expect(activity.isObjectiveDirty("measureStatus")).toBe(false);
     });
   });
 
   describe("setter behavior", () => {
     it("should be dirty after setter changes objectiveSatisfiedStatus", () => {
       activity.objectiveSatisfiedStatus = true;
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(true);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(true);
     });
 
     it("should not be dirty if objectiveSatisfiedStatus unchanged", () => {
       activity.objectiveSatisfiedStatus = false; // same as default
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(false);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
     });
 
     it("should be dirty after setter changes objectiveNormalizedMeasure", () => {
       activity.objectiveNormalizedMeasure = 0.75;
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(true);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(true);
     });
 
     it("should not be dirty if objectiveNormalizedMeasure unchanged", () => {
       activity.objectiveNormalizedMeasure = 0; // same as default
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(false);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(false);
     });
 
     it("should be dirty after setter changes objectiveMeasureStatus", () => {
       activity.objectiveMeasureStatus = true;
-      expect(activity.isObjectiveDirty('measureStatus')).toBe(true);
+      expect(activity.isObjectiveDirty("measureStatus")).toBe(true);
     });
 
     it("should not be dirty if objectiveMeasureStatus unchanged", () => {
       activity.objectiveMeasureStatus = false; // same as default
-      expect(activity.isObjectiveDirty('measureStatus')).toBe(false);
+      expect(activity.isObjectiveDirty("measureStatus")).toBe(false);
     });
   });
 
   describe("clearObjectiveDirty", () => {
     it("should clear individual dirty flag", () => {
       activity.objectiveSatisfiedStatus = true;
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(true);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(true);
 
-      activity.clearObjectiveDirty('satisfiedStatus');
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(false);
+      activity.clearObjectiveDirty("satisfiedStatus");
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
     });
 
     it("should clear only specified flag", () => {
       activity.objectiveSatisfiedStatus = true;
       activity.objectiveNormalizedMeasure = 0.5;
 
-      activity.clearObjectiveDirty('satisfiedStatus');
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(false);
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(true);
+      activity.clearObjectiveDirty("satisfiedStatus");
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(true);
     });
   });
 
@@ -347,9 +347,9 @@ describe("Activity Objective Dirty Flag Tracking", () => {
 
       activity.clearAllObjectiveDirty();
 
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(false);
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(false);
-      expect(activity.isObjectiveDirty('measureStatus')).toBe(false);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(false);
+      expect(activity.isObjectiveDirty("measureStatus")).toBe(false);
     });
   });
 
@@ -360,8 +360,8 @@ describe("Activity Objective Dirty Flag Tracking", () => {
 
       activity.reset();
 
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(false);
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(false);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(false);
     });
   });
 
@@ -376,9 +376,9 @@ describe("Activity Objective Dirty Flag Tracking", () => {
         CompletionStatus.COMPLETED
       );
 
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(true);
-      expect(activity.isObjectiveDirty('measureStatus')).toBe(true);
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(true);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(true);
+      expect(activity.isObjectiveDirty("measureStatus")).toBe(true);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(true);
     });
 
     it("should not set dirty flags when values unchanged", () => {
@@ -391,9 +391,9 @@ describe("Activity Objective Dirty Flag Tracking", () => {
         CompletionStatus.UNKNOWN
       );
 
-      expect(activity.isObjectiveDirty('satisfiedStatus')).toBe(false);
-      expect(activity.isObjectiveDirty('measureStatus')).toBe(false);
-      expect(activity.isObjectiveDirty('normalizedMeasure')).toBe(false);
+      expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
+      expect(activity.isObjectiveDirty("measureStatus")).toBe(false);
+      expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(false);
     });
 
     it("should update primary objective dirty flags when primary objective exists", () => {
@@ -410,8 +410,8 @@ describe("Activity Objective Dirty Flag Tracking", () => {
       );
 
       // Primary objective should have dirty flags set
-      expect(primaryObjective.isDirty('satisfiedStatus')).toBe(true);
-      expect(primaryObjective.isDirty('normalizedMeasure')).toBe(true);
+      expect(primaryObjective.isDirty("satisfiedStatus")).toBe(true);
+      expect(primaryObjective.isDirty("normalizedMeasure")).toBe(true);
     });
   });
 });
@@ -456,7 +456,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
       // Set objective value but ensure it's not dirty
       objective.satisfiedStatus = true;
-      objective.clearDirty('satisfiedStatus');
+      objective.clearDirty("satisfiedStatus");
       objective.measureStatus = true;
 
       // Process global objective mapping
@@ -486,27 +486,27 @@ describe("Global Objective Sync with Dirty Flags", () => {
       objective.satisfiedStatus = true;
       objective.measureStatus = true;
 
-      expect(objective.isDirty('satisfiedStatus')).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
 
       // Process global objective mapping
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
       // Dirty flag should be cleared
-      expect(objective.isDirty('satisfiedStatus')).toBe(false);
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
     });
 
     it("should write normalized measure when dirty", () => {
       objective.normalizedMeasure = 0.85;
       objective.measureStatus = true;
 
-      expect(objective.isDirty('normalizedMeasure')).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
       const globalObj = globalObjectives.get("global1");
       expect(globalObj.normalizedMeasure).toBe(0.85);
       expect(globalObj.normalizedMeasureKnown).toBe(true);
-      expect(objective.isDirty('normalizedMeasure')).toBe(false);
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
     });
 
     it("should not write normalized measure when not dirty", () => {
@@ -521,7 +521,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
       objective.normalizedMeasure = 0.85;
       objective.measureStatus = true;
-      objective.clearDirty('normalizedMeasure');
+      objective.clearDirty("normalizedMeasure");
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
@@ -548,7 +548,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
       // Second objective is not dirty
       objective2.satisfiedStatus = true;
       objective2.measureStatus = true;
-      objective2.clearDirty('satisfiedStatus');
+      objective2.clearDirty("satisfiedStatus");
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
@@ -589,7 +589,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
       const globalObj = globalObjectives.get("global3");
       expect(globalObj.completionStatus).toBe(CompletionStatus.COMPLETED);
       expect(globalObj.completionStatusKnown).toBe(true);
-      expect(objectiveWithCompletion.isDirty('completionStatus')).toBe(false);
+      expect(objectiveWithCompletion.isDirty("completionStatus")).toBe(false);
     });
 
     it("should write progress measure when dirty", () => {
@@ -609,7 +609,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
       const globalObj = globalObjectives.get("global4");
       expect(globalObj.progressMeasure).toBe(0.75);
       expect(globalObj.progressMeasureKnown).toBe(true);
-      expect(objectiveWithProgress.isDirty('progressMeasure')).toBe(false);
+      expect(objectiveWithProgress.isDirty("progressMeasure")).toBe(false);
     });
 
     it("should handle satisfiedByMeasure writes correctly", () => {
@@ -635,8 +635,8 @@ describe("Global Objective Sync with Dirty Flags", () => {
       expect(globalObj.satisfiedStatusKnown).toBe(true);
 
       // Both dirty flags should be cleared
-      expect(objectiveWithSBM.isDirty('normalizedMeasure')).toBe(false);
-      expect(objectiveWithSBM.isDirty('satisfiedStatus')).toBe(false);
+      expect(objectiveWithSBM.isDirty("normalizedMeasure")).toBe(false);
+      expect(objectiveWithSBM.isDirty("satisfiedStatus")).toBe(false);
     });
   });
 

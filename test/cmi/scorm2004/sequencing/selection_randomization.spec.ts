@@ -1,7 +1,12 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { SelectionRandomization } from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
-import { SelectionTiming, RandomizationTiming } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import {
+  SelectionRandomization
+} from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
+import {
+  RandomizationTiming,
+  SelectionTiming
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 
 describe("SelectionRandomization", () => {
   let parentActivity: Activity;
@@ -33,7 +38,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectCount = 2;
 
       const selected = SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
       expect(selected).toHaveLength(5);
       expect(selected).toEqual([child1, child2, child3, child4, child5]);
     });
@@ -43,7 +48,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectCount = null;
 
       const selected = SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
       expect(selected).toHaveLength(5);
       expect(selected).toEqual([child1, child2, child3, child4, child5]);
     });
@@ -53,7 +58,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectCount = 10;
 
       const selected = SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
       expect(selected).toHaveLength(5);
       expect(selected).toEqual([child1, child2, child3, child4, child5]);
     });
@@ -76,10 +81,10 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectCount = 2;
 
       const selected = SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
       let hiddenCount = 0;
       let availableCount = 0;
-      
+
       [child1, child2, child3, child4, child5].forEach(child => {
         if (selected.includes(child)) {
           expect(child.isHiddenFromChoice).toBe(false);
@@ -91,7 +96,7 @@ describe("SelectionRandomization", () => {
           hiddenCount++;
         }
       });
-      
+
       expect(availableCount).toBe(2);
       expect(hiddenCount).toBe(3);
     });
@@ -121,7 +126,7 @@ describe("SelectionRandomization", () => {
       child5.isAvailable = false;
 
       const selected = SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
       // Should return all children without changing their status
       expect(selected).toHaveLength(5);
       expect(child3.isHiddenFromChoice).toBe(true);
@@ -135,7 +140,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectionCountStatus = false;
 
       SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
       expect(parentActivity.sequencingControls.selectionCountStatus).toBe(false);
     });
   });
@@ -146,7 +151,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.randomizeChildren = true;
 
       const randomized = SelectionRandomization.randomizeChildrenProcess(parentActivity);
-      
+
       expect(randomized).toEqual([child1, child2, child3, child4, child5]);
     });
 
@@ -155,7 +160,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.randomizeChildren = false;
 
       const randomized = SelectionRandomization.randomizeChildrenProcess(parentActivity);
-      
+
       expect(randomized).toEqual([child1, child2, child3, child4, child5]);
     });
 
@@ -182,7 +187,7 @@ describe("SelectionRandomization", () => {
 
       const originalOrder = [...parentActivity.children];
       SelectionRandomization.randomizeChildrenProcess(parentActivity);
-      
+
       // Children array should be updated
       expect(parentActivity.children).toHaveLength(5);
       // All original children should still be present
@@ -197,7 +202,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.reorderChildren = false;
 
       SelectionRandomization.randomizeChildrenProcess(parentActivity);
-      
+
       expect(parentActivity.sequencingControls.reorderChildren).toBe(true);
     });
 
@@ -208,7 +213,7 @@ describe("SelectionRandomization", () => {
 
       const originalOrder = [...parentActivity.children];
       const randomized = SelectionRandomization.randomizeChildrenProcess(parentActivity);
-      
+
       expect(randomized).toEqual(originalOrder);
       expect(parentActivity.children).toEqual(originalOrder);
     });
@@ -225,7 +230,7 @@ describe("SelectionRandomization", () => {
         parentActivity,
         true
       );
-      
+
       expect(processed).toHaveLength(3);
       // Verify hidden status
       let hiddenCount = 0;
@@ -262,7 +267,7 @@ describe("SelectionRandomization", () => {
         parentActivity,
         false
       );
-      
+
       // Should return all children unchanged
       expect(processed).toHaveLength(5);
       expect(processed).toEqual([child1, child2, child3, child4, child5]);

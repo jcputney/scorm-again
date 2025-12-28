@@ -6,7 +6,8 @@ import {
   getLastError,
   initializeApi,
   setCmiValue,
-  terminateApi
+  terminateApi,
+  waitForPageReady
 } from "../helpers/scorm-common-helpers";
 
 export type WrapperConfig = {
@@ -41,7 +42,7 @@ export function scormCommonApiTests(
     });
 
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page, module.apiName);
@@ -77,7 +78,7 @@ export function scormCommonApiTests(
 
   test("should handle API initialization errors correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized first
     await ensureApiInitialized(page, module.apiName);
@@ -95,7 +96,7 @@ export function scormCommonApiTests(
 
   test("should handle invalid data model element errors", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page, module.apiName);
@@ -140,7 +141,7 @@ export function scormCommonApiTests(
 
   test("should handle GetValue and SetValue with proper error codes", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page, module.apiName);
@@ -245,7 +246,7 @@ export function scormCommonApiTests(
 
   test("should handle Terminate correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page, module.apiName);
@@ -277,7 +278,7 @@ export function scormCommonApiTests(
 
   test("should handle GetDiagnostic correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page, module.apiName);

@@ -22,7 +22,7 @@ describe("CMIArray Reset Tests", () => {
       // Create CMIArray with some child objects
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // Add mock children
@@ -46,7 +46,7 @@ describe("CMIArray Reset Tests", () => {
       // Create CMIArray with some child objects
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // Add mock children
@@ -66,7 +66,7 @@ describe("CMIArray Reset Tests", () => {
       // Create CMIArray
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // Set initialized to true
@@ -83,7 +83,7 @@ describe("CMIArray Reset Tests", () => {
       // Create empty CMIArray
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // Reset without errors
@@ -99,7 +99,7 @@ describe("CMIArray Reset Tests", () => {
       // Create CMIArray with children
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // Add mock children
@@ -121,7 +121,7 @@ describe("CMIArray Reset Tests", () => {
       // Create CMIArray with children
       const array = new CMIArray({
         CMIElement: "cmi.test",
-        children: "id",
+        children: "id"
       });
 
       // Add mock child

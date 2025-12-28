@@ -7,7 +7,7 @@ import {
   RollupConditionType,
   RollupConsiderationType,
   RollupRule,
-  RollupRules,
+  RollupRules
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
@@ -64,7 +64,7 @@ describe("Additional RollupRules Tests", () => {
         const parameters = new Map([["threshold", 0.5]]);
         const condition = new RollupCondition(
           RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN,
-          parameters,
+          parameters
         );
         const activity = new Activity();
 

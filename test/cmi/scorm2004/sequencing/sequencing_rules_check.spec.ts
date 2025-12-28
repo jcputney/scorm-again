@@ -1,8 +1,17 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { SequencingProcess, SequencingRequestType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { SequencingRule, RuleCondition, RuleActionType, RuleConditionType, RuleConditionOperator } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import {
+  SequencingProcess,
+  SequencingRequestType
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionOperator,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 
 describe("Sequencing Rules Check Process (UP.2)", () => {
@@ -135,7 +144,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
 
       // Should not deliver due to first (skip) rule
       expect(result.deliveryRequest).toBe("doNotDeliver");
-      
+
       // Verify it was skip (not disabled) by checking that the activity is still available
       expect(childActivity1.isAvailable).toBe(true);
     });

@@ -262,6 +262,10 @@
     // In a real LMS, this would be built from the manifest
     const resourceMap = new Map();
 
+    // Track the currently loaded activity to avoid duplicate resets
+    let currentLoadedActivityId = null;
+    let currentLoadedUrl = null;
+
     // Function to build resource URL from activity
     // In a real LMS, this would look up the resource in the manifest
     function getResourceUrl(activity) {
@@ -322,15 +326,26 @@
         if (activity && activity.id) {
           const resourceUrl = getResourceUrl(activity);
           if (resourceUrl) {
+            // Skip reset and reload if the same activity/URL is already loaded
+            // This prevents Firefox's NS_ERROR_XPC_SECURITY_MANAGER_VETO error
+            // caused by resetting the API while the same iframe is communicating
+            if (currentLoadedActivityId === activity.id || currentLoadedUrl === resourceUrl) {
+              console.log('[Wrapper] Skipping reload - same activity already loaded:', activity.id);
+              return;
+            }
+
             // Reset the API before loading new SCO
             // This resets SCO-specific data while preserving global objectives
             // The reset() method is designed for transitioning between SCOs
             if (window.API_1484_11 && typeof window.API_1484_11.reset === 'function') {
               window.API_1484_11.reset();
             }
-            
+
             const moduleFrame = document.getElementById('moduleFrame');
             if (moduleFrame) {
+              // Track the loaded activity
+              currentLoadedActivityId = activity.id;
+              currentLoadedUrl = resourceUrl;
               // Load the new SCO content
               moduleFrame.src = resourceUrl;
             }
@@ -350,14 +365,27 @@
       }, 100);
 
       const modulePath = getModulePath();
-      if (modulePath) {
+
+      // Check if sequencing is active with an activity tree
+      // If so, let sequencing's onActivityDelivery handle the initial load
+      // This prevents Firefox's NS_ERROR_XPC_SECURITY_MANAGER_VETO error
+      // caused by resetting the API right after loading a different module
+      const hasSequencing = sequencingDefaults.activityTree &&
+                            sequencingDefaults.activityTree.children &&
+                            sequencingDefaults.activityTree.children.length > 0;
+
+      if (modulePath && !hasSequencing) {
+        // Non-sequenced module: load directly from URL
         loadModule(modulePath);
-      } else {
+      } else if (!modulePath && !hasSequencing) {
         document.getElementById('error').textContent = 'No module specified. Use ?module=path/to/module.html';
       }
+      // If sequencing is active, onActivityDelivery will handle the initial load
     });
 
     function loadModule(modulePath) {
+      // Track the initially loaded module URL to avoid duplicate resets
+      currentLoadedUrl = modulePath;
       document.getElementById('moduleFrame').src = modulePath;
     }
 

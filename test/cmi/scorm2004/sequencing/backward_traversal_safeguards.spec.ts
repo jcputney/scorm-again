@@ -1,13 +1,13 @@
-import {beforeEach, describe, expect, it} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   SequencingProcess,
-  SequencingRequestType,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
-import {SequencingRules} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import {SequencingControls} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
-import {ADLNav} from "../../../../src/cmi/scorm2004/adl";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { SequencingRules } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
 
 /**
  * Test suite for backward traversal safeguards (SEQ-PROC-11/12)
@@ -44,7 +44,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       activityTree,
       sequencingRules,
       sequencingControls,
-      adlNav,
+      adlNav
     );
   });
 

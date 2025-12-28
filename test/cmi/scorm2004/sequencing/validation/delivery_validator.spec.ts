@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DeliveryValidator } from "../../../../../src/cmi/scorm2004/sequencing/validation/delivery_validator";
+import {
+  DeliveryValidator
+} from "../../../../../src/cmi/scorm2004/sequencing/validation/delivery_validator";
 import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 
@@ -304,7 +306,7 @@ describe("DeliveryValidator", () => {
 
     it("should detect global objective dependencies", () => {
       (grandchild1 as any).objectives = [
-        { id: "obj1", globalObjectiveID: "global-obj-1" },
+        { id: "obj1", globalObjectiveID: "global-obj-1" }
       ];
 
       const dependencies = validator.getObjectiveDependencies(grandchild1);
@@ -313,7 +315,7 @@ describe("DeliveryValidator", () => {
 
     it("should detect measure-based dependencies", () => {
       (grandchild1 as any).objectives = [
-        { id: "obj1", satisfiedByMeasure: false, readNormalizedMeasure: true },
+        { id: "obj1", satisfiedByMeasure: false, readNormalizedMeasure: true }
       ];
 
       const dependencies = validator.getObjectiveDependencies(grandchild1);
@@ -324,7 +326,7 @@ describe("DeliveryValidator", () => {
   describe("isObjectiveDependencySatisfied", () => {
     it("should check global objectives", () => {
       (activityTree as any).globalObjectives = {
-        "global-obj-1": { satisfied: true, statusKnown: true },
+        "global-obj-1": { satisfied: true, statusKnown: true }
       };
 
       const result = validator.isObjectiveDependencySatisfied("global-obj-1");
@@ -333,7 +335,7 @@ describe("DeliveryValidator", () => {
 
     it("should return false for unsatisfied global objectives", () => {
       (activityTree as any).globalObjectives = {
-        "global-obj-1": { satisfied: false, statusKnown: true },
+        "global-obj-1": { satisfied: false, statusKnown: true }
       };
 
       const result = validator.isObjectiveDependencySatisfied("global-obj-1");
@@ -342,7 +344,7 @@ describe("DeliveryValidator", () => {
 
     it("should check measure-based dependencies", () => {
       (activityTree as any).globalObjectives = {
-        "obj1": { measureKnown: true, normalizedMeasure: 0.8 },
+        "obj1": { measureKnown: true, normalizedMeasure: 0.8 }
       };
 
       const result = validator.isObjectiveDependencySatisfied("obj1_measure");
@@ -351,7 +353,7 @@ describe("DeliveryValidator", () => {
 
     it("should fail measure dependencies with negative measure", () => {
       (activityTree as any).globalObjectives = {
-        "obj1": { measureKnown: true, normalizedMeasure: -0.5 },
+        "obj1": { measureKnown: true, normalizedMeasure: -0.5 }
       };
 
       const result = validator.isObjectiveDependencySatisfied("obj1_measure");
@@ -416,7 +418,7 @@ describe("DeliveryValidator", () => {
         "onLimitConditionCheck",
         expect.objectContaining({
           result: false,
-          failureReason: "Attempt limit exceeded",
+          failureReason: "Attempt limit exceeded"
         })
       );
     });
@@ -439,7 +441,7 @@ describe("DeliveryValidator", () => {
         "onLimitConditionCheck",
         expect.objectContaining({
           result: false,
-          failureReason: "Attempt duration limit exceeded",
+          failureReason: "Attempt duration limit exceeded"
         })
       );
     });
@@ -464,7 +466,7 @@ describe("DeliveryValidator", () => {
         "onLimitConditionCheck",
         expect.objectContaining({
           result: false,
-          failureReason: "Activity duration limit exceeded",
+          failureReason: "Activity duration limit exceeded"
         })
       );
     });
@@ -487,7 +489,7 @@ describe("DeliveryValidator", () => {
         "onLimitConditionCheck",
         expect.objectContaining({
           result: false,
-          failureReason: "Not yet time to begin",
+          failureReason: "Not yet time to begin"
         })
       );
     });
@@ -510,7 +512,7 @@ describe("DeliveryValidator", () => {
         "onLimitConditionCheck",
         expect.objectContaining({
           result: false,
-          failureReason: "Time limit expired",
+          failureReason: "Time limit expired"
         })
       );
     });
@@ -526,7 +528,7 @@ describe("DeliveryValidator", () => {
     it("should use custom now function when provided", () => {
       const fixedDate = new Date("2024-01-15T12:00:00Z");
       const customValidator = new DeliveryValidator(activityTree, eventCallback, {
-        now: () => fixedDate,
+        now: () => fixedDate
       });
 
       grandchild1.beginTimeLimit = "2024-01-14T12:00:00Z"; // Before fixed date
@@ -580,13 +582,13 @@ describe("DeliveryValidator", () => {
         preConditionRules: [
           {
             conditions: [
-              { condition: "objectiveStatusKnown" },
+              { condition: "objectiveStatusKnown" }
             ],
-            action: "skip",
-          },
+            action: "skip"
+          }
         ],
         exitConditionRules: [],
-        postConditionRules: [],
+        postConditionRules: []
       };
 
       // No objective status set
@@ -602,13 +604,13 @@ describe("DeliveryValidator", () => {
         preConditionRules: [
           {
             conditions: [
-              { condition: "activityProgressKnown" },
+              { condition: "activityProgressKnown" }
             ],
-            action: "skip",
-          },
+            action: "skip"
+          }
         ],
         exitConditionRules: [],
-        postConditionRules: [],
+        postConditionRules: []
       };
 
       grandchild1.progressMeasureStatus = false;
@@ -622,13 +624,13 @@ describe("DeliveryValidator", () => {
         preConditionRules: [
           {
             conditions: [
-              { condition: "attemptLimitExceeded" },
+              { condition: "attemptLimitExceeded" }
             ],
-            action: "skip",
-          },
+            action: "skip"
+          }
         ],
         exitConditionRules: [],
-        postConditionRules: [],
+        postConditionRules: []
       };
 
       grandchild1.attemptLimit = null;
@@ -646,13 +648,13 @@ describe("DeliveryValidator", () => {
         preConditionRules: [
           {
             conditions: [
-              { condition: "timeLimitExceeded" },
+              { condition: "timeLimitExceeded" }
             ],
-            action: "skip",
-          },
+            action: "skip"
+          }
         ],
         exitConditionRules: [],
-        postConditionRules: [],
+        postConditionRules: []
       };
 
       // Activity has no duration limits set (null by default)
@@ -665,13 +667,13 @@ describe("DeliveryValidator", () => {
         preConditionRules: [
           {
             conditions: [
-              { condition: "always" },
+              { condition: "always" }
             ],
-            action: "skip",
-          },
+            action: "skip"
+          }
         ],
         exitConditionRules: [],
-        postConditionRules: [],
+        postConditionRules: []
       };
 
       const result = validator.validateDependencies(grandchild1);
@@ -683,13 +685,13 @@ describe("DeliveryValidator", () => {
         preConditionRules: [
           {
             conditions: [
-              { condition: "unknownCondition" },
+              { condition: "unknownCondition" }
             ],
-            action: "skip",
-          },
+            action: "skip"
+          }
         ],
         exitConditionRules: [],
-        postConditionRules: [],
+        postConditionRules: []
       };
 
       const result = validator.validateDependencies(grandchild1);
@@ -702,12 +704,12 @@ describe("DeliveryValidator", () => {
         exitConditionRules: [
           {
             conditions: [
-              { condition: "objectiveSatisfied", referencedObjectiveID: "non-existent" },
+              { condition: "objectiveSatisfied", referencedObjectiveID: "non-existent" }
             ],
-            action: "exit",
-          },
+            action: "exit"
+          }
         ],
-        postConditionRules: [],
+        postConditionRules: []
       };
 
       const result = validator.validateDependencies(grandchild1);
@@ -720,9 +722,9 @@ describe("DeliveryValidator", () => {
           {
             conditions: [{ condition: "completed" }],
             childActivitySet: "all",
-            action: "satisfied",
-          },
-        ],
+            action: "satisfied"
+          }
+        ]
       };
 
       grandchild1.isCompleted = false;
@@ -738,9 +740,9 @@ describe("DeliveryValidator", () => {
           {
             conditions: [{ condition: "completed" }],
             childActivitySet: "all",
-            action: "satisfied",
-          },
-        ],
+            action: "satisfied"
+          }
+        ]
       };
 
       grandchild1.isCompleted = true;
@@ -795,7 +797,7 @@ describe("DeliveryValidator", () => {
       (globalThis as any).document = {
         createElement: () => {
           throw new Error("DOM error");
-        },
+        }
       };
 
       try {

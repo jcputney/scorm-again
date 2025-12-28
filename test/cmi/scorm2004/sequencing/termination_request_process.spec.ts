@@ -1,19 +1,19 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess,
+  OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {SequencingProcess,} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
   SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import {getExceptionDescription} from "../../../../src/constants/sequencing_exceptions";
+import { getExceptionDescription } from "../../../../src/constants/sequencing_exceptions";
 
 describe("Termination Request Process (TB.2.3)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -59,9 +59,9 @@ describe("Termination Request Process (TB.2.3)", () => {
     rollupProcess = new RollupProcess();
 
     overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess
+      activityTree,
+      sequencingProcess,
+      rollupProcess
     );
   });
 
@@ -95,7 +95,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       grandchild1.objectiveSatisfiedStatus = true;
       child1.sequencingControls.rollupObjectiveSatisfied = true;
 
-      const rollupSpy = vi.spyOn(rollupProcess, 'overallRollupProcess');
+      const rollupSpy = vi.spyOn(rollupProcess, "overallRollupProcess");
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
@@ -275,7 +275,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     beforeEach(() => {
       // Add post-condition rules
       const postRule = grandchild1.sequencingRules.postConditionRules[0] =
-          new SequencingRule(RuleActionType.CONTINUE);
+        new SequencingRule(RuleActionType.CONTINUE);
       postRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
     });
 
@@ -374,7 +374,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should apply exit rules recursively during descendant termination", () => {
       // Set up exit rule on grandchild that exits parent
       const exitRule = grandchild1.sequencingRules.exitConditionRules[0] =
-          new SequencingRule(RuleActionType.EXIT_PARENT);
+        new SequencingRule(RuleActionType.EXIT_PARENT);
       exitRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
 
       activityTree.currentActivity = child1;
@@ -434,8 +434,8 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Now choose a different activity
       const result = overallProcess.processNavigationRequest(
-          NavigationRequestType.CHOICE,
-          "lesson2"
+        NavigationRequestType.CHOICE,
+        "lesson2"
       );
 
       expect(result.valid).toBe(true);
@@ -456,9 +456,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Process EXIT request with logout exit type
       const result = overallProcess.processNavigationRequest(
-          NavigationRequestType.EXIT,
-          null,
-          "logout"
+        NavigationRequestType.EXIT,
+        null,
+        "logout"
       );
 
       expect(result.valid).toBe(true);
@@ -476,9 +476,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Process EXIT request with normal exit type
       const result = overallProcess.processNavigationRequest(
-          NavigationRequestType.EXIT,
-          null,
-          "normal"
+        NavigationRequestType.EXIT,
+        null,
+        "normal"
       );
 
       expect(result.valid).toBe(true);
@@ -494,9 +494,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       // Process EXIT request with suspend exit type
       // Note: cmi.exit="suspend" is informational; actual suspension requires SUSPEND_ALL request
       const result = overallProcess.processNavigationRequest(
-          NavigationRequestType.EXIT,
-          null,
-          "suspend"
+        NavigationRequestType.EXIT,
+        null,
+        "suspend"
       );
 
       expect(result.valid).toBe(true);
@@ -512,9 +512,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Process EXIT request with empty exit type
       const result = overallProcess.processNavigationRequest(
-          NavigationRequestType.EXIT,
-          null,
-          ""
+        NavigationRequestType.EXIT,
+        null,
+        ""
       );
 
       expect(result.valid).toBe(true);
@@ -528,7 +528,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should return and use CONTINUE sequencing request from post-condition", () => {
       // Set up activity with post-condition CONTINUE rule
       const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-          new SequencingRule(RuleActionType.CONTINUE);
+        new SequencingRule(RuleActionType.CONTINUE);
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;
@@ -553,7 +553,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should use navigation request when no post-condition triggers", () => {
       // Set up activity with post-condition CONTINUE rule that won't trigger
       const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-          new SequencingRule(RuleActionType.CONTINUE);
+        new SequencingRule(RuleActionType.CONTINUE);
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;
@@ -777,7 +777,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       grandchild1.objectiveSatisfiedStatus = true;
       child1.sequencingControls.rollupObjectiveSatisfied = true;
 
-      const rollupSpy = vi.spyOn(rollupProcess, 'overallRollupProcess');
+      const rollupSpy = vi.spyOn(rollupProcess, "overallRollupProcess");
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 

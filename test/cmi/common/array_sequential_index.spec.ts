@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import Scorm12API from "../../../src/Scorm12API";
 import Scorm2004API from "../../../src/Scorm2004API";
 import { scorm12_errors, scorm2004_errors } from "../../../src/constants/error_codes";
@@ -91,10 +91,10 @@ describe("CMIArray Sequential Index Validation", () => {
       scorm12API.lmsSetValue("cmi.interactions.0.id", "int_0");
       scorm12API.lmsSetValue("cmi.interactions.0.type", "choice");
       expect(
-        scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a"),
+        scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")
       ).toBe("true");
       expect(
-        scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b"),
+        scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b")
       ).toBe("true");
       expect(scorm12API.lmsGetLastError()).toBe("0");
     });
@@ -206,10 +206,10 @@ describe("CMIArray Sequential Index Validation", () => {
       scorm2004API.lmsSetValue("cmi.interactions.0.id", "int_0");
       scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
       expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a"),
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")
       ).toBe("true");
       expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b"),
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b")
       ).toBe("true");
       expect(scorm2004API.lmsGetLastError()).toBe("0");
     });

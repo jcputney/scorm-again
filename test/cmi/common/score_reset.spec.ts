@@ -8,7 +8,7 @@ describe("CMIScore Reset Tests", () => {
       // Create a score object
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Set initialized flag
@@ -26,7 +26,7 @@ describe("CMIScore Reset Tests", () => {
       // Create a score object and set values
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Set some values
@@ -48,7 +48,7 @@ describe("CMIScore Reset Tests", () => {
       // Create a score object
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Set some initial values
@@ -75,7 +75,7 @@ describe("CMIScore Reset Tests", () => {
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
         score_children: "raw,min,max",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Get _children before reset
@@ -93,7 +93,7 @@ describe("CMIScore Reset Tests", () => {
       // Create a score object
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
-        errorClass: Scorm12ValidationError,
+        errorClass: Scorm12ValidationError
       });
 
       // Reset

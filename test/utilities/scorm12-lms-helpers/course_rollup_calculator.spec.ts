@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { CourseRollupCalculator } from "../../../src/utilities/scorm12-lms-helpers/course_rollup_calculator";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  CourseRollupCalculator
+} from "../../../src/utilities/scorm12-lms-helpers/course_rollup_calculator";
 import { ScoStateTracker } from "../../../src/utilities/scorm12-lms-helpers/sco_state_tracker";
 
 describe("CourseRollupCalculator", () => {
@@ -27,10 +29,10 @@ describe("CourseRollupCalculator", () => {
 
     it("should return correct counts for mixed completion", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       const result = calculator.calculate();
@@ -41,10 +43,10 @@ describe("CourseRollupCalculator", () => {
 
     it("should calculate total time correctly", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { session_time: "0000:30:00.00" },
+        core: { session_time: "0000:30:00.00" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { session_time: "0000:45:00.00" },
+        core: { session_time: "0000:45:00.00" }
       });
 
       const result = calculator.calculate();
@@ -56,13 +58,13 @@ describe("CourseRollupCalculator", () => {
   describe("score calculation methods", () => {
     beforeEach(() => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 80, min: 0, max: 100 } },
+        core: { score: { raw: 80, min: 0, max: 100 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 90, min: 0, max: 100 } },
+        core: { score: { raw: 90, min: 0, max: 100 } }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { score: { raw: 70, min: 0, max: 100 } },
+        core: { score: { raw: 70, min: 0, max: 100 } }
       });
     });
 
@@ -91,7 +93,7 @@ describe("CourseRollupCalculator", () => {
       const weights = new Map([
         ["sco1", 0.2],
         ["sco2", 0.3],
-        ["sco3", 0.5],
+        ["sco3", 0.5]
       ]);
 
       calculator.setOptions({ scoreMethod: "weighted", weights });
@@ -113,7 +115,7 @@ describe("CourseRollupCalculator", () => {
       tracker = new ScoStateTracker();
       tracker.initializeSco("sco1", "SCO 1");
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 75, min: 50, max: 100 } },
+        core: { score: { raw: 75, min: 50, max: 100 } }
       });
 
       calculator = new CourseRollupCalculator(tracker);
@@ -127,10 +129,10 @@ describe("CourseRollupCalculator", () => {
   describe("completion methods", () => {
     it("should use 'all' completion method by default", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       // sco3 not completed
 
@@ -141,7 +143,7 @@ describe("CourseRollupCalculator", () => {
       calculator.setOptions({ completionMethod: "any" });
 
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
 
       expect(calculator.isCourseComplete()).toBe(true);
@@ -150,14 +152,14 @@ describe("CourseRollupCalculator", () => {
     it("should use percentage threshold", () => {
       calculator.setOptions({
         completionMethod: "percentage",
-        completionThreshold: 66,
+        completionThreshold: 66
       });
 
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
 
       expect(calculator.isCourseComplete()).toBe(true); // 67% > 66%
@@ -172,13 +174,13 @@ describe("CourseRollupCalculator", () => {
 
       it("should return passed when all passed", () => {
         tracker.updateFromCmiData("sco1", {
-          core: { lesson_status: "passed" },
+          core: { lesson_status: "passed" }
         });
         tracker.updateFromCmiData("sco2", {
-          core: { lesson_status: "passed" },
+          core: { lesson_status: "passed" }
         });
         tracker.updateFromCmiData("sco3", {
-          core: { lesson_status: "passed" },
+          core: { lesson_status: "passed" }
         });
 
         const result = calculator.calculate();
@@ -187,13 +189,13 @@ describe("CourseRollupCalculator", () => {
 
       it("should return failed when any failed", () => {
         tracker.updateFromCmiData("sco1", {
-          core: { lesson_status: "passed" },
+          core: { lesson_status: "passed" }
         });
         tracker.updateFromCmiData("sco2", {
-          core: { lesson_status: "failed" },
+          core: { lesson_status: "failed" }
         });
         tracker.updateFromCmiData("sco3", {
-          core: { lesson_status: "passed" },
+          core: { lesson_status: "passed" }
         });
 
         const result = calculator.calculate();
@@ -208,10 +210,10 @@ describe("CourseRollupCalculator", () => {
 
       it("should return passed when any passed", () => {
         tracker.updateFromCmiData("sco1", {
-          core: { lesson_status: "passed" },
+          core: { lesson_status: "passed" }
         });
         tracker.updateFromCmiData("sco2", {
-          core: { lesson_status: "incomplete" },
+          core: { lesson_status: "incomplete" }
         });
         tracker.markLaunched("sco1");
 
@@ -224,19 +226,19 @@ describe("CourseRollupCalculator", () => {
       beforeEach(() => {
         calculator.setOptions({
           statusMethod: "score_threshold",
-          passingScore: 80,
+          passingScore: 80
         });
       });
 
       it("should return passed when score meets threshold", () => {
         tracker.updateFromCmiData("sco1", {
-          core: { lesson_status: "completed", score: { raw: 85 } },
+          core: { lesson_status: "completed", score: { raw: 85 } }
         });
         tracker.updateFromCmiData("sco2", {
-          core: { lesson_status: "completed", score: { raw: 90 } },
+          core: { lesson_status: "completed", score: { raw: 90 } }
         });
         tracker.updateFromCmiData("sco3", {
-          core: { lesson_status: "completed", score: { raw: 80 } },
+          core: { lesson_status: "completed", score: { raw: 80 } }
         });
         tracker.markLaunched("sco1");
 
@@ -247,13 +249,13 @@ describe("CourseRollupCalculator", () => {
 
       it("should return failed when complete but score below threshold", () => {
         tracker.updateFromCmiData("sco1", {
-          core: { lesson_status: "completed", score: { raw: 60 } },
+          core: { lesson_status: "completed", score: { raw: 60 } }
         });
         tracker.updateFromCmiData("sco2", {
-          core: { lesson_status: "completed", score: { raw: 70 } },
+          core: { lesson_status: "completed", score: { raw: 70 } }
         });
         tracker.updateFromCmiData("sco3", {
-          core: { lesson_status: "completed", score: { raw: 65 } },
+          core: { lesson_status: "completed", score: { raw: 65 } }
         });
         tracker.markLaunched("sco1");
 
@@ -269,13 +271,13 @@ describe("CourseRollupCalculator", () => {
 
       it("should return completed when all complete regardless of pass/fail", () => {
         tracker.updateFromCmiData("sco1", {
-          core: { lesson_status: "passed" },
+          core: { lesson_status: "passed" }
         });
         tracker.updateFromCmiData("sco2", {
-          core: { lesson_status: "failed" },
+          core: { lesson_status: "failed" }
         });
         tracker.updateFromCmiData("sco3", {
-          core: { lesson_status: "completed" },
+          core: { lesson_status: "completed" }
         });
 
         const result = calculator.calculate();
@@ -289,13 +291,13 @@ describe("CourseRollupCalculator", () => {
       calculator.setOptions({ statusMethod: "all_passed" });
 
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
 
       expect(calculator.isCoursePassed()).toBe(true);
@@ -305,10 +307,10 @@ describe("CourseRollupCalculator", () => {
       calculator.setOptions({ statusMethod: "all_passed" });
 
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
 
       expect(calculator.isCoursePassed()).toBe(false);
@@ -318,7 +320,7 @@ describe("CourseRollupCalculator", () => {
   describe("calculateCompletionPercentage", () => {
     it("should calculate percentage correctly", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
 
       expect(calculator.calculateCompletionPercentage()).toBe(33); // 1/3 rounded
@@ -339,10 +341,10 @@ describe("CourseRollupCalculator", () => {
 
     it("should calculate score from available SCOs", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 80 } },
+        core: { score: { raw: 80 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 100 } },
+        core: { score: { raw: 100 } }
       });
       // sco3 has no score
 
@@ -353,7 +355,7 @@ describe("CourseRollupCalculator", () => {
   describe("scoResults in rollup", () => {
     it("should include detailed SCO results", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "passed", score: { raw: 85 } },
+        core: { lesson_status: "passed", score: { raw: 85 } }
       });
 
       const result = calculator.calculate();
@@ -381,13 +383,13 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle all SCOs with same score", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 75 } },
+        core: { score: { raw: 75 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 75 } },
+        core: { score: { raw: 75 } }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { score: { raw: 75 } },
+        core: { score: { raw: 75 } }
       });
 
       calculator.setOptions({ scoreMethod: "average" });
@@ -404,7 +406,7 @@ describe("CourseRollupCalculator", () => {
   describe("score calculation edge cases", () => {
     it("should handle division by zero when min equals max", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 50, min: 50, max: 50 } },
+        core: { score: { raw: 50, min: 50, max: 50 } }
       });
 
       const result = calculator.calculateScore();
@@ -413,16 +415,16 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle weighted score with zero total weight", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 80 } },
+        core: { score: { raw: 80 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 90 } },
+        core: { score: { raw: 90 } }
       });
 
       // Provide weights that sum to zero (edge case)
       const weights = new Map([
         ["sco1", 0],
-        ["sco2", 0],
+        ["sco2", 0]
       ]);
 
       calculator.setOptions({ scoreMethod: "weighted", weights });
@@ -433,20 +435,20 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle weighted score with partial weights", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 80 } },
+        core: { score: { raw: 80 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 90 } },
+        core: { score: { raw: 90 } }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { score: { raw: 70 } },
+        core: { score: { raw: 70 } }
       });
 
       // Only provide weights for some SCOs
       const weights = new Map([
         ["sco1", 0.5],
         // sco2 not specified, should default to 1
-        ["sco3", 0.5],
+        ["sco3", 0.5]
       ]);
 
       calculator.setOptions({ scoreMethod: "weighted", weights });
@@ -458,10 +460,10 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle negative scores", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: -10, min: -50, max: 50 } },
+        core: { score: { raw: -10, min: -50, max: 50 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 0, min: -50, max: 50 } },
+        core: { score: { raw: 0, min: -50, max: 50 } }
       });
 
       calculator.setOptions({ scoreMethod: "average" });
@@ -475,13 +477,13 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle boundary score values (0 and 100)", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 0 } },
+        core: { score: { raw: 0 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 100 } },
+        core: { score: { raw: 100 } }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { score: { raw: 50 } },
+        core: { score: { raw: 50 } }
       });
 
       calculator.setOptions({ scoreMethod: "average" });
@@ -497,15 +499,15 @@ describe("CourseRollupCalculator", () => {
     it("should handle last score method with access times", () => {
       // updateFromCmiData sets lastAccessTime automatically
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 80 } },
+        core: { score: { raw: 80 } }
       });
 
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 90 } },
+        core: { score: { raw: 90 } }
       });
 
       tracker.updateFromCmiData("sco3", {
-        core: { score: { raw: 70 } },
+        core: { score: { raw: 70 } }
       });
 
       calculator.setOptions({ scoreMethod: "last" });
@@ -521,7 +523,7 @@ describe("CourseRollupCalculator", () => {
       const singleTracker = new ScoStateTracker();
       singleTracker.initializeSco("sco1", "Single SCO");
       singleTracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 85 } },
+        core: { score: { raw: 85 } }
       });
 
       const singleCalc = new CourseRollupCalculator(singleTracker);
@@ -553,11 +555,11 @@ describe("CourseRollupCalculator", () => {
     it("should handle different score ranges", () => {
       // SCO with standard 0-100 range
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 80, min: 0, max: 100 } },
+        core: { score: { raw: 80, min: 0, max: 100 } }
       });
       // SCO with non-standard range (50-100)
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 90, min: 50, max: 100 } },
+        core: { score: { raw: 90, min: 50, max: 100 } }
       });
 
       calculator.setOptions({ scoreMethod: "average" });
@@ -570,13 +572,13 @@ describe("CourseRollupCalculator", () => {
 
     it("should normalize scores correctly across different ranges", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 100, min: 0, max: 100 } }, // 100%
+        core: { score: { raw: 100, min: 0, max: 100 } } // 100%
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 75, min: 50, max: 100 } }, // 50%
+        core: { score: { raw: 75, min: 50, max: 100 } } // 50%
       });
       tracker.updateFromCmiData("sco3", {
-        core: { score: { raw: 50, min: 0, max: 200 } }, // 25%
+        core: { score: { raw: 50, min: 0, max: 200 } } // 25%
       });
 
       calculator.setOptions({ scoreMethod: "average" });
@@ -588,13 +590,13 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle very large sum scores (capped at 100)", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 50 } },
+        core: { score: { raw: 50 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 60 } },
+        core: { score: { raw: 60 } }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { score: { raw: 70 } },
+        core: { score: { raw: 70 } }
       });
 
       calculator.setOptions({ scoreMethod: "sum" });
@@ -606,10 +608,10 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle small sum scores (not capped)", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { score: { raw: 10 } },
+        core: { score: { raw: 10 } }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { score: { raw: 20 } },
+        core: { score: { raw: 20 } }
       });
 
       calculator.setOptions({ scoreMethod: "sum" });
@@ -624,12 +626,12 @@ describe("CourseRollupCalculator", () => {
     it("should handle score_threshold with undefined score and incomplete", () => {
       calculator.setOptions({
         statusMethod: "score_threshold",
-        passingScore: 80,
+        passingScore: 80
       });
 
       // Mark as incomplete but no scores
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
       tracker.markLaunched("sco1");
 
@@ -643,13 +645,13 @@ describe("CourseRollupCalculator", () => {
     it("should handle default status method with mixed statuses", () => {
       // Don't specify statusMethod, should use default
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.markLaunched("sco1");
 
@@ -661,13 +663,13 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle default status method with all passed", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { lesson_status: "passed" },
+        core: { lesson_status: "passed" }
       });
       tracker.markLaunched("sco1");
 
@@ -679,13 +681,13 @@ describe("CourseRollupCalculator", () => {
 
     it("should handle default status method with any failed", () => {
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "failed" },
+        core: { lesson_status: "failed" }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { lesson_status: "completed" },
+        core: { lesson_status: "completed" }
       });
       tracker.markLaunched("sco1");
 
@@ -699,13 +701,13 @@ describe("CourseRollupCalculator", () => {
       calculator.setOptions({ statusMethod: "any_passed" });
 
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { lesson_status: "incomplete" },
+        core: { lesson_status: "incomplete" }
       });
       tracker.markLaunched("sco1");
 
@@ -719,13 +721,13 @@ describe("CourseRollupCalculator", () => {
       calculator.setOptions({ statusMethod: "any_passed" });
 
       tracker.updateFromCmiData("sco1", {
-        core: { lesson_status: "failed" },
+        core: { lesson_status: "failed" }
       });
       tracker.updateFromCmiData("sco2", {
-        core: { lesson_status: "failed" },
+        core: { lesson_status: "failed" }
       });
       tracker.updateFromCmiData("sco3", {
-        core: { lesson_status: "failed" },
+        core: { lesson_status: "failed" }
       });
       tracker.markLaunched("sco1");
 

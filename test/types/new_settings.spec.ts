@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { Settings, InternalSettings } from "../../src/types/api_types";
+import { describe, expect, it } from "vitest";
+import { InternalSettings, Settings } from "../../src/types/api_types";
 
 describe("New HTTP Service Settings", () => {
   it("should allow useAsynchronousCommits in Settings", () => {

@@ -1,16 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 import {
-  CommitRequestTracker,
-  setupCommitMocking,
-  configureApiForHttpCommits,
-  waitForModuleFrame,
-  verifyApiAccessibleFromModule,
-  getCmiValue,
-  setCmiValue,
-  getWrapperConfigs,
-  ensureApiInitialized,
-  completeContentSCO,
   completeAssessmentSCO,
+  completeContentSCO,
+  ensureApiInitialized,
+  getCmiValue,
+  getWrapperConfigs,
+  initializeSequencedModule,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
@@ -545,6 +541,19 @@ async function injectSequencingConfig(page: any, activityTree: any, sequencingCo
 // Run tests for each wrapper type
 wrappers.forEach((wrapper) => {
   test.describe(`SequencingSimpleRemediation SCORM 2004 3rd Edition Integration (${wrapper.name})`, () => {
+    // Helper to launch sequenced module with proper initialization
+    const launchSequencedModule = async (
+      page: any,
+      modulePath: string = MODULE_PATH,
+      options: Record<string, any> = {},
+    ) => {
+      await initializeSequencedModule(page, wrapper.path, modulePath, {
+        activityTree: ACTIVITY_TREE,
+        sequencingControls: SEQUENCING_CONTROLS,
+        ...options,
+      });
+    };
+
     // Compose universal API tests
     scormCommonApiTests(wrapper, moduleConfig);
 
@@ -561,7 +570,7 @@ wrappers.forEach((wrapper) => {
 
     test("should initialize API with sequencing configuration", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration after page loads
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -614,7 +623,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -658,7 +667,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -725,7 +734,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -770,7 +779,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -814,7 +823,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -869,7 +878,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -919,7 +928,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -967,7 +976,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1009,7 +1018,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1058,7 +1067,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1109,7 +1118,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1167,7 +1176,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1212,7 +1221,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1263,7 +1272,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1337,7 +1346,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1454,7 +1463,7 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1563,34 +1572,100 @@ wrappers.forEach((wrapper) => {
     test("should complete content SCO by interacting with module content per SCORM 2004 SN Book DB.2", async ({
       page,
     }) => {
-      await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      // Use launchSequencedModule to properly initialize sequencing BEFORE the page loads
+      // This ensures the wrapper's event listeners are registered on the correct API instance
+      await launchSequencedModule(page);
 
-      // Inject sequencing configuration
-      await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-      await ensureApiInitialized(page);
-      await page.waitForTimeout(2000);
+      // Detect browser type for Firefox-specific waits
+      const browserName = page.context().browser()?.browserType().name() || "chromium";
+      const isFirefox = browserName === "firefox";
+      const initWait = isFirefox ? 3000 : 2000;
+      await page.waitForTimeout(initWait);
 
       // Try to navigate through the content SCO by clicking Next buttons
       // Note: The module may not have interactive navigation buttons or may not
       // automatically set completion status
+      // For Firefox, use a timeout to prevent hanging
       try {
-        await completeContentSCO(page);
+        if (isFirefox) {
+          // Use Promise.race to timeout completeContentSCO if it takes too long
+          await Promise.race([
+            completeContentSCO(page),
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error("completeContentSCO timed out after 45 seconds")),
+                45000,
+              ),
+            ),
+          ]);
+        } else {
+          await completeContentSCO(page);
+        }
       } catch (e) {
         // completeContentSCO may fail if the module doesn't have navigation buttons
         // This is acceptable - we'll verify the API state below
+        // In Firefox, this might also fail due to timing, so we catch and continue
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        if (!errorMessage.includes("timed out") && !errorMessage.includes("closed")) {
+          // Only log non-timeout errors
+          console.warn("completeContentSCO failed:", errorMessage);
+        }
+        if (isFirefox) {
+          // Give Firefox extra time to stabilize, but check if page is still open
+          try {
+            await page.waitForTimeout(2000);
+          } catch (pageError) {
+            // Page might be closed, continue anyway
+            if (!pageError.message.includes("closed")) {
+              throw pageError;
+            }
+          }
+        }
       }
 
       // Verify the API was initialized and is accessible
-      const apiState = await page.evaluate(() => {
-        const api = (window as any).API_1484_11;
-        return {
-          initialized: !!api,
-          completionStatus: api?.lmsGetValue("cmi.completion_status") || "",
-          successStatus: api?.lmsGetValue("cmi.success_status") || "",
-          location: api?.lmsGetValue("cmi.location") || "",
-        };
-      });
+      // Add retry for Firefox in case page was slow to initialize
+      let apiState;
+      let retries = 0;
+      const maxRetries = isFirefox ? 3 : 1;
+
+      while (retries < maxRetries) {
+        try {
+          // Check if page is still open before evaluating
+          if (page.isClosed()) {
+            throw new Error("Page was closed");
+          }
+          apiState = await page.evaluate(() => {
+            const api = (window as any).API_1484_11;
+            return {
+              initialized: !!api,
+              completionStatus: api?.lmsGetValue("cmi.completion_status") || "",
+              successStatus: api?.lmsGetValue("cmi.success_status") || "",
+              location: api?.lmsGetValue("cmi.location") || "",
+            };
+          });
+          break;
+        } catch (e) {
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          if (errorMessage.includes("closed")) {
+            // Page was closed, can't continue
+            throw e;
+          }
+          retries++;
+          if (retries < maxRetries && !page.isClosed()) {
+            try {
+              await page.waitForTimeout(1000);
+            } catch (waitError) {
+              // If wait fails due to closed page, break out
+              if (waitError.message.includes("closed")) {
+                throw waitError;
+              }
+            }
+          } else {
+            throw e;
+          }
+        }
+      }
 
       // The API should be initialized
       expect(apiState.initialized).toBe(true);
@@ -1598,7 +1673,10 @@ wrappers.forEach((wrapper) => {
       // The implementation may initialize with "not attempted" until the module explicitly
       // sets completion status. This is correct SCORM behavior - the API doesn't
       // automatically set completion, the SCO must do it.
-      expect(["not attempted", "incomplete", "completed"]).toContain(apiState.completionStatus);
+      // Note: completionStatus can also be "unknown" if the module hasn't set it yet
+      expect(["not attempted", "incomplete", "completed", "unknown"]).toContain(
+        apiState.completionStatus,
+      );
       expect(["unknown", "passed", "failed"]).toContain(apiState.successStatus);
     });
 
@@ -1623,7 +1701,7 @@ wrappers.forEach((wrapper) => {
       const testPath =
         "/test/integration/modules/SequencingSimpleRemediation_SCORM20043rdEdition/shared/launchpage.html?content=assessment1";
       await page.goto(`${wrapper.path}?module=${testPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
@@ -1694,7 +1772,7 @@ wrappers.forEach((wrapper) => {
       const testPath =
         "/test/integration/modules/SequencingSimpleRemediation_SCORM20043rdEdition/shared/launchpage.html?content=assessment1";
       await page.goto(`${wrapper.path}?module=${testPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);

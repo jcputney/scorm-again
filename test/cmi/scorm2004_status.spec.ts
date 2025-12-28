@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CMIStatus } from "../../src/cmi/scorm2004/status";
+// API-level tests for success_status GetValue evaluation
+import Scorm2004API from "../../src/Scorm2004API";
 
 describe("SCORM 2004 CMIStatus Tests", () => {
   describe("Initialization Tests", () => {
@@ -117,9 +119,6 @@ describe("SCORM 2004 CMIStatus Tests", () => {
     });
   });
 });
-
-// API-level tests for success_status GetValue evaluation
-import Scorm2004API from "../../src/Scorm2004API";
 
 describe("SCORM 2004 success_status GetValue evaluation", () => {
   describe("cmi.success_status GetValue evaluation", () => {

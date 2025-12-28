@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { NAV } from "../../../src/cmi/scorm12/nav";
 
 describe("SCORM 1.2 NAV Object", () => {

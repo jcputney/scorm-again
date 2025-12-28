@@ -4,7 +4,6 @@
  */
 
 import { readFileSync } from "fs";
-import { join } from "path";
 import { DOMParser } from "@xmldom/xmldom";
 
 export interface ParsedManifest {
@@ -140,7 +139,7 @@ export function parseManifest(manifestPath: string): ParsedManifest {
 
   return {
     activityTree,
-    sequencingControls,
+    sequencingControls
   };
 }
 
@@ -215,7 +214,7 @@ function parseActivityTree(
   return {
     id,
     title,
-    children,
+    children
   };
 }
 
@@ -262,11 +261,11 @@ function parseActivityItem(
         sequencingRules = {
           preConditionRules: collection.preConditionRules,
           exitConditionRules: collection.exitConditionRules,
-          postConditionRules: collection.postConditionRules,
+          postConditionRules: collection.postConditionRules
         };
         rollupRules = {
           objectiveMeasureWeight: collection.objectiveMeasureWeight,
-          rollupRules: collection.rollupRules,
+          rollupRules: collection.rollupRules
         };
       }
     }
@@ -295,7 +294,7 @@ function parseActivityItem(
     sequencingRules,
     rollupRules,
     objectives,
-    sequencingCollectionRefs,
+    sequencingCollectionRefs
   };
 }
 
@@ -379,7 +378,7 @@ function parseSequencingRule(ruleElement: Element): SequencingRuleConfig {
       conditions.push({
         condition: cond.getAttribute("condition") || "",
         operator: (cond.getAttribute("operator") as "not" | "noOp") || "noOp",
-        referencedObjective: cond.getAttribute("referencedObjective") || undefined,
+        referencedObjective: cond.getAttribute("referencedObjective") || undefined
       });
     }
   }
@@ -387,7 +386,7 @@ function parseSequencingRule(ruleElement: Element): SequencingRuleConfig {
   return {
     action,
     conditionCombination,
-    conditions,
+    conditions
   };
 }
 
@@ -430,7 +429,7 @@ function parseRollupRules(
       );
       for (let j = 0; j < conditionElements.length; j++) {
         conditions.push({
-          condition: conditionElements[j].getAttribute("condition") || "",
+          condition: conditionElements[j].getAttribute("condition") || ""
         });
       }
     }
@@ -445,13 +444,13 @@ function parseRollupRules(
       childActivitySet,
       conditionCombination,
       conditions,
-      action,
+      action
     });
   }
 
   return {
     objectiveMeasureWeight,
-    rollupRules: rollupRules.length > 0 ? rollupRules : undefined,
+    rollupRules: rollupRules.length > 0 ? rollupRules : undefined
   };
 }
 
@@ -477,7 +476,7 @@ function parseObjectives(sequencingElement: Element): ObjectiveConfig[] {
     objectives.push({
       objectiveID,
       isPrimary: true,
-      mapInfo,
+      mapInfo
     });
   }
 
@@ -493,7 +492,7 @@ function parseObjectives(sequencingElement: Element): ObjectiveConfig[] {
     objectives.push({
       objectiveID,
       isPrimary: false,
-      mapInfo,
+      mapInfo
     });
   }
 
@@ -529,7 +528,7 @@ function parseMapInfo(
     readProgressMeasure:
       mapInfo.getAttribute("readProgressMeasure") === "true",
     writeProgressMeasure:
-      mapInfo.getAttribute("writeProgressMeasure") === "true",
+      mapInfo.getAttribute("writeProgressMeasure") === "true"
   }));
 }
 
@@ -553,8 +552,9 @@ function parseSequencingControls(
     useCurrentAttemptObjectiveInfo:
       controlMode.getAttribute("useCurrentAttemptObjectiveInfo") === "true",
     useCurrentAttemptProgressInfo:
-      controlMode.getAttribute("useCurrentAttemptProgressInfo") === "true",
+      controlMode.getAttribute("useCurrentAttemptProgressInfo") === "true"
   };
 }
+
 
 

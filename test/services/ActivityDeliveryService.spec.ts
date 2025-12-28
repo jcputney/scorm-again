@@ -1,12 +1,12 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  ActivityDeliveryService,
   ActivityDeliveryCallbacks,
+  ActivityDeliveryService,
 } from "../../src/services/ActivityDeliveryService";
 import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
 import {
-  SequencingResult,
   DeliveryRequestType,
+  SequencingResult,
 } from "../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { EventService } from "../../src/services/EventService";
 import { LoggingService } from "../../src/services/LoggingService";
@@ -130,7 +130,7 @@ describe("ActivityDeliveryService", () => {
       expect(activity2.isActive).toBe(true);
     });
 
-    it("should not unload activity if delivering the same activity", () => {
+    it("should skip delivery entirely if delivering the same activity", () => {
       const activity = new Activity("activity1", "Activity 1");
 
       // First delivery
@@ -141,12 +141,48 @@ describe("ActivityDeliveryService", () => {
       };
       activityDeliveryService.processSequencingResult(result1);
 
-      const unloadSpy = vi.spyOn(callbacks, "onUnloadActivity");
+      expect(callbacks.onDeliverActivity).toHaveBeenCalledTimes(1);
 
-      // Second delivery of same activity
+      // Reset mocks to track second delivery attempt
+      vi.mocked(callbacks.onDeliverActivity!).mockClear();
+      vi.mocked(callbacks.onUnloadActivity!).mockClear();
+
+      const loggingInfoSpy = vi.spyOn(loggingService, "info");
+
+      // Second delivery of same activity should be skipped entirely
       activityDeliveryService.processSequencingResult(result1);
 
-      expect(unloadSpy).not.toHaveBeenCalled();
+      expect(loggingInfoSpy).toHaveBeenCalledWith(
+        "Skipping delivery - activity already delivered: activity1",
+      );
+      expect(callbacks.onDeliverActivity).not.toHaveBeenCalled();
+      expect(callbacks.onUnloadActivity).not.toHaveBeenCalled();
+      expect(activityDeliveryService.getCurrentDeliveredActivity()).toBe(activity);
+    });
+
+    it("should deliver activity again after it has been unloaded via reset", () => {
+      const activity = new Activity("activity1", "Activity 1");
+
+      // First delivery
+      const result: SequencingResult = {
+        exception: null,
+        deliveryRequest: DeliveryRequestType.DELIVER,
+        targetActivity: activity,
+      };
+      activityDeliveryService.processSequencingResult(result);
+      expect(callbacks.onDeliverActivity).toHaveBeenCalledTimes(1);
+
+      // Reset the service (unloads the activity)
+      activityDeliveryService.reset();
+      expect(activityDeliveryService.getCurrentDeliveredActivity()).toBeNull();
+
+      // Clear mocks
+      vi.mocked(callbacks.onDeliverActivity!).mockClear();
+
+      // Deliver the same activity again - should work since it was unloaded
+      activityDeliveryService.processSequencingResult(result);
+      expect(callbacks.onDeliverActivity).toHaveBeenCalledTimes(1);
+      expect(callbacks.onDeliverActivity).toHaveBeenCalledWith(activity);
       expect(activityDeliveryService.getCurrentDeliveredActivity()).toBe(activity);
     });
   });

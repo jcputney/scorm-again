@@ -8,6 +8,36 @@ import { Page } from "@playwright/test";
 export type ScormApiName = "API" | "API_1484_11";
 
 /**
+ * Resilient page ready helper for cross-browser stability.
+ * Waits for DOM and load readiness first (reliable), then attempts
+ * networkidle as best-effort with a short timeout.
+ *
+ * This addresses Firefox timing issues where networkidle can be
+ * unreliable or behave differently than in Chromium.
+ *
+ * @param page - Playwright page object
+ * @param networkIdleTimeout - Max time to wait for networkidle (default: 2000ms)
+ */
+export async function waitForPageReady(
+  page: Page,
+  networkIdleTimeout: number = 2000
+): Promise<void> {
+  // Wait for DOM content to be loaded (reliable across browsers)
+  await page.waitForLoadState("domcontentloaded");
+
+  // Wait for load event (reliable across browsers)
+  await page.waitForLoadState("load");
+
+  // Attempt networkidle as best-effort with short timeout
+  // This is nice-to-have but not blocking - Firefox can be flaky here
+  try {
+    await page.waitForLoadState("networkidle", { timeout: networkIdleTimeout });
+  } catch {
+    // networkidle timeout is acceptable - DOM and load are sufficient
+  }
+}
+
+/**
  * Configure the SCORM wrapper with settings that must be applied before navigation.
  * This works by injecting a script that seeds window.__SCORM_WRAPPER_CONFIG__ prior
  * to the wrapper HTML executing its bootstrapping logic.

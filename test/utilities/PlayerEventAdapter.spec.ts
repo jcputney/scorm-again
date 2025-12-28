@@ -2,14 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import Scorm2004API from "../../src/Scorm2004API";
 import {
-  PlayerEventAdapter,
-  NavigationState,
-  ScoStatus,
   CourseProgress,
-  ScoDelivery,
-  SessionEndReason,
-  SessionEndData,
+  PlayerEventAdapter,
   PlayerEventAdapterCallbacks,
+  ScoStatus,
 } from "../../src/utilities/PlayerEventAdapter";
 import { LogLevelEnum } from "../../src/constants/enums";
 

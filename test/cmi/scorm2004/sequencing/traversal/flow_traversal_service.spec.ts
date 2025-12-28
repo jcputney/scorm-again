@@ -1,7 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { FlowTraversalService } from "../../../../../src/cmi/scorm2004/sequencing/traversal/flow_traversal_service";
-import { RuleEvaluationEngine } from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
-import { FlowSubprocessMode } from "../../../../../src/cmi/scorm2004/sequencing/rules/sequencing_request_types";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  FlowTraversalService
+} from "../../../../../src/cmi/scorm2004/sequencing/traversal/flow_traversal_service";
+import {
+  RuleEvaluationEngine
+} from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
+import {
+  FlowSubprocessMode
+} from "../../../../../src/cmi/scorm2004/sequencing/rules/sequencing_request_types";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 

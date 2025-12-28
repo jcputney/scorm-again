@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 import {
   CommitRequestTracker,
   configureApiForHttpCommits,
@@ -73,7 +74,7 @@ wrappers.forEach((wrapper) => {
       const scoPath =
         "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Playing/Playing.html";
       await page.goto(`${wrapper.path}?module=${scoPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -117,7 +118,7 @@ wrappers.forEach((wrapper) => {
       const scoPath =
         "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Playing/Playing.html";
       await page.goto(`${wrapper.path}?module=${scoPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -145,7 +146,7 @@ wrappers.forEach((wrapper) => {
       const scoPath =
         "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Playing/Playing.html";
       await page.goto(`${wrapper.path}?module=${scoPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -186,7 +187,7 @@ wrappers.forEach((wrapper) => {
       const scoPath =
         "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Playing/Playing.html";
       await page.goto(`${wrapper.path}?module=${scoPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -218,7 +219,7 @@ wrappers.forEach((wrapper) => {
       const scoPath =
         "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Playing/Playing.html";
       await page.goto(`${wrapper.path}?module=${scoPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -248,7 +249,7 @@ wrappers.forEach((wrapper) => {
       const assessmentPath =
         "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/shared/assessmenttemplate.html?questions=Playing";
       await page.goto(`${wrapper.path}?module=${assessmentPath}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -305,7 +306,7 @@ wrappers.forEach((wrapper) => {
 
       // Navigate and configure API with commit URL
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -342,7 +343,7 @@ wrappers.forEach((wrapper) => {
 
     test("should track progress across multiple SCOs", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Ensure API is initialized
       await ensureApiInitialized(page);
@@ -387,7 +388,7 @@ wrappers.forEach((wrapper) => {
 
       for (const section of contentSections) {
         await page.goto(`${wrapper.path}?module=${section.path}`);
-        await page.waitForLoadState("networkidle");
+        await waitForPageReady(page);
 
         await ensureApiInitialized(page);
 

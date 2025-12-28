@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { ChoiceConstraintValidator } from "../../../../../src/cmi/scorm2004/sequencing/validators/choice_constraint_validator";
-import { ActivityTreeQueries } from "../../../../../src/cmi/scorm2004/sequencing/utils/activity_tree_queries";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  ChoiceConstraintValidator
+} from "../../../../../src/cmi/scorm2004/sequencing/validators/choice_constraint_validator";
+import {
+  ActivityTreeQueries
+} from "../../../../../src/cmi/scorm2004/sequencing/utils/activity_tree_queries";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 

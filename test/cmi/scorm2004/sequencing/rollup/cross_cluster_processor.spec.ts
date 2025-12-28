@@ -1,13 +1,21 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import { CrossClusterProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/cross_cluster_processor";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  CrossClusterProcessor
+} from "../../../../../src/cmi/scorm2004/sequencing/rollup/cross_cluster_processor";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
-import { MeasureRollupProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/measure_rollup";
-import { ObjectiveRollupProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
-import { ProgressRollupProcessor } from "../../../../../src/cmi/scorm2004/sequencing/rollup/progress_rollup";
+import {
+  MeasureRollupProcessor
+} from "../../../../../src/cmi/scorm2004/sequencing/rollup/measure_rollup";
+import {
+  ObjectiveRollupProcessor
+} from "../../../../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
+import {
+  ProgressRollupProcessor
+} from "../../../../../src/cmi/scorm2004/sequencing/rollup/progress_rollup";
 import {
   createMockActivity,
   createMockProcessors,
-  getEventCallsByType,
+  getEventCallsByType
 } from "../../../../helpers/mock-factories";
 
 describe("CrossClusterProcessor", () => {
@@ -29,7 +37,7 @@ describe("CrossClusterProcessor", () => {
       mockMeasureProcessor,
       mockObjectiveProcessor,
       mockProgressProcessor,
-      eventCallback,
+      eventCallback
     );
   });
 
@@ -39,7 +47,7 @@ describe("CrossClusterProcessor", () => {
         mockMeasureProcessor,
         mockObjectiveProcessor,
         mockProgressProcessor,
-        eventCallback,
+        eventCallback
       );
 
       expect(proc).toBeDefined();
@@ -49,7 +57,7 @@ describe("CrossClusterProcessor", () => {
       const proc = new CrossClusterProcessor(
         mockMeasureProcessor,
         mockObjectiveProcessor,
-        mockProgressProcessor,
+        mockProgressProcessor
       );
 
       expect(proc).toBeDefined();
@@ -61,7 +69,7 @@ describe("CrossClusterProcessor", () => {
       const activity = createMockActivity({ id: "root" });
       const clusters = [
         createMockActivity({ id: "cluster1" }),
-        createMockActivity({ id: "cluster2" }),
+        createMockActivity({ id: "cluster2" })
       ];
 
       processor.processCrossClusterDependencies(activity, clusters);
@@ -71,16 +79,16 @@ describe("CrossClusterProcessor", () => {
         expect.objectContaining({
           activityId: "root",
           clusterCount: 2,
-          depth: 0,
-        }),
+          depth: 0
+        })
       );
 
       expect(eventCallback).toHaveBeenCalledWith(
         "cross_cluster_processing_completed",
         expect.objectContaining({
           activityId: "root",
-          processedClusters: 2,
-        }),
+          processedClusters: 2
+        })
       );
     });
 
@@ -95,8 +103,8 @@ describe("CrossClusterProcessor", () => {
         expect.objectContaining({
           activityId: "deep",
           depth: 10,
-          maxDepth: 10,
-        }),
+          maxDepth: 10
+        })
       );
     });
 
@@ -124,8 +132,8 @@ describe("CrossClusterProcessor", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "cross_cluster_skip_reentrant",
         expect.objectContaining({
-          activityId: "reentrant",
-        }),
+          activityId: "reentrant"
+        })
       );
     });
 
@@ -144,8 +152,8 @@ describe("CrossClusterProcessor", () => {
         "cross_cluster_processing_error",
         expect.objectContaining({
           activityId: "error-test",
-          error: "Test error",
-        }),
+          error: "Test error"
+        })
       );
     });
 
@@ -164,8 +172,8 @@ describe("CrossClusterProcessor", () => {
         "cross_cluster_processing_error",
         expect.objectContaining({
           activityId: "error-test2",
-          error: "string error",
-        }),
+          error: "string error"
+        })
       );
     });
 
@@ -173,7 +181,7 @@ describe("CrossClusterProcessor", () => {
       const procNoCallback = new CrossClusterProcessor(
         mockMeasureProcessor,
         mockObjectiveProcessor,
-        mockProgressProcessor,
+        mockProgressProcessor
       );
 
       const activity = createMockActivity({ id: "no-callback" });
@@ -193,8 +201,8 @@ describe("CrossClusterProcessor", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "cross_cluster_processing_completed",
         expect.objectContaining({
-          processedClusters: 0,
-        }),
+          processedClusters: 0
+        })
       );
     });
   });
@@ -207,21 +215,21 @@ describe("CrossClusterProcessor", () => {
         children: [child1] as Activity[],
         flow: true,
         rollupObjectiveSatisfied: false,
-        rollupProgressCompletion: false,
+        rollupProgressCompletion: false
       });
       const nonCluster = createMockActivity({
         id: "non-cluster",
         children: [],
         flow: true,
         rollupObjectiveSatisfied: false,
-        rollupProgressCompletion: false,
+        rollupProgressCompletion: false
       });
       const noFlowCluster = createMockActivity({
         id: "no-flow",
         children: [child1] as Activity[],
         flow: false,
         rollupObjectiveSatisfied: false,
-        rollupProgressCompletion: false,
+        rollupProgressCompletion: false
       });
 
       const result = processor.identifyActivityClusters([cluster, nonCluster, noFlowCluster]);
@@ -244,7 +252,7 @@ describe("CrossClusterProcessor", () => {
     it("should add cluster to dependency map", () => {
       const cluster = createMockActivity({
         id: "cluster1",
-        sequencingRules: { preConditionRules: [] },
+        sequencingRules: { preConditionRules: [] }
       });
       const dependencyMap = new Map<string, string[]>();
 
@@ -257,7 +265,7 @@ describe("CrossClusterProcessor", () => {
     it("should handle cluster with precondition rules", () => {
       const cluster = createMockActivity({
         id: "cluster2",
-        sequencingRules: { preConditionRules: [{ type: "test" }] },
+        sequencingRules: { preConditionRules: [{ type: "test" }] }
       });
       const dependencyMap = new Map<string, string[]>();
 
@@ -306,8 +314,8 @@ describe("CrossClusterProcessor", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "circular_dependency_detected",
         expect.objectContaining({
-          activityId: expect.any(String),
-        }),
+          activityId: expect.any(String)
+        })
       );
 
       // Should still return some order, even with circular deps
@@ -347,7 +355,7 @@ describe("CrossClusterProcessor", () => {
         id: "cluster",
         flow: false,
         rollupObjectiveSatisfied: true,
-        rollupProgressCompletion: false,
+        rollupProgressCompletion: false
       });
 
       processor.processClusterRollup(cluster);
@@ -360,7 +368,7 @@ describe("CrossClusterProcessor", () => {
         id: "cluster",
         flow: false,
         rollupObjectiveSatisfied: false,
-        rollupProgressCompletion: false,
+        rollupProgressCompletion: false
       });
 
       processor.processClusterRollup(cluster);
@@ -373,7 +381,7 @@ describe("CrossClusterProcessor", () => {
         id: "cluster",
         flow: false,
         rollupObjectiveSatisfied: false,
-        rollupProgressCompletion: true,
+        rollupProgressCompletion: true
       });
 
       processor.processClusterRollup(cluster);
@@ -386,7 +394,7 @@ describe("CrossClusterProcessor", () => {
         id: "cluster",
         flow: false,
         rollupObjectiveSatisfied: false,
-        rollupProgressCompletion: false,
+        rollupProgressCompletion: false
       });
 
       processor.processClusterRollup(cluster);
@@ -402,7 +410,7 @@ describe("CrossClusterProcessor", () => {
       // Make measure processor return nested clusters
       (mockMeasureProcessor.measureRollupProcess as ReturnType<typeof vi.fn>).mockReturnValue([
         nestedCluster1,
-        nestedCluster2,
+        nestedCluster2
       ]);
 
       processor.processClusterRollup(cluster, 0);
@@ -412,8 +420,8 @@ describe("CrossClusterProcessor", () => {
         "cross_cluster_processing_started",
         expect.objectContaining({
           activityId: "parent-cluster",
-          depth: 1,
-        }),
+          depth: 1
+        })
       );
     });
 
@@ -438,7 +446,7 @@ describe("CrossClusterProcessor", () => {
 
       (mockMeasureProcessor.measureRollupProcess as ReturnType<typeof vi.fn>).mockReturnValue([
         nestedCluster1,
-        nestedCluster2,
+        nestedCluster2
       ]);
 
       processor.processClusterRollup(cluster, 5);
@@ -446,8 +454,8 @@ describe("CrossClusterProcessor", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "cross_cluster_processing_started",
         expect.objectContaining({
-          depth: 6,
-        }),
+          depth: 6
+        })
       );
     });
   });
@@ -462,7 +470,7 @@ describe("CrossClusterProcessor", () => {
         children: [leaf1] as Activity[],
         flow: true,
         rollupObjectiveSatisfied: true,
-        rollupProgressCompletion: true,
+        rollupProgressCompletion: true
       });
 
       const cluster2 = createMockActivity({
@@ -470,12 +478,12 @@ describe("CrossClusterProcessor", () => {
         children: [leaf2] as Activity[],
         flow: true,
         rollupObjectiveSatisfied: true,
-        rollupProgressCompletion: true,
+        rollupProgressCompletion: true
       });
 
       const root = createMockActivity({
         id: "root",
-        children: [cluster1, cluster2] as Activity[],
+        children: [cluster1, cluster2] as Activity[]
       });
 
       // Identify clusters
@@ -509,7 +517,7 @@ describe("CrossClusterProcessor", () => {
         if (callCount <= 15) {
           return [
             createMockActivity({ id: `nested-${callCount}-1` }),
-            createMockActivity({ id: `nested-${callCount}-2` }),
+            createMockActivity({ id: `nested-${callCount}-2` })
           ];
         }
         return [];
@@ -517,7 +525,7 @@ describe("CrossClusterProcessor", () => {
 
       const clusters = [
         createMockActivity({ id: "cluster1" }),
-        createMockActivity({ id: "cluster2" }),
+        createMockActivity({ id: "cluster2" })
       ];
 
       processor.processCrossClusterDependencies(deepActivity, clusters);
@@ -526,8 +534,8 @@ describe("CrossClusterProcessor", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "cross_cluster_max_depth_reached",
         expect.objectContaining({
-          maxDepth: 10,
-        }),
+          maxDepth: 10
+        })
       );
     });
   });

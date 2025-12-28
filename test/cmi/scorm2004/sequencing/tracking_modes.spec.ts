@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";

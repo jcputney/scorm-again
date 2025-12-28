@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
 import {
+  configureLmsEndpoint,
   ensureApiInitialized,
   getCmiValue,
-  setCmiValue,
-  configureLmsEndpoint,
   getMockLmsCommitHistory,
   getMockLmsStorage,
   resetMockLms,
+  setCmiValue,
 } from "./helpers/scorm2004-helpers";
-import { commit, terminateApi } from "./helpers/scorm-common-helpers";
+import { commit, terminateApi, waitForPageReady } from "./helpers/scorm-common-helpers";
 
 /**
  * LMS Communication Integration Tests
@@ -39,7 +39,7 @@ test.describe.serial("LMS Communication", () => {
   test("Commit sends CMI data to lmsCommitUrl", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Configure API to use mock LMS
@@ -67,7 +67,7 @@ test.describe.serial("LMS Communication", () => {
   test("Terminate sends final commit before session ends", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Configure API to use mock LMS
@@ -100,7 +100,7 @@ test.describe.serial("LMS Communication", () => {
   test("Multiple commits accumulate data correctly", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Configure API to use mock LMS
@@ -137,7 +137,7 @@ test.describe.serial("LMS Communication", () => {
   test("SetValue followed by GetValue returns consistent data", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Set various data model elements
@@ -170,7 +170,7 @@ test.describe.serial("LMS Communication", () => {
   test("Interactions are correctly recorded", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Configure API to use mock LMS
@@ -203,7 +203,7 @@ test.describe.serial("LMS Communication", () => {
   test("Objectives are correctly recorded", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Configure API to use mock LMS
@@ -241,7 +241,7 @@ test.describe.serial("LMS Communication", () => {
   test("Error state is cleared after successful operation", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Cause an error by setting invalid element
@@ -275,7 +275,7 @@ test.describe.serial("LMS Communication", () => {
   test("Session time is tracked correctly", async ({ page }) => {
     // Load the module
     await page.goto(`${WRAPPER_PATH}?module=${MODULE_PATH}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
     await ensureApiInitialized(page);
 
     // Configure API to use mock LMS

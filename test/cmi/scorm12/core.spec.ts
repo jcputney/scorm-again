@@ -14,14 +14,15 @@ describe("SCORM 1.2 Core Tests", () => {
 
     it("should normalize 'normal' exit value to empty string and log console warning", () => {
       // Spy on console.warn to verify warning is logged
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+      });
 
       // Set exit to 'normal'
       core.exit = "normal";
 
       // Verify console.warn was called with the expected message
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "SCORM 1.2: Received non-standard value 'normal' for cmi.core.exit; normalizing to empty string.",
+        "SCORM 1.2: Received non-standard value 'normal' for cmi.core.exit; normalizing to empty string."
       );
 
       // Verify the value was normalized to empty string
@@ -33,7 +34,8 @@ describe("SCORM 1.2 Core Tests", () => {
     });
 
     it("should accept standard exit values without normalization", () => {
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+      });
 
       // Test all valid SCORM 1.2 exit values
       const validExitValues = ["", "time-out", "suspend", "logout"];
@@ -57,7 +59,7 @@ describe("SCORM 1.2 Core Tests", () => {
         // noinspection JSUnusedLocalSymbols
         const _ = core.exit;
       }).toThrow(
-        new Scorm12ValidationError("cmi.core.exit", scorm12_errors.WRITE_ONLY_ELEMENT as number),
+        new Scorm12ValidationError("cmi.core.exit", scorm12_errors.WRITE_ONLY_ELEMENT as number)
       );
     });
 
@@ -175,8 +177,8 @@ describe("SCORM 1.2 Core Tests", () => {
       }).toThrow(
         new Scorm12ValidationError(
           "cmi.core.session_time",
-          scorm12_errors.WRITE_ONLY_ELEMENT as number,
-        ),
+          scorm12_errors.WRITE_ONLY_ELEMENT as number
+        )
       );
     });
   });

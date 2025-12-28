@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForPageReady } from "../helpers/scorm-common-helpers";
 import { ensureApiInitialized } from "../helpers/scorm2004-helpers";
 
 export type WrapperConfig = {
@@ -23,7 +24,7 @@ export function scorm2004InteractionsObjectivesTests(
   // Tests are added to the current describe block context
   test("should handle interactions array correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -88,7 +89,7 @@ export function scorm2004InteractionsObjectivesTests(
 
   test("should handle objectives array correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -150,7 +151,7 @@ export function scorm2004InteractionsObjectivesTests(
 
   test("should handle comments from learner correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -204,7 +205,7 @@ export function scorm2004InteractionsObjectivesTests(
 
   test("should handle interactions with all fields", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -262,7 +263,7 @@ export function scorm2004InteractionsObjectivesTests(
 
   test("should handle objectives with all fields", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -317,7 +318,7 @@ export function scorm2004InteractionsObjectivesTests(
 
   test("should handle multiple interactions and objectives", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);
@@ -369,7 +370,7 @@ export function scorm2004InteractionsObjectivesTests(
 
   test("should handle interaction-objective linking", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
-    await page.waitForLoadState("networkidle");
+    await waitForPageReady(page);
 
     // Ensure API is initialized
     await ensureApiInitialized(page);

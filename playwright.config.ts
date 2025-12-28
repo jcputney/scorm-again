@@ -29,16 +29,17 @@ if (collectCoverage) {
           // Include only src files, exclude node_modules
           return sourcePath.includes("/src/") && !sourcePath.includes("node_modules");
         },
-        reports: [["lcovonly", { file: path.join(coverageDir, "lcov.info") }], ["v8"]],
-      },
-    },
+        reports: [["lcovonly", { file: path.join(coverageDir, "lcov.info") }], ["v8"]]
+      }
+    }
   ]);
 }
 
 export default defineConfig({
   testDir: "./test/integration",
   /* Maximum time one test can run for */
-  timeout: 30 * 1000,
+  /* Firefox needs more time for nested iframes and JavaScript execution */
+  timeout: 60 * 1000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code */
@@ -61,49 +62,52 @@ export default defineConfig({
     /* Take a screenshot for failed tests */
     screenshot: {
       mode: "only-on-failure",
-      fullPage: true,
-    },
+      fullPage: true
+    }
   },
   /* Configure projects for major browsers */
   projects: process.env.CI
     ? [
-        {
-          name: "chromium",
-          use: { ...devices["Desktop Chrome"] },
-        },
-        {
-          name: "firefox",
-          use: { ...devices["Desktop Firefox"] },
-        },
-        {
-          name: "webkit",
-          use: { ...devices["Desktop Safari"] },
-        },
-        {
-          name: "player-wrapper-demos",
-          testMatch: "test/integration/demos/player-wrapper.spec.ts",
-        },
-      ]
+      {
+        name: "chromium",
+        use: { ...devices["Desktop Chrome"] }
+      },
+      {
+        name: "firefox",
+        use: { ...devices["Desktop Firefox"] }
+      },
+      {
+        name: "player-wrapper-demos",
+        testMatch: "test/integration/demos/player-wrapper.spec.ts"
+      }
+    ]
     : [
-        // Run only chromium locally for faster feedback
-        {
-          name: "chromium",
-          use: { ...devices["Desktop Chrome"] },
-        },
-        {
-          name: "player-wrapper-demos",
-          testMatch: "test/integration/demos/player-wrapper.spec.ts",
-        },
-      ],
+      {
+        name: "chromium",
+        use: { ...devices["Desktop Chrome"] }
+      },
+      {
+        name: "firefox",
+        use: { ...devices["Desktop Firefox"] }
+      },
+      {
+        name: "webkit",
+        use: { ...devices["Desktop Safari"] }
+      },
+      {
+        name: "player-wrapper-demos",
+        testMatch: "test/integration/demos/player-wrapper.spec.ts"
+      }
+    ],
   /* Run local server before starting the tests */
   webServer: skipWebServer
     ? undefined
     : {
-        command: "npm run test:integration:server",
-        url: "http://localhost:3000",
-        reuseExistingServer: true,
-        stdout: "pipe",
-        stderr: "pipe",
-        timeout: 120000, // Increase timeout to 2 minutes
-      },
+      command: "npm run test:integration:server",
+      url: "http://localhost:3000",
+      reuseExistingServer: true,
+      stdout: "pipe",
+      stderr: "pipe",
+      timeout: 120000 // Increase timeout to 2 minutes
+    }
 });

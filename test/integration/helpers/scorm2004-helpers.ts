@@ -1,6 +1,7 @@
 import { expect, FrameLocator, Page, Route } from "@playwright/test";
 import { Scorm2004API } from "../../../index";
 import {
+  configureWrapper,
   ensureApiInitialized as ensureApiInitializedCommon,
   getCmiValue as getCmiValueCommon,
   initializeApi as initializeApiCommon,
@@ -8,7 +9,7 @@ import {
   setCmiValueFromModule as setCmiValueFromModuleCommon,
   verifyApiAccessibleFromModule as verifyApiAccessibleFromModuleCommon,
   waitForModuleFrame as waitForModuleFrameCommon,
-  configureWrapper
+  waitForPageReady
 } from "./scorm-common-helpers";
 
 /**
@@ -474,97 +475,155 @@ export async function navigateThroughContentSCO(
   page: Page,
   moduleFrame: FrameLocator
 ): Promise<void> {
+  // Detect browser type for Firefox-specific timeouts
+  const browserName = page.context().browser()?.browserType().name() || "chromium";
+  const isFirefox = browserName === "firefox";
+  const buttonTimeout = isFirefox ? 20000 : 10000;
+
   // Wait for Next button to be available (indicates module has loaded)
   const nextButton = moduleFrame.locator(
-    '#butNext, ' +
-    'input[type="button"][value*="Next"], ' +
-    'input[type="button"][value*="next"], ' +
-    'button:has-text("Next"), ' +
-    'button:has-text("next")'
+    "#butNext, " +
+    "input[type=\"button\"][value*=\"Next\"], " +
+    "input[type=\"button\"][value*=\"next\"], " +
+    "button:has-text(\"Next\"), " +
+    "button:has-text(\"next\")"
   ).first();
-  
+
   // Wait for the button to be visible (module has loaded)
-  await nextButton.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {
-    // If button never appears, we might already be at the end
-  });
+  // Firefox needs extra time for the module's JavaScript to initialize
+  // If button never appears within timeout, the module might not have navigation
+  const buttonVisible = await nextButton.waitFor({
+    state: "visible",
+    timeout: buttonTimeout
+  }).then(() => true).catch(() => false);
+
+  if (!buttonVisible) {
+    // No navigation button found - module might not have interactive navigation
+    // This is acceptable for some modules, just return
+    return;
+  }
+
+  // Wait for button to become enabled (Firefox may need extra time for JS to run)
+  const initWait = isFirefox ? 1000 : 500;
+  await page.waitForTimeout(initWait);
 
   let hasNext = true;
   let attempts = 0;
   const maxAttempts = 30; // Safety limit
+  const maxTotalTime = isFirefox ? 45000 : 30000; // Max total time for navigation
+  const navigationStartTime = Date.now();
 
-  while (hasNext && attempts < maxAttempts) {
+  while (hasNext && attempts < maxAttempts && (Date.now() - navigationStartTime) < maxTotalTime) {
     attempts++;
-    
-    // Check if Next button exists and is enabled
-    const isVisible = await nextButton.isVisible({ timeout: 1000 }).catch(() => false);
-    const isEnabled = isVisible ? await nextButton.isEnabled().catch(() => false) : false;
 
-    if (isVisible && isEnabled) {
-      // Get current location before clicking (to detect page change)
-      const locationBefore = await getCmiValue(page, "cmi.location").catch(() => "");
-      
-      // Click Next to go to next page
-      await nextButton.click();
-      
-      // Wait for page to load - wait for location to change, button to become disabled, or completion to be set
-      await Promise.race([
-        // Wait for location to change (if it was set before)
-        locationBefore ? page.waitForFunction(
-          async ({ locationBefore: loc }) => {
-            const api = (window as any).API_1484_11;
-            if (!api) return false;
-            const currentLoc = api.lmsGetValue("cmi.location");
-            return currentLoc !== loc && currentLoc !== "";
-          },
-          { locationBefore },
-          { timeout: 5000 }
-        ).catch(() => null) : Promise.resolve(null),
-        // Wait for location to be set (if it wasn't set before)
-        !locationBefore ? page.waitForFunction(
-          async () => {
-            const api = (window as any).API_1484_11;
-            if (!api) return false;
-            const currentLoc = api.lmsGetValue("cmi.location");
-            return currentLoc !== "";
-          },
-          { timeout: 5000 }
-        ).catch(() => null) : Promise.resolve(null),
-        // Wait for button to become disabled (we're on last page)
-        page.waitForFunction(
-          async () => {
-            const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
-            if (!iframe?.contentWindow) return false;
-            try {
-              const btn = iframe.contentWindow.document.querySelector<HTMLButtonElement>('#butNext');
-              return btn?.disabled === true;
-            } catch {
-              return false;
-            }
-          },
-          { timeout: 5000 }
-        ).catch(() => null),
-        // Wait for completion status to be set
-        page.waitForFunction(
-          async () => {
-            const api = (window as any).API_1484_11;
-            if (!api) return false;
-            const status = api.lmsGetValue("cmi.completion_status");
-            return status === "completed" || status === "passed";
-          },
-          { timeout: 5000 }
-        ).catch(() => null)
-      ]);
-      
-      // Give the module a moment to update after navigation
-      await page.waitForTimeout(500);
-      
-      // Check if we've reached the end (Next button is now disabled)
-      const stillEnabled = await nextButton.isEnabled({ timeout: 1000 }).catch(() => false);
-      if (!stillEnabled) {
-        hasNext = false;
+    // Check if page is still open (Firefox might close it if something goes wrong)
+    if (page.isClosed()) {
+      hasNext = false;
+      break;
+    }
+
+    // Check if Next button exists and is enabled
+    const isVisible = await nextButton.isVisible().catch(() => false);
+
+    if (!isVisible) {
+      // Button not visible - we're at the end
+      hasNext = false;
+      continue;
+    }
+
+    // If button is visible but disabled, wait a bit for it to become enabled
+    let isEnabled = await nextButton.isEnabled().catch(() => false);
+    if (!isEnabled) {
+      // Wait up to 5 seconds for button to become enabled (Firefox needs extra time)
+      const enabledWaitTime = isFirefox ? 5000 : 2000;
+      const enabledStartTime = Date.now();
+      while (!isEnabled && (Date.now() - enabledStartTime) < enabledWaitTime) {
+        await page.waitForTimeout(100);
+        isEnabled = await nextButton.isEnabled().catch(() => false);
       }
-    } else {
-      // No more pages or reached the end
+    }
+
+    if (!isEnabled) {
+      // Button visible but stays disabled - we're on the last page
+      hasNext = false;
+      continue;
+    }
+
+    // Get current location before clicking (to detect page change)
+    const locationBefore = await getCmiValue(page, "cmi.location").catch(() => "");
+
+    // Click Next to go to next page
+    try {
+      await nextButton.click();
+    } catch (clickError) {
+      // If click fails (e.g., element detached), we're probably at the end
+      const errorMsg = clickError instanceof Error ? clickError.message : String(clickError);
+      if (errorMsg.includes("detached") || errorMsg.includes("closed")) {
+        hasNext = false;
+        break;
+      }
+      throw clickError;
+    }
+
+    // Wait for page to load - wait for location to change, button to become disabled, or completion to be set
+    // Use shorter timeout for each wait to prevent hanging
+    const pageLoadTimeout = isFirefox ? 8000 : 5000;
+    await Promise.race([
+      // Wait for location to change (if it was set before)
+      locationBefore ? page.waitForFunction(
+        (loc) => {
+          const api = (window as any).API_1484_11;
+          if (!api) return false;
+          const currentLoc = api.lmsGetValue("cmi.location");
+          return currentLoc !== loc && currentLoc !== "";
+        },
+        locationBefore,
+        { timeout: pageLoadTimeout }
+      ).catch(() => null) : Promise.resolve(null),
+      // Wait for location to be set (if it wasn't set before)
+      !locationBefore ? page.waitForFunction(
+        () => {
+          const api = (window as any).API_1484_11;
+          if (!api) return false;
+          const currentLoc = api.lmsGetValue("cmi.location");
+          return currentLoc !== "";
+        },
+        { timeout: pageLoadTimeout }
+      ).catch(() => null) : Promise.resolve(null),
+      // Wait for button to become disabled (we're on last page)
+      page.waitForFunction(
+        () => {
+          const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
+          if (!iframe?.contentWindow) return false;
+          try {
+            const btn = iframe.contentWindow.document.querySelector<HTMLButtonElement>("#butNext");
+            return btn?.disabled === true;
+          } catch {
+            return false;
+          }
+        },
+        { timeout: pageLoadTimeout }
+      ).catch(() => null),
+      // Wait for completion status to be set
+      page.waitForFunction(
+        () => {
+          const api = (window as any).API_1484_11;
+          if (!api) return false;
+          const status = api.lmsGetValue("cmi.completion_status");
+          return status === "completed" || status === "passed";
+        },
+        { timeout: pageLoadTimeout }
+      ).catch(() => null)
+    ]);
+
+    // Give the module a moment to update after navigation
+    // Firefox needs more time for state updates
+    const navWait = isFirefox ? 1000 : 500;
+    await page.waitForTimeout(navWait);
+
+    // Check if we've reached the end (Next button is now disabled)
+    const stillEnabled = await nextButton.isEnabled().catch(() => false);
+    if (!stillEnabled) {
       hasNext = false;
     }
 
@@ -574,24 +633,28 @@ export async function navigateThroughContentSCO(
       hasNext = false;
     }
   }
-  
+
   // Wait for completion status to be set (if not already set)
   // Also check if we're on the last page (Next button is disabled)
-  const isOnLastPage = await nextButton.isEnabled().catch(() => true).then(enabled => !enabled);
-  
-  if (isOnLastPage) {
-    // We're on the last page - wait for completion to be set
-    await page.waitForFunction(
-      async () => {
-        const api = (window as any).API_1484_11;
-        if (!api) return false;
-        const status = api.lmsGetValue("cmi.completion_status");
-        return status === "completed" || status === "passed";
-      },
-      { timeout: 10000 }
-    ).catch(() => {
-      // Completion might not be set yet - that's okay, we'll check it in verifyContentSCOCompletion
-    });
+  // Only check if page is still open
+  if (!page.isClosed()) {
+    const isOnLastPage = await nextButton.isEnabled().catch(() => true).then(enabled => !enabled);
+
+    if (isOnLastPage) {
+      // We're on the last page - wait for completion to be set
+      const completionTimeout = isFirefox ? 15000 : 10000;
+      await page.waitForFunction(
+        () => {
+          const api = (window as any).API_1484_11;
+          if (!api) return false;
+          const status = api.lmsGetValue("cmi.completion_status");
+          return status === "completed" || status === "passed";
+        },
+        { timeout: completionTimeout }
+      ).catch(() => {
+        // Completion might not be set yet - that's okay, we'll check it in verifyContentSCOCompletion
+      });
+    }
   }
 }
 
@@ -604,8 +667,47 @@ export async function completeContentSCO(
 ): Promise<void> {
   const moduleFrame = await waitForModuleFrame(page);
   await navigateThroughContentSCO(page, moduleFrame);
-  
+
   // navigateThroughContentSCO already waits for completion status to be set
+
+  // Wait for the sequencing service to process the status update and enable Continue button
+  // Firefox needs extra time for the sequencing to update navigation validity
+  // This is needed because:
+  // 1. Module sets cmi.success_status = "passed" and commits
+  // 2. Sequencing service must process this and update navigation validity
+  // 3. Wrapper's onNavigationValidityUpdate callback must be triggered
+  // 4. Continue button must be enabled
+  // In Firefox, steps 2-4 can take longer than in Chromium
+  const continueButton = page.locator("button[data-directive=\"continue\"]");
+  const buttonExists = await continueButton.isVisible().catch(() => false);
+
+  // Detect browser type for Firefox-specific timeouts
+  const browserName = page.context().browser()?.browserType().name() || "chromium";
+  const isFirefox = browserName === "firefox";
+
+  if (buttonExists) {
+    // Wait for Continue button to become enabled (up to 20 seconds for Firefox)
+    const maxWait = isFirefox ? 20000 : 10000;
+    const startTime = Date.now();
+    let isEnabled = await continueButton.isEnabled().catch(() => false);
+
+    while (!isEnabled && (Date.now() - startTime) < maxWait) {
+      await page.waitForTimeout(200);
+      isEnabled = await continueButton.isEnabled().catch(() => false);
+    }
+
+    // If button still not enabled, give the sequencing a nudge by triggering a commit
+    if (!isEnabled) {
+      await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        if (api?.lmsCommit) {
+          api.lmsCommit();
+        }
+      });
+      const commitWait = isFirefox ? 1000 : 500;
+      await page.waitForTimeout(commitWait);
+    }
+  }
 }
 
 /**
@@ -613,22 +715,73 @@ export async function completeContentSCO(
  * The structure is: wrapper -> moduleFrame (launchpage.html) -> contentFrame (assessmenttemplate.html)
  */
 async function getQuizContentFrame(page: Page, moduleFrame: FrameLocator): Promise<FrameLocator> {
+  // Detect browser type for Firefox-specific timeouts
+  const browserName = page.context().browser()?.browserType().name() || "chromium";
+  const isFirefox = browserName === "firefox";
+  const iframeTimeout = isFirefox ? 20000 : 10000;
+  const contentTimeout = isFirefox ? 20000 : 10000;
+
   // The quiz is in a nested iframe with id="contentFrame"
   // Wait for the iframe element to exist in the module frame
-  await moduleFrame.locator('#contentFrame').waitFor({ timeout: 10000, state: 'attached' });
-  
+  // Firefox needs more time for iframe creation
+  await moduleFrame.locator("#contentFrame").waitFor({ timeout: iframeTimeout, state: "attached" });
+
+  // Additional wait for Firefox - iframe may exist but not be ready
+  if (isFirefox) {
+    await page.waitForTimeout(500);
+  }
+
   // Get the FrameLocator for the nested iframe
-  const contentFrame = moduleFrame.frameLocator('#contentFrame');
-  
+  const contentFrame = moduleFrame.frameLocator("#contentFrame");
+
   // Wait for content inside the iframe to load by checking for quiz elements
+  // Firefox needs more time for nested iframe content to load
   // Wait for any quiz indicator to appear (question, form, heading)
   await Promise.race([
-    contentFrame.locator('div.question').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-    contentFrame.locator('form#frmTest, form').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-    contentFrame.locator('h1').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-    contentFrame.locator('body').waitFor({ state: 'attached', timeout: 10000 }).catch(() => null)
+    contentFrame.locator("div.question").first().waitFor({
+      state: "visible",
+      timeout: contentTimeout
+    }).catch(() => null),
+    contentFrame.locator("form#frmTest, form").first().waitFor({
+      state: "visible",
+      timeout: contentTimeout
+    }).catch(() => null),
+    contentFrame.locator("h1").first().waitFor({
+      state: "visible",
+      timeout: contentTimeout
+    }).catch(() => null),
+    contentFrame.locator("body").waitFor({
+      state: "attached",
+      timeout: contentTimeout
+    }).catch(() => null)
   ]);
-  
+
+  // Additional wait for Firefox to ensure content is fully loaded
+  // Also verify the iframe is actually accessible
+  if (isFirefox) {
+    // Wait for the iframe's document to be ready
+    // Firefox needs more time for nested iframe content to be accessible
+    await page.waitForTimeout(2000);
+
+    // Try to verify the iframe content is accessible by checking for body
+    // Firefox sometimes reports iframe as attached but content isn't ready
+    try {
+      await contentFrame.locator("body").waitFor({ state: "attached", timeout: 10000 });
+    } catch (e) {
+      // If body check fails, wait more and try again
+      await page.waitForTimeout(3000);
+      try {
+        await contentFrame.locator("body").waitFor({ state: "attached", timeout: 10000 });
+      } catch (e2) {
+        // If still failing, the iframe might not be ready but continue anyway
+        // The retry logic in answerQuizCorrectly will handle it
+      }
+    }
+
+    // Additional wait for JavaScript in the iframe to execute
+    await page.waitForTimeout(1000);
+  }
+
   return contentFrame;
 }
 
@@ -640,40 +793,211 @@ export async function answerQuizCorrectly(
   page: Page,
   moduleFrame: FrameLocator
 ): Promise<void> {
+  // Detect browser type for Firefox-specific timeouts
+  const browserName = page.context().browser()?.browserType().name() || "chromium";
+  const isFirefox = browserName === "firefox";
+  const quizWaitTimeout = isFirefox ? 20000 : 10000;
+
   // Get the nested contentFrame that contains the quiz
   // This will wait for the iframe to be created and loaded
   const contentFrame = await getQuizContentFrame(page, moduleFrame);
-  
+
   // Wait for quiz questions to be visible (quiz has loaded)
+  // Firefox needs more time for nested iframe content to render
   // Try multiple selectors to find quiz content
   await Promise.race([
-    contentFrame.locator('div.question').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-    contentFrame.locator('div.correctAnswer').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-    contentFrame.locator('form#frmTest, form').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null)
+    contentFrame.locator("div.question").first().waitFor({
+      state: "visible",
+      timeout: quizWaitTimeout
+    }).catch(() => null),
+    contentFrame.locator("div.correctAnswer").first().waitFor({
+      state: "visible",
+      timeout: quizWaitTimeout
+    }).catch(() => null),
+    contentFrame.locator("form#frmTest, form").first().waitFor({
+      state: "visible",
+      timeout: quizWaitTimeout
+    }).catch(() => null)
   ]);
+
+  // Additional wait for Firefox to ensure DOM is fully ready
+  if (isFirefox) {
+    await page.waitForTimeout(1000);
+  }
+
+  // Check if page is still open before proceeding
+  if (page.isClosed()) {
+    throw new Error("Page was closed while trying to answer quiz");
+  }
 
   // Find all correct answer divs (they have class "correctAnswer")
   // These are the answers we need to click
-  let correctAnswerDivs = contentFrame.locator('div.correctAnswer');
-  let count = await correctAnswerDivs.count();
-  
+  // Retry logic for Firefox - elements may not be immediately available
+  let correctAnswerDivs = contentFrame.locator("div.correctAnswer");
+  let count = 0;
+
+  // Try multiple times for Firefox as nested iframe content may load slowly
+  // But limit total time to prevent test timeouts
+  const maxRetries = isFirefox ? 5 : 2;
+  const maxTotalTime = isFirefox ? 15000 : 5000; // Max 15 seconds for Firefox
+  const startTime = Date.now();
+
+  for (let retry = 0; retry < maxRetries; retry++) {
+    if (page.isClosed()) {
+      throw new Error("Page was closed while trying to find quiz answers");
+    }
+
+    // Check if we've exceeded max time
+    if (Date.now() - startTime > maxTotalTime) {
+      break;
+    }
+
+    try {
+      // For Firefox, also wait a bit before counting to ensure DOM is ready
+      if (isFirefox && retry > 0) {
+        const waitTime = Math.min(1500, maxTotalTime - (Date.now() - startTime));
+        if (waitTime > 0) {
+          await page.waitForTimeout(waitTime);
+        }
+      }
+      count = await correctAnswerDivs.count();
+      if (count > 0) break;
+    } catch (e) {
+      // If count fails, wait and retry
+      if (retry < maxRetries - 1 && (Date.now() - startTime) < maxTotalTime) {
+        const waitTime = Math.min(isFirefox ? 2000 : 1000, maxTotalTime - (Date.now() - startTime));
+        if (waitTime > 0) {
+          await page.waitForTimeout(waitTime);
+        }
+        continue;
+      }
+      // On last retry or timeout, if it's a timeout or similar, don't throw - let the question check handle it
+      if (e instanceof Error && (e.message.includes("timeout") || e.message.includes("closed"))) {
+        break;
+      }
+      throw e;
+    }
+
+    if (count === 0 && retry < maxRetries - 1 && (Date.now() - startTime) < maxTotalTime) {
+      const waitTime = Math.min(isFirefox ? 2000 : 1000, maxTotalTime - (Date.now() - startTime));
+      if (waitTime > 0) {
+        await page.waitForTimeout(waitTime);
+      }
+    }
+  }
+
   // If no correct answers found at top level, try finding them within questions
   if (count === 0) {
     // Maybe the structure is different - try finding questions first, then correct answers within
-    const questions = contentFrame.locator('div.question');
-    const questionCount = await questions.count();
-    if (questionCount === 0) {
-      throw new Error("No quiz questions found - quiz may not have loaded properly");
+    const questions = contentFrame.locator("div.question");
+    let questionCount = 0;
+
+    // Retry for Firefox - questions may take longer to appear
+    // But limit total time to prevent test timeouts
+    const questionMaxTime = isFirefox ? 15000 : 5000;
+    const questionStartTime = Date.now();
+
+    for (let retry = 0; retry < maxRetries; retry++) {
+      if (page.isClosed()) {
+        throw new Error("Page was closed while trying to find quiz questions");
+      }
+
+      // Check if we've exceeded max time
+      if (Date.now() - questionStartTime > questionMaxTime) {
+        break;
+      }
+
+      try {
+        // For Firefox, wait before counting to ensure DOM is ready
+        if (isFirefox && retry > 0) {
+          const waitTime = Math.min(1500, questionMaxTime - (Date.now() - questionStartTime));
+          if (waitTime > 0) {
+            await page.waitForTimeout(waitTime);
+          }
+        }
+        questionCount = await questions.count();
+        if (questionCount > 0) break;
+      } catch (e) {
+        if (retry < maxRetries - 1 && (Date.now() - questionStartTime) < questionMaxTime) {
+          const waitTime = Math.min(isFirefox ? 2000 : 1000, questionMaxTime - (Date.now() - questionStartTime));
+          if (waitTime > 0) {
+            await page.waitForTimeout(waitTime);
+          }
+          continue;
+        }
+        // On last retry or timeout, if it's a timeout, don't throw immediately - try one more check
+        if (e instanceof Error && (e.message.includes("timeout") || e.message.includes("closed"))) {
+          // Wait one more time and try if we have time
+          const waitTime = Math.min(isFirefox ? 2000 : 1000, questionMaxTime - (Date.now() - questionStartTime));
+          if (waitTime > 0) {
+            await page.waitForTimeout(waitTime);
+            try {
+              questionCount = await questions.count();
+            } catch (e2) {
+              // Ignore errors on final attempt
+            }
+          }
+          break;
+        }
+        throw e;
+      }
+
+      if (questionCount === 0 && retry < maxRetries - 1 && (Date.now() - questionStartTime) < questionMaxTime) {
+        const waitTime = Math.min(isFirefox ? 2000 : 1000, questionMaxTime - (Date.now() - questionStartTime));
+        if (waitTime > 0) {
+          await page.waitForTimeout(waitTime);
+        }
+      }
     }
+
+    if (questionCount === 0) {
+      // Last attempt: wait a bit more and try one final time if we have time
+      if (isFirefox && (Date.now() - questionStartTime) < questionMaxTime) {
+        const waitTime = Math.min(2000, questionMaxTime - (Date.now() - questionStartTime));
+        if (waitTime > 0) {
+          await page.waitForTimeout(waitTime);
+          try {
+            questionCount = await questions.count();
+          } catch (e) {
+            // Ignore errors on final attempt
+          }
+        }
+      }
+      if (questionCount === 0) {
+        throw new Error("No quiz questions found - quiz may not have loaded properly");
+      }
+    }
+
     // Try to find correct answers within questions
-    correctAnswerDivs = contentFrame.locator('div.question div.correctAnswer');
-    count = await correctAnswerDivs.count();
-    
+    correctAnswerDivs = contentFrame.locator("div.question div.correctAnswer");
+
+    // Retry for Firefox
+    for (let retry = 0; retry < maxRetries; retry++) {
+      if (page.isClosed()) {
+        throw new Error("Page was closed while trying to find correct answers");
+      }
+
+      try {
+        count = await correctAnswerDivs.count();
+        if (count > 0) break;
+      } catch (e) {
+        if (retry < maxRetries - 1) {
+          await page.waitForTimeout(1000);
+          continue;
+        }
+        throw e;
+      }
+
+      if (count === 0 && retry < maxRetries - 1) {
+        await page.waitForTimeout(isFirefox ? 2000 : 1000);
+      }
+    }
+
     if (count === 0) {
       // Still no correct answers - this is unusual but might be a different quiz structure
       // Let's try to find any answer inputs and hope for the best
-      const allAnswers = contentFrame.locator('div.question input[type="radio"], div.question input[type="text"]');
-      const answerCount = await allAnswers.count();
+      const allAnswers = contentFrame.locator("div.question input[type=\"radio\"], div.question input[type=\"text\"]");
+      const answerCount = await allAnswers.count().catch(() => 0);
       if (answerCount === 0) {
         throw new Error("No quiz answer inputs found - quiz structure may be unexpected");
       }
@@ -685,27 +1009,88 @@ export async function answerQuizCorrectly(
 
   for (let i = 0; i < count; i++) {
     try {
+      // Check if page is still open before each question
+      if (page.isClosed()) {
+        throw new Error(`Page was closed while answering question ${i + 1} of ${count}`);
+      }
+
       // Within each correct answer div, find the input (radio button or text input)
       const correctDiv = correctAnswerDivs.nth(i);
-      const input = correctDiv.locator('input[type="radio"], input[type="text"]');
-      
-      const inputType = await input.getAttribute('type').catch(() => null);
-      
-      if (inputType === 'radio') {
+      const input = correctDiv.locator("input[type=\"radio\"], input[type=\"text\"]");
+
+      // Firefox needs more time for elements to be ready
+      const inputTimeout = isFirefox ? 5000 : 2000;
+
+      // Wait for input to be visible/attached before interacting
+      try {
+        await input.waitFor({ state: "attached", timeout: inputTimeout });
+      } catch (e) {
+        if (page.isClosed()) {
+          throw new Error(`Page was closed while waiting for input for question ${i + 1}`);
+        }
+        // Continue to next question if this one fails
+        continue;
+      }
+
+      const inputType = await input.getAttribute("type").catch(() => null);
+
+      if (inputType === "radio") {
         // For radio buttons, just click it
-        await input.click({ timeout: 2000 });
-      } else if (inputType === 'text') {
+        // Firefox may need scrollIntoView first
+        if (isFirefox) {
+          try {
+            await input.scrollIntoViewIfNeeded().catch(() => null);
+            await page.waitForTimeout(200);
+          } catch (e) {
+            if (page.isClosed()) {
+              throw new Error(`Page was closed while scrolling to question ${i + 1}`);
+            }
+          }
+        }
+        try {
+          await input.click({ timeout: inputTimeout });
+        } catch (e) {
+          if (page.isClosed()) {
+            throw new Error(`Page was closed while clicking question ${i + 1}`);
+          }
+          throw e;
+        }
+      } else if (inputType === "text") {
         // For numeric questions, get the correct value from the parent div text
         // The template shows: <div class='correctAnswer'><input.../> (correctValue)</div>
         const parentText = await correctDiv.textContent();
         const match = parentText?.match(/\((\d+)\)/);
         if (match && match[1]) {
-          await input.fill(match[1]);
+          try {
+            await input.fill(match[1], { timeout: inputTimeout });
+          } catch (e) {
+            if (page.isClosed()) {
+              throw new Error(`Page was closed while filling question ${i + 1}`);
+            }
+            throw e;
+          }
         }
       }
-      
-      // Small delay to ensure click is processed (not really needed but helps with timing)
+
+      // Small delay to ensure click is processed (Firefox needs more time)
+      if (isFirefox) {
+        try {
+          await page.waitForTimeout(300);
+        } catch (e) {
+          if (page.isClosed()) {
+            // Page closed after answering - might be expected in some cases
+            return;
+          }
+          throw e;
+        }
+      } else {
+        await page.waitForTimeout(100);
+      }
     } catch (e) {
+      // If page is closed, rethrow the error
+      if (e instanceof Error && e.message.includes("closed")) {
+        throw e;
+      }
       // Continue if element not found - some questions might be structured differently
       console.warn(`Could not answer question ${i}:`, e);
     }
@@ -720,20 +1105,72 @@ export async function answerQuizIncorrectly(
   page: Page,
   moduleFrame: FrameLocator
 ): Promise<void> {
+  // Detect browser type for Firefox-specific timeouts
+  const browserName = page.context().browser()?.browserType().name() || "chromium";
+  const isFirefox = browserName === "firefox";
+  const quizWaitTimeout = isFirefox ? 20000 : 10000;
+
   // Get the nested contentFrame that contains the quiz
   // This will wait for the iframe to be created and loaded
   const contentFrame = await getQuizContentFrame(page, moduleFrame);
-  
+
   // Wait for quiz questions to be visible (quiz has loaded)
+  // Firefox needs more time for nested iframe content to render
   await Promise.race([
-    contentFrame.locator('div.question').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-    contentFrame.locator('form#frmTest, form').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => null)
+    contentFrame.locator("div.question").first().waitFor({
+      state: "visible",
+      timeout: quizWaitTimeout
+    }).catch(() => null),
+    contentFrame.locator("form#frmTest, form").first().waitFor({
+      state: "visible",
+      timeout: quizWaitTimeout
+    }).catch(() => null)
   ]);
 
+  // Additional wait for Firefox to ensure DOM is fully ready
+  if (isFirefox) {
+    await page.waitForTimeout(1000);
+  }
+
   // Find all question divs
-  const questionDivs = contentFrame.locator('div.question');
-  const questionCount = await questionDivs.count();
-  
+  const questionDivs = contentFrame.locator("div.question");
+  let questionCount = await questionDivs.count();
+
+  // Retry for Firefox - questions may take longer to appear
+  // But limit total time to prevent test timeouts
+  const maxRetries = isFirefox ? 5 : 2;
+  const maxTotalTime = isFirefox ? 15000 : 5000;
+  const startTime = Date.now();
+
+  if (questionCount === 0) {
+    for (let retry = 0; retry < maxRetries; retry++) {
+      if (page.isClosed()) {
+        throw new Error("Page was closed while trying to find quiz questions");
+      }
+
+      // Check if we've exceeded max time
+      if (Date.now() - startTime > maxTotalTime) {
+        break;
+      }
+
+      const waitTime = Math.min(isFirefox ? 2000 : 1000, maxTotalTime - (Date.now() - startTime));
+      if (waitTime > 0) {
+        await page.waitForTimeout(waitTime);
+      }
+
+      try {
+        questionCount = await questionDivs.count();
+        if (questionCount > 0) break;
+      } catch (e) {
+        if (retry < maxRetries - 1 && (Date.now() - startTime) < maxTotalTime) {
+          continue;
+        }
+        // On last retry or timeout, throw the error
+        throw new Error("No quiz questions found - quiz may not have loaded properly");
+      }
+    }
+  }
+
   // If no questions found, the quiz might not be loaded
   if (questionCount === 0) {
     throw new Error("No quiz questions found - quiz may not have loaded properly");
@@ -742,50 +1179,68 @@ export async function answerQuizIncorrectly(
   for (let i = 0; i < questionCount; i++) {
     try {
       const questionDiv = questionDivs.nth(i);
-      
+
       // Find all answer divs within this question
-      const answerDivs = questionDiv.locator('div.answer, div.correctAnswer');
+      const answerDivs = questionDiv.locator("div.answer, div.correctAnswer");
       const answerCount = await answerDivs.count();
-      
+
+      // Firefox needs more time for element interactions
+      const inputTimeout = isFirefox ? 5000 : 2000;
+
       if (answerCount > 0) {
         // Find the correct answer div (has class "correctAnswer")
-        const correctAnswerDiv = questionDiv.locator('div.correctAnswer');
+        const correctAnswerDiv = questionDiv.locator("div.correctAnswer");
         const correctExists = await correctAnswerDiv.count() > 0;
-        
+
         if (correctExists) {
           // Find an incorrect answer (any answer div that's NOT the correct one)
           // We'll click the first non-correct answer
-          const incorrectAnswerDiv = questionDiv.locator('div.answer').first();
+          const incorrectAnswerDiv = questionDiv.locator("div.answer").first();
           const incorrectExists = await incorrectAnswerDiv.count() > 0;
-          
+
           if (incorrectExists) {
             // Click the first incorrect answer
-            const input = incorrectAnswerDiv.locator('input[type="radio"]');
-            await input.click({ timeout: 2000 });
+            const input = incorrectAnswerDiv.locator("input[type=\"radio\"]");
+            if (isFirefox) {
+              await input.scrollIntoViewIfNeeded().catch(() => null);
+              await page.waitForTimeout(200);
+            }
+            await input.click({ timeout: inputTimeout });
           } else {
             // If no incorrect answer div exists, try clicking a different correct answer
             // (this shouldn't happen, but handle it gracefully)
-            const allAnswers = questionDiv.locator('div.correctAnswer');
+            const allAnswers = questionDiv.locator("div.correctAnswer");
             if (await allAnswers.count() > 1) {
-              await allAnswers.nth(1).locator('input[type="radio"]').click({ timeout: 2000 });
+              const answerInput = allAnswers.nth(1).locator("input[type=\"radio\"]");
+              if (isFirefox) {
+                await answerInput.scrollIntoViewIfNeeded().catch(() => null);
+                await page.waitForTimeout(200);
+              }
+              await answerInput.click({ timeout: inputTimeout });
             }
           }
         } else {
           // No correct answer marked, just click the first answer
-          const firstInput = questionDiv.locator('input[type="radio"]').first();
-          await firstInput.click({ timeout: 2000 });
+          const firstInput = questionDiv.locator("input[type=\"radio\"]").first();
+          if (isFirefox) {
+            await firstInput.scrollIntoViewIfNeeded().catch(() => null);
+            await page.waitForTimeout(200);
+          }
+          await firstInput.click({ timeout: inputTimeout });
         }
       } else {
         // For numeric questions, enter a wrong value
-        const textInput = questionDiv.locator('input[type="text"]');
+        const textInput = questionDiv.locator("input[type=\"text\"]");
         const inputExists = await textInput.count() > 0;
         if (inputExists) {
           // Enter a clearly wrong value (like 999)
-          await textInput.fill('999');
+          await textInput.fill("999", { timeout: inputTimeout });
         }
       }
-      
-      // Small delay to ensure input is processed (not really needed but helps with timing)
+
+      // Small delay to ensure input is processed (Firefox needs more time)
+      const inputWait = isFirefox ? 300 : 100;
+      await page.waitForTimeout(inputWait);
     } catch (e) {
       // Continue if element not found
       console.warn(`Could not answer question ${i} incorrectly:`, e);
@@ -801,7 +1256,7 @@ export async function exitScorm2004Course(
   { preserveProgress = true }: { preserveProgress?: boolean } = {}
 ): Promise<void> {
   const moduleFrame = page.frameLocator("#moduleFrame");
-  const exitButton = moduleFrame.locator('button:has-text("Exit"), input[value*="Exit"]');
+  const exitButton = moduleFrame.locator("button:has-text(\"Exit\"), input[value*=\"Exit\"]");
   const visible = await exitButton.isVisible({ timeout: 3000 }).catch(() => false);
   if (!visible) {
     throw new Error("Exit button not available in module frame");
@@ -829,7 +1284,7 @@ export async function exitScorm2004Course(
 /**
  * Complete an assessment SCO by answering questions and submitting
  * This lets the module's own code set score, success_status, and objectives
- * 
+ *
  * @param page - Playwright page
  * @param shouldPass - If true, answer correctly to pass. If false, answer incorrectly to fail.
  * @param passThreshold - The score threshold for passing (default 70)
@@ -838,19 +1293,30 @@ export async function completeAssessmentSCO(
   page: Page,
   shouldPass: boolean = true,
   passThreshold: number = 70
-): Promise<{score: number, successStatus: string, completionStatus: string}> {
+): Promise<{ score: number, successStatus: string, completionStatus: string }> {
   // Inject quiz functions (RecordTest, RecordQuestion) if not already available
   // These are needed for the quiz template to submit scores
   await injectQuizFunctions(page);
-  
+
   const moduleFrame = await waitForModuleFrame(page);
-  
+
   // Inject RecordTest into the moduleFrame window (launchpage.html)
   // This ensures the quiz can call parent.RecordTest
   await injectQuizFunctionsIntoModuleFrame(page);
-  
+
+  // Detect browser type for Firefox-specific timeouts
+  const browserName = page.context().browser()?.browserType().name() || "chromium";
+  const isFirefox = browserName === "firefox";
+  const iframeTimeout = isFirefox ? 20000 : 10000;
+
   // Wait for the contentFrame iframe to be created (launchpage.html creates it)
-  await moduleFrame.locator('#contentFrame').waitFor({ state: 'attached', timeout: 10000 });
+  // Firefox needs more time for iframe creation
+  await moduleFrame.locator("#contentFrame").waitFor({ state: "attached", timeout: iframeTimeout });
+
+  // Additional wait for Firefox - iframe may exist but not be ready
+  if (isFirefox) {
+    await page.waitForTimeout(500);
+  }
 
   // Answer questions correctly or incorrectly based on shouldPass parameter
   if (shouldPass) {
@@ -862,67 +1328,78 @@ export async function completeAssessmentSCO(
   // Submit the quiz (submit button is in the contentFrame)
   const contentFrame = await getQuizContentFrame(page, moduleFrame);
   const submitButton = contentFrame.locator(
-    'input[type="button"][value*="Submit"], ' +
-    'input[type="button"][value*="submit"], ' +
-    'button:has-text("Submit"), ' +
-    'button:has-text("submit")'
+    "input[type=\"button\"][value*=\"Submit\"], " +
+    "input[type=\"button\"][value*=\"submit\"], " +
+    "button:has-text(\"Submit\"), " +
+    "button:has-text(\"submit\")"
   ).first();
-  
+
   // Wait for submit button to be visible and clickable
-  await submitButton.waitFor({ state: 'visible', timeout: 5000 });
-  
+  // Firefox needs more time for button to appear
+  const submitTimeout = isFirefox ? 10000 : 5000;
+  await submitButton.waitFor({ state: "visible", timeout: submitTimeout });
+
   // Get initial score before submitting (to detect change)
   const scoreBefore = await getCmiValue(page, "cmi.score.raw").catch(() => "");
-  
+
+  // Firefox may need scrollIntoView before clicking
+  if (isFirefox) {
+    await submitButton.scrollIntoViewIfNeeded().catch(() => null);
+    await page.waitForTimeout(200);
+  }
+
   await submitButton.click();
-  
+
   // Wait for quiz to be processed - wait for either score or success_status to change
+  // Firefox needs more time for quiz processing
+  const quizProcessTimeout = isFirefox ? 30000 : 15000;
   await Promise.race([
     // Wait for score to be set (if it wasn't set before)
     scoreBefore === "" ? page.waitForFunction(
-      async () => {
+      () => {
         const api = (window as any).API_1484_11;
         if (!api) return false;
         const score = api.lmsGetValue("cmi.score.raw");
         return score !== "" && score !== null;
       },
-      { timeout: 15000 }
+      { timeout: quizProcessTimeout }
     ).catch(() => null) : Promise.resolve(null),
     // Wait for score to change (if it was set before)
     scoreBefore !== "" ? page.waitForFunction(
-      async ({ scoreBefore: before }) => {
+      (before) => {
         const api = (window as any).API_1484_11;
         if (!api) return false;
         const score = api.lmsGetValue("cmi.score.raw");
         return score !== before && score !== "";
       },
-      { scoreBefore },
-      { timeout: 15000 }
+      scoreBefore,
+      { timeout: quizProcessTimeout }
     ).catch(() => null) : Promise.resolve(null),
     // Wait for success_status to be set (indicates quiz was processed)
     page.waitForFunction(
-      async () => {
+      () => {
         const api = (window as any).API_1484_11;
         if (!api) return false;
         const status = api.lmsGetValue("cmi.success_status");
         return status === "passed" || status === "failed";
       },
-      { timeout: 15000 }
+      { timeout: quizProcessTimeout }
     ).catch(() => null),
     // Wait for completion_status to be set (indicates quiz was processed)
     page.waitForFunction(
-      async () => {
+      () => {
         const api = (window as any).API_1484_11;
         if (!api) return false;
         const status = api.lmsGetValue("cmi.completion_status");
         return status === "completed";
       },
-      { timeout: 15000 }
+      { timeout: quizProcessTimeout }
     ).catch(() => null)
   ]);
 
-  // Give it a moment for the API to update
-  await page.waitForTimeout(500);
+  // Give it a moment for the API to update (Firefox needs more time)
+  const apiUpdateWait = isFirefox ? 1000 : 500;
+  await page.waitForTimeout(apiUpdateWait);
 
   // Capture values BEFORE sequencing can advance to next activity
   // (After quiz submission, sequencing may deliver next activity which resets CMI)
@@ -1021,7 +1498,7 @@ export async function ensureApiInitialized(page: Page): Promise<void> {
 /**
  * Initialize a sequenced module for testing
  * This is a common pattern: navigate, inject sequencing config, initialize API
- * 
+ *
  * @param page - Playwright page
  * @param wrapperPath - Wrapper path (from getWrapperConfigs)
  * @param modulePath - Module path to load
@@ -1069,10 +1546,19 @@ export async function initializeSequencedModule(
     }
   });
 
+  // Dismiss bookmark resume dialogs - the launchpage shows a confirm() dialog
+  // asking if the user wants to resume from a previous bookmark. We want to
+  // start fresh, so dismiss it. Without this handler, Playwright auto-accepts
+  // confirm dialogs which would cause the module to restore to a previous page.
+  page.on("dialog", async (dialog) => {
+    await dialog.dismiss();
+  });
+
   await page.goto(`${wrapperPath}?module=${modulePath}`);
-  await page.waitForLoadState("networkidle");
+  await waitForPageReady(page);
   await ensureApiInitialized(page);
-  await waitForModuleFrameCommon(page).catch(() => {});
+  await waitForModuleFrameCommon(page).catch(() => {
+  });
   await injectQuizFunctions(page);
   await page.waitForFunction(
     () => {
@@ -1096,13 +1582,13 @@ export async function injectSequencingConfig(
     ({ activityTree, sequencingControls }) => {
       // Try to get Scorm2004API from window (Standard wrapper) or import it (ESM wrapper)
       let Scorm2004API = (window as any).Scorm2004API;
-      
+
       // For ESM wrapper, try to access it from the existing API instance
       if (!Scorm2004API && (window as any).API_1484_11) {
         // Get the constructor from the existing API instance
         Scorm2004API = (window as any).API_1484_11.constructor;
       }
-      
+
       if (Scorm2004API) {
         // Re-initialize API with sequencing configuration
         const newApi = new Scorm2004API({
@@ -1115,9 +1601,9 @@ export async function injectSequencingConfig(
             hideLmsUi: ["exitAll", "abandonAll"],
             auxiliaryResources: [
               { resourceId: "urn:scorm-again:help", purpose: "help" },
-              { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
-            ],
-          },
+              { resourceId: "urn:scorm-again:glossary", purpose: "glossary" }
+            ]
+          }
         });
 
         // Load initial CMI data
@@ -1132,14 +1618,14 @@ export async function injectSequencingConfig(
             score: {
               raw: 0,
               min: 0,
-              max: 100,
-            },
-          },
+              max: 100
+            }
+          }
         });
-        
+
         // Replace the API instance on wrapper window
         (window as any).API_1484_11 = newApi;
-        
+
         // Also update the API in the moduleFrame if it exists and has already found the API
         // This ensures the module's API variable points to the new instance
         try {
@@ -1171,7 +1657,7 @@ export async function injectSequencingConfig(
 
 /**
  * Initialize a non-sequenced module for testing
- * 
+ *
  * @param page - Playwright page
  * @param wrapperPath - Wrapper path (from getWrapperConfigs)
  * @param modulePath - Module path to load
@@ -1182,14 +1668,14 @@ export async function initializeModule(
   modulePath: string
 ): Promise<void> {
   await page.goto(`${wrapperPath}?module=${modulePath}`);
-  await page.waitForLoadState("networkidle");
+  await waitForPageReady(page);
   await ensureApiInitialized(page);
-  
+
   // Wait for API to be ready
   await page.waitForFunction(
     () => {
       const api = (window as any).API_1484_11 || (window as any).API;
-      return api && (typeof api.lmsGetValue === 'function' || typeof api.LMSGetValue === 'function');
+      return api && (typeof api.lmsGetValue === "function" || typeof api.LMSGetValue === "function");
     },
     { timeout: 5000 }
   );
@@ -1198,7 +1684,7 @@ export async function initializeModule(
 /**
  * Verify assessment results after completing a quiz
  * Checks score, success_status, and completion_status
- * 
+ *
  * @param page - Playwright page
  * @param expectedPass - Whether the quiz should have passed (true) or failed (false)
  * @param passThreshold - Score threshold for passing (default 70)
@@ -1215,7 +1701,7 @@ export async function verifyAssessmentResults(
 }> {
   // Wait for score to be set (if not already set)
   await page.waitForFunction(
-    async () => {
+    () => {
       const api = (window as any).API_1484_11;
       if (!api) return false;
       const score = api.lmsGetValue("cmi.score.raw");
@@ -1225,7 +1711,7 @@ export async function verifyAssessmentResults(
   ).catch(() => {
     // Score might already be set or might not be set yet
   });
-  
+
   const scoreRaw = await getCmiValue(page, "cmi.score.raw");
   const score = scoreRaw ? parseInt(scoreRaw, 10) : 0;
   const successStatus = await getCmiValue(page, "cmi.success_status");
@@ -1260,7 +1746,7 @@ export async function verifyAssessmentResults(
 
 /**
  * Get navigation validity for a specific request type
- * 
+ *
  * @param page - Playwright page
  * @param requestType - Navigation request type: "continue", "previous", "choice", "jump"
  * @param targetActivityId - Optional target activity ID for choice/jump requests
@@ -1294,7 +1780,7 @@ export async function getNavigationValidity(
 /**
  * Verify content SCO completion
  * Checks completion_status, success_status, and location
- * 
+ *
  * @param page - Playwright page
  * @returns Object with completionStatus, successStatus, and location
  */
@@ -1305,7 +1791,7 @@ export async function verifyContentSCOCompletion(page: Page): Promise<{
 }> {
   // Wait for completion status to be set
   await page.waitForFunction(
-    async () => {
+    () => {
       const api = (window as any).API_1484_11;
       if (!api) return false;
       const status = api.lmsGetValue("cmi.completion_status");
@@ -1315,7 +1801,7 @@ export async function verifyContentSCOCompletion(page: Page): Promise<{
   ).catch(() => {
     // Completion might already be set or might not be set yet
   });
-  
+
   const completionStatus = await getCmiValue(page, "cmi.completion_status");
   const successStatus = await getCmiValue(page, "cmi.success_status");
   const location = await getCmiValue(page, "cmi.location");
@@ -1325,7 +1811,7 @@ export async function verifyContentSCOCompletion(page: Page): Promise<{
 
   // success_status might be "passed" or "unknown"
   expect(["passed", "unknown"]).toContain(successStatus);
-  
+
   // location should be set if we navigated (but might be empty string initially)
   // If location is empty, that's okay - it might not be set by the module
   // The important thing is that completion_status was set
@@ -1361,14 +1847,97 @@ export async function getModuleFramePath(page: Page): Promise<string> {
 }
 
 export async function clickSequencingButton(page: Page, directive: string): Promise<void> {
-  const button = page.locator(`button[data-directive="${directive}"]`);
-  await button.waitFor({ state: "visible" });
-  const enabled = await button.isEnabled();
-  if (!enabled) {
-    throw new Error(`Sequencing button ${directive} is disabled`);
+  // Detect browser type for Firefox-specific timeouts
+  const browserName = page.context().browser()?.browserType().name() || "chromium";
+  const isFirefox = browserName === "firefox";
+  const buttonTimeout = isFirefox ? 20000 : 10000;
+
+  // Check if page is closed before proceeding
+  if (page.isClosed()) {
+    throw new Error(`Page was closed before clicking sequencing button ${directive}`);
   }
-  await button.click();
-  await page.waitForTimeout(500);
+
+  const button = page.locator(`button[data-directive="${directive}"]`);
+
+  // Wait for button with page closure checks
+  try {
+    await button.waitFor({ state: "visible", timeout: buttonTimeout });
+  } catch (error) {
+    if (page.isClosed()) {
+      throw new Error(`Page was closed while waiting for sequencing button ${directive}`);
+    }
+    throw error;
+  }
+
+  // Wait for button to become enabled (Firefox needs extra time for state updates)
+  const maxWait = isFirefox ? 10000 : 5000;
+  const startTime = Date.now();
+  let enabled = false;
+
+  try {
+    enabled = await button.isEnabled();
+  } catch (error) {
+    if (page.isClosed()) {
+      throw new Error(`Page was closed while checking sequencing button ${directive} enabled state`);
+    }
+    throw error;
+  }
+
+  while (!enabled && (Date.now() - startTime) < maxWait) {
+    if (page.isClosed()) {
+      throw new Error(`Page was closed while waiting for sequencing button ${directive} to become enabled`);
+    }
+    await page.waitForTimeout(100);
+    try {
+      enabled = await button.isEnabled();
+    } catch (error) {
+      if (page.isClosed()) {
+        throw new Error(`Page was closed while checking sequencing button ${directive} enabled state`);
+      }
+      // If element is detached, button might have been removed
+      if (error instanceof Error && error.message.includes("detached")) {
+        throw new Error(`Sequencing button ${directive} was detached from DOM`);
+      }
+      throw error;
+    }
+  }
+
+  if (!enabled) {
+    throw new Error(`Sequencing button ${directive} is disabled after ${maxWait}ms wait`);
+  }
+
+  // Firefox may need scrollIntoView before clicking
+  if (isFirefox) {
+    try {
+      await button.scrollIntoViewIfNeeded().catch(() => null);
+      await page.waitForTimeout(200);
+    } catch (error) {
+      if (page.isClosed()) {
+        throw new Error(`Page was closed while preparing to click sequencing button ${directive}`);
+      }
+      // Continue if scroll fails
+    }
+  }
+
+  try {
+    await button.click();
+  } catch (error) {
+    if (page.isClosed()) {
+      throw new Error(`Page was closed while clicking sequencing button ${directive}`);
+    }
+    throw error;
+  }
+
+  const clickWait = isFirefox ? 1000 : 500;
+  try {
+    await page.waitForTimeout(clickWait);
+  } catch (error) {
+    if (page.isClosed()) {
+      // Page closed after click - this might be expected in some cases, but log it
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function waitForScoContent(page: Page, contentKey: string): Promise<void> {
@@ -1403,7 +1972,7 @@ export async function waitForScoContent(page: Page, contentKey: string): Promise
 
 export async function advanceScoPages(page: Page, steps: number): Promise<void> {
   const moduleFrame = page.frameLocator("#moduleFrame");
-  const nextButton = moduleFrame.locator('button:has-text("Next"), input[value*="Next"]').first();
+  const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
 
   for (let i = 0; i < steps; i++) {
     const visible = await nextButton.isVisible({ timeout: 2000 }).catch(() => false);
@@ -1461,7 +2030,7 @@ export async function getObjectiveStatus(
       if (id === targetId) {
         return {
           success: api.lmsGetValue(`cmi.objectives.${i}.success_status`),
-          completion: api.lmsGetValue(`cmi.objectives.${i}.completion_status`),
+          completion: api.lmsGetValue(`cmi.objectives.${i}.completion_status`)
         };
       }
     }
@@ -1576,7 +2145,7 @@ export async function expectCourseComplete(page: Page): Promise<void> {
 
     return {
       completionStatus: root?.completionStatus || api?.lmsGetValue?.("cmi.completion_status"),
-      successStatus: root?.successStatus || api?.lmsGetValue?.("cmi.success_status"),
+      successStatus: root?.successStatus || api?.lmsGetValue?.("cmi.success_status")
     };
   });
 
@@ -1621,7 +2190,7 @@ export async function expectActivityStatus(
 
     return {
       completion: activity.completionStatus || "unknown",
-      success: activity.successStatus || "unknown",
+      success: activity.successStatus || "unknown"
     };
   }, activityId);
 

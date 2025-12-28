@@ -1,7 +1,10 @@
 import { afterEach, describe, it } from "vitest";
 
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { RuleCondition, RuleConditionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import {
+  RuleCondition,
+  RuleConditionType
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 const resetNowProvider = () => RuleCondition.setNowProvider(() => new Date());
 
@@ -18,7 +21,7 @@ describe("RuleCondition limit evaluations", () => {
     const condition = new RuleCondition(
       RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
       null,
-      new Map([["attemptLimit", 1]]),
+      new Map([["attemptLimit", 1]])
     );
     expect(condition.evaluate(activity)).toBe(true);
 

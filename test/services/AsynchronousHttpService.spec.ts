@@ -2,7 +2,6 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { AsynchronousHttpService } from "../../src/services/AsynchronousHttpService";
-import { LogLevelEnum } from "../../src/constants/enums";
 import { global_constants } from "../../src";
 import { InternalSettings } from "../../src/types/api_types";
 

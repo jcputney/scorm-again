@@ -1,14 +1,14 @@
-import {beforeEach, describe, expect, it} from 'vitest';
-import {Activity} from '../../../../src/cmi/scorm2004/sequencing/activity';
-import {ActivityTree} from '../../../../src/cmi/scorm2004/sequencing/activity_tree';
+import { beforeEach, describe, expect, it } from "vitest";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   DeliveryRequestType,
   SequencingProcess,
   SequencingRequestType
-} from '../../../../src/cmi/scorm2004/sequencing/sequencing_process';
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import {
   OverallSequencingProcess
-} from '../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process';
+} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 /**
  * Fix double-increment bug on RETRY requests
@@ -21,7 +21,7 @@ import {
  * and that the increment happens during content delivery, not during
  * retry sequencing request processing.
  */
-describe('RETRY Attempt Count Single-Increment Fix', () => {
+describe("RETRY Attempt Count Single-Increment Fix", () => {
   let activityTree: ActivityTree;
   let sequencingProcess: SequencingProcess;
   let overallSequencingProcess: OverallSequencingProcess;
@@ -30,8 +30,8 @@ describe('RETRY Attempt Count Single-Increment Fix', () => {
   beforeEach(() => {
     // Create a simple activity tree with one child
     activityTree = new ActivityTree();
-    const root = new Activity('root', 'Root');
-    activity = new Activity('child1', 'Child 1');
+    const root = new Activity("root", "Root");
+    activity = new Activity("child1", "Child 1");
 
     root.addChild(activity);
     activityTree.root = root;
@@ -41,7 +41,7 @@ describe('RETRY Attempt Count Single-Increment Fix', () => {
     overallSequencingProcess = new OverallSequencingProcess(activityTree, sequencingProcess);
   });
 
-  it('should NOT increment attempt count in retrySequencingRequestProcess', () => {
+  it("should NOT increment attempt count in retrySequencingRequestProcess", () => {
     // Set up: activity has been attempted once and is terminated
     activityTree.currentActivity = activity;
     // Per SB.2.10: Activity must NOT be active or suspended for retry to work
@@ -61,7 +61,7 @@ describe('RETRY Attempt Count Single-Increment Fix', () => {
     expect(activity.attemptCount).toBe(1);
   });
 
-  it('should increment attempt count ONCE during content delivery for RETRY', () => {
+  it("should increment attempt count ONCE during content delivery for RETRY", () => {
     // Set up: activity has been attempted once and is terminated
     activityTree.currentActivity = activity;
     // Per SB.2.10: Activity must NOT be active or suspended for retry to work
@@ -83,7 +83,7 @@ describe('RETRY Attempt Count Single-Increment Fix', () => {
     expect(activity.attemptCount).toBe(2);
   });
 
-  it('should increment correctly across multiple RETRY cycles', () => {
+  it("should increment correctly across multiple RETRY cycles", () => {
     activityTree.currentActivity = activity;
     activity.isActive = false;
     activity.attemptCount = 0;
@@ -122,7 +122,7 @@ describe('RETRY Attempt Count Single-Increment Fix', () => {
     // The pattern should be 1, 2, 3, 4 - NOT 2, 4, 6, 8 (the bug)
   });
 
-  it('should NOT increment attempt count on resume', () => {
+  it("should NOT increment attempt count on resume", () => {
     activityTree.currentActivity = activity;
     activity.isActive = false;
     activity.isSuspended = true;
@@ -136,7 +136,7 @@ describe('RETRY Attempt Count Single-Increment Fix', () => {
     expect(activity.attemptCount).toBe(1);
   });
 
-  it('should increment attempt count on new delivery', () => {
+  it("should increment attempt count on new delivery", () => {
     activityTree.currentActivity = null;
     activity.isActive = false;
     activity.attemptCount = 0;

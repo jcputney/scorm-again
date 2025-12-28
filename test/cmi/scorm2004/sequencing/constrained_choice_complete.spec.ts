@@ -1,8 +1,11 @@
-import { describe, expect, beforeEach, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { SequencingProcess, SequencingRequestType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {
+  SequencingProcess,
+  SequencingRequestType
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 
 /**
  * Complete Constrained Choice Support (SB.2.9)

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   RuleCondition,
   RuleConditionOperator,
-  RuleConditionType,
+  RuleConditionType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 
@@ -21,7 +21,7 @@ describe("RuleCondition Edge Cases", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         RuleConditionOperator.NOT,
-        parameters,
+        parameters
       );
 
       expect(condition.condition).toBe(RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN);
@@ -37,7 +37,7 @@ describe("RuleCondition Edge Cases", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         RuleConditionOperator.NOT,
-        parameters,
+        parameters
       );
 
       condition.reset();
@@ -54,7 +54,7 @@ describe("RuleCondition Edge Cases", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        parameters,
+        parameters
       );
       const activity = new Activity();
 
@@ -72,7 +72,7 @@ describe("RuleCondition Edge Cases", () => {
       const negativeCondition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        negativeParams,
+        negativeParams
       );
 
       activity.objectiveNormalizedMeasure = -0.4;
@@ -87,7 +87,7 @@ describe("RuleCondition Edge Cases", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        parameters,
+        parameters
       );
       const activity = new Activity();
 
@@ -105,7 +105,7 @@ describe("RuleCondition Edge Cases", () => {
       const negativeCondition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        negativeParams,
+        negativeParams
       );
 
       activity.objectiveNormalizedMeasure = -0.6;
@@ -137,7 +137,7 @@ describe("RuleCondition Edge Cases", () => {
     it("should handle missing parameters for conditions that require them", () => {
       // Test OBJECTIVE_MEASURE_GREATER_THAN without threshold parameter
       const greaterThanCondition = new RuleCondition(
-        RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
+        RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN
       );
       const activity = new Activity();
 
@@ -199,7 +199,7 @@ describe("RuleCondition Edge Cases", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         RuleConditionOperator.NOT,
-        parameters,
+        parameters
       );
 
       const json = condition.toJSON() as any;

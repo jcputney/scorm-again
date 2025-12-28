@@ -1,4 +1,4 @@
-import { Server, createServer, IncomingMessage, ServerResponse } from "http";
+import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 
 export interface CMIData {
   cmi: Record<string, unknown>;

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import { SynchronousHttpService } from "../../src/services/SynchronousHttpService";
 import { AsynchronousHttpService } from "../../src/services/AsynchronousHttpService";

@@ -7,7 +7,7 @@ import {
   RuleConditionOperator,
   RuleConditionType,
   SequencingRule,
-  SequencingRules,
+  SequencingRules
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../src/constants/enums";
@@ -28,7 +28,7 @@ describe("SequencingRules", () => {
         const condition = new RuleCondition(
           RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
           RuleConditionOperator.NOT,
-          parameters,
+          parameters
         );
         expect(condition.condition).toBe(RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN);
         expect(condition.operator).toBe(RuleConditionOperator.NOT);
@@ -68,7 +68,7 @@ describe("SequencingRules", () => {
         const condition = new RuleCondition(
           RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
           null,
-          parameters,
+          parameters
         );
         const activity = new Activity();
 
@@ -112,14 +112,14 @@ describe("SequencingRules", () => {
         const condition = new RuleCondition(
           RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
           RuleConditionOperator.NOT,
-          parameters,
+          parameters
         );
 
         const result = condition.toJSON() as any;
 
         expect(result).toHaveProperty(
           "condition",
-          RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
+          RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN
         );
         expect(result).toHaveProperty("operator", RuleConditionOperator.NOT);
         expect(result).toHaveProperty("parameters");

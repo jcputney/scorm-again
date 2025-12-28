@@ -1,4 +1,5 @@
 import { ConsoleMessage, expect, Page, test } from "@playwright/test";
+import { waitForPageReady } from "./helpers/scorm-common-helpers";
 import { Scorm12API } from "../../index";
 
 /**
@@ -118,7 +119,7 @@ wrappers.forEach((wrapper) => {
       );
 
       // Wait for the page to load and the SCORM API to be initialized
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Verify that the SCORM API is available
       const apiExists = await page.evaluate(() => {
@@ -211,7 +212,7 @@ wrappers.forEach((wrapper) => {
       );
 
       // Wait for the page to load and the SCORM API to be initialized
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Inject code to check if the SCORM API is available
       const apiExists = await page.evaluate(() => {
@@ -233,7 +234,7 @@ wrappers.forEach((wrapper) => {
       expect(initMessage).toContain("LMSInitialize");
 
       // Wait for the course to load
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
       await page.waitForTimeout(1000); // Additional wait for iframe content to load
 
       // Verify that the course has started (first page is "Play of the game", second is "Par")
@@ -264,7 +265,7 @@ wrappers.forEach((wrapper) => {
 
       // Navigate through the course (click Next to go to page 2: Scoring)
       await moduleFrame.locator("#butNext").click();
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
       await page.waitForTimeout(1000); // Additional wait for iframe content to load
 
       // Verify navigation worked (should now be on page 2: Scoring)
@@ -302,7 +303,7 @@ wrappers.forEach((wrapper) => {
       );
 
       // Wait for the page to load and the SCORM API to be initialized
-      await page.waitForLoadState("networkidle");
+      await waitForPageReady(page);
 
       // Try to get a non-existent data model element
       const errorResult = await page.evaluate(() => {

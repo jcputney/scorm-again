@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-  RuleCondition,
-  RuleConditionType,
-  RuleConditionOperator,
-  SequencingRule,
   RuleActionType,
+  RuleCondition,
+  RuleConditionOperator,
+  RuleConditionType,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../src/constants/enums";
@@ -101,7 +101,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(true);
     });
@@ -113,7 +113,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(false);
     });
@@ -125,7 +125,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(false);
     });
@@ -137,7 +137,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(false); // Not greater, just equal
     });
@@ -151,7 +151,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(true);
     });
@@ -163,7 +163,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(false);
     });
@@ -175,7 +175,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(false);
     });
@@ -413,7 +413,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       // First NOT: !attempted = false
       const notCondition = new RuleCondition(
         RuleConditionType.ATTEMPTED,
-        RuleConditionOperator.NOT,
+        RuleConditionOperator.NOT
       );
       const notResult = notCondition.evaluate(activity);
       expect(notResult).toBe(false);
@@ -577,7 +577,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params,
+        params
       );
       condition.referencedObjective = "obj1";
       expect(condition.evaluate(activity)).toBe(true);
@@ -591,7 +591,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params,
+        params
       );
       expect(condition.evaluate(activity)).toBe(true);
     });
@@ -650,7 +650,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const conditionGreater = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        paramsGreater,
+        paramsGreater
       );
       expect(conditionGreater.evaluate(activity)).toBe(false); // Not strictly greater
 
@@ -658,7 +658,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const conditionLess = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        paramsLess,
+        paramsLess
       );
       expect(conditionLess.evaluate(activity)).toBe(false); // Not strictly less
     });

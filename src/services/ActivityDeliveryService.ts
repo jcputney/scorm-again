@@ -66,8 +66,15 @@ export class ActivityDeliveryService {
    * @param {Activity} activity - The activity to deliver
    */
   private deliverActivity(activity: Activity): void {
-    // If there's a currently delivered activity, unload it first
-    if (this.currentDeliveredActivity && this.currentDeliveredActivity !== activity) {
+    // Skip delivery if the same activity is already delivered
+    // This prevents duplicate callbacks when sequencing fires for an already-loaded activity
+    if (this.currentDeliveredActivity === activity) {
+      this.loggingService.info(`Skipping delivery - activity already delivered: ${activity.id}`);
+      return;
+    }
+
+    // If there's a different currently delivered activity, unload it first
+    if (this.currentDeliveredActivity) {
       this.unloadActivity(this.currentDeliveredActivity);
     }
 
