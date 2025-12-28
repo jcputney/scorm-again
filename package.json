@@ -1,6 +1,6 @@
 {
   "name": "scorm-again",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A modern SCORM JavaScript run-time library for SCORM 1.2 and SCORM 2004",
   "main": "dist/scorm-again.js",
   "types": "index.d.ts",
