@@ -1,1 +1,1 @@
-{"version":3,"file":"scorm12_exceptions.d.ts","sourceRoot":"","sources":["../../../src/exceptions/scorm12_exceptions.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,eAAe,CAAC;AAQhD,qBAAa,sBAAuB,SAAQ,eAAe;gBAM7C,UAAU,EAAE,MAAM,EAAE,SAAS,EAAE,MAAM;CAoBlD"}
+{"version":3,"file":"scorm12_exceptions.d.ts","sourceRoot":"","sources":["../../../src/exceptions/scorm12_exceptions.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAQpD,qBAAa,sBAAuB,SAAQ,eAAe;gBAM7C,UAAU,EAAE,MAAM,EAAE,SAAS,EAAE,MAAM;CAoBlD"}

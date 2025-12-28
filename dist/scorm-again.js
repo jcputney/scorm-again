@@ -4567,7 +4567,11 @@
      * @param {Activity} activity - The activity to deliver
      */
     deliverActivity(activity) {
-      if (this.currentDeliveredActivity && this.currentDeliveredActivity !== activity) {
+      if (this.currentDeliveredActivity === activity) {
+        this.loggingService.info(`Skipping delivery - activity already delivered: ${activity.id}`);
+        return;
+      }
+      if (this.currentDeliveredActivity) {
         this.unloadActivity(this.currentDeliveredActivity);
       }
       this.pendingDelivery = activity;
