@@ -93,7 +93,7 @@
     "@babel/core": "7.28.5",
     "@babel/eslint-parser": "7.28.5",
     "@babel/node": "7.28.0",
-    "@babel/preset-env": "7.28.5",
+    "@babel/preset-env": "7.28.6",
     "@babel/preset-typescript": "7.28.5",
     "@codecov/bundle-analyzer": "1.9.1",
     "@codecov/rollup-plugin": "1.9.1",
