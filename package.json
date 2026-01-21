@@ -129,7 +129,7 @@
     "monocart-coverage-reports": "^2.12.9",
     "monocart-reporter": "^2.9.23",
     "playwright": "1.57.0",
-    "prettier": "3.7.4",
+    "prettier": "3.8.1",
     "rollup": "4.55.1",
     "rollup-plugin-dts": "6.3.0",
     "rollup-plugin-esbuild": "6.2.1",
