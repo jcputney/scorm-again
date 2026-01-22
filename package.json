@@ -107,7 +107,7 @@
     "@types/express": "^5.0.6",
     "@typescript-eslint/eslint-plugin": "8.52.0",
     "@typescript-eslint/parser": "8.52.0",
-    "@vitest/coverage-v8": "4.0.16",
+    "@vitest/coverage-v8": "4.0.18",
     "@vitest/ui": "4.0.16",
     "babel-loader": "10.0.0",
     "babelify": "10.0.0",
