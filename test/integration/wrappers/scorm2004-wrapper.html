@@ -1,519 +1,1336 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SCORM 2004 Wrapper</title>
-  <script src="/dist/scorm2004.js"></script>
-  <script>
-    const baseSequencingDefaults = {
-      hideLmsUi: ["exitAll", "abandonAll"],
-      auxiliaryResources: [
-        {resourceId: "urn:scorm-again:help", purpose: "help"},
-        {resourceId: "urn:scorm-again:glossary", purpose: "glossary"},
-      ],
-    };
-    const baseCmiDefaults = {
-      learner_id: "123456",
-      learner_name: "John Doe",
-      completion_status: "not attempted",
-      entry: "ab-initio",
-      credit: "credit",
-      exit: "time-out",
-      score: {
-        raw: 0,
-        min: 0,
-        max: 100,
-      },
-      time_limit_action: "exit,message",
-      max_time_allowed: "PT1H",
-      // Note: Do not pre-load objectives here as it interferes with tests.
-      // Per SCORM 2004 spec, objective IDs cannot be changed once set.
-    };
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SCORM 2004 Player</title>
+    <script src="/dist/scorm2004.js"></script>
+    <script>
+      const baseSequencingDefaults = {
+        hideLmsUi: ["exitAll", "abandonAll"],
+        auxiliaryResources: [
+          { resourceId: "urn:scorm-again:help", purpose: "help" },
+          { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
+        ],
+      };
+      const baseCmiDefaults = {
+        learner_id: "123456",
+        learner_name: "John Doe",
+        completion_status: "not attempted",
+        entry: "ab-initio",
+        credit: "credit",
+        exit: "time-out",
+        score: {
+          raw: 0,
+          min: 0,
+          max: 100,
+        },
+        time_limit_action: "exit,message",
+        max_time_allowed: "PT1H",
+      };
 
-    function resolveWrapperConfig() {
-      const config = window.__SCORM_WRAPPER_CONFIG__ || {};
-      delete window.__SCORM_WRAPPER_CONFIG__;
-      return config;
-    }
+      function resolveWrapperConfig() {
+        const config = window.__SCORM_WRAPPER_CONFIG__ || {};
+        delete window.__SCORM_WRAPPER_CONFIG__;
+        return config;
+      }
 
-    function deepClone(obj) {
-      return JSON.parse(JSON.stringify(obj));
-    }
+      function deepClone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+      }
 
-    const wrapperConfig = resolveWrapperConfig();
-    const sequencingDefaults = {
-      ...baseSequencingDefaults,
-      ...(wrapperConfig.sequencing || {}),
-    };
-    const apiOptions = {
-      autocommit: true,
-      logLevel: 1,
-      mastery_override: false,
-      ...(wrapperConfig.apiOptions || {}),
-    };
+      const wrapperConfig = resolveWrapperConfig();
+      const sequencingDefaults = {
+        ...baseSequencingDefaults,
+        ...(wrapperConfig.sequencing || {}),
+      };
+      const apiOptions = {
+        autocommit: true,
+        logLevel: 1,
+        mastery_override: false,
+        ...(wrapperConfig.apiOptions || {}),
+      };
 
-    const navRequestMap = {
-      continue: "_continue",
-      previous: "_previous",
-      exit: "_exit",
-      exitAll: "_exitAll",
-      abandon: "_abandon",
-      abandonAll: "_abandonAll",
-      suspendAll: "_suspendAll",
-    };
+      const navRequestMap = {
+        continue: "_continue",
+        previous: "_previous",
+        exit: "_exit",
+        exitAll: "_exitAll",
+        abandon: "_abandon",
+        abandonAll: "_abandonAll",
+        suspendAll: "_suspendAll",
+      };
 
-    const navMap = new Map();
-    let lastNavigationPayload = {
-      hideLmsUi: sequencingDefaults.hideLmsUi,
-      auxiliaryResources: sequencingDefaults.auxiliaryResources,
-    };
+      const navMap = new Map();
+      let lastNavigationPayload = {
+        hideLmsUi: sequencingDefaults.hideLmsUi,
+        auxiliaryResources: sequencingDefaults.auxiliaryResources,
+      };
 
-    // Initialize the SCORM 2004 API
-    window.API_1484_11 = new Scorm2004API({
-      ...apiOptions,
-      sequencing: sequencingDefaults,
-    });
-
-    const initialCmi = Object.assign(deepClone(baseCmiDefaults), wrapperConfig.initialCmi || {});
-    window.API_1484_11.loadFromJSON({
-      cmi: initialCmi,
-    });
-
-    function refreshNavMap() {
-      navMap.clear();
-      document.querySelectorAll('[data-directive]').forEach((button) => {
-        const directive = button.getAttribute('data-directive');
-        if (directive) {
-          navMap.set(directive, button);
-        }
+      // Initialize the SCORM 2004 API
+      window.API_1484_11 = new Scorm2004API({
+        ...apiOptions,
+        sequencing: sequencingDefaults,
       });
-    }
 
-    function bindNavigationHandlers() {
-      navMap.forEach((button) => {
-        button.addEventListener('click', requestNavigation);
+      const initialCmi = Object.assign(deepClone(baseCmiDefaults), wrapperConfig.initialCmi || {});
+      window.API_1484_11.loadFromJSON({
+        cmi: initialCmi,
       });
-    }
 
-    function terminateActiveSco() {
-      const moduleFrame = document.getElementById('moduleFrame');
-      if (moduleFrame && moduleFrame.contentWindow) {
-        const child = moduleFrame.contentWindow;
-        try {
-          if (typeof child.ScormProcessTerminate === 'function') {
-            child.ScormProcessTerminate();
-            return true;
+      // Track current activity for activity tree
+      let currentActivityId = null;
+      let activityTree = null;
+
+      function refreshNavMap() {
+        navMap.clear();
+        document.querySelectorAll("[data-directive]").forEach((button) => {
+          const directive = button.getAttribute("data-directive");
+          if (directive) {
+            navMap.set(directive, button);
           }
-        } catch (err) {
-          console.warn('Error terminating SCO via ScormProcessTerminate', err);
+        });
+      }
+
+      function bindNavigationHandlers() {
+        navMap.forEach((button) => {
+          button.addEventListener("click", requestNavigation);
+        });
+      }
+
+      function terminateActiveSco() {
+        const moduleFrame = document.getElementById("moduleFrame");
+        if (moduleFrame && moduleFrame.contentWindow) {
+          const child = moduleFrame.contentWindow;
+          try {
+            if (typeof child.ScormProcessTerminate === "function") {
+              child.ScormProcessTerminate();
+              return true;
+            }
+          } catch (err) {
+            console.warn("Error terminating SCO via ScormProcessTerminate", err);
+          }
         }
-      }
 
-      if (window.API_1484_11 && typeof window.API_1484_11.Terminate === 'function') {
-        try {
-          window.API_1484_11.Terminate('');
-          return true;
-        } catch (err) {
-          console.warn('Error terminating SCO via API.Terminate', err);
+        if (window.API_1484_11 && typeof window.API_1484_11.Terminate === "function") {
+          try {
+            window.API_1484_11.Terminate("");
+            return true;
+          } catch (err) {
+            console.warn("Error terminating SCO via API.Terminate", err);
+          }
         }
+
+        return false;
       }
 
-      return false;
-    }
+      function requestNavigation(event) {
+        const button = event.currentTarget;
+        const directive =
+          button && typeof button.getAttribute === "function"
+            ? button.getAttribute("data-directive")
+            : null;
+        if (!directive) return;
+        const navRequest = navRequestMap[directive];
+        if (!navRequest) return;
 
-    function requestNavigation(event) {
-      const button = event.currentTarget;
-      const directive = button && typeof button.getAttribute === 'function' ? button.getAttribute('data-directive') : null;
-      if (!directive) return;
-      const navRequest = navRequestMap[directive];
-      if (!navRequest) return;
+        const setResult = window.API_1484_11.SetValue("adl.nav.request", navRequest);
+        const lastError = window.API_1484_11.GetLastError?.() ?? "0";
+        if (setResult !== "true" || lastError !== "0") {
+          console.warn("Failed to set adl.nav.request", { navRequest, setResult, lastError });
+        }
+        window.API_1484_11.Commit("");
 
-      const setResult = window.API_1484_11.SetValue("adl.nav.request", navRequest);
-      const lastError = window.API_1484_11.GetLastError?.() ?? "0";
-      if (setResult !== "true" || lastError !== "0") {
-        console.warn("Failed to set adl.nav.request", { navRequest, setResult, lastError });
+        terminateActiveSco();
       }
-      window.API_1484_11.Commit("");
 
-      // End the current SCO attempt after registering the navigation request so the LMS can process it
-      terminateActiveSco();
-    }
+      function computeAuxiliaryResources(payload) {
+        const merged = new Map();
+        const addAll = (resources) => {
+          if (!Array.isArray(resources)) {
+            return;
+          }
+          for (const resource of resources) {
+            if (!resource) continue;
+            const resourceId =
+              typeof resource.resourceId === "string" ? resource.resourceId.trim() : "";
+            const purpose = typeof resource.purpose === "string" ? resource.purpose.trim() : "";
+            if (!resourceId || merged.has(resourceId)) {
+              continue;
+            }
+            merged.set(resourceId, { resourceId, purpose });
+          }
+        };
 
-    function computeAuxiliaryResources(payload) {
-      const merged = new Map();
-      const addAll = (resources) => {
-        if (!Array.isArray(resources)) {
+        addAll(sequencingDefaults.auxiliaryResources);
+        addAll(payload?.auxiliaryResources);
+
+        return Array.from(merged.values());
+      }
+
+      function isSequencingAvailable() {
+        if (!window.API_1484_11) {
+          return false;
+        }
+        const sequencingService = window.API_1484_11.getSequencingService();
+        if (!sequencingService) {
+          return false;
+        }
+        const sequencingState = window.API_1484_11.getSequencingState();
+        return sequencingState && sequencingState.rootActivity !== null;
+      }
+
+      function updateApiStatus() {
+        const statusEl = document.getElementById("apiStatus");
+        const statusTextEl = document.getElementById("apiStatusText");
+        if (!statusEl || !statusTextEl) return;
+
+        const api = window.API_1484_11;
+        if (!api) {
+          statusEl.className = "status-indicator status-error";
+          statusTextEl.textContent = "API Not Loaded";
           return;
         }
-        for (const resource of resources) {
-          if (!resource) continue;
-          const resourceId = typeof resource.resourceId === 'string' ? resource.resourceId.trim() : '';
-          const purpose = typeof resource.purpose === 'string' ? resource.purpose.trim() : '';
-          if (!resourceId || merged.has(resourceId)) {
-            continue;
-          }
-          merged.set(resourceId, {resourceId, purpose});
-        }
-      };
 
-      addAll(sequencingDefaults.auxiliaryResources);
-      addAll(payload?.auxiliaryResources);
-
-      return Array.from(merged.values());
-    }
-
-    function isSequencingAvailable() {
-      // Check if sequencing is available by checking if sequencing service exists
-      // and if there's an activity tree configured
-      if (!window.API_1484_11) {
-        return false;
-      }
-      const sequencingService = window.API_1484_11.getSequencingService();
-      if (!sequencingService) {
-        return false;
-      }
-      // Check if activity tree has a root (sequencing is configured)
-      const sequencingState = window.API_1484_11.getSequencingState();
-      // Sequencing is available if there's a root activity (hasActivityTree check)
-      return sequencingState && sequencingState.rootActivity !== null;
-    }
-
-    function applyNavigationState(update = {}) {
-      lastNavigationPayload = {
-        ...lastNavigationPayload,
-        ...update,
-        hideLmsUi: update.hideLmsUi ?? lastNavigationPayload.hideLmsUi,
-        auxiliaryResources: update.auxiliaryResources ?? lastNavigationPayload.auxiliaryResources,
-      };
-      const payload = lastNavigationPayload;
-
-      // Check if sequencing is available - if not, hide all navigation buttons
-      const sequencingAvailable = isSequencingAvailable();
-
-      const hidden = new Set(sequencingDefaults.hideLmsUi ?? []);
-      if (Array.isArray(payload.hideLmsUi)) {
-        for (const directive of payload.hideLmsUi) {
-          if (typeof directive === 'string') {
-            hidden.add(directive);
-          }
-        }
-      }
-
-      // If sequencing is not available, hide all navigation buttons
-      if (!sequencingAvailable) {
-        navMap.forEach((button) => {
-          button.classList.add('is-hidden');
-          button.hidden = true;
-          button.setAttribute('aria-hidden', 'true');
-          button.tabIndex = -1;
-          button.disabled = true;
-        });
-      } else {
-        // Sequencing is available - apply normal visibility rules
-        navMap.forEach((button, directive) => {
-          const shouldHide = hidden.has(directive);
-          button.classList.toggle('is-hidden', shouldHide);
-          button.hidden = shouldHide;
-          button.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
-          button.tabIndex = shouldHide ? -1 : 0;
-        });
-
-        const continueButton = navMap.get('continue');
-        if (continueButton) {
-          const canContinue = payload.continue;
-          const shouldDisable = canContinue === false || canContinue === 'false';
-          continueButton.disabled = shouldDisable;
-        }
-
-        const previousButton = navMap.get('previous');
-        if (previousButton) {
-          const canPrevious = payload.previous;
-          const shouldDisable = canPrevious === false || canPrevious === 'false';
-          previousButton.disabled = shouldDisable;
-        }
-      }
-
-      const hideList = document.getElementById('hide-directives');
-      if (hideList) {
-        hideList.textContent = hidden.size ? Array.from(hidden).join(', ') : 'none';
-      }
-
-      const auxiliaryResources = computeAuxiliaryResources(payload);
-      const auxList = document.getElementById('aux-resources');
-      if (auxList) {
-        auxList.innerHTML = '';
-        if (auxiliaryResources.length === 0) {
-          const li = document.createElement('li');
-          li.textContent = 'None';
-          auxList.appendChild(li);
+        if (api.isTerminated && api.isTerminated()) {
+          statusEl.className = "status-indicator status-warning";
+          statusTextEl.textContent = "Session Terminated";
+        } else if (api.isInitialized && api.isInitialized()) {
+          statusEl.className = "status-indicator status-success";
+          statusTextEl.textContent = "Session Active";
         } else {
-          auxiliaryResources.forEach(({resourceId, purpose}) => {
-            const li = document.createElement('li');
-            const label = purpose ? `${purpose}` : 'resource';
-            li.textContent = `${label}: ${resourceId}`;
-            auxList.appendChild(li);
-          });
+          statusEl.className = "status-indicator status-pending";
+          statusTextEl.textContent = "Not Initialized";
         }
       }
-    }
 
-    // Resource map: maps activity identifierref to resource URLs
-    // In a real LMS, this would be built from the manifest
-    const resourceMap = new Map();
+      function updateProgress() {
+        const progressBar = document.getElementById("progressBar");
+        const progressText = document.getElementById("progressText");
+        if (!progressBar || !progressText) return;
 
-    // Track the currently loaded activity to avoid duplicate resets
-    let currentLoadedActivityId = null;
-    let currentLoadedUrl = null;
+        const api = window.API_1484_11;
+        if (!api) return;
 
-    // Function to build resource URL from activity
-    // In a real LMS, this would look up the resource in the manifest
-    function getResourceUrl(activity) {
-      if (!activity) return null;
+        let progress = 0;
+        try {
+          const progressMeasure = api.GetValue("cmi.progress_measure");
+          if (progressMeasure && progressMeasure !== "" && progressMeasure !== "unknown") {
+            progress = Math.round(parseFloat(progressMeasure) * 100);
+          }
+        } catch (e) {
+          // Ignore errors
+        }
 
-      // Try to get identifierref from activity metadata or settings
-      // For test modules, we'll construct URLs based on common patterns
-      const activityId = activity.id || '';
-      const identifierref = activity.identifierref || activity.resourceId || null;
-      const parameters = activity.parameters || '';
-
-      // If we have a resource map entry, use it
-      if (identifierref && resourceMap.has(identifierref)) {
-        const baseUrl = resourceMap.get(identifierref);
-        return parameters ? baseUrl + parameters : baseUrl;
+        progressBar.style.width = progress + "%";
+        progressText.textContent = progress + "%";
       }
 
-      // For test modules, construct URL based on activity ID patterns
-      // This is a fallback for test environments
-      if (activityId.includes('playing')) {
-        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=playing';
-      } else if (activityId.includes('etiquette') || activityId.includes('etuqiette')) {
-        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=etiquette';
-      } else if (activityId.includes('handicapping')) {
-        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=handicapping';
-      } else if (activityId.includes('havingfun')) {
-        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=havingfun';
-      } else if (activityId.includes('test') || activityId.includes('assessment')) {
-        const testNum = activityId.match(/\d+/);
-        const contentParam = testNum ? '?content=assessment' + testNum[0] : '?content=assessment';
-        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html' + (parameters || contentParam);
+      function buildActivityTreeUI() {
+        const treeContainer = document.getElementById("activityTree");
+        if (!treeContainer) return;
+
+        const tree = sequencingDefaults.activityTree;
+        if (!tree || !tree.children || tree.children.length === 0) {
+          treeContainer.innerHTML = '<div class="tree-empty">No activity tree configured</div>';
+          return;
+        }
+
+        activityTree = tree;
+        treeContainer.innerHTML = "";
+        renderActivityNode(tree, treeContainer, 0);
       }
 
-      return null;
-    }
+      function renderActivityNode(node, container, depth) {
+        const item = document.createElement("div");
+        item.className = "tree-item";
+        item.setAttribute("data-activity-id", node.id || "");
+        item.setAttribute("data-depth", depth);
 
-    // Extract module base path from current module URL
-    function getModuleBasePath() {
-      const modulePath = getModulePath();
-      if (!modulePath) return '';
-      // Extract path up to the module directory
-      // e.g., /test/integration/modules/SequencingForcedSequential_SCORM20043rdEdition/shared/launchpage.html
-      // -> SequencingForcedSequential_SCORM20043rdEdition
-      const match = modulePath.match(/\/modules\/([^\/]+)/);
-      return match ? match[1] : '';
-    }
+        if (node.id === currentActivityId) {
+          item.classList.add("current");
+        }
 
-    window.API_1484_11.setSequencingEventListeners({
-      onNavigationValidityUpdate: applyNavigationState,
-      onActivityDelivery: (activity) => {
-        applyNavigationState({
-          hideLmsUi: activity?.hideLmsUi,
-          auxiliaryResources: activity?.auxiliaryResources,
+        const content = document.createElement("div");
+        content.className = "tree-item-content";
+        content.style.paddingLeft = depth * 16 + "px";
+
+        const icon = document.createElement("span");
+        icon.className = "tree-icon";
+        if (node.children && node.children.length > 0) {
+          icon.innerHTML =
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>';
+        } else {
+          icon.innerHTML =
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>';
+        }
+
+        const title = document.createElement("span");
+        title.className = "tree-title";
+        title.textContent = node.title || node.id || "Untitled";
+
+        const status = document.createElement("span");
+        status.className = "tree-status";
+        if (node.id === currentActivityId) {
+          status.classList.add("status-active");
+        }
+
+        content.appendChild(icon);
+        content.appendChild(title);
+        content.appendChild(status);
+        item.appendChild(content);
+        container.appendChild(item);
+
+        if (node.children && node.children.length > 0) {
+          const childContainer = document.createElement("div");
+          childContainer.className = "tree-children";
+          node.children.forEach((child) => {
+            renderActivityNode(child, childContainer, depth + 1);
+          });
+          container.appendChild(childContainer);
+        }
+      }
+
+      function updateActivityTreeHighlight(activityId) {
+        currentActivityId = activityId;
+        document.querySelectorAll(".tree-item").forEach((item) => {
+          item.classList.remove("current");
+          const statusEl = item.querySelector(".tree-status");
+          if (statusEl) {
+            statusEl.classList.remove("status-active");
+          }
         });
 
-        // Load new SCO content when activity is delivered
-        // This is what a real LMS would do
-        if (activity && activity.id) {
-          const resourceUrl = getResourceUrl(activity);
-          if (resourceUrl) {
-            // Skip reset and reload if the same activity/URL is already loaded
-            // This prevents Firefox's NS_ERROR_XPC_SECURITY_MANAGER_VETO error
-            // caused by resetting the API while the same iframe is communicating
-            if (currentLoadedActivityId === activity.id || currentLoadedUrl === resourceUrl) {
-              console.log('[Wrapper] Skipping reload - same activity already loaded:', activity.id);
-              return;
-            }
-
-            // Reset the API before loading new SCO
-            // This resets SCO-specific data while preserving global objectives
-            // The reset() method is designed for transitioning between SCOs
-            if (window.API_1484_11 && typeof window.API_1484_11.reset === 'function') {
-              window.API_1484_11.reset();
-            }
-
-            const moduleFrame = document.getElementById('moduleFrame');
-            if (moduleFrame) {
-              // Track the loaded activity
-              currentLoadedActivityId = activity.id;
-              currentLoadedUrl = resourceUrl;
-              // Load the new SCO content
-              moduleFrame.src = resourceUrl;
+        if (activityId) {
+          const activeItem = document.querySelector(`[data-activity-id="${activityId}"]`);
+          if (activeItem) {
+            activeItem.classList.add("current");
+            const statusEl = activeItem.querySelector(".tree-status");
+            if (statusEl) {
+              statusEl.classList.add("status-active");
             }
           }
         }
-      },
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      refreshNavMap();
-      bindNavigationHandlers();
-
-      // Apply initial navigation state after API is ready
-      // For non-sequenced modules, this will hide navigation buttons
-      setTimeout(() => {
-        applyNavigationState();
-      }, 100);
-
-      const modulePath = getModulePath();
-
-      // Check if sequencing is active with an activity tree
-      // If so, let sequencing's onActivityDelivery handle the initial load
-      // This prevents Firefox's NS_ERROR_XPC_SECURITY_MANAGER_VETO error
-      // caused by resetting the API right after loading a different module
-      const hasSequencing = sequencingDefaults.activityTree &&
-                            sequencingDefaults.activityTree.children &&
-                            sequencingDefaults.activityTree.children.length > 0;
-
-      if (modulePath && !hasSequencing) {
-        // Non-sequenced module: load directly from URL
-        loadModule(modulePath);
-      } else if (!modulePath && !hasSequencing) {
-        document.getElementById('error').textContent = 'No module specified. Use ?module=path/to/module.html';
       }
-      // If sequencing is active, onActivityDelivery will handle the initial load
-    });
 
-    function loadModule(modulePath) {
-      // Track the initially loaded module URL to avoid duplicate resets
-      currentLoadedUrl = modulePath;
-      document.getElementById('moduleFrame').src = modulePath;
-    }
+      function applyNavigationState(update = {}) {
+        lastNavigationPayload = {
+          ...lastNavigationPayload,
+          ...update,
+          hideLmsUi: update.hideLmsUi ?? lastNavigationPayload.hideLmsUi,
+          auxiliaryResources: update.auxiliaryResources ?? lastNavigationPayload.auxiliaryResources,
+        };
+        const payload = lastNavigationPayload;
 
-    function getModulePath() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('module') || '';
-    }
-  </script>
-  <style>
-    body,
-    html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
+        const sequencingAvailable = isSequencingAvailable();
 
-    body {
-      display: flex;
-      flex-direction: column;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+        const hidden = new Set(sequencingDefaults.hideLmsUi ?? []);
+        if (Array.isArray(payload.hideLmsUi)) {
+          for (const directive of payload.hideLmsUi) {
+            if (typeof directive === "string") {
+              hidden.add(directive);
+            }
+          }
+        }
 
-    header {
-      padding: 12px 16px;
-      background: #0b3d91;
-      color: #fff;
-    }
+        if (!sequencingAvailable) {
+          navMap.forEach((button) => {
+            button.classList.add("is-hidden");
+            button.hidden = true;
+            button.setAttribute("aria-hidden", "true");
+            button.tabIndex = -1;
+            button.disabled = true;
+          });
+        } else {
+          navMap.forEach((button, directive) => {
+            const shouldHide = hidden.has(directive);
+            button.classList.toggle("is-hidden", shouldHide);
+            button.hidden = shouldHide;
+            button.setAttribute("aria-hidden", shouldHide ? "true" : "false");
+            button.tabIndex = shouldHide ? -1 : 0;
+          });
 
-    #lmsUi {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #f2f6ff;
-      border-bottom: 1px solid #d4defd;
-      align-items: center;
-    }
+          const continueButton = navMap.get("continue");
+          if (continueButton) {
+            const canContinue = payload.continue;
+            const shouldDisable = canContinue === false || canContinue === "false";
+            continueButton.disabled = shouldDisable;
+          }
 
-    #lmsUi button {
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid #0b3d91;
-      background: #fff;
-      color: #0b3d91;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease;
-    }
+          const previousButton = navMap.get("previous");
+          if (previousButton) {
+            const canPrevious = payload.previous;
+            const shouldDisable = canPrevious === false || canPrevious === "false";
+            previousButton.disabled = shouldDisable;
+          }
+        }
 
-    #lmsUi button:disabled {
-      border-color: #9fb4d9;
-      color: #9fb4d9;
-      cursor: not-allowed;
-    }
+        const auxiliaryResources = computeAuxiliaryResources(payload);
+        const auxList = document.getElementById("auxResources");
+        if (auxList) {
+          auxList.innerHTML = "";
+          if (auxiliaryResources.length === 0) {
+            const emptyItem = document.createElement("div");
+            emptyItem.className = "aux-item aux-empty";
+            emptyItem.textContent = "No resources available";
+            auxList.appendChild(emptyItem);
+          } else {
+            auxiliaryResources.forEach(({ resourceId, purpose }) => {
+              const item = document.createElement("div");
+              item.className = "aux-item";
 
-    #lmsUi button:not(:disabled):hover {
-      background: #0b3d91;
-      color: #fff;
-    }
+              const iconMap = {
+                help: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                glossary:
+                  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
+                default:
+                  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+              };
 
-    #lmsUi button.is-hidden {
-      display: none;
-    }
+              const icon = document.createElement("span");
+              icon.className = "aux-icon";
+              icon.innerHTML = iconMap[purpose] || iconMap.default;
 
-    #hide-directives {
-      margin-left: auto;
-      font-size: 12px;
-      color: #0b3d91;
-    }
+              const text = document.createElement("span");
+              text.className = "aux-text";
+              text.textContent = purpose
+                ? purpose.charAt(0).toUpperCase() + purpose.slice(1)
+                : "Resource";
 
-    #auxiliary-resources {
-      padding: 12px 16px;
-      background: #f8faff;
-      border-bottom: 1px solid #d4defd;
-    }
+              item.appendChild(icon);
+              item.appendChild(text);
+              auxList.appendChild(item);
+            });
+          }
+        }
 
-    #auxiliary-resources h2 {
-      margin: 0 0 8px;
-      font-size: 16px;
-      color: #0b3d91;
-    }
+        updateApiStatus();
+        updateProgress();
+      }
 
-    #aux-resources {
-      margin: 0;
-      padding-left: 20px;
-      color: #0b3d91;
-    }
+      // Resource map
+      const resourceMap = new Map();
 
-    #moduleFrame {
-      width: 100%;
-      flex: 1;
-      border: none;
-      padding: 0;
-      margin: 0;
-    }
+      let currentLoadedActivityId = null;
+      let currentLoadedUrl = null;
 
-    #error {
-      padding: 12px 16px 24px;
-      color: #a94442;
-      font-weight: 600;
-      background: #f9dede;
-      border-top: 1px solid #f2bcbc;
-    }
-  </style>
-</head>
-<body>
-<header>
-  <h1>SCORM 2004 Wrapper</h1>
-</header>
-<div id="lmsUi">
-  <button type="button" data-directive="continue">Continue</button>
-  <button type="button" data-directive="previous">Previous</button>
-  <button type="button" data-directive="exit">Exit</button>
-  <button type="button" data-directive="exitAll" aria-hidden="true" hidden>Exit All</button>
-  <button type="button" data-directive="abandon">Abandon</button>
-  <button type="button" data-directive="abandonAll" aria-hidden="true" hidden>Abandon All</button>
-  <button type="button" data-directive="suspendAll">Suspend All</button>
-  <span id="hide-directives" aria-live="polite">exitAll, abandonAll</span>
-</div>
-<section id="auxiliary-resources">
-  <h2>Auxiliary Resources</h2>
-  <ul id="aux-resources" aria-live="polite">
-    <li>help: urn:scorm-again:help</li>
-    <li>glossary: urn:scorm-again:glossary</li>
-  </ul>
-</section>
-<iframe id="moduleFrame" title="SCORM Module"></iframe>
-<div id="error"></div>
-</body>
+      function getResourceUrl(activity) {
+        if (!activity) return null;
+
+        const activityId = activity.id || "";
+        const identifierref = activity.identifierref || activity.resourceId || null;
+        const parameters = activity.parameters || "";
+
+        if (identifierref && resourceMap.has(identifierref)) {
+          const baseUrl = resourceMap.get(identifierref);
+          return parameters ? baseUrl + parameters : baseUrl;
+        }
+
+        if (activityId.includes("playing")) {
+          return (
+            "/test/integration/modules/" +
+            getModuleBasePath() +
+            "/shared/launchpage.html?content=playing"
+          );
+        } else if (activityId.includes("etiquette") || activityId.includes("etuqiette")) {
+          return (
+            "/test/integration/modules/" +
+            getModuleBasePath() +
+            "/shared/launchpage.html?content=etiquette"
+          );
+        } else if (activityId.includes("handicapping")) {
+          return (
+            "/test/integration/modules/" +
+            getModuleBasePath() +
+            "/shared/launchpage.html?content=handicapping"
+          );
+        } else if (activityId.includes("havingfun")) {
+          return (
+            "/test/integration/modules/" +
+            getModuleBasePath() +
+            "/shared/launchpage.html?content=havingfun"
+          );
+        } else if (activityId.includes("test") || activityId.includes("assessment")) {
+          const testNum = activityId.match(/\d+/);
+          const contentParam = testNum ? "?content=assessment" + testNum[0] : "?content=assessment";
+          return (
+            "/test/integration/modules/" +
+            getModuleBasePath() +
+            "/shared/launchpage.html" +
+            (parameters || contentParam)
+          );
+        }
+
+        return null;
+      }
+
+      function getModuleBasePath() {
+        const modulePath = getModulePath();
+        if (!modulePath) return "";
+        const match = modulePath.match(/\/modules\/([^\/]+)/);
+        return match ? match[1] : "";
+      }
+
+      window.API_1484_11.setSequencingEventListeners({
+        onNavigationValidityUpdate: applyNavigationState,
+        onActivityDelivery: (activity) => {
+          applyNavigationState({
+            hideLmsUi: activity?.hideLmsUi,
+            auxiliaryResources: activity?.auxiliaryResources,
+          });
+
+          if (activity && activity.id) {
+            updateActivityTreeHighlight(activity.id);
+
+            const resourceUrl = getResourceUrl(activity);
+            if (resourceUrl) {
+              if (currentLoadedActivityId === activity.id || currentLoadedUrl === resourceUrl) {
+                console.log(
+                  "[Wrapper] Skipping reload - same activity already loaded:",
+                  activity.id,
+                );
+                return;
+              }
+
+              if (window.API_1484_11 && typeof window.API_1484_11.reset === "function") {
+                window.API_1484_11.reset();
+              }
+
+              const moduleFrame = document.getElementById("moduleFrame");
+              if (moduleFrame) {
+                currentLoadedActivityId = activity.id;
+                currentLoadedUrl = resourceUrl;
+                moduleFrame.src = resourceUrl;
+              }
+            }
+          }
+        },
+      });
+
+      // Listen for CMI changes to update progress
+      window.API_1484_11.on("SetValue.cmi.*", function () {
+        updateProgress();
+      });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        refreshNavMap();
+        bindNavigationHandlers();
+        buildActivityTreeUI();
+
+        setTimeout(() => {
+          applyNavigationState();
+          updateApiStatus();
+        }, 100);
+
+        const modulePath = getModulePath();
+
+        const hasSequencing =
+          sequencingDefaults.activityTree &&
+          sequencingDefaults.activityTree.children &&
+          sequencingDefaults.activityTree.children.length > 0;
+
+        if (modulePath && !hasSequencing) {
+          loadModule(modulePath);
+        } else if (!modulePath && !hasSequencing) {
+          document.getElementById("errorMessage").textContent =
+            "No module specified. Use ?module=path/to/module.html";
+          document.getElementById("errorContainer").style.display = "flex";
+        }
+      });
+
+      function loadModule(modulePath) {
+        currentLoadedUrl = modulePath;
+        document.getElementById("moduleFrame").src = modulePath;
+      }
+
+      function getModulePath() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("module") || "";
+      }
+
+      // Toggle sidebar
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const toggle = document.getElementById("sidebarToggle");
+        sidebar.classList.toggle("collapsed");
+        toggle.classList.toggle("collapsed");
+      }
+    </script>
+    <style>
+      :root {
+        --color-primary: #2563eb;
+        --color-primary-dark: #1d4ed8;
+        --color-primary-light: #3b82f6;
+        --color-success: #10b981;
+        --color-warning: #f59e0b;
+        --color-error: #ef4444;
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --color-gray-200: #e5e7eb;
+        --color-gray-300: #d1d5db;
+        --color-gray-400: #9ca3af;
+        --color-gray-500: #6b7280;
+        --color-gray-600: #4b5563;
+        --color-gray-700: #374151;
+        --color-gray-800: #1f2937;
+        --color-gray-900: #111827;
+        --sidebar-width: 280px;
+        --header-height: 56px;
+        --nav-height: 56px;
+        --transition-fast: 150ms ease;
+        --transition-normal: 250ms ease;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --radius-sm: 4px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--color-gray-900);
+        background: var(--color-gray-100);
+      }
+
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: var(--header-height);
+        padding: 0 16px;
+        background: linear-gradient(
+          135deg,
+          var(--color-primary) 0%,
+          var(--color-primary-dark) 100%
+        );
+        color: white;
+        box-shadow: var(--shadow-md);
+        z-index: 100;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .header-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .header-logo svg {
+        width: 28px;
+        height: 28px;
+      }
+
+      .header-title {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .status-success {
+        background: var(--color-success);
+      }
+      .status-warning {
+        background: var(--color-warning);
+      }
+      .status-error {
+        background: var(--color-error);
+      }
+      .status-pending {
+        background: var(--color-gray-400);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .progress-label {
+        font-size: 12px;
+        font-weight: 500;
+        opacity: 0.9;
+      }
+
+      .progress-bar-wrapper {
+        width: 100px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: var(--color-success);
+        border-radius: 3px;
+        transition: width var(--transition-normal);
+      }
+
+      .progress-text {
+        font-size: 12px;
+        font-weight: 600;
+        min-width: 32px;
+      }
+
+      /* Main Content Area */
+      .main-container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: var(--sidebar-width);
+        background: white;
+        border-right: 1px solid var(--color-gray-200);
+        display: flex;
+        flex-direction: column;
+        transition:
+          width var(--transition-normal),
+          transform var(--transition-normal);
+        overflow: hidden;
+      }
+
+      .sidebar.collapsed {
+        width: 0;
+        border-right: none;
+      }
+
+      .sidebar-toggle {
+        position: absolute;
+        left: var(--sidebar-width);
+        top: calc(var(--header-height) + 12px);
+        width: 24px;
+        height: 24px;
+        border: 1px solid var(--color-gray-200);
+        background: white;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        transition: left var(--transition-normal);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .sidebar-toggle:hover {
+        background: var(--color-gray-50);
+      }
+
+      .sidebar-toggle.collapsed {
+        left: 0;
+        border-left: none;
+      }
+
+      .sidebar-toggle svg {
+        width: 14px;
+        height: 14px;
+        color: var(--color-gray-500);
+        transition: transform var(--transition-fast);
+      }
+
+      .sidebar-toggle.collapsed svg {
+        transform: rotate(180deg);
+      }
+
+      .sidebar-section {
+        border-bottom: 1px solid var(--color-gray-100);
+      }
+
+      .sidebar-section:last-child {
+        border-bottom: none;
+      }
+
+      .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-gray-500);
+        background: var(--color-gray-50);
+      }
+
+      /* Activity Tree */
+      .activity-tree {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 0;
+      }
+
+      .tree-empty {
+        padding: 24px 16px;
+        text-align: center;
+        color: var(--color-gray-400);
+        font-style: italic;
+      }
+
+      .tree-item {
+        position: relative;
+      }
+
+      .tree-item-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        cursor: default;
+        transition: background var(--transition-fast);
+      }
+
+      .tree-item-content:hover {
+        background: var(--color-gray-50);
+      }
+
+      .tree-item.current > .tree-item-content {
+        background: rgba(37, 99, 235, 0.08);
+        border-right: 3px solid var(--color-primary);
+      }
+
+      .tree-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-gray-400);
+        flex-shrink: 0;
+      }
+
+      .tree-item.current .tree-icon {
+        color: var(--color-primary);
+      }
+
+      .tree-title {
+        flex: 1;
+        font-size: 13px;
+        color: var(--color-gray-700);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .tree-item.current .tree-title {
+        color: var(--color-primary);
+        font-weight: 600;
+      }
+
+      .tree-status {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--color-gray-300);
+        flex-shrink: 0;
+      }
+
+      .tree-status.status-active {
+        background: var(--color-primary);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .tree-children {
+        margin-left: 0;
+      }
+
+      /* Auxiliary Resources */
+      .aux-resources {
+        padding: 8px;
+      }
+
+      .aux-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: var(--color-gray-50);
+        border-radius: var(--radius-md);
+        margin-bottom: 6px;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+      }
+
+      .aux-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .aux-item:hover {
+        background: var(--color-gray-100);
+      }
+
+      .aux-item.aux-empty {
+        justify-content: center;
+        color: var(--color-gray-400);
+        font-style: italic;
+        cursor: default;
+      }
+
+      .aux-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: var(--radius-sm);
+        color: var(--color-primary);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .aux-text {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-gray-700);
+      }
+
+      /* Content Area */
+      .content-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      /* Navigation Bar */
+      .nav-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: var(--nav-height);
+        padding: 0 16px;
+        background: white;
+        border-bottom: 1px solid var(--color-gray-200);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .nav-group {
+        display: flex;
+        gap: 6px;
+      }
+
+      .nav-group.primary {
+        flex: 1;
+      }
+
+      .nav-divider {
+        width: 1px;
+        height: 24px;
+        background: var(--color-gray-200);
+        margin: 0 8px;
+      }
+
+      .nav-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-gray-700);
+        background: var(--color-gray-50);
+        border: 1px solid var(--color-gray-200);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        white-space: nowrap;
+      }
+
+      .nav-btn:hover:not(:disabled) {
+        background: var(--color-gray-100);
+        border-color: var(--color-gray-300);
+      }
+
+      .nav-btn:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .nav-btn.is-hidden {
+        display: none;
+      }
+
+      .nav-btn.primary {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: white;
+      }
+
+      .nav-btn.primary:hover:not(:disabled) {
+        background: var(--color-primary-dark);
+        border-color: var(--color-primary-dark);
+      }
+
+      .nav-btn.danger {
+        color: var(--color-error);
+        border-color: rgba(239, 68, 68, 0.3);
+      }
+
+      .nav-btn.danger:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--color-error);
+      }
+
+      .nav-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      /* Module Frame */
+      .module-container {
+        flex: 1;
+        position: relative;
+        background: var(--color-gray-50);
+      }
+
+      .module-frame {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+      }
+
+      /* Error Container */
+      .error-container {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        align-items: center;
+        justify-content: center;
+        background: var(--color-gray-50);
+        z-index: 10;
+      }
+
+      .error-content {
+        text-align: center;
+        padding: 40px;
+        max-width: 400px;
+      }
+
+      .error-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 16px;
+        color: var(--color-error);
+      }
+
+      .error-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--color-gray-900);
+        margin: 0 0 8px;
+      }
+
+      .error-message {
+        font-size: 14px;
+        color: var(--color-gray-500);
+        margin: 0;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: absolute;
+          top: var(--header-height);
+          left: 0;
+          bottom: 0;
+          z-index: 40;
+          box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar.collapsed {
+          transform: translateX(-100%);
+          width: var(--sidebar-width);
+        }
+
+        .sidebar-toggle {
+          left: 0;
+          border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+
+        .sidebar-toggle:not(.collapsed) {
+          left: var(--sidebar-width);
+        }
+
+        .header-title {
+          font-size: 16px;
+        }
+
+        .progress-bar-wrapper {
+          display: none;
+        }
+
+        .nav-btn span:not(.nav-icon) {
+          display: none;
+        }
+
+        .nav-btn {
+          padding: 8px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <div class="header-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+            <span class="header-title">SCORM 2004 Player</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="progress-container">
+            <span class="progress-label">Progress</span>
+            <div class="progress-bar-wrapper">
+              <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+            <span class="progress-text" id="progressText">0%</span>
+          </div>
+          <div class="status-badge">
+            <div class="status-indicator" id="apiStatus"></div>
+            <span id="apiStatusText">Loading...</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-header">
+              <span>Course Structure</span>
+            </div>
+            <div class="activity-tree" id="activityTree">
+              <div class="tree-empty">Loading activity tree...</div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-header">
+              <span>Resources</span>
+            </div>
+            <div class="aux-resources" id="auxResources">
+              <div class="aux-item aux-empty">Loading resources...</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Sidebar Toggle -->
+        <button
+          class="sidebar-toggle"
+          id="sidebarToggle"
+          onclick="toggleSidebar()"
+          aria-label="Toggle sidebar"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
+        <!-- Content Area -->
+        <main class="content-area">
+          <!-- Navigation Bar -->
+          <nav class="nav-bar" id="lmsUi" role="navigation" aria-label="Course navigation">
+            <div class="nav-group primary">
+              <button
+                type="button"
+                class="nav-btn"
+                data-directive="previous"
+                aria-label="Previous activity"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <span>Previous</span>
+              </button>
+              <button
+                type="button"
+                class="nav-btn primary"
+                data-directive="continue"
+                aria-label="Continue to next activity"
+              >
+                <span>Continue</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+            <div class="nav-divider"></div>
+            <div class="nav-group">
+              <button
+                type="button"
+                class="nav-btn"
+                data-directive="suspendAll"
+                aria-label="Suspend and save progress"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+                <span>Suspend</span>
+              </button>
+              <button
+                type="button"
+                class="nav-btn"
+                data-directive="exit"
+                aria-label="Exit current activity"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Exit</span>
+              </button>
+              <button
+                type="button"
+                class="nav-btn danger is-hidden"
+                data-directive="exitAll"
+                aria-hidden="true"
+                hidden
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Exit All</span>
+              </button>
+              <button
+                type="button"
+                class="nav-btn danger"
+                data-directive="abandon"
+                aria-label="Abandon current activity"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+                <span>Abandon</span>
+              </button>
+              <button
+                type="button"
+                class="nav-btn danger is-hidden"
+                data-directive="abandonAll"
+                aria-hidden="true"
+                hidden
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+                <span>Abandon All</span>
+              </button>
+            </div>
+          </nav>
+
+          <!-- Module Container -->
+          <div class="module-container">
+            <iframe id="moduleFrame" class="module-frame" title="SCORM Module Content"></iframe>
+
+            <!-- Error State -->
+            <div class="error-container" id="errorContainer">
+              <div class="error-content">
+                <svg
+                  class="error-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <h2 class="error-title">No Module Loaded</h2>
+                <p class="error-message" id="errorMessage">
+                  Use ?module=path/to/module.html to load a SCORM module.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
 </html>
