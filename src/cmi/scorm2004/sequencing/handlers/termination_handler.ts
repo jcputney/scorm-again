@@ -4,14 +4,11 @@ import { SequencingProcess, SequencingRequestType, PostConditionResult } from ".
 import { RollupProcess } from "../rollup_process";
 import { RuleActionType } from "../sequencing_rules";
 import { SelectionRandomization } from "../selection_randomization";
-import {
-  RteDataTransferService,
-  RteDataTransferContext,
-  CMIDataForTransfer,
-} from "./rte_data_transfer";
+import { RteDataTransferService } from "./rte_data_transfer";
+import type { RteDataTransferContext, CMIDataForTransfer } from "./rte_data_transfer";
 
 // Re-export CMIDataForTransfer for backward compatibility
-export { CMIDataForTransfer } from "./rte_data_transfer";
+export type { CMIDataForTransfer } from "./rte_data_transfer";
 
 /**
  * Result of Termination Request Process
