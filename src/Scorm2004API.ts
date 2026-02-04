@@ -6,6 +6,7 @@ import {
   stringMatches,
 } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
+import { CMIArray } from "./cmi/common/array";
 import { CMI } from "./cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { CMIInteractionsObject } from "./cmi/scorm2004/interactions";
@@ -472,12 +473,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string} "true" or "false"
    */
   lmsSetValue(CMIElement: string, value: any): string {
-    let oldValue: any = null;
-    try {
-      oldValue = this.getCMIValue(CMIElement);
-    } catch (error) {
-      oldValue = null;
-    }
+    const oldValue = this._peekCMIValue(CMIElement);
 
     const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
 
@@ -640,6 +636,63 @@ class Scorm2004API extends BaseAPI {
     }
 
     this._responseValidator.validateCorrectResponse(CMIElement, interaction, value);
+  }
+
+  /**
+   * Silently peeks at a CMI value without triggering error logging or
+   * mutating lastErrorCode. Returns null if the element doesn't exist.
+   * Used internally to capture old values before SetValue overwrites them.
+   *
+   * @param {string} CMIElement - dot-delimited CMI path (e.g. "cmi.interactions.0.id")
+   * @return {*} the current value, or null if the path doesn't resolve
+   */
+  private _peekCMIValue(CMIElement: string): any {
+    if (!CMIElement || typeof CMIElement !== "string") {
+      return null;
+    }
+
+    const segments = CMIElement.split(".");
+    let refObject: any = this;
+
+    for (let i = 0; i < segments.length; i++) {
+      const attribute = segments[i] as string;
+
+      if (refObject == null) {
+        return null;
+      }
+
+      try {
+        refObject = refObject[attribute];
+      } catch {
+        // Property getter threw (e.g. write-only elements like session_time)
+        return null;
+      }
+
+      if (refObject instanceof CMIArray) {
+        // Next segment may be a numeric index into childArray, or a
+        // property like _count/_children accessed on the array itself.
+        const nextIndex = i + 1;
+        if (nextIndex >= segments.length) {
+          return refObject;
+        }
+
+        const nextSegment = segments[nextIndex] as string;
+        const index = Number(nextSegment);
+
+        if (!Number.isNaN(index) && Number.isInteger(index) && index >= 0) {
+          if (index >= refObject.childArray.length) {
+            return null;
+          }
+          refObject = refObject.childArray[index];
+          i++; // skip the index segment
+        }
+        // If nextSegment is not a valid numeric index (e.g. _count),
+        // fall through and let the next iteration access it as a
+        // normal property on the CMIArray instance.
+      }
+    }
+
+    return refObject ?? null;
   }
 
   /**

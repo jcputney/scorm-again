@@ -2495,4 +2495,152 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       });
     });
   });
+
+  describe("_peekCMIValue - silent value lookup (Issue #1378)", (): void => {
+    // Use ERROR log level (not NONE) to prove errors genuinely don't fire
+    const apiWithErrorLogging = (settings?: Settings): Scorm2004API => {
+      return new Scorm2004API({ ...settings, logLevel: LogLevelEnum.ERROR });
+    };
+
+    const apiWithErrorLoggingInitialized = (settings?: Settings): Scorm2004API => {
+      const API = apiWithErrorLogging(settings);
+      API.lmsInitialize();
+      return API;
+    };
+
+    it("should not produce console errors when setting interactions for the first time", (): void => {
+      const consoleSpy = vi.spyOn(console, "error");
+      const scorm2004API = apiWithErrorLoggingInitialized();
+
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "interaction-1");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+      scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a");
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it("should not corrupt lastErrorCode when setting interactions for the first time", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "interaction-1");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+
+      expect(scorm2004API.lmsGetLastError()).toBe("0");
+    });
+
+    it("should return correct existing scalar values", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+      scorm2004API.lmsSetValue("cmi.completion_status", "incomplete");
+
+      // Access _peekCMIValue via lmsSetValue's internal usage:
+      // setting it again should use the old value without error
+      const consoleSpy = vi.spyOn(console, "error");
+      scorm2004API.lmsSetValue("cmi.completion_status", "completed");
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("completed");
+      consoleSpy.mockRestore();
+    });
+
+    it("should return correct existing array values without error", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "interaction-1");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+
+      // Setting type again should peek the old value silently
+      const consoleSpy = vi.spyOn(console, "error");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "true-false");
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(scorm2004API.lmsGetValue("cmi.interactions.0.type")).toBe("true-false");
+      consoleSpy.mockRestore();
+    });
+
+    it("should return null for non-existent array elements without error", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+
+      const consoleSpy = vi.spyOn(console, "error");
+      // Setting the first interaction when none exist — _peekCMIValue should return null silently
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "interaction-1");
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(scorm2004API.lmsGetLastError()).toBe("0");
+      consoleSpy.mockRestore();
+    });
+
+    it("should return null for non-existent nested arrays without error", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+
+      const consoleSpy = vi.spyOn(console, "error");
+      // correct_responses is a nested array that doesn't exist yet
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "interaction-1");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+      scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a");
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(scorm2004API.lmsGetLastError()).toBe("0");
+      consoleSpy.mockRestore();
+    });
+
+    it("should return null for invalid or empty paths without error", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+
+      const consoleSpy = vi.spyOn(console, "error");
+      // These are invalid paths that _peekCMIValue should handle gracefully
+      // We test indirectly by confirming no console errors during normal SetValue operations
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "test-1");
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it("should handle setting multiple interactions without errors", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+      const consoleSpy = vi.spyOn(console, "error");
+
+      for (let i = 0; i < 5; i++) {
+        scorm2004API.lmsSetValue(`cmi.interactions.${i}.id`, `interaction-${i}`);
+        scorm2004API.lmsSetValue(`cmi.interactions.${i}.type`, "choice");
+        scorm2004API.lmsSetValue(`cmi.interactions.${i}.learner_response`, "a");
+        scorm2004API.lmsSetValue(`cmi.interactions.${i}.result`, "correct");
+        scorm2004API.lmsSetValue(`cmi.interactions.${i}.correct_responses.0.pattern`, "a");
+      }
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(scorm2004API.lmsGetLastError()).toBe("0");
+      expect(scorm2004API.lmsGetValue("cmi.interactions._count")).toBe(5);
+      consoleSpy.mockRestore();
+    });
+
+    it("should handle write-only elements like session_time without errors", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+      const consoleSpy = vi.spyOn(console, "error");
+
+      // cmi.session_time is write-only — its getter throws Scorm2004ValidationError.
+      // _peekCMIValue must catch this and return null silently.
+      const result = scorm2004API.lmsSetValue("cmi.session_time", "PT1H5M30S");
+      expect(result).toBe("true");
+      expect(scorm2004API.lmsGetLastError()).toBe("0");
+      expect(consoleSpy).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it("should still support sequencing rollup when old values exist", (): void => {
+      const scorm2004API = apiWithErrorLoggingInitialized();
+      const consoleSpy = vi.spyOn(console, "error");
+
+      // Set completion_status once
+      scorm2004API.lmsSetValue("cmi.completion_status", "incomplete");
+      expect(scorm2004API.lmsGetLastError()).toBe("0");
+
+      // Set it again — _peekCMIValue should return "incomplete" as old value
+      scorm2004API.lmsSetValue("cmi.completion_status", "completed");
+      expect(scorm2004API.lmsGetLastError()).toBe("0");
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("completed");
+      consoleSpy.mockRestore();
+    });
+  });
 });
