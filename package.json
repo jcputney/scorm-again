@@ -111,7 +111,7 @@
     "babelify": "10.0.0",
     "cors": "^2.8.6",
     "esbuild": "0.27.2",
-    "eslint": "9.39.2",
+    "eslint": "10.0.0",
     "eslint-formatter-junit": "9.0.1",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jsdoc": "62.5.0",
