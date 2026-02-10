@@ -97,7 +97,7 @@
     "@babel/preset-typescript": "7.28.5",
     "@codecov/bundle-analyzer": "1.9.1",
     "@codecov/rollup-plugin": "1.9.1",
-    "@eslint/js": "9.39.2",
+    "@eslint/js": "10.0.1",
     "@mo36924/rollup-plugin-cache": "1.6.11",
     "@playwright/test": "1.58.1",
     "@rollup/plugin-babel": "6.1.0",
