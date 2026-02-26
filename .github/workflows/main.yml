@@ -129,7 +129,7 @@ jobs:
 
       # Upload build artifacts for integration tests
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build-output
           path: |
@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-results-${{ matrix.browser }}-shard-${{ matrix.shard }}
           path: test-results/
@@ -202,7 +202,7 @@ jobs:
 
       - name: Upload coverage artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.browser == 'chromium'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-shard-${{ matrix.shard }}
           path: coverage/e2e/shard-${{ matrix.shard }}/
@@ -279,7 +279,7 @@ jobs:
           name: combined-coverage
 
       - name: Upload combined coverage report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: combined-coverage-report
           path: coverage/merged/
@@ -314,7 +314,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload performance benchmark results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: performance-benchmark
           path: reports/performance-benchmark.json
