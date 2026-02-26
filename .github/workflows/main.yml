@@ -161,7 +161,7 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-output
 
@@ -228,7 +228,7 @@ jobs:
         run: npm install
 
       - name: Download unit test coverage
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-output
           path: .
@@ -237,25 +237,25 @@ jobs:
         run: mkdir -p coverage/e2e coverage/merged
 
       - name: Download coverage shard 1
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: coverage-shard-1
           path: coverage/e2e/shard-1
 
       - name: Download coverage shard 2
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: coverage-shard-2
           path: coverage/e2e/shard-2
 
       - name: Download coverage shard 3
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: coverage-shard-3
           path: coverage/e2e/shard-3
 
       - name: Download coverage shard 4
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: coverage-shard-4
           path: coverage/e2e/shard-4
@@ -304,7 +304,7 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-output
 
@@ -367,7 +367,7 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-output
 
