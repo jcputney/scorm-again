@@ -101,7 +101,7 @@
     "@mo36924/rollup-plugin-cache": "1.6.11",
     "@playwright/test": "1.58.1",
     "@rollup/plugin-babel": "6.1.0",
-    "@rollup/plugin-terser": "0.4.4",
+    "@rollup/plugin-terser": "1.0.0",
     "@rollup/plugin-typescript": "12.3.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
