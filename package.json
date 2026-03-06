@@ -107,7 +107,7 @@
     "@types/express": "^5.0.6",
     "@vitest/coverage-v8": "4.0.18",
     "@vitest/ui": "4.0.18",
-    "babel-loader": "10.0.0",
+    "babel-loader": "10.1.0",
     "babelify": "10.0.0",
     "cors": "^2.8.6",
     "esbuild": "0.27.2",
