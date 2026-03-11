@@ -202,6 +202,7 @@
     "@codecov/bundler-plugin-core": {
       "@actions/github": "^9.0.0",
       "@actions/http-client": "^4.0.0"
-    }
+    },
+    "ajv": "6.14.0"
   }
 }
