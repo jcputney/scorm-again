@@ -32,7 +32,7 @@ jobs:
         run: npm run build:all:prod
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build-output
           path: dist/
@@ -61,7 +61,7 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-output
           path: dist/
@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-results-${{ matrix.browser }}-shard-${{ matrix.shard }}
           path: test-results/
@@ -118,7 +118,7 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-output
           path: dist/
