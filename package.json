@@ -123,7 +123,7 @@
     "http-server": "14.1.1",
     "jsdoc": "4.0.5",
     "jsdoc-babel": "0.5.0",
-    "jsdom": "28.1.0",
+    "jsdom": "29.0.1",
     "monocart-coverage-reports": "^2.12.9",
     "monocart-reporter": "^2.10.0",
     "playwright": "1.58.2",
