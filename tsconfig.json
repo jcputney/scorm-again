@@ -6,8 +6,8 @@
     "noUncheckedIndexedAccess": true,
     "declaration": false,
     "module": "es2020",
-    "moduleResolution": "Node",
-    "target": "es5",
+    "moduleResolution": "bundler",
+    "target": "es2022",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "typeRoots": [
