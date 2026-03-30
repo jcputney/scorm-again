@@ -379,6 +379,8 @@ jobs:
       - name: Bundle analysis
         run: npx @codecov/bundle-analyzer ./dist --bundle-name=scorm-again --upload-token=${{ secrets.CODECOV_TOKEN }}
         working-directory: ./
+        env:
+          NODE_OPTIONS: --experimental-require-module
 
       - name: Format code with Prettier
         run: npm run prettier
