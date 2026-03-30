@@ -203,6 +203,7 @@
       "@actions/http-client": "^4.0.0"
     },
     "ajv": "6.14.0",
+    "nodemailer": ">=8.0.4",
     "typescript-eslint": {
       "typescript": "$typescript"
     }
