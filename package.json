@@ -70,6 +70,7 @@
   },
   "files": [
     "dist/**/*.js",
+    "dist/**/*.js.map",
     "dist/**/*.d.ts",
     "index.d.ts"
   ],
@@ -163,7 +164,7 @@
     "lint": "eslint ./src && prettier --check src/**/*.ts test/**/*.ts src/*.ts test/*.ts",
     "lint:fix": "npm run fix && npm run prettier",
     "prettier": "prettier --write src/**/*.ts test/**/*.ts src/*.ts test/*.ts",
-    "release": "npm run test:min && npm run test:integration:ci && npm run release:prepare && npm run compile && npm run release:publish",
+    "release": "npm run test:min && npm run test:integration:ci && npm run release:prepare && npm run build:all:prod && npm run release:publish",
     "release:alpha": "standard-version --prerelease alpha --no-verify",
     "release:beta": "standard-version --prerelease beta --no-verify",
     "release:prepare": "standard-version --no-verify",
