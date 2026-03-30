@@ -110,8 +110,6 @@ jobs:
 
       - name: Build (prod)
         run: npm run build:all:prod
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Run ESLint
         run: |
@@ -362,7 +360,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 25
+          node-version: 22
           cache: "npm"
 
       - name: Install dependencies
@@ -377,6 +375,9 @@ jobs:
         run: |
           ls -la dist/*.js | awk '{print $5, $9}' > bundle-size.txt
           cat bundle-size.txt
+
+      - name: Bundle analysis
+        run: npx @codecov/bundle-analyzer ./dist --bundle-name=scorm-again --upload-token=${{ secrets.CODECOV_TOKEN }}
 
       - name: Format code with Prettier
         run: npm run prettier
