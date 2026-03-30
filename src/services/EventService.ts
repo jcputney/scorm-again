@@ -1,6 +1,6 @@
 import { LogLevel } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
-import { IEventService } from "../interfaces/services";
+import { IEventService, ScormEventCallback } from "../interfaces/services";
 
 /**
  * Interface for a listener object
@@ -8,7 +8,7 @@ import { IEventService } from "../interfaces/services";
 interface Listener {
   functionName: string;
   CMIElement: string | null;
-  callback: Function;
+  callback: ScormEventCallback;
 }
 
 /**
@@ -78,7 +78,7 @@ export class EventService implements IEventService {
    * @param {string} listenerName - The name of the listener
    * @param {Function} callback - The callback function to execute when the event occurs
    */
-  on(listenerName: string, callback: Function) {
+  on(listenerName: string, callback: ScormEventCallback) {
     if (!callback) return;
 
     const listenerFunctions = listenerName.split(" ");
@@ -117,7 +117,7 @@ export class EventService implements IEventService {
    * @param {string} listenerName - The name of the listener to remove
    * @param {Function} callback - The callback function to remove
    */
-  off(listenerName: string, callback: Function) {
+  off(listenerName: string, callback: ScormEventCallback) {
     if (!callback) return;
 
     const listenerFunctions = listenerName.split(" ");

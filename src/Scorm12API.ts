@@ -320,8 +320,8 @@ class Scorm12API extends BaseAPI {
   override setCMIValue(CMIElement: string, value: any): string {
     const result = this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
 
-    // Update global learner preferences if enabled
-    if (this.settings.globalStudentPreferences) {
+    // Update global learner preferences if enabled and the set succeeded
+    if (result === global_constants.SCORM_TRUE && this.settings.globalStudentPreferences) {
       if (CMIElement === "cmi.student_preference.audio") {
         this._updateGlobalPreference("audio", value);
       } else if (CMIElement === "cmi.student_preference.language") {
@@ -455,7 +455,7 @@ class Scorm12API extends BaseAPI {
     const flattened: StringKeyMap = flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {
       case "flattened":
-        return flatten(cmiExport);
+        return flattened;
       case "params":
         for (const item in flattened) {
           if ({}.hasOwnProperty.call(flattened, item)) {

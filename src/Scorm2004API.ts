@@ -361,6 +361,11 @@ class Scorm2004API extends BaseAPI {
             processedSequencingRequest = requestToProcess;
           }
         } catch (error) {
+          this.apiLog(
+            "lmsFinish",
+            `Sequencing navigation failed, falling back to event-based navigation: ${error}`,
+            LogLevelEnum.WARN,
+          );
           navigationHandled = false;
         }
       }
@@ -408,6 +413,17 @@ class Scorm2004API extends BaseAPI {
    * @return {string} The value of the element, or empty string
    */
   lmsGetValue(CMIElement: string): string {
+    // Per SCORM 2004 RTE Section 3.1.3.3: state checks must come before
+    // any data model element processing
+    if (this.isTerminated()) {
+      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_AFTER_TERM);
+      return "";
+    }
+    if (!this.isInitialized()) {
+      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_BEFORE_INIT);
+      return "";
+    }
+
     if (CMIElement === "adl.nav.request") {
       this.throwSCORMError(
         CMIElement,
@@ -443,15 +459,6 @@ class Scorm2004API extends BaseAPI {
           }
         }
       }
-    }
-
-    if (this.isTerminated()) {
-      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_AFTER_TERM);
-      return "";
-    }
-    if (!this.isInitialized()) {
-      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_BEFORE_INIT);
-      return "";
     }
 
     if (CMIElement === "cmi.completion_status") {

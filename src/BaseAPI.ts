@@ -26,6 +26,7 @@ import {
   ILoggingService,
   IOfflineStorageService,
   ISerializationService,
+  ScormEventCallback,
 } from "./interfaces";
 import {
   AsynchronousHttpService,
@@ -1269,7 +1270,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    *   console.log("Setting " + element + " to " + value);
    * });
    */
-  on(listenerName: string, callback: Function) {
+  on(listenerName: string, callback: ScormEventCallback) {
     this._eventService.on(listenerName, callback);
   }
 
@@ -1287,7 +1288,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * // Later, when you want to remove it:
    * api.off("Initialize", myCallback);
    */
-  off(listenerName: string, callback: Function) {
+  off(listenerName: string, callback: ScormEventCallback) {
     this._eventService.off(listenerName, callback);
   }
 

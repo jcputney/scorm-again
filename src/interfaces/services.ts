@@ -47,6 +47,16 @@ export interface IHttpService {
 }
 
 /**
+ * Callback type for SCORM event listeners.
+ * Covers all dispatch signatures used by EventService.processListeners:
+ * - Sequence events: (target: string) => void
+ * - CommitError: (errorCode: string) => void
+ * - CommitSuccess: () => void
+ * - Regular events: (CMIElement: string, value: any) => void
+ */
+export type ScormEventCallback = (...args: any[]) => void;
+
+/**
  * Interface for Event service
  */
 export interface IEventService {
@@ -54,17 +64,17 @@ export interface IEventService {
    * Provides a mechanism for attaching to a specific SCORM event
    *
    * @param {string} listenerName - The name of the listener
-   * @param {Function} callback - The callback function to execute when the event occurs
+   * @param {ScormEventCallback} callback - The callback function to execute when the event occurs
    */
-  on(listenerName: string, callback: Function): void;
+  on(listenerName: string, callback: ScormEventCallback): void;
 
   /**
    * Provides a mechanism for detaching a specific SCORM event listener
    *
    * @param {string} listenerName - The name of the listener to remove
-   * @param {Function} callback - The callback function to remove
+   * @param {ScormEventCallback} callback - The callback function to remove
    */
-  off(listenerName: string, callback: Function): void;
+  off(listenerName: string, callback: ScormEventCallback): void;
 
   /**
    * Provides a mechanism for clearing all listeners from a specific SCORM event

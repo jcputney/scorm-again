@@ -43,7 +43,7 @@ const designations: Designation = {
  * // Returns "00:00:00"
  * getSecondsAsHHMMSS(null);
  */
-export const getSecondsAsHHMMSS = memoize((totalSeconds: number | null): string => {
+export const getSecondsAsHHMMSS = (totalSeconds: number | null): string => {
   // SCORM spec does not deal with negative durations, give zero back
   if (!totalSeconds || totalSeconds <= 0) {
     return "00:00:00";
@@ -68,7 +68,7 @@ export const getSecondsAsHHMMSS = memoize((totalSeconds: number | null): string 
   }
 
   return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-});
+};
 
 /**
  * Converts a number of seconds to an ISO 8601 duration string (e.g., "PT1H30M45S").
@@ -94,7 +94,7 @@ export const getSecondsAsHHMMSS = memoize((totalSeconds: number | null): string 
  * // Returns "PT0S" (0 seconds)
  * getSecondsAsISODuration(null);
  */
-export const getSecondsAsISODuration = memoize((seconds: number | null): string => {
+export const getSecondsAsISODuration = (seconds: number | null): string => {
   // SCORM spec does not deal with negative durations, give zero back
   if (!seconds || seconds <= 0) {
     return "PT0S";
@@ -137,7 +137,7 @@ export const getSecondsAsISODuration = memoize((seconds: number | null): string 
   });
 
   return duration;
-});
+};
 
 /**
  * Converts a time string in HH:MM:SS format to the equivalent number of seconds.
