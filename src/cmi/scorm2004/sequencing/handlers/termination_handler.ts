@@ -219,7 +219,7 @@ export class TerminationHandler {
     }
 
     // TB.2.3 step 3.3: POST-CONDITION LOOP
-    let processedExit = false;
+    let processedExit: boolean;
     let postConditionResult: PostConditionResult;
 
     do {

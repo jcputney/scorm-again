@@ -439,7 +439,7 @@ export class OfflineStorageService {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        throw new Error("storage quota exceeded - localStorage is full");
+        throw new Error("storage quota exceeded - localStorage is full", { cause: error });
       }
       throw error;
     }

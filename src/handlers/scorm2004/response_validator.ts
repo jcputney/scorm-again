@@ -286,7 +286,7 @@ export class Scorm2004ResponseValidator {
 
     const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
     let matches = node.match(prefixRegex);
-    let langMatches = null;
+    let langMatches: RegExpMatchArray | null;
     while (matches) {
       switch (matches[2]) {
         case "lang":
