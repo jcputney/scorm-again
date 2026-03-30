@@ -112,8 +112,7 @@ jobs:
         run: npm run build:all:prod
 
       - name: Run ESLint
-        run: |
-          npx eslint ./src --format eslint-formatter-junit --output-file ./reports/eslint/eslint.xml
+        run: npx eslint ./src
 
       - name: Code complexity analysis
         run: |
