@@ -3,7 +3,7 @@ this.Scorm12API = (function () {
 
   const SECONDS_PER_MINUTE = 60;
   const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-  const getSecondsAsHHMMSS = memoize(totalSeconds => {
+  const getSecondsAsHHMMSS = totalSeconds => {
     if (!totalSeconds || totalSeconds <= 0) {
       return "00:00:00";
     }
@@ -22,7 +22,7 @@ this.Scorm12API = (function () {
       msStr = "." + msStr.split(".")[1];
     }
     return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-  });
+  };
   const getTimeAsSeconds = memoize((timeString, timeRegex) => {
     if (typeof timeString === "number" || typeof timeString === "boolean") {
       timeString = String(timeString);
@@ -161,6 +161,14 @@ this.Scorm12API = (function () {
     };
   }
 
+  var __defProp$m = Object.defineProperty;
+  var __defNormalProp$m = (obj, key, value) => key in obj ? __defProp$m(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$m = (obj, key, value) => __defNormalProp$m(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseCMI {
     /**
      * Constructor for BaseCMI
@@ -172,8 +180,9 @@ this.Scorm12API = (function () {
        * When true, getters can be accessed before the API is initialized, which is necessary
        * for serializing the CMI data structure to JSON format.
        */
-      this.jsonString = false;
-      this._initialized = false;
+      __publicField$m(this, "jsonString", false);
+      __publicField$m(this, "_cmi_element");
+      __publicField$m(this, "_initialized", false);
       this._cmi_element = cmi_element;
     }
     /**
@@ -191,6 +200,10 @@ this.Scorm12API = (function () {
     }
   }
   class BaseRootCMI extends BaseCMI {
+    constructor() {
+      super(...arguments);
+      __publicField$m(this, "_start_time");
+    }
     /**
      * Start time of the session
      * @type {number | undefined}
@@ -211,9 +224,18 @@ this.Scorm12API = (function () {
     }
   }
 
+  var __defProp$l = Object.defineProperty;
+  var __defNormalProp$l = (obj, key, value) => key in obj ? __defProp$l(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$l = (obj, key, value) => __defNormalProp$l(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseScormValidationError extends Error {
     constructor(CMIElement, errorCode) {
       super(`${CMIElement} : ${errorCode.toString()}`);
+      __publicField$l(this, "_errorCode");
       this._errorCode = errorCode;
       Object.setPrototypeOf(this, BaseScormValidationError.prototype);
     }
@@ -235,7 +257,8 @@ this.Scorm12API = (function () {
      */
     constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
       super(CMIElement, errorCode);
-      this._detailedMessage = "";
+      __publicField$l(this, "_errorMessage");
+      __publicField$l(this, "_detailedMessage", "");
       this.message = `${CMIElement} : ${errorMessage}`;
       this._errorMessage = errorMessage;
       if (detailedMessage) {
@@ -398,6 +421,14 @@ this.Scorm12API = (function () {
     DEPENDENCY_NOT_ESTABLISHED: 408
   };
 
+  var __defProp$k = Object.defineProperty;
+  var __defNormalProp$k = (obj, key, value) => key in obj ? __defProp$k(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$k = (obj, key, value) => __defNormalProp$k(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIArray extends BaseCMI {
     /**
      * Constructor cmi *.n arrays
@@ -405,6 +436,10 @@ this.Scorm12API = (function () {
      */
     constructor(params) {
       super(params.CMIElement);
+      __publicField$k(this, "_errorCode");
+      __publicField$k(this, "_errorClass");
+      __publicField$k(this, "__children");
+      __publicField$k(this, "childArray");
       this.__children = params.children;
       this._errorCode = params.errorCode ?? scorm12_errors.GENERAL;
       this._errorClass = params.errorClass || BaseScormValidationError;
@@ -866,6 +901,14 @@ this.Scorm12API = (function () {
     progress_range: "0#1"
   };
 
+  var __defProp$j = Object.defineProperty;
+  var __defNormalProp$j = (obj, key, value) => key in obj ? __defProp$j(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$j = (obj, key, value) => __defNormalProp$j(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ScheduledCommit {
     /**
      * Constructor for ScheduledCommit
@@ -874,7 +917,10 @@ this.Scorm12API = (function () {
      * @param {string} callback
      */
     constructor(API, when, callback) {
-      this._cancelled = false;
+      __publicField$j(this, "_API");
+      __publicField$j(this, "_cancelled", false);
+      __publicField$j(this, "_timeout");
+      __publicField$j(this, "_callback");
       this._API = API;
       this._timeout = setTimeout(this.wrapper.bind(this), when);
       this._callback = callback;
@@ -900,6 +946,16 @@ this.Scorm12API = (function () {
     }
   }
 
+  const HIDE_LMS_UI_TOKENS = ["continue", "previous", "exit", "exitAll", "abandon", "abandonAll", "suspendAll"];
+
+  var __defProp$i = Object.defineProperty;
+  var __defNormalProp$i = (obj, key, value) => key in obj ? __defProp$i(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$i = (obj, key, value) => __defNormalProp$i(obj, typeof key !== "symbol" ? key + "" : key, value);
   const _RuleCondition = class _RuleCondition extends BaseCMI {
     /**
      * Constructor for RuleCondition
@@ -912,10 +968,10 @@ this.Scorm12API = (function () {
       let operator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       let parameters = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : /* @__PURE__ */new Map();
       super("ruleCondition");
-      this._condition = "always" /* ALWAYS */;
-      this._operator = null;
-      this._parameters = /* @__PURE__ */new Map();
-      this._referencedObjective = null;
+      __publicField$i(this, "_condition", "always" /* ALWAYS */);
+      __publicField$i(this, "_operator", null);
+      __publicField$i(this, "_parameters", /* @__PURE__ */new Map());
+      __publicField$i(this, "_referencedObjective", null);
       this._condition = condition;
       this._operator = operator;
       this._parameters = parameters;
@@ -1186,10 +1242,187 @@ this.Scorm12API = (function () {
     }
   };
   // Optional, overridable provider for current time (LMS may set via SequencingService)
-  _RuleCondition._now = () => /* @__PURE__ */new Date();
+  __publicField$i(_RuleCondition, "_now", () => /* @__PURE__ */new Date());
   // Optional, overridable hook for getting elapsed seconds
-  _RuleCondition._getElapsedSecondsHook = void 0;
+  __publicField$i(_RuleCondition, "_getElapsedSecondsHook");
 
+  var SelectionTiming = /* @__PURE__ */(SelectionTiming2 => {
+    SelectionTiming2["NEVER"] = "never";
+    SelectionTiming2["ONCE"] = "once";
+    SelectionTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
+    return SelectionTiming2;
+  })(SelectionTiming || {});
+  var RandomizationTiming = /* @__PURE__ */(RandomizationTiming2 => {
+    RandomizationTiming2["NEVER"] = "never";
+    RandomizationTiming2["ONCE"] = "once";
+    RandomizationTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
+    return RandomizationTiming2;
+  })(RandomizationTiming || {});
+
+  class SelectionRandomization {
+    /**
+     * Select Children Process (SR.1)
+     * Selects a subset of child activities based on selection controls
+     * @param {Activity} activity - The parent activity whose children need to be selected
+     * @return {Activity[]} - The selected child activities
+     */
+    static selectChildrenProcess(activity) {
+      const controls = activity.sequencingControls;
+      const children = [...activity.children];
+      if (controls.selectionTiming === SelectionTiming.NEVER) {
+        return children;
+      }
+      if (controls.selectionTiming === SelectionTiming.ONCE && controls.selectionCountStatus) {
+        return children;
+      }
+      if (controls.selectionTiming !== SelectionTiming.ONCE && !controls.selectionCountStatus) {
+        return children;
+      }
+      const selectCount = controls.selectCount;
+      if (selectCount === null || selectCount >= children.length) {
+        if (controls.selectionTiming === SelectionTiming.ONCE) {
+          controls.selectionCountStatus = true;
+        }
+        return children;
+      }
+      const selectedChildren = [];
+      const availableIndices = children.map((_, index) => index);
+      for (let i = 0; i < selectCount; i++) {
+        if (availableIndices.length === 0) break;
+        const randomIndex = Math.floor(Math.random() * availableIndices.length);
+        const childIndex = availableIndices[randomIndex];
+        if (childIndex !== void 0 && children[childIndex]) {
+          selectedChildren.push(children[childIndex]);
+        }
+        availableIndices.splice(randomIndex, 1);
+      }
+      if (controls.selectionTiming === SelectionTiming.ONCE) {
+        controls.selectionCountStatus = true;
+      }
+      for (const child of children) {
+        if (!selectedChildren.includes(child)) {
+          child.isHiddenFromChoice = true;
+          child.isAvailable = false;
+        }
+      }
+      return selectedChildren;
+    }
+    /**
+     * Randomize Children Process (SR.2)
+     * Randomizes the order of child activities based on randomization controls
+     * @param {Activity} activity - The parent activity whose children need to be randomized
+     * @return {Activity[]} - The randomized child activities
+     */
+    static randomizeChildrenProcess(activity) {
+      const controls = activity.sequencingControls;
+      const children = [...activity.children];
+      if (controls.randomizationTiming === RandomizationTiming.NEVER) {
+        return children;
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ONCE && controls.reorderChildren) {
+        return children;
+      }
+      if (!controls.randomizeChildren) {
+        return children;
+      }
+      const randomizedChildren = [...children];
+      for (let i = randomizedChildren.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tempI = randomizedChildren[i];
+        const tempJ = randomizedChildren[j];
+        if (tempI && tempJ) {
+          randomizedChildren[i] = tempJ;
+          randomizedChildren[j] = tempI;
+        }
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ONCE) {
+        controls.reorderChildren = true;
+      }
+      activity.children.length = 0;
+      activity.children.push(...randomizedChildren);
+      return randomizedChildren;
+    }
+    /**
+     * Apply selection and randomization to an activity
+     * This combines both SR.1 and SR.2 processes
+     * @param {Activity} activity - The parent activity
+     * @param {boolean} isNewAttempt - Whether this is a new attempt on the activity
+     * @return {Activity[]} - The processed child activities
+     */
+    static applySelectionAndRandomization(activity) {
+      let isNewAttempt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      const controls = activity.sequencingControls;
+      if (!isNewAttempt && (activity.isActive || activity.isSuspended)) {
+        return activity.children;
+      }
+      let shouldApplySelection = false;
+      let shouldApplyRandomization = false;
+      if (controls.selectionTiming === SelectionTiming.ON_EACH_NEW_ATTEMPT) {
+        shouldApplySelection = isNewAttempt;
+        if (isNewAttempt) {
+          controls.selectionCountStatus = true;
+        }
+      } else if (controls.selectionTiming === SelectionTiming.ONCE) {
+        shouldApplySelection = !controls.selectionCountStatus;
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ON_EACH_NEW_ATTEMPT) {
+        shouldApplyRandomization = isNewAttempt;
+        if (isNewAttempt) {
+          controls.reorderChildren = false;
+        }
+      } else if (controls.randomizationTiming === RandomizationTiming.ONCE) {
+        shouldApplyRandomization = !controls.reorderChildren;
+      }
+      if (shouldApplySelection) {
+        this.selectChildrenProcess(activity);
+      }
+      if (shouldApplyRandomization) {
+        this.randomizeChildrenProcess(activity);
+      }
+      const processedChildren = activity.children.filter(child => child.isAvailable);
+      activity.setProcessedChildren(processedChildren);
+      return processedChildren;
+    }
+    /**
+     * Check if selection is needed for an activity
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if selection is needed
+     */
+    static isSelectionNeeded(activity) {
+      const controls = activity.sequencingControls;
+      if (controls.selectionTiming === SelectionTiming.NEVER) {
+        return false;
+      }
+      if (controls.selectionTiming === SelectionTiming.ONCE && controls.selectionCountStatus) {
+        return false;
+      }
+      return controls.selectCount !== null && controls.selectCount < activity.children.length;
+    }
+    /**
+     * Check if randomization is needed for an activity
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if randomization is needed
+     */
+    static isRandomizationNeeded(activity) {
+      const controls = activity.sequencingControls;
+      if (controls.randomizationTiming === RandomizationTiming.NEVER) {
+        return false;
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ONCE && controls.reorderChildren) {
+        return false;
+      }
+      return controls.randomizeChildren;
+    }
+  }
+
+  var __defProp$h = Object.defineProperty;
+  var __defNormalProp$h = (obj, key, value) => key in obj ? __defProp$h(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$h = (obj, key, value) => __defNormalProp$h(obj, typeof key !== "symbol" ? key + "" : key, value);
   class AsynchronousHttpService {
     /**
      * Constructor for AsynchronousHttpService
@@ -1197,6 +1430,8 @@ this.Scorm12API = (function () {
      * @param {ErrorCode} error_codes - The error codes object
      */
     constructor(settings, error_codes) {
+      __publicField$h(this, "settings");
+      __publicField$h(this, "error_codes");
       this.settings = settings;
       this.error_codes = error_codes;
     }
@@ -1388,6 +1623,14 @@ this.Scorm12API = (function () {
     }
   }
 
+  var __defProp$g = Object.defineProperty;
+  var __defNormalProp$g = (obj, key, value) => key in obj ? __defProp$g(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$g = (obj, key, value) => __defNormalProp$g(obj, key + "" , value);
   const TARGET_ATTRIBUTE_PREFIX = "{target=";
   function getErrorCode(errorCodes, key) {
     const code = errorCodes[key];
@@ -1401,6 +1644,7 @@ this.Scorm12API = (function () {
   }
   class CMIValueAccessService {
     constructor(context) {
+      __publicField$g(this, "context");
       this.context = context;
     }
     /**
@@ -1728,12 +1972,21 @@ this.Scorm12API = (function () {
     }
   }
 
-  class LoggingService {
+  var __defProp$f = Object.defineProperty;
+  var __defNormalProp$f = (obj, key, value) => key in obj ? __defProp$f(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$f = (obj, key, value) => __defNormalProp$f(obj, typeof key !== "symbol" ? key + "" : key, value);
+  const _LoggingService = class _LoggingService {
     /**
      * Private constructor to prevent direct instantiation
      */
     constructor() {
-      this._logLevel = LogLevelEnum.ERROR;
+      __publicField$f(this, "_logLevel", LogLevelEnum.ERROR);
+      __publicField$f(this, "_logHandler");
       this._logHandler = defaultLogHandler;
     }
     /**
@@ -1742,10 +1995,10 @@ this.Scorm12API = (function () {
      * @returns {LoggingService} The singleton instance
      */
     static getInstance() {
-      if (!LoggingService._instance) {
-        LoggingService._instance = new LoggingService();
+      if (!_LoggingService._instance) {
+        _LoggingService._instance = new _LoggingService();
       }
-      return LoggingService._instance;
+      return _LoggingService._instance;
     }
     /**
      * Set the log level
@@ -1881,11 +2134,21 @@ this.Scorm12API = (function () {
           return LogLevelEnum.ERROR;
       }
     }
-  }
+  };
+  __publicField$f(_LoggingService, "_instance");
+  let LoggingService = _LoggingService;
   function getLoggingService() {
     return LoggingService.getInstance();
   }
 
+  var __defProp$e = Object.defineProperty;
+  var __defNormalProp$e = (obj, key, value) => key in obj ? __defProp$e(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$e = (obj, key, value) => __defNormalProp$e(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ErrorHandlingService {
     /**
      * Constructor for ErrorHandlingService
@@ -1896,8 +2159,12 @@ this.Scorm12API = (function () {
      * @param {ILoggingService} loggingService - Optional logging service instance
      */
     constructor(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
-      this._lastErrorCode = "0";
-      this._lastDiagnostic = "";
+      __publicField$e(this, "_lastErrorCode", "0");
+      __publicField$e(this, "_lastDiagnostic", "");
+      __publicField$e(this, "_errorCodes");
+      __publicField$e(this, "_apiLog");
+      __publicField$e(this, "_getLmsErrorMessageDetails");
+      __publicField$e(this, "_loggingService");
       this._errorCodes = errorCodes;
       this._apiLog = apiLog;
       this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
@@ -2039,6 +2306,14 @@ ${stackTrace}`);
     return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
   }
 
+  var __defProp$d = Object.defineProperty;
+  var __defNormalProp$d = (obj, key, value) => key in obj ? __defProp$d(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$d = (obj, key, value) => __defNormalProp$d(obj, typeof key !== "symbol" ? key + "" : key, value);
   class EventService {
     /**
      * Constructor for EventService
@@ -2046,9 +2321,11 @@ ${stackTrace}`);
      */
     constructor(apiLog) {
       // Map of function names to listeners for faster lookups
-      this.listenerMap = /* @__PURE__ */new Map();
+      __publicField$d(this, "listenerMap", /* @__PURE__ */new Map());
       // Total count of listeners for logging
-      this.listenerCount = 0;
+      __publicField$d(this, "listenerCount", 0);
+      // Function to log API messages
+      __publicField$d(this, "apiLog");
       this.apiLog = apiLog;
     }
     /**
@@ -2202,6 +2479,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$c = Object.defineProperty;
+  var __defNormalProp$c = (obj, key, value) => key in obj ? __defProp$c(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$c = (obj, key, value) => __defNormalProp$c(obj, typeof key !== "symbol" ? key + "" : key, value);
   class OfflineStorageService {
     /**
      * Constructor for OfflineStorageService
@@ -2211,10 +2496,14 @@ ${stackTrace}`);
      */
     constructor(settings, error_codes, apiLog) {
       this.apiLog = apiLog;
-      this.storeName = "scorm_again_offline_data";
-      this.syncQueue = "scorm_again_sync_queue";
-      this.isOnline = navigator.onLine;
-      this.syncInProgress = false;
+      __publicField$c(this, "settings");
+      __publicField$c(this, "error_codes");
+      __publicField$c(this, "storeName", "scorm_again_offline_data");
+      __publicField$c(this, "syncQueue", "scorm_again_sync_queue");
+      __publicField$c(this, "isOnline", navigator.onLine);
+      __publicField$c(this, "syncInProgress", false);
+      __publicField$c(this, "boundOnlineStatusChangeHandler");
+      __publicField$c(this, "boundCustomNetworkStatusHandler");
       this.settings = settings;
       this.error_codes = error_codes;
       this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -2458,7 +2747,9 @@ ${stackTrace}`);
         localStorage.setItem(key, JSON.stringify(data));
       } catch (error) {
         if (error instanceof DOMException && error.name === "QuotaExceededError") {
-          throw new Error("storage quota exceeded - localStorage is full");
+          throw new Error("storage quota exceeded - localStorage is full", {
+            cause: error
+          });
         }
         throw error;
       }
@@ -2531,6 +2822,341 @@ ${stackTrace}`);
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   (CMIElement, value, rangePattern, errorCode, _errorClass) => `${CMIElement}:${value}:${rangePattern}:${errorCode}`);
+
+  var __defProp$b = Object.defineProperty;
+  var __defNormalProp$b = (obj, key, value) => key in obj ? __defProp$b(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$b = (obj, key, value) => __defNormalProp$b(obj, typeof key !== "symbol" ? key + "" : key, value);
+  class DeliveryRequest {
+    constructor() {
+      let valid = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      let targetActivity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      __publicField$b(this, "valid");
+      __publicField$b(this, "targetActivity");
+      __publicField$b(this, "exception");
+      this.valid = valid;
+      this.targetActivity = targetActivity;
+      this.exception = exception;
+    }
+  }
+  const _DeliveryHandler = class _DeliveryHandler {
+    constructor(activityTree, rollupProcess, globalObjectiveMap) {
+      let adlNav = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+      let eventCallback = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+      let options = arguments.length > 5 ? arguments[5] : undefined;
+      __publicField$b(this, "activityTree");
+      __publicField$b(this, "rollupProcess");
+      __publicField$b(this, "globalObjectiveMap");
+      __publicField$b(this, "adlNav");
+      __publicField$b(this, "eventCallback");
+      __publicField$b(this, "now");
+      __publicField$b(this, "defaultHideLmsUi");
+      __publicField$b(this, "defaultAuxiliaryResources");
+      __publicField$b(this, "_deliveryInProgress", false);
+      __publicField$b(this, "contentDelivered", false);
+      __publicField$b(this, "checkActivityCallback", null);
+      __publicField$b(this, "invalidateCacheCallback", null);
+      __publicField$b(this, "updateNavigationValidityCallback", null);
+      __publicField$b(this, "clearSuspendedActivityCallback", null);
+      this.activityTree = activityTree;
+      this.rollupProcess = rollupProcess;
+      this.globalObjectiveMap = globalObjectiveMap;
+      this.adlNav = adlNav;
+      this.eventCallback = eventCallback;
+      this.now = options?.now || (() => /* @__PURE__ */new Date());
+      this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
+      this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources ? options.defaultAuxiliaryResources.map(resource => ({
+        ...resource
+      })) : [];
+    }
+    /**
+     * Set callback to check activity validity
+     */
+    setCheckActivityCallback(callback) {
+      this.checkActivityCallback = callback;
+    }
+    /**
+     * Set callback to invalidate navigation cache after state changes
+     */
+    setInvalidateCacheCallback(callback) {
+      this.invalidateCacheCallback = callback;
+    }
+    /**
+     * Set callback to update navigation validity
+     */
+    setUpdateNavigationValidityCallback(callback) {
+      this.updateNavigationValidityCallback = callback;
+    }
+    /**
+     * Set callback to clear suspended activity
+     */
+    setClearSuspendedActivityCallback(callback) {
+      this.clearSuspendedActivityCallback = callback;
+    }
+    /**
+     * Check if content delivery is currently in progress
+     * Used to prevent re-entrant termination requests during delivery
+     */
+    isDeliveryInProgress() {
+      return this._deliveryInProgress;
+    }
+    /**
+     * Check if content has been delivered
+     */
+    hasContentBeenDelivered() {
+      return this.contentDelivered;
+    }
+    /**
+     * Reset content delivered flag
+     */
+    resetContentDelivered() {
+      this.contentDelivered = false;
+    }
+    /**
+     * Set content delivered flag
+     * @param {boolean} value - The value to set
+     */
+    setContentDelivered(value) {
+      this.contentDelivered = value;
+    }
+    /**
+     * Delivery Request Process
+     * Validates if an activity can be delivered
+     * @spec SN Book: DB.1.1 (Delivery Request Process)
+     * @param {Activity} activity - The activity to deliver
+     * @return {DeliveryRequest} - The delivery validation result
+     */
+    processDeliveryRequest(activity) {
+      this.fireEvent("onDeliveryRequestProcessing", {
+        activity: activity.id,
+        timestamp: (/* @__PURE__ */new Date()).toISOString()
+      });
+      if (activity.children.length > 0) {
+        return new DeliveryRequest(false, null, "DB.1.1-1");
+      }
+      const activityPath = this.getActivityPath(activity, true);
+      if (activityPath.length === 0) {
+        return new DeliveryRequest(false, null, "DB.1.1-2");
+      }
+      for (const pathActivity of activityPath) {
+        const checkResult = this.checkActivityCallback ? this.checkActivityCallback(pathActivity) : true;
+        if (!checkResult) {
+          return new DeliveryRequest(false, null, "DB.1.1-3");
+        }
+      }
+      return new DeliveryRequest(true, activity);
+    }
+    /**
+     * Content Delivery Environment Process
+     * Handles the delivery of content to the learner
+     * @spec SN Book: DB.2 (Content Delivery Environment Process)
+     * @param {Activity} activity - The activity to deliver
+     */
+    contentDeliveryEnvironmentProcess(activity) {
+      this._deliveryInProgress = true;
+      try {
+        const isResuming = activity.isSuspended;
+        if (this.activityTree.suspendedActivity) {
+          if (this.clearSuspendedActivityCallback) {
+            this.clearSuspendedActivityCallback();
+          }
+        }
+        const activityPath = this.getActivityPath(activity, true);
+        for (const pathActivity of activityPath) {
+          if (!pathActivity.isActive) {
+            if (isResuming || pathActivity.isSuspended) {
+              pathActivity.isSuspended = false;
+            } else {
+              pathActivity.incrementAttemptCount();
+            }
+            pathActivity.isActive = true;
+            SelectionRandomization.applySelectionAndRandomization(pathActivity, pathActivity.attemptCount <= 1);
+          }
+        }
+        this.activityTree.currentActivity = activity;
+        this.initializeForDelivery(activity);
+        this.setupAttemptTracking(activity);
+        this.contentDelivered = true;
+        if (this.adlNav && this.updateNavigationValidityCallback) {
+          this.updateNavigationValidityCallback();
+        }
+        this.fireDeliveryEvent(activity);
+      } finally {
+        this._deliveryInProgress = false;
+      }
+    }
+    /**
+     * Initialize Activity For Delivery (DB.2.2)
+     * Set up initial tracking states for a delivered activity
+     * @param {Activity} activity - The activity being delivered
+     */
+    initializeForDelivery(activity) {
+      if (activity.completionStatus === "unknown") {
+        if (activity.children.length === 0) {
+          activity.completionStatus = "not attempted";
+        }
+      }
+      if (activity.objectiveSatisfiedStatus === null) {
+        activity.objectiveSatisfiedStatus = false;
+      }
+      if (activity.progressMeasure === null) {
+        activity.progressMeasure = 0;
+        activity.progressMeasureStatus = false;
+      }
+      if (activity.objectiveNormalizedMeasure === null) {
+        activity.objectiveNormalizedMeasure = 0;
+        activity.objectiveMeasureStatus = false;
+      }
+      activity.attemptAbsoluteDuration = "PT0H0M0S";
+      activity.attemptExperiencedDuration = "PT0H0M0S";
+      activity.isAvailable = true;
+    }
+    /**
+     * Setup Activity Attempt Tracking
+     * Initialize attempt tracking information per SCORM 2004 4th Edition
+     * @param {Activity} activity - The activity being delivered
+     */
+    setupAttemptTracking(activity) {
+      activity.wasSkipped = false;
+      activity.attemptAbsoluteStartTime = this.now().toISOString();
+      if (!activity.location) {
+        activity.location = "";
+      }
+      activity.activityAttemptActive = true;
+      if (!activity.learnerPrefs) {
+        activity.learnerPrefs = {
+          audioCaptioning: "0",
+          audioLevel: "1",
+          deliverySpeed: "1",
+          language: ""
+        };
+      }
+    }
+    /**
+     * Fire Activity Delivery Event
+     * Notify listeners that an activity has been delivered
+     * @param {Activity} activity - The activity that was delivered
+     */
+    fireDeliveryEvent(activity) {
+      try {
+        if (this.eventCallback) {
+          this.eventCallback("onActivityDelivery", activity);
+        }
+        console.debug(`Activity delivered: ${activity.id} - ${activity.title}`);
+      } catch (error) {
+        console.warn(`Failed to fire activity delivery event: ${error}`);
+      }
+    }
+    /**
+     * Get effective hideLmsUi for an activity
+     * Merges default and activity-specific hideLmsUi directives
+     * @param {Activity | null} activity - The activity
+     * @return {HideLmsUiItem[]} - Ordered list of hideLmsUi directives
+     */
+    getEffectiveHideLmsUi(activity) {
+      const seen = /* @__PURE__ */new Set();
+      for (const directive of this.defaultHideLmsUi) {
+        seen.add(directive);
+      }
+      let current = activity;
+      while (current) {
+        for (const directive of current.hideLmsUi) {
+          seen.add(directive);
+        }
+        current = current.parent;
+      }
+      return _DeliveryHandler.HIDE_LMS_UI_ORDER.filter(directive => seen.has(directive));
+    }
+    /**
+     * Get effective auxiliary resources for an activity
+     * Merges default and activity-specific resources
+     * @param {Activity | null} activity - The activity
+     * @return {AuxiliaryResource[]} - Merged auxiliary resources
+     */
+    getEffectiveAuxiliaryResources(activity) {
+      const merged = /* @__PURE__ */new Map();
+      for (const resource of this.defaultAuxiliaryResources) {
+        if (resource.resourceId) {
+          merged.set(resource.resourceId, {
+            ...resource
+          });
+        }
+      }
+      const lineage = [];
+      let current = activity;
+      while (current) {
+        lineage.push(current);
+        current = current.parent;
+      }
+      for (const node of lineage.reverse()) {
+        for (const resource of node.auxiliaryResources) {
+          if (resource.resourceId) {
+            merged.set(resource.resourceId, {
+              ...resource
+            });
+          }
+        }
+      }
+      return Array.from(merged.values());
+    }
+    /**
+     * Get content activity data for a delivered activity
+     * @param {Activity} activity - The activity
+     * @return {ContentActivityData} - Content activity data
+     */
+    getContentActivityData(activity) {
+      return {
+        hideLmsUi: this.getEffectiveHideLmsUi(activity),
+        auxiliaryResources: this.getEffectiveAuxiliaryResources(activity),
+        location: activity.location || "",
+        credit: activity.credit || "credit",
+        launchData: activity.launchData || "",
+        maxTimeAllowed: activity.attemptAbsoluteDurationLimit || "",
+        completionThreshold: activity.completionThreshold?.toString() || "",
+        timeLimitAction: activity.timeLimitAction || "continue,no message"
+      };
+    }
+    /**
+     * Get Activity Path (Helper for DB.1.1)
+     * Forms the activity path from root to target activity, inclusive
+     * @param {Activity} activity - The target activity
+     * @param {boolean} includeActivity - Whether to include the target in the path
+     * @return {Activity[]} - Array of activities from root to target
+     */
+    getActivityPath(activity) {
+      let includeActivity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      const path = [];
+      let current = activity;
+      while (current !== null) {
+        path.unshift(current);
+        current = current.parent;
+      }
+      if (!includeActivity && path.length > 0) {
+        path.pop();
+      }
+      return path;
+    }
+    /**
+     * Fire a sequencing event
+     * @param {string} eventType - The type of event
+     * @param {any} data - Event data
+     */
+    fireEvent(eventType, data) {
+      try {
+        if (this.eventCallback) {
+          this.eventCallback(eventType, data);
+        }
+      } catch (error) {
+        console.warn(`Failed to fire sequencing event ${eventType}: ${error}`);
+      }
+    }
+  };
+  __publicField$b(_DeliveryHandler, "HIDE_LMS_UI_ORDER", [...HIDE_LMS_UI_TOKENS]);
 
   class SerializationService {
     /**
@@ -2768,6 +3394,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$a = Object.defineProperty;
+  var __defNormalProp$a = (obj, key, value) => key in obj ? __defProp$a(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$a = (obj, key, value) => __defNormalProp$a(obj, typeof key !== "symbol" ? key + "" : key, value);
   class SynchronousHttpService {
     /**
      * Constructor for SynchronousHttpService
@@ -2775,6 +3409,8 @@ ${stackTrace}`);
      * @param {ErrorCode} error_codes - The error codes object
      */
     constructor(settings, error_codes) {
+      __publicField$a(this, "settings");
+      __publicField$a(this, "error_codes");
       this.settings = settings;
       this.error_codes = error_codes;
     }
@@ -2966,6 +3602,14 @@ ${stackTrace}`);
   }
   const validationService = new ValidationService();
 
+  var __defProp$9 = Object.defineProperty;
+  var __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$9 = (obj, key, value) => __defNormalProp$9(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseAPI {
     /**
      * Constructor for Base API class. Sets some shared API fields, as well as
@@ -2981,8 +3625,19 @@ ${stackTrace}`);
      * @param {IOfflineStorageService} offlineStorageService - Optional Offline Storage service instance
      */
     constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService, offlineStorageService) {
-      this._settings = DefaultSettings;
-      this._courseId = "";
+      __publicField$9(this, "_timeout");
+      __publicField$9(this, "_error_codes");
+      __publicField$9(this, "_settings", DefaultSettings);
+      __publicField$9(this, "_httpService");
+      __publicField$9(this, "_eventService");
+      __publicField$9(this, "_serializationService");
+      __publicField$9(this, "_errorHandlingService");
+      __publicField$9(this, "_loggingService");
+      __publicField$9(this, "_offlineStorageService");
+      __publicField$9(this, "_cmiValueAccessService");
+      __publicField$9(this, "_courseId", "");
+      __publicField$9(this, "startingData");
+      __publicField$9(this, "currentState");
       if (new.target === BaseAPI) {
         throw new TypeError("Cannot construct BaseAPI instances directly");
       }
@@ -3933,6 +4588,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$8 = Object.defineProperty;
+  var __defNormalProp$8 = (obj, key, value) => key in obj ? __defProp$8(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$8 = (obj, key, value) => __defNormalProp$8(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIScore extends BaseCMI {
     /**
      * Constructor for *.score
@@ -3957,8 +4620,21 @@ ${stackTrace}`);
      */
     constructor(params) {
       super(params.CMIElement);
-      this._raw = "";
-      this._min = "";
+      __publicField$8(this, "__children");
+      /**
+       * Score range validation pattern (e.g., "0#100" for SCORM 1.2).
+       * Set to `false` to disable range validation (e.g., for SCORM 2004 where scores have no upper bound).
+       * This property is intentionally unused in the base class but provides subclass flexibility.
+       */
+      __publicField$8(this, "__score_range");
+      __publicField$8(this, "__invalid_error_code");
+      __publicField$8(this, "__invalid_type_code");
+      __publicField$8(this, "__invalid_range_code");
+      __publicField$8(this, "__decimal_regex");
+      __publicField$8(this, "__error_class");
+      __publicField$8(this, "_raw", "");
+      __publicField$8(this, "_min", "");
+      __publicField$8(this, "_max");
       this.__children = params.score_children || scorm12_constants.score_children;
       this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
       this._max = params.max || params.max === "" ? params.max : "100";
@@ -4081,24 +4757,33 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$7 = Object.defineProperty;
+  var __defNormalProp$7 = (obj, key, value) => key in obj ? __defProp$7(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$7 = (obj, key, value) => __defNormalProp$7(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMICore extends BaseCMI {
     /**
      * Constructor for `cmi.core`
      */
     constructor() {
       super("cmi.core");
-      this.__children = scorm12_constants.core_children;
-      this._student_id = "";
-      this._student_name = "";
-      this._lesson_location = "";
-      this._credit = "";
-      this._lesson_status = "not attempted";
-      this._entry = "";
-      this._total_time = "";
-      this._lesson_mode = "normal";
-      this._exit = "";
-      this._session_time = "00:00:00";
-      this._suspend_data = "";
+      __publicField$7(this, "score");
+      __publicField$7(this, "__children", scorm12_constants.core_children);
+      __publicField$7(this, "_student_id", "");
+      __publicField$7(this, "_student_name", "");
+      __publicField$7(this, "_lesson_location", "");
+      __publicField$7(this, "_credit", "");
+      __publicField$7(this, "_lesson_status", "not attempted");
+      __publicField$7(this, "_entry", "");
+      __publicField$7(this, "_total_time", "");
+      __publicField$7(this, "_lesson_mode", "normal");
+      __publicField$7(this, "_exit", "");
+      __publicField$7(this, "_session_time", "00:00:00");
+      __publicField$7(this, "_suspend_data", "");
       this.score = new CMIScore({
         CMIElement: "cmi.core.score",
         score_children: scorm12_constants.score_children,
@@ -4437,6 +5122,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$6 = Object.defineProperty;
+  var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$6 = (obj, key, value) => __defNormalProp$6(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIObjectives extends CMIArray {
     /**
      * Constructor for `cmi.objectives`
@@ -4456,8 +5149,9 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.objectives.n");
-      this._id = "";
-      this._status = "";
+      __publicField$6(this, "score");
+      __publicField$6(this, "_id", "");
+      __publicField$6(this, "_status", "");
       this.score = new CMIScore({
         CMIElement: "cmi.objectives.n.score",
         score_children: scorm12_constants.score_children,
@@ -4543,6 +5237,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$5 = Object.defineProperty;
+  var __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$5 = (obj, key, value) => __defNormalProp$5(obj, typeof key !== "symbol" ? key + "" : key, value);
   function parseTimeAllowed(value, fieldName) {
     try {
       check12ValidFormat(fieldName, value, scorm12_regex.CMITimespan, true);
@@ -4563,9 +5265,10 @@ ${stackTrace}`);
      */
     constructor(student_data_children) {
       super("cmi.student_data");
-      this._mastery_score = "";
-      this._max_time_allowed = "";
-      this._time_limit_action = "";
+      __publicField$5(this, "__children");
+      __publicField$5(this, "_mastery_score", "");
+      __publicField$5(this, "_max_time_allowed", "");
+      __publicField$5(this, "_time_limit_action", "");
       this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
     }
     /**
@@ -4685,6 +5388,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$4 = Object.defineProperty;
+  var __defNormalProp$4 = (obj, key, value) => key in obj ? __defProp$4(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$4 = (obj, key, value) => __defNormalProp$4(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIStudentPreference extends BaseCMI {
     /**
      * Constructor for cmi.student_preference
@@ -4692,10 +5403,11 @@ ${stackTrace}`);
      */
     constructor(student_preference_children) {
       super("cmi.student_preference");
-      this._audio = "";
-      this._language = "";
-      this._speed = "";
-      this._text = "";
+      __publicField$4(this, "__children");
+      __publicField$4(this, "_audio", "");
+      __publicField$4(this, "_language", "");
+      __publicField$4(this, "_speed", "");
+      __publicField$4(this, "_text", "");
       this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
     }
     /**
@@ -4817,6 +5529,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$3 = Object.defineProperty;
+  var __defNormalProp$3 = (obj, key, value) => key in obj ? __defProp$3(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$3 = (obj, key, value) => __defNormalProp$3(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIInteractions extends CMIArray {
     /**
      * Constructor for `cmi.interactions`
@@ -4836,13 +5556,15 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.n");
-      this._id = "";
-      this._time = "";
-      this._type = "";
-      this._weighting = "";
-      this._student_response = "";
-      this._result = "";
-      this._latency = "";
+      __publicField$3(this, "objectives");
+      __publicField$3(this, "correct_responses");
+      __publicField$3(this, "_id", "");
+      __publicField$3(this, "_time", "");
+      __publicField$3(this, "_type", "");
+      __publicField$3(this, "_weighting", "");
+      __publicField$3(this, "_student_response", "");
+      __publicField$3(this, "_result", "");
+      __publicField$3(this, "_latency", "");
       this.objectives = new CMIArray({
         CMIElement: "cmi.interactions.n.objectives",
         errorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -5061,7 +5783,7 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.n.objectives.n");
-      this._id = "";
+      __publicField$3(this, "_id", "");
     }
     /**
      * Called when the API has been reset
@@ -5112,7 +5834,7 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.correct_responses.n");
-      this._pattern = "";
+      __publicField$3(this, "_pattern", "");
     }
     /**
      * Called when the API has been reset
@@ -5158,6 +5880,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$2 = Object.defineProperty;
+  var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$2 = (obj, key, value) => __defNormalProp$2(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMI extends BaseRootCMI {
     /**
      * Constructor for the SCORM 1.2 cmi object
@@ -5167,11 +5897,16 @@ ${stackTrace}`);
      */
     constructor(cmi_children, student_data, initialized) {
       super("cmi");
-      this.__children = "";
-      this.__version = "3.4";
-      this._launch_data = "";
-      this._comments = "";
-      this._comments_from_lms = "";
+      __publicField$2(this, "__children", "");
+      __publicField$2(this, "__version", "3.4");
+      __publicField$2(this, "_launch_data", "");
+      __publicField$2(this, "_comments", "");
+      __publicField$2(this, "_comments_from_lms", "");
+      __publicField$2(this, "core");
+      __publicField$2(this, "objectives");
+      __publicField$2(this, "student_data");
+      __publicField$2(this, "student_preference");
+      __publicField$2(this, "interactions");
       if (initialized) this.initialize();
       this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
       this.core = new CMICore();
@@ -5361,13 +6096,21 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$1 = Object.defineProperty;
+  var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$1 = (obj, key, value) => __defNormalProp$1(obj, key + "" , value);
   class NAV extends BaseCMI {
     /**
      * Constructor for NAV object
      */
     constructor() {
       super("cmi.nav");
-      this._event = "";
+      __publicField$1(this, "_event", "");
     }
     /**
      * Called when the API has been reset
@@ -5418,6 +6161,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   const _Scorm12API = class _Scorm12API extends BaseAPI {
     /**
      * Constructor for SCORM 1.2 API
@@ -5434,7 +6185,17 @@ ${stackTrace}`);
         }
       }
       super(scorm12_errors, settingsCopy, httpService);
-      this.statusSetByModule = false;
+      __publicField(this, "statusSetByModule", false);
+      __publicField(this, "cmi");
+      __publicField(this, "nav");
+      __publicField(this, "LMSInitialize");
+      __publicField(this, "LMSFinish");
+      __publicField(this, "LMSGetValue");
+      __publicField(this, "LMSSetValue");
+      __publicField(this, "LMSCommit");
+      __publicField(this, "LMSGetLastError");
+      __publicField(this, "LMSGetErrorString");
+      __publicField(this, "LMSGetDiagnostic");
       this.cmi = new CMI();
       this.nav = new NAV();
       if (this.settings.globalStudentPreferences && _Scorm12API._globalLearnerPrefs) {
@@ -5661,7 +6422,7 @@ ${stackTrace}`);
      */
     setCMIValue(CMIElement, value) {
       const result = this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
-      if (this.settings.globalStudentPreferences) {
+      if (result === global_constants.SCORM_TRUE && this.settings.globalStudentPreferences) {
         if (CMIElement === "cmi.student_preference.audio") {
           this._updateGlobalPreference("audio", value);
         } else if (CMIElement === "cmi.student_preference.language") {
@@ -5769,7 +6530,7 @@ ${stackTrace}`);
       const flattened = flatten(cmiExport);
       switch (this.settings.dataCommitFormat) {
         case "flattened":
-          return flatten(cmiExport);
+          return flattened;
         case "params":
           for (const item in flattened) {
             if ({}.hasOwnProperty.call(flattened, item)) {
@@ -5892,7 +6653,7 @@ ${stackTrace}`);
    * When globalStudentPreferences is enabled, preferences persist across SCO instances
    * @private
    */
-  _Scorm12API._globalLearnerPrefs = null;
+  __publicField(_Scorm12API, "_globalLearnerPrefs", null);
   let Scorm12API = _Scorm12API;
 
   return Scorm12API;

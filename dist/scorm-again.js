@@ -11,7 +11,7 @@
     M: SECONDS_PER_MINUTE,
     S: SECONDS_PER_SECOND
   };
-  const getSecondsAsHHMMSS = memoize(totalSeconds => {
+  const getSecondsAsHHMMSS = totalSeconds => {
     if (!totalSeconds || totalSeconds <= 0) {
       return "00:00:00";
     }
@@ -30,8 +30,8 @@
       msStr = "." + msStr.split(".")[1];
     }
     return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-  });
-  const getSecondsAsISODuration = memoize(seconds => {
+  };
+  const getSecondsAsISODuration = seconds => {
     if (!seconds || seconds <= 0) {
       return "PT0S";
     }
@@ -57,7 +57,7 @@
       }
     });
     return duration;
-  });
+  };
   const getTimeAsSeconds = memoize((timeString, timeRegex) => {
     if (typeof timeString === "number" || typeof timeString === "boolean") {
       timeString = String(timeString);
@@ -252,6 +252,14 @@
     };
   }
 
+  var __defProp$16 = Object.defineProperty;
+  var __defNormalProp$16 = (obj, key, value) => key in obj ? __defProp$16(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$16 = (obj, key, value) => __defNormalProp$16(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseCMI {
     /**
      * Constructor for BaseCMI
@@ -263,8 +271,9 @@
        * When true, getters can be accessed before the API is initialized, which is necessary
        * for serializing the CMI data structure to JSON format.
        */
-      this.jsonString = false;
-      this._initialized = false;
+      __publicField$16(this, "jsonString", false);
+      __publicField$16(this, "_cmi_element");
+      __publicField$16(this, "_initialized", false);
       this._cmi_element = cmi_element;
     }
     /**
@@ -282,6 +291,10 @@
     }
   }
   class BaseRootCMI extends BaseCMI {
+    constructor() {
+      super(...arguments);
+      __publicField$16(this, "_start_time");
+    }
     /**
      * Start time of the session
      * @type {number | undefined}
@@ -302,9 +315,18 @@
     }
   }
 
+  var __defProp$15 = Object.defineProperty;
+  var __defNormalProp$15 = (obj, key, value) => key in obj ? __defProp$15(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$15 = (obj, key, value) => __defNormalProp$15(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseScormValidationError extends Error {
     constructor(CMIElement, errorCode) {
       super(`${CMIElement} : ${errorCode.toString()}`);
+      __publicField$15(this, "_errorCode");
       this._errorCode = errorCode;
       Object.setPrototypeOf(this, BaseScormValidationError.prototype);
     }
@@ -326,7 +348,8 @@
      */
     constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
       super(CMIElement, errorCode);
-      this._detailedMessage = "";
+      __publicField$15(this, "_errorMessage");
+      __publicField$15(this, "_detailedMessage", "");
       this.message = `${CMIElement} : ${errorMessage}`;
       this._errorMessage = errorMessage;
       if (detailedMessage) {
@@ -651,6 +674,14 @@
     DEPENDENCY_NOT_ESTABLISHED: 408
   };
 
+  var __defProp$14 = Object.defineProperty;
+  var __defNormalProp$14 = (obj, key, value) => key in obj ? __defProp$14(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$14 = (obj, key, value) => __defNormalProp$14(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIArray extends BaseCMI {
     /**
      * Constructor cmi *.n arrays
@@ -658,6 +689,10 @@
      */
     constructor(params) {
       super(params.CMIElement);
+      __publicField$14(this, "_errorCode");
+      __publicField$14(this, "_errorClass");
+      __publicField$14(this, "__children");
+      __publicField$14(this, "childArray");
       this.__children = params.children;
       this._errorCode = params.errorCode ?? scorm12_errors.GENERAL;
       this._errorClass = params.errorClass || BaseScormValidationError;
@@ -1275,6 +1310,14 @@
 
   const ValidLanguages = ["aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as", "av", "ay", "az", "ba", "be", "bg", "bh", "bi", "bm", "bn", "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu", "cv", "cy", "da", "de", "dv", "dz", "ee", "el", "en", "eo", "es", "et", "eu", "fa", "ff", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "gv", "ha", "he", "hi", "ho", "hr", "ht", "hu", "hy", "hz", "ia", "id", "ie", "ig", "ii", "ik", "io", "is", "it", "iu", "ja", "jv", "ka", "kg", "ki", "kj", "kk", "kl", "km", "kn", "ko", "kr", "ks", "ku", "kv", "kw", "ky", "la", "lb", "lg", "li", "ln", "lo", "lt", "lu", "lv", "mg", "mh", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "nb", "nd", "ne", "ng", "nl", "nn", "no", "nr", "nv", "ny", "oc", "oj", "om", "or", "os", "pa", "pi", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ty", "ug", "uk", "ur", "uz", "ve", "vi", "vo", "wa", "wo", "xh", "yi", "yo", "za", "zh", "zu", "aar", "abk", "ave", "afr", "aka", "amh", "arg", "ara", "asm", "ava", "aym", "aze", "bak", "bel", "bul", "bih", "bis", "bam", "ben", "tib", "bod", "bre", "bos", "cat", "che", "cha", "cos", "cre", "cze", "ces", "chu", "chv", "wel", "cym", "dan", "ger", "deu", "div", "dzo", "ewe", "gre", "ell", "eng", "epo", "spa", "est", "baq", "eus", "per", "fas", "ful", "fin", "fij", "fao", "fre", "fra", "fry", "gle", "gla", "glg", "grn", "guj", "glv", "hau", "heb", "hin", "hmo", "hrv", "hat", "hun", "arm", "hye", "her", "ina", "ind", "ile", "ibo", "iii", "ipk", "ido", "ice", "isl", "ita", "iku", "jpn", "jav", "geo", "kat", "kon", "kik", "kua", "kaz", "kal", "khm", "kan", "kor", "kau", "kas", "kur", "kom", "cor", "kir", "lat", "ltz", "lug", "lim", "lin", "lao", "lit", "lub", "lav", "mlg", "mah", "mao", "mri", "mac", "mkd", "mal", "mon", "mol", "mar", "may", "msa", "mlt", "bur", "mya", "nau", "nob", "nde", "nep", "ndo", "dut", "nld", "nno", "nor", "nbl", "nav", "nya", "oci", "oji", "orm", "ori", "oss", "pan", "pli", "pol", "pus", "por", "que", "roh", "run", "rum", "ron", "rus", "kin", "san", "srd", "snd", "sme", "sag", "slo", "sin", "slk", "slv", "smo", "sna", "som", "alb", "sqi", "srp", "ssw", "sot", "sun", "swe", "swa", "tam", "tel", "tgk", "tha", "tir", "tuk", "tgl", "tsn", "ton", "tur", "tso", "tat", "twi", "tah", "uig", "ukr", "urd", "uzb", "ven", "vie", "vol", "wln", "wol", "xho", "yid", "yor", "zha", "chi", "zho", "zul"];
 
+  var __defProp$13 = Object.defineProperty;
+  var __defNormalProp$13 = (obj, key, value) => key in obj ? __defProp$13(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$13 = (obj, key, value) => __defNormalProp$13(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ScheduledCommit {
     /**
      * Constructor for ScheduledCommit
@@ -1283,7 +1326,10 @@
      * @param {string} callback
      */
     constructor(API, when, callback) {
-      this._cancelled = false;
+      __publicField$13(this, "_API");
+      __publicField$13(this, "_cancelled", false);
+      __publicField$13(this, "_timeout");
+      __publicField$13(this, "_callback");
       this._API = API;
       this._timeout = setTimeout(this.wrapper.bind(this), when);
       this._callback = callback;
@@ -1311,6 +1357,14 @@
 
   const HIDE_LMS_UI_TOKENS = ["continue", "previous", "exit", "exitAll", "abandon", "abandonAll", "suspendAll"];
 
+  var __defProp$12 = Object.defineProperty;
+  var __defNormalProp$12 = (obj, key, value) => key in obj ? __defProp$12(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$12 = (obj, key, value) => __defNormalProp$12(obj, typeof key !== "symbol" ? key + "" : key, value);
   var RuleConditionOperator = /* @__PURE__ */(RuleConditionOperator2 => {
     RuleConditionOperator2["NOT"] = "not";
     RuleConditionOperator2["AND"] = "and";
@@ -1343,10 +1397,10 @@
       let operator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       let parameters = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : /* @__PURE__ */new Map();
       super("ruleCondition");
-      this._condition = "always" /* ALWAYS */;
-      this._operator = null;
-      this._parameters = /* @__PURE__ */new Map();
-      this._referencedObjective = null;
+      __publicField$12(this, "_condition", "always" /* ALWAYS */);
+      __publicField$12(this, "_operator", null);
+      __publicField$12(this, "_parameters", /* @__PURE__ */new Map());
+      __publicField$12(this, "_referencedObjective", null);
       this._condition = condition;
       this._operator = operator;
       this._parameters = parameters;
@@ -1617,9 +1671,9 @@
     }
   };
   // Optional, overridable provider for current time (LMS may set via SequencingService)
-  _RuleCondition._now = () => /* @__PURE__ */new Date();
+  __publicField$12(_RuleCondition, "_now", () => /* @__PURE__ */new Date());
   // Optional, overridable hook for getting elapsed seconds
-  _RuleCondition._getElapsedSecondsHook = void 0;
+  __publicField$12(_RuleCondition, "_getElapsedSecondsHook");
   let RuleCondition = _RuleCondition;
   class SequencingRule extends BaseCMI {
     /**
@@ -1631,9 +1685,9 @@
       let action = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "skip";
       let conditionCombination = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "and";
       super("sequencingRule");
-      this._conditions = [];
-      this._action = "skip" /* SKIP */;
-      this._conditionCombination = "and" /* AND */;
+      __publicField$12(this, "_conditions", []);
+      __publicField$12(this, "_action", "skip" /* SKIP */);
+      __publicField$12(this, "_conditionCombination", "and" /* AND */);
       this._action = action;
       this._conditionCombination = conditionCombination;
     }
@@ -1746,9 +1800,9 @@
      */
     constructor() {
       super("sequencingRules");
-      this._preConditionRules = [];
-      this._exitConditionRules = [];
-      this._postConditionRules = [];
+      __publicField$12(this, "_preConditionRules", []);
+      __publicField$12(this, "_exitConditionRules", []);
+      __publicField$12(this, "_postConditionRules", []);
     }
     /**
      * Called when the API needs to be reset
@@ -2518,6 +2572,14 @@
     }
   }
 
+  var __defProp$11 = Object.defineProperty;
+  var __defNormalProp$11 = (obj, key, value) => key in obj ? __defProp$11(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$11 = (obj, key, value) => __defNormalProp$11(obj, typeof key !== "symbol" ? key + "" : key, value);
   var SequencingRequestType = /* @__PURE__ */(SequencingRequestType2 => {
     SequencingRequestType2["START"] = "start";
     SequencingRequestType2["RESUME_ALL"] = "resumeAll";
@@ -2546,6 +2608,10 @@
       let targetActivity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      __publicField$11(this, "deliveryRequest");
+      __publicField$11(this, "targetActivity");
+      __publicField$11(this, "exception");
+      __publicField$11(this, "endSequencingSession");
       this.deliveryRequest = deliveryRequest;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -2556,6 +2622,10 @@
     constructor(identifiedActivity, deliverable) {
       let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      __publicField$11(this, "identifiedActivity");
+      __publicField$11(this, "deliverable");
+      __publicField$11(this, "exception");
+      __publicField$11(this, "endSequencingSession");
       this.identifiedActivity = identifiedActivity;
       this.deliverable = deliverable;
       this.exception = exception;
@@ -2565,6 +2635,8 @@
   class ChoiceTraversalResult {
     constructor(activity) {
       let exception = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      __publicField$11(this, "activity");
+      __publicField$11(this, "exception");
       this.activity = activity;
       this.exception = exception;
     }
@@ -2575,9 +2647,19 @@
     return FlowSubprocessMode2;
   })(FlowSubprocessMode || {});
 
+  var __defProp$10 = Object.defineProperty;
+  var __defNormalProp$10 = (obj, key, value) => key in obj ? __defProp$10(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$10 = (obj, key, value) => __defNormalProp$10(obj, typeof key !== "symbol" ? key + "" : key, value);
   class RuleEvaluationEngine {
     constructor() {
       let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      __publicField$10(this, "now");
+      __publicField$10(this, "getAttemptElapsedSecondsHook");
       this.now = options.now || (() => /* @__PURE__ */new Date());
       this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
     }
@@ -2848,6 +2930,14 @@
     }
   }
 
+  var __defProp$$ = Object.defineProperty;
+  var __defNormalProp$$ = (obj, key, value) => key in obj ? __defProp$$(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$$ = (obj, key, value) => __defNormalProp$$(obj, typeof key !== "symbol" ? key + "" : key, value);
   var SelectionTiming = /* @__PURE__ */(SelectionTiming2 => {
     SelectionTiming2["NEVER"] = "never";
     SelectionTiming2["ONCE"] = "once";
@@ -2867,36 +2957,36 @@
     constructor() {
       super("sequencingControls");
       // Sequencing Control Modes
-      this._enabled = true;
-      this._choice = true;
-      this._choiceExit = true;
+      __publicField$$(this, "_enabled", true);
+      __publicField$$(this, "_choice", true);
+      __publicField$$(this, "_choiceExit", true);
       // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
-      this._flow = true;
-      this._forwardOnly = false;
-      this._useCurrentAttemptObjectiveInfo = true;
-      this._useCurrentAttemptProgressInfo = true;
+      __publicField$$(this, "_flow", true);
+      __publicField$$(this, "_forwardOnly", false);
+      __publicField$$(this, "_useCurrentAttemptObjectiveInfo", true);
+      __publicField$$(this, "_useCurrentAttemptProgressInfo", true);
       // Constrain Choice Controls
-      this._preventActivation = false;
-      this._constrainChoice = false;
+      __publicField$$(this, "_preventActivation", false);
+      __publicField$$(this, "_constrainChoice", false);
       // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
-      this._stopForwardTraversal = false;
+      __publicField$$(this, "_stopForwardTraversal", false);
       // Rollup Controls
-      this._rollupObjectiveSatisfied = true;
-      this._rollupProgressCompletion = true;
-      this._objectiveMeasureWeight = 1;
+      __publicField$$(this, "_rollupObjectiveSatisfied", true);
+      __publicField$$(this, "_rollupProgressCompletion", true);
+      __publicField$$(this, "_objectiveMeasureWeight", 1);
       // Selection Controls
-      this._selectionTiming = "never" /* NEVER */;
-      this._selectCount = null;
-      this._selectionCountStatus = false;
-      this._randomizeChildren = false;
+      __publicField$$(this, "_selectionTiming", "never" /* NEVER */);
+      __publicField$$(this, "_selectCount", null);
+      __publicField$$(this, "_selectionCountStatus", false);
+      __publicField$$(this, "_randomizeChildren", false);
       // Randomization Controls
-      this._randomizationTiming = "never" /* NEVER */;
-      this._reorderChildren = false;
+      __publicField$$(this, "_randomizationTiming", "never" /* NEVER */);
+      __publicField$$(this, "_reorderChildren", false);
       // Auto-completion/satisfaction controls
-      this._completionSetByContent = false;
-      this._objectiveSetByContent = false;
+      __publicField$$(this, "_completionSetByContent", false);
+      __publicField$$(this, "_objectiveSetByContent", false);
       // Delivery Controls
-      this._tracked = true;
+      __publicField$$(this, "_tracked", true);
     }
     /**
      * Reset the sequencing controls to their default values
@@ -4267,7 +4357,46 @@
     }
   }
 
+  var __defProp$_ = Object.defineProperty;
+  var __defNormalProp$_ = (obj, key, value) => key in obj ? __defProp$_(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$_ = (obj, key, value) => __defNormalProp$_(obj, typeof key !== "symbol" ? key + "" : key, value);
   class SequencingProcess {
+    constructor(activityTree, _sequencingRules, _sequencingControls) {
+      let options = arguments.length > 4 ? arguments[4] : undefined;
+      __publicField$_(this, "activityTree");
+      // Extracted services
+      __publicField$_(this, "treeQueries");
+      __publicField$_(this, "constraintValidator");
+      __publicField$_(this, "ruleEngine");
+      __publicField$_(this, "traversalService");
+      // Request handlers
+      __publicField$_(this, "flowHandler");
+      __publicField$_(this, "choiceHandler");
+      __publicField$_(this, "exitHandler");
+      __publicField$_(this, "retryHandler");
+      // Time function (exposed for testing)
+      __publicField$_(this, "_now");
+      __publicField$_(this, "_getAttemptElapsedSecondsHook");
+      this.activityTree = activityTree;
+      this._now = options?.now || (() => /* @__PURE__ */new Date());
+      this._getAttemptElapsedSecondsHook = options?.getAttemptElapsedSeconds;
+      this.treeQueries = new ActivityTreeQueries(activityTree);
+      this.ruleEngine = new RuleEvaluationEngine({
+        now: this._now,
+        getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook
+      });
+      this.constraintValidator = new ChoiceConstraintValidator(activityTree, this.treeQueries);
+      this.traversalService = new FlowTraversalService(activityTree, this.ruleEngine);
+      this.flowHandler = new FlowRequestHandler(activityTree, this.traversalService);
+      this.choiceHandler = new ChoiceRequestHandler(activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
+      this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
+      this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
+    }
     /**
      * Get/set the current time function (used for testing time-dependent logic)
      */
@@ -4303,23 +4432,6 @@
       this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
       this.choiceHandler = new ChoiceRequestHandler(this.activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
       this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
-    }
-    constructor(activityTree, _sequencingRules, _sequencingControls) {
-      let options = arguments.length > 4 ? arguments[4] : undefined;
-      this.activityTree = activityTree;
-      this._now = options?.now || (() => /* @__PURE__ */new Date());
-      this._getAttemptElapsedSecondsHook = options?.getAttemptElapsedSeconds;
-      this.treeQueries = new ActivityTreeQueries(activityTree);
-      this.ruleEngine = new RuleEvaluationEngine({
-        now: this._now,
-        getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook
-      });
-      this.constraintValidator = new ChoiceConstraintValidator(activityTree, this.treeQueries);
-      this.traversalService = new FlowTraversalService(activityTree, this.ruleEngine);
-      this.flowHandler = new FlowRequestHandler(activityTree, this.traversalService);
-      this.choiceHandler = new ChoiceRequestHandler(activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
-      this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
-      this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
     }
     /**
      * Main Sequencing Request Process (SB.2.12)
@@ -4536,11 +4648,22 @@
     }
   }
 
+  var __defProp$Z = Object.defineProperty;
+  var __defNormalProp$Z = (obj, key, value) => key in obj ? __defProp$Z(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$Z = (obj, key, value) => __defNormalProp$Z(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ActivityDeliveryService {
     constructor(eventService, loggingService) {
       let callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      this.currentDeliveredActivity = null;
-      this.pendingDelivery = null;
+      __publicField$Z(this, "eventService");
+      __publicField$Z(this, "loggingService");
+      __publicField$Z(this, "callbacks");
+      __publicField$Z(this, "currentDeliveredActivity", null);
+      __publicField$Z(this, "pendingDelivery", null);
       this.eventService = eventService;
       this.loggingService = loggingService;
       this.callbacks = callbacks;
@@ -4628,6 +4751,14 @@
     }
   }
 
+  var __defProp$Y = Object.defineProperty;
+  var __defNormalProp$Y = (obj, key, value) => key in obj ? __defProp$Y(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$Y = (obj, key, value) => __defNormalProp$Y(obj, typeof key !== "symbol" ? key + "" : key, value);
   class AsynchronousHttpService {
     /**
      * Constructor for AsynchronousHttpService
@@ -4635,6 +4766,8 @@
      * @param {ErrorCode} error_codes - The error codes object
      */
     constructor(settings, error_codes) {
+      __publicField$Y(this, "settings");
+      __publicField$Y(this, "error_codes");
       this.settings = settings;
       this.error_codes = error_codes;
     }
@@ -4826,6 +4959,14 @@
     }
   }
 
+  var __defProp$X = Object.defineProperty;
+  var __defNormalProp$X = (obj, key, value) => key in obj ? __defProp$X(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$X = (obj, key, value) => __defNormalProp$X(obj, key + "" , value);
   const TARGET_ATTRIBUTE_PREFIX = "{target=";
   function getErrorCode(errorCodes, key) {
     const code = errorCodes[key];
@@ -4839,6 +4980,7 @@
   }
   class CMIValueAccessService {
     constructor(context) {
+      __publicField$X(this, "context");
       this.context = context;
     }
     /**
@@ -5166,12 +5308,21 @@
     }
   }
 
-  class LoggingService {
+  var __defProp$W = Object.defineProperty;
+  var __defNormalProp$W = (obj, key, value) => key in obj ? __defProp$W(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$W = (obj, key, value) => __defNormalProp$W(obj, typeof key !== "symbol" ? key + "" : key, value);
+  const _LoggingService = class _LoggingService {
     /**
      * Private constructor to prevent direct instantiation
      */
     constructor() {
-      this._logLevel = LogLevelEnum.ERROR;
+      __publicField$W(this, "_logLevel", LogLevelEnum.ERROR);
+      __publicField$W(this, "_logHandler");
       this._logHandler = defaultLogHandler;
     }
     /**
@@ -5180,10 +5331,10 @@
      * @returns {LoggingService} The singleton instance
      */
     static getInstance() {
-      if (!LoggingService._instance) {
-        LoggingService._instance = new LoggingService();
+      if (!_LoggingService._instance) {
+        _LoggingService._instance = new _LoggingService();
       }
-      return LoggingService._instance;
+      return _LoggingService._instance;
     }
     /**
      * Set the log level
@@ -5319,11 +5470,21 @@
           return LogLevelEnum.ERROR;
       }
     }
-  }
+  };
+  __publicField$W(_LoggingService, "_instance");
+  let LoggingService = _LoggingService;
   function getLoggingService() {
     return LoggingService.getInstance();
   }
 
+  var __defProp$V = Object.defineProperty;
+  var __defNormalProp$V = (obj, key, value) => key in obj ? __defProp$V(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$V = (obj, key, value) => __defNormalProp$V(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ErrorHandlingService {
     /**
      * Constructor for ErrorHandlingService
@@ -5334,8 +5495,12 @@
      * @param {ILoggingService} loggingService - Optional logging service instance
      */
     constructor(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
-      this._lastErrorCode = "0";
-      this._lastDiagnostic = "";
+      __publicField$V(this, "_lastErrorCode", "0");
+      __publicField$V(this, "_lastDiagnostic", "");
+      __publicField$V(this, "_errorCodes");
+      __publicField$V(this, "_apiLog");
+      __publicField$V(this, "_getLmsErrorMessageDetails");
+      __publicField$V(this, "_loggingService");
       this._errorCodes = errorCodes;
       this._apiLog = apiLog;
       this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
@@ -5477,6 +5642,14 @@ ${stackTrace}`);
     return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
   }
 
+  var __defProp$U = Object.defineProperty;
+  var __defNormalProp$U = (obj, key, value) => key in obj ? __defProp$U(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$U = (obj, key, value) => __defNormalProp$U(obj, typeof key !== "symbol" ? key + "" : key, value);
   class EventService {
     /**
      * Constructor for EventService
@@ -5484,9 +5657,11 @@ ${stackTrace}`);
      */
     constructor(apiLog) {
       // Map of function names to listeners for faster lookups
-      this.listenerMap = /* @__PURE__ */new Map();
+      __publicField$U(this, "listenerMap", /* @__PURE__ */new Map());
       // Total count of listeners for logging
-      this.listenerCount = 0;
+      __publicField$U(this, "listenerCount", 0);
+      // Function to log API messages
+      __publicField$U(this, "apiLog");
       this.apiLog = apiLog;
     }
     /**
@@ -5640,6 +5815,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$T = Object.defineProperty;
+  var __defNormalProp$T = (obj, key, value) => key in obj ? __defProp$T(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$T = (obj, key, value) => __defNormalProp$T(obj, typeof key !== "symbol" ? key + "" : key, value);
   class OfflineStorageService {
     /**
      * Constructor for OfflineStorageService
@@ -5649,10 +5832,14 @@ ${stackTrace}`);
      */
     constructor(settings, error_codes, apiLog) {
       this.apiLog = apiLog;
-      this.storeName = "scorm_again_offline_data";
-      this.syncQueue = "scorm_again_sync_queue";
-      this.isOnline = navigator.onLine;
-      this.syncInProgress = false;
+      __publicField$T(this, "settings");
+      __publicField$T(this, "error_codes");
+      __publicField$T(this, "storeName", "scorm_again_offline_data");
+      __publicField$T(this, "syncQueue", "scorm_again_sync_queue");
+      __publicField$T(this, "isOnline", navigator.onLine);
+      __publicField$T(this, "syncInProgress", false);
+      __publicField$T(this, "boundOnlineStatusChangeHandler");
+      __publicField$T(this, "boundCustomNetworkStatusHandler");
       this.settings = settings;
       this.error_codes = error_codes;
       this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -5896,7 +6083,9 @@ ${stackTrace}`);
         localStorage.setItem(key, JSON.stringify(data));
       } catch (error) {
         if (error instanceof DOMException && error.name === "QuotaExceededError") {
-          throw new Error("storage quota exceeded - localStorage is full");
+          throw new Error("storage quota exceeded - localStorage is full", {
+            cause: error
+          });
         }
         throw error;
       }
@@ -5977,6 +6166,14 @@ ${stackTrace}`);
     return checkValidRange(CMIElement, value, rangePattern, scorm2004_errors.VALUE_OUT_OF_RANGE, Scorm2004ValidationError);
   }
 
+  var __defProp$S = Object.defineProperty;
+  var __defNormalProp$S = (obj, key, value) => key in obj ? __defProp$S(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$S = (obj, key, value) => __defNormalProp$S(obj, typeof key !== "symbol" ? key + "" : key, value);
   var RollupActionType = /* @__PURE__ */(RollupActionType2 => {
     RollupActionType2["SATISFIED"] = "satisfied";
     RollupActionType2["NOT_SATISFIED"] = "notSatisfied";
@@ -6002,8 +6199,8 @@ ${stackTrace}`);
       let condition = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "always";
       let parameters = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : /* @__PURE__ */new Map();
       super("rollupCondition");
-      this._condition = "always" /* ALWAYS */;
-      this._parameters = /* @__PURE__ */new Map();
+      __publicField$S(this, "_condition", "always" /* ALWAYS */);
+      __publicField$S(this, "_parameters", /* @__PURE__ */new Map());
       this._condition = condition;
       this._parameters = parameters;
     }
@@ -6106,11 +6303,11 @@ ${stackTrace}`);
       let minimumCount = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
       let minimumPercent = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
       super("rollupRule");
-      this._conditions = [];
-      this._action = "satisfied" /* SATISFIED */;
-      this._consideration = "all" /* ALL */;
-      this._minimumCount = 0;
-      this._minimumPercent = 0;
+      __publicField$S(this, "_conditions", []);
+      __publicField$S(this, "_action", "satisfied" /* SATISFIED */);
+      __publicField$S(this, "_consideration", "all" /* ALL */);
+      __publicField$S(this, "_minimumCount", 0);
+      __publicField$S(this, "_minimumPercent", 0);
       this._action = action;
       this._consideration = consideration;
       this._minimumCount = minimumCount;
@@ -6266,7 +6463,7 @@ ${stackTrace}`);
      */
     constructor() {
       super("rollupRules");
-      this._rules = [];
+      __publicField$S(this, "_rules", []);
     }
     /**
      * Called when the API needs to be reset
@@ -6449,24 +6646,38 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$R = Object.defineProperty;
+  var __defNormalProp$R = (obj, key, value) => key in obj ? __defProp$R(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$R = (obj, key, value) => __defNormalProp$R(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ActivityObjective {
     constructor(id) {
       let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      this._satisfiedStatus = false;
-      this._satisfiedStatusKnown = false;
+      __publicField$R(this, "_id");
+      __publicField$R(this, "_description");
+      __publicField$R(this, "_satisfiedByMeasure");
+      __publicField$R(this, "_minNormalizedMeasure");
+      __publicField$R(this, "_mapInfo");
+      __publicField$R(this, "_isPrimary");
+      __publicField$R(this, "_satisfiedStatus", false);
+      __publicField$R(this, "_satisfiedStatusKnown", false);
       // Note: measureStatus has no dirty flag because it is not synchronized to global
       // objectives. It serves as a validity gate for other synced properties.
-      this._measureStatus = false;
-      this._normalizedMeasure = 0;
-      this._progressMeasure = 0;
-      this._progressMeasureStatus = false;
-      this._completionStatus = CompletionStatus.UNKNOWN;
-      this._progressStatus = false;
+      __publicField$R(this, "_measureStatus", false);
+      __publicField$R(this, "_normalizedMeasure", 0);
+      __publicField$R(this, "_progressMeasure", 0);
+      __publicField$R(this, "_progressMeasureStatus", false);
+      __publicField$R(this, "_completionStatus", CompletionStatus.UNKNOWN);
+      __publicField$R(this, "_progressStatus", false);
       // Dirty flags for tracking which properties have been modified locally
-      this._satisfiedStatusDirty = false;
-      this._normalizedMeasureDirty = false;
-      this._completionStatusDirty = false;
-      this._progressMeasureDirty = false;
+      __publicField$R(this, "_satisfiedStatusDirty", false);
+      __publicField$R(this, "_normalizedMeasureDirty", false);
+      __publicField$R(this, "_completionStatusDirty", false);
+      __publicField$R(this, "_progressMeasureDirty", false);
       this._id = id;
       this._description = options.description ?? null;
       this._satisfiedByMeasure = options.satisfiedByMeasure ?? false;
@@ -6663,87 +6874,90 @@ ${stackTrace}`);
       let id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
       let title = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
       super("activity");
-      this._id = "";
-      this._title = "";
-      this._children = [];
-      this._parent = null;
-      this._isVisible = true;
-      this._isActive = false;
-      this._isSuspended = false;
-      this._isCompleted = false;
-      this._completionStatus = CompletionStatus.UNKNOWN;
-      this._successStatus = SuccessStatus.UNKNOWN;
-      this._attemptCount = 0;
-      this._attemptCompletionAmount = 0;
-      this._attemptAbsoluteDuration = "PT0H0M0S";
-      this._attemptExperiencedDuration = "PT0H0M0S";
-      this._activityAbsoluteDuration = "PT0H0M0S";
-      this._activityExperiencedDuration = "PT0H0M0S";
+      __publicField$R(this, "_id", "");
+      __publicField$R(this, "_title", "");
+      __publicField$R(this, "_children", []);
+      __publicField$R(this, "_parent", null);
+      __publicField$R(this, "_isVisible", true);
+      __publicField$R(this, "_isActive", false);
+      __publicField$R(this, "_isSuspended", false);
+      __publicField$R(this, "_isCompleted", false);
+      __publicField$R(this, "_completionStatus", CompletionStatus.UNKNOWN);
+      __publicField$R(this, "_successStatus", SuccessStatus.UNKNOWN);
+      __publicField$R(this, "_attemptCount", 0);
+      __publicField$R(this, "_attemptCompletionAmount", 0);
+      __publicField$R(this, "_attemptAbsoluteDuration", "PT0H0M0S");
+      __publicField$R(this, "_attemptExperiencedDuration", "PT0H0M0S");
+      __publicField$R(this, "_activityAbsoluteDuration", "PT0H0M0S");
+      __publicField$R(this, "_activityExperiencedDuration", "PT0H0M0S");
       // Duration tracking fields (separate from limits) - actual calculated values
-      this._attemptAbsoluteDurationValue = "PT0H0M0S";
-      this._attemptExperiencedDurationValue = "PT0H0M0S";
-      this._activityAbsoluteDurationValue = "PT0H0M0S";
-      this._activityExperiencedDurationValue = "PT0H0M0S";
+      __publicField$R(this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
+      __publicField$R(this, "_attemptExperiencedDurationValue", "PT0H0M0S");
+      __publicField$R(this, "_activityAbsoluteDurationValue", "PT0H0M0S");
+      __publicField$R(this, "_activityExperiencedDurationValue", "PT0H0M0S");
       // Timestamp tracking for duration calculation
-      this._activityStartTimestampUtc = null;
-      this._attemptStartTimestampUtc = null;
-      this._activityEndedDate = null;
-      this._objectiveSatisfiedStatus = false;
-      this._objectiveSatisfiedStatusKnown = false;
-      this._objectiveMeasureStatus = false;
-      this._objectiveNormalizedMeasure = 0;
-      this._scaledPassingScore = 0.7;
+      __publicField$R(this, "_activityStartTimestampUtc", null);
+      __publicField$R(this, "_attemptStartTimestampUtc", null);
+      __publicField$R(this, "_activityEndedDate", null);
+      __publicField$R(this, "_objectiveSatisfiedStatus", false);
+      __publicField$R(this, "_objectiveSatisfiedStatusKnown", false);
+      __publicField$R(this, "_objectiveMeasureStatus", false);
+      __publicField$R(this, "_objectiveNormalizedMeasure", 0);
+      __publicField$R(this, "_scaledPassingScore", 0.7);
       // Default passing score
       // Dirty flags for tracking which activity-level objective properties have been modified locally
-      this._objectiveSatisfiedStatusDirty = false;
-      this._objectiveNormalizedMeasureDirty = false;
-      this._objectiveMeasureStatusDirty = false;
-      this._progressMeasure = 0;
-      this._progressMeasureStatus = false;
-      this._location = "";
-      this._attemptAbsoluteStartTime = "";
-      this._learnerPrefs = null;
-      this._activityAttemptActive = false;
-      this._isHiddenFromChoice = false;
-      this._isAvailable = true;
-      this._hideLmsUi = [];
-      this._auxiliaryResources = [];
-      this._attemptLimit = null;
-      this._attemptAbsoluteDurationLimit = null;
-      this._activityAbsoluteDurationLimit = null;
-      this._timeLimitAction = null;
-      this._timeLimitDuration = null;
-      this._beginTimeLimit = null;
-      this._endTimeLimit = null;
-      this._launchData = "";
-      this._credit = "credit";
-      this._maxTimeAllowed = "";
-      this._completionThreshold = "";
-      this._processedChildren = null;
-      this._isNewAttempt = false;
-      this._primaryObjective = null;
-      this._objectives = [];
-      this._rollupConsiderations = {
+      __publicField$R(this, "_objectiveSatisfiedStatusDirty", false);
+      __publicField$R(this, "_objectiveNormalizedMeasureDirty", false);
+      __publicField$R(this, "_objectiveMeasureStatusDirty", false);
+      __publicField$R(this, "_progressMeasure", 0);
+      __publicField$R(this, "_progressMeasureStatus", false);
+      __publicField$R(this, "_location", "");
+      __publicField$R(this, "_attemptAbsoluteStartTime", "");
+      __publicField$R(this, "_learnerPrefs", null);
+      __publicField$R(this, "_activityAttemptActive", false);
+      __publicField$R(this, "_isHiddenFromChoice", false);
+      __publicField$R(this, "_isAvailable", true);
+      __publicField$R(this, "_hideLmsUi", []);
+      __publicField$R(this, "_auxiliaryResources", []);
+      __publicField$R(this, "_attemptLimit", null);
+      __publicField$R(this, "_attemptAbsoluteDurationLimit", null);
+      __publicField$R(this, "_activityAbsoluteDurationLimit", null);
+      __publicField$R(this, "_timeLimitAction", null);
+      __publicField$R(this, "_timeLimitDuration", null);
+      __publicField$R(this, "_beginTimeLimit", null);
+      __publicField$R(this, "_endTimeLimit", null);
+      __publicField$R(this, "_launchData", "");
+      __publicField$R(this, "_credit", "credit");
+      __publicField$R(this, "_maxTimeAllowed", "");
+      __publicField$R(this, "_completionThreshold", "");
+      __publicField$R(this, "_sequencingControls");
+      __publicField$R(this, "_sequencingRules");
+      __publicField$R(this, "_rollupRules");
+      __publicField$R(this, "_processedChildren", null);
+      __publicField$R(this, "_isNewAttempt", false);
+      __publicField$R(this, "_primaryObjective", null);
+      __publicField$R(this, "_objectives", []);
+      __publicField$R(this, "_rollupConsiderations", {
         requiredForSatisfied: "always",
         requiredForNotSatisfied: "always",
         requiredForCompleted: "always",
         requiredForIncomplete: "always",
         measureSatisfactionIfActive: true
-      };
+      });
       // Individual rollup consideration properties for this activity (RB.1.4.2)
       // These determine when THIS activity is included in parent rollup calculations
-      this._requiredForSatisfied = "always";
-      this._requiredForNotSatisfied = "always";
-      this._requiredForCompleted = "always";
-      this._requiredForIncomplete = "always";
-      this._wasSkipped = false;
-      this._attemptProgressStatus = false;
-      this._wasAutoCompleted = false;
-      this._wasAutoSatisfied = false;
-      this._completedByMeasure = false;
-      this._minProgressMeasure = 1;
-      this._progressWeight = 1;
-      this._attemptCompletionAmountStatus = false;
+      __publicField$R(this, "_requiredForSatisfied", "always");
+      __publicField$R(this, "_requiredForNotSatisfied", "always");
+      __publicField$R(this, "_requiredForCompleted", "always");
+      __publicField$R(this, "_requiredForIncomplete", "always");
+      __publicField$R(this, "_wasSkipped", false);
+      __publicField$R(this, "_attemptProgressStatus", false);
+      __publicField$R(this, "_wasAutoCompleted", false);
+      __publicField$R(this, "_wasAutoSatisfied", false);
+      __publicField$R(this, "_completedByMeasure", false);
+      __publicField$R(this, "_minProgressMeasure", 1);
+      __publicField$R(this, "_progressWeight", 1);
+      __publicField$R(this, "_attemptCompletionAmountStatus", false);
       this._id = id;
       this._title = title;
       this._sequencingControls = new SequencingControls();
@@ -8425,6 +8639,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$Q = Object.defineProperty;
+  var __defNormalProp$Q = (obj, key, value) => key in obj ? __defProp$Q(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$Q = (obj, key, value) => __defNormalProp$Q(obj, key + "" , value);
   class RollupRuleEvaluator {
     /**
      * Create a new RollupRuleEvaluator
@@ -8432,6 +8654,7 @@ ${stackTrace}`);
      * @param childFilter - RollupChildFilter instance for filtering children
      */
     constructor(childFilter) {
+      __publicField$Q(this, "childFilter");
       this.childFilter = childFilter;
     }
     /**
@@ -8530,6 +8753,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$P = Object.defineProperty;
+  var __defNormalProp$P = (obj, key, value) => key in obj ? __defProp$P(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$P = (obj, key, value) => __defNormalProp$P(obj, typeof key !== "symbol" ? key + "" : key, value);
   class MeasureRollupProcessor {
     /**
      * Create a new MeasureRollupProcessor
@@ -8538,6 +8769,8 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(childFilter, eventCallback) {
+      __publicField$P(this, "childFilter");
+      __publicField$P(this, "eventCallback");
       this.childFilter = childFilter;
       this.eventCallback = eventCallback || null;
     }
@@ -8705,6 +8938,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$O = Object.defineProperty;
+  var __defNormalProp$O = (obj, key, value) => key in obj ? __defProp$O(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$O = (obj, key, value) => __defNormalProp$O(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ObjectiveRollupProcessor {
     /**
      * Create a new ObjectiveRollupProcessor
@@ -8714,6 +8955,9 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(childFilter, ruleEvaluator, eventCallback) {
+      __publicField$O(this, "childFilter");
+      __publicField$O(this, "ruleEvaluator");
+      __publicField$O(this, "eventCallback");
       this.childFilter = childFilter;
       this.ruleEvaluator = ruleEvaluator;
       this.eventCallback = eventCallback || null;
@@ -8837,6 +9081,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$N = Object.defineProperty;
+  var __defNormalProp$N = (obj, key, value) => key in obj ? __defProp$N(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$N = (obj, key, value) => __defNormalProp$N(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ProgressRollupProcessor {
     /**
      * Create a new ProgressRollupProcessor
@@ -8847,6 +9099,10 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(childFilter, ruleEvaluator, objectiveProcessor, eventCallback) {
+      __publicField$N(this, "childFilter");
+      __publicField$N(this, "ruleEvaluator");
+      __publicField$N(this, "objectiveProcessor");
+      __publicField$N(this, "eventCallback");
       this.childFilter = childFilter;
       this.ruleEvaluator = ruleEvaluator;
       this.objectiveProcessor = objectiveProcessor;
@@ -8924,6 +9180,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$M = Object.defineProperty;
+  var __defNormalProp$M = (obj, key, value) => key in obj ? __defProp$M(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$M = (obj, key, value) => __defNormalProp$M(obj, key + "" , value);
   class DurationRollupProcessor {
     /**
      * Create a new DurationRollupProcessor
@@ -8931,6 +9195,7 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(eventCallback) {
+      __publicField$M(this, "eventCallback");
       this.eventCallback = eventCallback || null;
     }
     /**
@@ -9021,6 +9286,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$L = Object.defineProperty;
+  var __defNormalProp$L = (obj, key, value) => key in obj ? __defProp$L(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$L = (obj, key, value) => __defNormalProp$L(obj, typeof key !== "symbol" ? key + "" : key, value);
   const MAX_CLUSTER_DEPTH = 10;
   class CrossClusterProcessor {
     /**
@@ -9032,7 +9305,11 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(measureProcessor, objectiveProcessor, progressProcessor, eventCallback) {
-      this.processingClusters = /* @__PURE__ */new Set();
+      __publicField$L(this, "measureProcessor");
+      __publicField$L(this, "objectiveProcessor");
+      __publicField$L(this, "progressProcessor");
+      __publicField$L(this, "eventCallback");
+      __publicField$L(this, "processingClusters", /* @__PURE__ */new Set());
       this.measureProcessor = measureProcessor;
       this.objectiveProcessor = objectiveProcessor;
       this.progressProcessor = progressProcessor;
@@ -9176,6 +9453,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$K = Object.defineProperty;
+  var __defNormalProp$K = (obj, key, value) => key in obj ? __defProp$K(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$K = (obj, key, value) => __defNormalProp$K(obj, key + "" , value);
   class GlobalObjectiveSynchronizer {
     /**
      * Create a new GlobalObjectiveSynchronizer
@@ -9183,6 +9468,7 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(eventCallback) {
+      __publicField$K(this, "eventCallback");
       this.eventCallback = eventCallback || null;
     }
     /**
@@ -9556,6 +9842,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$J = Object.defineProperty;
+  var __defNormalProp$J = (obj, key, value) => key in obj ? __defProp$J(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$J = (obj, key, value) => __defNormalProp$J(obj, typeof key !== "symbol" ? key + "" : key, value);
   class RollupStateValidator {
     /**
      * Create a new RollupStateValidator
@@ -9564,7 +9858,9 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(childFilter, eventCallback) {
-      this.rollupStateLog = [];
+      __publicField$J(this, "rollupStateLog", []);
+      __publicField$J(this, "childFilter");
+      __publicField$J(this, "eventCallback");
       this.childFilter = childFilter;
       this.eventCallback = eventCallback || null;
     }
@@ -9671,6 +9967,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$I = Object.defineProperty;
+  var __defNormalProp$I = (obj, key, value) => key in obj ? __defProp$I(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$I = (obj, key, value) => __defNormalProp$I(obj, typeof key !== "symbol" ? key + "" : key, value);
   class RollupProcess {
     /**
      * Create a new RollupProcess orchestrator
@@ -9678,6 +9982,16 @@ ${stackTrace}`);
      * @param eventCallback - Optional callback for firing events
      */
     constructor(eventCallback) {
+      __publicField$I(this, "childFilter");
+      __publicField$I(this, "ruleEvaluator");
+      __publicField$I(this, "measureProcessor");
+      __publicField$I(this, "objectiveProcessor");
+      __publicField$I(this, "progressProcessor");
+      __publicField$I(this, "durationProcessor");
+      __publicField$I(this, "globalObjectiveSynchronizer");
+      __publicField$I(this, "stateValidator");
+      __publicField$I(this, "crossClusterProcessor");
+      __publicField$I(this, "eventCallback");
       this.eventCallback = eventCallback || null;
       this.childFilter = new RollupChildFilter();
       this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter);
@@ -9844,6 +10158,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$H = Object.defineProperty;
+  var __defNormalProp$H = (obj, key, value) => key in obj ? __defProp$H(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$H = (obj, key, value) => __defNormalProp$H(obj, key + "" , value);
   const VALID_COMPLETION_STATUSES = [CompletionStatus.COMPLETED, CompletionStatus.INCOMPLETE, CompletionStatus.UNKNOWN];
   const VALID_SUCCESS_STATUSES = [SuccessStatus.PASSED, SuccessStatus.FAILED, SuccessStatus.UNKNOWN];
   function validateCompletionStatus(value) {
@@ -9860,6 +10182,7 @@ ${stackTrace}`);
   }
   class RteDataTransferService {
     constructor(context) {
+      __publicField$H(this, "context");
       this.context = context;
     }
     /**
@@ -10019,11 +10342,27 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$G = Object.defineProperty;
+  var __defNormalProp$G = (obj, key, value) => key in obj ? __defProp$G(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$G = (obj, key, value) => __defNormalProp$G(obj, typeof key !== "symbol" ? key + "" : key, value);
   class TerminationHandler {
     constructor(activityTree, sequencingProcess, rollupProcess, globalObjectiveMap) {
       let eventCallback = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
       let options = arguments.length > 5 ? arguments[5] : undefined;
-      this.invalidateCacheCallback = null;
+      __publicField$G(this, "activityTree");
+      __publicField$G(this, "sequencingProcess");
+      __publicField$G(this, "rollupProcess");
+      __publicField$G(this, "globalObjectiveMap");
+      __publicField$G(this, "eventCallback");
+      __publicField$G(this, "getCMIData");
+      __publicField$G(this, "is4thEdition");
+      __publicField$G(this, "invalidateCacheCallback", null);
+      __publicField$G(this, "_rteDataTransferService");
       this.activityTree = activityTree;
       this.sequencingProcess = sequencingProcess;
       this.rollupProcess = rollupProcess;
@@ -10137,7 +10476,7 @@ ${stackTrace}`);
           this.endAttempt(this.activityTree.currentActivity);
         }
       }
-      let processedExit = false;
+      let processedExit;
       let postConditionResult;
       do {
         processedExit = false;
@@ -10609,11 +10948,22 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$F = Object.defineProperty;
+  var __defNormalProp$F = (obj, key, value) => key in obj ? __defProp$F(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$F = (obj, key, value) => __defNormalProp$F(obj, typeof key !== "symbol" ? key + "" : key, value);
   class DeliveryRequest {
     constructor() {
       let valid = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       let targetActivity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      __publicField$F(this, "valid");
+      __publicField$F(this, "targetActivity");
+      __publicField$F(this, "exception");
       this.valid = valid;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -10624,12 +10974,20 @@ ${stackTrace}`);
       let adlNav = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
       let eventCallback = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
       let options = arguments.length > 5 ? arguments[5] : undefined;
-      this._deliveryInProgress = false;
-      this.contentDelivered = false;
-      this.checkActivityCallback = null;
-      this.invalidateCacheCallback = null;
-      this.updateNavigationValidityCallback = null;
-      this.clearSuspendedActivityCallback = null;
+      __publicField$F(this, "activityTree");
+      __publicField$F(this, "rollupProcess");
+      __publicField$F(this, "globalObjectiveMap");
+      __publicField$F(this, "adlNav");
+      __publicField$F(this, "eventCallback");
+      __publicField$F(this, "now");
+      __publicField$F(this, "defaultHideLmsUi");
+      __publicField$F(this, "defaultAuxiliaryResources");
+      __publicField$F(this, "_deliveryInProgress", false);
+      __publicField$F(this, "contentDelivered", false);
+      __publicField$F(this, "checkActivityCallback", null);
+      __publicField$F(this, "invalidateCacheCallback", null);
+      __publicField$F(this, "updateNavigationValidityCallback", null);
+      __publicField$F(this, "clearSuspendedActivityCallback", null);
       this.activityTree = activityTree;
       this.rollupProcess = rollupProcess;
       this.globalObjectiveMap = globalObjectiveMap;
@@ -10923,13 +11281,23 @@ ${stackTrace}`);
       }
     }
   };
-  _DeliveryHandler.HIDE_LMS_UI_ORDER = [...HIDE_LMS_UI_TOKENS];
+  __publicField$F(_DeliveryHandler, "HIDE_LMS_UI_ORDER", [...HIDE_LMS_UI_TOKENS]);
   let DeliveryHandler = _DeliveryHandler;
 
+  var __defProp$E = Object.defineProperty;
+  var __defNormalProp$E = (obj, key, value) => key in obj ? __defProp$E(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$E = (obj, key, value) => __defNormalProp$E(obj, typeof key !== "symbol" ? key + "" : key, value);
   class NavigationLookAhead {
     constructor(activityTree, sequencingProcess) {
-      this.cache = null;
-      this.isDirty = true;
+      __publicField$E(this, "activityTree");
+      __publicField$E(this, "sequencingProcess");
+      __publicField$E(this, "cache", null);
+      __publicField$E(this, "isDirty", true);
       this.activityTree = activityTree;
       this.sequencingProcess = sequencingProcess;
     }
@@ -11249,6 +11617,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$D = Object.defineProperty;
+  var __defNormalProp$D = (obj, key, value) => key in obj ? __defProp$D(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$D = (obj, key, value) => __defNormalProp$D(obj, typeof key !== "symbol" ? key + "" : key, value);
   var NavigationRequestType = /* @__PURE__ */(NavigationRequestType2 => {
     NavigationRequestType2["START"] = "start";
     NavigationRequestType2["RESUME_ALL"] = "resumeAll";
@@ -11271,6 +11647,11 @@ ${stackTrace}`);
       let sequencingRequest = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       let targetActivityId = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
       let exception = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+      __publicField$D(this, "valid");
+      __publicField$D(this, "terminationRequest");
+      __publicField$D(this, "sequencingRequest");
+      __publicField$D(this, "targetActivityId");
+      __publicField$D(this, "exception");
       this.valid = valid;
       this.terminationRequest = terminationRequest;
       this.sequencingRequest = sequencingRequest;
@@ -11282,7 +11663,12 @@ ${stackTrace}`);
     constructor(activityTree, sequencingProcess) {
       let adlNav = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       let eventCallback = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-      this.getEffectiveHideLmsUiCallback = null;
+      __publicField$D(this, "activityTree");
+      __publicField$D(this, "sequencingProcess");
+      __publicField$D(this, "adlNav");
+      __publicField$D(this, "eventCallback");
+      __publicField$D(this, "navigationLookAhead");
+      __publicField$D(this, "getEffectiveHideLmsUiCallback", null);
       this.activityTree = activityTree;
       this.sequencingProcess = sequencingProcess;
       this.adlNav = adlNav;
@@ -11950,10 +12336,18 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$C = Object.defineProperty;
+  var __defNormalProp$C = (obj, key, value) => key in obj ? __defProp$C(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$C = (obj, key, value) => __defNormalProp$C(obj, typeof key !== "symbol" ? key + "" : key, value);
   class GlobalObjectiveService {
     constructor(eventCallback) {
-      this.globalObjectiveMap = /* @__PURE__ */new Map();
-      this.eventCallback = null;
+      __publicField$C(this, "globalObjectiveMap", /* @__PURE__ */new Map());
+      __publicField$C(this, "eventCallback", null);
       this.eventCallback = eventCallback || null;
     }
     /**
@@ -12213,14 +12607,27 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$B = Object.defineProperty;
+  var __defNormalProp$B = (obj, key, value) => key in obj ? __defProp$B(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$B = (obj, key, value) => __defNormalProp$B(obj, typeof key !== "symbol" ? key + "" : key, value);
   class SequencingStateManager {
     constructor(activityTree, globalObjectiveService, rollupProcess) {
       let adlNav = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
       let eventCallback = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
-      this.getEffectiveHideLmsUiCallback = null;
-      this.getEffectiveAuxiliaryResourcesCallback = null;
-      this.contentDeliveredGetter = null;
-      this.contentDeliveredSetter = null;
+      __publicField$B(this, "activityTree");
+      __publicField$B(this, "globalObjectiveService");
+      __publicField$B(this, "rollupProcess");
+      __publicField$B(this, "adlNav");
+      __publicField$B(this, "eventCallback");
+      __publicField$B(this, "getEffectiveHideLmsUiCallback", null);
+      __publicField$B(this, "getEffectiveAuxiliaryResourcesCallback", null);
+      __publicField$B(this, "contentDeliveredGetter", null);
+      __publicField$B(this, "contentDeliveredSetter", null);
       this.activityTree = activityTree;
       this.globalObjectiveService = globalObjectiveService;
       this.rollupProcess = rollupProcess;
@@ -12575,11 +12982,22 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$A = Object.defineProperty;
+  var __defNormalProp$A = (obj, key, value) => key in obj ? __defProp$A(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$A = (obj, key, value) => __defNormalProp$A(obj, typeof key !== "symbol" ? key + "" : key, value);
   class DeliveryValidator {
     constructor(activityTree) {
       let eventCallback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       let options = arguments.length > 2 ? arguments[2] : undefined;
-      this.contentDeliveredGetter = null;
+      __publicField$A(this, "activityTree");
+      __publicField$A(this, "eventCallback");
+      __publicField$A(this, "now");
+      __publicField$A(this, "contentDeliveredGetter", null);
       this.activityTree = activityTree;
       this.eventCallback = eventCallback;
       this.now = options?.now || (() => /* @__PURE__ */new Date());
@@ -13163,12 +13581,36 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$z = Object.defineProperty;
+  var __defNormalProp$z = (obj, key, value) => key in obj ? __defProp$z(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$z = (obj, key, value) => __defNormalProp$z(obj, typeof key !== "symbol" ? key + "" : key, value);
   class OverallSequencingProcess {
     constructor(activityTree, sequencingProcess, rollupProcess) {
       let adlNav = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
       let eventCallback = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
       let options = arguments.length > 5 ? arguments[5] : undefined;
-      this.eventCallback = null;
+      // Core dependencies
+      __publicField$z(this, "activityTree");
+      __publicField$z(this, "sequencingProcess");
+      __publicField$z(this, "rollupProcess");
+      __publicField$z(this, "adlNav");
+      __publicField$z(this, "eventCallback", null);
+      // Extracted services
+      __publicField$z(this, "terminationHandler");
+      __publicField$z(this, "deliveryHandler");
+      __publicField$z(this, "navigationValidityService");
+      __publicField$z(this, "globalObjectiveService");
+      __publicField$z(this, "stateManager");
+      __publicField$z(this, "deliveryValidator");
+      __publicField$z(this, "navigationLookAhead");
+      // Configuration
+      __publicField$z(this, "enhancedDeliveryValidation");
+      __publicField$z(this, "is4thEdition");
       this.activityTree = activityTree;
       this.sequencingProcess = sequencingProcess;
       this.rollupProcess = rollupProcess;
@@ -13568,16 +14010,32 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$y = Object.defineProperty;
+  var __defNormalProp$y = (obj, key, value) => key in obj ? __defProp$y(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$y = (obj, key, value) => __defNormalProp$y(obj, typeof key !== "symbol" ? key + "" : key, value);
   class SequencingService {
     constructor(sequencing, cmi, adl, eventService, loggingService) {
       let configuration = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : {};
-      this.overallSequencingProcess = null;
-      this.sequencingProcess = null;
-      this.eventListeners = {};
-      this.isInitialized = false;
-      this.isSequencingActive = false;
-      this.lastCMIValues = /* @__PURE__ */new Map();
-      this.lastSequencingResult = null;
+      __publicField$y(this, "sequencing");
+      __publicField$y(this, "cmi");
+      __publicField$y(this, "adl");
+      __publicField$y(this, "eventService");
+      __publicField$y(this, "loggingService");
+      __publicField$y(this, "activityDeliveryService");
+      __publicField$y(this, "rollupProcess");
+      __publicField$y(this, "overallSequencingProcess", null);
+      __publicField$y(this, "sequencingProcess", null);
+      __publicField$y(this, "eventListeners", {});
+      __publicField$y(this, "configuration");
+      __publicField$y(this, "isInitialized", false);
+      __publicField$y(this, "isSequencingActive", false);
+      __publicField$y(this, "lastCMIValues", /* @__PURE__ */new Map());
+      __publicField$y(this, "lastSequencingResult", null);
       this.sequencing = sequencing;
       this.cmi = cmi;
       this.adl = adl;
@@ -14438,6 +14896,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$x = Object.defineProperty;
+  var __defNormalProp$x = (obj, key, value) => key in obj ? __defProp$x(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$x = (obj, key, value) => __defNormalProp$x(obj, typeof key !== "symbol" ? key + "" : key, value);
   class SynchronousHttpService {
     /**
      * Constructor for SynchronousHttpService
@@ -14445,6 +14911,8 @@ ${stackTrace}`);
      * @param {ErrorCode} error_codes - The error codes object
      */
     constructor(settings, error_codes) {
+      __publicField$x(this, "settings");
+      __publicField$x(this, "error_codes");
       this.settings = settings;
       this.error_codes = error_codes;
     }
@@ -14636,6 +15104,14 @@ ${stackTrace}`);
   }
   const validationService = new ValidationService();
 
+  var __defProp$w = Object.defineProperty;
+  var __defNormalProp$w = (obj, key, value) => key in obj ? __defProp$w(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$w = (obj, key, value) => __defNormalProp$w(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseAPI {
     /**
      * Constructor for Base API class. Sets some shared API fields, as well as
@@ -14651,8 +15127,19 @@ ${stackTrace}`);
      * @param {IOfflineStorageService} offlineStorageService - Optional Offline Storage service instance
      */
     constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService, offlineStorageService) {
-      this._settings = DefaultSettings;
-      this._courseId = "";
+      __publicField$w(this, "_timeout");
+      __publicField$w(this, "_error_codes");
+      __publicField$w(this, "_settings", DefaultSettings);
+      __publicField$w(this, "_httpService");
+      __publicField$w(this, "_eventService");
+      __publicField$w(this, "_serializationService");
+      __publicField$w(this, "_errorHandlingService");
+      __publicField$w(this, "_loggingService");
+      __publicField$w(this, "_offlineStorageService");
+      __publicField$w(this, "_cmiValueAccessService");
+      __publicField$w(this, "_courseId", "");
+      __publicField$w(this, "startingData");
+      __publicField$w(this, "currentState");
       if (new.target === BaseAPI) {
         throw new TypeError("Cannot construct BaseAPI instances directly");
       }
@@ -15603,6 +16090,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$v = Object.defineProperty;
+  var __defNormalProp$v = (obj, key, value) => key in obj ? __defProp$v(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$v = (obj, key, value) => __defNormalProp$v(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIScore extends BaseCMI {
     /**
      * Constructor for *.score
@@ -15627,8 +16122,21 @@ ${stackTrace}`);
      */
     constructor(params) {
       super(params.CMIElement);
-      this._raw = "";
-      this._min = "";
+      __publicField$v(this, "__children");
+      /**
+       * Score range validation pattern (e.g., "0#100" for SCORM 1.2).
+       * Set to `false` to disable range validation (e.g., for SCORM 2004 where scores have no upper bound).
+       * This property is intentionally unused in the base class but provides subclass flexibility.
+       */
+      __publicField$v(this, "__score_range");
+      __publicField$v(this, "__invalid_error_code");
+      __publicField$v(this, "__invalid_type_code");
+      __publicField$v(this, "__invalid_range_code");
+      __publicField$v(this, "__decimal_regex");
+      __publicField$v(this, "__error_class");
+      __publicField$v(this, "_raw", "");
+      __publicField$v(this, "_min", "");
+      __publicField$v(this, "_max");
       this.__children = params.score_children || scorm12_constants.score_children;
       this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
       this._max = params.max || params.max === "" ? params.max : "100";
@@ -15751,24 +16259,33 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$u = Object.defineProperty;
+  var __defNormalProp$u = (obj, key, value) => key in obj ? __defProp$u(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$u = (obj, key, value) => __defNormalProp$u(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMICore extends BaseCMI {
     /**
      * Constructor for `cmi.core`
      */
     constructor() {
       super("cmi.core");
-      this.__children = scorm12_constants.core_children;
-      this._student_id = "";
-      this._student_name = "";
-      this._lesson_location = "";
-      this._credit = "";
-      this._lesson_status = "not attempted";
-      this._entry = "";
-      this._total_time = "";
-      this._lesson_mode = "normal";
-      this._exit = "";
-      this._session_time = "00:00:00";
-      this._suspend_data = "";
+      __publicField$u(this, "score");
+      __publicField$u(this, "__children", scorm12_constants.core_children);
+      __publicField$u(this, "_student_id", "");
+      __publicField$u(this, "_student_name", "");
+      __publicField$u(this, "_lesson_location", "");
+      __publicField$u(this, "_credit", "");
+      __publicField$u(this, "_lesson_status", "not attempted");
+      __publicField$u(this, "_entry", "");
+      __publicField$u(this, "_total_time", "");
+      __publicField$u(this, "_lesson_mode", "normal");
+      __publicField$u(this, "_exit", "");
+      __publicField$u(this, "_session_time", "00:00:00");
+      __publicField$u(this, "_suspend_data", "");
       this.score = new CMIScore({
         CMIElement: "cmi.core.score",
         score_children: scorm12_constants.score_children,
@@ -16107,6 +16624,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$t = Object.defineProperty;
+  var __defNormalProp$t = (obj, key, value) => key in obj ? __defProp$t(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$t = (obj, key, value) => __defNormalProp$t(obj, typeof key !== "symbol" ? key + "" : key, value);
   let CMIObjectives$1 = class CMIObjectives extends CMIArray {
     /**
      * Constructor for `cmi.objectives`
@@ -16126,8 +16651,9 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.objectives.n");
-      this._id = "";
-      this._status = "";
+      __publicField$t(this, "score");
+      __publicField$t(this, "_id", "");
+      __publicField$t(this, "_status", "");
       this.score = new CMIScore({
         CMIElement: "cmi.objectives.n.score",
         score_children: scorm12_constants.score_children,
@@ -16213,6 +16739,14 @@ ${stackTrace}`);
     }
   };
 
+  var __defProp$s = Object.defineProperty;
+  var __defNormalProp$s = (obj, key, value) => key in obj ? __defProp$s(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$s = (obj, key, value) => __defNormalProp$s(obj, typeof key !== "symbol" ? key + "" : key, value);
   function parseTimeAllowed(value, fieldName) {
     try {
       check12ValidFormat(fieldName, value, scorm12_regex.CMITimespan, true);
@@ -16233,9 +16767,10 @@ ${stackTrace}`);
      */
     constructor(student_data_children) {
       super("cmi.student_data");
-      this._mastery_score = "";
-      this._max_time_allowed = "";
-      this._time_limit_action = "";
+      __publicField$s(this, "__children");
+      __publicField$s(this, "_mastery_score", "");
+      __publicField$s(this, "_max_time_allowed", "");
+      __publicField$s(this, "_time_limit_action", "");
       this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
     }
     /**
@@ -16355,6 +16890,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$r = Object.defineProperty;
+  var __defNormalProp$r = (obj, key, value) => key in obj ? __defProp$r(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$r = (obj, key, value) => __defNormalProp$r(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIStudentPreference extends BaseCMI {
     /**
      * Constructor for cmi.student_preference
@@ -16362,10 +16905,11 @@ ${stackTrace}`);
      */
     constructor(student_preference_children) {
       super("cmi.student_preference");
-      this._audio = "";
-      this._language = "";
-      this._speed = "";
-      this._text = "";
+      __publicField$r(this, "__children");
+      __publicField$r(this, "_audio", "");
+      __publicField$r(this, "_language", "");
+      __publicField$r(this, "_speed", "");
+      __publicField$r(this, "_text", "");
       this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
     }
     /**
@@ -16487,6 +17031,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$q = Object.defineProperty;
+  var __defNormalProp$q = (obj, key, value) => key in obj ? __defProp$q(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$q = (obj, key, value) => __defNormalProp$q(obj, typeof key !== "symbol" ? key + "" : key, value);
   let CMIInteractions$1 = class CMIInteractions extends CMIArray {
     /**
      * Constructor for `cmi.interactions`
@@ -16506,13 +17058,15 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.n");
-      this._id = "";
-      this._time = "";
-      this._type = "";
-      this._weighting = "";
-      this._student_response = "";
-      this._result = "";
-      this._latency = "";
+      __publicField$q(this, "objectives");
+      __publicField$q(this, "correct_responses");
+      __publicField$q(this, "_id", "");
+      __publicField$q(this, "_time", "");
+      __publicField$q(this, "_type", "");
+      __publicField$q(this, "_weighting", "");
+      __publicField$q(this, "_student_response", "");
+      __publicField$q(this, "_result", "");
+      __publicField$q(this, "_latency", "");
       this.objectives = new CMIArray({
         CMIElement: "cmi.interactions.n.objectives",
         errorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -16731,7 +17285,7 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.n.objectives.n");
-      this._id = "";
+      __publicField$q(this, "_id", "");
     }
     /**
      * Called when the API has been reset
@@ -16782,7 +17336,7 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.correct_responses.n");
-      this._pattern = "";
+      __publicField$q(this, "_pattern", "");
     }
     /**
      * Called when the API has been reset
@@ -16828,6 +17382,14 @@ ${stackTrace}`);
     }
   };
 
+  var __defProp$p = Object.defineProperty;
+  var __defNormalProp$p = (obj, key, value) => key in obj ? __defProp$p(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$p = (obj, key, value) => __defNormalProp$p(obj, typeof key !== "symbol" ? key + "" : key, value);
   let CMI$1 = class CMI extends BaseRootCMI {
     /**
      * Constructor for the SCORM 1.2 cmi object
@@ -16837,11 +17399,16 @@ ${stackTrace}`);
      */
     constructor(cmi_children, student_data, initialized) {
       super("cmi");
-      this.__children = "";
-      this.__version = "3.4";
-      this._launch_data = "";
-      this._comments = "";
-      this._comments_from_lms = "";
+      __publicField$p(this, "__children", "");
+      __publicField$p(this, "__version", "3.4");
+      __publicField$p(this, "_launch_data", "");
+      __publicField$p(this, "_comments", "");
+      __publicField$p(this, "_comments_from_lms", "");
+      __publicField$p(this, "core");
+      __publicField$p(this, "objectives");
+      __publicField$p(this, "student_data");
+      __publicField$p(this, "student_preference");
+      __publicField$p(this, "interactions");
       if (initialized) this.initialize();
       this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
       this.core = new CMICore();
@@ -17031,13 +17598,21 @@ ${stackTrace}`);
     }
   };
 
+  var __defProp$o = Object.defineProperty;
+  var __defNormalProp$o = (obj, key, value) => key in obj ? __defProp$o(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$o = (obj, key, value) => __defNormalProp$o(obj, key + "" , value);
   class NAV extends BaseCMI {
     /**
      * Constructor for NAV object
      */
     constructor() {
       super("cmi.nav");
-      this._event = "";
+      __publicField$o(this, "_event", "");
     }
     /**
      * Called when the API has been reset
@@ -17088,6 +17663,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$n = Object.defineProperty;
+  var __defNormalProp$n = (obj, key, value) => key in obj ? __defProp$n(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$n = (obj, key, value) => __defNormalProp$n(obj, typeof key !== "symbol" ? key + "" : key, value);
   const _Scorm12API = class _Scorm12API extends BaseAPI {
     /**
      * Constructor for SCORM 1.2 API
@@ -17104,7 +17687,17 @@ ${stackTrace}`);
         }
       }
       super(scorm12_errors, settingsCopy, httpService);
-      this.statusSetByModule = false;
+      __publicField$n(this, "statusSetByModule", false);
+      __publicField$n(this, "cmi");
+      __publicField$n(this, "nav");
+      __publicField$n(this, "LMSInitialize");
+      __publicField$n(this, "LMSFinish");
+      __publicField$n(this, "LMSGetValue");
+      __publicField$n(this, "LMSSetValue");
+      __publicField$n(this, "LMSCommit");
+      __publicField$n(this, "LMSGetLastError");
+      __publicField$n(this, "LMSGetErrorString");
+      __publicField$n(this, "LMSGetDiagnostic");
       this.cmi = new CMI$1();
       this.nav = new NAV();
       if (this.settings.globalStudentPreferences && _Scorm12API._globalLearnerPrefs) {
@@ -17331,7 +17924,7 @@ ${stackTrace}`);
      */
     setCMIValue(CMIElement, value) {
       const result = this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
-      if (this.settings.globalStudentPreferences) {
+      if (result === global_constants.SCORM_TRUE && this.settings.globalStudentPreferences) {
         if (CMIElement === "cmi.student_preference.audio") {
           this._updateGlobalPreference("audio", value);
         } else if (CMIElement === "cmi.student_preference.language") {
@@ -17439,7 +18032,7 @@ ${stackTrace}`);
       const flattened = flatten(cmiExport);
       switch (this.settings.dataCommitFormat) {
         case "flattened":
-          return flatten(cmiExport);
+          return flattened;
         case "params":
           for (const item in flattened) {
             if ({}.hasOwnProperty.call(flattened, item)) {
@@ -17562,20 +18155,28 @@ ${stackTrace}`);
    * When globalStudentPreferences is enabled, preferences persist across SCO instances
    * @private
    */
-  _Scorm12API._globalLearnerPrefs = null;
+  __publicField$n(_Scorm12API, "_globalLearnerPrefs", null);
   let Scorm12API = _Scorm12API;
 
+  var __defProp$m = Object.defineProperty;
+  var __defNormalProp$m = (obj, key, value) => key in obj ? __defProp$m(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$m = (obj, key, value) => __defNormalProp$m(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMILearnerPreference extends BaseCMI {
     /**
      * Constructor for cmi.learner_preference
      */
     constructor() {
       super("cmi.learner_preference");
-      this.__children = scorm2004_constants.student_preference_children;
-      this._audio_level = "1";
-      this._language = "";
-      this._delivery_speed = "1";
-      this._audio_captioning = "0";
+      __publicField$m(this, "__children", scorm2004_constants.student_preference_children);
+      __publicField$m(this, "_audio_level", "1");
+      __publicField$m(this, "_language", "");
+      __publicField$m(this, "_delivery_speed", "1");
+      __publicField$m(this, "_audio_captioning", "0");
     }
     /**
      * Called when the API has been reset
@@ -17691,6 +18292,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$l = Object.defineProperty;
+  var __defNormalProp$l = (obj, key, value) => key in obj ? __defProp$l(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$l = (obj, key, value) => __defNormalProp$l(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIInteractions extends CMIArray {
     /**
      * Constructor for `cmi.interactions` Array
@@ -17714,15 +18323,17 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.n");
-      this._id = "";
-      this._idIsSet = false;
-      this._type = "";
-      this._timestamp = "";
-      this._weighting = "";
-      this._learner_response = "";
-      this._result = "";
-      this._latency = "";
-      this._description = "";
+      __publicField$l(this, "_id", "");
+      __publicField$l(this, "_idIsSet", false);
+      __publicField$l(this, "_type", "");
+      __publicField$l(this, "_timestamp", "");
+      __publicField$l(this, "_weighting", "");
+      __publicField$l(this, "_learner_response", "");
+      __publicField$l(this, "_result", "");
+      __publicField$l(this, "_latency", "");
+      __publicField$l(this, "_description", "");
+      __publicField$l(this, "objectives");
+      __publicField$l(this, "correct_responses");
       this.objectives = new CMIArray({
         CMIElement: "cmi.interactions.n.objectives",
         errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
@@ -18023,7 +18634,7 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.interactions.n.objectives.n");
-      this._id = "";
+      __publicField$l(this, "_id", "");
     }
     /**
      * Called when the API has been reset
@@ -18198,7 +18809,8 @@ ${stackTrace}`);
      */
     constructor(interactionType) {
       super("cmi.interactions.n.correct_responses.n");
-      this._pattern = "";
+      __publicField$l(this, "_pattern", "");
+      __publicField$l(this, "_interactionType");
       this._interactionType = interactionType;
     }
     reset() {
@@ -18236,6 +18848,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$k = Object.defineProperty;
+  var __defNormalProp$k = (obj, key, value) => key in obj ? __defProp$k(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$k = (obj, key, value) => __defNormalProp$k(obj, key + "" , value);
   class Scorm2004CMIScore extends CMIScore {
     /**
      * Constructor for cmi *.score
@@ -18251,7 +18871,7 @@ ${stackTrace}`);
         decimalRegex: scorm2004_regex.CMIDecimal,
         errorClass: Scorm2004ValidationError
       });
-      this._scaled = "";
+      __publicField$k(this, "_scaled", "");
     }
     /**
      * Called when the API has been reset
@@ -18311,6 +18931,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$j = Object.defineProperty;
+  var __defNormalProp$j = (obj, key, value) => key in obj ? __defProp$j(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$j = (obj, key, value) => __defNormalProp$j(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMICommentsFromLMS extends CMIArray {
     /**
      * Constructor for cmi.comments_from_lms Array
@@ -18345,9 +18973,10 @@ ${stackTrace}`);
     constructor() {
       let readOnlyAfterInit = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       super("cmi.comments_from_learner.n");
-      this._comment = "";
-      this._location = "";
-      this._timestamp = "";
+      __publicField$j(this, "_comment", "");
+      __publicField$j(this, "_location", "");
+      __publicField$j(this, "_timestamp", "");
+      __publicField$j(this, "_readOnlyAfterInit");
       this._comment = "";
       this._location = "";
       this._timestamp = "";
@@ -18441,6 +19070,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$i = Object.defineProperty;
+  var __defNormalProp$i = (obj, key, value) => key in obj ? __defProp$i(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$i = (obj, key, value) => __defNormalProp$i(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIObjectives extends CMIArray {
     /**
      * Constructor for `cmi.objectives` Array
@@ -18478,12 +19115,13 @@ ${stackTrace}`);
      */
     constructor() {
       super("cmi.objectives.n");
-      this._id = "";
-      this._idIsSet = false;
-      this._success_status = "unknown";
-      this._completion_status = "unknown";
-      this._progress_measure = "";
-      this._description = "";
+      __publicField$i(this, "_id", "");
+      __publicField$i(this, "_idIsSet", false);
+      __publicField$i(this, "_success_status", "unknown");
+      __publicField$i(this, "_completion_status", "unknown");
+      __publicField$i(this, "_progress_measure", "");
+      __publicField$i(this, "_description", "");
+      __publicField$i(this, "score");
       this.score = new Scorm2004CMIScore();
     }
     reset() {
@@ -18655,14 +19293,22 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$h = Object.defineProperty;
+  var __defNormalProp$h = (obj, key, value) => key in obj ? __defProp$h(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$h = (obj, key, value) => __defNormalProp$h(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIMetadata extends BaseCMI {
     /**
      * Constructor for CMIMetadata
      */
     constructor() {
       super("cmi");
-      this.__version = "1.0";
-      this.__children = scorm2004_constants.cmi_children;
+      __publicField$h(this, "__version", "1.0");
+      __publicField$h(this, "__children", scorm2004_constants.cmi_children);
     }
     /**
      * Getter for __version
@@ -18700,14 +19346,22 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$g = Object.defineProperty;
+  var __defNormalProp$g = (obj, key, value) => key in obj ? __defProp$g(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$g = (obj, key, value) => __defNormalProp$g(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMILearner extends BaseCMI {
     /**
      * Constructor for CMILearner
      */
     constructor() {
       super("cmi");
-      this._learner_id = "";
-      this._learner_name = "";
+      __publicField$g(this, "_learner_id", "");
+      __publicField$g(this, "_learner_name", "");
     }
     /**
      * Getter for _learner_id
@@ -18753,15 +19407,23 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$f = Object.defineProperty;
+  var __defNormalProp$f = (obj, key, value) => key in obj ? __defProp$f(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$f = (obj, key, value) => __defNormalProp$f(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIStatus extends BaseCMI {
     /**
      * Constructor for CMIStatus
      */
     constructor() {
       super("cmi");
-      this._completion_status = "unknown";
-      this._success_status = "unknown";
-      this._progress_measure = "";
+      __publicField$f(this, "_completion_status", "unknown");
+      __publicField$f(this, "_success_status", "unknown");
+      __publicField$f(this, "_progress_measure", "");
     }
     /**
      * Getter for _completion_status
@@ -18822,16 +19484,24 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$e = Object.defineProperty;
+  var __defNormalProp$e = (obj, key, value) => key in obj ? __defProp$e(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$e = (obj, key, value) => __defNormalProp$e(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMISession extends BaseCMI {
     /**
      * Constructor for CMISession
      */
     constructor() {
       super("cmi");
-      this._entry = "";
-      this._exit = "";
-      this._session_time = "PT0H0M0S";
-      this._total_time = "PT0S";
+      __publicField$e(this, "_entry", "");
+      __publicField$e(this, "_exit", "");
+      __publicField$e(this, "_session_time", "PT0H0M0S");
+      __publicField$e(this, "_total_time", "PT0S");
     }
     /**
      * Getter for _entry
@@ -18950,15 +19620,23 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$d = Object.defineProperty;
+  var __defNormalProp$d = (obj, key, value) => key in obj ? __defProp$d(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$d = (obj, key, value) => __defNormalProp$d(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIContent extends BaseCMI {
     /**
      * Constructor for CMIContent
      */
     constructor() {
       super("cmi");
-      this._location = "";
-      this._launch_data = "";
-      this._suspend_data = "";
+      __publicField$d(this, "_location", "");
+      __publicField$d(this, "_launch_data", "");
+      __publicField$d(this, "_suspend_data", "");
     }
     /**
      * Getter for _location
@@ -19020,16 +19698,24 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$c = Object.defineProperty;
+  var __defNormalProp$c = (obj, key, value) => key in obj ? __defProp$c(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$c = (obj, key, value) => __defNormalProp$c(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMISettings extends BaseCMI {
     /**
      * Constructor for CMISettings
      */
     constructor() {
       super("cmi");
-      this._credit = "credit";
-      this._mode = "normal";
-      this._time_limit_action = "continue,no message";
-      this._max_time_allowed = "";
+      __publicField$c(this, "_credit", "credit");
+      __publicField$c(this, "_mode", "normal");
+      __publicField$c(this, "_time_limit_action", "continue,no message");
+      __publicField$c(this, "_max_time_allowed", "");
     }
     /**
      * Getter for _credit
@@ -19124,14 +19810,22 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$b = Object.defineProperty;
+  var __defNormalProp$b = (obj, key, value) => key in obj ? __defProp$b(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$b = (obj, key, value) => __defNormalProp$b(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIThresholds extends BaseCMI {
     /**
      * Constructor for CMIThresholds
      */
     constructor() {
       super("cmi");
-      this._scaled_passing_score = "";
-      this._completion_threshold = "";
+      __publicField$b(this, "_scaled_passing_score", "");
+      __publicField$b(this, "_completion_threshold", "");
     }
     /**
      * Getter for _scaled_passing_score
@@ -19199,6 +19893,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$a = Object.defineProperty;
+  var __defNormalProp$a = (obj, key, value) => key in obj ? __defProp$a(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$a = (obj, key, value) => __defNormalProp$a(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMI extends BaseRootCMI {
     /**
      * Constructor for the SCORM 2004 cmi object
@@ -19207,6 +19909,21 @@ ${stackTrace}`);
     constructor() {
       let initialized = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       super("cmi");
+      // New component classes
+      __publicField$a(this, "metadata");
+      __publicField$a(this, "learner");
+      __publicField$a(this, "status");
+      __publicField$a(this, "session");
+      __publicField$a(this, "content");
+      __publicField$a(this, "settings");
+      __publicField$a(this, "thresholds");
+      // Original complex objects
+      __publicField$a(this, "learner_preference");
+      __publicField$a(this, "score");
+      __publicField$a(this, "comments_from_learner");
+      __publicField$a(this, "comments_from_lms");
+      __publicField$a(this, "interactions");
+      __publicField$a(this, "objectives");
       this.metadata = new CMIMetadata();
       this.learner = new CMILearner();
       this.status = new CMIStatus();
@@ -19660,14 +20377,23 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$9 = Object.defineProperty;
+  var __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$9 = (obj, key, value) => __defNormalProp$9(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ADL extends BaseCMI {
     /**
      * Constructor for adl
      */
     constructor() {
       super("adl");
-      this.data = new ADLData();
-      this._sequencing = null;
+      __publicField$9(this, "nav");
+      __publicField$9(this, "data", new ADLData());
+      __publicField$9(this, "_sequencing", null);
       this.nav = new ADLNav();
       this.data = new ADLData();
     }
@@ -19728,8 +20454,9 @@ ${stackTrace}`);
      */
     constructor() {
       super("adl.nav");
-      this._request = "_none_";
-      this._sequencing = null;
+      __publicField$9(this, "_request", "_none_");
+      __publicField$9(this, "_sequencing", null);
+      __publicField$9(this, "request_valid");
       this.request_valid = new ADLNavRequestValid();
       this.request_valid.setParentNav(this);
     }
@@ -19813,10 +20540,10 @@ ${stackTrace}`);
   class ADLDataObject extends BaseCMI {
     constructor() {
       super("adl.data.n");
-      this._id = "";
-      this._store = "";
-      this._idIsSet = false;
-      this._storeIsSet = false;
+      __publicField$9(this, "_id", "");
+      __publicField$9(this, "_store", "");
+      __publicField$9(this, "_idIsSet", false);
+      __publicField$9(this, "_storeIsSet", false);
     }
     /**
      * Called when the API has been reset
@@ -19895,8 +20622,8 @@ ${stackTrace}`);
   }
   class ADLNavRequestValidChoice {
     constructor() {
-      this._parentNav = null;
-      this._staticValues = {};
+      __publicField$9(this, "_parentNav", null);
+      __publicField$9(this, "_staticValues", {});
     }
     setParentNav(nav) {
       this._parentNav = nav;
@@ -19941,8 +20668,8 @@ ${stackTrace}`);
   }
   class ADLNavRequestValidJump {
     constructor() {
-      this._parentNav = null;
-      this._staticValues = {};
+      __publicField$9(this, "_parentNav", null);
+      __publicField$9(this, "_staticValues", {});
     }
     setParentNav(nav) {
       this._parentNav = nav;
@@ -19984,14 +20711,16 @@ ${stackTrace}`);
      */
     constructor() {
       super("adl.nav.request_valid");
-      this._continue = "unknown";
-      this._previous = "unknown";
-      this._exit = "unknown";
-      this._exitAll = "unknown";
-      this._abandon = "unknown";
-      this._abandonAll = "unknown";
-      this._suspendAll = "unknown";
-      this._parentNav = null;
+      __publicField$9(this, "_continue", "unknown");
+      __publicField$9(this, "_previous", "unknown");
+      __publicField$9(this, "_choice");
+      __publicField$9(this, "_jump");
+      __publicField$9(this, "_exit", "unknown");
+      __publicField$9(this, "_exitAll", "unknown");
+      __publicField$9(this, "_abandon", "unknown");
+      __publicField$9(this, "_abandonAll", "unknown");
+      __publicField$9(this, "_suspendAll", "unknown");
+      __publicField$9(this, "_parentNav", null);
       this._choice = new ADLNavRequestValidChoice();
       this._jump = new ADLNavRequestValidJump();
     }
@@ -20271,16 +21000,24 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$8 = Object.defineProperty;
+  var __defNormalProp$8 = (obj, key, value) => key in obj ? __defProp$8(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$8 = (obj, key, value) => __defNormalProp$8(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ActivityTree extends BaseCMI {
     /**
      * Constructor for ActivityTree
      */
     constructor(root) {
       super("activityTree");
-      this._root = null;
-      this._currentActivity = null;
-      this._suspendedActivity = null;
-      this._activities = /* @__PURE__ */new Map();
+      __publicField$8(this, "_root", null);
+      __publicField$8(this, "_currentActivity", null);
+      __publicField$8(this, "_suspendedActivity", null);
+      __publicField$8(this, "_activities", /* @__PURE__ */new Map());
       if (root) {
         this.root = root;
       }
@@ -20594,16 +21331,28 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$7 = Object.defineProperty;
+  var __defNormalProp$7 = (obj, key, value) => key in obj ? __defProp$7(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$7 = (obj, key, value) => __defNormalProp$7(obj, typeof key !== "symbol" ? key + "" : key, value);
   class Sequencing extends BaseCMI {
     /**
      * Constructor for Sequencing
      */
     constructor() {
       super("sequencing");
-      this._adlNav = null;
-      this._hideLmsUi = [];
-      this._auxiliaryResources = [];
-      this._overallSequencingProcess = null;
+      __publicField$7(this, "_activityTree");
+      __publicField$7(this, "_sequencingRules");
+      __publicField$7(this, "_sequencingControls");
+      __publicField$7(this, "_rollupRules");
+      __publicField$7(this, "_adlNav", null);
+      __publicField$7(this, "_hideLmsUi", []);
+      __publicField$7(this, "_auxiliaryResources", []);
+      __publicField$7(this, "_overallSequencingProcess", null);
       this._activityTree = new ActivityTree();
       this._sequencingRules = new SequencingRules();
       this._sequencingControls = new SequencingControls();
@@ -20796,8 +21545,17 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$6 = Object.defineProperty;
+  var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$6 = (obj, key, value) => __defNormalProp$6(obj, key + "" , value);
   class Scorm2004ResponseValidator {
     constructor(context) {
+      __publicField$6(this, "context");
       this.context = context;
     }
     /**
@@ -20955,7 +21713,7 @@ ${stackTrace}`);
       let seenLang = false;
       const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
       let matches = node.match(prefixRegex);
-      let langMatches = null;
+      let langMatches;
       while (matches) {
         switch (matches[2]) {
           case "lang":
@@ -20994,8 +21752,18 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$5 = Object.defineProperty;
+  var __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$5 = (obj, key, value) => __defNormalProp$5(obj, typeof key !== "symbol" ? key + "" : key, value);
   class Scorm2004CMIHandler {
     constructor(context, responseValidator) {
+      __publicField$5(this, "context");
+      __publicField$5(this, "responseValidator");
       this.context = context;
       this.responseValidator = responseValidator;
     }
@@ -21630,8 +22398,18 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$4 = Object.defineProperty;
+  var __defNormalProp$4 = (obj, key, value) => key in obj ? __defProp$4(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$4 = (obj, key, value) => __defNormalProp$4(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ActivityTreeBuilder {
     constructor(collections, sequencingConfigBuilder) {
+      __publicField$4(this, "sequencingCollections");
+      __publicField$4(this, "sequencingConfigBuilder");
       this.sequencingCollections = collections || {};
       this.sequencingConfigBuilder = sequencingConfigBuilder || new SequencingConfigurationBuilder();
     }
@@ -21799,9 +22577,18 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$3 = Object.defineProperty;
+  var __defNormalProp$3 = (obj, key, value) => key in obj ? __defProp$3(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$3 = (obj, key, value) => __defNormalProp$3(obj, typeof key !== "symbol" ? key + "" : key, value);
   class GlobalObjectiveManager {
     constructor(context) {
-      this._globalObjectives = [];
+      __publicField$3(this, "_globalObjectives", []);
+      __publicField$3(this, "context");
       this.context = context;
     }
     /**
@@ -22188,8 +22975,18 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$2 = Object.defineProperty;
+  var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$2 = (obj, key, value) => __defNormalProp$2(obj, typeof key !== "symbol" ? key + "" : key, value);
   class SequencingStatePersistence {
     constructor(context, globalObjectiveManager) {
+      __publicField$2(this, "context");
+      __publicField$2(this, "globalObjectiveManager");
       this.context = context;
       this.globalObjectiveManager = globalObjectiveManager;
     }
@@ -22401,8 +23198,18 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp$1 = Object.defineProperty;
+  var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$1 = (obj, key, value) => __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
   class Scorm2004DataSerializer {
     constructor(context, globalObjectiveManager) {
+      __publicField$1(this, "context");
+      __publicField$1(this, "globalObjectiveManager");
       this.context = context;
       this.globalObjectiveManager = globalObjectiveManager || null;
     }
@@ -22549,6 +23356,14 @@ ${stackTrace}`);
     }
   }
 
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   class Scorm2004API extends BaseAPI {
     /**
      * Constructor for SCORM 2004 API
@@ -22565,11 +23380,29 @@ ${stackTrace}`);
         }
       }
       super(scorm2004_errors, settingsCopy, httpService);
-      this._version = "1.0";
-      this._sequencingService = null;
-      this._extractedScoItemIds = [];
-      this._sequencingCollections = {};
-      this._statePersistence = null;
+      __publicField(this, "_version", "1.0");
+      __publicField(this, "_sequencing");
+      __publicField(this, "_sequencingService", null);
+      __publicField(this, "_extractedScoItemIds", []);
+      __publicField(this, "_sequencingCollections", {});
+      // Extracted class instances
+      __publicField(this, "_responseValidator");
+      __publicField(this, "_cmiHandler");
+      __publicField(this, "_activityTreeBuilder");
+      __publicField(this, "_sequencingConfigBuilder");
+      __publicField(this, "_globalObjectiveManager");
+      __publicField(this, "_statePersistence", null);
+      __publicField(this, "_dataSerializer");
+      __publicField(this, "cmi");
+      __publicField(this, "adl");
+      __publicField(this, "Initialize");
+      __publicField(this, "Terminate");
+      __publicField(this, "GetValue");
+      __publicField(this, "SetValue");
+      __publicField(this, "Commit");
+      __publicField(this, "GetLastError");
+      __publicField(this, "GetErrorString");
+      __publicField(this, "GetDiagnostic");
       this.cmi = new CMI();
       this.adl = new ADL();
       this._sequencing = new Sequencing();
@@ -22764,6 +23597,7 @@ ${stackTrace}`);
               processedSequencingRequest = requestToProcess;
             }
           } catch (error) {
+            this.apiLog("lmsFinish", `Sequencing navigation failed, falling back to event-based navigation: ${error}`, LogLevelEnum.WARN);
             navigationHandled = false;
           }
         }
@@ -22801,6 +23635,14 @@ ${stackTrace}`);
      * @return {string} The value of the element, or empty string
      */
     lmsGetValue(CMIElement) {
+      if (this.isTerminated()) {
+        this.lastErrorCode = String(scorm2004_errors.RETRIEVE_AFTER_TERM);
+        return "";
+      }
+      if (!this.isInitialized()) {
+        this.lastErrorCode = String(scorm2004_errors.RETRIEVE_BEFORE_INIT);
+        return "";
+      }
       if (CMIElement === "adl.nav.request") {
         this.throwSCORMError(CMIElement, scorm2004_errors.WRITE_ONLY_ELEMENT, "adl.nav.request is write-only");
         return "";
@@ -22829,14 +23671,6 @@ ${stackTrace}`);
           }
         }
       }
-      if (this.isTerminated()) {
-        this.lastErrorCode = String(scorm2004_errors.RETRIEVE_AFTER_TERM);
-        return "";
-      }
-      if (!this.isInitialized()) {
-        this.lastErrorCode = String(scorm2004_errors.RETRIEVE_BEFORE_INIT);
-        return "";
-      }
       if (CMIElement === "cmi.completion_status") {
         return this._cmiHandler.evaluateCompletionStatus();
       }
@@ -22853,12 +23687,7 @@ ${stackTrace}`);
      * @return {string} "true" or "false"
      */
     lmsSetValue(CMIElement, value) {
-      let oldValue = null;
-      try {
-        oldValue = this.getCMIValue(CMIElement);
-      } catch (error) {
-        oldValue = null;
-      }
+      const oldValue = this._peekCMIValue(CMIElement);
       const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
       if (result === global_constants.SCORM_TRUE && this._sequencingService) {
         try {
@@ -22983,6 +23812,48 @@ ${stackTrace}`);
         return;
       }
       this._responseValidator.validateCorrectResponse(CMIElement, interaction, value);
+    }
+    /**
+     * Silently peeks at a CMI value without triggering error logging or
+     * mutating lastErrorCode. Returns null if the element doesn't exist.
+     * Used internally to capture old values before SetValue overwrites them.
+     *
+     * @param {string} CMIElement - dot-delimited CMI path (e.g. "cmi.interactions.0.id")
+     * @return {*} the current value, or null if the path doesn't resolve
+     */
+    _peekCMIValue(CMIElement) {
+      if (!CMIElement || typeof CMIElement !== "string") {
+        return null;
+      }
+      const segments = CMIElement.split(".");
+      let refObject = this;
+      for (let i = 0; i < segments.length; i++) {
+        const attribute = segments[i];
+        if (refObject == null) {
+          return null;
+        }
+        try {
+          refObject = refObject[attribute];
+        } catch {
+          return null;
+        }
+        if (refObject instanceof CMIArray) {
+          const nextIndex = i + 1;
+          if (nextIndex >= segments.length) {
+            return refObject;
+          }
+          const nextSegment = segments[nextIndex];
+          const index = Number(nextSegment);
+          if (!Number.isNaN(index) && Number.isInteger(index) && index >= 0) {
+            if (index >= refObject.childArray.length) {
+              return null;
+            }
+            refObject = refObject.childArray[index];
+            i++;
+          }
+        }
+      }
+      return refObject ?? null;
     }
     /**
      * Gets a value from the CMI Object

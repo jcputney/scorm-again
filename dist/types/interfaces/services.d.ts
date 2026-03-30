@@ -8,9 +8,10 @@ export interface IHttpService {
     processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate: boolean, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void, processListeners: (functionName: string, CMIElement?: string, value?: any) => void): ResultObject;
     updateSettings(settings: Settings): void;
 }
+export type ScormEventCallback = (...args: any[]) => void;
 export interface IEventService {
-    on(listenerName: string, callback: Function): void;
-    off(listenerName: string, callback: Function): void;
+    on(listenerName: string, callback: ScormEventCallback): void;
+    off(listenerName: string, callback: ScormEventCallback): void;
     clear(listenerName: string): void;
     processListeners(functionName: string, CMIElement?: string, value?: any): void;
     reset(): void;

@@ -8,7 +8,7 @@ const designations = {
   M: SECONDS_PER_MINUTE,
   S: SECONDS_PER_SECOND
 };
-const getSecondsAsHHMMSS = memoize((totalSeconds) => {
+const getSecondsAsHHMMSS = (totalSeconds) => {
   if (!totalSeconds || totalSeconds <= 0) {
     return "00:00:00";
   }
@@ -27,8 +27,8 @@ const getSecondsAsHHMMSS = memoize((totalSeconds) => {
     msStr = "." + msStr.split(".")[1];
   }
   return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-});
-const getSecondsAsISODuration = memoize((seconds) => {
+};
+const getSecondsAsISODuration = (seconds) => {
   if (!seconds || seconds <= 0) {
     return "PT0S";
   }
@@ -53,7 +53,7 @@ const getSecondsAsISODuration = memoize((seconds) => {
     }
   });
   return duration;
-});
+};
 const getTimeAsSeconds = memoize(
   (timeString, timeRegex) => {
     if (typeof timeString === "number" || typeof timeString === "boolean") {
@@ -270,17 +270,18 @@ function parseNavigationRequest(navRequest) {
 
 class BaseCMI {
   /**
+   * Flag used during JSON serialization to allow getter access without initialization checks.
+   * When true, getters can be accessed before the API is initialized, which is necessary
+   * for serializing the CMI data structure to JSON format.
+   */
+  jsonString = false;
+  _cmi_element;
+  _initialized = false;
+  /**
    * Constructor for BaseCMI
    * @param {string} cmi_element
    */
   constructor(cmi_element) {
-    /**
-     * Flag used during JSON serialization to allow getter access without initialization checks.
-     * When true, getters can be accessed before the API is initialized, which is necessary
-     * for serializing the CMI data structure to JSON format.
-     */
-    this.jsonString = false;
-    this._initialized = false;
     this._cmi_element = cmi_element;
   }
   /**
@@ -298,6 +299,7 @@ class BaseCMI {
   }
 }
 class BaseRootCMI extends BaseCMI {
+  _start_time;
   /**
    * Start time of the session
    * @type {number | undefined}
@@ -324,6 +326,7 @@ class BaseScormValidationError extends Error {
     this._errorCode = errorCode;
     Object.setPrototypeOf(this, BaseScormValidationError.prototype);
   }
+  _errorCode;
   /**
    * Getter for _errorCode
    * @return {number}
@@ -342,7 +345,6 @@ class ValidationError extends BaseScormValidationError {
    */
   constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
     super(CMIElement, errorCode);
-    this._detailedMessage = "";
     this.message = `${CMIElement} : ${errorMessage}`;
     this._errorMessage = errorMessage;
     if (detailedMessage) {
@@ -350,6 +352,8 @@ class ValidationError extends BaseScormValidationError {
     }
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
+  _errorMessage;
+  _detailedMessage = "";
   /**
    * Getter for _errorMessage
    * @return {string}
@@ -688,6 +692,10 @@ const scorm2004_errors = {
 };
 
 class CMIArray extends BaseCMI {
+  _errorCode;
+  _errorClass;
+  __children;
+  childArray;
   /**
    * Constructor cmi *.n arrays
    * @param {object} params
@@ -1696,6 +1704,10 @@ const ValidLanguages = [
 ];
 
 class ScheduledCommit {
+  _API;
+  _cancelled = false;
+  _timeout;
+  _callback;
   /**
    * Constructor for ScheduledCommit
    * @param {BaseAPI} API
@@ -1703,7 +1715,6 @@ class ScheduledCommit {
    * @param {string} callback
    */
   constructor(API, when, callback) {
-    this._cancelled = false;
     this._API = API;
     this._timeout = setTimeout(this.wrapper.bind(this), when);
     this._callback = callback;
@@ -1760,6 +1771,14 @@ var RuleActionType = /* @__PURE__ */ ((RuleActionType2) => {
   return RuleActionType2;
 })(RuleActionType || {});
 class RuleCondition extends BaseCMI {
+  _condition = "always" /* ALWAYS */;
+  _operator = null;
+  _parameters = /* @__PURE__ */ new Map();
+  _referencedObjective = null;
+  // Optional, overridable provider for current time (LMS may set via SequencingService)
+  static _now = () => /* @__PURE__ */ new Date();
+  // Optional, overridable hook for getting elapsed seconds
+  static _getElapsedSecondsHook = void 0;
   /**
    * Constructor for RuleCondition
    * @param {RuleConditionType} condition - The condition type
@@ -1768,21 +1787,9 @@ class RuleCondition extends BaseCMI {
    */
   constructor(condition = "always" /* ALWAYS */, operator = null, parameters = /* @__PURE__ */ new Map()) {
     super("ruleCondition");
-    this._condition = "always" /* ALWAYS */;
-    this._operator = null;
-    this._parameters = /* @__PURE__ */ new Map();
-    this._referencedObjective = null;
     this._condition = condition;
     this._operator = operator;
     this._parameters = parameters;
-  }
-  static {
-    // Optional, overridable provider for current time (LMS may set via SequencingService)
-    this._now = () => /* @__PURE__ */ new Date();
-  }
-  static {
-    // Optional, overridable hook for getting elapsed seconds
-    this._getElapsedSecondsHook = void 0;
   }
   /**
    * Allow integrators to override the clock used for time-based rules.
@@ -2051,6 +2058,9 @@ class RuleCondition extends BaseCMI {
   }
 }
 class SequencingRule extends BaseCMI {
+  _conditions = [];
+  _action = "skip" /* SKIP */;
+  _conditionCombination = "and" /* AND */;
   /**
    * Constructor for SequencingRule
    * @param {RuleActionType} action - The action to take when the rule conditions are met
@@ -2058,9 +2068,6 @@ class SequencingRule extends BaseCMI {
    */
   constructor(action = "skip" /* SKIP */, conditionCombination = "and" /* AND */) {
     super("sequencingRule");
-    this._conditions = [];
-    this._action = "skip" /* SKIP */;
-    this._conditionCombination = "and" /* AND */;
     this._action = action;
     this._conditionCombination = conditionCombination;
   }
@@ -2174,14 +2181,14 @@ class SequencingRule extends BaseCMI {
   }
 }
 class SequencingRules extends BaseCMI {
+  _preConditionRules = [];
+  _exitConditionRules = [];
+  _postConditionRules = [];
   /**
    * Constructor for SequencingRules
    */
   constructor() {
     super("sequencingRules");
-    this._preConditionRules = [];
-    this._exitConditionRules = [];
-    this._postConditionRules = [];
   }
   /**
    * Called when the API needs to be reset
@@ -2922,6 +2929,10 @@ var DeliveryRequestType = /* @__PURE__ */ ((DeliveryRequestType2) => {
   return DeliveryRequestType2;
 })(DeliveryRequestType || {});
 class SequencingResult {
+  deliveryRequest;
+  targetActivity;
+  exception;
+  endSequencingSession;
   constructor(deliveryRequest = "doNotDeliver" /* DO_NOT_DELIVER */, targetActivity = null, exception = null, endSequencingSession = false) {
     this.deliveryRequest = deliveryRequest;
     this.targetActivity = targetActivity;
@@ -2930,6 +2941,10 @@ class SequencingResult {
   }
 }
 class FlowSubprocessResult {
+  identifiedActivity;
+  deliverable;
+  exception;
+  endSequencingSession;
   constructor(identifiedActivity, deliverable, exception = null, endSequencingSession = false) {
     this.identifiedActivity = identifiedActivity;
     this.deliverable = deliverable;
@@ -2938,6 +2953,8 @@ class FlowSubprocessResult {
   }
 }
 class ChoiceTraversalResult {
+  activity;
+  exception;
   constructor(activity, exception = null) {
     this.activity = activity;
     this.exception = exception;
@@ -2950,6 +2967,8 @@ var FlowSubprocessMode = /* @__PURE__ */ ((FlowSubprocessMode2) => {
 })(FlowSubprocessMode || {});
 
 class RuleEvaluationEngine {
+  now;
+  getAttemptElapsedSecondsHook;
   constructor(options = {}) {
     this.now = options.now || (() => /* @__PURE__ */ new Date());
     this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
@@ -3250,42 +3269,42 @@ var RandomizationTiming = /* @__PURE__ */ ((RandomizationTiming2) => {
   return RandomizationTiming2;
 })(RandomizationTiming || {});
 class SequencingControls extends BaseCMI {
+  // Sequencing Control Modes
+  _enabled = true;
+  _choice = true;
+  _choiceExit = true;
+  // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
+  _flow = true;
+  _forwardOnly = false;
+  _useCurrentAttemptObjectiveInfo = true;
+  _useCurrentAttemptProgressInfo = true;
+  // Constrain Choice Controls
+  _preventActivation = false;
+  _constrainChoice = false;
+  // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
+  _stopForwardTraversal = false;
+  // Rollup Controls
+  _rollupObjectiveSatisfied = true;
+  _rollupProgressCompletion = true;
+  _objectiveMeasureWeight = 1;
+  // Selection Controls
+  _selectionTiming = "never" /* NEVER */;
+  _selectCount = null;
+  _selectionCountStatus = false;
+  _randomizeChildren = false;
+  // Randomization Controls
+  _randomizationTiming = "never" /* NEVER */;
+  _reorderChildren = false;
+  // Auto-completion/satisfaction controls
+  _completionSetByContent = false;
+  _objectiveSetByContent = false;
+  // Delivery Controls
+  _tracked = true;
   /**
    * Constructor for SequencingControls
    */
   constructor() {
     super("sequencingControls");
-    // Sequencing Control Modes
-    this._enabled = true;
-    this._choice = true;
-    this._choiceExit = true;
-    // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
-    this._flow = true;
-    this._forwardOnly = false;
-    this._useCurrentAttemptObjectiveInfo = true;
-    this._useCurrentAttemptProgressInfo = true;
-    // Constrain Choice Controls
-    this._preventActivation = false;
-    this._constrainChoice = false;
-    // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
-    this._stopForwardTraversal = false;
-    // Rollup Controls
-    this._rollupObjectiveSatisfied = true;
-    this._rollupProgressCompletion = true;
-    this._objectiveMeasureWeight = 1;
-    // Selection Controls
-    this._selectionTiming = "never" /* NEVER */;
-    this._selectCount = null;
-    this._selectionCountStatus = false;
-    this._randomizeChildren = false;
-    // Randomization Controls
-    this._randomizationTiming = "never" /* NEVER */;
-    this._reorderChildren = false;
-    // Auto-completion/satisfaction controls
-    this._completionSetByContent = false;
-    this._objectiveSetByContent = false;
-    // Delivery Controls
-    this._tracked = true;
   }
   /**
    * Reset the sequencing controls to their default values
@@ -4683,6 +4702,19 @@ class RetryRequestHandler {
 }
 
 class SequencingProcess {
+  activityTree;
+  // Extracted services
+  treeQueries;
+  constraintValidator;
+  ruleEngine;
+  traversalService;
+  // Request handlers
+  flowHandler;
+  choiceHandler;
+  exitHandler;
+  retryHandler;
+  // Time function (exposed for testing)
+  _now;
   /**
    * Get/set the current time function (used for testing time-dependent logic)
    */
@@ -4706,6 +4738,7 @@ class SequencingProcess {
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
+  _getAttemptElapsedSecondsHook;
   /**
    * Get/set the elapsed seconds hook (used for time-based rules)
    */
@@ -4940,9 +4973,12 @@ class SequencingProcess {
 }
 
 class ActivityDeliveryService {
+  eventService;
+  loggingService;
+  callbacks;
+  currentDeliveredActivity = null;
+  pendingDelivery = null;
   constructor(eventService, loggingService, callbacks = {}) {
-    this.currentDeliveredActivity = null;
-    this.pendingDelivery = null;
     this.eventService = eventService;
     this.loggingService = loggingService;
     this.callbacks = callbacks;
@@ -5028,6 +5064,8 @@ class ActivityDeliveryService {
 }
 
 class AsynchronousHttpService {
+  settings;
+  error_codes;
   /**
    * Constructor for AsynchronousHttpService
    * @param {Settings} settings - The settings object
@@ -5223,6 +5261,7 @@ function getErrorCode(errorCodes, key) {
   return code;
 }
 class CMIValueAccessService {
+  context;
   constructor(context) {
     this.context = context;
   }
@@ -5587,11 +5626,13 @@ class CMIValueAccessService {
 }
 
 class LoggingService {
+  static _instance;
+  _logLevel = LogLevelEnum.ERROR;
+  _logHandler;
   /**
    * Private constructor to prevent direct instantiation
    */
   constructor() {
-    this._logLevel = LogLevelEnum.ERROR;
     this._logHandler = defaultLogHandler;
   }
   /**
@@ -5745,6 +5786,12 @@ function getLoggingService() {
 }
 
 class ErrorHandlingService {
+  _lastErrorCode = "0";
+  _lastDiagnostic = "";
+  _errorCodes;
+  _apiLog;
+  _getLmsErrorMessageDetails;
+  _loggingService;
   /**
    * Constructor for ErrorHandlingService
    *
@@ -5754,8 +5801,6 @@ class ErrorHandlingService {
    * @param {ILoggingService} loggingService - Optional logging service instance
    */
   constructor(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
-    this._lastErrorCode = "0";
-    this._lastDiagnostic = "";
     this._errorCodes = errorCodes;
     this._apiLog = apiLog;
     this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
@@ -5902,15 +5947,17 @@ function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetail
 }
 
 class EventService {
+  // Map of function names to listeners for faster lookups
+  listenerMap = /* @__PURE__ */ new Map();
+  // Total count of listeners for logging
+  listenerCount = 0;
+  // Function to log API messages
+  apiLog;
   /**
    * Constructor for EventService
    * @param {Function} apiLog - Function to log API messages
    */
   constructor(apiLog) {
-    // Map of function names to listeners for faster lookups
-    this.listenerMap = /* @__PURE__ */ new Map();
-    // Total count of listeners for logging
-    this.listenerCount = 0;
     this.apiLog = apiLog;
   }
   /**
@@ -6078,10 +6125,6 @@ class OfflineStorageService {
    */
   constructor(settings, error_codes, apiLog) {
     this.apiLog = apiLog;
-    this.storeName = "scorm_again_offline_data";
-    this.syncQueue = "scorm_again_sync_queue";
-    this.isOnline = navigator.onLine;
-    this.syncInProgress = false;
     this.settings = settings;
     this.error_codes = error_codes;
     this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -6090,6 +6133,14 @@ class OfflineStorageService {
     window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
     window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
+  settings;
+  error_codes;
+  storeName = "scorm_again_offline_data";
+  syncQueue = "scorm_again_sync_queue";
+  isOnline = navigator.onLine;
+  syncInProgress = false;
+  boundOnlineStatusChangeHandler;
+  boundCustomNetworkStatusHandler;
   /**
    * Handle changes in online status
    */
@@ -6401,7 +6452,7 @@ class OfflineStorageService {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        throw new Error("storage quota exceeded - localStorage is full");
+        throw new Error("storage quota exceeded - localStorage is full", { cause: error });
       }
       throw error;
     }
@@ -6515,6 +6566,8 @@ var RollupConsiderationType = /* @__PURE__ */ ((RollupConsiderationType2) => {
   return RollupConsiderationType2;
 })(RollupConsiderationType || {});
 class RollupCondition extends BaseCMI {
+  _condition = "always" /* ALWAYS */;
+  _parameters = /* @__PURE__ */ new Map();
   /**
    * Constructor for RollupCondition
    * @param {RollupConditionType} condition - The condition type
@@ -6522,8 +6575,6 @@ class RollupCondition extends BaseCMI {
    */
   constructor(condition = "always" /* ALWAYS */, parameters = /* @__PURE__ */ new Map()) {
     super("rollupCondition");
-    this._condition = "always" /* ALWAYS */;
-    this._parameters = /* @__PURE__ */ new Map();
     this._condition = condition;
     this._parameters = parameters;
   }
@@ -6611,6 +6662,11 @@ class RollupCondition extends BaseCMI {
   }
 }
 class RollupRule extends BaseCMI {
+  _conditions = [];
+  _action = "satisfied" /* SATISFIED */;
+  _consideration = "all" /* ALL */;
+  _minimumCount = 0;
+  _minimumPercent = 0;
   /**
    * Constructor for RollupRule
    * @param {RollupActionType} action - The action to take when the rule conditions are met
@@ -6620,11 +6676,6 @@ class RollupRule extends BaseCMI {
    */
   constructor(action = "satisfied" /* SATISFIED */, consideration = "all" /* ALL */, minimumCount = 0, minimumPercent = 0) {
     super("rollupRule");
-    this._conditions = [];
-    this._action = "satisfied" /* SATISFIED */;
-    this._consideration = "all" /* ALL */;
-    this._minimumCount = 0;
-    this._minimumPercent = 0;
     this._action = action;
     this._consideration = consideration;
     this._minimumCount = minimumCount;
@@ -6777,12 +6828,12 @@ class RollupRule extends BaseCMI {
   }
 }
 class RollupRules extends BaseCMI {
+  _rules = [];
   /**
    * Constructor for RollupRules
    */
   constructor() {
     super("rollupRules");
-    this._rules = [];
   }
   /**
    * Called when the API needs to be reset
@@ -6973,22 +7024,28 @@ class RollupRules extends BaseCMI {
 }
 
 class ActivityObjective {
+  _id;
+  _description;
+  _satisfiedByMeasure;
+  _minNormalizedMeasure;
+  _mapInfo;
+  _isPrimary;
+  _satisfiedStatus = false;
+  _satisfiedStatusKnown = false;
+  // Note: measureStatus has no dirty flag because it is not synchronized to global
+  // objectives. It serves as a validity gate for other synced properties.
+  _measureStatus = false;
+  _normalizedMeasure = 0;
+  _progressMeasure = 0;
+  _progressMeasureStatus = false;
+  _completionStatus = CompletionStatus.UNKNOWN;
+  _progressStatus = false;
+  // Dirty flags for tracking which properties have been modified locally
+  _satisfiedStatusDirty = false;
+  _normalizedMeasureDirty = false;
+  _completionStatusDirty = false;
+  _progressMeasureDirty = false;
   constructor(id, options = {}) {
-    this._satisfiedStatus = false;
-    this._satisfiedStatusKnown = false;
-    // Note: measureStatus has no dirty flag because it is not synchronized to global
-    // objectives. It serves as a validity gate for other synced properties.
-    this._measureStatus = false;
-    this._normalizedMeasure = 0;
-    this._progressMeasure = 0;
-    this._progressMeasureStatus = false;
-    this._completionStatus = CompletionStatus.UNKNOWN;
-    this._progressStatus = false;
-    // Dirty flags for tracking which properties have been modified locally
-    this._satisfiedStatusDirty = false;
-    this._normalizedMeasureDirty = false;
-    this._completionStatusDirty = false;
-    this._progressMeasureDirty = false;
     this._id = id;
     this._description = options.description ?? null;
     this._satisfiedByMeasure = options.satisfiedByMeasure ?? false;
@@ -7183,6 +7240,90 @@ class ActivityObjective {
   }
 }
 class Activity extends BaseCMI {
+  _id = "";
+  _title = "";
+  _children = [];
+  _parent = null;
+  _isVisible = true;
+  _isActive = false;
+  _isSuspended = false;
+  _isCompleted = false;
+  _completionStatus = CompletionStatus.UNKNOWN;
+  _successStatus = SuccessStatus.UNKNOWN;
+  _attemptCount = 0;
+  _attemptCompletionAmount = 0;
+  _attemptAbsoluteDuration = "PT0H0M0S";
+  _attemptExperiencedDuration = "PT0H0M0S";
+  _activityAbsoluteDuration = "PT0H0M0S";
+  _activityExperiencedDuration = "PT0H0M0S";
+  // Duration tracking fields (separate from limits) - actual calculated values
+  _attemptAbsoluteDurationValue = "PT0H0M0S";
+  _attemptExperiencedDurationValue = "PT0H0M0S";
+  _activityAbsoluteDurationValue = "PT0H0M0S";
+  _activityExperiencedDurationValue = "PT0H0M0S";
+  // Timestamp tracking for duration calculation
+  _activityStartTimestampUtc = null;
+  _attemptStartTimestampUtc = null;
+  _activityEndedDate = null;
+  _objectiveSatisfiedStatus = false;
+  _objectiveSatisfiedStatusKnown = false;
+  _objectiveMeasureStatus = false;
+  _objectiveNormalizedMeasure = 0;
+  _scaledPassingScore = 0.7;
+  // Default passing score
+  // Dirty flags for tracking which activity-level objective properties have been modified locally
+  _objectiveSatisfiedStatusDirty = false;
+  _objectiveNormalizedMeasureDirty = false;
+  _objectiveMeasureStatusDirty = false;
+  _progressMeasure = 0;
+  _progressMeasureStatus = false;
+  _location = "";
+  _attemptAbsoluteStartTime = "";
+  _learnerPrefs = null;
+  _activityAttemptActive = false;
+  _isHiddenFromChoice = false;
+  _isAvailable = true;
+  _hideLmsUi = [];
+  _auxiliaryResources = [];
+  _attemptLimit = null;
+  _attemptAbsoluteDurationLimit = null;
+  _activityAbsoluteDurationLimit = null;
+  _timeLimitAction = null;
+  _timeLimitDuration = null;
+  _beginTimeLimit = null;
+  _endTimeLimit = null;
+  _launchData = "";
+  _credit = "credit";
+  _maxTimeAllowed = "";
+  _completionThreshold = "";
+  _sequencingControls;
+  _sequencingRules;
+  _rollupRules;
+  _processedChildren = null;
+  _isNewAttempt = false;
+  _primaryObjective = null;
+  _objectives = [];
+  _rollupConsiderations = {
+    requiredForSatisfied: "always",
+    requiredForNotSatisfied: "always",
+    requiredForCompleted: "always",
+    requiredForIncomplete: "always",
+    measureSatisfactionIfActive: true
+  };
+  // Individual rollup consideration properties for this activity (RB.1.4.2)
+  // These determine when THIS activity is included in parent rollup calculations
+  _requiredForSatisfied = "always";
+  _requiredForNotSatisfied = "always";
+  _requiredForCompleted = "always";
+  _requiredForIncomplete = "always";
+  _wasSkipped = false;
+  _attemptProgressStatus = false;
+  _wasAutoCompleted = false;
+  _wasAutoSatisfied = false;
+  _completedByMeasure = false;
+  _minProgressMeasure = 1;
+  _progressWeight = 1;
+  _attemptCompletionAmountStatus = false;
   /**
    * Constructor for Activity
    * @param {string} id - The unique identifier for this activity
@@ -7190,87 +7331,6 @@ class Activity extends BaseCMI {
    */
   constructor(id = "", title = "") {
     super("activity");
-    this._id = "";
-    this._title = "";
-    this._children = [];
-    this._parent = null;
-    this._isVisible = true;
-    this._isActive = false;
-    this._isSuspended = false;
-    this._isCompleted = false;
-    this._completionStatus = CompletionStatus.UNKNOWN;
-    this._successStatus = SuccessStatus.UNKNOWN;
-    this._attemptCount = 0;
-    this._attemptCompletionAmount = 0;
-    this._attemptAbsoluteDuration = "PT0H0M0S";
-    this._attemptExperiencedDuration = "PT0H0M0S";
-    this._activityAbsoluteDuration = "PT0H0M0S";
-    this._activityExperiencedDuration = "PT0H0M0S";
-    // Duration tracking fields (separate from limits) - actual calculated values
-    this._attemptAbsoluteDurationValue = "PT0H0M0S";
-    this._attemptExperiencedDurationValue = "PT0H0M0S";
-    this._activityAbsoluteDurationValue = "PT0H0M0S";
-    this._activityExperiencedDurationValue = "PT0H0M0S";
-    // Timestamp tracking for duration calculation
-    this._activityStartTimestampUtc = null;
-    this._attemptStartTimestampUtc = null;
-    this._activityEndedDate = null;
-    this._objectiveSatisfiedStatus = false;
-    this._objectiveSatisfiedStatusKnown = false;
-    this._objectiveMeasureStatus = false;
-    this._objectiveNormalizedMeasure = 0;
-    this._scaledPassingScore = 0.7;
-    // Default passing score
-    // Dirty flags for tracking which activity-level objective properties have been modified locally
-    this._objectiveSatisfiedStatusDirty = false;
-    this._objectiveNormalizedMeasureDirty = false;
-    this._objectiveMeasureStatusDirty = false;
-    this._progressMeasure = 0;
-    this._progressMeasureStatus = false;
-    this._location = "";
-    this._attemptAbsoluteStartTime = "";
-    this._learnerPrefs = null;
-    this._activityAttemptActive = false;
-    this._isHiddenFromChoice = false;
-    this._isAvailable = true;
-    this._hideLmsUi = [];
-    this._auxiliaryResources = [];
-    this._attemptLimit = null;
-    this._attemptAbsoluteDurationLimit = null;
-    this._activityAbsoluteDurationLimit = null;
-    this._timeLimitAction = null;
-    this._timeLimitDuration = null;
-    this._beginTimeLimit = null;
-    this._endTimeLimit = null;
-    this._launchData = "";
-    this._credit = "credit";
-    this._maxTimeAllowed = "";
-    this._completionThreshold = "";
-    this._processedChildren = null;
-    this._isNewAttempt = false;
-    this._primaryObjective = null;
-    this._objectives = [];
-    this._rollupConsiderations = {
-      requiredForSatisfied: "always",
-      requiredForNotSatisfied: "always",
-      requiredForCompleted: "always",
-      requiredForIncomplete: "always",
-      measureSatisfactionIfActive: true
-    };
-    // Individual rollup consideration properties for this activity (RB.1.4.2)
-    // These determine when THIS activity is included in parent rollup calculations
-    this._requiredForSatisfied = "always";
-    this._requiredForNotSatisfied = "always";
-    this._requiredForCompleted = "always";
-    this._requiredForIncomplete = "always";
-    this._wasSkipped = false;
-    this._attemptProgressStatus = false;
-    this._wasAutoCompleted = false;
-    this._wasAutoSatisfied = false;
-    this._completedByMeasure = false;
-    this._minProgressMeasure = 1;
-    this._progressWeight = 1;
-    this._attemptCompletionAmountStatus = false;
     this._id = id;
     this._title = title;
     this._sequencingControls = new SequencingControls();
@@ -8976,6 +9036,7 @@ class RollupChildFilter {
 }
 
 class RollupRuleEvaluator {
+  childFilter;
   /**
    * Create a new RollupRuleEvaluator
    *
@@ -9097,6 +9158,8 @@ class RollupRuleEvaluator {
 }
 
 class MeasureRollupProcessor {
+  childFilter;
+  eventCallback;
   /**
    * Create a new MeasureRollupProcessor
    *
@@ -9273,6 +9336,9 @@ class MeasureRollupProcessor {
 }
 
 class ObjectiveRollupProcessor {
+  childFilter;
+  ruleEvaluator;
+  eventCallback;
   /**
    * Create a new ObjectiveRollupProcessor
    *
@@ -9407,6 +9473,10 @@ class ObjectiveRollupProcessor {
 }
 
 class ProgressRollupProcessor {
+  childFilter;
+  ruleEvaluator;
+  objectiveProcessor;
+  eventCallback;
   /**
    * Create a new ProgressRollupProcessor
    *
@@ -9500,6 +9570,7 @@ class ProgressRollupProcessor {
 }
 
 class DurationRollupProcessor {
+  eventCallback;
   /**
    * Create a new DurationRollupProcessor
    *
@@ -9608,6 +9679,11 @@ class DurationRollupProcessor {
 
 const MAX_CLUSTER_DEPTH = 10;
 class CrossClusterProcessor {
+  measureProcessor;
+  objectiveProcessor;
+  progressProcessor;
+  eventCallback;
+  processingClusters = /* @__PURE__ */ new Set();
   /**
    * Create a new CrossClusterProcessor
    *
@@ -9617,7 +9693,6 @@ class CrossClusterProcessor {
    * @param eventCallback - Optional callback for firing events
    */
   constructor(measureProcessor, objectiveProcessor, progressProcessor, eventCallback) {
-    this.processingClusters = /* @__PURE__ */ new Set();
     this.measureProcessor = measureProcessor;
     this.objectiveProcessor = objectiveProcessor;
     this.progressProcessor = progressProcessor;
@@ -9758,6 +9833,7 @@ class CrossClusterProcessor {
 }
 
 class GlobalObjectiveSynchronizer {
+  eventCallback;
   /**
    * Create a new GlobalObjectiveSynchronizer
    *
@@ -10148,6 +10224,9 @@ class GlobalObjectiveSynchronizer {
 }
 
 class RollupStateValidator {
+  rollupStateLog = [];
+  childFilter;
+  eventCallback;
   /**
    * Create a new RollupStateValidator
    *
@@ -10155,7 +10234,6 @@ class RollupStateValidator {
    * @param eventCallback - Optional callback for firing events
    */
   constructor(childFilter, eventCallback) {
-    this.rollupStateLog = [];
     this.childFilter = childFilter;
     this.eventCallback = eventCallback || null;
   }
@@ -10279,6 +10357,16 @@ class RollupStateValidator {
 }
 
 class RollupProcess {
+  childFilter;
+  ruleEvaluator;
+  measureProcessor;
+  objectiveProcessor;
+  progressProcessor;
+  durationProcessor;
+  globalObjectiveSynchronizer;
+  stateValidator;
+  crossClusterProcessor;
+  eventCallback;
   /**
    * Create a new RollupProcess orchestrator
    *
@@ -10491,6 +10579,7 @@ function validateSuccessStatus(value) {
   return null;
 }
 class RteDataTransferService {
+  context;
   constructor(context) {
     this.context = context;
   }
@@ -10652,8 +10741,16 @@ class RteDataTransferService {
 }
 
 class TerminationHandler {
+  activityTree;
+  sequencingProcess;
+  rollupProcess;
+  globalObjectiveMap;
+  eventCallback;
+  getCMIData;
+  is4thEdition;
+  invalidateCacheCallback = null;
+  _rteDataTransferService;
   constructor(activityTree, sequencingProcess, rollupProcess, globalObjectiveMap, eventCallback = null, options) {
-    this.invalidateCacheCallback = null;
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
     this.rollupProcess = rollupProcess;
@@ -10765,7 +10862,7 @@ class TerminationHandler {
         this.endAttempt(this.activityTree.currentActivity);
       }
     }
-    let processedExit = false;
+    let processedExit;
     let postConditionResult;
     do {
       processedExit = false;
@@ -11238,6 +11335,9 @@ class TerminationHandler {
 }
 
 class DeliveryRequest {
+  valid;
+  targetActivity;
+  exception;
   constructor(valid = false, targetActivity = null, exception = null) {
     this.valid = valid;
     this.targetActivity = targetActivity;
@@ -11245,13 +11345,22 @@ class DeliveryRequest {
   }
 }
 class DeliveryHandler {
+  static HIDE_LMS_UI_ORDER = [...HIDE_LMS_UI_TOKENS];
+  activityTree;
+  rollupProcess;
+  globalObjectiveMap;
+  adlNav;
+  eventCallback;
+  now;
+  defaultHideLmsUi;
+  defaultAuxiliaryResources;
+  _deliveryInProgress = false;
+  contentDelivered = false;
+  checkActivityCallback = null;
+  invalidateCacheCallback = null;
+  updateNavigationValidityCallback = null;
+  clearSuspendedActivityCallback = null;
   constructor(activityTree, rollupProcess, globalObjectiveMap, adlNav = null, eventCallback = null, options) {
-    this._deliveryInProgress = false;
-    this.contentDelivered = false;
-    this.checkActivityCallback = null;
-    this.invalidateCacheCallback = null;
-    this.updateNavigationValidityCallback = null;
-    this.clearSuspendedActivityCallback = null;
     this.activityTree = activityTree;
     this.rollupProcess = rollupProcess;
     this.globalObjectiveMap = globalObjectiveMap;
@@ -11260,9 +11369,6 @@ class DeliveryHandler {
     this.now = options?.now || (() => /* @__PURE__ */ new Date());
     this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
     this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource })) : [];
-  }
-  static {
-    this.HIDE_LMS_UI_ORDER = [...HIDE_LMS_UI_TOKENS];
   }
   /**
    * Set callback to check activity validity
@@ -11548,9 +11654,11 @@ class DeliveryHandler {
 }
 
 class NavigationLookAhead {
+  activityTree;
+  sequencingProcess;
+  cache = null;
+  isDirty = true;
   constructor(activityTree, sequencingProcess) {
-    this.cache = null;
-    this.isDirty = true;
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
   }
@@ -11901,6 +12009,11 @@ var NavigationRequestType = /* @__PURE__ */ ((NavigationRequestType2) => {
   return NavigationRequestType2;
 })(NavigationRequestType || {});
 class NavigationRequestResult {
+  valid;
+  terminationRequest;
+  sequencingRequest;
+  targetActivityId;
+  exception;
   constructor(valid = false, terminationRequest = null, sequencingRequest = null, targetActivityId = null, exception = null) {
     this.valid = valid;
     this.terminationRequest = terminationRequest;
@@ -11910,8 +12023,13 @@ class NavigationRequestResult {
   }
 }
 class NavigationValidityService {
+  activityTree;
+  sequencingProcess;
+  adlNav;
+  eventCallback;
+  navigationLookAhead;
+  getEffectiveHideLmsUiCallback = null;
   constructor(activityTree, sequencingProcess, adlNav = null, eventCallback = null) {
-    this.getEffectiveHideLmsUiCallback = null;
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
     this.adlNav = adlNav;
@@ -12596,9 +12714,9 @@ class NavigationValidityService {
 }
 
 class GlobalObjectiveService {
+  globalObjectiveMap = /* @__PURE__ */ new Map();
+  eventCallback = null;
   constructor(eventCallback) {
-    this.globalObjectiveMap = /* @__PURE__ */ new Map();
-    this.eventCallback = null;
     this.eventCallback = eventCallback || null;
   }
   /**
@@ -12857,11 +12975,16 @@ class GlobalObjectiveService {
 }
 
 class SequencingStateManager {
+  activityTree;
+  globalObjectiveService;
+  rollupProcess;
+  adlNav;
+  eventCallback;
+  getEffectiveHideLmsUiCallback = null;
+  getEffectiveAuxiliaryResourcesCallback = null;
+  contentDeliveredGetter = null;
+  contentDeliveredSetter = null;
   constructor(activityTree, globalObjectiveService, rollupProcess, adlNav = null, eventCallback = null) {
-    this.getEffectiveHideLmsUiCallback = null;
-    this.getEffectiveAuxiliaryResourcesCallback = null;
-    this.contentDeliveredGetter = null;
-    this.contentDeliveredSetter = null;
     this.activityTree = activityTree;
     this.globalObjectiveService = globalObjectiveService;
     this.rollupProcess = rollupProcess;
@@ -13228,8 +13351,11 @@ class SequencingStateManager {
 }
 
 class DeliveryValidator {
+  activityTree;
+  eventCallback;
+  now;
+  contentDeliveredGetter = null;
   constructor(activityTree, eventCallback = null, options) {
-    this.contentDeliveredGetter = null;
     this.activityTree = activityTree;
     this.eventCallback = eventCallback;
     this.now = options?.now || (() => /* @__PURE__ */ new Date());
@@ -13806,8 +13932,24 @@ class DeliveryValidator {
 }
 
 class OverallSequencingProcess {
+  // Core dependencies
+  activityTree;
+  sequencingProcess;
+  rollupProcess;
+  adlNav;
+  eventCallback = null;
+  // Extracted services
+  terminationHandler;
+  deliveryHandler;
+  navigationValidityService;
+  globalObjectiveService;
+  stateManager;
+  deliveryValidator;
+  navigationLookAhead;
+  // Configuration
+  enhancedDeliveryValidation;
+  is4thEdition;
   constructor(activityTree, sequencingProcess, rollupProcess, adlNav = null, eventCallback = null, options) {
-    this.eventCallback = null;
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
     this.rollupProcess = rollupProcess;
@@ -14277,14 +14419,22 @@ class OverallSequencingProcess {
 }
 
 class SequencingService {
+  sequencing;
+  cmi;
+  adl;
+  eventService;
+  loggingService;
+  activityDeliveryService;
+  rollupProcess;
+  overallSequencingProcess = null;
+  sequencingProcess = null;
+  eventListeners = {};
+  configuration;
+  isInitialized = false;
+  isSequencingActive = false;
+  lastCMIValues = /* @__PURE__ */ new Map();
+  lastSequencingResult = null;
   constructor(sequencing, cmi, adl, eventService, loggingService, configuration = {}) {
-    this.overallSequencingProcess = null;
-    this.sequencingProcess = null;
-    this.eventListeners = {};
-    this.isInitialized = false;
-    this.isSequencingActive = false;
-    this.lastCMIValues = /* @__PURE__ */ new Map();
-    this.lastSequencingResult = null;
     this.sequencing = sequencing;
     this.cmi = cmi;
     this.adl = adl;
@@ -15188,6 +15338,8 @@ class SerializationService {
 }
 
 class SynchronousHttpService {
+  settings;
+  error_codes;
   /**
    * Constructor for SynchronousHttpService
    * @param {InternalSettings} settings - The settings object
@@ -15390,6 +15542,17 @@ class ValidationService {
 const validationService = new ValidationService();
 
 class BaseAPI {
+  _timeout;
+  _error_codes;
+  _settings = DefaultSettings;
+  _httpService;
+  _eventService;
+  _serializationService;
+  _errorHandlingService;
+  _loggingService;
+  _offlineStorageService;
+  _cmiValueAccessService;
+  _courseId = "";
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
    * sets up options for the API.
@@ -15404,8 +15567,6 @@ class BaseAPI {
    * @param {IOfflineStorageService} offlineStorageService - Optional Offline Storage service instance
    */
   constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService, offlineStorageService) {
-    this._settings = DefaultSettings;
-    this._courseId = "";
     if (new.target === BaseAPI) {
       throw new TypeError("Cannot construct BaseAPI instances directly");
     }
@@ -15532,6 +15693,8 @@ class BaseAPI {
     };
     this._cmiValueAccessService = new CMIValueAccessService(cmiValueAccessContext);
   }
+  startingData;
+  currentState;
   /**
    * Get the last error code
    * @return {string}
@@ -16444,6 +16607,21 @@ class BaseAPI {
 }
 
 class CMIScore extends BaseCMI {
+  __children;
+  /**
+   * Score range validation pattern (e.g., "0#100" for SCORM 1.2).
+   * Set to `false` to disable range validation (e.g., for SCORM 2004 where scores have no upper bound).
+   * This property is intentionally unused in the base class but provides subclass flexibility.
+   */
+  __score_range;
+  __invalid_error_code;
+  __invalid_type_code;
+  __invalid_range_code;
+  __decimal_regex;
+  __error_class;
+  _raw = "";
+  _min = "";
+  _max;
   /**
    * Constructor for *.score
    *
@@ -16467,8 +16645,6 @@ class CMIScore extends BaseCMI {
    */
   constructor(params) {
     super(params.CMIElement);
-    this._raw = "";
-    this._min = "";
     this.__children = params.score_children || scorm12_constants.score_children;
     this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
     this._max = params.max || params.max === "" ? params.max : "100";
@@ -16621,18 +16797,6 @@ class CMICore extends BaseCMI {
    */
   constructor() {
     super("cmi.core");
-    this.__children = scorm12_constants.core_children;
-    this._student_id = "";
-    this._student_name = "";
-    this._lesson_location = "";
-    this._credit = "";
-    this._lesson_status = "not attempted";
-    this._entry = "";
-    this._total_time = "";
-    this._lesson_mode = "normal";
-    this._exit = "";
-    this._session_time = "00:00:00";
-    this._suspend_data = "";
     this.score = new CMIScore({
       CMIElement: "cmi.core.score",
       score_children: scorm12_constants.score_children,
@@ -16643,6 +16807,7 @@ class CMICore extends BaseCMI {
       errorClass: Scorm12ValidationError
     });
   }
+  score;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -16650,6 +16815,18 @@ class CMICore extends BaseCMI {
     super.initialize();
     this.score?.initialize();
   }
+  __children = scorm12_constants.core_children;
+  _student_id = "";
+  _student_name = "";
+  _lesson_location = "";
+  _credit = "";
+  _lesson_status = "not attempted";
+  _entry = "";
+  _total_time = "";
+  _lesson_mode = "normal";
+  _exit = "";
+  _session_time = "00:00:00";
+  _suspend_data = "";
   /**
    * Called when the API has been reset
    */
@@ -17050,8 +17227,6 @@ let CMIObjectivesObject$1 = class CMIObjectivesObject extends BaseCMI {
    */
   constructor() {
     super("cmi.objectives.n");
-    this._id = "";
-    this._status = "";
     this.score = new CMIScore({
       CMIElement: "cmi.objectives.n.score",
       score_children: scorm12_constants.score_children,
@@ -17062,6 +17237,9 @@ let CMIObjectivesObject$1 = class CMIObjectivesObject extends BaseCMI {
       errorClass: Scorm12ValidationError
     });
   }
+  score;
+  _id = "";
+  _status = "";
   /**
    * Called when the API has been reset
    */
@@ -17153,15 +17331,16 @@ function parseTimeAllowed(value, fieldName) {
   throw new Scorm12ValidationError(fieldName, scorm12_errors.TYPE_MISMATCH);
 }
 class CMIStudentData extends BaseCMI {
+  __children;
+  _mastery_score = "";
+  _max_time_allowed = "";
+  _time_limit_action = "";
   /**
    * Constructor for cmi.student_data
    * @param {string} student_data_children
    */
   constructor(student_data_children) {
     super("cmi.student_data");
-    this._mastery_score = "";
-    this._max_time_allowed = "";
-    this._time_limit_action = "";
     this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
   }
   /**
@@ -17301,18 +17480,19 @@ class CMIStudentData extends BaseCMI {
 }
 
 class CMIStudentPreference extends BaseCMI {
+  __children;
   /**
    * Constructor for cmi.student_preference
    * @param {string} student_preference_children
    */
   constructor(student_preference_children) {
     super("cmi.student_preference");
-    this._audio = "";
-    this._language = "";
-    this._speed = "";
-    this._text = "";
     this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
   }
+  _audio = "";
+  _language = "";
+  _speed = "";
+  _text = "";
   /**
    * Called when the API has been reset
    */
@@ -17454,13 +17634,6 @@ let CMIInteractionsObject$1 = class CMIInteractionsObject extends BaseCMI {
    */
   constructor() {
     super("cmi.interactions.n");
-    this._id = "";
-    this._time = "";
-    this._type = "";
-    this._weighting = "";
-    this._student_response = "";
-    this._result = "";
-    this._latency = "";
     this.objectives = new CMIArray({
       CMIElement: "cmi.interactions.n.objectives",
       errorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -17474,6 +17647,8 @@ let CMIInteractionsObject$1 = class CMIInteractionsObject extends BaseCMI {
       children: scorm12_constants.correct_responses_children
     });
   }
+  objectives;
+  correct_responses;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -17482,6 +17657,13 @@ let CMIInteractionsObject$1 = class CMIInteractionsObject extends BaseCMI {
     this.objectives?.initialize();
     this.correct_responses?.initialize();
   }
+  _id = "";
+  _time = "";
+  _type = "";
+  _weighting = "";
+  _student_response = "";
+  _result = "";
+  _latency = "";
   /**
    * Called when the API has been reset
    */
@@ -17711,8 +17893,8 @@ let CMIInteractionsObjectivesObject$1 = class CMIInteractionsObjectivesObject ex
    */
   constructor() {
     super("cmi.interactions.n.objectives.n");
-    this._id = "";
   }
+  _id = "";
   /**
    * Called when the API has been reset
    */
@@ -17765,8 +17947,8 @@ let CMIInteractionsCorrectResponsesObject$1 = class CMIInteractionsCorrectRespon
    */
   constructor() {
     super("cmi.interactions.correct_responses.n");
-    this._pattern = "";
   }
+  _pattern = "";
   /**
    * Called when the API has been reset
    */
@@ -17815,6 +17997,11 @@ let CMIInteractionsCorrectResponsesObject$1 = class CMIInteractionsCorrectRespon
 };
 
 let CMI$1 = class CMI extends BaseRootCMI {
+  __children = "";
+  __version = "3.4";
+  _launch_data = "";
+  _comments = "";
+  _comments_from_lms = "";
   /**
    * Constructor for the SCORM 1.2 cmi object
    * @param {string} cmi_children
@@ -17823,11 +18010,6 @@ let CMI$1 = class CMI extends BaseRootCMI {
    */
   constructor(cmi_children, student_data, initialized) {
     super("cmi");
-    this.__children = "";
-    this.__version = "3.4";
-    this._launch_data = "";
-    this._comments = "";
-    this._comments_from_lms = "";
     if (initialized) this.initialize();
     this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
     this.core = new CMICore();
@@ -17836,6 +18018,11 @@ let CMI$1 = class CMI extends BaseRootCMI {
     this.student_preference = new CMIStudentPreference();
     this.interactions = new CMIInteractions$1();
   }
+  core;
+  objectives;
+  student_data;
+  student_preference;
+  interactions;
   /**
    * Called when the API has been reset
    *
@@ -18040,7 +18227,6 @@ class NAV extends BaseCMI {
    */
   constructor() {
     super("cmi.nav");
-    this._event = "";
   }
   /**
    * Called when the API has been reset
@@ -18057,6 +18243,7 @@ class NAV extends BaseCMI {
     this._event = "";
     this._initialized = false;
   }
+  _event = "";
   /**
    * Getter for _event
    * @return {string}
@@ -18093,6 +18280,19 @@ class NAV extends BaseCMI {
 
 class Scorm12API extends BaseAPI {
   /**
+   * Static global storage for learner preferences
+   * When globalStudentPreferences is enabled, preferences persist across SCO instances
+   * @private
+   */
+  static _globalLearnerPrefs = null;
+  /**
+   * Clear the global learner preferences storage
+   * @public
+   */
+  static clearGlobalPreferences() {
+    Scorm12API._globalLearnerPrefs = null;
+  }
+  /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
    * @param {IHttpService} httpService - Optional HTTP service instance
@@ -18105,7 +18305,6 @@ class Scorm12API extends BaseAPI {
       }
     }
     super(scorm12_errors, settingsCopy, httpService);
-    this.statusSetByModule = false;
     this.cmi = new CMI$1();
     this.nav = new NAV();
     if (this.settings.globalStudentPreferences && Scorm12API._globalLearnerPrefs) {
@@ -18131,21 +18330,17 @@ class Scorm12API extends BaseAPI {
     this.LMSGetErrorString = this.lmsGetErrorString;
     this.LMSGetDiagnostic = this.lmsGetDiagnostic;
   }
-  static {
-    /**
-     * Static global storage for learner preferences
-     * When globalStudentPreferences is enabled, preferences persist across SCO instances
-     * @private
-     */
-    this._globalLearnerPrefs = null;
-  }
-  /**
-   * Clear the global learner preferences storage
-   * @public
-   */
-  static clearGlobalPreferences() {
-    Scorm12API._globalLearnerPrefs = null;
-  }
+  statusSetByModule = false;
+  cmi;
+  nav;
+  LMSInitialize;
+  LMSFinish;
+  LMSGetValue;
+  LMSSetValue;
+  LMSCommit;
+  LMSGetLastError;
+  LMSGetErrorString;
+  LMSGetDiagnostic;
   /**
    * Called when the API needs to be reset
    */
@@ -18341,7 +18536,7 @@ class Scorm12API extends BaseAPI {
    */
   setCMIValue(CMIElement, value) {
     const result = this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
-    if (this.settings.globalStudentPreferences) {
+    if (result === global_constants.SCORM_TRUE && this.settings.globalStudentPreferences) {
       if (CMIElement === "cmi.student_preference.audio") {
         this._updateGlobalPreference("audio", value);
       } else if (CMIElement === "cmi.student_preference.language") {
@@ -18444,7 +18639,7 @@ class Scorm12API extends BaseAPI {
     const flattened = flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {
       case "flattened":
-        return flatten(cmiExport);
+        return flattened;
       case "params":
         for (const item in flattened) {
           if ({}.hasOwnProperty.call(flattened, item)) {
@@ -18563,16 +18758,16 @@ class Scorm12API extends BaseAPI {
 }
 
 class CMILearnerPreference extends BaseCMI {
+  __children = scorm2004_constants.student_preference_children;
+  _audio_level = "1";
+  _language = "";
+  _delivery_speed = "1";
+  _audio_captioning = "0";
   /**
    * Constructor for cmi.learner_preference
    */
   constructor() {
     super("cmi.learner_preference");
-    this.__children = scorm2004_constants.student_preference_children;
-    this._audio_level = "1";
-    this._language = "";
-    this._delivery_speed = "1";
-    this._audio_captioning = "0";
   }
   /**
    * Called when the API has been reset
@@ -18736,20 +18931,20 @@ class CMIInteractions extends CMIArray {
   }
 }
 class CMIInteractionsObject extends BaseCMI {
+  _id = "";
+  _idIsSet = false;
+  _type = "";
+  _timestamp = "";
+  _weighting = "";
+  _learner_response = "";
+  _result = "";
+  _latency = "";
+  _description = "";
   /**
    * Constructor for cmi.interaction.n
    */
   constructor() {
     super("cmi.interactions.n");
-    this._id = "";
-    this._idIsSet = false;
-    this._type = "";
-    this._timestamp = "";
-    this._weighting = "";
-    this._learner_response = "";
-    this._result = "";
-    this._latency = "";
-    this._description = "";
     this.objectives = new CMIArray({
       CMIElement: "cmi.interactions.n.objectives",
       errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
@@ -18763,6 +18958,8 @@ class CMIInteractionsObject extends BaseCMI {
       children: scorm2004_constants.correct_responses_children
     });
   }
+  objectives;
+  correct_responses;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -19102,12 +19299,12 @@ class CMIInteractionsObject extends BaseCMI {
   }
 }
 class CMIInteractionsObjectivesObject extends BaseCMI {
+  _id = "";
   /**
    * Constructor for cmi.interactions.n.objectives.n
    */
   constructor() {
     super("cmi.interactions.n.objectives.n");
-    this._id = "";
   }
   /**
    * Called when the API has been reset
@@ -19322,13 +19519,14 @@ function validatePattern(type, pattern, responseDef) {
   }
 }
 class CMIInteractionsCorrectResponsesObject extends BaseCMI {
+  _pattern = "";
+  _interactionType;
   /**
    * Constructor for cmi.interactions.n.correct_responses.n
    * @param interactionType The type of interaction (e.g. "numeric", "choice", etc.)
    */
   constructor(interactionType) {
     super("cmi.interactions.n.correct_responses.n");
-    this._pattern = "";
     this._interactionType = interactionType;
   }
   reset() {
@@ -19365,6 +19563,7 @@ class CMIInteractionsCorrectResponsesObject extends BaseCMI {
 }
 
 class Scorm2004CMIScore extends CMIScore {
+  _scaled = "";
   /**
    * Constructor for cmi *.score
    */
@@ -19379,7 +19578,6 @@ class Scorm2004CMIScore extends CMIScore {
       decimalRegex: scorm2004_regex.CMIDecimal,
       errorClass: Scorm2004ValidationError
     });
-    this._scaled = "";
   }
   /**
    * Called when the API has been reset
@@ -19466,15 +19664,16 @@ class CMICommentsFromLearner extends CMIArray {
   }
 }
 class CMICommentsObject extends BaseCMI {
+  _comment = "";
+  _location = "";
+  _timestamp = "";
+  _readOnlyAfterInit;
   /**
    * Constructor for cmi.comments_from_learner.n and cmi.comments_from_lms.n
    * @param {boolean} readOnlyAfterInit
    */
   constructor(readOnlyAfterInit = false) {
     super("cmi.comments_from_learner.n");
-    this._comment = "";
-    this._location = "";
-    this._timestamp = "";
     this._comment = "";
     this._location = "";
     this._timestamp = "";
@@ -19620,17 +19819,17 @@ class CMIObjectives extends CMIArray {
   }
 }
 class CMIObjectivesObject extends BaseCMI {
+  _id = "";
+  _idIsSet = false;
+  _success_status = "unknown";
+  _completion_status = "unknown";
+  _progress_measure = "";
+  _description = "";
   /**
    * Constructor for cmi.objectives.n
    */
   constructor() {
     super("cmi.objectives.n");
-    this._id = "";
-    this._idIsSet = false;
-    this._success_status = "unknown";
-    this._completion_status = "unknown";
-    this._progress_measure = "";
-    this._description = "";
     this.score = new Scorm2004CMIScore();
   }
   reset() {
@@ -19643,6 +19842,7 @@ class CMIObjectivesObject extends BaseCMI {
     this._description = "";
     this.score?.reset();
   }
+  score;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -19842,13 +20042,13 @@ class CMIObjectivesObject extends BaseCMI {
 }
 
 class CMIMetadata extends BaseCMI {
+  __version = "1.0";
+  __children = scorm2004_constants.cmi_children;
   /**
    * Constructor for CMIMetadata
    */
   constructor() {
     super("cmi");
-    this.__version = "1.0";
-    this.__children = scorm2004_constants.cmi_children;
   }
   /**
    * Getter for __version
@@ -19893,13 +20093,13 @@ class CMIMetadata extends BaseCMI {
 }
 
 class CMILearner extends BaseCMI {
+  _learner_id = "";
+  _learner_name = "";
   /**
    * Constructor for CMILearner
    */
   constructor() {
     super("cmi");
-    this._learner_id = "";
-    this._learner_name = "";
   }
   /**
    * Getter for _learner_id
@@ -19952,14 +20152,14 @@ class CMILearner extends BaseCMI {
 }
 
 class CMIStatus extends BaseCMI {
+  _completion_status = "unknown";
+  _success_status = "unknown";
+  _progress_measure = "";
   /**
    * Constructor for CMIStatus
    */
   constructor() {
     super("cmi");
-    this._completion_status = "unknown";
-    this._success_status = "unknown";
-    this._progress_measure = "";
   }
   /**
    * Getter for _completion_status
@@ -20037,15 +20237,15 @@ class CMIStatus extends BaseCMI {
 }
 
 class CMISession extends BaseCMI {
+  _entry = "";
+  _exit = "";
+  _session_time = "PT0H0M0S";
+  _total_time = "PT0S";
   /**
    * Constructor for CMISession
    */
   constructor() {
     super("cmi");
-    this._entry = "";
-    this._exit = "";
-    this._session_time = "PT0H0M0S";
-    this._total_time = "PT0S";
   }
   /**
    * Getter for _entry
@@ -20183,14 +20383,14 @@ class CMISession extends BaseCMI {
 }
 
 class CMIContent extends BaseCMI {
+  _location = "";
+  _launch_data = "";
+  _suspend_data = "";
   /**
    * Constructor for CMIContent
    */
   constructor() {
     super("cmi");
-    this._location = "";
-    this._launch_data = "";
-    this._suspend_data = "";
   }
   /**
    * Getter for _location
@@ -20261,15 +20461,15 @@ class CMIContent extends BaseCMI {
 }
 
 class CMISettings extends BaseCMI {
+  _credit = "credit";
+  _mode = "normal";
+  _time_limit_action = "continue,no message";
+  _max_time_allowed = "";
   /**
    * Constructor for CMISettings
    */
   constructor() {
     super("cmi");
-    this._credit = "credit";
-    this._mode = "normal";
-    this._time_limit_action = "continue,no message";
-    this._max_time_allowed = "";
   }
   /**
    * Getter for _credit
@@ -20389,13 +20589,13 @@ class CMISettings extends BaseCMI {
 }
 
 class CMIThresholds extends BaseCMI {
+  _scaled_passing_score = "";
+  _completion_threshold = "";
   /**
    * Constructor for CMIThresholds
    */
   constructor() {
     super("cmi");
-    this._scaled_passing_score = "";
-    this._completion_threshold = "";
   }
   /**
    * Getter for _scaled_passing_score
@@ -20503,6 +20703,21 @@ class CMI extends BaseRootCMI {
     this.objectives = new CMIObjectives();
     if (initialized) this.initialize();
   }
+  // New component classes
+  metadata;
+  learner;
+  status;
+  session;
+  content;
+  settings;
+  thresholds;
+  // Original complex objects
+  learner_preference;
+  score;
+  comments_from_learner;
+  comments_from_lms;
+  interactions;
+  objectives;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -20947,11 +21162,12 @@ class ADL extends BaseCMI {
    */
   constructor() {
     super("adl");
-    this.data = new ADLData();
-    this._sequencing = null;
     this.nav = new ADLNav();
     this.data = new ADLData();
   }
+  nav;
+  data = new ADLData();
+  _sequencing = null;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -21004,16 +21220,17 @@ class ADL extends BaseCMI {
   }
 }
 class ADLNav extends BaseCMI {
+  _request = "_none_";
+  _sequencing = null;
   /**
    * Constructor for `adl.nav`
    */
   constructor() {
     super("adl.nav");
-    this._request = "_none_";
-    this._sequencing = null;
     this.request_valid = new ADLNavRequestValid();
     this.request_valid.setParentNav(this);
   }
+  request_valid;
   /**
    * Getter for sequencing
    * @return {Sequencing | null}
@@ -21092,12 +21309,12 @@ class ADLData extends CMIArray {
   }
 }
 class ADLDataObject extends BaseCMI {
+  _id = "";
+  _store = "";
+  _idIsSet = false;
+  _storeIsSet = false;
   constructor() {
     super("adl.data.n");
-    this._id = "";
-    this._store = "";
-    this._idIsSet = false;
-    this._storeIsSet = false;
   }
   /**
    * Called when the API has been reset
@@ -21184,10 +21401,8 @@ class ADLDataObject extends BaseCMI {
   }
 }
 class ADLNavRequestValidChoice {
-  constructor() {
-    this._parentNav = null;
-    this._staticValues = {};
-  }
+  _parentNav = null;
+  _staticValues = {};
   setParentNav(nav) {
     this._parentNav = nav;
   }
@@ -21226,10 +21441,8 @@ class ADLNavRequestValidChoice {
   }
 }
 class ADLNavRequestValidJump {
-  constructor() {
-    this._parentNav = null;
-    this._staticValues = {};
-  }
+  _parentNav = null;
+  _staticValues = {};
   setParentNav(nav) {
     this._parentNav = nav;
   }
@@ -21261,19 +21474,21 @@ class ADLNavRequestValidJump {
   }
 }
 class ADLNavRequestValid extends BaseCMI {
+  _continue = "unknown";
+  _previous = "unknown";
+  _choice;
+  _jump;
+  _exit = "unknown";
+  _exitAll = "unknown";
+  _abandon = "unknown";
+  _abandonAll = "unknown";
+  _suspendAll = "unknown";
+  _parentNav = null;
   /**
    * Constructor for adl.nav.request_valid
    */
   constructor() {
     super("adl.nav.request_valid");
-    this._continue = "unknown";
-    this._previous = "unknown";
-    this._exit = "unknown";
-    this._exitAll = "unknown";
-    this._abandon = "unknown";
-    this._abandonAll = "unknown";
-    this._suspendAll = "unknown";
-    this._parentNav = null;
     this._choice = new ADLNavRequestValidChoice();
     this._jump = new ADLNavRequestValidJump();
   }
@@ -21595,15 +21810,15 @@ class ADLNavRequestValid extends BaseCMI {
 }
 
 class ActivityTree extends BaseCMI {
+  _root = null;
+  _currentActivity = null;
+  _suspendedActivity = null;
+  _activities = /* @__PURE__ */ new Map();
   /**
    * Constructor for ActivityTree
    */
   constructor(root) {
     super("activityTree");
-    this._root = null;
-    this._currentActivity = null;
-    this._suspendedActivity = null;
-    this._activities = /* @__PURE__ */ new Map();
     if (root) {
       this.root = root;
     }
@@ -21925,15 +22140,19 @@ class ActivityTree extends BaseCMI {
 }
 
 class Sequencing extends BaseCMI {
+  _activityTree;
+  _sequencingRules;
+  _sequencingControls;
+  _rollupRules;
+  _adlNav = null;
+  _hideLmsUi = [];
+  _auxiliaryResources = [];
+  _overallSequencingProcess = null;
   /**
    * Constructor for Sequencing
    */
   constructor() {
     super("sequencing");
-    this._adlNav = null;
-    this._hideLmsUi = [];
-    this._auxiliaryResources = [];
-    this._overallSequencingProcess = null;
     this._activityTree = new ActivityTree();
     this._sequencingRules = new SequencingRules();
     this._sequencingControls = new SequencingControls();
@@ -22135,6 +22354,7 @@ class Sequencing extends BaseCMI {
 }
 
 class Scorm2004ResponseValidator {
+  context;
   constructor(context) {
     this.context = context;
   }
@@ -22341,7 +22561,7 @@ class Scorm2004ResponseValidator {
     let seenLang = false;
     const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
     let matches = node.match(prefixRegex);
-    let langMatches = null;
+    let langMatches;
     while (matches) {
       switch (matches[2]) {
         case "lang":
@@ -22381,6 +22601,8 @@ class Scorm2004ResponseValidator {
 }
 
 class Scorm2004CMIHandler {
+  context;
+  responseValidator;
   constructor(context, responseValidator) {
     this.context = context;
     this.responseValidator = responseValidator;
@@ -23044,6 +23266,8 @@ class SequencingConfigurationBuilder {
 }
 
 class ActivityTreeBuilder {
+  sequencingCollections;
+  sequencingConfigBuilder;
   constructor(collections, sequencingConfigBuilder) {
     this.sequencingCollections = collections || {};
     this.sequencingConfigBuilder = sequencingConfigBuilder || new SequencingConfigurationBuilder();
@@ -23243,8 +23467,9 @@ class ActivityTreeBuilder {
 }
 
 class GlobalObjectiveManager {
+  _globalObjectives = [];
+  context;
   constructor(context) {
-    this._globalObjectives = [];
     this.context = context;
   }
   /**
@@ -23672,6 +23897,8 @@ class GlobalObjectiveManager {
 }
 
 class SequencingStatePersistence {
+  context;
+  globalObjectiveManager;
   constructor(context, globalObjectiveManager) {
     this.context = context;
     this.globalObjectiveManager = globalObjectiveManager;
@@ -23923,6 +24150,8 @@ class SequencingStatePersistence {
 }
 
 class Scorm2004DataSerializer {
+  context;
+  globalObjectiveManager;
   constructor(context, globalObjectiveManager) {
     this.context = context;
     this.globalObjectiveManager = globalObjectiveManager || null;
@@ -24073,6 +24302,19 @@ class Scorm2004DataSerializer {
 }
 
 class Scorm2004API extends BaseAPI {
+  _version = "1.0";
+  _sequencing;
+  _sequencingService = null;
+  _extractedScoItemIds = [];
+  _sequencingCollections = {};
+  // Extracted class instances
+  _responseValidator;
+  _cmiHandler;
+  _activityTreeBuilder;
+  _sequencingConfigBuilder;
+  _globalObjectiveManager;
+  _statePersistence = null;
+  _dataSerializer;
   /**
    * Constructor for SCORM 2004 API
    * @param {Settings} settings
@@ -24086,11 +24328,6 @@ class Scorm2004API extends BaseAPI {
       }
     }
     super(scorm2004_errors, settingsCopy, httpService);
-    this._version = "1.0";
-    this._sequencingService = null;
-    this._extractedScoItemIds = [];
-    this._sequencingCollections = {};
-    this._statePersistence = null;
     this.cmi = new CMI();
     this.adl = new ADL();
     this._sequencing = new Sequencing();
@@ -24146,6 +24383,16 @@ class Scorm2004API extends BaseAPI {
     this.GetErrorString = this.lmsGetErrorString;
     this.GetDiagnostic = this.lmsGetDiagnostic;
   }
+  cmi;
+  adl;
+  Initialize;
+  Terminate;
+  GetValue;
+  SetValue;
+  Commit;
+  GetLastError;
+  GetErrorString;
+  GetDiagnostic;
   /**
    * Called when the API needs to be reset
    *
@@ -24299,6 +24546,11 @@ class Scorm2004API extends BaseAPI {
             processedSequencingRequest = requestToProcess;
           }
         } catch (error) {
+          this.apiLog(
+            "lmsFinish",
+            `Sequencing navigation failed, falling back to event-based navigation: ${error}`,
+            LogLevelEnum.WARN
+          );
           navigationHandled = false;
         }
       }
@@ -24336,6 +24588,14 @@ class Scorm2004API extends BaseAPI {
    * @return {string} The value of the element, or empty string
    */
   lmsGetValue(CMIElement) {
+    if (this.isTerminated()) {
+      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_AFTER_TERM);
+      return "";
+    }
+    if (!this.isInitialized()) {
+      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_BEFORE_INIT);
+      return "";
+    }
     if (CMIElement === "adl.nav.request") {
       this.throwSCORMError(
         CMIElement,
@@ -24368,14 +24628,6 @@ class Scorm2004API extends BaseAPI {
         }
       }
     }
-    if (this.isTerminated()) {
-      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_AFTER_TERM);
-      return "";
-    }
-    if (!this.isInitialized()) {
-      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_BEFORE_INIT);
-      return "";
-    }
     if (CMIElement === "cmi.completion_status") {
       return this._cmiHandler.evaluateCompletionStatus();
     }
@@ -24392,12 +24644,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string} "true" or "false"
    */
   lmsSetValue(CMIElement, value) {
-    let oldValue = null;
-    try {
-      oldValue = this.getCMIValue(CMIElement);
-    } catch (error) {
-      oldValue = null;
-    }
+    const oldValue = this._peekCMIValue(CMIElement);
     const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
     if (result === global_constants.SCORM_TRUE && this._sequencingService) {
       try {
@@ -24528,6 +24775,48 @@ class Scorm2004API extends BaseAPI {
       return;
     }
     this._responseValidator.validateCorrectResponse(CMIElement, interaction, value);
+  }
+  /**
+   * Silently peeks at a CMI value without triggering error logging or
+   * mutating lastErrorCode. Returns null if the element doesn't exist.
+   * Used internally to capture old values before SetValue overwrites them.
+   *
+   * @param {string} CMIElement - dot-delimited CMI path (e.g. "cmi.interactions.0.id")
+   * @return {*} the current value, or null if the path doesn't resolve
+   */
+  _peekCMIValue(CMIElement) {
+    if (!CMIElement || typeof CMIElement !== "string") {
+      return null;
+    }
+    const segments = CMIElement.split(".");
+    let refObject = this;
+    for (let i = 0; i < segments.length; i++) {
+      const attribute = segments[i];
+      if (refObject == null) {
+        return null;
+      }
+      try {
+        refObject = refObject[attribute];
+      } catch {
+        return null;
+      }
+      if (refObject instanceof CMIArray) {
+        const nextIndex = i + 1;
+        if (nextIndex >= segments.length) {
+          return refObject;
+        }
+        const nextSegment = segments[nextIndex];
+        const index = Number(nextSegment);
+        if (!Number.isNaN(index) && Number.isInteger(index) && index >= 0) {
+          if (index >= refObject.childArray.length) {
+            return null;
+          }
+          refObject = refObject.childArray[index];
+          i++;
+        }
+      }
+    }
+    return refObject ?? null;
   }
   /**
    * Gets a value from the CMI Object
@@ -24995,120 +25284,22 @@ class Scorm2004API extends BaseAPI {
 }
 
 class CrossFrameAPI {
-  /**
-   * Creates a new CrossFrameAPI instance.
-   * @param targetOrigin - Origin to send messages to. Default "*" sends to any origin.
-   * @param targetWindow - Window to send messages to. Default is window.parent.
-   * @param options - Configuration options
-   */
-  constructor(targetOrigin = "*", targetWindow = window.parent, options = {}) {
-    this._cache = /* @__PURE__ */ new Map();
-    this._cacheTimestamps = /* @__PURE__ */ new Map();
-    this._lastError = "0";
-    this._pending = /* @__PURE__ */ new Map();
-    this._counter = 0;
-    this._destroyed = false;
-    this._connected = true;
-    this._lastHeartbeatResponse = Date.now();
-    this._eventListeners = /* @__PURE__ */ new Map();
-    this._handler = {
-      get: (target, prop, receiver) => {
-        if (typeof prop !== "string" || prop in target) {
-          const v = Reflect.get(target, prop, receiver);
-          return typeof v === "function" ? v.bind(target) : v;
-        }
-        const methodName = prop;
-        const isGet = methodName.endsWith("GetValue");
-        const isSet = methodName.startsWith("LMSSet") || methodName.endsWith("SetValue");
-        const isInit = methodName === "Initialize" || methodName === "LMSInitialize";
-        const isFinish = methodName === "Terminate" || methodName === "LMSFinish";
-        const isCommit = methodName === "Commit" || methodName === "LMSCommit";
-        const isErrorString = methodName === "GetErrorString" || methodName === "LMSGetErrorString";
-        const isDiagnostic = methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
-        return (...args) => {
-          if (!CrossFrameAPI._validateArgs(args)) {
-            console.error(`CrossFrameAPI: Invalid arguments for ${methodName}`);
-            return "";
-          }
-          if (isSet && args.length >= 2) {
-            const key = args[0];
-            target._cache.set(key, String(args[1]));
-            target._cacheTimestamps.set(key, Date.now());
-            target._lastError = "0";
-          }
-          const requestTime = Date.now();
-          target._post(methodName, args).then((res) => {
-            if (isGet && args.length >= 1) {
-              const key = args[0];
-              const localModTime = target._cacheTimestamps.get(key) ?? 0;
-              if (localModTime < requestTime) {
-                target._cache.set(key, String(res));
-                target._cacheTimestamps.delete(key);
-              }
-              target._lastError = "0";
-            }
-            if (isErrorString && args.length >= 1) {
-              const code = String(args[0]);
-              target._cache.set(`error_${code}`, String(res));
-            }
-            if (isDiagnostic && args.length >= 1) {
-              const code = String(args[0]);
-              target._cache.set(`diag_${code}`, String(res));
-            }
-            if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
-              target._lastError = String(res);
-            }
-          }).catch((err) => target._capture(methodName, err));
-          if (isGet && args.length >= 1) {
-            return target._cache.get(args[0]) ?? "";
-          }
-          if (isErrorString && args.length >= 1) {
-            const code = String(args[0]);
-            return target._cache.get(`error_${code}`) ?? "";
-          }
-          if (isDiagnostic && args.length >= 1) {
-            const code = String(args[0]);
-            return target._cache.get(`diag_${code}`) ?? "";
-          }
-          if (isInit || isFinish || isCommit || isSet) {
-            const result = "true";
-            target._post("getFlattenedCMI", []).then((all) => {
-              if (all && typeof all === "object") {
-                const entries = Object.entries(all);
-                entries.forEach(([key, val]) => {
-                  const localModTime = target._cacheTimestamps.get(key) ?? 0;
-                  if (localModTime < requestTime) {
-                    target._cache.set(key, val);
-                    target._cacheTimestamps.delete(key);
-                  }
-                });
-              }
-              target._lastError = "0";
-            }).catch((err) => target._capture("getFlattenedCMI", err));
-            return result;
-          }
-          if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
-            return target._lastError;
-          }
-          return "";
-        };
-      }
-    };
-    this._origin = targetOrigin;
-    this._targetWindow = targetWindow;
-    this._timeout = options.timeout ?? 5e3;
-    this._heartbeatInterval = options.heartbeatInterval ?? 3e4;
-    this._heartbeatTimeout = options.heartbeatTimeout ?? 6e4;
-    if (targetOrigin === "*") {
-      console.warn(
-        "CrossFrameAPI: Using wildcard origin ('*') allows any origin to receive messages. This is insecure for production use. Specify an explicit origin (e.g., 'https://lms.example.com') to restrict message recipients."
-      );
-    }
-    this._boundOnMessage = this._onMessage.bind(this);
-    window.addEventListener("message", this._boundOnMessage);
-    this._startHeartbeat();
-    return new Proxy(this, this._handler);
-  }
+  _cache = /* @__PURE__ */ new Map();
+  _cacheTimestamps = /* @__PURE__ */ new Map();
+  _lastError = "0";
+  _pending = /* @__PURE__ */ new Map();
+  _counter = 0;
+  _origin;
+  _targetWindow;
+  _timeout;
+  _heartbeatInterval;
+  _heartbeatTimeout;
+  _destroyed = false;
+  _connected = true;
+  _lastHeartbeatResponse = Date.now();
+  _heartbeatTimer;
+  _eventListeners = /* @__PURE__ */ new Map();
+  _boundOnMessage;
   /**
    * Type guard to validate MessageResponse structure
    */
@@ -25131,6 +25322,111 @@ class CrossFrameAPI {
   static _validateArgs(args) {
     if (!Array.isArray(args)) return false;
     return true;
+  }
+  _handler = {
+    get: (target, prop, receiver) => {
+      if (typeof prop !== "string" || prop in target) {
+        const v = Reflect.get(target, prop, receiver);
+        return typeof v === "function" ? v.bind(target) : v;
+      }
+      const methodName = prop;
+      const isGet = methodName.endsWith("GetValue");
+      const isSet = methodName.startsWith("LMSSet") || methodName.endsWith("SetValue");
+      const isInit = methodName === "Initialize" || methodName === "LMSInitialize";
+      const isFinish = methodName === "Terminate" || methodName === "LMSFinish";
+      const isCommit = methodName === "Commit" || methodName === "LMSCommit";
+      const isErrorString = methodName === "GetErrorString" || methodName === "LMSGetErrorString";
+      const isDiagnostic = methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
+      return (...args) => {
+        if (!CrossFrameAPI._validateArgs(args)) {
+          console.error(`CrossFrameAPI: Invalid arguments for ${methodName}`);
+          return "";
+        }
+        if (isSet && args.length >= 2) {
+          const key = args[0];
+          target._cache.set(key, String(args[1]));
+          target._cacheTimestamps.set(key, Date.now());
+          target._lastError = "0";
+        }
+        const requestTime = Date.now();
+        target._post(methodName, args).then((res) => {
+          if (isGet && args.length >= 1) {
+            const key = args[0];
+            const localModTime = target._cacheTimestamps.get(key) ?? 0;
+            if (localModTime < requestTime) {
+              target._cache.set(key, String(res));
+              target._cacheTimestamps.delete(key);
+            }
+            target._lastError = "0";
+          }
+          if (isErrorString && args.length >= 1) {
+            const code = String(args[0]);
+            target._cache.set(`error_${code}`, String(res));
+          }
+          if (isDiagnostic && args.length >= 1) {
+            const code = String(args[0]);
+            target._cache.set(`diag_${code}`, String(res));
+          }
+          if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
+            target._lastError = String(res);
+          }
+        }).catch((err) => target._capture(methodName, err));
+        if (isGet && args.length >= 1) {
+          return target._cache.get(args[0]) ?? "";
+        }
+        if (isErrorString && args.length >= 1) {
+          const code = String(args[0]);
+          return target._cache.get(`error_${code}`) ?? "";
+        }
+        if (isDiagnostic && args.length >= 1) {
+          const code = String(args[0]);
+          return target._cache.get(`diag_${code}`) ?? "";
+        }
+        if (isInit || isFinish || isCommit || isSet) {
+          const result = "true";
+          target._post("getFlattenedCMI", []).then((all) => {
+            if (all && typeof all === "object") {
+              const entries = Object.entries(all);
+              entries.forEach(([key, val]) => {
+                const localModTime = target._cacheTimestamps.get(key) ?? 0;
+                if (localModTime < requestTime) {
+                  target._cache.set(key, val);
+                  target._cacheTimestamps.delete(key);
+                }
+              });
+            }
+            target._lastError = "0";
+          }).catch((err) => target._capture("getFlattenedCMI", err));
+          return result;
+        }
+        if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
+          return target._lastError;
+        }
+        return "";
+      };
+    }
+  };
+  /**
+   * Creates a new CrossFrameAPI instance.
+   * @param targetOrigin - Origin to send messages to. Default "*" sends to any origin.
+   * @param targetWindow - Window to send messages to. Default is window.parent.
+   * @param options - Configuration options
+   */
+  constructor(targetOrigin = "*", targetWindow = window.parent, options = {}) {
+    this._origin = targetOrigin;
+    this._targetWindow = targetWindow;
+    this._timeout = options.timeout ?? 5e3;
+    this._heartbeatInterval = options.heartbeatInterval ?? 3e4;
+    this._heartbeatTimeout = options.heartbeatTimeout ?? 6e4;
+    if (targetOrigin === "*") {
+      console.warn(
+        "CrossFrameAPI: Using wildcard origin ('*') allows any origin to receive messages. This is insecure for production use. Specify an explicit origin (e.g., 'https://lms.example.com') to restrict message recipients."
+      );
+    }
+    this._boundOnMessage = this._onMessage.bind(this);
+    window.addEventListener("message", this._boundOnMessage);
+    this._startHeartbeat();
+    return new Proxy(this, this._handler);
   }
   /**
    * Destroys this instance, removing event listeners and preventing further message processing.
@@ -25295,6 +25591,38 @@ class CrossFrameAPI {
 }
 
 class CrossFrameLMS {
+  _api;
+  _origin;
+  _rateLimit;
+  _requestTimes = [];
+  _destroyed = false;
+  _boundOnMessage;
+  /**
+   * Strict allowlist of methods that can be invoked via cross-frame messages.
+   * Only SCORM API methods and internal helpers are permitted.
+   */
+  static ALLOWED_METHODS = /* @__PURE__ */ new Set([
+    // SCORM 1.2 methods
+    "LMSInitialize",
+    "LMSFinish",
+    "LMSGetValue",
+    "LMSSetValue",
+    "LMSCommit",
+    "LMSGetLastError",
+    "LMSGetErrorString",
+    "LMSGetDiagnostic",
+    // SCORM 2004 methods
+    "Initialize",
+    "Terminate",
+    "GetValue",
+    "SetValue",
+    "Commit",
+    "GetLastError",
+    "GetErrorString",
+    "GetDiagnostic",
+    // Internal method for cache warming
+    "getFlattenedCMI"
+  ]);
   /**
    * Creates a new CrossFrameLMS instance.
    * @param api - The SCORM API instance to delegate calls to
@@ -25302,8 +25630,6 @@ class CrossFrameLMS {
    * @param options - Configuration options
    */
   constructor(api, targetOrigin = "*", options = {}) {
-    this._requestTimes = [];
-    this._destroyed = false;
     this._api = api;
     this._origin = targetOrigin;
     this._rateLimit = options.rateLimit ?? 100;
@@ -25314,34 +25640,6 @@ class CrossFrameLMS {
     }
     this._boundOnMessage = this._onMessage.bind(this);
     window.addEventListener("message", this._boundOnMessage);
-  }
-  static {
-    /**
-     * Strict allowlist of methods that can be invoked via cross-frame messages.
-     * Only SCORM API methods and internal helpers are permitted.
-     */
-    this.ALLOWED_METHODS = /* @__PURE__ */ new Set([
-      // SCORM 1.2 methods
-      "LMSInitialize",
-      "LMSFinish",
-      "LMSGetValue",
-      "LMSSetValue",
-      "LMSCommit",
-      "LMSGetLastError",
-      "LMSGetErrorString",
-      "LMSGetDiagnostic",
-      // SCORM 2004 methods
-      "Initialize",
-      "Terminate",
-      "GetValue",
-      "SetValue",
-      "Commit",
-      "GetLastError",
-      "GetErrorString",
-      "GetDiagnostic",
-      // Internal method for cache warming
-      "getFlattenedCMI"
-    ]);
   }
   /**
    * Destroys this instance, removing event listeners and preventing further message processing.

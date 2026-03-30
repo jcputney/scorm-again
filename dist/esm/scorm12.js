@@ -1,6 +1,6 @@
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-const getSecondsAsHHMMSS = memoize((totalSeconds) => {
+const getSecondsAsHHMMSS = (totalSeconds) => {
   if (!totalSeconds || totalSeconds <= 0) {
     return "00:00:00";
   }
@@ -19,7 +19,7 @@ const getSecondsAsHHMMSS = memoize((totalSeconds) => {
     msStr = "." + msStr.split(".")[1];
   }
   return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-});
+};
 const getTimeAsSeconds = memoize(
   (timeString, timeRegex) => {
     if (typeof timeString === "number" || typeof timeString === "boolean") {
@@ -163,17 +163,18 @@ function memoize(fn, keyFn) {
 
 class BaseCMI {
   /**
+   * Flag used during JSON serialization to allow getter access without initialization checks.
+   * When true, getters can be accessed before the API is initialized, which is necessary
+   * for serializing the CMI data structure to JSON format.
+   */
+  jsonString = false;
+  _cmi_element;
+  _initialized = false;
+  /**
    * Constructor for BaseCMI
    * @param {string} cmi_element
    */
   constructor(cmi_element) {
-    /**
-     * Flag used during JSON serialization to allow getter access without initialization checks.
-     * When true, getters can be accessed before the API is initialized, which is necessary
-     * for serializing the CMI data structure to JSON format.
-     */
-    this.jsonString = false;
-    this._initialized = false;
     this._cmi_element = cmi_element;
   }
   /**
@@ -191,6 +192,7 @@ class BaseCMI {
   }
 }
 class BaseRootCMI extends BaseCMI {
+  _start_time;
   /**
    * Start time of the session
    * @type {number | undefined}
@@ -217,6 +219,7 @@ class BaseScormValidationError extends Error {
     this._errorCode = errorCode;
     Object.setPrototypeOf(this, BaseScormValidationError.prototype);
   }
+  _errorCode;
   /**
    * Getter for _errorCode
    * @return {number}
@@ -235,7 +238,6 @@ class ValidationError extends BaseScormValidationError {
    */
   constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
     super(CMIElement, errorCode);
-    this._detailedMessage = "";
     this.message = `${CMIElement} : ${errorMessage}`;
     this._errorMessage = errorMessage;
     if (detailedMessage) {
@@ -243,6 +245,8 @@ class ValidationError extends BaseScormValidationError {
     }
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
+  _errorMessage;
+  _detailedMessage = "";
   /**
    * Getter for _errorMessage
    * @return {string}
@@ -409,6 +413,10 @@ const scorm12_errors = {
 };
 
 class CMIArray extends BaseCMI {
+  _errorCode;
+  _errorClass;
+  __children;
+  childArray;
   /**
    * Constructor cmi *.n arrays
    * @param {object} params
@@ -869,6 +877,10 @@ const scorm2004_regex = {
 };
 
 class ScheduledCommit {
+  _API;
+  _cancelled = false;
+  _timeout;
+  _callback;
   /**
    * Constructor for ScheduledCommit
    * @param {BaseAPI} API
@@ -876,7 +888,6 @@ class ScheduledCommit {
    * @param {string} callback
    */
   constructor(API, when, callback) {
-    this._cancelled = false;
     this._API = API;
     this._timeout = setTimeout(this.wrapper.bind(this), when);
     this._callback = callback;
@@ -902,299 +913,9 @@ class ScheduledCommit {
   }
 }
 
-class RuleCondition extends BaseCMI {
-  /**
-   * Constructor for RuleCondition
-   * @param {RuleConditionType} condition - The condition type
-   * @param {RuleConditionOperator | null} operator - The operator (null for no operator)
-   * @param {Map<string, any>} parameters - Additional parameters for the condition
-   */
-  constructor(condition = "always" /* ALWAYS */, operator = null, parameters = /* @__PURE__ */ new Map()) {
-    super("ruleCondition");
-    this._condition = "always" /* ALWAYS */;
-    this._operator = null;
-    this._parameters = /* @__PURE__ */ new Map();
-    this._referencedObjective = null;
-    this._condition = condition;
-    this._operator = operator;
-    this._parameters = parameters;
-  }
-  static {
-    // Optional, overridable provider for current time (LMS may set via SequencingService)
-    this._now = () => /* @__PURE__ */ new Date();
-  }
-  static {
-    // Optional, overridable hook for getting elapsed seconds
-    this._getElapsedSecondsHook = void 0;
-  }
-  /**
-   * Allow integrators to override the clock used for time-based rules.
-   */
-  static setNowProvider(now) {
-    if (typeof now === "function") {
-      RuleCondition._now = now;
-    }
-  }
-  /**
-   * Allow integrators to set an elapsed seconds hook for time limit calculations
-   */
-  static setElapsedSecondsHook(hook) {
-    RuleCondition._getElapsedSecondsHook = hook;
-  }
-  /**
-   * Called when the API needs to be reset
-   */
-  reset() {
-    this._initialized = false;
-    this._condition = "always" /* ALWAYS */;
-    this._operator = null;
-    this._parameters = /* @__PURE__ */ new Map();
-  }
-  /**
-   * Getter for condition
-   * @return {RuleConditionType}
-   */
-  get condition() {
-    return this._condition;
-  }
-  /**
-   * Setter for condition
-   * @param {RuleConditionType} condition
-   */
-  set condition(condition) {
-    this._condition = condition;
-  }
-  /**
-   * Getter for operator
-   * @return {RuleConditionOperator | null}
-   */
-  get operator() {
-    return this._operator;
-  }
-  /**
-   * Setter for operator
-   * @param {RuleConditionOperator | null} operator
-   */
-  set operator(operator) {
-    this._operator = operator;
-  }
-  /**
-   * Getter for parameters
-   * @return {Map<string, any>}
-   */
-  get parameters() {
-    return this._parameters;
-  }
-  /**
-   * Setter for parameters
-   * @param {Map<string, any>} parameters
-   */
-  set parameters(parameters) {
-    this._parameters = parameters;
-  }
-  get referencedObjective() {
-    return this._referencedObjective;
-  }
-  set referencedObjective(objectiveId) {
-    this._referencedObjective = objectiveId;
-  }
-  resolveReferencedObjective(activity) {
-    if (!this._referencedObjective) {
-      return null;
-    }
-    if (activity.primaryObjective?.id === this._referencedObjective) {
-      return activity.primaryObjective;
-    }
-    const objectives = activity.objectives || [];
-    return objectives.find((obj) => obj.id === this._referencedObjective) || null;
-  }
-  /**
-   * Evaluate the condition for an activity
-   * @param {Activity} activity - The activity to evaluate the condition for
-   * @return {boolean} - True if the condition is met, false otherwise
-   */
-  evaluate(activity) {
-    let result;
-    const referencedObjective = this.resolveReferencedObjective(activity);
-    switch (this._condition) {
-      case "satisfied" /* SATISFIED */:
-      case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */:
-        if (referencedObjective) {
-          result = referencedObjective.satisfiedStatus === true;
-        } else {
-          result = activity.successStatus === SuccessStatus.PASSED || activity.objectiveSatisfiedStatus === true;
-        }
-        break;
-      case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
-        result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
-        break;
-      case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
-        result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
-        break;
-      case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
-        const greaterThanValue = this._parameters.get("threshold") || 0;
-        const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
-        const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-        result = !!measureStatus && measureValue > greaterThanValue;
-        break;
-      }
-      case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
-        const lessThanValue = this._parameters.get("threshold") || 0;
-        const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
-        const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-        result = !!measureStatus && measureValue < lessThanValue;
-        break;
-      }
-      case "completed" /* COMPLETED */:
-      case "activityCompleted" /* ACTIVITY_COMPLETED */:
-        if (referencedObjective) {
-          result = referencedObjective.completionStatus === CompletionStatus.COMPLETED;
-        } else {
-          result = activity.isCompleted;
-        }
-        break;
-      case "progressKnown" /* PROGRESS_KNOWN */:
-      case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */:
-        if (referencedObjective) {
-          result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
-        } else {
-          result = activity.completionStatus !== "unknown";
-        }
-        break;
-      case "attempted" /* ATTEMPTED */:
-        result = activity.attemptCount > 0;
-        break;
-      case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
-        result = activity.hasAttemptLimitExceeded();
-        break;
-      case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
-        result = this.evaluateTimeLimitExceeded(activity);
-        break;
-      case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
-        result = this.evaluateOutsideAvailableTimeRange(activity);
-        break;
-      case "always" /* ALWAYS */:
-        result = true;
-        break;
-      case "never" /* NEVER */:
-        result = false;
-        break;
-      default:
-        result = false;
-        break;
-    }
-    if (this._operator === "not" /* NOT */) {
-      result = !result;
-    }
-    return result;
-  }
-  /**
-   * Evaluate if time limit has been exceeded
-   * @param {Activity} activity - The activity to evaluate
-   * @return {boolean}
-   * @private
-   */
-  evaluateTimeLimitExceeded(activity) {
-    let limit = activity.timeLimitDuration;
-    if (!limit && activity.attemptAbsoluteDurationLimit) {
-      limit = activity.attemptAbsoluteDurationLimit;
-    }
-    if (!limit) {
-      return false;
-    }
-    const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-    if (limitSeconds <= 0) {
-      return false;
-    }
-    let elapsedSeconds = 0;
-    if (RuleCondition._getElapsedSecondsHook) {
-      try {
-        const hookResult = RuleCondition._getElapsedSecondsHook(activity);
-        if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
-          elapsedSeconds = hookResult;
-        }
-      } catch {
-        elapsedSeconds = 0;
-      }
-    }
-    if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
-      const attemptDurationSeconds = getDurationAsSeconds(
-        activity.attemptExperiencedDuration,
-        scorm2004_regex.CMITimespan
-      );
-      if (attemptDurationSeconds > 0) {
-        elapsedSeconds = attemptDurationSeconds;
-      }
-    }
-    if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
-      try {
-        const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-        const nowMs = RuleCondition._now().getTime();
-        if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
-          elapsedSeconds = (nowMs - start) / 1e3;
-        }
-      } catch {
-        elapsedSeconds = 0;
-      }
-    }
-    return elapsedSeconds > limitSeconds;
-  }
-  /**
-   * Evaluate if activity is outside available time range
-   * @param {Activity} activity - The activity to evaluate
-   * @return {boolean}
-   * @private
-   */
-  evaluateOutsideAvailableTimeRange(activity) {
-    const beginTime = activity.beginTimeLimit;
-    const endTime = activity.endTimeLimit;
-    if (!beginTime && !endTime) {
-      return false;
-    }
-    const now = RuleCondition._now();
-    if (beginTime) {
-      const beginDate = new Date(beginTime);
-      if (now < beginDate) {
-        return true;
-      }
-    }
-    if (endTime) {
-      const endDate = new Date(endTime);
-      if (now > endDate) {
-        return true;
-      }
-    }
-    return false;
-  }
-  /**
-   * Parse ISO 8601 duration to milliseconds
-   * Uses the standard getDurationAsSeconds utility which supports full ISO 8601 format
-   * including date components (years, months, weeks, days) and time components (hours, minutes, seconds).
-   * @param {string} duration - ISO 8601 duration string (e.g., "PT1H30M", "P1D", "P1Y2M3DT4H5M6S")
-   * @return {number} - Duration in milliseconds
-   * @private
-   */
-  parseISO8601Duration(duration) {
-    const seconds = getDurationAsSeconds(duration, scorm2004_regex.CMITimespan);
-    return seconds * 1e3;
-  }
-  /**
-   * toJSON for RuleCondition
-   * @return {object}
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      condition: this._condition,
-      operator: this._operator,
-      parameters: Object.fromEntries(this._parameters)
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
 class AsynchronousHttpService {
+  settings;
+  error_codes;
   /**
    * Constructor for AsynchronousHttpService
    * @param {Settings} settings - The settings object
@@ -1390,6 +1111,7 @@ function getErrorCode(errorCodes, key) {
   return code;
 }
 class CMIValueAccessService {
+  context;
   constructor(context) {
     this.context = context;
   }
@@ -1754,11 +1476,13 @@ class CMIValueAccessService {
 }
 
 class LoggingService {
+  static _instance;
+  _logLevel = LogLevelEnum.ERROR;
+  _logHandler;
   /**
    * Private constructor to prevent direct instantiation
    */
   constructor() {
-    this._logLevel = LogLevelEnum.ERROR;
     this._logHandler = defaultLogHandler;
   }
   /**
@@ -1912,6 +1636,12 @@ function getLoggingService() {
 }
 
 class ErrorHandlingService {
+  _lastErrorCode = "0";
+  _lastDiagnostic = "";
+  _errorCodes;
+  _apiLog;
+  _getLmsErrorMessageDetails;
+  _loggingService;
   /**
    * Constructor for ErrorHandlingService
    *
@@ -1921,8 +1651,6 @@ class ErrorHandlingService {
    * @param {ILoggingService} loggingService - Optional logging service instance
    */
   constructor(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
-    this._lastErrorCode = "0";
-    this._lastDiagnostic = "";
     this._errorCodes = errorCodes;
     this._apiLog = apiLog;
     this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
@@ -2069,15 +1797,17 @@ function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetail
 }
 
 class EventService {
+  // Map of function names to listeners for faster lookups
+  listenerMap = /* @__PURE__ */ new Map();
+  // Total count of listeners for logging
+  listenerCount = 0;
+  // Function to log API messages
+  apiLog;
   /**
    * Constructor for EventService
    * @param {Function} apiLog - Function to log API messages
    */
   constructor(apiLog) {
-    // Map of function names to listeners for faster lookups
-    this.listenerMap = /* @__PURE__ */ new Map();
-    // Total count of listeners for logging
-    this.listenerCount = 0;
     this.apiLog = apiLog;
   }
   /**
@@ -2245,10 +1975,6 @@ class OfflineStorageService {
    */
   constructor(settings, error_codes, apiLog) {
     this.apiLog = apiLog;
-    this.storeName = "scorm_again_offline_data";
-    this.syncQueue = "scorm_again_sync_queue";
-    this.isOnline = navigator.onLine;
-    this.syncInProgress = false;
     this.settings = settings;
     this.error_codes = error_codes;
     this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -2257,6 +1983,14 @@ class OfflineStorageService {
     window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
     window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
+  settings;
+  error_codes;
+  storeName = "scorm_again_offline_data";
+  syncQueue = "scorm_again_sync_queue";
+  isOnline = navigator.onLine;
+  syncInProgress = false;
+  boundOnlineStatusChangeHandler;
+  boundCustomNetworkStatusHandler;
   /**
    * Handle changes in online status
    */
@@ -2568,7 +2302,7 @@ class OfflineStorageService {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        throw new Error("storage quota exceeded - localStorage is full");
+        throw new Error("storage quota exceeded - localStorage is full", { cause: error });
       }
       throw error;
     }
@@ -2886,6 +2620,8 @@ class SerializationService {
 }
 
 class SynchronousHttpService {
+  settings;
+  error_codes;
   /**
    * Constructor for SynchronousHttpService
    * @param {InternalSettings} settings - The settings object
@@ -3088,6 +2824,17 @@ class ValidationService {
 const validationService = new ValidationService();
 
 class BaseAPI {
+  _timeout;
+  _error_codes;
+  _settings = DefaultSettings;
+  _httpService;
+  _eventService;
+  _serializationService;
+  _errorHandlingService;
+  _loggingService;
+  _offlineStorageService;
+  _cmiValueAccessService;
+  _courseId = "";
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
    * sets up options for the API.
@@ -3102,8 +2849,6 @@ class BaseAPI {
    * @param {IOfflineStorageService} offlineStorageService - Optional Offline Storage service instance
    */
   constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService, offlineStorageService) {
-    this._settings = DefaultSettings;
-    this._courseId = "";
     if (new.target === BaseAPI) {
       throw new TypeError("Cannot construct BaseAPI instances directly");
     }
@@ -3230,6 +2975,8 @@ class BaseAPI {
     };
     this._cmiValueAccessService = new CMIValueAccessService(cmiValueAccessContext);
   }
+  startingData;
+  currentState;
   /**
    * Get the last error code
    * @return {string}
@@ -4142,6 +3889,21 @@ class BaseAPI {
 }
 
 class CMIScore extends BaseCMI {
+  __children;
+  /**
+   * Score range validation pattern (e.g., "0#100" for SCORM 1.2).
+   * Set to `false` to disable range validation (e.g., for SCORM 2004 where scores have no upper bound).
+   * This property is intentionally unused in the base class but provides subclass flexibility.
+   */
+  __score_range;
+  __invalid_error_code;
+  __invalid_type_code;
+  __invalid_range_code;
+  __decimal_regex;
+  __error_class;
+  _raw = "";
+  _min = "";
+  _max;
   /**
    * Constructor for *.score
    *
@@ -4165,8 +3927,6 @@ class CMIScore extends BaseCMI {
    */
   constructor(params) {
     super(params.CMIElement);
-    this._raw = "";
-    this._min = "";
     this.__children = params.score_children || scorm12_constants.score_children;
     this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
     this._max = params.max || params.max === "" ? params.max : "100";
@@ -4319,18 +4079,6 @@ class CMICore extends BaseCMI {
    */
   constructor() {
     super("cmi.core");
-    this.__children = scorm12_constants.core_children;
-    this._student_id = "";
-    this._student_name = "";
-    this._lesson_location = "";
-    this._credit = "";
-    this._lesson_status = "not attempted";
-    this._entry = "";
-    this._total_time = "";
-    this._lesson_mode = "normal";
-    this._exit = "";
-    this._session_time = "00:00:00";
-    this._suspend_data = "";
     this.score = new CMIScore({
       CMIElement: "cmi.core.score",
       score_children: scorm12_constants.score_children,
@@ -4341,6 +4089,7 @@ class CMICore extends BaseCMI {
       errorClass: Scorm12ValidationError
     });
   }
+  score;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -4348,6 +4097,18 @@ class CMICore extends BaseCMI {
     super.initialize();
     this.score?.initialize();
   }
+  __children = scorm12_constants.core_children;
+  _student_id = "";
+  _student_name = "";
+  _lesson_location = "";
+  _credit = "";
+  _lesson_status = "not attempted";
+  _entry = "";
+  _total_time = "";
+  _lesson_mode = "normal";
+  _exit = "";
+  _session_time = "00:00:00";
+  _suspend_data = "";
   /**
    * Called when the API has been reset
    */
@@ -4748,8 +4509,6 @@ class CMIObjectivesObject extends BaseCMI {
    */
   constructor() {
     super("cmi.objectives.n");
-    this._id = "";
-    this._status = "";
     this.score = new CMIScore({
       CMIElement: "cmi.objectives.n.score",
       score_children: scorm12_constants.score_children,
@@ -4760,6 +4519,9 @@ class CMIObjectivesObject extends BaseCMI {
       errorClass: Scorm12ValidationError
     });
   }
+  score;
+  _id = "";
+  _status = "";
   /**
    * Called when the API has been reset
    */
@@ -4851,15 +4613,16 @@ function parseTimeAllowed(value, fieldName) {
   throw new Scorm12ValidationError(fieldName, scorm12_errors.TYPE_MISMATCH);
 }
 class CMIStudentData extends BaseCMI {
+  __children;
+  _mastery_score = "";
+  _max_time_allowed = "";
+  _time_limit_action = "";
   /**
    * Constructor for cmi.student_data
    * @param {string} student_data_children
    */
   constructor(student_data_children) {
     super("cmi.student_data");
-    this._mastery_score = "";
-    this._max_time_allowed = "";
-    this._time_limit_action = "";
     this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
   }
   /**
@@ -4999,18 +4762,19 @@ class CMIStudentData extends BaseCMI {
 }
 
 class CMIStudentPreference extends BaseCMI {
+  __children;
   /**
    * Constructor for cmi.student_preference
    * @param {string} student_preference_children
    */
   constructor(student_preference_children) {
     super("cmi.student_preference");
-    this._audio = "";
-    this._language = "";
-    this._speed = "";
-    this._text = "";
     this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
   }
+  _audio = "";
+  _language = "";
+  _speed = "";
+  _text = "";
   /**
    * Called when the API has been reset
    */
@@ -5152,13 +4916,6 @@ class CMIInteractionsObject extends BaseCMI {
    */
   constructor() {
     super("cmi.interactions.n");
-    this._id = "";
-    this._time = "";
-    this._type = "";
-    this._weighting = "";
-    this._student_response = "";
-    this._result = "";
-    this._latency = "";
     this.objectives = new CMIArray({
       CMIElement: "cmi.interactions.n.objectives",
       errorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -5172,6 +4929,8 @@ class CMIInteractionsObject extends BaseCMI {
       children: scorm12_constants.correct_responses_children
     });
   }
+  objectives;
+  correct_responses;
   /**
    * Called when the API has been initialized after the CMI has been created
    */
@@ -5180,6 +4939,13 @@ class CMIInteractionsObject extends BaseCMI {
     this.objectives?.initialize();
     this.correct_responses?.initialize();
   }
+  _id = "";
+  _time = "";
+  _type = "";
+  _weighting = "";
+  _student_response = "";
+  _result = "";
+  _latency = "";
   /**
    * Called when the API has been reset
    */
@@ -5409,8 +5175,8 @@ class CMIInteractionsObjectivesObject extends BaseCMI {
    */
   constructor() {
     super("cmi.interactions.n.objectives.n");
-    this._id = "";
   }
+  _id = "";
   /**
    * Called when the API has been reset
    */
@@ -5463,8 +5229,8 @@ class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    */
   constructor() {
     super("cmi.interactions.correct_responses.n");
-    this._pattern = "";
   }
+  _pattern = "";
   /**
    * Called when the API has been reset
    */
@@ -5513,6 +5279,11 @@ class CMIInteractionsCorrectResponsesObject extends BaseCMI {
 }
 
 class CMI extends BaseRootCMI {
+  __children = "";
+  __version = "3.4";
+  _launch_data = "";
+  _comments = "";
+  _comments_from_lms = "";
   /**
    * Constructor for the SCORM 1.2 cmi object
    * @param {string} cmi_children
@@ -5521,11 +5292,6 @@ class CMI extends BaseRootCMI {
    */
   constructor(cmi_children, student_data, initialized) {
     super("cmi");
-    this.__children = "";
-    this.__version = "3.4";
-    this._launch_data = "";
-    this._comments = "";
-    this._comments_from_lms = "";
     if (initialized) this.initialize();
     this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
     this.core = new CMICore();
@@ -5534,6 +5300,11 @@ class CMI extends BaseRootCMI {
     this.student_preference = new CMIStudentPreference();
     this.interactions = new CMIInteractions();
   }
+  core;
+  objectives;
+  student_data;
+  student_preference;
+  interactions;
   /**
    * Called when the API has been reset
    *
@@ -5738,7 +5509,6 @@ class NAV extends BaseCMI {
    */
   constructor() {
     super("cmi.nav");
-    this._event = "";
   }
   /**
    * Called when the API has been reset
@@ -5755,6 +5525,7 @@ class NAV extends BaseCMI {
     this._event = "";
     this._initialized = false;
   }
+  _event = "";
   /**
    * Getter for _event
    * @return {string}
@@ -5791,6 +5562,19 @@ class NAV extends BaseCMI {
 
 class Scorm12API extends BaseAPI {
   /**
+   * Static global storage for learner preferences
+   * When globalStudentPreferences is enabled, preferences persist across SCO instances
+   * @private
+   */
+  static _globalLearnerPrefs = null;
+  /**
+   * Clear the global learner preferences storage
+   * @public
+   */
+  static clearGlobalPreferences() {
+    Scorm12API._globalLearnerPrefs = null;
+  }
+  /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
    * @param {IHttpService} httpService - Optional HTTP service instance
@@ -5803,7 +5587,6 @@ class Scorm12API extends BaseAPI {
       }
     }
     super(scorm12_errors, settingsCopy, httpService);
-    this.statusSetByModule = false;
     this.cmi = new CMI();
     this.nav = new NAV();
     if (this.settings.globalStudentPreferences && Scorm12API._globalLearnerPrefs) {
@@ -5829,21 +5612,17 @@ class Scorm12API extends BaseAPI {
     this.LMSGetErrorString = this.lmsGetErrorString;
     this.LMSGetDiagnostic = this.lmsGetDiagnostic;
   }
-  static {
-    /**
-     * Static global storage for learner preferences
-     * When globalStudentPreferences is enabled, preferences persist across SCO instances
-     * @private
-     */
-    this._globalLearnerPrefs = null;
-  }
-  /**
-   * Clear the global learner preferences storage
-   * @public
-   */
-  static clearGlobalPreferences() {
-    Scorm12API._globalLearnerPrefs = null;
-  }
+  statusSetByModule = false;
+  cmi;
+  nav;
+  LMSInitialize;
+  LMSFinish;
+  LMSGetValue;
+  LMSSetValue;
+  LMSCommit;
+  LMSGetLastError;
+  LMSGetErrorString;
+  LMSGetDiagnostic;
   /**
    * Called when the API needs to be reset
    */
@@ -6039,7 +5818,7 @@ class Scorm12API extends BaseAPI {
    */
   setCMIValue(CMIElement, value) {
     const result = this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
-    if (this.settings.globalStudentPreferences) {
+    if (result === global_constants.SCORM_TRUE && this.settings.globalStudentPreferences) {
       if (CMIElement === "cmi.student_preference.audio") {
         this._updateGlobalPreference("audio", value);
       } else if (CMIElement === "cmi.student_preference.language") {
@@ -6142,7 +5921,7 @@ class Scorm12API extends BaseAPI {
     const flattened = flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {
       case "flattened":
-        return flatten(cmiExport);
+        return flattened;
       case "params":
         for (const item in flattened) {
           if ({}.hasOwnProperty.call(flattened, item)) {

@@ -1,6 +1,14 @@
 this.CrossFrameLMS = (function () {
   'use strict';
 
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   const _CrossFrameLMS = class _CrossFrameLMS {
     /**
      * Creates a new CrossFrameLMS instance.
@@ -11,8 +19,12 @@ this.CrossFrameLMS = (function () {
     constructor(api) {
       let targetOrigin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "*";
       let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      this._requestTimes = [];
-      this._destroyed = false;
+      __publicField(this, "_api");
+      __publicField(this, "_origin");
+      __publicField(this, "_rateLimit");
+      __publicField(this, "_requestTimes", []);
+      __publicField(this, "_destroyed", false);
+      __publicField(this, "_boundOnMessage");
       this._api = api;
       this._origin = targetOrigin;
       this._rateLimit = options.rateLimit ?? 100;
@@ -157,13 +169,13 @@ this.CrossFrameLMS = (function () {
    * Strict allowlist of methods that can be invoked via cross-frame messages.
    * Only SCORM API methods and internal helpers are permitted.
    */
-  _CrossFrameLMS.ALLOWED_METHODS = /* @__PURE__ */new Set([
+  __publicField(_CrossFrameLMS, "ALLOWED_METHODS", /* @__PURE__ */new Set([
   // SCORM 1.2 methods
   "LMSInitialize", "LMSFinish", "LMSGetValue", "LMSSetValue", "LMSCommit", "LMSGetLastError", "LMSGetErrorString", "LMSGetDiagnostic",
   // SCORM 2004 methods
   "Initialize", "Terminate", "GetValue", "SetValue", "Commit", "GetLastError", "GetErrorString", "GetDiagnostic",
   // Internal method for cache warming
-  "getFlattenedCMI"]);
+  "getFlattenedCMI"]));
   let CrossFrameLMS = _CrossFrameLMS;
 
   return CrossFrameLMS;

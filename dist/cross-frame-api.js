@@ -4,6 +4,14 @@ this.CrossFrameAPI = (function () {
   const global_errors = {
     GENERAL: 101};
 
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CrossFrameAPI {
     /**
      * Creates a new CrossFrameAPI instance.
@@ -15,16 +23,23 @@ this.CrossFrameAPI = (function () {
       let targetOrigin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "*";
       let targetWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : window.parent;
       let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      this._cache = /* @__PURE__ */new Map();
-      this._cacheTimestamps = /* @__PURE__ */new Map();
-      this._lastError = "0";
-      this._pending = /* @__PURE__ */new Map();
-      this._counter = 0;
-      this._destroyed = false;
-      this._connected = true;
-      this._lastHeartbeatResponse = Date.now();
-      this._eventListeners = /* @__PURE__ */new Map();
-      this._handler = {
+      __publicField(this, "_cache", /* @__PURE__ */new Map());
+      __publicField(this, "_cacheTimestamps", /* @__PURE__ */new Map());
+      __publicField(this, "_lastError", "0");
+      __publicField(this, "_pending", /* @__PURE__ */new Map());
+      __publicField(this, "_counter", 0);
+      __publicField(this, "_origin");
+      __publicField(this, "_targetWindow");
+      __publicField(this, "_timeout");
+      __publicField(this, "_heartbeatInterval");
+      __publicField(this, "_heartbeatTimeout");
+      __publicField(this, "_destroyed", false);
+      __publicField(this, "_connected", true);
+      __publicField(this, "_lastHeartbeatResponse", Date.now());
+      __publicField(this, "_heartbeatTimer");
+      __publicField(this, "_eventListeners", /* @__PURE__ */new Map());
+      __publicField(this, "_boundOnMessage");
+      __publicField(this, "_handler", {
         get: (target, prop, receiver) => {
           if (typeof prop !== "string" || prop in target) {
             const v = Reflect.get(target, prop, receiver);
@@ -110,7 +125,7 @@ this.CrossFrameAPI = (function () {
             return "";
           };
         }
-      };
+      });
       this._origin = targetOrigin;
       this._targetWindow = targetWindow;
       this._timeout = options.timeout ?? 5e3;

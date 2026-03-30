@@ -2,7 +2,7 @@ import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { ErrorCode } from "./constants";
 import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types";
-import { IBaseAPI, ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService } from "./interfaces";
+import { IBaseAPI, ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService, ScormEventCallback } from "./interfaces";
 export default abstract class BaseAPI implements IBaseAPI {
     private _timeout?;
     protected readonly _error_codes: ErrorCode;
@@ -59,8 +59,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     isInitialized(): boolean;
     isNotInitialized(): boolean;
     isTerminated(): boolean;
-    on(listenerName: string, callback: Function): void;
-    off(listenerName: string, callback: Function): void;
+    on(listenerName: string, callback: ScormEventCallback): void;
+    off(listenerName: string, callback: ScormEventCallback): void;
     clear(listenerName: string): void;
     processListeners(functionName: string, CMIElement?: string, value?: any): void;
     throwSCORMError(CMIElement: string | undefined, errorNumber: number | undefined, message?: string): void;

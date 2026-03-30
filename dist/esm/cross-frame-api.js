@@ -2,120 +2,22 @@ const global_errors = {
   GENERAL: 101};
 
 class CrossFrameAPI {
-  /**
-   * Creates a new CrossFrameAPI instance.
-   * @param targetOrigin - Origin to send messages to. Default "*" sends to any origin.
-   * @param targetWindow - Window to send messages to. Default is window.parent.
-   * @param options - Configuration options
-   */
-  constructor(targetOrigin = "*", targetWindow = window.parent, options = {}) {
-    this._cache = /* @__PURE__ */ new Map();
-    this._cacheTimestamps = /* @__PURE__ */ new Map();
-    this._lastError = "0";
-    this._pending = /* @__PURE__ */ new Map();
-    this._counter = 0;
-    this._destroyed = false;
-    this._connected = true;
-    this._lastHeartbeatResponse = Date.now();
-    this._eventListeners = /* @__PURE__ */ new Map();
-    this._handler = {
-      get: (target, prop, receiver) => {
-        if (typeof prop !== "string" || prop in target) {
-          const v = Reflect.get(target, prop, receiver);
-          return typeof v === "function" ? v.bind(target) : v;
-        }
-        const methodName = prop;
-        const isGet = methodName.endsWith("GetValue");
-        const isSet = methodName.startsWith("LMSSet") || methodName.endsWith("SetValue");
-        const isInit = methodName === "Initialize" || methodName === "LMSInitialize";
-        const isFinish = methodName === "Terminate" || methodName === "LMSFinish";
-        const isCommit = methodName === "Commit" || methodName === "LMSCommit";
-        const isErrorString = methodName === "GetErrorString" || methodName === "LMSGetErrorString";
-        const isDiagnostic = methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
-        return (...args) => {
-          if (!CrossFrameAPI._validateArgs(args)) {
-            console.error(`CrossFrameAPI: Invalid arguments for ${methodName}`);
-            return "";
-          }
-          if (isSet && args.length >= 2) {
-            const key = args[0];
-            target._cache.set(key, String(args[1]));
-            target._cacheTimestamps.set(key, Date.now());
-            target._lastError = "0";
-          }
-          const requestTime = Date.now();
-          target._post(methodName, args).then((res) => {
-            if (isGet && args.length >= 1) {
-              const key = args[0];
-              const localModTime = target._cacheTimestamps.get(key) ?? 0;
-              if (localModTime < requestTime) {
-                target._cache.set(key, String(res));
-                target._cacheTimestamps.delete(key);
-              }
-              target._lastError = "0";
-            }
-            if (isErrorString && args.length >= 1) {
-              const code = String(args[0]);
-              target._cache.set(`error_${code}`, String(res));
-            }
-            if (isDiagnostic && args.length >= 1) {
-              const code = String(args[0]);
-              target._cache.set(`diag_${code}`, String(res));
-            }
-            if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
-              target._lastError = String(res);
-            }
-          }).catch((err) => target._capture(methodName, err));
-          if (isGet && args.length >= 1) {
-            return target._cache.get(args[0]) ?? "";
-          }
-          if (isErrorString && args.length >= 1) {
-            const code = String(args[0]);
-            return target._cache.get(`error_${code}`) ?? "";
-          }
-          if (isDiagnostic && args.length >= 1) {
-            const code = String(args[0]);
-            return target._cache.get(`diag_${code}`) ?? "";
-          }
-          if (isInit || isFinish || isCommit || isSet) {
-            const result = "true";
-            target._post("getFlattenedCMI", []).then((all) => {
-              if (all && typeof all === "object") {
-                const entries = Object.entries(all);
-                entries.forEach(([key, val]) => {
-                  const localModTime = target._cacheTimestamps.get(key) ?? 0;
-                  if (localModTime < requestTime) {
-                    target._cache.set(key, val);
-                    target._cacheTimestamps.delete(key);
-                  }
-                });
-              }
-              target._lastError = "0";
-            }).catch((err) => target._capture("getFlattenedCMI", err));
-            return result;
-          }
-          if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
-            return target._lastError;
-          }
-          return "";
-        };
-      }
-    };
-    this._origin = targetOrigin;
-    this._targetWindow = targetWindow;
-    this._timeout = options.timeout ?? 5e3;
-    this._heartbeatInterval = options.heartbeatInterval ?? 3e4;
-    this._heartbeatTimeout = options.heartbeatTimeout ?? 6e4;
-    if (targetOrigin === "*") {
-      console.warn(
-        "CrossFrameAPI: Using wildcard origin ('*') allows any origin to receive messages. This is insecure for production use. Specify an explicit origin (e.g., 'https://lms.example.com') to restrict message recipients."
-      );
-    }
-    this._boundOnMessage = this._onMessage.bind(this);
-    window.addEventListener("message", this._boundOnMessage);
-    this._startHeartbeat();
-    return new Proxy(this, this._handler);
-  }
+  _cache = /* @__PURE__ */ new Map();
+  _cacheTimestamps = /* @__PURE__ */ new Map();
+  _lastError = "0";
+  _pending = /* @__PURE__ */ new Map();
+  _counter = 0;
+  _origin;
+  _targetWindow;
+  _timeout;
+  _heartbeatInterval;
+  _heartbeatTimeout;
+  _destroyed = false;
+  _connected = true;
+  _lastHeartbeatResponse = Date.now();
+  _heartbeatTimer;
+  _eventListeners = /* @__PURE__ */ new Map();
+  _boundOnMessage;
   /**
    * Type guard to validate MessageResponse structure
    */
@@ -138,6 +40,111 @@ class CrossFrameAPI {
   static _validateArgs(args) {
     if (!Array.isArray(args)) return false;
     return true;
+  }
+  _handler = {
+    get: (target, prop, receiver) => {
+      if (typeof prop !== "string" || prop in target) {
+        const v = Reflect.get(target, prop, receiver);
+        return typeof v === "function" ? v.bind(target) : v;
+      }
+      const methodName = prop;
+      const isGet = methodName.endsWith("GetValue");
+      const isSet = methodName.startsWith("LMSSet") || methodName.endsWith("SetValue");
+      const isInit = methodName === "Initialize" || methodName === "LMSInitialize";
+      const isFinish = methodName === "Terminate" || methodName === "LMSFinish";
+      const isCommit = methodName === "Commit" || methodName === "LMSCommit";
+      const isErrorString = methodName === "GetErrorString" || methodName === "LMSGetErrorString";
+      const isDiagnostic = methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
+      return (...args) => {
+        if (!CrossFrameAPI._validateArgs(args)) {
+          console.error(`CrossFrameAPI: Invalid arguments for ${methodName}`);
+          return "";
+        }
+        if (isSet && args.length >= 2) {
+          const key = args[0];
+          target._cache.set(key, String(args[1]));
+          target._cacheTimestamps.set(key, Date.now());
+          target._lastError = "0";
+        }
+        const requestTime = Date.now();
+        target._post(methodName, args).then((res) => {
+          if (isGet && args.length >= 1) {
+            const key = args[0];
+            const localModTime = target._cacheTimestamps.get(key) ?? 0;
+            if (localModTime < requestTime) {
+              target._cache.set(key, String(res));
+              target._cacheTimestamps.delete(key);
+            }
+            target._lastError = "0";
+          }
+          if (isErrorString && args.length >= 1) {
+            const code = String(args[0]);
+            target._cache.set(`error_${code}`, String(res));
+          }
+          if (isDiagnostic && args.length >= 1) {
+            const code = String(args[0]);
+            target._cache.set(`diag_${code}`, String(res));
+          }
+          if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
+            target._lastError = String(res);
+          }
+        }).catch((err) => target._capture(methodName, err));
+        if (isGet && args.length >= 1) {
+          return target._cache.get(args[0]) ?? "";
+        }
+        if (isErrorString && args.length >= 1) {
+          const code = String(args[0]);
+          return target._cache.get(`error_${code}`) ?? "";
+        }
+        if (isDiagnostic && args.length >= 1) {
+          const code = String(args[0]);
+          return target._cache.get(`diag_${code}`) ?? "";
+        }
+        if (isInit || isFinish || isCommit || isSet) {
+          const result = "true";
+          target._post("getFlattenedCMI", []).then((all) => {
+            if (all && typeof all === "object") {
+              const entries = Object.entries(all);
+              entries.forEach(([key, val]) => {
+                const localModTime = target._cacheTimestamps.get(key) ?? 0;
+                if (localModTime < requestTime) {
+                  target._cache.set(key, val);
+                  target._cacheTimestamps.delete(key);
+                }
+              });
+            }
+            target._lastError = "0";
+          }).catch((err) => target._capture("getFlattenedCMI", err));
+          return result;
+        }
+        if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
+          return target._lastError;
+        }
+        return "";
+      };
+    }
+  };
+  /**
+   * Creates a new CrossFrameAPI instance.
+   * @param targetOrigin - Origin to send messages to. Default "*" sends to any origin.
+   * @param targetWindow - Window to send messages to. Default is window.parent.
+   * @param options - Configuration options
+   */
+  constructor(targetOrigin = "*", targetWindow = window.parent, options = {}) {
+    this._origin = targetOrigin;
+    this._targetWindow = targetWindow;
+    this._timeout = options.timeout ?? 5e3;
+    this._heartbeatInterval = options.heartbeatInterval ?? 3e4;
+    this._heartbeatTimeout = options.heartbeatTimeout ?? 6e4;
+    if (targetOrigin === "*") {
+      console.warn(
+        "CrossFrameAPI: Using wildcard origin ('*') allows any origin to receive messages. This is insecure for production use. Specify an explicit origin (e.g., 'https://lms.example.com') to restrict message recipients."
+      );
+    }
+    this._boundOnMessage = this._onMessage.bind(this);
+    window.addEventListener("message", this._boundOnMessage);
+    this._startHeartbeat();
+    return new Proxy(this, this._handler);
   }
   /**
    * Destroys this instance, removing event listeners and preventing further message processing.

@@ -1,4 +1,36 @@
 class CrossFrameLMS {
+  _api;
+  _origin;
+  _rateLimit;
+  _requestTimes = [];
+  _destroyed = false;
+  _boundOnMessage;
+  /**
+   * Strict allowlist of methods that can be invoked via cross-frame messages.
+   * Only SCORM API methods and internal helpers are permitted.
+   */
+  static ALLOWED_METHODS = /* @__PURE__ */ new Set([
+    // SCORM 1.2 methods
+    "LMSInitialize",
+    "LMSFinish",
+    "LMSGetValue",
+    "LMSSetValue",
+    "LMSCommit",
+    "LMSGetLastError",
+    "LMSGetErrorString",
+    "LMSGetDiagnostic",
+    // SCORM 2004 methods
+    "Initialize",
+    "Terminate",
+    "GetValue",
+    "SetValue",
+    "Commit",
+    "GetLastError",
+    "GetErrorString",
+    "GetDiagnostic",
+    // Internal method for cache warming
+    "getFlattenedCMI"
+  ]);
   /**
    * Creates a new CrossFrameLMS instance.
    * @param api - The SCORM API instance to delegate calls to
@@ -6,8 +38,6 @@ class CrossFrameLMS {
    * @param options - Configuration options
    */
   constructor(api, targetOrigin = "*", options = {}) {
-    this._requestTimes = [];
-    this._destroyed = false;
     this._api = api;
     this._origin = targetOrigin;
     this._rateLimit = options.rateLimit ?? 100;
@@ -18,34 +48,6 @@ class CrossFrameLMS {
     }
     this._boundOnMessage = this._onMessage.bind(this);
     window.addEventListener("message", this._boundOnMessage);
-  }
-  static {
-    /**
-     * Strict allowlist of methods that can be invoked via cross-frame messages.
-     * Only SCORM API methods and internal helpers are permitted.
-     */
-    this.ALLOWED_METHODS = /* @__PURE__ */ new Set([
-      // SCORM 1.2 methods
-      "LMSInitialize",
-      "LMSFinish",
-      "LMSGetValue",
-      "LMSSetValue",
-      "LMSCommit",
-      "LMSGetLastError",
-      "LMSGetErrorString",
-      "LMSGetDiagnostic",
-      // SCORM 2004 methods
-      "Initialize",
-      "Terminate",
-      "GetValue",
-      "SetValue",
-      "Commit",
-      "GetLastError",
-      "GetErrorString",
-      "GetDiagnostic",
-      // Internal method for cache warming
-      "getFlattenedCMI"
-    ]);
   }
   /**
    * Destroys this instance, removing event listeners and preventing further message processing.

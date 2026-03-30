@@ -2,8 +2,8 @@ import { Activity } from "../activity";
 import { ActivityTree } from "../activity_tree";
 import { SequencingProcess, SequencingRequestType, PostConditionResult } from "../sequencing_process";
 import { RollupProcess } from "../rollup_process";
-import { CMIDataForTransfer } from "./rte_data_transfer";
-export { CMIDataForTransfer } from "./rte_data_transfer";
+import type { CMIDataForTransfer } from "./rte_data_transfer";
+export type { CMIDataForTransfer } from "./rte_data_transfer";
 export interface TerminationResult {
     terminationRequest: SequencingRequestType;
     sequencingRequest: SequencingRequestType | null;

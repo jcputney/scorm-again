@@ -49,6 +49,7 @@ declare class Scorm2004API extends BaseAPI {
     setCMIValue(CMIElement: string, value: any): string;
     getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null;
     validateCorrectResponse(CMIElement: string, value: any): void;
+    private _peekCMIValue;
     getCMIValue(CMIElement: string): any;
     getLmsErrorMessageDetails(errorNumber: string | number, detail: boolean): string;
     replaceWithAnotherScormAPI(newAPI: Scorm2004API): void;
