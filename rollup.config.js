@@ -176,6 +176,13 @@ const esmEntries = {
 // Determine if we're in production mode
 const isProduction = process.env.NODE_ENV === "production";
 
+// Codecov bundle analysis - only active when CODECOV_TOKEN is set (CI)
+const enableBundleAnalysis = !!process.env.CODECOV_TOKEN;
+let codecovRollupPlugin;
+if (enableBundleAnalysis) {
+  ({ codecovRollupPlugin } = await import("@codecov/rollup-plugin"));
+}
+
 // Allow skipping minified builds for faster development
 const skipMinified = process.env.SKIP_MINIFIED === "true";
 
@@ -235,6 +242,15 @@ Object.entries(entries).forEach(([name, input]) => {
         ],
         extensions: [".js", ".ts"],
       }),
+      ...(enableBundleAnalysis && name === "scorm-again"
+        ? [
+            codecovRollupPlugin({
+              enableBundleAnalysis: true,
+              bundleName: "scorm-again",
+              uploadToken: process.env.CODECOV_TOKEN,
+            }),
+          ]
+        : []),
     ],
   });
 
