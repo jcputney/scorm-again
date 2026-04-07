@@ -111,7 +111,7 @@
     "fast-check": "4.6.0",
     "glob": "13.0.6",
     "globals": "17.4.0",
-    "jsdom": "29.0.1",
+    "jsdom": "29.0.2",
     "monocart-coverage-reports": "^2.12.9",
     "monocart-reporter": "^2.10.0",
     "playwright": "1.58.2",
