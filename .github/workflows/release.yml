@@ -149,7 +149,7 @@ jobs:
       # Check if release has manual notes
       - name: Check for manual release notes
         id: check_notes
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = context.payload.release.body || '';
@@ -161,7 +161,7 @@ jobs:
       - name: Get previous release tag
         id: prev_release
         if: steps.check_notes.outputs.has_manual_notes == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const releases = await github.rest.repos.listReleases({
@@ -215,7 +215,7 @@ jobs:
       # Update GitHub release with changelog (only if no manual notes)
       - name: Update GitHub release
         if: steps.check_notes.outputs.has_manual_notes == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
