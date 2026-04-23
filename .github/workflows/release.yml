@@ -2,7 +2,7 @@ name: Release
 
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build-and-unit:
@@ -45,8 +45,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox]
-        shard: [1, 2, 3, 4]
+        browser: [ chromium, firefox ]
+        shard: [ 1, 2, 3, 4 ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -95,7 +95,7 @@ jobs:
 
   publish:
     name: Publish to npm
-    needs: [build-and-unit, integration-tests]
+    needs: [ build-and-unit, integration-tests ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -149,7 +149,7 @@ jobs:
       # Check if release has manual notes
       - name: Check for manual release notes
         id: check_notes
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = context.payload.release.body || '';
@@ -161,7 +161,7 @@ jobs:
       - name: Get previous release tag
         id: prev_release
         if: steps.check_notes.outputs.has_manual_notes == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const releases = await github.rest.repos.listReleases({
@@ -215,7 +215,7 @@ jobs:
       # Update GitHub release with changelog (only if no manual notes)
       - name: Update GitHub release
         if: steps.check_notes.outputs.has_manual_notes == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
