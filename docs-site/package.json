@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "3.10.0",
+    "@docusaurus/faster": "3.10.0",
     "@docusaurus/preset-classic": "3.10.0",
     "@easyops-cn/docusaurus-search-local": "0.55.1",
     "@mdx-js/react": "3.1.1",
@@ -44,5 +45,9 @@
   },
   "engines": {
     "node": ">=20.0"
+  },
+  "overrides": {
+    "serialize-javascript": ">=7.0.4",
+    "uuid": ">=14.0.0"
   }
 }
