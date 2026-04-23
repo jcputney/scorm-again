@@ -161,7 +161,12 @@ export class LoggingService implements ILoggingService {
 
     if (typeof level === "number") return level;
 
-    switch (level) {
+    // Accept named levels in any case (e.g. "debug", "Info") — the public
+    // NamedLogLevel type documents uppercase, but tolerating common casings
+    // avoids silently coercing to ERROR when integrators pass lowercase.
+    const normalized = typeof level === "string" ? level.toUpperCase() : level;
+
+    switch (normalized) {
       case "1":
       case "DEBUG":
         return LogLevelEnum.DEBUG;

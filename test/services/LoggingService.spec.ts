@@ -354,6 +354,22 @@ describe("LoggingService", () => {
       expect(loggingService.getNumericLevel("NONE")).toBe(LogLevelEnum.NONE);
     });
 
+    it("should convert lowercase string named levels to numbers", () => {
+      expect(loggingService.getNumericLevel("debug")).toBe(LogLevelEnum.DEBUG);
+      expect(loggingService.getNumericLevel("info")).toBe(LogLevelEnum.INFO);
+      expect(loggingService.getNumericLevel("warn")).toBe(LogLevelEnum.WARN);
+      expect(loggingService.getNumericLevel("error")).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel("none")).toBe(LogLevelEnum.NONE);
+    });
+
+    it("should convert mixed-case string named levels to numbers", () => {
+      expect(loggingService.getNumericLevel("Debug")).toBe(LogLevelEnum.DEBUG);
+      expect(loggingService.getNumericLevel("Info")).toBe(LogLevelEnum.INFO);
+      expect(loggingService.getNumericLevel("Warn")).toBe(LogLevelEnum.WARN);
+      expect(loggingService.getNumericLevel("Error")).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel("None")).toBe(LogLevelEnum.NONE);
+    });
+
     it("should default to ERROR for unknown levels", () => {
       expect(loggingService.getNumericLevel("UNKNOWN")).toBe(LogLevelEnum.ERROR);
       expect(loggingService.getNumericLevel("6")).toBe(LogLevelEnum.ERROR);
