@@ -198,14 +198,14 @@ this.Scorm2004API = (function () {
     };
   }
 
-  var __defProp$_ = Object.defineProperty;
-  var __defNormalProp$_ = (obj, key, value) => key in obj ? __defProp$_(obj, key, {
+  var __defProp$15 = Object.defineProperty;
+  var __defNormalProp$15 = (obj, key, value) => key in obj ? __defProp$15(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$_ = (obj, key, value) => __defNormalProp$_(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$15 = (obj, key, value) => __defNormalProp$15(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseCMI {
     /**
      * Constructor for BaseCMI
@@ -217,9 +217,9 @@ this.Scorm2004API = (function () {
        * When true, getters can be accessed before the API is initialized, which is necessary
        * for serializing the CMI data structure to JSON format.
        */
-      __publicField$_(this, "jsonString", false);
-      __publicField$_(this, "_cmi_element");
-      __publicField$_(this, "_initialized", false);
+      __publicField$15(this, "jsonString", false);
+      __publicField$15(this, "_cmi_element");
+      __publicField$15(this, "_initialized", false);
       this._cmi_element = cmi_element;
     }
     /**
@@ -239,7 +239,7 @@ this.Scorm2004API = (function () {
   class BaseRootCMI extends BaseCMI {
     constructor() {
       super(...arguments);
-      __publicField$_(this, "_start_time");
+      __publicField$15(this, "_start_time");
     }
     /**
      * Start time of the session
@@ -261,18 +261,18 @@ this.Scorm2004API = (function () {
     }
   }
 
-  var __defProp$Z = Object.defineProperty;
-  var __defNormalProp$Z = (obj, key, value) => key in obj ? __defProp$Z(obj, key, {
+  var __defProp$14 = Object.defineProperty;
+  var __defNormalProp$14 = (obj, key, value) => key in obj ? __defProp$14(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$Z = (obj, key, value) => __defNormalProp$Z(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$14 = (obj, key, value) => __defNormalProp$14(obj, typeof key !== "symbol" ? key + "" : key, value);
   class BaseScormValidationError extends Error {
     constructor(CMIElement, errorCode) {
       super(`${CMIElement} : ${errorCode.toString()}`);
-      __publicField$Z(this, "_errorCode");
+      __publicField$14(this, "_errorCode");
       this._errorCode = errorCode;
       Object.setPrototypeOf(this, BaseScormValidationError.prototype);
     }
@@ -294,8 +294,8 @@ this.Scorm2004API = (function () {
      */
     constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
       super(CMIElement, errorCode);
-      __publicField$Z(this, "_errorMessage");
-      __publicField$Z(this, "_detailedMessage", "");
+      __publicField$14(this, "_errorMessage");
+      __publicField$14(this, "_detailedMessage", "");
       this.message = `${CMIElement} : ${errorMessage}`;
       this._errorMessage = errorMessage;
       if (detailedMessage) {
@@ -600,14 +600,14 @@ this.Scorm2004API = (function () {
     DEPENDENCY_NOT_ESTABLISHED: 408
   };
 
-  var __defProp$Y = Object.defineProperty;
-  var __defNormalProp$Y = (obj, key, value) => key in obj ? __defProp$Y(obj, key, {
+  var __defProp$13 = Object.defineProperty;
+  var __defNormalProp$13 = (obj, key, value) => key in obj ? __defProp$13(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$Y = (obj, key, value) => __defNormalProp$Y(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$13 = (obj, key, value) => __defNormalProp$13(obj, typeof key !== "symbol" ? key + "" : key, value);
   class CMIArray extends BaseCMI {
     /**
      * Constructor cmi *.n arrays
@@ -615,10 +615,10 @@ this.Scorm2004API = (function () {
      */
     constructor(params) {
       super(params.CMIElement);
-      __publicField$Y(this, "_errorCode");
-      __publicField$Y(this, "_errorClass");
-      __publicField$Y(this, "__children");
-      __publicField$Y(this, "childArray");
+      __publicField$13(this, "_errorCode");
+      __publicField$13(this, "_errorClass");
+      __publicField$13(this, "__children");
+      __publicField$13(this, "childArray");
       this.__children = params.children;
       this._errorCode = params.errorCode ?? scorm12_errors.GENERAL;
       this._errorClass = params.errorClass || BaseScormValidationError;
@@ -1094,14 +1094,14 @@ this.Scorm2004API = (function () {
 
   const ValidLanguages = ["aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as", "av", "ay", "az", "ba", "be", "bg", "bh", "bi", "bm", "bn", "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu", "cv", "cy", "da", "de", "dv", "dz", "ee", "el", "en", "eo", "es", "et", "eu", "fa", "ff", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "gv", "ha", "he", "hi", "ho", "hr", "ht", "hu", "hy", "hz", "ia", "id", "ie", "ig", "ii", "ik", "io", "is", "it", "iu", "ja", "jv", "ka", "kg", "ki", "kj", "kk", "kl", "km", "kn", "ko", "kr", "ks", "ku", "kv", "kw", "ky", "la", "lb", "lg", "li", "ln", "lo", "lt", "lu", "lv", "mg", "mh", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "nb", "nd", "ne", "ng", "nl", "nn", "no", "nr", "nv", "ny", "oc", "oj", "om", "or", "os", "pa", "pi", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ty", "ug", "uk", "ur", "uz", "ve", "vi", "vo", "wa", "wo", "xh", "yi", "yo", "za", "zh", "zu", "aar", "abk", "ave", "afr", "aka", "amh", "arg", "ara", "asm", "ava", "aym", "aze", "bak", "bel", "bul", "bih", "bis", "bam", "ben", "tib", "bod", "bre", "bos", "cat", "che", "cha", "cos", "cre", "cze", "ces", "chu", "chv", "wel", "cym", "dan", "ger", "deu", "div", "dzo", "ewe", "gre", "ell", "eng", "epo", "spa", "est", "baq", "eus", "per", "fas", "ful", "fin", "fij", "fao", "fre", "fra", "fry", "gle", "gla", "glg", "grn", "guj", "glv", "hau", "heb", "hin", "hmo", "hrv", "hat", "hun", "arm", "hye", "her", "ina", "ind", "ile", "ibo", "iii", "ipk", "ido", "ice", "isl", "ita", "iku", "jpn", "jav", "geo", "kat", "kon", "kik", "kua", "kaz", "kal", "khm", "kan", "kor", "kau", "kas", "kur", "kom", "cor", "kir", "lat", "ltz", "lug", "lim", "lin", "lao", "lit", "lub", "lav", "mlg", "mah", "mao", "mri", "mac", "mkd", "mal", "mon", "mol", "mar", "may", "msa", "mlt", "bur", "mya", "nau", "nob", "nde", "nep", "ndo", "dut", "nld", "nno", "nor", "nbl", "nav", "nya", "oci", "oji", "orm", "ori", "oss", "pan", "pli", "pol", "pus", "por", "que", "roh", "run", "rum", "ron", "rus", "kin", "san", "srd", "snd", "sme", "sag", "slo", "sin", "slk", "slv", "smo", "sna", "som", "alb", "sqi", "srp", "ssw", "sot", "sun", "swe", "swa", "tam", "tel", "tgk", "tha", "tir", "tuk", "tgl", "tsn", "ton", "tur", "tso", "tat", "twi", "tah", "uig", "ukr", "urd", "uzb", "ven", "vie", "vol", "wln", "wol", "xho", "yid", "yor", "zha", "chi", "zho", "zul"];
 
-  var __defProp$X = Object.defineProperty;
-  var __defNormalProp$X = (obj, key, value) => key in obj ? __defProp$X(obj, key, {
+  var __defProp$12 = Object.defineProperty;
+  var __defNormalProp$12 = (obj, key, value) => key in obj ? __defProp$12(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$X = (obj, key, value) => __defNormalProp$X(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$12 = (obj, key, value) => __defNormalProp$12(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ScheduledCommit {
     /**
      * Constructor for ScheduledCommit
@@ -1110,10 +1110,10 @@ this.Scorm2004API = (function () {
      * @param {string} callback
      */
     constructor(API, when, callback) {
-      __publicField$X(this, "_API");
-      __publicField$X(this, "_cancelled", false);
-      __publicField$X(this, "_timeout");
-      __publicField$X(this, "_callback");
+      __publicField$12(this, "_API");
+      __publicField$12(this, "_cancelled", false);
+      __publicField$12(this, "_timeout");
+      __publicField$12(this, "_callback");
       this._API = API;
       this._timeout = setTimeout(this.wrapper.bind(this), when);
       this._callback = callback;
@@ -1141,14 +1141,14 @@ this.Scorm2004API = (function () {
 
   const HIDE_LMS_UI_TOKENS = ["continue", "previous", "exit", "exitAll", "abandon", "abandonAll", "suspendAll"];
 
-  var __defProp$W = Object.defineProperty;
-  var __defNormalProp$W = (obj, key, value) => key in obj ? __defProp$W(obj, key, {
+  var __defProp$11 = Object.defineProperty;
+  var __defNormalProp$11 = (obj, key, value) => key in obj ? __defProp$11(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$W = (obj, key, value) => __defNormalProp$W(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$11 = (obj, key, value) => __defNormalProp$11(obj, typeof key !== "symbol" ? key + "" : key, value);
   var RuleConditionOperator = /* @__PURE__ */(RuleConditionOperator2 => {
     RuleConditionOperator2["NOT"] = "not";
     RuleConditionOperator2["AND"] = "and";
@@ -1181,10 +1181,10 @@ this.Scorm2004API = (function () {
       let operator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       let parameters = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : /* @__PURE__ */new Map();
       super("ruleCondition");
-      __publicField$W(this, "_condition", "always" /* ALWAYS */);
-      __publicField$W(this, "_operator", null);
-      __publicField$W(this, "_parameters", /* @__PURE__ */new Map());
-      __publicField$W(this, "_referencedObjective", null);
+      __publicField$11(this, "_condition", "always" /* ALWAYS */);
+      __publicField$11(this, "_operator", null);
+      __publicField$11(this, "_parameters", /* @__PURE__ */new Map());
+      __publicField$11(this, "_referencedObjective", null);
       this._condition = condition;
       this._operator = operator;
       this._parameters = parameters;
@@ -1455,9 +1455,9 @@ this.Scorm2004API = (function () {
     }
   };
   // Optional, overridable provider for current time (LMS may set via SequencingService)
-  __publicField$W(_RuleCondition, "_now", () => /* @__PURE__ */new Date());
+  __publicField$11(_RuleCondition, "_now", () => /* @__PURE__ */new Date());
   // Optional, overridable hook for getting elapsed seconds
-  __publicField$W(_RuleCondition, "_getElapsedSecondsHook");
+  __publicField$11(_RuleCondition, "_getElapsedSecondsHook");
   let RuleCondition = _RuleCondition;
   class SequencingRule extends BaseCMI {
     /**
@@ -1469,9 +1469,9 @@ this.Scorm2004API = (function () {
       let action = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "skip";
       let conditionCombination = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "and";
       super("sequencingRule");
-      __publicField$W(this, "_conditions", []);
-      __publicField$W(this, "_action", "skip" /* SKIP */);
-      __publicField$W(this, "_conditionCombination", "and" /* AND */);
+      __publicField$11(this, "_conditions", []);
+      __publicField$11(this, "_action", "skip" /* SKIP */);
+      __publicField$11(this, "_conditionCombination", "and" /* AND */);
       this._action = action;
       this._conditionCombination = conditionCombination;
     }
@@ -1584,9 +1584,9 @@ this.Scorm2004API = (function () {
      */
     constructor() {
       super("sequencingRules");
-      __publicField$W(this, "_preConditionRules", []);
-      __publicField$W(this, "_exitConditionRules", []);
-      __publicField$W(this, "_postConditionRules", []);
+      __publicField$11(this, "_preConditionRules", []);
+      __publicField$11(this, "_exitConditionRules", []);
+      __publicField$11(this, "_postConditionRules", []);
     }
     /**
      * Called when the API needs to be reset
@@ -1703,9 +1703,17 @@ this.Scorm2004API = (function () {
     }
   }
 
+  var __defProp$10 = Object.defineProperty;
+  var __defNormalProp$10 = (obj, key, value) => key in obj ? __defProp$10(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$10 = (obj, key, value) => __defNormalProp$10(obj, key + "" , value);
   class ActivityTreeQueries {
     constructor(activityTree) {
-      this.activityTree = activityTree;
+      __publicField$10(this, "activityTree", activityTree);
     }
     /**
      * Check if activity is in the activity tree
@@ -1901,10 +1909,18 @@ this.Scorm2004API = (function () {
     }
   }
 
+  var __defProp$$ = Object.defineProperty;
+  var __defNormalProp$$ = (obj, key, value) => key in obj ? __defProp$$(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$$ = (obj, key, value) => __defNormalProp$$(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ChoiceConstraintValidator {
     constructor(activityTree, treeQueries) {
-      this.activityTree = activityTree;
-      this.treeQueries = treeQueries;
+      __publicField$$(this, "activityTree", activityTree);
+      __publicField$$(this, "treeQueries", treeQueries);
     }
     /**
      * Main entry point - consolidates ALL constraint validation for choice navigation
@@ -2356,14 +2372,14 @@ this.Scorm2004API = (function () {
     }
   }
 
-  var __defProp$V = Object.defineProperty;
-  var __defNormalProp$V = (obj, key, value) => key in obj ? __defProp$V(obj, key, {
+  var __defProp$_ = Object.defineProperty;
+  var __defNormalProp$_ = (obj, key, value) => key in obj ? __defProp$_(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$V = (obj, key, value) => __defNormalProp$V(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$_ = (obj, key, value) => __defNormalProp$_(obj, typeof key !== "symbol" ? key + "" : key, value);
   var SequencingRequestType = /* @__PURE__ */(SequencingRequestType2 => {
     SequencingRequestType2["START"] = "start";
     SequencingRequestType2["RESUME_ALL"] = "resumeAll";
@@ -2392,10 +2408,10 @@ this.Scorm2004API = (function () {
       let targetActivity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-      __publicField$V(this, "deliveryRequest");
-      __publicField$V(this, "targetActivity");
-      __publicField$V(this, "exception");
-      __publicField$V(this, "endSequencingSession");
+      __publicField$_(this, "deliveryRequest");
+      __publicField$_(this, "targetActivity");
+      __publicField$_(this, "exception");
+      __publicField$_(this, "endSequencingSession");
       this.deliveryRequest = deliveryRequest;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -2406,10 +2422,10 @@ this.Scorm2004API = (function () {
     constructor(identifiedActivity, deliverable) {
       let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-      __publicField$V(this, "identifiedActivity");
-      __publicField$V(this, "deliverable");
-      __publicField$V(this, "exception");
-      __publicField$V(this, "endSequencingSession");
+      __publicField$_(this, "identifiedActivity");
+      __publicField$_(this, "deliverable");
+      __publicField$_(this, "exception");
+      __publicField$_(this, "endSequencingSession");
       this.identifiedActivity = identifiedActivity;
       this.deliverable = deliverable;
       this.exception = exception;
@@ -2419,8 +2435,8 @@ this.Scorm2004API = (function () {
   class ChoiceTraversalResult {
     constructor(activity) {
       let exception = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      __publicField$V(this, "activity");
-      __publicField$V(this, "exception");
+      __publicField$_(this, "activity");
+      __publicField$_(this, "exception");
       this.activity = activity;
       this.exception = exception;
     }
@@ -2431,19 +2447,19 @@ this.Scorm2004API = (function () {
     return FlowSubprocessMode2;
   })(FlowSubprocessMode || {});
 
-  var __defProp$U = Object.defineProperty;
-  var __defNormalProp$U = (obj, key, value) => key in obj ? __defProp$U(obj, key, {
+  var __defProp$Z = Object.defineProperty;
+  var __defNormalProp$Z = (obj, key, value) => key in obj ? __defProp$Z(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$U = (obj, key, value) => __defNormalProp$U(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$Z = (obj, key, value) => __defNormalProp$Z(obj, typeof key !== "symbol" ? key + "" : key, value);
   class RuleEvaluationEngine {
     constructor() {
       let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      __publicField$U(this, "now");
-      __publicField$U(this, "getAttemptElapsedSecondsHook");
+      __publicField$Z(this, "now");
+      __publicField$Z(this, "getAttemptElapsedSecondsHook");
       this.now = options.now || (() => /* @__PURE__ */new Date());
       this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
     }
@@ -2714,14 +2730,14 @@ this.Scorm2004API = (function () {
     }
   }
 
-  var __defProp$T = Object.defineProperty;
-  var __defNormalProp$T = (obj, key, value) => key in obj ? __defProp$T(obj, key, {
+  var __defProp$Y = Object.defineProperty;
+  var __defNormalProp$Y = (obj, key, value) => key in obj ? __defProp$Y(obj, key, {
     enumerable: true,
     configurable: true,
     writable: true,
     value
   }) : obj[key] = value;
-  var __publicField$T = (obj, key, value) => __defNormalProp$T(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __publicField$Y = (obj, key, value) => __defNormalProp$Y(obj, typeof key !== "symbol" ? key + "" : key, value);
   var SelectionTiming = /* @__PURE__ */(SelectionTiming2 => {
     SelectionTiming2["NEVER"] = "never";
     SelectionTiming2["ONCE"] = "once";
@@ -2741,36 +2757,36 @@ this.Scorm2004API = (function () {
     constructor() {
       super("sequencingControls");
       // Sequencing Control Modes
-      __publicField$T(this, "_enabled", true);
-      __publicField$T(this, "_choice", true);
-      __publicField$T(this, "_choiceExit", true);
+      __publicField$Y(this, "_enabled", true);
+      __publicField$Y(this, "_choice", true);
+      __publicField$Y(this, "_choiceExit", true);
       // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
-      __publicField$T(this, "_flow", true);
-      __publicField$T(this, "_forwardOnly", false);
-      __publicField$T(this, "_useCurrentAttemptObjectiveInfo", true);
-      __publicField$T(this, "_useCurrentAttemptProgressInfo", true);
+      __publicField$Y(this, "_flow", true);
+      __publicField$Y(this, "_forwardOnly", false);
+      __publicField$Y(this, "_useCurrentAttemptObjectiveInfo", true);
+      __publicField$Y(this, "_useCurrentAttemptProgressInfo", true);
       // Constrain Choice Controls
-      __publicField$T(this, "_preventActivation", false);
-      __publicField$T(this, "_constrainChoice", false);
+      __publicField$Y(this, "_preventActivation", false);
+      __publicField$Y(this, "_constrainChoice", false);
       // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
-      __publicField$T(this, "_stopForwardTraversal", false);
+      __publicField$Y(this, "_stopForwardTraversal", false);
       // Rollup Controls
-      __publicField$T(this, "_rollupObjectiveSatisfied", true);
-      __publicField$T(this, "_rollupProgressCompletion", true);
-      __publicField$T(this, "_objectiveMeasureWeight", 1);
+      __publicField$Y(this, "_rollupObjectiveSatisfied", true);
+      __publicField$Y(this, "_rollupProgressCompletion", true);
+      __publicField$Y(this, "_objectiveMeasureWeight", 1);
       // Selection Controls
-      __publicField$T(this, "_selectionTiming", "never" /* NEVER */);
-      __publicField$T(this, "_selectCount", null);
-      __publicField$T(this, "_selectionCountStatus", false);
-      __publicField$T(this, "_randomizeChildren", false);
+      __publicField$Y(this, "_selectionTiming", "never" /* NEVER */);
+      __publicField$Y(this, "_selectCount", null);
+      __publicField$Y(this, "_selectionCountStatus", false);
+      __publicField$Y(this, "_randomizeChildren", false);
       // Randomization Controls
-      __publicField$T(this, "_randomizationTiming", "never" /* NEVER */);
-      __publicField$T(this, "_reorderChildren", false);
+      __publicField$Y(this, "_randomizationTiming", "never" /* NEVER */);
+      __publicField$Y(this, "_reorderChildren", false);
       // Auto-completion/satisfaction controls
-      __publicField$T(this, "_completionSetByContent", false);
-      __publicField$T(this, "_objectiveSetByContent", false);
+      __publicField$Y(this, "_completionSetByContent", false);
+      __publicField$Y(this, "_objectiveSetByContent", false);
       // Delivery Controls
-      __publicField$T(this, "_tracked", true);
+      __publicField$Y(this, "_tracked", true);
     }
     /**
      * Reset the sequencing controls to their default values
@@ -3331,10 +3347,18 @@ this.Scorm2004API = (function () {
     }
   }
 
+  var __defProp$X = Object.defineProperty;
+  var __defNormalProp$X = (obj, key, value) => key in obj ? __defProp$X(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$X = (obj, key, value) => __defNormalProp$X(obj, typeof key !== "symbol" ? key + "" : key, value);
   class FlowTraversalService {
     constructor(activityTree, ruleEngine) {
-      this.activityTree = activityTree;
-      this.ruleEngine = ruleEngine;
+      __publicField$X(this, "activityTree", activityTree);
+      __publicField$X(this, "ruleEngine", ruleEngine);
     }
     /**
      * Flow Subprocess (SB.2.3)
@@ -3625,10 +3649,18 @@ this.Scorm2004API = (function () {
     }
   }
 
+  var __defProp$W = Object.defineProperty;
+  var __defNormalProp$W = (obj, key, value) => key in obj ? __defProp$W(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$W = (obj, key, value) => __defNormalProp$W(obj, typeof key !== "symbol" ? key + "" : key, value);
   class FlowRequestHandler {
     constructor(activityTree, traversalService) {
-      this.activityTree = activityTree;
-      this.traversalService = traversalService;
+      __publicField$W(this, "activityTree", activityTree);
+      __publicField$W(this, "traversalService", traversalService);
     }
     /**
      * Start Sequencing Request Process (SB.2.5)
@@ -3746,12 +3778,20 @@ this.Scorm2004API = (function () {
     }
   }
 
+  var __defProp$V = Object.defineProperty;
+  var __defNormalProp$V = (obj, key, value) => key in obj ? __defProp$V(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$V = (obj, key, value) => __defNormalProp$V(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ChoiceRequestHandler {
     constructor(activityTree, constraintValidator, traversalService, treeQueries) {
-      this.activityTree = activityTree;
-      this.constraintValidator = constraintValidator;
-      this.traversalService = traversalService;
-      this.treeQueries = treeQueries;
+      __publicField$V(this, "activityTree", activityTree);
+      __publicField$V(this, "constraintValidator", constraintValidator);
+      __publicField$V(this, "traversalService", traversalService);
+      __publicField$V(this, "treeQueries", treeQueries);
     }
     /**
      * Choice Sequencing Request Process (SB.2.9)
@@ -3952,10 +3992,18 @@ this.Scorm2004API = (function () {
     }
   }
 
+  var __defProp$U = Object.defineProperty;
+  var __defNormalProp$U = (obj, key, value) => key in obj ? __defProp$U(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$U = (obj, key, value) => __defNormalProp$U(obj, typeof key !== "symbol" ? key + "" : key, value);
   class ExitRequestHandler {
     constructor(activityTree, ruleEngine) {
-      this.activityTree = activityTree;
-      this.ruleEngine = ruleEngine;
+      __publicField$U(this, "activityTree", activityTree);
+      __publicField$U(this, "ruleEngine", ruleEngine);
     }
     /**
      * Exit Sequencing Request Process (SB.2.11)
@@ -4068,10 +4116,18 @@ this.Scorm2004API = (function () {
     }
   }
 
+  var __defProp$T = Object.defineProperty;
+  var __defNormalProp$T = (obj, key, value) => key in obj ? __defProp$T(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  }) : obj[key] = value;
+  var __publicField$T = (obj, key, value) => __defNormalProp$T(obj, typeof key !== "symbol" ? key + "" : key, value);
   class RetryRequestHandler {
     constructor(activityTree, traversalService) {
-      this.activityTree = activityTree;
-      this.traversalService = traversalService;
+      __publicField$T(this, "activityTree", activityTree);
+      __publicField$T(this, "traversalService", traversalService);
     }
     /**
      * Retry Sequencing Request Process (SB.2.10)
@@ -5234,7 +5290,8 @@ this.Scorm2004API = (function () {
     getNumericLevel(level) {
       if (level === void 0) return LogLevelEnum.NONE;
       if (typeof level === "number") return level;
-      switch (level) {
+      const normalized = typeof level === "string" ? level.toUpperCase() : level;
+      switch (normalized) {
         case "1":
         case "DEBUG":
           return LogLevelEnum.DEBUG;
@@ -5615,7 +5672,7 @@ ${stackTrace}`);
      * @param {Function} apiLog - The logging function
      */
     constructor(settings, error_codes, apiLog) {
-      this.apiLog = apiLog;
+      __publicField$L(this, "apiLog", apiLog);
       __publicField$L(this, "settings");
       __publicField$L(this, "error_codes");
       __publicField$L(this, "storeName", "scorm_again_offline_data");

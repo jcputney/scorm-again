@@ -2114,7 +2114,8 @@ this.Scorm12API = (function () {
     getNumericLevel(level) {
       if (level === void 0) return LogLevelEnum.NONE;
       if (typeof level === "number") return level;
-      switch (level) {
+      const normalized = typeof level === "string" ? level.toUpperCase() : level;
+      switch (normalized) {
         case "1":
         case "DEBUG":
           return LogLevelEnum.DEBUG;
@@ -2495,7 +2496,7 @@ ${stackTrace}`);
      * @param {Function} apiLog - The logging function
      */
     constructor(settings, error_codes, apiLog) {
-      this.apiLog = apiLog;
+      __publicField$c(this, "apiLog", apiLog);
       __publicField$c(this, "settings");
       __publicField$c(this, "error_codes");
       __publicField$c(this, "storeName", "scorm_again_offline_data");

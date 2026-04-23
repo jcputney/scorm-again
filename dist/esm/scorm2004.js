@@ -2098,6 +2098,7 @@ class ActivityTreeQueries {
   constructor(activityTree) {
     this.activityTree = activityTree;
   }
+  activityTree;
   /**
    * Check if activity is in the activity tree
    * @param {Activity} activity - Activity to check
@@ -2297,6 +2298,8 @@ class ChoiceConstraintValidator {
     this.activityTree = activityTree;
     this.treeQueries = treeQueries;
   }
+  activityTree;
+  treeQueries;
   /**
    * Main entry point - consolidates ALL constraint validation for choice navigation
    * @param {Activity | null} currentActivity - Current activity (may be null if no session started)
@@ -3649,6 +3652,8 @@ class FlowTraversalService {
     this.activityTree = activityTree;
     this.ruleEngine = ruleEngine;
   }
+  activityTree;
+  ruleEngine;
   /**
    * Flow Subprocess (SB.2.3)
    * Traverses the activity tree in the specified direction to find a deliverable activity
@@ -3947,6 +3952,8 @@ class FlowRequestHandler {
     this.activityTree = activityTree;
     this.traversalService = traversalService;
   }
+  activityTree;
+  traversalService;
   /**
    * Start Sequencing Request Process (SB.2.5)
    * Initiates a new sequencing session from the root
@@ -4078,6 +4085,10 @@ class ChoiceRequestHandler {
     this.traversalService = traversalService;
     this.treeQueries = treeQueries;
   }
+  activityTree;
+  constraintValidator;
+  traversalService;
+  treeQueries;
   /**
    * Choice Sequencing Request Process (SB.2.9)
    * Processes a choice navigation request to a specific activity
@@ -4291,6 +4302,8 @@ class ExitRequestHandler {
     this.activityTree = activityTree;
     this.ruleEngine = ruleEngine;
   }
+  activityTree;
+  ruleEngine;
   /**
    * Exit Sequencing Request Process (SB.2.11)
    * @param {Activity} currentActivity - The current activity
@@ -4406,6 +4419,8 @@ class RetryRequestHandler {
     this.activityTree = activityTree;
     this.traversalService = traversalService;
   }
+  activityTree;
+  traversalService;
   /**
    * Retry Sequencing Request Process (SB.2.10)
    * @param {Activity} currentActivity - The current activity
@@ -5540,7 +5555,8 @@ class LoggingService {
   getNumericLevel(level) {
     if (level === void 0) return LogLevelEnum.NONE;
     if (typeof level === "number") return level;
-    switch (level) {
+    const normalized = typeof level === "string" ? level.toUpperCase() : level;
+    switch (normalized) {
       case "1":
       case "DEBUG":
         return LogLevelEnum.DEBUG;
@@ -5913,6 +5929,7 @@ class OfflineStorageService {
     window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
     window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
+  apiLog;
   settings;
   error_codes;
   storeName = "scorm_again_offline_data";

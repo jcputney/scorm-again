@@ -1610,7 +1610,8 @@ class LoggingService {
   getNumericLevel(level) {
     if (level === void 0) return LogLevelEnum.NONE;
     if (typeof level === "number") return level;
-    switch (level) {
+    const normalized = typeof level === "string" ? level.toUpperCase() : level;
+    switch (normalized) {
       case "1":
       case "DEBUG":
         return LogLevelEnum.DEBUG;
@@ -1983,6 +1984,7 @@ class OfflineStorageService {
     window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
     window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
+  apiLog;
   settings;
   error_codes;
   storeName = "scorm_again_offline_data";
