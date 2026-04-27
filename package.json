@@ -178,7 +178,21 @@
   },
   "keywords": [
     "scorm",
-    "cmi"
+    "scorm-1-2",
+    "scorm-2004",
+    "cmi",
+    "elearning",
+    "e-learning",
+    "lms",
+    "learning-management-system",
+    "edtech",
+    "educational-technology",
+    "learning-standards",
+    "typescript",
+    "javascript",
+    "browser",
+    "cross-frame",
+    "offline-first"
   ],
   "author": "Jonathan Putney <jonathan@putney.io>",
   "license": "MIT",
