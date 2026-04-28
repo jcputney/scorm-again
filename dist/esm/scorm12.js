@@ -1418,7 +1418,19 @@ class CMIValueAccessService {
     if (!scorm2004) {
       if (isFinalAttribute) {
         if (typeof attribute === "undefined" || !this.context.checkObjectHasProperty(refObject, attribute)) {
-          this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          if (attribute === "_children") {
+            this.context.throwSCORMError(
+              CMIElement,
+              getErrorCode(this.context.errorCodes, "CHILDREN_ERROR")
+            );
+          } else if (attribute === "_count") {
+            this.context.throwSCORMError(
+              CMIElement,
+              getErrorCode(this.context.errorCodes, "COUNT_ERROR")
+            );
+          } else {
+            this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          }
           return { error: true };
         }
       }
@@ -3254,7 +3266,8 @@ class BaseAPI {
       if (errorCode === 143) returnValue = global_constants.SCORM_FALSE;
     } else {
       const result = this.storeData(false);
-      if ((result.errorCode ?? 0) > 0) {
+      const errorCode = result.errorCode ?? 0;
+      if (errorCode > 0) {
         if (result.errorMessage) {
           this.apiLog(
             "commit",
@@ -3269,12 +3282,12 @@ class BaseAPI {
             LogLevelEnum.DEBUG
           );
         }
-        this.throwSCORMError("api", result.errorCode);
+        this.throwSCORMError("api", errorCode);
       }
       const resultValue = result?.result ?? global_constants.SCORM_FALSE;
       returnValue = typeof resultValue === "boolean" ? String(resultValue) : resultValue;
       this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
-      if (checkTerminated) this.lastErrorCode = "0";
+      if (checkTerminated && errorCode === 0) this.lastErrorCode = "0";
       this.processListeners(callbackName);
       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._offlineStorageService.isDeviceOnline() && this._courseId) {
         this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
