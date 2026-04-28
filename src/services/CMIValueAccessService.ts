@@ -520,7 +520,19 @@ export class CMIValueAccessService {
           typeof attribute === "undefined" ||
           !this.context.checkObjectHasProperty(refObject, attribute)
         ) {
-          this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          if (attribute === "_children") {
+            this.context.throwSCORMError(
+              CMIElement,
+              getErrorCode(this.context.errorCodes, "CHILDREN_ERROR"),
+            );
+          } else if (attribute === "_count") {
+            this.context.throwSCORMError(
+              CMIElement,
+              getErrorCode(this.context.errorCodes, "COUNT_ERROR"),
+            );
+          } else {
+            this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          }
           return { error: true };
         }
       }

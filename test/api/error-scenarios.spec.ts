@@ -37,40 +37,37 @@ describe("Error Scenario Tests", () => {
 
     describe("Error 202: Invalid argument (_children on leaf element)", () => {
       // Spec Reference: SCORM 1.2 RTE Section 3.1.2.2 - Error Code 202
-      // Note: Implementation returns UNDEFINED_DATA_MODEL (401) rather than CHILDREN_ERROR (202)
       it("Getting _children on leaf element cmi.core.student_id should fail", () => {
         const result = api.lmsGetValue("cmi.core.student_id._children");
         expect(result).toBe("");
-        // Implementation behavior may vary - checking it returns an error
-        expect(api.lmsGetLastError()).not.toBe("0");
+        expect(api.lmsGetLastError()).toBe("202");
       });
 
       it("Getting _children on leaf element cmi.suspend_data should fail", () => {
         const result = api.lmsGetValue("cmi.suspend_data._children");
         expect(result).toBe("");
-        expect(api.lmsGetLastError()).not.toBe("0");
+        expect(api.lmsGetLastError()).toBe("202");
       });
     });
 
     describe("Error 203: Invalid argument (_count on non-array)", () => {
       // Spec Reference: SCORM 1.2 RTE Section 3.1.2.2 - Error Code 203
-      // Note: Implementation returns 101 (general error) instead of specific 203
       it("Getting _count on non-array element cmi.core should fail", () => {
         const result = api.lmsGetValue("cmi.core._count");
         expect(result).toBe("");
-        expect(api.lmsGetLastError()).toBe("101");
+        expect(api.lmsGetLastError()).toBe("203");
       });
 
       it("Getting _count on leaf element cmi.core.student_id should fail", () => {
         const result = api.lmsGetValue("cmi.core.student_id._count");
         expect(result).toBe("");
-        expect(api.lmsGetLastError()).toBe("101");
+        expect(api.lmsGetLastError()).toBe("203");
       });
 
       it("Getting _count on non-array cmi.student_data should fail", () => {
         const result = api.lmsGetValue("cmi.student_data._count");
         expect(result).toBe("");
-        expect(api.lmsGetLastError()).toBe("101");
+        expect(api.lmsGetLastError()).toBe("203");
       });
     });
 
