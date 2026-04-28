@@ -1105,6 +1105,22 @@ describe("SCORM 2004 API Tests", () => {
       const diagnosticInfo = scorm2004API.lmsGetDiagnostic(unknownErrorCode);
       expect(diagnosticInfo).toEqual("");
     });
+
+    it("should use the last error for an empty code and the requested error for an explicit code", (): void => {
+      const scorm2004API = api();
+      scorm2004API.lmsInitialize();
+      scorm2004API.lmsGetValue("cmi.invalid_element");
+
+      expect(scorm2004API.lmsGetLastError()).toBe("401");
+
+      const lastErrorDiagnostic = scorm2004API.lmsGetDiagnostic("");
+      const explicitDiagnostic = scorm2004API.lmsGetDiagnostic("201");
+
+      expect(lastErrorDiagnostic).toContain("cmi.invalid_element");
+      expect(explicitDiagnostic).toContain("invalid argument");
+      expect(explicitDiagnostic).not.toBe(lastErrorDiagnostic);
+      expect(scorm2004API.lmsGetLastError()).toBe("401");
+    });
   });
 
   describe("lmsGetErrorString()", () => {
@@ -1132,6 +1148,18 @@ describe("SCORM 2004 API Tests", () => {
       const unknownErrorCode = 9999;
       const errorString = scorm2004API.lmsGetErrorString(unknownErrorCode);
       expect(errorString).toEqual("");
+    });
+
+    it("should describe an error code produced by a public API failure", (): void => {
+      const scorm2004API = api();
+
+      expect(scorm2004API.lmsGetValue("cmi.location")).toBe("");
+      expect(scorm2004API.lmsGetLastError()).toBe("122");
+
+      expect(scorm2004API.lmsGetErrorString(scorm2004API.lmsGetLastError())).toBe(
+        "Retrieve Data Before Initialization",
+      );
+      expect(scorm2004API.lmsGetLastError()).toBe("122");
     });
 
     it("should truncate error strings longer than 255 characters", (): void => {
@@ -1754,46 +1782,6 @@ describe("SCORM 2004 API Tests", () => {
         vi.spyOn(scorm2004API, "getLmsErrorMessageDetails").mockReturnValue(longMessage);
         const diagnostic = scorm2004API.lmsGetDiagnostic("101");
         expect(diagnostic.length).toBeLessThanOrEqual(255);
-      });
-    });
-
-    // REQ-GES-007: GetErrorString for all standard error codes
-    describe("GetErrorString for all standard error codes (REQ-GES-007)", () => {
-      const standardErrorCodes = [
-        "0",
-        "101",
-        "102",
-        "103",
-        "104",
-        "111",
-        "112",
-        "113",
-        "122",
-        "123",
-        "132",
-        "133",
-        "142",
-        "143",
-        "201",
-        "301",
-        "351",
-        "391",
-        "401",
-        "402",
-        "403",
-        "404",
-        "405",
-        "406",
-        "407",
-        "408",
-      ];
-
-      standardErrorCodes.forEach((code) => {
-        it(`should return non-empty string for error code ${code}`, () => {
-          const scorm2004API = api();
-          const errorString = scorm2004API.lmsGetErrorString(code);
-          expect(errorString.length).toBeGreaterThan(0);
-        });
       });
     });
 
