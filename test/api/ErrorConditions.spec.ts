@@ -152,10 +152,8 @@ describe("Error Conditions Tests", () => {
         // Restore original service
         api["_httpService"] = originalHttpService;
 
-        // When HTTP commit returns failure, Commit should return false
-        // Note: The current implementation returns "false" but error 0 because
-        // it checks result === "true" but doesn't propagate errorCode from HTTP response
         expect(result).toEqual("false");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_COMMIT_FAILURE));
       });
     });
 

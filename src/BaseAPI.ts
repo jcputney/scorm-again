@@ -908,7 +908,8 @@ export default abstract class BaseAPI implements IBaseAPI {
       if (errorCode === 143) returnValue = global_constants.SCORM_FALSE;
     } else {
       const result = this.storeData(false);
-      if ((result.errorCode ?? 0) > 0) {
+      const errorCode = result.errorCode ?? 0;
+      if (errorCode > 0) {
         // Log detailed error information before throwing SCORM error
         if (result.errorMessage) {
           this.apiLog(
@@ -924,14 +925,14 @@ export default abstract class BaseAPI implements IBaseAPI {
             LogLevelEnum.DEBUG,
           );
         }
-        this.throwSCORMError("api", result.errorCode);
+        this.throwSCORMError("api", errorCode);
       }
       const resultValue = result?.result ?? global_constants.SCORM_FALSE;
       returnValue = typeof resultValue === "boolean" ? String(resultValue) : resultValue;
 
       this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
 
-      if (checkTerminated) this.lastErrorCode = "0";
+      if (checkTerminated && errorCode === 0) this.lastErrorCode = "0";
 
       this.processListeners(callbackName);
 
