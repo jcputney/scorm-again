@@ -125,10 +125,11 @@ jobs:
           path: dist/
 
       # Generate CycloneDX SBOM for the production dependency tree.
-      # Pinned for reproducible release builds; update deliberately.
+      # Version is pinned via the devDependency in package.json so
+      # Dependabot's npm ecosystem keeps it up to date.
       - name: Generate CycloneDX SBOM
         run: |
-          npx --yes @cyclonedx/cyclonedx-npm@4.2.1 \
+          npx @cyclonedx/cyclonedx-npm \
             --omit dev \
             --output-format JSON \
             --output-file sbom.cdx.json \
