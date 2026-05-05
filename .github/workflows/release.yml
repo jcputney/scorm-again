@@ -126,7 +126,11 @@ jobs:
 
       # Generate CycloneDX SBOM for the production dependency tree.
       # Version is pinned via the devDependency in package.json so
-      # Dependabot's npm ecosystem keeps it up to date.
+      # Dependabot's npm ecosystem keeps it up to date. Note: the
+      # `overrides` block in package.json replaces cyclonedx-npm's
+      # optional libxmljs2 native dep with a no-op stub since we
+      # only emit JSON; this avoids slow node-gyp builds and Node
+      # ABI/prebuild compatibility issues on CI runners.
       - name: Generate CycloneDX SBOM
         run: |
           npx @cyclonedx/cyclonedx-npm \
