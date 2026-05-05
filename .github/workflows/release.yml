@@ -100,6 +100,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      attestations: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -123,6 +124,17 @@ jobs:
           name: build-output
           path: dist/
 
+      # Generate CycloneDX SBOM for the production dependency tree
+      - name: Generate CycloneDX SBOM
+        run: |
+          npx --yes @cyclonedx/cyclonedx-npm@latest \
+            --omit dev \
+            --output-format JSON \
+            --output-file sbom.cdx.json \
+            --spec-version 1.6
+          echo "SBOM generated:"
+          ls -la sbom.cdx.json
+
       # Determine npm tag based on version
       - name: Determine npm tag
         id: npm_tag
@@ -145,6 +157,29 @@ jobs:
       # Publish to npm using OIDC (no token needed)
       - name: Publish to npm
         run: npm publish --tag ${{ steps.npm_tag.outputs.tag }} --provenance --access public
+
+      # Attest build provenance for the published bundle files
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: 'dist/**/*.js'
+
+      # Attest the SBOM against the published bundle files
+      - name: Attest SBOM
+        uses: actions/attest-sbom@v3
+        with:
+          subject-path: 'dist/**/*.js'
+          sbom-path: 'sbom.cdx.json'
+
+      # Attach the SBOM to the GitHub Release as a downloadable asset
+      - name: Upload SBOM to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp sbom.cdx.json "scorm-again-${{ steps.npm_tag.outputs.version }}.cdx.json"
+          gh release upload "${{ github.event.release.tag_name }}" \
+            "scorm-again-${{ steps.npm_tag.outputs.version }}.cdx.json" \
+            --clobber
 
       # Check if release has manual notes
       - name: Check for manual release notes
