@@ -124,23 +124,6 @@ jobs:
           name: build-output
           path: dist/
 
-      # Generate CycloneDX SBOM for the production dependency tree.
-      # Version is pinned via the devDependency in package.json so
-      # Dependabot's npm ecosystem keeps it up to date. Note: the
-      # `overrides` block in package.json replaces cyclonedx-npm's
-      # optional libxmljs2 native dep with a no-op stub since we
-      # only emit JSON; this avoids slow node-gyp builds and Node
-      # ABI/prebuild compatibility issues on CI runners.
-      - name: Generate CycloneDX SBOM
-        run: |
-          npx @cyclonedx/cyclonedx-npm \
-            --omit dev \
-            --output-format JSON \
-            --output-file sbom.cdx.json \
-            --spec-version 1.6
-          echo "SBOM generated:"
-          ls -la sbom.cdx.json
-
       # Determine npm tag based on version
       - name: Determine npm tag
         id: npm_tag
@@ -160,30 +143,54 @@ jobs:
 
           echo "Publishing version $VERSION with tag: $(grep tag= $GITHUB_OUTPUT | cut -d= -f2)"
 
-      # Publish to npm using OIDC (no token needed)
-      - name: Publish to npm
-        run: npm publish --tag ${{ steps.npm_tag.outputs.tag }} --provenance --access public
+      # Generate CycloneDX SBOM for the production dependency tree.
+      # We invoke the locally-installed binary directly (rather than
+      # `npx @cyclonedx/cyclonedx-npm`) so that a missing or moved
+      # devDependency fails the build immediately instead of silently
+      # fetching an unpinned version from the registry. Version is
+      # pinned via the devDependency in package.json so Dependabot's
+      # npm ecosystem keeps it up to date. The `overrides` block in
+      # package.json replaces cyclonedx-npm's optional libxmljs2
+      # native dep with a no-op stub since we only emit JSON; this
+      # avoids slow node-gyp builds and Node ABI/prebuild
+      # compatibility issues on CI runners.
+      - name: Generate CycloneDX SBOM
+        run: |
+          ./node_modules/.bin/cyclonedx-npm \
+            --omit dev \
+            --output-format JSON \
+            --output-file sbom.cdx.json \
+            --spec-version 1.6
+          echo "SBOM generated:"
+          ls -la sbom.cdx.json
 
-      # Attest build provenance for every file that ships in the
-      # published npm package (see package.json "files").
+      # Pack the npm tarball that will be published. Building it
+      # explicitly here lets us attest and publish the *same* bytes
+      # rather than trusting two separate `npm publish` packs to
+      # produce identical output.
+      - name: Pack npm tarball
+        id: pack
+        run: |
+          TARBALL=$(npm pack --silent)
+          echo "tarball=$TARBALL" >> $GITHUB_OUTPUT
+          ls -la "$TARBALL"
+
+      # Attest build provenance for the npm tarball that will be
+      # published. This is the canonical artifact; it includes
+      # everything `npm pack` puts on disk (files matched by
+      # package.json "files", plus npm's automatic inclusions like
+      # package.json, README, and LICENSE).
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: |
-            dist/**/*.js
-            dist/**/*.js.map
-            dist/**/*.d.ts
-            index.d.ts
+          subject-path: ${{ steps.pack.outputs.tarball }}
 
-      # Attest the SBOM against the same set of published artifacts
+      # Attest the SBOM against the same tarball, so consumers can
+      # verify the SBOM corresponds to the exact npm artifact.
       - name: Attest SBOM
         uses: actions/attest-sbom@v3
         with:
-          subject-path: |
-            dist/**/*.js
-            dist/**/*.js.map
-            dist/**/*.d.ts
-            index.d.ts
+          subject-path: ${{ steps.pack.outputs.tarball }}
           sbom-path: 'sbom.cdx.json'
 
       # Attach the SBOM to the GitHub Release as a downloadable asset
@@ -195,6 +202,18 @@ jobs:
           gh release upload "${{ github.event.release.tag_name }}" \
             "scorm-again-${{ steps.npm_tag.outputs.version }}.cdx.json" \
             --clobber
+
+      # Publish to npm using OIDC (no token needed). Runs last so
+      # that the only irreversible side-effect happens after SBOM,
+      # attestations, and release-asset upload have all succeeded.
+      # Publish the pre-packed tarball so what's attested above is
+      # exactly what's published.
+      - name: Publish to npm
+        run: |
+          npm publish "${{ steps.pack.outputs.tarball }}" \
+            --tag ${{ steps.npm_tag.outputs.tag }} \
+            --provenance \
+            --access public
 
       # Check if release has manual notes
       - name: Check for manual release notes
