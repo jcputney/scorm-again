@@ -124,10 +124,11 @@ jobs:
           name: build-output
           path: dist/
 
-      # Generate CycloneDX SBOM for the production dependency tree
+      # Generate CycloneDX SBOM for the production dependency tree.
+      # Pinned for reproducible release builds; update deliberately.
       - name: Generate CycloneDX SBOM
         run: |
-          npx --yes @cyclonedx/cyclonedx-npm@latest \
+          npx --yes @cyclonedx/cyclonedx-npm@4.2.1 \
             --omit dev \
             --output-format JSON \
             --output-file sbom.cdx.json \
@@ -158,17 +159,26 @@ jobs:
       - name: Publish to npm
         run: npm publish --tag ${{ steps.npm_tag.outputs.tag }} --provenance --access public
 
-      # Attest build provenance for the published bundle files
+      # Attest build provenance for every file that ships in the
+      # published npm package (see package.json "files").
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: 'dist/**/*.js'
+          subject-path: |
+            dist/**/*.js
+            dist/**/*.js.map
+            dist/**/*.d.ts
+            index.d.ts
 
-      # Attest the SBOM against the published bundle files
+      # Attest the SBOM against the same set of published artifacts
       - name: Attest SBOM
         uses: actions/attest-sbom@v3
         with:
-          subject-path: 'dist/**/*.js'
+          subject-path: |
+            dist/**/*.js
+            dist/**/*.js.map
+            dist/**/*.d.ts
+            index.d.ts
           sbom-path: 'sbom.cdx.json'
 
       # Attach the SBOM to the GitHub Release as a downloadable asset
