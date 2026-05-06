@@ -15,9 +15,16 @@ permissions:
   security-events: write
 
 jobs:
+  # Reusable workflows are pinned to an immutable commit SHA rather
+  # than a moving tag for supply-chain hardening: tags can be
+  # retargeted upstream, but a SHA guarantees the exact workflow
+  # code that was reviewed is what runs in CI. The SHA below
+  # corresponds to google/osv-scanner-action v2.2.4. Update
+  # deliberately; Dependabot's `github-actions` ecosystem keeps
+  # SHA-pinned references current via PRs.
   scan-scheduled:
     if: github.event_name != 'pull_request'
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.2.4"
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9bb69575e74019c2ad085a1860787043adf47ccb" # v2.2.4
     with:
       scan-args: |-
         --recursive
@@ -30,7 +37,7 @@ jobs:
 
   scan-pr:
     if: github.event_name == 'pull_request'
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.2.4"
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@9bb69575e74019c2ad085a1860787043adf47ccb" # v2.2.4
     with:
       scan-args: |-
         --recursive
