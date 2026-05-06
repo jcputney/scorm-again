@@ -130,7 +130,7 @@
     "vitest": "4.1.5"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.18.0"
   },
   "sideEffects": false,
   "scripts": {
@@ -206,8 +206,13 @@
       "@actions/github": "^9.0.0",
       "@actions/http-client": "^4.0.0"
     },
+    "@cyclonedx/cyclonedx-library": {
+      "libxmljs2": "npm:noop2@2.0.0"
+    },
+    "@cyclonedx/cyclonedx-npm": {
+      "libxmljs2": "npm:noop2@2.0.0"
+    },
     "ajv": "6.14.0",
-    "libxmljs2": "npm:noop2@2.0.0",
     "nodemailer": ">=8.0.4",
     "typescript-eslint": {
       "typescript": "$typescript"
