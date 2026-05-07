@@ -1,3 +1,22 @@
+# scorm-again
+
+A modern, fully-tested JavaScript runtime for SCORM 1.2 and SCORM 2004.
+
+---
+<details>
+<summary><b>Audits & consulting →</b></summary>
+
+I do one-week, fixed-price code audits for B2B SaaS companies on AWS:
+
+- Multi-Tenant SaaS on AWS: architecture, cost, and SOC 2 alignment
+- AI-on-AWS for Regulated SaaS: Bedrock, RAG, and guardrails under SOC 2, HIPAA, or 21 CFR Part 11
+
+Fixed price, written report, walkthrough call. Details at [audits.putney.io](https://audits.putney.io).
+
+</details>
+
+---
+
 [![Github Actions](https://img.shields.io/github/actions/workflow/status/jcputney/scorm-again/main.yml?style=for-the-badge "Build Status")](https://github.com/jcputney/scorm-again/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/jcputney/scorm-again?style=for-the-badge "Code Coverage")](https://codecov.io/gh/jcputney/scorm-again)
 ![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hy/scorm-again?style=for-the-badge&label=jsDelivr%20Downloads)
@@ -6,10 +25,6 @@
 [![npm](https://img.shields.io/npm/v/scorm-again?color=%2344cc11&style=for-the-badge)](https://www.npmjs.com/package/scorm-again)
 ![GitHub License](https://img.shields.io/github/license/jcputney/scorm-again?style=for-the-badge)
 [![donate](https://img.shields.io/badge/paypal-donate-success?style=for-the-badge)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NF5MPZJAV26LE)
-
-# scorm-again
-
-A modern, fully-tested JavaScript runtime for SCORM 1.2 and SCORM 2004.
 
 > **Upgrading from v2.x?** See the [Migration Guide](MIGRATION.md) for breaking changes and migration steps.
 
