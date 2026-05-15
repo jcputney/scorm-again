@@ -104,7 +104,7 @@
     "@vitest/ui": "4.1.6",
     "cors": "^2.8.6",
     "esbuild": "0.28.0",
-    "eslint": "10.3.0",
+    "eslint": "10.4.0",
     "eslint-plugin-jsdoc": "62.9.0",
     "express": "^5.2.1",
     "extract-zip": "2.0.1",
