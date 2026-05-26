@@ -90,7 +90,7 @@
     "test": "test"
   },
   "devDependencies": {
-    "@babel/core": "7.29.0",
+    "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.5",
     "@eslint/js": "10.0.1",
     "@mo36924/rollup-plugin-cache": "1.6.11",
