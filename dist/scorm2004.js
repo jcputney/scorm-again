@@ -943,6 +943,11 @@ this.Scorm2004API = (function () {
     progress_range: "0#1"
   };
 
+  const PERFORMANCE_STEP_NAME = "^$|" + scorm2004_regex.CMIShortIdentifier;
+  const PERFORMANCE_CHARACTERSTRING = "(?![\\s\\S]*(?:\\[,\\]|\\[\\.\\]|\\[:\\]))[\\s\\S]{1,250}";
+  const PERFORMANCE_NUMERIC_RANGE = "(?:-?\\d+(?:\\.\\d+)?)?\\[:\\](?:-?\\d+(?:\\.\\d+)?)?";
+  const CR_PERFORMANCE_STEP_ANSWER = "^(?:|" + PERFORMANCE_NUMERIC_RANGE + "|" + PERFORMANCE_CHARACTERSTRING + ")$";
+  const LR_PERFORMANCE_STEP_ANSWER = "^(?:|" + PERFORMANCE_CHARACTERSTRING + ")$";
   const LearnerResponses = {
     "true-false": {
       format: "^true$|^false$",
@@ -977,8 +982,8 @@ this.Scorm2004API = (function () {
       unique: false
     },
     performance: {
-      format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-      format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
+      format: PERFORMANCE_STEP_NAME,
+      format2: LR_PERFORMANCE_STEP_ANSWER,
       max: 250,
       delimiter: "[,]",
       delimiter2: "[.]",
@@ -1054,10 +1059,10 @@ this.Scorm2004API = (function () {
       delimiter2: "[.]",
       unique: false,
       duplicate: false,
-      // step_name must be a non-empty short identifier
-      format: scorm2004_regex.CMIShortIdentifier,
-      // step_answer may be short identifier or numeric range (<decimal>[:<decimal>])
-      format2: `^(${scorm2004_regex.CMIShortIdentifier})$|^(?:\\d+(?:\\.\\d+)?(?::\\d+(?:\\.\\d+)?)?)$`
+      // step_name: optional short_identifier_type
+      format: PERFORMANCE_STEP_NAME,
+      // step_answer: optional characterstring (spaces allowed) or numeric range
+      format2: CR_PERFORMANCE_STEP_ANSWER
     },
     sequencing: {
       max: 36,
@@ -16321,7 +16326,7 @@ ${stackTrace}`);
                 const node = nodes[i] ?? "";
                 const values = this.type === "performance" ? splitFirstDelimited(node, response_type.delimiter2) : splitDelimited(node, response_type.delimiter2);
                 if (values?.length === 2) {
-                  if (this.type === "performance" && (values[0] === "" || values[1] === "")) {
+                  if (this.type === "performance" && values[0] === "" && values[1] === "") {
                     throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors.TYPE_MISMATCH);
                   }
                   if (!values[0]?.match(formatRegex)) {
@@ -16502,6 +16507,14 @@ ${stackTrace}`);
       return result;
     }
   }
+  const RESPONSE_PREFIX_RE = /^\{(?:lang|case_matters|order_matters)=[^}]+\}/;
+  function stripResponsePrefixes(node) {
+    let result = node;
+    while (RESPONSE_PREFIX_RE.test(result)) {
+      result = result.replace(RESPONSE_PREFIX_RE, "");
+    }
+    return result;
+  }
   function validatePattern(type, pattern, responseDef) {
     if (pattern.trim() !== pattern) {
       throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
@@ -16567,12 +16580,13 @@ ${stackTrace}`);
             if (!delimBracketed) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
             }
-            const parts = splitFirstDelimited(node, delimBracketed);
+            const record = stripResponsePrefixes(node);
+            const parts = splitFirstDelimited(record, delimBracketed);
             if (parts.length !== 2) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
             }
             const [part1, part2] = parts;
-            if (part1 === "" || part2 === "" || part1 === part2) {
+            if (part1 === "" && part2 === "") {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
             }
             if (part1 === void 0 || !fmt1.test(part1)) {
@@ -19627,12 +19641,16 @@ ${stackTrace}`);
         if (response?.delimiter2) {
           const values = interaction_type === "performance" ? splitFirstDelimited(nodes[i], response.delimiter2) : splitDelimited(nodes[i], response.delimiter2);
           if (values.length === 2) {
-            const matches = values[0]?.match(formatRegex);
-            if (!matches) {
+            if (interaction_type === "performance" && values[0] === "" && values[1] === "") {
               this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
             } else {
-              if (!response.format2 || !values[1]?.match(new RegExp(response.format2))) {
+              const matches = values[0]?.match(formatRegex);
+              if (!matches) {
                 this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+              } else {
+                if (!response.format2 || !values[1]?.match(new RegExp(response.format2))) {
+                  this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+                }
               }
             }
           } else {
