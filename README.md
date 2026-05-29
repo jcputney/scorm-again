@@ -815,6 +815,21 @@ When implementing scorm-again, consider these security best practices:
 - Use HTTPS for all LMS communications to prevent data interception
 - Review the `xhrHeaders` and `responseHandler` settings for potential security implications
 
+### Network Access & Data Flow
+
+Supply-chain scanners (e.g. Socket) flag scorm-again as having "network access" because it
+references `fetch` and `XMLHttpRequest`. This is expected: committing learner tracking data to an
+LMS is the library's core function. To be clear about what that access does and does not include:
+
+- **No hardcoded endpoints.** scorm-again never contacts any server of its own. Data is only ever
+  sent to the URL you provide via the `lmsCommitUrl` setting.
+- **Silent by default.** `lmsCommitUrl` defaults to `false`. With no commit URL configured, the
+  library makes no network requests at all.
+- **You control the payload and headers.** Outgoing requests can be inspected and rewritten via
+  `requestHandler`, and `xhrHeaders` / `xhrWithCredentials` govern what is attached to them.
+- **No telemetry or analytics.** The library does not phone home, collect usage data, or contact
+  any third party.
+
 ## Performance Considerations
 
 For optimal performance:

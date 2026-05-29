@@ -1,0 +1,13 @@
+# Socket.dev project configuration
+# https://docs.socket.dev/docs/socket-yml
+version: 2
+
+issueRules:
+  # scorm-again is a SCORM/AICC runtime whose core function is committing learner
+  # tracking data to an LMS. The "network access" capability is therefore expected
+  # and not a vulnerability:
+  #   - No hardcoded endpoints: data is only ever sent to the caller-supplied `lmsCommitUrl`.
+  #   - Silent by default: `lmsCommitUrl` defaults to `false`, so no requests are made out of the box.
+  #   - No telemetry: the library never phones home or contacts any third party.
+  # See the "Network Access & Data Flow" section of README.md for details.
+  networkAccess: false
