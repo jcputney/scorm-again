@@ -18356,6 +18356,49 @@ ${stackTrace}`);
     }
   }
 
+  function stripBrackets(delim) {
+    return delim.replace(/[[\]]/g, "");
+  }
+  function escapeRegex(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+  function splitDelimited(value, bracketed) {
+    if (!bracketed) {
+      return [value];
+    }
+    if (value.includes(bracketed)) {
+      return value.split(bracketed);
+    }
+    const bare = stripBrackets(bracketed);
+    if (!bare) {
+      return [value];
+    }
+    const splitRe = new RegExp(`(?<!\\\\)${escapeRegex(bare)}`, "g");
+    const unescapeRe = new RegExp(`\\\\${escapeRegex(bare)}`, "g");
+    return value.split(splitRe).map(part => part.replace(unescapeRe, bare));
+  }
+  function splitFirstDelimited(value, bracketed) {
+    if (!bracketed) {
+      return [value];
+    }
+    if (value.includes(bracketed)) {
+      const idx = value.indexOf(bracketed);
+      return [value.slice(0, idx), value.slice(idx + bracketed.length)];
+    }
+    const bare = stripBrackets(bracketed);
+    if (!bare) {
+      return [value];
+    }
+    const splitRe = new RegExp(`(?<!\\\\)${escapeRegex(bare)}`);
+    const unescapeRe = new RegExp(`\\\\${escapeRegex(bare)}`, "g");
+    const parts = value.split(splitRe);
+    const first = (parts[0] ?? "").replace(unescapeRe, bare);
+    if (parts.length === 1) {
+      return [first];
+    }
+    return [first, parts.slice(1).join(bare).replace(unescapeRe, bare)];
+  }
+
   var __defProp$l = Object.defineProperty;
   var __defNormalProp$l = (obj, key, value) => key in obj ? __defProp$l(obj, key, {
     enumerable: true,
@@ -18551,8 +18594,7 @@ ${stackTrace}`);
         const response_type = LearnerResponses[this.type];
         if (response_type) {
           if (response_type?.delimiter) {
-            const delimiter = response_type.delimiter === "[,]" ? "," : response_type.delimiter;
-            nodes = learner_response.split(delimiter);
+            nodes = splitDelimited(learner_response, response_type.delimiter);
           } else {
             nodes[0] = learner_response;
           }
@@ -18560,8 +18602,8 @@ ${stackTrace}`);
             const formatRegex = new RegExp(response_type.format);
             for (let i = 0; i < nodes.length; i++) {
               if (response_type?.delimiter2) {
-                const delimiter2 = response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
-                const values = nodes[i]?.split(delimiter2);
+                const node = nodes[i] ?? "";
+                const values = this.type === "performance" ? splitFirstDelimited(node, response_type.delimiter2) : splitDelimited(node, response_type.delimiter2);
                 if (values?.length === 2) {
                   if (this.type === "performance" && (values[0] === "" || values[1] === "")) {
                     throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors.TYPE_MISMATCH);
@@ -18744,37 +18786,11 @@ ${stackTrace}`);
       return result;
     }
   }
-  function stripBrackets(delim) {
-    return delim.replace(/[[\]]/g, "");
-  }
-  function escapeRegex(s) {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
-  function splitUnescaped(text, delim) {
-    const reDelim = escapeRegex(delim);
-    const splitRe = new RegExp(`(?<!\\\\)${reDelim}`, "g");
-    const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
-    return text.split(splitRe).map(part => part.replace(unescapeRe, delim));
-  }
-  function splitFirstUnescaped(text, delim) {
-    const reDelim = escapeRegex(delim);
-    const splitRe = new RegExp(`(?<!\\\\)${reDelim}`);
-    const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
-    const parts = text.split(splitRe);
-    const firstPart = parts[0] ?? "";
-    if (parts.length === 1) {
-      return [firstPart.replace(unescapeRe, delim)];
-    }
-    const part1 = firstPart.replace(unescapeRe, delim);
-    const part2 = parts.slice(1).join(delim).replace(unescapeRe, delim);
-    return [part1, part2];
-  }
   function validatePattern(type, pattern, responseDef) {
     if (pattern.trim() !== pattern) {
       throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
     }
-    const subDelim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
-    const rawNodes = subDelim1 ? splitUnescaped(pattern, subDelim1) : [pattern];
+    const rawNodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter) : [pattern];
     for (const raw of rawNodes) {
       if (raw.trim() !== raw) {
         throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
@@ -18783,17 +18799,11 @@ ${stackTrace}`);
     if (type === "fill-in" && pattern === "") {
       return;
     }
-    const delim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
-    let nodes;
-    if (delim1) {
-      nodes = splitUnescaped(pattern, delim1);
-    } else {
-      nodes = [pattern];
-    }
+    const nodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter) : [pattern];
     if (!responseDef.delimiter && pattern.includes(",")) {
       throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
     }
-    if (responseDef.unique || responseDef.duplicate === false) {
+    if (type !== "numeric" && (responseDef.unique || responseDef.duplicate === false)) {
       const seen = new Set(nodes);
       if (seen.size !== nodes.length) {
         throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
@@ -18813,8 +18823,7 @@ ${stackTrace}`);
       if (!delimBracketed) {
         throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
       }
-      const delim = stripBrackets(delimBracketed);
-      const parts = value.split(new RegExp(`(?<!\\\\)${escapeRegex(delim)}`, "g")).map(n => n.replace(new RegExp(`\\\\${escapeRegex(delim)}`, "g"), delim));
+      const parts = splitDelimited(value, delimBracketed);
       if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
         throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
       }
@@ -18826,12 +18835,14 @@ ${stackTrace}`);
       switch (type) {
         case "numeric":
           {
-            const numDelim = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : ":";
-            const nums = node.split(numDelim);
-            if (nums.length < 1 || nums.length > 2) {
-              throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
+            if (node === "") {
+              const bracketedRange = nodes.length >= 2 && !!responseDef.delimiter && pattern.includes(responseDef.delimiter);
+              if (!bracketedRange) {
+                throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
+              }
+              break;
             }
-            nums.forEach(checkSingle);
+            checkSingle(node);
             break;
           }
         case "performance":
@@ -18840,8 +18851,7 @@ ${stackTrace}`);
             if (!delimBracketed) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
             }
-            const delim = stripBrackets(delimBracketed);
-            const parts = splitFirstUnescaped(node, delim);
+            const parts = splitFirstDelimited(node, delimBracketed);
             if (parts.length !== 2) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
             }
@@ -21632,7 +21642,7 @@ ${stackTrace}`);
     checkValidResponseType(CMIElement, response_type, value, interaction_type) {
       let nodes = [];
       if (response_type?.delimiter) {
-        nodes = String(value).split(response_type.delimiter);
+        nodes = splitDelimited(String(value), response_type.delimiter);
       } else {
         nodes[0] = value;
       }
@@ -21730,13 +21740,13 @@ ${stackTrace}`);
           nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
         }
         if (response?.delimiter2) {
-          const values = nodes[i].split(response.delimiter2);
+          const values = interaction_type === "performance" ? splitFirstDelimited(nodes[i], response.delimiter2) : splitDelimited(nodes[i], response.delimiter2);
           if (values.length === 2) {
-            const matches = values[0].match(formatRegex);
+            const matches = values[0]?.match(formatRegex);
             if (!matches) {
               this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
             } else {
-              if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
+              if (!response.format2 || !values[1]?.match(new RegExp(response.format2))) {
                 this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
               }
             }
@@ -21744,12 +21754,15 @@ ${stackTrace}`);
             this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
           }
         } else {
+          if (interaction_type === "numeric" && nodes.length > 1 && nodes[i] === "" && !!response.delimiter && String(value).includes(response.delimiter)) {
+            continue;
+          }
           const matches = nodes[i].match(formatRegex);
           if (!matches && value !== "" || !matches && interaction_type === "true-false") {
             this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
           } else {
             if (interaction_type === "numeric" && nodes.length > 1) {
-              if (Number(nodes[0]) > Number(nodes[1])) {
+              if (nodes[0] !== "" && nodes[1] !== "" && Number(nodes[0]) > Number(nodes[1])) {
                 this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${interaction_type}: ${value}`);
               }
             } else {
