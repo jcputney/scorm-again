@@ -33,21 +33,37 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         expect(interaction.learner_response).toBe("step1.value1,step2.value2,step3.value3");
       });
 
-      it("should reject invalid performance responses", () => {
+      it("should accept performance responses that omit one part", () => {
+        // Per RTE 4.2.9.7 a record may omit the step_answer ("<name>[.]") or the
+        // step_name ("[.]<answer>"); only both-empty is invalid.
         const interaction = new CMIInteractionsObject();
         interaction.id = "interaction-1";
         interaction.type = "performance";
 
         expect(() => {
-          interaction.learner_response = "step1-value1";
-        }).toThrow();
-
-        expect(() => {
           interaction.learner_response = "step1.";
-        }).toThrow();
+        }).not.toThrow();
+        expect(interaction.learner_response).toBe("step1.");
 
         expect(() => {
           interaction.learner_response = ".value1";
+        }).not.toThrow();
+        expect(interaction.learner_response).toBe(".value1");
+      });
+
+      it("should reject invalid performance responses", () => {
+        const interaction = new CMIInteractionsObject();
+        interaction.id = "interaction-1";
+        interaction.type = "performance";
+
+        // No [.] field separator at all
+        expect(() => {
+          interaction.learner_response = "step1-value1";
+        }).toThrow();
+
+        // Completely empty record (neither step_name nor step_answer)
+        expect(() => {
+          interaction.learner_response = "[.]";
         }).toThrow();
       });
     });
@@ -211,15 +227,28 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         expect(correctResponse.pattern).toBe("step1.value1,step2.value2");
       });
 
-      it("should reject empty step names or answers", () => {
+      it("should accept a record that omits one step part", () => {
+        // Per spec a record may omit step_answer ("<name>[.]") or step_name
+        // ("[.]<answer>"); only a completely empty record is invalid.
         const cr = new CMIInteractionsCorrectResponsesObject("performance");
 
         expect(() => {
           cr.pattern = "step1.";
-        }).toThrow(); // empty answer
+        }).not.toThrow(); // empty answer
+        expect(cr.pattern).toBe("step1.");
+
         expect(() => {
           cr.pattern = ".value1";
-        }).toThrow(); // empty step
+        }).not.toThrow(); // empty step
+        expect(cr.pattern).toBe(".value1");
+      });
+
+      it("should reject a completely empty performance record", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("performance");
+
+        expect(() => {
+          cr.pattern = "[.]";
+        }).toThrow();
       });
 
       it("should accept identifier answers", () => {

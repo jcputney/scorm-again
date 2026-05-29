@@ -308,8 +308,9 @@ export class CMIInteractionsObject extends BaseCMI {
                   : splitDelimited(node, response_type.delimiter2);
 
               if (values?.length === 2) {
-                // For performance type, both parts must be non-empty
-                if (this.type === "performance" && (values[0] === "" || values[1] === "")) {
+                // A performance record must include at least one of
+                // step_name / step_answer; only both-empty is invalid.
+                if (this.type === "performance" && values[0] === "" && values[1] === "") {
                   throw new Scorm2004ValidationError(
                     this._cmi_element + ".learner_response",
                     scorm2004_errors.TYPE_MISMATCH as number,
@@ -576,6 +577,24 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
 }
 
 /**
+ * Strip the optional leading property delimiter(s) from a correct_responses
+ * record, e.g. `{order_matters=false}[.]drink coffee` -> `[.]drink coffee`.
+ *
+ * Mirrors the token shape stripped by
+ * `Scorm2004ResponseValidator.removeCorrectResponsePrefixes`, which runs first
+ * and is authoritative for validating the property value. This helper only
+ * removes the prefix so the step_name/step_answer parse correctly.
+ */
+const RESPONSE_PREFIX_RE = /^\{(?:lang|case_matters|order_matters)=[^}]+\}/;
+function stripResponsePrefixes(node: string): string {
+  let result = node;
+  while (RESPONSE_PREFIX_RE.test(result)) {
+    result = result.replace(RESPONSE_PREFIX_RE, "");
+  }
+  return result;
+}
+
+/**
  * Helper: validate a `pattern` string against its SCORM definition
  */
 function validatePattern(type: string, pattern: string, responseDef: ResponseType) {
@@ -704,15 +723,13 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
       }
 
       case "performance": {
-        // Performance pattern: step_name.step_answer
-        // - step_name must match format (CMIShortIdentifier)
-        // - step_answer can be:
-        //   1. A CMIShortIdentifier (e.g., "answer1")
-        //   2. A decimal number (e.g., "3.14") - contains literal dots!
-        //   3. A numeric range (e.g., "3.5:4.2") - contains literal dots and colon!
+        // Performance record: {order_matters=<boolean>}?<step_name>[.]<step_answer>
+        // - step_name (optional) is a short_identifier_type
+        // - step_answer (optional) is a characterstring (spaces allowed) or a
+        //   numeric range; a record must include at least one of the two.
         //
-        // CRITICAL: Must split on the FIRST "[.]" only, because step_answer may
-        // contain literal dots (for decimal numbers like "3.14")
+        // step_answer may contain literal dots ("3.14") or a "[:]" range, so we
+        // split on the FIRST "[.]" only.
         const delimBracketed = responseDef.delimiter2;
         if (!delimBracketed) {
           throw new Scorm2004ValidationError(
@@ -721,10 +738,15 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
           );
         }
 
-        // Split on the FIRST delimiter only
-        const parts = splitFirstDelimited(node, delimBracketed);
+        // Remove the optional leading property delimiter (e.g.
+        // "{order_matters=false}") before parsing the step fields. The
+        // response_validator runs first and validates the property value.
+        const record = stripResponsePrefixes(node);
 
-        // Must have exactly 2 parts (step_name and step_answer)
+        // Split on the FIRST delimiter only -> [step_name, step_answer]
+        const parts = splitFirstDelimited(record, delimBracketed);
+
+        // A record must use the "[.]" field separator (exactly two parts)
         if (parts.length !== 2) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
@@ -734,15 +756,15 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
 
         const [part1, part2] = parts;
 
-        // Validate non-empty and not identical
-        if (part1 === "" || part2 === "" || part1 === part2) {
+        // A record must include at least one of step_name / step_answer
+        if (part1 === "" && part2 === "") {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
             scorm2004_errors.TYPE_MISMATCH as number,
           );
         }
 
-        // Validate part1 (step_name) against format (CMIShortIdentifier)
+        // Validate step_name against format (empty is allowed)
         if (part1 === undefined || !fmt1.test(part1)) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
@@ -750,8 +772,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
           );
         }
 
-        // Validate part2 (step_answer) against format2
-        // format2 allows: CMIShortIdentifier | decimal | decimal:decimal
+        // Validate step_answer against format2 (empty is allowed)
         if (fmt2 && part2 !== undefined && !fmt2.test(part2)) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",

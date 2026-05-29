@@ -227,20 +227,31 @@ export class Scorm2004ResponseValidator {
             ? splitFirstDelimited(nodes[i], response.delimiter2)
             : splitDelimited(nodes[i], response.delimiter2);
         if (values.length === 2) {
-          const matches = values[0]?.match(formatRegex);
-          if (!matches) {
+          // A performance record must include at least one of
+          // step_name / step_answer. Both step fields accept an empty string
+          // individually (one part may be omitted), so reject both-empty here.
+          if (interaction_type === "performance" && values[0] === "" && values[1] === "") {
             this.context.throwSCORMError(
               CMIElement,
               scorm2004_errors.TYPE_MISMATCH!,
               `${interaction_type}: ${value}`,
             );
           } else {
-            if (!response.format2 || !values[1]?.match(new RegExp(response.format2))) {
+            const matches = values[0]?.match(formatRegex);
+            if (!matches) {
               this.context.throwSCORMError(
                 CMIElement,
                 scorm2004_errors.TYPE_MISMATCH!,
                 `${interaction_type}: ${value}`,
               );
+            } else {
+              if (!response.format2 || !values[1]?.match(new RegExp(response.format2))) {
+                this.context.throwSCORMError(
+                  CMIElement,
+                  scorm2004_errors.TYPE_MISMATCH!,
+                  `${interaction_type}: ${value}`,
+                );
+              }
             }
           }
         } else {

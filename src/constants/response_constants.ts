@@ -1,5 +1,26 @@
 import { scorm2004_regex } from "./regex";
 
+/**
+ * SCORM 2004 `performance` interaction step patterns (RTE 4.2.9.1 / 4.2.9.7).
+ *
+ * A record is `<step_name>[.]<step_answer>`; either side is optional (but not
+ * both). The reserved bracketed tokens `[,]` `[.]` `[:]` are the delimiters, so
+ * a `step_answer` characterstring may not contain them - a bare `.` `,` `:` is
+ * literal data. Spaces are valid characterstring content (SPM 250).
+ */
+// step_name: optional short_identifier_type
+const PERFORMANCE_STEP_NAME = "^$|" + scorm2004_regex.CMIShortIdentifier;
+// step_answer characterstring: 1-250 chars, no reserved bracketed tokens
+const PERFORMANCE_CHARACTERSTRING = "(?![\\s\\S]*(?:\\[,\\]|\\[\\.\\]|\\[:\\]))[\\s\\S]{1,250}";
+// step_answer numeric range: <min>[:]<max>, with open-ended bounds allowed
+const PERFORMANCE_NUMERIC_RANGE = "(?:-?\\d+(?:\\.\\d+)?)?\\[:\\](?:-?\\d+(?:\\.\\d+)?)?";
+// correct_responses step_answer: empty | numeric range | characterstring
+const CR_PERFORMANCE_STEP_ANSWER =
+  "^(?:|" + PERFORMANCE_NUMERIC_RANGE + "|" + PERFORMANCE_CHARACTERSTRING + ")$";
+// learner_response step_answer: empty | characterstring (a single real value is
+// just a characterstring; learner responses have no numeric *range* per spec)
+const LR_PERFORMANCE_STEP_ANSWER = "^(?:|" + PERFORMANCE_CHARACTERSTRING + ")$";
+
 export const LearnerResponses: Responses = {
   "true-false": {
     format: "^true$|^false$",
@@ -34,8 +55,8 @@ export const LearnerResponses: Responses = {
     unique: false,
   },
   performance: {
-    format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-    format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
+    format: PERFORMANCE_STEP_NAME,
+    format2: LR_PERFORMANCE_STEP_ANSWER,
     max: 250,
     delimiter: "[,]",
     delimiter2: "[.]",
@@ -111,10 +132,10 @@ export const CorrectResponses: Responses = {
     delimiter2: "[.]",
     unique: false,
     duplicate: false,
-    // step_name must be a non-empty short identifier
-    format: scorm2004_regex.CMIShortIdentifier,
-    // step_answer may be short identifier or numeric range (<decimal>[:<decimal>])
-    format2: `^(${scorm2004_regex.CMIShortIdentifier})$|^(?:\\d+(?:\\.\\d+)?(?::\\d+(?:\\.\\d+)?)?)$`,
+    // step_name: optional short_identifier_type
+    format: PERFORMANCE_STEP_NAME,
+    // step_answer: optional characterstring (spaces allowed) or numeric range
+    format2: CR_PERFORMANCE_STEP_ANSWER,
   },
   sequencing: {
     max: 36,

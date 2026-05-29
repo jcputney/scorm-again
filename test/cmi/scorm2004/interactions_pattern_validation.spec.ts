@@ -54,6 +54,53 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
         correctResponse.pattern = "step1.answer1,step2.3.14,step3.10:20";
         expect(correctResponse.pattern).toBe("step1.answer1,step2.3.14,step3.10:20");
       });
+
+      it("should accept a step_answer characterstring containing spaces (spec example)", () => {
+        // Per RTE 4.2.9.1 the step_answer may be any characterstring (SPM 250),
+        // spaces included: "step_1[.]inspect wound[,]step_2[.]clean wound".
+        correctResponse.pattern = "step_1[.]inspect wound[,]step_2[.]clean wound";
+        expect(correctResponse.pattern).toBe("step_1[.]inspect wound[,]step_2[.]clean wound");
+      });
+
+      it("should accept the {order_matters=false} + empty step_name spec example", () => {
+        // Verbatim spec example: order_matters property delimiter, both records
+        // omit the step_name ("[.]<answer>").
+        correctResponse.pattern = "{order_matters=false}[.]drink coffee[,][.]eat cereal";
+        expect(correctResponse.pattern).toBe("{order_matters=false}[.]drink coffee[,][.]eat cereal");
+      });
+
+      it("should accept a record with step_name only (empty step_answer)", () => {
+        // A record may be "<name>[.]" - step_answer is optional.
+        correctResponse.pattern = "step_1[.]";
+        expect(correctResponse.pattern).toBe("step_1[.]");
+      });
+
+      it("should accept a record with step_answer only (empty step_name)", () => {
+        // A record may be "[.]<answer>" - step_name is optional.
+        correctResponse.pattern = "[.]answer";
+        expect(correctResponse.pattern).toBe("[.]answer");
+      });
+
+      it("should accept a bracketed numeric range step_answer", () => {
+        // step_answer may be a numeric range <min>[:]<max> per spec.
+        correctResponse.pattern = "step_1[.]3[:]4";
+        expect(correctResponse.pattern).toBe("step_1[.]3[:]4");
+      });
+
+      it("should accept open-ended bracketed numeric range step_answers", () => {
+        // The spec lists [:]<max>, <min>[:] and [:] as valid range forms.
+        correctResponse.pattern = "step_1[.][:]10";
+        expect(correctResponse.pattern).toBe("step_1[.][:]10");
+
+        correctResponse.pattern = "step_2[.]4[:]";
+        expect(correctResponse.pattern).toBe("step_2[.]4[:]");
+      });
+
+      it("should accept identical step_name and step_answer", () => {
+        // The spec does not forbid name == answer.
+        correctResponse.pattern = "same.same";
+        expect(correctResponse.pattern).toBe("same.same");
+      });
     });
 
     describe("Invalid Performance Patterns", () => {
@@ -63,19 +110,20 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
         }).toThrow(Scorm2004ValidationError);
       });
 
-      it("should reject performance patterns with empty parts", () => {
-        expect(() => {
-          correctResponse.pattern = ".value1";
-        }).toThrow(Scorm2004ValidationError);
+      it("should accept performance patterns with one empty part", () => {
+        // Per spec a record may omit either the step_name ("[.]<answer>") or the
+        // step_answer ("<name>[.]"); only both-empty is invalid.
+        correctResponse.pattern = ".value1";
+        expect(correctResponse.pattern).toBe(".value1");
 
-        expect(() => {
-          correctResponse.pattern = "step1.";
-        }).toThrow(Scorm2004ValidationError);
+        correctResponse.pattern = "step1.";
+        expect(correctResponse.pattern).toBe("step1.");
       });
 
-      it("should reject performance patterns with identical parts", () => {
+      it("should reject performance records that are completely empty", () => {
+        // A record must contain at least one of step_name/step_answer.
         expect(() => {
-          correctResponse.pattern = "same.same";
+          correctResponse.pattern = "[.]";
         }).toThrow(Scorm2004ValidationError);
       });
 
@@ -120,18 +168,10 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
         expect(correctResponse.pattern).toBe("step1.3:4:5");
       });
 
-      it("should reject performance patterns with whitespace in step_answer", () => {
-        // Whitespace is not allowed in CMIShortIdentifier
-        expect(() => {
-          correctResponse.pattern = "step1.answer 1";
-        }).toThrow(Scorm2004ValidationError);
-      });
-
-      it("should reject performance patterns with empty components", () => {
-        // Empty step_answer after dot
-        expect(() => {
-          correctResponse.pattern = "step1.";
-        }).toThrow(Scorm2004ValidationError);
+      it("should accept whitespace in step_answer (characterstring, spaces allowed)", () => {
+        // step_answer is a characterstring per spec; spaces are valid content.
+        correctResponse.pattern = "step1.answer 1";
+        expect(correctResponse.pattern).toBe("step1.answer 1");
       });
     });
   });

@@ -119,6 +119,33 @@ describe("SCORM 2004 correct_responses.pattern (end-to-end SetValue)", () => {
     it("accepts a decimal step answer (literal dot in the answer)", () => {
       expectAccepted("performance", "step_1[.]3.14");
     });
+    it("accepts the spec example with spaces in the step answers", () => {
+      expectAccepted("performance", "step_1[.]inspect wound[,]step_2[.]clean wound");
+    });
+    it("accepts the {order_matters=false} + empty step_name spec example", () => {
+      expectAccepted("performance", "{order_matters=false}[.]drink coffee[,][.]eat cereal");
+    });
+    it("accepts a record with step_name only (empty step_answer)", () => {
+      expectAccepted("performance", "step_1[.]");
+    });
+    it("accepts a record with step_answer only (empty step_name)", () => {
+      expectAccepted("performance", "[.]answer");
+    });
+    it("accepts a bracketed numeric range step answer", () => {
+      expectAccepted("performance", "step_1[.]3[:]4");
+    });
+    it("accepts identical step_name and step_answer", () => {
+      expectAccepted("performance", "same[.]same");
+    });
+    it("rejects a record with no [.] delimiter", () => {
+      expectRejected("performance", "step1answer1");
+    });
+    it("rejects a completely empty record", () => {
+      expectRejected("performance", "[.]");
+    });
+    it("rejects whitespace in the step_name", () => {
+      expectRejected("performance", "step 1[.]answer");
+    });
   });
 
   describe("numeric (bracketed [:] range delimiter per spec)", () => {
@@ -185,6 +212,13 @@ describe("SCORM 2004 learner_response (end-to-end SetValue, bracketed delimiters
     expect(a.lmsGetValue("cmi.interactions.0.learner_response")).toBe(value);
   }
 
+  function expectLRRejected(type: string, value: string) {
+    const a = newInteraction(type);
+    const ret = a.lmsSetValue("cmi.interactions.0.learner_response", value);
+    expect(ret, `expected learner_response "${value}" (${type}) rejected`).toBe("false");
+    expect(a.lmsGetLastError()).not.toBe("0");
+  }
+
   it("accepts bracketed choice", () => {
     expectLRAccepted("choice", "choice1[,]choice2[,]choice3");
   });
@@ -193,5 +227,17 @@ describe("SCORM 2004 learner_response (end-to-end SetValue, bracketed delimiters
   });
   it("accepts bracketed performance with decimal answer", () => {
     expectLRAccepted("performance", "step_1[.]3.14[,]step_2[.]answer2");
+  });
+  it("accepts performance step answers containing spaces (spec example)", () => {
+    expectLRAccepted("performance", "step_1[.]inspect wound[,]step_2[.]clean wound");
+  });
+  it("accepts a performance record with step_name only", () => {
+    expectLRAccepted("performance", "step_1[.]");
+  });
+  it("accepts a performance record with step_answer only", () => {
+    expectLRAccepted("performance", "[.]answer");
+  });
+  it("rejects a completely empty performance record", () => {
+    expectLRRejected("performance", "[.]");
   });
 });
