@@ -4,6 +4,10 @@ import {
   CMIInteractionsObject,
 } from "../../cmi/scorm2004/interactions";
 import {
+  splitDelimited,
+  splitFirstDelimited,
+} from "../../cmi/scorm2004/interaction_delimiters";
+import {
   CorrectResponses,
   ResponseType,
   scorm2004_errors,
@@ -57,7 +61,9 @@ export class Scorm2004ResponseValidator {
   ): void {
     let nodes: any[] = [];
     if (response_type?.delimiter) {
-      nodes = String(value).split(response_type.delimiter);
+      // Split on the spec's bracketed token ("[,]" / "[:]") when present,
+      // falling back to the bare character for legacy plain values.
+      nodes = splitDelimited(String(value), response_type.delimiter);
     } else {
       nodes[0] = value;
     }
@@ -213,9 +219,15 @@ export class Scorm2004ResponseValidator {
       }
 
       if (response?.delimiter2) {
-        const values = nodes[i].split(response.delimiter2);
+        // performance step_answers may contain literal dots, so split on the
+        // first "[.]" only; matching pairs split on all occurrences so a
+        // malformed 3-member record is rejected.
+        const values =
+          interaction_type === "performance"
+            ? splitFirstDelimited(nodes[i], response.delimiter2)
+            : splitDelimited(nodes[i], response.delimiter2);
         if (values.length === 2) {
-          const matches = values[0].match(formatRegex);
+          const matches = values[0]?.match(formatRegex);
           if (!matches) {
             this.context.throwSCORMError(
               CMIElement,
@@ -223,7 +235,7 @@ export class Scorm2004ResponseValidator {
               `${interaction_type}: ${value}`,
             );
           } else {
-            if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
+            if (!response.format2 || !values[1]?.match(new RegExp(response.format2))) {
               this.context.throwSCORMError(
                 CMIElement,
                 scorm2004_errors.TYPE_MISMATCH!,
@@ -239,6 +251,18 @@ export class Scorm2004ResponseValidator {
           );
         }
       } else {
+        // An empty bound of a numeric range ("[:]10", "4[:]", "[:]") is a valid
+        // open-ended range per spec, so it skips the decimal format check. Only
+        // the bracketed "[:]" form qualifies; a plain ":" is literal data.
+        if (
+          interaction_type === "numeric" &&
+          nodes.length > 1 &&
+          nodes[i] === "" &&
+          !!response.delimiter &&
+          String(value).includes(response.delimiter)
+        ) {
+          continue;
+        }
         const matches = nodes[i].match(formatRegex);
         if ((!matches && value !== "") || (!matches && interaction_type === "true-false")) {
           this.context.throwSCORMError(
@@ -248,7 +272,8 @@ export class Scorm2004ResponseValidator {
           );
         } else {
           if (interaction_type === "numeric" && nodes.length > 1) {
-            if (Number(nodes[0]) > Number(nodes[1])) {
+            // Only enforce ordering when both bounds are present.
+            if (nodes[0] !== "" && nodes[1] !== "" && Number(nodes[0]) > Number(nodes[1])) {
               this.context.throwSCORMError(
                 CMIElement,
                 scorm2004_errors.TYPE_MISMATCH!,

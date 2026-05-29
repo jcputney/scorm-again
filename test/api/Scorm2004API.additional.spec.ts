@@ -573,20 +573,21 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Set up a spy on throwSCORMError
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
-      // Call with a matching interaction type but invalid first value
-      // Matching format should be a short identifier, but we're using an invalid character
+      // Call with a matching interaction type but invalid first value. The
+      // source/target pair uses the spec's bracketed "[.]" delimiter; the
+      // source contains a space, which is not a valid CMIShortIdentifier.
       scorm2004API["_responseValidator"].checkCorrectResponseValue(
         "api",
         "matching",
-        ["invalid@id.validId"],
-        "invalid@id.validId",
+        ["invalid id[.]validId"],
+        "invalid id[.]validId",
       );
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "api",
         scorm2004_errors.TYPE_MISMATCH,
-        "matching: invalid@id.validId",
+        "matching: invalid id[.]validId",
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -598,20 +599,22 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Set up a spy on throwSCORMError
       const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
-      // Call with a matching interaction type but invalid second value
-      // First value is a valid short identifier, but second value is invalid
+      // Call with a matching interaction type but invalid second value. The
+      // source/target pair uses the spec's bracketed "[.]" delimiter; the first
+      // value is a valid short identifier, but the second contains a space,
+      // which does not match the format2 regex (CMIShortIdentifier).
       scorm2004API["_responseValidator"].checkCorrectResponseValue(
         "api",
         "matching",
-        ["validId.invalid@id"],
-        "validId.invalid@id",
+        ["validId[.]invalid id"],
+        "validId[.]invalid id",
       );
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "api",
         scorm2004_errors.TYPE_MISMATCH,
-        "matching: validId.invalid@id",
+        "matching: validId[.]invalid id",
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()

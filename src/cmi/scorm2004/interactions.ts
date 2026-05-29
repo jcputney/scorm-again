@@ -17,6 +17,7 @@ import { BaseCMI } from "../common/base_cmi";
 import { CMIArray } from "../common/array";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat } from "./validation";
+import { splitDelimited, splitFirstDelimited } from "./interaction_delimiters";
 import {
   CorrectResponses,
   LearnerResponses,
@@ -284,9 +285,9 @@ export class CMIInteractionsObject extends BaseCMI {
 
       if (response_type) {
         if (response_type?.delimiter) {
-          // Convert regex-style delimiter to actual character
-          const delimiter = response_type.delimiter === "[,]" ? "," : response_type.delimiter;
-          nodes = learner_response.split(delimiter);
+          // Split on the spec's bracketed token ("[,]") when present, falling
+          // back to the bare character for legacy plain responses.
+          nodes = splitDelimited(learner_response, response_type.delimiter);
         } else {
           nodes[0] = learner_response;
         }
@@ -296,10 +297,15 @@ export class CMIInteractionsObject extends BaseCMI {
 
           for (let i = 0; i < nodes.length; i++) {
             if (response_type?.delimiter2) {
-              // Convert regex-style delimiter to actual character
-              const delimiter2 =
-                response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
-              const values = nodes[i]?.split(delimiter2);
+              // Split each node on the spec's bracketed pair token ("[.]").
+              // performance step_answers may contain literal dots, so split on
+              // the first delimiter only; matching pairs split on all (so a
+              // malformed 3-member record is rejected below).
+              const node = nodes[i] ?? "";
+              const values =
+                this.type === "performance"
+                  ? splitFirstDelimited(node, response_type.delimiter2)
+                  : splitDelimited(node, response_type.delimiter2);
 
               if (values?.length === 2) {
                 // For performance type, both parts must be non-empty
@@ -570,53 +576,6 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
 }
 
 /**
- * Helper: strip the square-bracket notation (e.g. "[,]") down to the character (",")
- */
-function stripBrackets(delim: string): string {
-  return delim.replace(/[[\]]/g, "");
-}
-
-// Helper to escape a string for use in a RegExp
-function escapeRegex(s: string): string {
-  // Only , and . are expected, but escape any regex special chars for safety
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/**
- * Split on unescaped delimiter and unescape the delimiter in resulting parts.
- * @param text - the input string
- * @param delim - the delimiter character, e.g. ',' or '.'
- */
-function splitUnescaped(text: string, delim: string): string[] {
-  const reDelim = escapeRegex(delim);
-  const splitRe = new RegExp(`(?<!\\\\)${reDelim}`, "g");
-  const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
-  return text.split(splitRe).map((part) => part.replace(unescapeRe, delim));
-}
-
-/**
- * Split on the FIRST unescaped delimiter only and unescape the delimiter in resulting parts.
- * This is needed for patterns where the second part may contain literal delimiters (e.g., decimal numbers with dots).
- * @param text - the input string
- * @param delim - the delimiter character, e.g. ',' or '.'
- * @returns array with exactly 2 parts, or array with 1 part if no unescaped delimiter found
- */
-function splitFirstUnescaped(text: string, delim: string): string[] {
-  const reDelim = escapeRegex(delim);
-  const splitRe = new RegExp(`(?<!\\\\)${reDelim}`);
-  const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
-  const parts = text.split(splitRe);
-  const firstPart = parts[0] ?? "";
-  if (parts.length === 1) {
-    return [firstPart.replace(unescapeRe, delim)];
-  }
-  // Join everything after the first split back together
-  const part1 = firstPart.replace(unescapeRe, delim);
-  const part2 = parts.slice(1).join(delim).replace(unescapeRe, delim);
-  return [part1, part2];
-}
-
-/**
  * Helper: validate a `pattern` string against its SCORM definition
  */
 function validatePattern(type: string, pattern: string, responseDef: ResponseType) {
@@ -629,8 +588,9 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
   }
 
   // Reject any nodes with leading/trailing whitespace around tokens
-  const subDelim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
-  const rawNodes = subDelim1 ? splitUnescaped(pattern, subDelim1) : [pattern];
+  const rawNodes = responseDef.delimiter
+    ? splitDelimited(pattern, responseDef.delimiter)
+    : [pattern];
   for (const raw of rawNodes) {
     if (raw.trim() !== raw) {
       throw new Scorm2004ValidationError(
@@ -644,14 +604,12 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
   if (type === "fill-in" && pattern === "") {
     return;
   }
-  // Split into nodes on the primary delimiter (if any)
-  const delim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
-  let nodes: string[];
-  if (delim1) {
-    nodes = splitUnescaped(pattern, delim1);
-  } else {
-    nodes = [pattern];
-  }
+  // Split into nodes on the primary delimiter (if any). Uses the spec's
+  // bracketed token ("[,]" / "[:]") when present, falling back to the bare
+  // character for legacy plain patterns.
+  const nodes: string[] = responseDef.delimiter
+    ? splitDelimited(pattern, responseDef.delimiter)
+    : [pattern];
 
   // If no primary delimiter but pattern contains comma, reject multiple entries
   if (!responseDef.delimiter && pattern.includes(",")) {
@@ -661,8 +619,10 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
     );
   }
 
-  // Enforce uniqueness or disallow duplicates if required
-  if (responseDef.unique || responseDef.duplicate === false) {
+  // Enforce uniqueness or disallow duplicates if required. Numeric is exempt:
+  // its nodes are the min/max bounds of a range, and the spec uses identical
+  // bounds (e.g. "3.14159[:]3.14159") to express an exact value.
+  if (type !== "numeric" && (responseDef.unique || responseDef.duplicate === false)) {
     const seen = new Set(nodes);
     if (seen.size !== nodes.length) {
       throw new Scorm2004ValidationError(
@@ -699,10 +659,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
         scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
-    const delim = stripBrackets(delimBracketed);
-    const parts = value
-      .split(new RegExp(`(?<!\\\\)${escapeRegex(delim)}`, "g"))
-      .map((n) => n.replace(new RegExp(`\\\\${escapeRegex(delim)}`, "g"), delim));
+    const parts = splitDelimited(value, delimBracketed);
     if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
       throw new Scorm2004ValidationError(
         "cmi.interactions.n.correct_responses.n.pattern",
@@ -724,16 +681,25 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
   for (const node of nodes) {
     switch (type) {
       case "numeric": {
-        // 1 or 2 numeric values separated by ":"
-        const numDelim = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : ":";
-        const nums = node.split(numDelim);
-        if (nums.length < 1 || nums.length > 2) {
-          throw new Scorm2004ValidationError(
-            "cmi.interactions.n.correct_responses.n.pattern",
-            scorm2004_errors.TYPE_MISMATCH as number,
-          );
+        // `nodes` are the bounds produced by splitting on the "[:]" range
+        // delimiter (1 node for a single value, 2 for a range). A bound may be
+        // empty for an open-ended range ("[:]10", "4[:]", "[:]"), but only in
+        // the spec's bracketed form: a plain ":" is literal data, so "5:" and
+        // ":10" are invalid single values.
+        if (node === "") {
+          const bracketedRange =
+            nodes.length >= 2 &&
+            !!responseDef.delimiter &&
+            pattern.includes(responseDef.delimiter);
+          if (!bracketedRange) {
+            throw new Scorm2004ValidationError(
+              "cmi.interactions.n.correct_responses.n.pattern",
+              scorm2004_errors.TYPE_MISMATCH as number,
+            );
+          }
+          break;
         }
-        nums.forEach(checkSingle);
+        checkSingle(node);
         break;
       }
 
@@ -745,8 +711,8 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
         //   2. A decimal number (e.g., "3.14") - contains literal dots!
         //   3. A numeric range (e.g., "3.5:4.2") - contains literal dots and colon!
         //
-        // CRITICAL: Must split on FIRST unescaped dot only, because step_answer
-        // may contain literal dots (for decimal numbers like "3.14")
+        // CRITICAL: Must split on the FIRST "[.]" only, because step_answer may
+        // contain literal dots (for decimal numbers like "3.14")
         const delimBracketed = responseDef.delimiter2;
         if (!delimBracketed) {
           throw new Scorm2004ValidationError(
@@ -754,10 +720,9 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
             scorm2004_errors.TYPE_MISMATCH as number,
           );
         }
-        const delim = stripBrackets(delimBracketed);
 
-        // Split on the FIRST unescaped delimiter only
-        const parts = splitFirstUnescaped(node, delim);
+        // Split on the FIRST delimiter only
+        const parts = splitFirstDelimited(node, delimBracketed);
 
         // Must have exactly 2 parts (step_name and step_answer)
         if (parts.length !== 2) {

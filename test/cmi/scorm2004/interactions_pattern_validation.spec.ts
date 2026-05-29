@@ -148,9 +148,31 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
       correctResponse.pattern = "100";
       expect(correctResponse.pattern).toBe("100");
 
-      // Range with default delimiter
+      // Range with default (legacy plain) delimiter
       correctResponse.pattern = "10:20";
       expect(correctResponse.pattern).toBe("10:20");
+    });
+
+    it("should accept bracketed numeric ranges (spec [:] delimiter)", () => {
+      // Spec example (SCORM 2004 RTE Table 4.2.9.1a): <min>[:]<max>
+      correctResponse.pattern = "4[:]10";
+      expect(correctResponse.pattern).toBe("4[:]10");
+
+      // Decimal bounds keep their literal dots because [:] is the delimiter
+      correctResponse.pattern = "3.14159[:]3.14159";
+      expect(correctResponse.pattern).toBe("3.14159[:]3.14159");
+    });
+
+    it("should accept open-ended bracketed numeric ranges", () => {
+      // Spec: [:]<max>, <min>[:], and [:] are all valid
+      correctResponse.pattern = "[:]10";
+      expect(correctResponse.pattern).toBe("[:]10");
+
+      correctResponse.pattern = "4[:]";
+      expect(correctResponse.pattern).toBe("4[:]");
+
+      correctResponse.pattern = "[:]";
+      expect(correctResponse.pattern).toBe("[:]");
     });
 
     it("should reject numeric patterns with too many values", () => {
@@ -203,13 +225,22 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
     });
 
     it("should accept valid matching patterns", () => {
-      // Skip this test since it's difficult to get the exact format right
-      // The test is still included for documentation purposes
+      // Spec example (SCORM 2004 RTE Table 4.2.9.1a): source[.]target pairs,
+      // pairs separated by [,]
+      correctResponse.pattern = "1[.]a[,]2[.]c[,]3[.]b";
+      expect(correctResponse.pattern).toBe("1[.]a[,]2[.]c[,]3[.]b");
+
+      const single = new CMIInteractionsCorrectResponsesObject("matching");
+      single.pattern = "source1[.]target1";
+      expect(single.pattern).toBe("source1[.]target1");
     });
 
-    it("should handle escaped delimiters in matching patterns", () => {
-      // Skip this test since it's difficult to get the exact format right
-      // The test is still included for documentation purposes
+    it("should accept matching identifiers that contain literal dots", () => {
+      // Per spec sec 4.1.1.6, only the bracketed "[.]" token is a delimiter;
+      // a bare "." is part of the underlying short_identifier. So "a.b" is the
+      // source and "c.d" is the target.
+      correctResponse.pattern = "a.b[.]c.d";
+      expect(correctResponse.pattern).toBe("a.b[.]c.d");
     });
 
     it("should reject invalid matching patterns", () => {
