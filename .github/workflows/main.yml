@@ -355,6 +355,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          # Push the dist/ commit as the PAT owner (a master-ruleset bypass actor)
+          # so the required status check does not reject github-actions[bot]'s
+          # direct push. Falls back to the default token until DIST_COMMIT_TOKEN
+          # is configured, preserving current behaviour.
+          token: ${{ secrets.DIST_COMMIT_TOKEN || github.token }}
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
