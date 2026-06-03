@@ -1,23 +1,80 @@
 ---
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# Dependabot version updates.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Auto-merge policy: the root npm devDependencies carry the "automerge" label;
+# .github/workflows/dependabot-auto-merge.yml enables GitHub auto-merge for
+# patch/minor bumps once the required "Build & Unit Tests" check passes. Major
+# bumps, docs-site, and github-actions updates are deliberately left for manual
+# review (no "automerge" label). The published package has zero runtime
+# dependencies, so the only supply-chain surface is the build/release pipeline,
+# which stays human-gated at release time. The cooldown windows give the
+# ecosystem time to yank a compromised release before Dependabot opens the PR.
 
 version: 2
 updates:
+  # Library devDependencies — the only npm deps, and none ship at runtime.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 20
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "automerge"
+    cooldown:
+      default-days: 5
+      semver-major-days: 7
+      semver-minor-days: 5
+      semver-patch-days: 3
+    groups:
+      # All root deps are devDependencies, so this batches every non-major
+      # bump into one PR. Majors stay individual for manual review.
+      dev-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docs site build tooling. Manual review: main.yml does not run on docs-site
+  # changes, so there is no functional gate to auto-merge against.
   - package-ecosystem: "npm"
     directory: "/docs-site"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 20
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    cooldown:
+      default-days: 5
+      semver-major-days: 7
+      semver-minor-days: 5
+      semver-patch-days: 3
+    groups:
+      docs-site:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions. Manual review: a bumped action runs with workflow
+  # permissions, so these are intentionally not auto-merged. These PRs keep the
+  # SHA-pinned action references current.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 20
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
