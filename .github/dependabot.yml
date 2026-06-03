@@ -38,8 +38,9 @@ updates:
           - "minor"
           - "patch"
 
-  # Docs site build tooling. Manual review: main.yml does not run on docs-site
-  # changes, so there is no functional gate to auto-merge against.
+  # Docs site build tooling. Auto-merged like the root deps: the "CI Gate" check
+  # runs the Docusaurus build (docs-build job) on docs-site PRs, so patch/minor
+  # bumps merge automatically once that build is green.
   - package-ecosystem: "npm"
     directory: "/docs-site"
     schedule:
@@ -48,6 +49,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
+      - "automerge"
     cooldown:
       default-days: 5
       semver-major-days: 7
