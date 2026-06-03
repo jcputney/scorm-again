@@ -24,22 +24,49 @@ on:
       - 'playwright.config.ts'
       - 'rollup.config.mjs'
       - '.github/workflows/main.yml'
+  # No path filter on pull_request: the workflow runs on every PR so the
+  # "CI Gate" required check always reports. The `changes` job below routes
+  # which heavy jobs actually run based on what the PR touched.
   pull_request:
     branches:
       - master
-    paths:
-      - 'src/**'
-      - 'test/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'vitest.config.ts'
-      - 'playwright.config.ts'
-      - 'rollup.config.mjs'
-      - '.github/workflows/main.yml'
   workflow_dispatch:
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      lib: ${{ steps.detect.outputs.lib }}
+      docs: ${{ steps.detect.outputs.docs }}
+    steps:
+      - name: Detect changed paths
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$PR_NUMBER" ]; then
+            # Non-PR event (push / workflow_dispatch): run the full library pipeline.
+            echo "lib=true" >> "$GITHUB_OUTPUT"
+            echo "docs=false" >> "$GITHUB_OUTPUT"
+            echo "Non-PR event: lib=true docs=false"
+            exit 0
+          fi
+          files=$(gh api "repos/$REPO/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
+          lib=false
+          docs=false
+          if printf '%s\n' "$files" | grep -qE '^(src/|test/|package\.json$|package-lock\.json$|tsconfig\.json$|vitest\.config\.ts$|playwright\.config\.ts$|rollup\.config\.mjs$|\.github/workflows/main\.yml$)'; then
+            lib=true
+          fi
+          if printf '%s\n' "$files" | grep -qE '^docs-site/'; then
+            docs=true
+          fi
+          echo "lib=$lib" >> "$GITHUB_OUTPUT"
+          echo "docs=$docs" >> "$GITHUB_OUTPUT"
+          echo "Detected changes: lib=$lib docs=$docs"
+
   guard-dist:
     name: Reject PRs changing dist/
     if: github.event_name == 'pull_request'
@@ -67,6 +94,8 @@ jobs:
 
   build-and-unit:
     name: Build & Unit Tests
+    needs: changes
+    if: needs.changes.outputs.lib == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -346,6 +375,66 @@ jobs:
             } catch (error) {
               console.error('Error creating issue:', error);
             }
+
+  docs-build:
+    name: Docs Build
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 25
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build scorm-again library
+        run: npm run build:all:prod
+
+      - name: Stage demo assets
+        # Mirror the Pages build's dist copy. The CDN demo-module download is
+        # intentionally skipped: those are runtime static assets, not needed to
+        # validate that the Docusaurus build compiles.
+        run: |
+          mkdir -p docs-site/static/demo/modules
+          cp -r dist docs-site/static/demo/
+
+      - name: Build documentation site
+        run: |
+          cd docs-site
+          npm ci
+          npm run build
+
+  # Single required status check for the master ruleset. It always runs, and
+  # passes unless a job that actually executed (i.e. not skipped) failed. This
+  # lets one ruleset check gate both library PRs (via build-and-unit) and
+  # docs-site PRs (via docs-build), even though each heavy job only runs for the
+  # paths it covers.
+  ci-gate:
+    name: CI Gate
+    needs: [ changes, guard-dist, build-and-unit, docs-build ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ',') }}
+        run: |
+          echo "Upstream results: $RESULTS"
+          IFS=','
+          for r in $RESULTS; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::A required job did not pass (result=$r)"
+              exit 1
+            fi
+          done
+          echo "All required jobs passed or were skipped."
 
   finalize:
     name: Finalize & Commit
