@@ -29,9 +29,7 @@ describe("Session boundary conformance", () => {
     expect(firstSession.lmsSetValue("cmi.core.lesson_location", "module-2/page-3")).toBe("true");
     expect(firstSession.lmsSetValue("cmi.core.lesson_status", "incomplete")).toBe("true");
     expect(firstSession.lmsSetValue("cmi.core.score.raw", "86")).toBe("true");
-    expect(firstSession.lmsSetValue("cmi.suspend_data", "bookmark=module-2/page-3")).toBe(
-      "true",
-    );
+    expect(firstSession.lmsSetValue("cmi.suspend_data", "bookmark=module-2/page-3")).toBe("true");
     expect(firstSession.lmsSetValue("cmi.objectives.0.id", "objective-1")).toBe("true");
     expect(firstSession.lmsSetValue("cmi.objectives.0.status", "incomplete")).toBe("true");
     expect(firstSession.lmsSetValue("cmi.objectives.0.score.raw", "86")).toBe("true");

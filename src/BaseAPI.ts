@@ -58,6 +58,15 @@ export default abstract class BaseAPI implements IBaseAPI {
   private _courseId: string = "";
 
   /**
+   * Canonical paths of every CMI element that has been explicitly assigned a
+   * value via SetValue / loadFromJSON (both funnel through _commonSetCMIValue).
+   * Used by standards that must tell "implemented but never set" apart from a
+   * legitimately empty value when answering GetValue (SCORM 2004 error 403).
+   * Cleared on reset so a fresh SCO attempt starts with nothing "set".
+   */
+  protected readonly _setCMIElements: Set<string> = new Set<string>();
+
+  /**
    * Constructor for Base API class. Sets some shared API fields, as well as
    * sets up options for the API.
    * @param {ErrorCode} error_codes - The error codes object
@@ -330,6 +339,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.lastErrorCode = "0";
     this._eventService.reset();
     this.startingData = {};
+    this._setCMIElements.clear();
 
     // Update offline storage service with new settings if it exists
     if (this._offlineStorageService) {
@@ -798,6 +808,14 @@ export default abstract class BaseAPI implements IBaseAPI {
       } catch (e) {
         returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
+      // Standards that must report 403 (value not initialized) for an
+      // implemented, no-default element read before being set hook in here,
+      // but only after an otherwise-successful resolution. Gating at this public
+      // boundary (never in the getters) keeps serialization/commit/rollup, which
+      // read the getters directly, unaffected.
+      if (this.lastErrorCode === "0") {
+        this.checkUninitializedGet(CMIElement, returnValue);
+      }
       this.processListeners(callbackName, CMIElement);
     }
 
@@ -1217,7 +1235,19 @@ export default abstract class BaseAPI implements IBaseAPI {
     CMIElement: string,
     value: any,
   ): string {
-    return this._cmiValueAccessService.setCMIValue(methodName, scorm2004, CMIElement, value);
+    const result = this._cmiValueAccessService.setCMIValue(
+      methodName,
+      scorm2004,
+      CMIElement,
+      value,
+    );
+    // Record a successful write so GetValue can distinguish "never set" from an
+    // explicit empty value (e.g. SetValue(x, "")). Tracking here covers both the
+    // public SetValue path and loadFromJSON, which also routes through here.
+    if (result === global_constants.SCORM_TRUE) {
+      this._setCMIElements.add(CMIElement);
+    }
+    return result;
   }
 
   /**
@@ -1231,6 +1261,20 @@ export default abstract class BaseAPI implements IBaseAPI {
    */
   _commonGetCMIValue(methodName: string, scorm2004: boolean, CMIElement: string): any {
     return this._cmiValueAccessService.getCMIValue(methodName, scorm2004, CMIElement);
+  }
+
+  /**
+   * Hook invoked by getValue after a successful resolution. Standards that must
+   * distinguish "implemented but never set, no default value" from a
+   * legitimately empty value override this to raise VALUE_NOT_INITIALIZED.
+   * Default is a no-op, so SCORM 1.2 / AICC keep returning "" with code 0.
+   *
+   * @param {string} _CMIElement - the element that was read
+   * @param {any} _returnValue - the value getCMIValue resolved
+   * @protected
+   */
+  protected checkUninitializedGet(_CMIElement: string, _returnValue: any): void {
+    // No-op by default; see Scorm2004API for the 403 (value not initialized) gate.
   }
 
   /**

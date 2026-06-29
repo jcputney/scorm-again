@@ -158,24 +158,36 @@ resolving the element, so failures below still set their own code). The
 error code `0` and passes for the right reason (SCORM 1.2 GetValue shares the same
 path and behaves correctly too).
 
-**2. `GetValue` of an uninitialized element returns `""`/0 instead of error 403
-(SCORM 2004) — OPEN (fix attempted, reverted as too disruptive).** Surfaced by the
-auto-decoded `DMB` case: e.g. `GET->c~SD->->403` (get `cmi.suspend_data` before any
-set) and the equivalent for `cmi.scaled_passing_score`. ADL / SCORM 2004 RTE /
-IEEE 1484.11.2 expect error `403` (value not initialized); scorm-again returns `""`
+**2. `GetValue` of an uninitialized element returned `""`/0 instead of error 403
+(SCORM 2004) — FIXED.** Surfaced by the auto-decoded `DMB` case: e.g.
+`GET->c~SD->->403` (get `cmi.suspend_data` before any set) and the equivalent for
+`cmi.scaled_passing_score`. ADL / SCORM 2004 RTE / IEEE 1484.11.2 expect error
+`403` (value not initialized) for an implemented, writable element with no
+spec-defined default that is read before being set; scorm-again returned `""`
 with error `0`. The authoritative ADL scope is broad — besides those two,
 `cmi.location`, `cmi.max_time_allowed`, `cmi.completion_threshold`,
 `cmi.progress_measure`, `cmi.score.{scaled,raw,min,max}`, and every
 `objectives.N.{score.*,progress_measure,description}` /
-`interactions.N.{weighting,type,timestamp,result,latency,learner_response,description}`.
-A narrow prototype (throw `VALUE_NOT_INITIALIZED` from the `scaled_passing_score` /
-`suspend_data` getters when unset) broke **110 existing tests across 15 files** —
-those getters are also read by serialization/commit/rollup, and much of the suite
-(and likely real integrations) relies on read-before-set returning `""`. A correct
-fix must gate 403 to the public GetValue path only (not the raw getters) with
-per-element "initialized" tracking — a larger change deferred to the author.
-Meanwhile pinned as a `knownDivergence` on every 403-expecting GET (6 steps across
-`adl-DMB`), so the suite stays green while recording the gap.
+`interactions.N.{weighting,type,timestamp,result,latency,learner_response,description}`
+/ `comments_from_learner.N.timestamp`.
+
+A first prototype that threw `VALUE_NOT_INITIALIZED` from the raw getters broke
+**110 existing tests across 15 files** — those getters are also read by
+serialization/commit/rollup, and much of the suite relies on read-before-set
+returning `""`. **Fixed** by gating 403 at the public `GetValue` boundary only
+(never the getters): `Scorm2004API.checkUninitializedGet` (invoked from
+`BaseAPI.getValue` after an otherwise-successful resolution) raises 403 when the
+resolved value is `""`, the element was never written, and it appears in a
+`NO_DEFAULT_2004_ELEMENTS` table (array indices normalized to `N`). "Never
+written" reuses a new `BaseAPI._setCMIElements` set populated on every successful
+`SetValue` / `loadFromJSON` (both route through `_commonSetCMIValue`), so an
+explicit `SetValue(x, "")` still reads back as `""`/0, and values written
+internally by rollup / global-objective restore stay non-empty and so never
+trip the gate. SCORM 1.2 / AICC inherit the no-op `BaseAPI.checkUninitializedGet`
+and are unchanged. The `knownDivergence` annotations (6 steps across `DMB`) have
+been removed; those steps now assert the spec-faithful `403`. The full unit suite
+(6741 tests) stays green — nothing in it codified read-before-set returning `""`
+for a no-default element.
 
 **3. `cmi.*._count` returned a number, not a SCORM string (SCORM 2004) — FIXED.**
 `api.lmsGetValue("cmi.objectives._count")` returned the number `0`, but

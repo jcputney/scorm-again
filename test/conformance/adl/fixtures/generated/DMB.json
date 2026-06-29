@@ -27,13 +27,7 @@
           "method": "GetValue",
           "element": "cmi.suspend_data",
           "expectedReturn": "",
-          "expectedErrorCode": "403",
-          "knownDivergence": {
-            "actualReturn": "",
-            "actualErrorCode": "0",
-            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
-            "reference": "ADL DMB cmi.suspend_data; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
-          }
+          "expectedErrorCode": "403"
         },
         {
           "method": "SetValue",
@@ -354,13 +348,7 @@
           "method": "GetValue",
           "element": "cmi.suspend_data",
           "expectedReturn": "",
-          "expectedErrorCode": "403",
-          "knownDivergence": {
-            "actualReturn": "",
-            "actualErrorCode": "0",
-            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
-            "reference": "ADL DMB cmi.suspend_data; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
-          }
+          "expectedErrorCode": "403"
         },
         {
           "method": "SetValue",
@@ -485,13 +473,7 @@
           "method": "GetValue",
           "element": "cmi.suspend_data",
           "expectedReturn": "",
-          "expectedErrorCode": "403",
-          "knownDivergence": {
-            "actualReturn": "",
-            "actualErrorCode": "0",
-            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
-            "reference": "ADL DMB cmi.suspend_data; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
-          }
+          "expectedErrorCode": "403"
         },
         {
           "method": "SetValue",
@@ -630,13 +612,7 @@
           "method": "GetValue",
           "element": "cmi.scaled_passing_score",
           "expectedReturn": "",
-          "expectedErrorCode": "403",
-          "knownDivergence": {
-            "actualReturn": "",
-            "actualErrorCode": "0",
-            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
-            "reference": "ADL DMB cmi.scaled_passing_score; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
-          }
+          "expectedErrorCode": "403"
         },
         {
           "method": "SetValue",
@@ -1200,13 +1176,7 @@
           "method": "GetValue",
           "element": "cmi.scaled_passing_score",
           "expectedReturn": "",
-          "expectedErrorCode": "403",
-          "knownDivergence": {
-            "actualReturn": "",
-            "actualErrorCode": "0",
-            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
-            "reference": "ADL DMB cmi.scaled_passing_score; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
-          }
+          "expectedErrorCode": "403"
         }
       ]
     },
@@ -1222,13 +1192,7 @@
           "method": "GetValue",
           "element": "cmi.scaled_passing_score",
           "expectedReturn": "",
-          "expectedErrorCode": "403",
-          "knownDivergence": {
-            "actualReturn": "",
-            "actualErrorCode": "0",
-            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
-            "reference": "ADL DMB cmi.scaled_passing_score; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
-          }
+          "expectedErrorCode": "403"
         }
       ]
     },

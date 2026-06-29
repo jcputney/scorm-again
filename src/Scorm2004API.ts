@@ -58,6 +58,50 @@ import {
 } from "./serialization/scorm2004_data_serializer";
 
 /**
+ * Implemented, writable SCORM 2004 elements that have NO spec-defined default
+ * value. Per IEEE 1484.11.2 / SCORM 2004 RTE, GetValue of one of these before it
+ * has been set must return "" with error 403 (VALUE_NOT_INITIALIZED).
+ *
+ * Excluded by design: elements with a vocabulary/computed default (mode, credit,
+ * entry, completion_status, success_status, total_time), the keyword/identity
+ * elements (_version, _children, _count, learner_id, learner_name, launch_data),
+ * and array `.id` (a missing array entry already yields 403 during traversal).
+ *
+ * Array indices are normalized to "N" for lookup (see {@link normalizeCMIIndices}).
+ */
+const NO_DEFAULT_2004_ELEMENTS: ReadonlySet<string> = new Set<string>([
+  "cmi.suspend_data",
+  "cmi.location",
+  "cmi.scaled_passing_score",
+  "cmi.max_time_allowed",
+  "cmi.completion_threshold",
+  "cmi.progress_measure",
+  "cmi.score.scaled",
+  "cmi.score.raw",
+  "cmi.score.min",
+  "cmi.score.max",
+  "cmi.objectives.N.score.scaled",
+  "cmi.objectives.N.score.raw",
+  "cmi.objectives.N.score.min",
+  "cmi.objectives.N.score.max",
+  "cmi.objectives.N.progress_measure",
+  "cmi.objectives.N.description",
+  "cmi.interactions.N.weighting",
+  "cmi.interactions.N.type",
+  "cmi.interactions.N.timestamp",
+  "cmi.interactions.N.result",
+  "cmi.interactions.N.latency",
+  "cmi.interactions.N.learner_response",
+  "cmi.interactions.N.description",
+  "cmi.comments_from_learner.N.timestamp",
+]);
+
+/** Replace each numeric array-index segment with "N" so paths match the table. */
+function normalizeCMIIndices(CMIElement: string): string {
+  return CMIElement.replace(/\.\d+(?=\.|$)/g, ".N");
+}
+
+/**
  * API class for SCORM 2004
  */
 class Scorm2004API extends BaseAPI {
@@ -709,6 +753,38 @@ class Scorm2004API extends BaseAPI {
    */
   override getCMIValue(CMIElement: string): any {
     return this._commonGetCMIValue("GetValue", true, CMIElement);
+  }
+
+  /**
+   * Raises 403 (VALUE_NOT_INITIALIZED) when an implemented, no-default element is
+   * read before it has ever been set, per IEEE 1484.11.2 / SCORM 2004 RTE.
+   *
+   * Invoked by BaseAPI.getValue after an otherwise-successful resolution, so it
+   * only sees values the data model already returned cleanly. The decision is
+   * deliberately gated to this public boundary (never the getters) to keep
+   * serialization/commit/rollup — which read the getters directly — unaffected.
+   *
+   * A 403 is raised only when all hold:
+   *  - the resolved value is "" (a non-empty value, including one written
+   *    internally by rollup/global-objective restore, is already initialized);
+   *  - the element was never set (SetValue/loadFromJSON), so an explicit
+   *    SetValue(x, "") still reads back as "" with code 0; and
+   *  - the element has no spec-defined default ({@link NO_DEFAULT_2004_ELEMENTS}).
+   *
+   * @param {string} CMIElement
+   * @param {*} returnValue - the value getCMIValue resolved
+   * @protected
+   */
+  protected override checkUninitializedGet(CMIElement: string, returnValue: any): void {
+    if (returnValue !== "") return;
+    if (this._setCMIElements.has(CMIElement)) return;
+    if (!NO_DEFAULT_2004_ELEMENTS.has(normalizeCMIIndices(CMIElement))) return;
+
+    this.throwSCORMError(
+      CMIElement,
+      this._error_codes.VALUE_NOT_INITIALIZED ?? 403,
+      `The data model element passed to GetValue (${CMIElement}) has not been initialized.`,
+    );
   }
 
   /**

@@ -393,21 +393,18 @@ function resolveActivity(
 }
 
 /**
- * Attach a knownDivergence for confirmed scorm-again deviations so the suite stays
- * green while pinning current behaviour (and fails loudly if it changes).
+ * Extension point for pinning a confirmed scorm-again divergence from the
+ * ADL/spec expectation: set `step.knownDivergence` to the verified actual
+ * behaviour and add a matching entry to README "Conformance findings". The
+ * runner then keeps the suite green while asserting the current behaviour, so a
+ * future fix fails loudly and prompts removal.
+ *
+ * No divergences are currently pinned. The former 403 (VALUE_NOT_INITIALIZED)
+ * finding — GetValue of an implemented, no-default element read before being set
+ * returned ""/0 — has been fixed; those steps now assert the spec-faithful 403.
  */
-function annotateKnownDivergence(step: Step, caseId: string): void {
-  if (step.method === "GetValue" && step.expectedErrorCode === "403") {
-    // Confirmed: a successful GetValue of an uninitialized rw element returns ""/0
-    // instead of error 403 (value not initialized).
-    step.knownDivergence = {
-      actualReturn: "",
-      actualErrorCode: "0",
-      finding:
-        'GetValue of an uninitialized data-model element returns ""/0 instead of error 403 (value not initialized).',
-      reference: `ADL ${caseId} ${step.element}; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED`,
-    };
-  }
+function annotateKnownDivergence(_step: Step, _caseId: string): void {
+  // Intentionally empty: see doc comment above to pin a new divergence.
 }
 
 /** Activities in first-appearance order (Map preserves insertion order). */
