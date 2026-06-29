@@ -41,10 +41,7 @@ export type AuxiliaryResource = AuxiliaryResourceSettings;
  * Settings for an activity in the activity tree
  */
 export type AdlRollupConsiderationRequirement =
-  | "always"
-  | "ifAttempted"
-  | "ifNotSkipped"
-  | "ifNotSuspended";
+  "always" | "ifAttempted" | "ifNotSkipped" | "ifNotSuspended";
 
 export type AdlRollupConsiderationsSettings = {
   requiredForSatisfied?: AdlRollupConsiderationRequirement;

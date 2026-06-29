@@ -547,10 +547,7 @@ export class SequencingService {
     // Update completion status
     if (this.cmi.completion_status !== "unknown") {
       activity.completionStatus = this.cmi.completion_status as
-        | "completed"
-        | "incomplete"
-        | "not attempted"
-        | "unknown";
+        "completed" | "incomplete" | "not attempted" | "unknown";
       // Mark that content has set completion status
       activity.attemptProgressStatus = true;
     }

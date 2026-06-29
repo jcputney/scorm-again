@@ -678,8 +678,7 @@ class Scorm2004API extends BaseAPI {
     const parts = CMIElement.split(".");
     const index = Number(parts[2]);
     const interaction = this.cmi.interactions.childArray[index] as
-      | CMIInteractionsObject
-      | undefined;
+      CMIInteractionsObject | undefined;
 
     if (!interaction) {
       this.throwSCORMError(CMIElement, scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED, CMIElement);

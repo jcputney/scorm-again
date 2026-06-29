@@ -76,9 +76,7 @@ export class SynchronousHttpService implements IHttpService {
     params: CommitObject | StringKeyMap | Array<any>,
   ): ResultObject {
     const requestPayload = (this.settings.requestHandler(params) ?? params) as
-      | CommitObject
-      | StringKeyMap
-      | Array<any>;
+      CommitObject | StringKeyMap | Array<any>;
     const { body } = this._prepareRequestBody(requestPayload);
 
     // Use text/plain for sendBeacon to avoid CORS preflight issues.
@@ -108,9 +106,7 @@ export class SynchronousHttpService implements IHttpService {
     params: CommitObject | StringKeyMap | Array<any>,
   ): ResultObject {
     const requestPayload = (this.settings.requestHandler(params) ?? params) as
-      | CommitObject
-      | StringKeyMap
-      | Array<any>;
+      CommitObject | StringKeyMap | Array<any>;
     const { body, contentType } = this._prepareRequestBody(requestPayload);
 
     const xhr = new XMLHttpRequest();

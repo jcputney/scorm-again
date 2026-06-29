@@ -83,9 +83,7 @@ export class AsynchronousHttpService implements IHttpService {
   ): Promise<void> {
     try {
       const processedParams = this.settings.requestHandler(params) as
-        | CommitObject
-        | StringKeyMap
-        | Array<any>;
+        CommitObject | StringKeyMap | Array<any>;
 
       let response: Response;
       if (immediate && this.settings.asyncModeBeaconBehavior !== "never") {
