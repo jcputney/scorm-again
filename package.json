@@ -91,7 +91,7 @@
   },
   "devDependencies": {
     "@babel/core": "<8",
-    "@babel/preset-env": "<8",
+    "@babel/preset-env": "<9",
     "@cyclonedx/cyclonedx-npm": "^5.0.0",
     "@eslint/js": "10.0.1",
     "@mo36924/rollup-plugin-cache": "1.6.11",
