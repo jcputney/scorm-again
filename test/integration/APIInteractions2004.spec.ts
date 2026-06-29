@@ -306,7 +306,7 @@ wrappers.forEach((wrapper) => {
       expect(advancedInteractions.interactionResults.setLatency).toBe("true");
       expect(advancedInteractions.interactionResults.setCorrectResponse).toBe("true");
       expect(advancedInteractions.interactionResults.setObjective).toBe("true");
-      expect(advancedInteractions.interactionResults.getInteractionCount).toBe(1);
+      expect(advancedInteractions.interactionResults.getInteractionCount).toBe("1");
 
       // Verify objective results
       expect(advancedInteractions.objectiveResults.createObjective).toBe("true");
@@ -315,13 +315,13 @@ wrappers.forEach((wrapper) => {
       expect(advancedInteractions.objectiveResults.setSuccessStatus).toBe("true");
       expect(advancedInteractions.objectiveResults.setCompletionStatus).toBe("true");
       expect(advancedInteractions.objectiveResults.setDescription).toBe("true");
-      expect(advancedInteractions.objectiveResults.getObjectiveCount).toBe(1);
+      expect(advancedInteractions.objectiveResults.getObjectiveCount).toBe("1");
 
       // Verify comments results
       expect(advancedInteractions.commentsResults.setComment).toBe("true");
       expect(advancedInteractions.commentsResults.setLocation).toBe("true");
       expect(advancedInteractions.commentsResults.setTimestamp).toBe("true");
-      expect(advancedInteractions.commentsResults.getCommentCount).toBe(1);
+      expect(advancedInteractions.commentsResults.getCommentCount).toBe("1");
 
       // Verify commit result
       expect(advancedInteractions.commitResult).toBe("true");
