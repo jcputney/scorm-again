@@ -90,7 +90,7 @@
     "test": "test"
   },
   "devDependencies": {
-    "@babel/core": "<8",
+    "@babel/core": "<9",
     "@babel/preset-env": "<8",
     "@cyclonedx/cyclonedx-npm": "^5.0.0",
     "@eslint/js": "10.0.1",
