@@ -765,10 +765,13 @@ class Scorm2004API extends BaseAPI {
    * serialization/commit/rollup — which read the getters directly — unaffected.
    *
    * A 403 is raised only when all hold:
-   *  - the resolved value is "" (a non-empty value, including one written
-   *    internally by rollup/global-objective restore, is already initialized);
-   *  - the element was never set (SetValue/loadFromJSON), so an explicit
-   *    SetValue(x, "") still reads back as "" with code 0; and
+   *  - the resolved value is "" — any non-empty value is by definition set,
+   *    including values written by internal sequencing/activity-tree paths that
+   *    bypass _commonSetCMIValue (those only ever write non-empty values);
+   *  - the element was never set — _setCMIElements records every successful
+   *    SetValue, loadFromJSON, and global-objective restore (all route through
+   *    _commonSetCMIValue), so an explicit SetValue(x, "") still reads back as
+   *    "" with code 0; and
    *  - the element has no spec-defined default ({@link NO_DEFAULT_2004_ELEMENTS}).
    *
    * @param {string} CMIElement

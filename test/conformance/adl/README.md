@@ -180,14 +180,32 @@ returning `""`. **Fixed** by gating 403 at the public `GetValue` boundary only
 resolved value is `""`, the element was never written, and it appears in a
 `NO_DEFAULT_2004_ELEMENTS` table (array indices normalized to `N`). "Never
 written" reuses a new `BaseAPI._setCMIElements` set populated on every successful
-`SetValue` / `loadFromJSON` (both route through `_commonSetCMIValue`), so an
-explicit `SetValue(x, "")` still reads back as `""`/0, and values written
-internally by rollup / global-objective restore stay non-empty and so never
-trip the gate. SCORM 1.2 / AICC inherit the no-op `BaseAPI.checkUninitializedGet`
-and are unchanged. The `knownDivergence` annotations (6 steps across `DMB`) have
-been removed; those steps now assert the spec-faithful `403`. The full unit suite
-(6741 tests) stays green — nothing in it codified read-before-set returning `""`
-for a no-default element.
+`SetValue`, `loadFromJSON`, and global-objective restore (all route through
+`_commonSetCMIValue`), so an explicit `SetValue(x, "")` still reads back as
+`""`/0; any non-empty value — including one written by internal
+sequencing/activity-tree paths that bypass `_commonSetCMIValue` — is already
+initialized and never trips the gate. SCORM 1.2 / AICC inherit the no-op
+`BaseAPI.checkUninitializedGet` and are unchanged. The `knownDivergence`
+annotations (6 steps across `DMB`) have been removed; those steps now assert the
+spec-faithful `403`. The full unit suite stays green — nothing in it codified
+read-before-set returning `""` for a no-default element.
+
+Deliberate boundaries of the gate (verified, not bugs):
+- **Array `.id` is intentionally excluded** from `NO_DEFAULT_2004_ELEMENTS`
+  (`objectives.N.id`, `interactions.N.id`, `interactions.N.objectives.N.id`).
+  Reading a *missing* array entry already yields 403 during traversal; a
+  materialized-but-id-empty row is a separate concern. Reading an unset `.id`
+  therefore still returns `""`/0 (conservative under-coverage, never a false 403).
+- **An LMS that seeds an explicit empty string** for a no-default element via
+  `loadFromJSON` (e.g. `{cmi:{suspend_data:""}}`) will read it back as 403, not
+  `""`/0. `SerializationService.loadFromJSON` drops falsy leaves by design — it
+  must, because the full-commit serializer emits `""` for unset numeric fields
+  (`score.min` etc.) and the validators reject `""` on reload, so loading empties
+  would break commit→reload round-trips. Across a commit boundary an explicit
+  empty and "never set" are already indistinguishable (both serialize to `""`),
+  so 403 is the spec-correct answer for the common "never set" case. The
+  unambiguous within-session case (`SetValue(x, "")` then `GetValue(x)`) is
+  handled correctly via `_setCMIElements`.
 
 **3. `cmi.*._count` returned a number, not a SCORM string (SCORM 2004) — FIXED.**
 `api.lmsGetValue("cmi.objectives._count")` returned the number `0`, but
