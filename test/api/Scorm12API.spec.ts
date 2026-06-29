@@ -340,19 +340,19 @@ describe("SCORM 1.2 API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.close",
-        expectedError: 101,
+        expectedError: 401,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.exit",
-        expectedError: 101,
+        expectedError: 401,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.entry",
-        expectedError: 101,
+        expectedError: 401,
         errorThrown: false,
       });
     });

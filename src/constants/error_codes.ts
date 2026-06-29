@@ -48,7 +48,10 @@ export const scorm12_errors: ErrorCode = {
   READ_ONLY_ELEMENT: 403,
   WRITE_ONLY_ELEMENT: 404,
   TYPE_MISMATCH: 405,
-  VALUE_OUT_OF_RANGE: 407,
+  // SCORM 1.2 has no out-of-range error code; an out-of-range value is reported
+  // as 405 (incorrect data type), per the SCORM 1.2 RTE error table and the ADL
+  // 1.2 CTS (DataModelValidator.checkScoreDecimal failure -> CMICategory 405).
+  VALUE_OUT_OF_RANGE: 405,
   DEPENDENCY_NOT_ESTABLISHED: 408,
 };
 

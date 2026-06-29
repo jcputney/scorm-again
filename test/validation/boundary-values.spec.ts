@@ -232,13 +232,13 @@ describe("Boundary Value Tests", () => {
       it("Should reject score.raw at -1", () => {
         const result = api.lmsSetValue("cmi.core.score.raw", "-1");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("407");
+        expect(api.lmsGetLastError()).toBe("405");
       });
 
       it("Should reject score.raw at 101", () => {
         const result = api.lmsSetValue("cmi.core.score.raw", "101");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("407");
+        expect(api.lmsGetLastError()).toBe("405");
       });
 
       it("Should accept decimal score.raw values within range", () => {

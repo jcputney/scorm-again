@@ -60,6 +60,8 @@ export class CMIObjectivesObject extends BaseCMI {
       invalidTypeCode: scorm12_errors.TYPE_MISMATCH as number,
       invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE as number,
       errorClass: Scorm12ValidationError,
+      // SCORM 1.2 score elements may be set blank (clears the value), per ADL 1.2 CTS.
+      allowEmptyString: true,
     });
   }
 

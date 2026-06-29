@@ -92,12 +92,13 @@ export class CMIValueAccessService {
 
   /**
    * Gets the appropriate error code for undefined data model elements.
-   * SCORM 2004 uses UNDEFINED_DATA_MODEL, SCORM 1.2 uses GENERAL.
+   * Both SCORM 2004 and SCORM 1.2 use UNDEFINED_DATA_MODEL (401): an
+   * unrecognized element is "Not implemented", not a general exception. SCORM
+   * 1.2 previously returned GENERAL (101) here, which is non-conformant — the
+   * ADL 1.2 CTS and the SCORM 1.2 RTE spec expect 401 for an unknown element.
    */
-  private getUndefinedDataModelErrorCode(scorm2004: boolean): number {
-    return scorm2004
-      ? getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL")
-      : getErrorCode(this.context.errorCodes, "GENERAL");
+  private getUndefinedDataModelErrorCode(): number {
+    return getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL");
   }
 
   /**
@@ -129,7 +130,7 @@ export class CMIValueAccessService {
     let foundFirstIndex = false;
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+    const invalidErrorCode = this.getUndefinedDataModelErrorCode();
 
     for (let idx = 0; idx < structure.length; idx++) {
       const attribute = structure[idx]!;
@@ -227,7 +228,7 @@ export class CMIValueAccessService {
 
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+    const invalidErrorCode = this.getUndefinedDataModelErrorCode();
 
     for (let idx = 0; idx < structure.length; idx++) {
       attribute = structure[idx]!;

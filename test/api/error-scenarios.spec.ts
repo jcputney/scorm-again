@@ -233,36 +233,37 @@ describe("Error Scenario Tests", () => {
       });
     });
 
-    describe("Error 407: Element value out of range", () => {
-      // Spec Reference: SCORM 1.2 RTE Section 3.1.2.2 - Error Code 407
-      it("SetValue with score.raw > 100 should fail with 407", () => {
+    describe("Error 405: Element value out of range", () => {
+      // SCORM 1.2 has no out-of-range error code; an out-of-range value is
+      // reported as 405 (incorrect data type), matching the ADL 1.2 CTS.
+      it("SetValue with score.raw > 100 should fail with 405", () => {
         const result = api.lmsSetValue("cmi.core.score.raw", "150");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("407");
+        expect(api.lmsGetLastError()).toBe("405");
       });
 
-      it("SetValue with score.raw < 0 should fail with 407", () => {
+      it("SetValue with score.raw < 0 should fail with 405", () => {
         const result = api.lmsSetValue("cmi.core.score.raw", "-10");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("407");
+        expect(api.lmsGetLastError()).toBe("405");
       });
 
-      it("SetValue with score.min > 100 should fail with 407", () => {
+      it("SetValue with score.min > 100 should fail with 405", () => {
         const result = api.lmsSetValue("cmi.core.score.min", "101");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("407");
+        expect(api.lmsGetLastError()).toBe("405");
       });
 
-      it("SetValue with score.max > 100 should fail with 407", () => {
+      it("SetValue with score.max > 100 should fail with 405", () => {
         const result = api.lmsSetValue("cmi.core.score.max", "200");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("407");
+        expect(api.lmsGetLastError()).toBe("405");
       });
 
-      it("SetValue with student_preference.audio > 100 should fail with 407", () => {
+      it("SetValue with student_preference.audio > 100 should fail with 405", () => {
         const result = api.lmsSetValue("cmi.student_preference.audio", "150");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("407");
+        expect(api.lmsGetLastError()).toBe("405");
       });
     });
   });
@@ -593,8 +594,9 @@ describe("Error Scenario Tests", () => {
 
       expect(result12).toBe("");
       expect(result2004).toBe("");
-      // Note: SCORM 1.2 returns 101 (general), SCORM 2004 returns 401 (undefined data model)
-      expect(error12).toBe("101");
+      // Both versions report an undefined data model element as 401 (SCORM 1.2:
+      // "Not implemented error"; SCORM 2004: "Undefined data model element").
+      expect(error12).toBe("401");
       expect(error2004).toBe("401");
     });
   });

@@ -24,6 +24,11 @@ export class CMIScore extends BaseCMI {
   private readonly __invalid_range_code: number;
   private readonly __decimal_regex: string;
   private readonly __error_class: typeof BaseScormValidationError;
+  /**
+   * When true, an empty string is a valid value (clears the element). SCORM 1.2
+   * score elements may be blank per the ADL 1.2 CTS; SCORM 2004 leaves this off.
+   */
+  private readonly __allow_empty_string: boolean;
   protected _raw = "";
   protected _min = "";
   protected _max: string;
@@ -59,6 +64,7 @@ export class CMIScore extends BaseCMI {
     invalidRangeCode?: number;
     decimalRegex?: string;
     errorClass: typeof BaseScormValidationError;
+    allowEmptyString?: boolean;
   }) {
     super(params.CMIElement);
 
@@ -76,6 +82,7 @@ export class CMIScore extends BaseCMI {
       params.invalidRangeCode || (scorm12_errors.VALUE_OUT_OF_RANGE as number);
     this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
     this.__error_class = params.errorClass;
+    this.__allow_empty_string = params.allowEmptyString ?? false;
   }
 
   /**
@@ -129,6 +136,7 @@ export class CMIScore extends BaseCMI {
         this.__invalid_type_code,
         this.__invalid_range_code,
         this.__error_class,
+        this.__allow_empty_string,
       )
     ) {
       this._raw = raw;
@@ -157,6 +165,7 @@ export class CMIScore extends BaseCMI {
         this.__invalid_type_code,
         this.__invalid_range_code,
         this.__error_class,
+        this.__allow_empty_string,
       )
     ) {
       this._min = min;
@@ -185,6 +194,7 @@ export class CMIScore extends BaseCMI {
         this.__invalid_type_code,
         this.__invalid_range_code,
         this.__error_class,
+        this.__allow_empty_string,
       )
     ) {
       this._max = max;

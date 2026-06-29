@@ -19,6 +19,9 @@ export class ValidationService {
    * @param {number} invalidTypeCode - The error code for invalid type
    * @param {number} invalidRangeCode - The error code for invalid range
    * @param {typeof BaseScormValidationError} errorClass - The error class to use for validation errors
+   * @param {boolean} allowEmptyString - When true, an empty string is accepted (clears the value).
+   *                                     SCORM 1.2 score elements may be blank per the ADL 1.2 CTS
+   *                                     (DataModelValidator.checkScoreDecimal treats blank as valid).
    * @return {boolean} - True if validation passes, throws an error otherwise
    */
   validateScore(
@@ -29,7 +32,11 @@ export class ValidationService {
     invalidTypeCode: number,
     invalidRangeCode: number,
     errorClass: typeof BaseScormValidationError,
+    allowEmptyString = false,
   ): boolean {
+    if (allowEmptyString && value === "") {
+      return true;
+    }
     return (
       checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) &&
       (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass))

@@ -422,7 +422,7 @@ describe("Error Conditions Tests", () => {
 
         // Attempt to access a non-existent data model element
         expect(api.lmsGetValue("cmi.non_existent_element")).toEqual("");
-        expect(api.lmsGetLastError()).toEqual("101");
+        expect(api.lmsGetLastError()).toEqual("401");
       });
 
       it("should set INVALID_SET_VALUE (402) error when setting an invalid value", () => {

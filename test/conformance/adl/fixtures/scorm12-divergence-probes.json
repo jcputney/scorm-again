@@ -1,0 +1,81 @@
+{
+  "id": "SCORM12-divergence-probes",
+  "scormVersion": "1.2",
+  "source": "Hand-authored SCORM 1.2 RTE probes, expectations cross-checked against the decompiled ADL 1.2 CTS validators (org.adl.datamodels: CMICore, CMIScore, DataModelValidator, CMICategory). Each step asserts the ADL/spec-faithful return + GetLastError; confirmed scorm-again divergences are pinned via knownDivergence so the suite stays green and a future fix surfaces here. See SCORM12_COVERAGE.md (probes P1-P6).",
+  "activities": [
+    {
+      "id": "P1-score-range",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "85", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "150", "expectedReturn": "false", "expectedErrorCode": "405" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "-1", "expectedReturn": "false", "expectedErrorCode": "405" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "abc", "expectedReturn": "false", "expectedErrorCode": "405" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "100", "expectedReturn": "true", "expectedErrorCode": "0" }
+      ]
+    },
+    {
+      "id": "P2-lesson-status",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.lesson_status", "value": "not attempted", "expectedReturn": "false", "expectedErrorCode": "405" },
+        { "method": "SetValue", "element": "cmi.core.lesson_status", "value": "bogus", "expectedReturn": "false", "expectedErrorCode": "405" },
+        { "method": "SetValue", "element": "cmi.core.lesson_status", "value": "completed", "expectedReturn": "true", "expectedErrorCode": "0" }
+      ]
+    },
+    {
+      "id": "P3-count-on-scalar",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.core._count", "expectedReturn": "", "expectedErrorCode": "203" }
+      ]
+    },
+    {
+      "id": "P4-invalid-element",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        {
+          "method": "GetValue", "element": "cmi.core.bogus",
+          "expectedReturn": "", "expectedErrorCode": "201",
+          "knownDivergence": {
+            "actualReturn": "", "actualErrorCode": "401",
+            "finding": "After the P4 fix, GetValue of an unrecognized leaf returns 401 (not implemented) instead of the old 101 (general exception). ADL CTS uses 201 (invalid argument) for an invalid leaf in a valid category; 401 is the SCORM 1.2 'Not implemented error' and is spec-defensible. scorm-again deliberately maps all unknown elements uniformly to 401 rather than adopting ADL's 201/401 leaf-vs-category split.",
+            "reference": "ADL CMICategory.determineElementValue NoSuchField -> 201"
+          }
+        },
+        { "method": "SetValue", "element": "cmi.bogus.x", "value": "y", "expectedReturn": "false", "expectedErrorCode": "401" }
+      ]
+    },
+    {
+      "id": "P5-blank-score",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "", "expectedReturn": "true", "expectedErrorCode": "0" }
+      ]
+    },
+    {
+      "id": "P6-identifier-space",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        {
+          "method": "SetValue", "element": "cmi.objectives.0.id", "value": "obj 1",
+          "expectedReturn": "false", "expectedErrorCode": "405",
+          "knownDivergence": {
+            "actualReturn": "true", "actualErrorCode": "0",
+            "finding": "DELIBERATE divergence, not a defect: an objective id containing a space is accepted. ADL checkIdentifier rejects spaces (CMIIdentifier prohibits whitespace) -> 405, but scorm-again intentionally tolerates non-compliant identifiers to support real-world content that ships malformed ids. Do NOT change this to 405 without a product decision.",
+            "reference": "ADL DataModelValidator.checkIdentifier (indexOf(' ') == -1); scorm-again deliberate leniency for non-compliant content"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-access-control",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.core.exit", "expectedReturn": "", "expectedErrorCode": "404" },
+        { "method": "GetValue", "element": "cmi.core.session_time", "expectedReturn": "", "expectedErrorCode": "404" },
+        { "method": "SetValue", "element": "cmi.core.student_id", "value": "x", "expectedReturn": "false", "expectedErrorCode": "403" }
+      ]
+    }
+  ]
+}
