@@ -1,0 +1,109 @@
+{
+  "id": "adl-CM-07b",
+  "scormVersion": "2004",
+  "source": "Auto-decoded from ADL TestSuite/LMSRTE/Courses/TestCases/CM-07b.properties via decoder.ts (Layer-1 RTE commands only; sequencing/nav steps dropped).",
+  "activities": [
+    {
+      "id": "Act3V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act16V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act17V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act11V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act19V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act21V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    }
+  ]
+}

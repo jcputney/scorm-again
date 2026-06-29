@@ -279,7 +279,7 @@ describe("CMIArray Sequential Index Validation", () => {
       scorm12API.lmsSetValue("cmi.objectives.2.id", "obj_2");
 
       const count = scorm12API.lmsGetValue("cmi.objectives._count");
-      expect(count).toBe(3);
+      expect(count).toBe("3");
     });
 
     it("should not increment count when attempting to skip indices", () => {
@@ -289,7 +289,7 @@ describe("CMIArray Sequential Index Validation", () => {
       scorm12API.lmsSetValue("cmi.objectives.3.id", "obj_3");
 
       const count = scorm12API.lmsGetValue("cmi.objectives._count");
-      expect(count).toBe(1); // Count should remain 1
+      expect(count).toBe("1"); // Count should remain 1
     });
   });
 });

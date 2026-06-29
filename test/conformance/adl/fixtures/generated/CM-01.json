@@ -1,0 +1,166 @@
+{
+  "id": "adl-CM-01",
+  "scormVersion": "2004",
+  "source": "Auto-decoded from ADL TestSuite/LMSRTE/Courses/TestCases/CM-01.properties via decoder.ts (Layer-1 RTE commands only; sequencing/nav steps dropped).",
+  "activities": [
+    {
+      "id": "Act1V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.max_time_allowed",
+          "expectedReturn": "P5Y6M4DT12H30M58S",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "max_time_allowed": "P5Y6M4DT12H30M58S"
+        }
+      }
+    },
+    {
+      "id": "Act2V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "0.8",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "scaled_passing_score": "0.8"
+        }
+      }
+    },
+    {
+      "id": "Act3V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.max_time_allowed",
+          "expectedReturn": "P5Y6M4DT12H30M58.55S",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "0.7",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "max_time_allowed": "P5Y6M4DT12H30M58.55S",
+          "scaled_passing_score": "0.7"
+        }
+      }
+    },
+    {
+      "id": "Act2V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act3V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act2V3",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act1V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    }
+  ]
+}

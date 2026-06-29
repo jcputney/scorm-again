@@ -1,0 +1,23 @@
+{
+  "id": "SCORM12-roundtrip",
+  "scormVersion": "1.2",
+  "source": "Pattern-derived for SCORM 1.2 (the ADL 2004 4th Ed suite contains no 1.2 cases). Mirrors the ADL CM round-trip + error-code pattern against the SCORM 1.2 data model: set/get core elements, then provoke a read-only (403) and a type-mismatch (405) write failure. Self-contained.",
+  "activities": [
+    {
+      "id": "core-roundtrip",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.lesson_location", "value": "page-1", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.core.lesson_location", "expectedReturn": "page-1", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "85", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.core.score.raw", "expectedReturn": "85", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.lesson_status", "value": "completed", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.core.lesson_status", "expectedReturn": "completed", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi.core.student_id", "value": "tamper", "expectedReturn": "false", "expectedErrorCode": "403" },
+        { "method": "SetValue", "element": "cmi.core.score.raw", "value": "not-a-number", "expectedReturn": "false", "expectedErrorCode": "405" },
+        { "method": "Commit", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "Terminate", "expectedReturn": "true", "expectedErrorCode": "0" }
+      ]
+    }
+  ]
+}

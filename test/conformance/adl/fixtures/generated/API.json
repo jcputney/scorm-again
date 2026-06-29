@@ -1,0 +1,209 @@
+{
+  "id": "adl-API",
+  "scormVersion": "2004",
+  "source": "Auto-decoded from ADL TestSuite/LMSRTE/Courses/TestCases/API.properties via decoder.ts (Layer-1 RTE commands only; sequencing/nav steps dropped).",
+  "activities": [
+    {
+      "id": "Act2V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act3V1",
+      "steps": [
+        {
+          "method": "GetLastError",
+          "expectedReturn": "0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "0",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "0",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetDiagnostic",
+          "value": "0",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "0",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "Commit",
+          "expectedReturn": "false",
+          "expectedErrorCode": "142"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.location",
+          "value": "test",
+          "expectedReturn": "false",
+          "expectedErrorCode": "132"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.location",
+          "expectedReturn": "",
+          "expectedErrorCode": "122"
+        },
+        {
+          "method": "Initialize",
+          "expectedReturn": "false",
+          "expectedErrorCode": "201",
+          "value": "illegal"
+        },
+        {
+          "method": "GetLastError",
+          "expectedReturn": "201",
+          "expectedErrorCode": "201"
+        },
+        {
+          "method": "GetLastError",
+          "expectedReturn": "201",
+          "expectedErrorCode": "201"
+        },
+        {
+          "method": "GetLastError",
+          "expectedReturn": "201",
+          "expectedErrorCode": "201"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "",
+          "expectedReturn": "",
+          "expectedErrorCode": "201"
+        },
+        {
+          "method": "GetDiagnostic",
+          "value": "",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "201"
+        },
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "Initialize",
+          "expectedReturn": "false",
+          "expectedErrorCode": "103"
+        },
+        {
+          "method": "SetValue",
+          "element": "",
+          "value": "test",
+          "expectedReturn": "false",
+          "expectedErrorCode": "351"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.location",
+          "value": "test",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "",
+          "expectedReturn": "",
+          "expectedErrorCode": "301"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.location",
+          "expectedReturn": "test",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "Commit",
+          "expectedReturn": "false",
+          "expectedErrorCode": "201",
+          "value": "illegal"
+        },
+        {
+          "method": "Commit",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "0",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "402",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "001",
+          "expectedReturn": "",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetDiagnostic",
+          "value": "0",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetDiagnostic",
+          "value": "402",
+          "expectedReturn": {
+            "match": "nonEmptyMax255"
+          },
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetDiagnostic",
+          "value": "001",
+          "expectedReturn": "",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetErrorString",
+          "value": "1444",
+          "expectedReturn": "",
+          "expectedErrorCode": "0"
+        }
+      ]
+    }
+  ]
+}

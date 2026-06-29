@@ -2612,7 +2612,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       expect(consoleSpy).not.toHaveBeenCalled();
       expect(scorm2004API.lmsGetLastError()).toBe("0");
-      expect(scorm2004API.lmsGetValue("cmi.interactions._count")).toBe(5);
+      expect(scorm2004API.lmsGetValue("cmi.interactions._count")).toBe("5");
       consoleSpy.mockRestore();
     });
 

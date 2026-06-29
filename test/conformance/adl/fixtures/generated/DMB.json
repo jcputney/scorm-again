@@ -1,0 +1,1473 @@
+{
+  "id": "adl-DMB",
+  "scormVersion": "2004",
+  "source": "Auto-decoded from ADL TestSuite/LMSRTE/Courses/TestCases/DMB.properties via decoder.ts (Layer-1 RTE commands only; sequencing/nav steps dropped).",
+  "activities": [
+    {
+      "id": "Act1V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "ab-initio",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "PT0H0M0S",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "",
+          "expectedErrorCode": "403",
+          "knownDivergence": {
+            "actualReturn": "",
+            "actualErrorCode": "0",
+            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
+            "reference": "ADL DMB cmi.suspend_data; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
+          }
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.session_time",
+          "value": "PT01M",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "visit=2",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "ab-initio",
+          "total_time": "PT0H0M0S"
+        }
+      }
+    },
+    {
+      "id": "Act1V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "PT1M",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "visit=2",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "completed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.session_time",
+          "value": "PT0H0M0S",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "visit=3",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "total_time": "PT1M",
+          "suspend_data": "visit=2"
+        }
+      }
+    },
+    {
+      "id": "Act1V3",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "PT1M",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "visit=3",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.session_time",
+          "value": "PT01H059M020S",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "visit=4",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "total_time": "PT1M",
+          "suspend_data": "visit=3"
+        }
+      }
+    },
+    {
+      "id": "Act1V4",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "PT2H20S",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "visit=4",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.session_time",
+          "value": "PT0H05M49S",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "visit=5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "total_time": "PT2H20S",
+          "suspend_data": "visit=4"
+        }
+      }
+    },
+    {
+      "id": "Act1V5",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "PT2H6M9S",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "visit=5",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.session_time",
+          "value": "PT1M",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "visit=6",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "time-out",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "total_time": "PT2H6M9S",
+          "suspend_data": "visit=5"
+        }
+      }
+    },
+    {
+      "id": "Act1V6",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "ab-initio",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "PT0H0M0S",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "",
+          "expectedErrorCode": "403",
+          "knownDivergence": {
+            "actualReturn": "",
+            "actualErrorCode": "0",
+            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
+            "reference": "ADL DMB cmi.suspend_data; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
+          }
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.session_time",
+          "value": "P0Y029DT0H",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "visit=7",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "ab-initio",
+          "total_time": "PT0H0M0S"
+        }
+      }
+    },
+    {
+      "id": "Act1V7",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "P29D",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "visit=7",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "not attempted",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "visit=8",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "total_time": "P29D",
+          "suspend_data": "visit=7"
+        }
+      }
+    },
+    {
+      "id": "Act1V8",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "ab-initio",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.total_time",
+          "expectedReturn": "PT0H0M0S",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "",
+          "expectedErrorCode": "403",
+          "knownDivergence": {
+            "actualReturn": "",
+            "actualErrorCode": "0",
+            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
+            "reference": "ADL DMB cmi.suspend_data; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
+          }
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "completed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "ab-initio",
+          "total_time": "PT0H0M0S"
+        }
+      }
+    },
+    {
+      "id": "Act1V9",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "ab-initio",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "ab-initio"
+        }
+      }
+    },
+    {
+      "id": "Act1V10",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "ab-initio",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.suspend_data",
+          "value": "foobar",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "ab-initio"
+        }
+      }
+    },
+    {
+      "id": "Act1V11",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.suspend_data",
+          "expectedReturn": "foobar",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "suspend_data": "foobar"
+        }
+      }
+    },
+    {
+      "id": "Act2V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "ab-initio",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_threshold",
+          "expectedReturn": "0.8",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "",
+          "expectedErrorCode": "403",
+          "knownDivergence": {
+            "actualReturn": "",
+            "actualErrorCode": "0",
+            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
+            "reference": "ADL DMB cmi.scaled_passing_score; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
+          }
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "ab-initio",
+          "completion_threshold": "0.8"
+        }
+      }
+    },
+    {
+      "id": "Act2V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_threshold",
+          "expectedReturn": "0.8",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "not attempted",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "completion_threshold": "0.8"
+        }
+      }
+    },
+    {
+      "id": "Act2V3",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_threshold",
+          "expectedReturn": "0.8",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.9",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "completion_threshold": "0.8"
+        }
+      }
+    },
+    {
+      "id": "Act2V4",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.entry",
+          "expectedReturn": "resume",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_threshold",
+          "expectedReturn": "0.8",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "entry": "resume",
+          "completion_threshold": "0.8"
+        }
+      }
+    },
+    {
+      "id": "Act3V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "-0.5",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "failed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "-0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "scaled_passing_score": "-0.5"
+        }
+      }
+    },
+    {
+      "id": "Act3V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "-0.5",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "scaled_passing_score": "-0.5"
+        }
+      }
+    },
+    {
+      "id": "Act4V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "-0.5",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "passed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "scaled_passing_score": "-0.5"
+        }
+      }
+    },
+    {
+      "id": "Act4V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "-0.5",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "-1.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "1.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "-0.2",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "scaled_passing_score": "-0.5"
+        }
+      }
+    },
+    {
+      "id": "Act5V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "1.0",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "scaled_passing_score": "1.0"
+        }
+      }
+    },
+    {
+      "id": "Act6V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "completed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "passed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "unknown",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "unknown",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.7",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "0.7",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "completed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "passed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "completed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "passed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "failed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "completed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "passed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "0.5",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "incomplete",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "failed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "completed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "passed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "incomplete",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "failed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "incomplete",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "failed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_threshold",
+          "expectedReturn": "0.6",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "0.6",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.progress_measure",
+          "expectedReturn": "0.5",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.score.scaled",
+          "expectedReturn": "0.5",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "incomplete",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "failed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "suspend",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "completion_threshold": "0.6",
+          "scaled_passing_score": "0.6"
+        }
+      }
+    },
+    {
+      "id": "Act7V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "",
+          "expectedErrorCode": "403",
+          "knownDivergence": {
+            "actualReturn": "",
+            "actualErrorCode": "0",
+            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
+            "reference": "ADL DMB cmi.scaled_passing_score; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "Act8V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "",
+          "expectedErrorCode": "403",
+          "knownDivergence": {
+            "actualReturn": "",
+            "actualErrorCode": "0",
+            "finding": "GetValue of an uninitialized data-model element returns \"\"/0 instead of error 403 (value not initialized).",
+            "reference": "ADL DMB cmi.scaled_passing_score; SCORM 2004 RTE / IEEE 1484.11.2 error 403 VALUE_NOT_INITIALIZED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "Act9V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "completed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "passed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "completed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "passed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "failed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "incomplete",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "failed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "not attempted",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "not attempted",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "unknown",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "unknown",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "completed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "passed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "0.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "-1.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "completed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "passed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.progress_measure",
+          "value": "1.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score.scaled",
+          "value": "1.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "completed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "passed",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.success_status",
+          "value": "unknown",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_status",
+          "expectedReturn": "unknown",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.success_status",
+          "expectedReturn": "unknown",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act6V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.completion_threshold",
+          "expectedReturn": "0.6",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.scaled_passing_score",
+          "expectedReturn": "0.6",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.progress_measure",
+          "expectedReturn": "0.5",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.score.scaled",
+          "expectedReturn": "0.5",
+          "expectedErrorCode": "0"
+        }
+      ],
+      "initialState": {
+        "cmi": {
+          "completion_threshold": "0.6",
+          "scaled_passing_score": "0.6",
+          "progress_measure": "0.5",
+          "score": {
+            "scaled": "0.5"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "id": "adl-CM-03a",
+  "scormVersion": "2004",
+  "source": "Auto-decoded from ADL TestSuite/LMSRTE/Courses/TestCases/CM-03a.properties via decoder.ts (Layer-1 RTE commands only; sequencing/nav steps dropped).",
+  "activities": [
+    {
+      "id": "Act2V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act3V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act5V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "completed",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act6V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act7V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.completion_status",
+          "value": "incomplete",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act8V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act5V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act7V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act7V3",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    }
+  ]
+}

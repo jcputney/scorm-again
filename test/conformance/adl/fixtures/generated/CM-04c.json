@@ -1,0 +1,92 @@
+{
+  "id": "adl-CM-04c",
+  "scormVersion": "2004",
+  "source": "Auto-decoded from ADL TestSuite/LMSRTE/Courses/TestCases/CM-04c.properties via decoder.ts (Layer-1 RTE commands only; sequencing/nav steps dropped).",
+  "activities": [
+    {
+      "id": "Act12V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act12V2",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act2V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act14V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "Act13V1",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.exit",
+          "value": "normal",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        }
+      ]
+    }
+  ]
+}

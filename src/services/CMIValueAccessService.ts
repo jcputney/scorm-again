@@ -215,6 +215,12 @@ export class CMIValueAccessService {
       return "";
     }
 
+    // Per IEEE 1484.11.2 / SCORM 2004 RTE, a GetValue resolves to a fresh error
+    // code: a successful read must end at "0" even if a prior call left a stale
+    // error. Reset here (mirroring setCMIValue) before resolving the element, so
+    // failures below still set their own code via throwSCORMError.
+    this.context.setLastErrorCode("0");
+
     const structure = CMIElement.split(".");
     let refObject: StringKeyMap = this.context.getDataModel();
     let attribute: string | null = null;

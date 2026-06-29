@@ -1,0 +1,34 @@
+{
+  "id": "CM-01-launch-seeded",
+  "scormVersion": "2004",
+  "source": "ADL TestSuite/LMSRTE/Courses/TestCases/CM-01.properties (Act1V1, Act2V1, Act3V1). Only the Layer-1 data-model GET steps are ported; the adl.nav.request SET steps are Layer-2 sequencing and are intentionally omitted. The launch-provided values (cmi.max_time_allowed, cmi.scaled_passing_score) come from the manifest, so each activity seeds them via per-activity initialState - this demonstrates the seeding mechanism for launch-dependent cases.",
+  "activities": [
+    {
+      "id": "Act1V1",
+      "initialState": { "cmi": { "max_time_allowed": "P5Y6M4DT12H30M58S" } },
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.max_time_allowed", "expectedReturn": "P5Y6M4DT12H30M58S", "expectedErrorCode": "0" }
+      ]
+    },
+    {
+      "id": "Act2V1",
+      "initialState": { "cmi": { "scaled_passing_score": "0.8" } },
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.scaled_passing_score", "expectedReturn": "0.8", "expectedErrorCode": "0" }
+      ]
+    },
+    {
+      "id": "Act3V1",
+      "initialState": {
+        "cmi": { "max_time_allowed": "P5Y6M4DT12H30M58.55S", "scaled_passing_score": "0.7" }
+      },
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.max_time_allowed", "expectedReturn": "P5Y6M4DT12H30M58.55S", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.scaled_passing_score", "expectedReturn": "0.7", "expectedErrorCode": "0" }
+      ]
+    }
+  ]
+}

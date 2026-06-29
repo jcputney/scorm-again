@@ -812,6 +812,13 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.clearSCORMError(returnValue);
     }
 
+    // Per IEEE 1484.11.2, GetValue must return a characterstring. Coerce numeric/
+    // boolean data-model values (e.g. *._count) so the public API is string-safe.
+    const rawReturn: unknown = returnValue;
+    if (typeof rawReturn === "number" || typeof rawReturn === "boolean") {
+      return String(rawReturn);
+    }
+
     return returnValue;
   }
 

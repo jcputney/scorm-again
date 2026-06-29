@@ -143,7 +143,7 @@ describe("Error Codes Tests", () => {
         expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.TYPE_MISMATCH));
       });
 
-      it("should maintain TYPE_MISMATCH (406) error code after multiple operations", () => {
+      it("should reset the error code to 0 after a successful GetValue following a TYPE_MISMATCH", () => {
         const api = scorm2004Api();
         api.lmsInitialize();
 
@@ -157,11 +157,12 @@ describe("Error Codes Tests", () => {
         // Verify the error code is TYPE_MISMATCH (406)
         expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.TYPE_MISMATCH));
 
-        // Perform another operation that should not change the error code
+        // Per SCORM 2004 RTE / IEEE 1484.11.2, a successful GetValue resolves to a
+        // fresh error code and must clear the prior 406 to 0.
         api.lmsGetValue("cmi.interactions.0.id");
 
-        // Verify the error code is still TYPE_MISMATCH (406)
-        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.TYPE_MISMATCH));
+        // Verify the successful GetValue reset the error code to 0
+        expect(api.lmsGetLastError()).toEqual("0");
       });
 
       // This test reproduces the issue mentioned in the description

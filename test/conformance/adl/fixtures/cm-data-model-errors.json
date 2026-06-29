@@ -1,0 +1,19 @@
+{
+  "id": "CM-data-model-errors",
+  "scormVersion": "2004",
+  "source": "Hand-authored from the SCORM 2004 4th Ed RTE data-model element bindings (the value-space rules the ADL DMB.properties / CM-* cases exercise). Self-contained: each error is provoked from the API alone. Covers read-only (404), type-mismatch/vocabulary (406) and out-of-range (407) write failures.",
+  "activities": [
+    {
+      "id": "set-value-errors",
+      "steps": [
+        { "method": "Initialize", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "SetValue", "element": "cmi._version", "value": "9", "expectedReturn": "false", "expectedErrorCode": "404" },
+        { "method": "SetValue", "element": "cmi.completion_status", "value": "finished", "expectedReturn": "false", "expectedErrorCode": "406" },
+        { "method": "SetValue", "element": "cmi.success_status", "value": "maybe", "expectedReturn": "false", "expectedErrorCode": "406" },
+        { "method": "SetValue", "element": "cmi.score.scaled", "value": "1.5", "expectedReturn": "false", "expectedErrorCode": "407" },
+        { "method": "SetValue", "element": "cmi.completion_status", "value": "completed", "expectedReturn": "true", "expectedErrorCode": "0" },
+        { "method": "GetValue", "element": "cmi.completion_status", "expectedReturn": "completed", "expectedErrorCode": "0" }
+      ]
+    }
+  ]
+}

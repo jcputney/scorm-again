@@ -63,13 +63,13 @@ describe("Session boundary conformance", () => {
     expect(secondSession.lmsGetValue("cmi.core.lesson_status")).toBe("incomplete");
     expect(secondSession.lmsGetValue("cmi.core.total_time")).toBe("00:03:03");
     expect(secondSession.lmsGetValue("cmi.suspend_data")).toBe("bookmark=module-2/page-3");
-    expect(secondSession.lmsGetValue("cmi.objectives._count")).toBe(1);
+    expect(secondSession.lmsGetValue("cmi.objectives._count")).toBe("1");
     expect(secondSession.lmsGetValue("cmi.objectives.0.id")).toBe("objective-1");
     expect(secondSession.lmsGetValue("cmi.objectives.0.status")).toBe("incomplete");
     expect(secondSession.lmsGetValue("cmi.objectives.0.score.raw")).toBe("86");
-    expect(secondSession.lmsGetValue("cmi.interactions._count")).toBe(1);
-    expect(secondSession.lmsGetValue("cmi.interactions.0.objectives._count")).toBe(1);
-    expect(secondSession.lmsGetValue("cmi.interactions.0.correct_responses._count")).toBe(1);
+    expect(secondSession.lmsGetValue("cmi.interactions._count")).toBe("1");
+    expect(secondSession.lmsGetValue("cmi.interactions.0.objectives._count")).toBe("1");
+    expect(secondSession.lmsGetValue("cmi.interactions.0.correct_responses._count")).toBe("1");
 
     const secondRuntimeData = secondSession.renderCommitObject(false).runtimeData as StringKeyMap;
     const secondCmi = secondRuntimeData.cmi as StringKeyMap;
@@ -157,20 +157,20 @@ describe("Session boundary conformance", () => {
     expect(secondSession.lmsGetValue("cmi.location")).toBe("module-4/page-8");
     expect(secondSession.lmsGetValue("cmi.suspend_data")).toBe("bookmark=module-4/page-8");
     expect(secondSession.lmsGetValue("cmi.total_time")).toBe("PT7M");
-    expect(secondSession.lmsGetValue("cmi.objectives._count")).toBe(1);
+    expect(secondSession.lmsGetValue("cmi.objectives._count")).toBe("1");
     expect(secondSession.lmsGetValue("cmi.objectives.0.id")).toBe("objective-2004");
     expect(secondSession.lmsGetValue("cmi.objectives.0.success_status")).toBe("passed");
     expect(secondSession.lmsGetValue("cmi.objectives.0.completion_status")).toBe("completed");
     expect(secondSession.lmsGetValue("cmi.objectives.0.progress_measure")).toBe("1");
     expect(secondSession.lmsGetValue("cmi.objectives.0.score.scaled")).toBe("0.86");
-    expect(secondSession.lmsGetValue("cmi.interactions._count")).toBe(1);
+    expect(secondSession.lmsGetValue("cmi.interactions._count")).toBe("1");
     expect(secondSession.lmsGetValue("cmi.interactions.0.id")).toBe("interaction-2004");
     expect(secondSession.lmsGetValue("cmi.interactions.0.type")).toBe("choice");
     expect(secondSession.lmsGetValue("cmi.interactions.0.learner_response")).toBe("choice_a");
     expect(secondSession.lmsGetValue("cmi.interactions.0.result")).toBe("correct");
-    expect(secondSession.lmsGetValue("cmi.interactions.0.objectives._count")).toBe(1);
+    expect(secondSession.lmsGetValue("cmi.interactions.0.objectives._count")).toBe("1");
     expect(secondSession.lmsGetValue("cmi.interactions.0.objectives.0.id")).toBe("objective-2004");
-    expect(secondSession.lmsGetValue("cmi.interactions.0.correct_responses._count")).toBe(1);
+    expect(secondSession.lmsGetValue("cmi.interactions.0.correct_responses._count")).toBe("1");
     expect(secondSession.lmsGetValue("cmi.interactions.0.correct_responses.0.pattern")).toBe(
       "choice_a",
     );
