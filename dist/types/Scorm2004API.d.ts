@@ -51,6 +51,7 @@ declare class Scorm2004API extends BaseAPI {
     validateCorrectResponse(CMIElement: string, value: any): void;
     private _peekCMIValue;
     getCMIValue(CMIElement: string): any;
+    protected checkUninitializedGet(CMIElement: string, returnValue: any): void;
     getLmsErrorMessageDetails(errorNumber: string | number, detail: boolean): string;
     replaceWithAnotherScormAPI(newAPI: Scorm2004API): void;
     renderCommitCMI(terminateCommit: boolean, includeTotalTime?: boolean): StringKeyMap | Array<any>;

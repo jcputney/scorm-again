@@ -5168,6 +5168,7 @@ class CMIValueAccessService {
       );
       return "";
     }
+    this.context.setLastErrorCode("0");
     const structure = CMIElement.split(".");
     let refObject = this.context.getDataModel();
     let attribute = null;
@@ -15368,6 +15369,14 @@ class BaseAPI {
   _cmiValueAccessService;
   _courseId = "";
   /**
+   * Canonical paths of every CMI element that has been explicitly assigned a
+   * value via SetValue / loadFromJSON (both funnel through _commonSetCMIValue).
+   * Used by standards that must tell "implemented but never set" apart from a
+   * legitimately empty value when answering GetValue (SCORM 2004 error 403).
+   * Cleared on reset so a fresh SCO attempt starts with nothing "set".
+   */
+  _setCMIElements = /* @__PURE__ */ new Set();
+  /**
    * Constructor for Base API class. Sets some shared API fields, as well as
    * sets up options for the API.
    * @param {ErrorCode} error_codes - The error codes object
@@ -15552,6 +15561,7 @@ class BaseAPI {
     this.lastErrorCode = "0";
     this._eventService.reset();
     this.startingData = {};
+    this._setCMIElements.clear();
     if (this._offlineStorageService) {
       this._offlineStorageService.updateSettings(this.settings);
       if (settings?.courseId) {
@@ -15708,6 +15718,9 @@ class BaseAPI {
       } catch (e) {
         returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
+      if (this.lastErrorCode === "0") {
+        this.checkUninitializedGet(CMIElement, returnValue);
+      }
       this.processListeners(callbackName, CMIElement);
     }
     this.apiLog(callbackName, ": returned: " + returnValue, LogLevelEnum.INFO, CMIElement);
@@ -15716,6 +15729,10 @@ class BaseAPI {
     }
     if (this.lastErrorCode === "0") {
       this.clearSCORMError(returnValue);
+    }
+    const rawReturn = returnValue;
+    if (typeof rawReturn === "number" || typeof rawReturn === "boolean") {
+      return String(rawReturn);
     }
     return returnValue;
   }
@@ -16014,7 +16031,16 @@ class BaseAPI {
    * @return {string}
    */
   _commonSetCMIValue(methodName, scorm2004, CMIElement, value) {
-    return this._cmiValueAccessService.setCMIValue(methodName, scorm2004, CMIElement, value);
+    const result = this._cmiValueAccessService.setCMIValue(
+      methodName,
+      scorm2004,
+      CMIElement,
+      value
+    );
+    if (result === global_constants.SCORM_TRUE) {
+      this._setCMIElements.add(CMIElement);
+    }
+    return result;
   }
   /**
    * Gets a value from the CMI Object.
@@ -16027,6 +16053,18 @@ class BaseAPI {
    */
   _commonGetCMIValue(methodName, scorm2004, CMIElement) {
     return this._cmiValueAccessService.getCMIValue(methodName, scorm2004, CMIElement);
+  }
+  /**
+   * Hook invoked by getValue after a successful resolution. Standards that must
+   * distinguish "implemented but never set, no default value" from a
+   * legitimately empty value override this to raise VALUE_NOT_INITIALIZED.
+   * Default is a no-op, so SCORM 1.2 / AICC keep returning "" with code 0.
+   *
+   * @param {string} _CMIElement - the element that was read
+   * @param {any} _returnValue - the value getCMIValue resolved
+   * @protected
+   */
+  checkUninitializedGet(_CMIElement, _returnValue) {
   }
   /**
    * Returns true if the API's current state is STATE_INITIALIZED
@@ -22180,6 +22218,35 @@ class Scorm2004DataSerializer {
   }
 }
 
+const NO_DEFAULT_2004_ELEMENTS = /* @__PURE__ */ new Set([
+  "cmi.suspend_data",
+  "cmi.location",
+  "cmi.scaled_passing_score",
+  "cmi.max_time_allowed",
+  "cmi.completion_threshold",
+  "cmi.progress_measure",
+  "cmi.score.scaled",
+  "cmi.score.raw",
+  "cmi.score.min",
+  "cmi.score.max",
+  "cmi.objectives.N.score.scaled",
+  "cmi.objectives.N.score.raw",
+  "cmi.objectives.N.score.min",
+  "cmi.objectives.N.score.max",
+  "cmi.objectives.N.progress_measure",
+  "cmi.objectives.N.description",
+  "cmi.interactions.N.weighting",
+  "cmi.interactions.N.type",
+  "cmi.interactions.N.timestamp",
+  "cmi.interactions.N.result",
+  "cmi.interactions.N.latency",
+  "cmi.interactions.N.learner_response",
+  "cmi.interactions.N.description",
+  "cmi.comments_from_learner.N.timestamp"
+]);
+function normalizeCMIIndices(CMIElement) {
+  return CMIElement.replace(/\.\d+(?=\.|$)/g, ".N");
+}
 class Scorm2004API extends BaseAPI {
   _version = "1.0";
   _sequencing;
@@ -22704,6 +22771,39 @@ class Scorm2004API extends BaseAPI {
    */
   getCMIValue(CMIElement) {
     return this._commonGetCMIValue("GetValue", true, CMIElement);
+  }
+  /**
+   * Raises 403 (VALUE_NOT_INITIALIZED) when an implemented, no-default element is
+   * read before it has ever been set, per IEEE 1484.11.2 / SCORM 2004 RTE.
+   *
+   * Invoked by BaseAPI.getValue after an otherwise-successful resolution, so it
+   * only sees values the data model already returned cleanly. The decision is
+   * deliberately gated to this public boundary (never the getters) to keep
+   * serialization/commit/rollup — which read the getters directly — unaffected.
+   *
+   * A 403 is raised only when all hold:
+   *  - the resolved value is "" — any non-empty value is by definition set,
+   *    including values written by internal sequencing/activity-tree paths that
+   *    bypass _commonSetCMIValue (those only ever write non-empty values);
+   *  - the element was never set — _setCMIElements records every successful
+   *    SetValue, loadFromJSON, and global-objective restore (all route through
+   *    _commonSetCMIValue), so an explicit SetValue(x, "") still reads back as
+   *    "" with code 0; and
+   *  - the element has no spec-defined default ({@link NO_DEFAULT_2004_ELEMENTS}).
+   *
+   * @param {string} CMIElement
+   * @param {*} returnValue - the value getCMIValue resolved
+   * @protected
+   */
+  checkUninitializedGet(CMIElement, returnValue) {
+    if (returnValue !== "") return;
+    if (this._setCMIElements.has(CMIElement)) return;
+    if (!NO_DEFAULT_2004_ELEMENTS.has(normalizeCMIIndices(CMIElement))) return;
+    this.throwSCORMError(
+      CMIElement,
+      this._error_codes.VALUE_NOT_INITIALIZED ?? 403,
+      `The data model element passed to GetValue (${CMIElement}) has not been initialized.`
+    );
   }
   /**
    * Returns the message that corresponds to errorNumber.

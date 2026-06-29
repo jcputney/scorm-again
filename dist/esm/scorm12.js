@@ -1218,6 +1218,7 @@ class CMIValueAccessService {
       );
       return "";
     }
+    this.context.setLastErrorCode("0");
     const structure = CMIElement.split(".");
     let refObject = this.context.getDataModel();
     let attribute = null;
@@ -2850,6 +2851,14 @@ class BaseAPI {
   _cmiValueAccessService;
   _courseId = "";
   /**
+   * Canonical paths of every CMI element that has been explicitly assigned a
+   * value via SetValue / loadFromJSON (both funnel through _commonSetCMIValue).
+   * Used by standards that must tell "implemented but never set" apart from a
+   * legitimately empty value when answering GetValue (SCORM 2004 error 403).
+   * Cleared on reset so a fresh SCO attempt starts with nothing "set".
+   */
+  _setCMIElements = /* @__PURE__ */ new Set();
+  /**
    * Constructor for Base API class. Sets some shared API fields, as well as
    * sets up options for the API.
    * @param {ErrorCode} error_codes - The error codes object
@@ -3034,6 +3043,7 @@ class BaseAPI {
     this.lastErrorCode = "0";
     this._eventService.reset();
     this.startingData = {};
+    this._setCMIElements.clear();
     if (this._offlineStorageService) {
       this._offlineStorageService.updateSettings(this.settings);
       if (settings?.courseId) {
@@ -3190,6 +3200,9 @@ class BaseAPI {
       } catch (e) {
         returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
+      if (this.lastErrorCode === "0") {
+        this.checkUninitializedGet(CMIElement, returnValue);
+      }
       this.processListeners(callbackName, CMIElement);
     }
     this.apiLog(callbackName, ": returned: " + returnValue, LogLevelEnum.INFO, CMIElement);
@@ -3198,6 +3211,10 @@ class BaseAPI {
     }
     if (this.lastErrorCode === "0") {
       this.clearSCORMError(returnValue);
+    }
+    const rawReturn = returnValue;
+    if (typeof rawReturn === "number" || typeof rawReturn === "boolean") {
+      return String(rawReturn);
     }
     return returnValue;
   }
@@ -3496,7 +3513,16 @@ class BaseAPI {
    * @return {string}
    */
   _commonSetCMIValue(methodName, scorm2004, CMIElement, value) {
-    return this._cmiValueAccessService.setCMIValue(methodName, scorm2004, CMIElement, value);
+    const result = this._cmiValueAccessService.setCMIValue(
+      methodName,
+      scorm2004,
+      CMIElement,
+      value
+    );
+    if (result === global_constants.SCORM_TRUE) {
+      this._setCMIElements.add(CMIElement);
+    }
+    return result;
   }
   /**
    * Gets a value from the CMI Object.
@@ -3509,6 +3535,18 @@ class BaseAPI {
    */
   _commonGetCMIValue(methodName, scorm2004, CMIElement) {
     return this._cmiValueAccessService.getCMIValue(methodName, scorm2004, CMIElement);
+  }
+  /**
+   * Hook invoked by getValue after a successful resolution. Standards that must
+   * distinguish "implemented but never set, no default value" from a
+   * legitimately empty value override this to raise VALUE_NOT_INITIALIZED.
+   * Default is a no-op, so SCORM 1.2 / AICC keep returning "" with code 0.
+   *
+   * @param {string} _CMIElement - the element that was read
+   * @param {any} _returnValue - the value getCMIValue resolved
+   * @protected
+   */
+  checkUninitializedGet(_CMIElement, _returnValue) {
   }
   /**
    * Returns true if the API's current state is STATE_INITIALIZED

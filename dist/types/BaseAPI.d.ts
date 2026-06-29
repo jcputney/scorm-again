@@ -15,6 +15,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     private readonly _offlineStorageService?;
     private readonly _cmiValueAccessService;
     private _courseId;
+    protected readonly _setCMIElements: Set<string>;
     protected constructor(error_codes: ErrorCode, settings?: Settings, httpService?: IHttpService, eventService?: IEventService, serializationService?: ISerializationService, cmiDataService?: ICMIDataService, errorHandlingService?: IErrorHandlingService, loggingService?: ILoggingService, offlineStorageService?: IOfflineStorageService);
     abstract cmi: BaseCMI;
     startingData?: StringKeyMap;
@@ -56,6 +57,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     setCMIValue(_CMIElement: string, _value: any): string;
     _commonSetCMIValue(methodName: string, scorm2004: boolean, CMIElement: string, value: any): string;
     _commonGetCMIValue(methodName: string, scorm2004: boolean, CMIElement: string): any;
+    protected checkUninitializedGet(_CMIElement: string, _returnValue: any): void;
     isInitialized(): boolean;
     isNotInitialized(): boolean;
     isTerminated(): boolean;
