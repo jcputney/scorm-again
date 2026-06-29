@@ -12,7 +12,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
 
@@ -49,7 +49,7 @@ jobs:
         shard: [ 1, 2, 3, 4 ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -67,7 +67,7 @@ jobs:
           path: dist/
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@v5.0.5
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -103,7 +103,7 @@ jobs:
       attestations: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -181,7 +181,7 @@ jobs:
       # package.json "files", plus npm's automatic inclusions like
       # package.json, README, and LICENSE).
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@v4.1.0
         with:
           subject-path: ${{ steps.pack.outputs.tarball }}
 
@@ -339,7 +339,7 @@ jobs:
 
       # Commit version bump to master
       - name: Commit version bump
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@v7.1.0
         with:
           commit_message: "[skip ci] Bump version to ${{ steps.next_version.outputs.next_version }}"
           file_pattern: "package.json package-lock.json"
