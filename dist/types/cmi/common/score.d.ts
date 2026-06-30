@@ -9,6 +9,7 @@ export declare class CMIScore extends BaseCMI {
     private readonly __invalid_range_code;
     private readonly __decimal_regex;
     private readonly __error_class;
+    private readonly __allow_empty_string;
     protected _raw: string;
     protected _min: string;
     protected _max: string;
@@ -22,6 +23,7 @@ export declare class CMIScore extends BaseCMI {
         invalidRangeCode?: number;
         decimalRegex?: string;
         errorClass: typeof BaseScormValidationError;
+        allowEmptyString?: boolean;
     });
     reset(): void;
     get _children(): string;

@@ -570,7 +570,10 @@ this.Scorm2004API = (function () {
     INVALID_SET_VALUE: 402,
     READ_ONLY_ELEMENT: 403,
     TYPE_MISMATCH: 405,
-    VALUE_OUT_OF_RANGE: 407};
+    // SCORM 1.2 has no out-of-range error code; an out-of-range value is reported
+    // as 405 (incorrect data type), per the SCORM 1.2 RTE error table and the ADL
+    // 1.2 CTS (DataModelValidator.checkScoreDecimal failure -> CMICategory 405).
+    VALUE_OUT_OF_RANGE: 405};
   const scorm2004_errors = {
     ...global_errors,
     INITIALIZATION_FAILED: 102,
@@ -4830,10 +4833,13 @@ this.Scorm2004API = (function () {
     }
     /**
      * Gets the appropriate error code for undefined data model elements.
-     * SCORM 2004 uses UNDEFINED_DATA_MODEL, SCORM 1.2 uses GENERAL.
+     * Both SCORM 2004 and SCORM 1.2 use UNDEFINED_DATA_MODEL (401): an
+     * unrecognized element is "Not implemented", not a general exception. SCORM
+     * 1.2 previously returned GENERAL (101) here, which is non-conformant — the
+     * ADL 1.2 CTS and the SCORM 1.2 RTE spec expect 401 for an unknown element.
      */
-    getUndefinedDataModelErrorCode(scorm2004) {
-      return scorm2004 ? getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL") : getErrorCode(this.context.errorCodes, "GENERAL");
+    getUndefinedDataModelErrorCode() {
+      return getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL");
     }
     /**
      * Sets a value on a CMI element path
@@ -4857,7 +4863,7 @@ this.Scorm2004API = (function () {
       let returnValue = global_constants.SCORM_FALSE;
       let foundFirstIndex = false;
       const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-      const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+      const invalidErrorCode = this.getUndefinedDataModelErrorCode();
       for (let idx = 0; idx < structure.length; idx++) {
         const attribute = structure[idx];
         if (idx === structure.length - 1) {
@@ -4903,7 +4909,7 @@ this.Scorm2004API = (function () {
       let attribute = null;
       const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
       const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-      const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+      const invalidErrorCode = this.getUndefinedDataModelErrorCode();
       for (let idx = 0; idx < structure.length; idx++) {
         attribute = structure[idx];
         const validationResult = this.validateGetAttribute(refObject, attribute, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage, idx === structure.length - 1);
@@ -14893,9 +14899,16 @@ ${stackTrace}`);
      * @param {number} invalidTypeCode - The error code for invalid type
      * @param {number} invalidRangeCode - The error code for invalid range
      * @param {typeof BaseScormValidationError} errorClass - The error class to use for validation errors
+     * @param {boolean} allowEmptyString - When true, an empty string is accepted (clears the value).
+     *                                     SCORM 1.2 score elements may be blank per the ADL 1.2 CTS
+     *                                     (DataModelValidator.checkScoreDecimal treats blank as valid).
      * @return {boolean} - True if validation passes, throws an error otherwise
      */
     validateScore(CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
+      let allowEmptyString = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : false;
+      if (allowEmptyString && value === "") {
+        return true;
+      }
       return checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) && (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass));
     }
     /**
@@ -16728,6 +16741,11 @@ ${stackTrace}`);
       __publicField$l(this, "__invalid_range_code");
       __publicField$l(this, "__decimal_regex");
       __publicField$l(this, "__error_class");
+      /**
+       * When true, an empty string is a valid value (clears the element). SCORM 1.2
+       * score elements may be blank per the ADL 1.2 CTS; SCORM 2004 leaves this off.
+       */
+      __publicField$l(this, "__allow_empty_string");
       __publicField$l(this, "_raw", "");
       __publicField$l(this, "_min", "");
       __publicField$l(this, "_max");
@@ -16739,6 +16757,7 @@ ${stackTrace}`);
       this.__invalid_range_code = params.invalidRangeCode || scorm12_errors.VALUE_OUT_OF_RANGE;
       this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
       this.__error_class = params.errorClass;
+      this.__allow_empty_string = params.allowEmptyString ?? false;
     }
     /**
      * Called when the API has been reset
@@ -16778,7 +16797,7 @@ ${stackTrace}`);
      * @param {string} raw
      */
     set raw(raw) {
-      if (validationService.validateScore(this._cmi_element + ".raw", raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+      if (validationService.validateScore(this._cmi_element + ".raw", raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class, this.__allow_empty_string)) {
         this._raw = raw;
       }
     }
@@ -16794,7 +16813,7 @@ ${stackTrace}`);
      * @param {string} min
      */
     set min(min) {
-      if (validationService.validateScore(this._cmi_element + ".min", min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+      if (validationService.validateScore(this._cmi_element + ".min", min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class, this.__allow_empty_string)) {
         this._min = min;
       }
     }
@@ -16810,7 +16829,7 @@ ${stackTrace}`);
      * @param {string} max
      */
     set max(max) {
-      if (validationService.validateScore(this._cmi_element + ".max", max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+      if (validationService.validateScore(this._cmi_element + ".max", max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class, this.__allow_empty_string)) {
         this._max = max;
       }
     }

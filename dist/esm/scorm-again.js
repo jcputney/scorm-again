@@ -659,7 +659,10 @@ const scorm12_errors = {
   READ_ONLY_ELEMENT: 403,
   WRITE_ONLY_ELEMENT: 404,
   TYPE_MISMATCH: 405,
-  VALUE_OUT_OF_RANGE: 407,
+  // SCORM 1.2 has no out-of-range error code; an out-of-range value is reported
+  // as 405 (incorrect data type), per the SCORM 1.2 RTE error table and the ADL
+  // 1.2 CTS (DataModelValidator.checkScoreDecimal failure -> CMICategory 405).
+  VALUE_OUT_OF_RANGE: 405,
   DEPENDENCY_NOT_ESTABLISHED: 408
 };
 const scorm2004_errors = {
@@ -5287,10 +5290,13 @@ class CMIValueAccessService {
   }
   /**
    * Gets the appropriate error code for undefined data model elements.
-   * SCORM 2004 uses UNDEFINED_DATA_MODEL, SCORM 1.2 uses GENERAL.
+   * Both SCORM 2004 and SCORM 1.2 use UNDEFINED_DATA_MODEL (401): an
+   * unrecognized element is "Not implemented", not a general exception. SCORM
+   * 1.2 previously returned GENERAL (101) here, which is non-conformant — the
+   * ADL 1.2 CTS and the SCORM 1.2 RTE spec expect 401 for an unknown element.
    */
-  getUndefinedDataModelErrorCode(scorm2004) {
-    return scorm2004 ? getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL") : getErrorCode(this.context.errorCodes, "GENERAL");
+  getUndefinedDataModelErrorCode() {
+    return getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL");
   }
   /**
    * Sets a value on a CMI element path
@@ -5318,7 +5324,7 @@ class CMIValueAccessService {
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+    const invalidErrorCode = this.getUndefinedDataModelErrorCode();
     for (let idx = 0; idx < structure.length; idx++) {
       const attribute = structure[idx];
       if (idx === structure.length - 1) {
@@ -5394,7 +5400,7 @@ class CMIValueAccessService {
     let attribute = null;
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+    const invalidErrorCode = this.getUndefinedDataModelErrorCode();
     for (let idx = 0; idx < structure.length; idx++) {
       attribute = structure[idx];
       const validationResult = this.validateGetAttribute(
@@ -15512,9 +15518,15 @@ class ValidationService {
    * @param {number} invalidTypeCode - The error code for invalid type
    * @param {number} invalidRangeCode - The error code for invalid range
    * @param {typeof BaseScormValidationError} errorClass - The error class to use for validation errors
+   * @param {boolean} allowEmptyString - When true, an empty string is accepted (clears the value).
+   *                                     SCORM 1.2 score elements may be blank per the ADL 1.2 CTS
+   *                                     (DataModelValidator.checkScoreDecimal treats blank as valid).
    * @return {boolean} - True if validation passes, throws an error otherwise
    */
-  validateScore(CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
+  validateScore(CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass, allowEmptyString = false) {
+    if (allowEmptyString && value === "") {
+      return true;
+    }
     return checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) && (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass));
   }
   /**
@@ -16692,6 +16704,11 @@ class CMIScore extends BaseCMI {
   __invalid_range_code;
   __decimal_regex;
   __error_class;
+  /**
+   * When true, an empty string is a valid value (clears the element). SCORM 1.2
+   * score elements may be blank per the ADL 1.2 CTS; SCORM 2004 leaves this off.
+   */
+  __allow_empty_string;
   _raw = "";
   _min = "";
   _max;
@@ -16726,6 +16743,7 @@ class CMIScore extends BaseCMI {
     this.__invalid_range_code = params.invalidRangeCode || scorm12_errors.VALUE_OUT_OF_RANGE;
     this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
     this.__error_class = params.errorClass;
+    this.__allow_empty_string = params.allowEmptyString ?? false;
   }
   /**
    * Called when the API has been reset
@@ -16772,7 +16790,8 @@ class CMIScore extends BaseCMI {
       this.__score_range,
       this.__invalid_type_code,
       this.__invalid_range_code,
-      this.__error_class
+      this.__error_class,
+      this.__allow_empty_string
     )) {
       this._raw = raw;
     }
@@ -16796,7 +16815,8 @@ class CMIScore extends BaseCMI {
       this.__score_range,
       this.__invalid_type_code,
       this.__invalid_range_code,
-      this.__error_class
+      this.__error_class,
+      this.__allow_empty_string
     )) {
       this._min = min;
     }
@@ -16820,7 +16840,8 @@ class CMIScore extends BaseCMI {
       this.__score_range,
       this.__invalid_type_code,
       this.__invalid_range_code,
-      this.__error_class
+      this.__error_class,
+      this.__allow_empty_string
     )) {
       this._max = max;
     }
@@ -16877,7 +16898,9 @@ class CMICore extends BaseCMI {
       invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
       invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
       invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
-      errorClass: Scorm12ValidationError
+      errorClass: Scorm12ValidationError,
+      // SCORM 1.2 score elements may be set blank (clears the value), per ADL 1.2 CTS.
+      allowEmptyString: true
     });
   }
   score;
@@ -17307,7 +17330,9 @@ let CMIObjectivesObject$1 = class CMIObjectivesObject extends BaseCMI {
       invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
       invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
       invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
-      errorClass: Scorm12ValidationError
+      errorClass: Scorm12ValidationError,
+      // SCORM 1.2 score elements may be set blank (clears the value), per ADL 1.2 CTS.
+      allowEmptyString: true
     });
   }
   score;
