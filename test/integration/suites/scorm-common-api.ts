@@ -130,8 +130,8 @@ export function scormCommonApiTests(
 
     // Verify invalid element error
     expect(errorTests.invalidElement.setValue).toBe("false");
-    // SCORM 1.2 uses error code 101, SCORM 2004 uses 401
-    const expectedErrorCode = module.apiName === "API" ? "101" : "401";
+    // Both SCORM 1.2 and SCORM 2004 return 401 (not implemented) for an undefined element
+    const expectedErrorCode = "401";
     expect(errorTests.invalidElement.errorCode).toBe(expectedErrorCode);
     expect(errorTests.invalidElement.errorString.length).toBeGreaterThan(0);
     if (errorTests.invalidElement.diagnostic) {
@@ -222,8 +222,8 @@ export function scormCommonApiTests(
 
     // Invalid GetValue should fail
     expect(errorCodeTests.invalidGet).toBe("");
-    // SCORM 1.2 uses error code 101, SCORM 2004 uses 401
-    const expectedErrorCode = module.apiName === "API" ? "101" : "401";
+    // Both SCORM 1.2 and SCORM 2004 return 401 (not implemented) for an undefined element
+    const expectedErrorCode = "401";
     expect(errorCodeTests.invalidGetError).toBe(expectedErrorCode);
     expect(errorCodeTests.invalidGetErrorString.length).toBeGreaterThan(0);
 
