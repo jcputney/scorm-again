@@ -67,7 +67,7 @@ jobs:
           path: dist/
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -181,7 +181,7 @@ jobs:
       # package.json "files", plus npm's automatic inclusions like
       # package.json, README, and LICENSE).
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4.1.0
+        uses: actions/attest-build-provenance@v4.1.1
         with:
           subject-path: ${{ steps.pack.outputs.tarball }}
 
@@ -339,7 +339,7 @@ jobs:
 
       # Commit version bump to master
       - name: Commit version bump
-        uses: stefanzweifel/git-auto-commit-action@v7.1.0
+        uses: stefanzweifel/git-auto-commit-action@v7.2.0
         with:
           commit_message: "[skip ci] Bump version to ${{ steps.next_version.outputs.next_version }}"
           file_pattern: "package.json package-lock.json"
