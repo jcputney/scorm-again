@@ -1,7 +1,7 @@
 import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { ErrorCode } from "./constants";
-import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types";
+import { CommitEventContext, CommitObject, CommitTrigger, InternalSettings, LogLevel, ResultObject, Settings } from "./types";
 import { IBaseAPI, ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService, ScormEventCallback } from "./interfaces";
 export default abstract class BaseAPI implements IBaseAPI {
     private _timeout?;
@@ -15,6 +15,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     private readonly _offlineStorageService?;
     private readonly _cmiValueAccessService;
     private _courseId;
+    private _pendingCommitCount;
+    private _commitSequence;
+    private readonly _commitSettleWaiters;
     protected readonly _setCMIElements: Set<string>;
     protected constructor(error_codes: ErrorCode, settings?: Settings, httpService?: IHttpService, eventService?: IEventService, serializationService?: ISerializationService, cmiDataService?: ICMIDataService, errorHandlingService?: IErrorHandlingService, loggingService?: ILoggingService, offlineStorageService?: IOfflineStorageService);
     abstract cmi: BaseCMI;
@@ -37,16 +40,21 @@ export default abstract class BaseAPI implements IBaseAPI {
     abstract lmsGetDiagnostic(CMIErrorCode: string | number): string;
     abstract validateCorrectResponse(_CMIElement: string, _value: any): void;
     abstract getChildElement(_CMIElement: string, _value: any, _foundFirstIndex: boolean): BaseCMI | null;
-    abstract storeData(_calculateTotalTime: boolean): ResultObject;
+    abstract storeData(_calculateTotalTime: boolean, _trigger?: CommitTrigger): ResultObject;
     abstract renderCommitCMI(_terminateCommit: boolean, _includeTotalTime?: boolean): StringKeyMap | Array<string>;
     abstract renderCommitObject(_terminateCommit: boolean, _includeTotalTime?: boolean): CommitObject;
     apiLog(functionName: string, logMessage: string, messageLevel: LogLevel, CMIElement?: string): void;
     get settings(): InternalSettings;
     set settings(settings: Settings);
+    get pendingCommitCount(): number;
+    whenCommitsSettled(options?: {
+        timeoutMs?: number;
+    }): Promise<void>;
+    private _flushCommitSettleWaiters;
     terminate(callbackName: string, checkTerminated: boolean): string;
     getValue(callbackName: string, checkTerminated: boolean, CMIElement: string): string;
     setValue(callbackName: string, commitCallback: string, checkTerminated: boolean, CMIElement: string, value: any): string;
-    commit(callbackName: string, checkTerminated?: boolean): string;
+    commit(callbackName: string, checkTerminated?: boolean, trigger?: CommitTrigger): string;
     getLastError(callbackName: string): string;
     getErrorString(callbackName: string, CMIErrorCode: string | number): string;
     getDiagnostic(callbackName: string, CMIErrorCode: string | number): string;
@@ -64,7 +72,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     on(listenerName: string, callback: ScormEventCallback): void;
     off(listenerName: string, callback: ScormEventCallback): void;
     clear(listenerName: string): void;
-    processListeners(functionName: string, CMIElement?: string, value?: any): void;
+    processListeners(functionName: string, CMIElement?: string, value?: any, context?: CommitEventContext): void;
     throwSCORMError(CMIElement: string | undefined, errorNumber: number | undefined, message?: string): void;
     clearSCORMError(success: string): void;
     loadFromFlattenedJSON(json: StringKeyMap, CMIElement?: string): void;
@@ -72,7 +80,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     loadFromJSON(json: StringKeyMap, CMIElement?: string): void;
     renderCMIToJSONString(): string;
     renderCMIToJSONObject(): StringKeyMap;
-    processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate?: boolean): ResultObject;
+    processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate?: boolean, trigger?: CommitTrigger): ResultObject;
     scheduleCommit(when: number, callback: string): void;
     clearScheduledCommit(): void;
     private _checkObjectHasProperty;

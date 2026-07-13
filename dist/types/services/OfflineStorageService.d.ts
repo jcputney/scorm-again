@@ -1,6 +1,10 @@
 import { CommitObject, InternalSettings, ResultObject } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
 import { ErrorCode } from "../constants/error_codes";
+type OfflineCommitMetadata = {
+    isTerminateCommit?: boolean;
+    sequence?: number;
+};
 export declare class OfflineStorageService {
     private apiLog;
     private settings;
@@ -14,7 +18,7 @@ export declare class OfflineStorageService {
     constructor(settings: InternalSettings, error_codes: ErrorCode, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void);
     private handleOnlineStatusChange;
     private handleCustomNetworkStatus;
-    storeOffline(courseId: string, commitData: CommitObject): ResultObject;
+    storeOffline(courseId: string, commitData: CommitObject, metadata?: OfflineCommitMetadata): ResultObject;
     getOfflineData(courseId: string): Promise<CommitObject | null>;
     syncOfflineData(): Promise<boolean>;
     private sendDataToLMS;
@@ -25,4 +29,5 @@ export declare class OfflineStorageService {
     updateSettings(settings: InternalSettings): void;
     destroy(): void;
 }
+export {};
 //# sourceMappingURL=OfflineStorageService.d.ts.map

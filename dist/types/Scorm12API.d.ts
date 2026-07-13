@@ -3,7 +3,7 @@ import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { CMI } from "./cmi/scorm12/cmi";
 import { NAV } from "./cmi/scorm12/nav";
-import { CommitObject, ResultObject, Settings } from "./types";
+import { CommitObject, CommitTrigger, ResultObject, Settings } from "./types";
 import { IHttpService } from "./interfaces";
 declare class Scorm12API extends BaseAPI {
     private static _globalLearnerPrefs;
@@ -38,7 +38,7 @@ declare class Scorm12API extends BaseAPI {
     replaceWithAnotherScormAPI(newAPI: Scorm12API): void;
     renderCommitCMI(terminateCommit: boolean, includeTotalTime?: boolean): StringKeyMap | Array<string>;
     renderCommitObject(terminateCommit: boolean, includeTotalTime?: boolean): CommitObject;
-    storeData(terminateCommit: boolean): ResultObject;
+    storeData(terminateCommit: boolean, trigger?: CommitTrigger): ResultObject;
     private processCommitData;
 }
 export default Scorm12API;

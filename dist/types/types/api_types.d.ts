@@ -2,6 +2,19 @@ import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../constants/enum
 import { StringKeyMap } from "../utilities";
 import { SequencingSettings } from "./sequencing_types";
 import type { IHttpService } from "../interfaces/services";
+export type CommitTrigger = "autocommit" | "manual" | "terminate" | "offline-replay";
+export type CommitMetadata = {
+    isTerminateCommit: boolean;
+    trigger: CommitTrigger;
+    sequence?: number;
+};
+export type CommitEventContext = {
+    url: string;
+    trigger: CommitTrigger;
+    isTerminateCommit: boolean;
+    sequence?: number;
+    errorCode?: number;
+};
 export type Settings = {
     autocommit?: boolean | undefined;
     autocommitSeconds?: number | undefined;
@@ -22,7 +35,10 @@ export type Settings = {
     fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate" | undefined;
     responseHandler?: ((response: Response) => Promise<ResultObject>) | undefined;
     xhrResponseHandler?: ((xhr: XMLHttpRequest) => ResultObject) | undefined;
-    requestHandler?: ((commitObject: unknown) => unknown) | undefined;
+    requestHandler?: ((commitObject: unknown, metadata?: CommitMetadata) => unknown) | undefined;
+    terminateCommitParam?: string | undefined;
+    terminateCommitPayloadField?: string | undefined;
+    includeCommitSequence?: boolean | undefined;
     onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
     mastery_override?: boolean | undefined;
     score_overrides_status?: boolean | undefined;
@@ -66,7 +82,10 @@ export type InternalSettings = {
     fetchMode: "cors" | "no-cors" | "same-origin" | "navigate";
     responseHandler: (response: Response) => Promise<ResultObject>;
     xhrResponseHandler: (xhr: XMLHttpRequest) => ResultObject;
-    requestHandler: (commitObject: unknown) => unknown;
+    requestHandler: (commitObject: unknown, metadata?: CommitMetadata) => unknown;
+    terminateCommitParam?: string | undefined;
+    terminateCommitPayloadField?: string | undefined;
+    includeCommitSequence?: boolean | undefined;
     onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
     mastery_override?: boolean | undefined;
     score_overrides_status?: boolean | undefined;
@@ -121,6 +140,7 @@ export type CommitObject = {
     sessionId?: string;
     activityId?: string;
     attempt?: number;
+    commitSequence?: number;
 };
 export type CommitObjectWithScore = CommitObject & {
     score: ScoreObject;

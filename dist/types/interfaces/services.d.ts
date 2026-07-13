@@ -1,11 +1,12 @@
-import { CommitObject, LogLevel, ResultObject, Settings } from "../types/api_types";
+import { CommitEventContext, CommitMetadata, CommitObject, LogLevel, ResultObject, Settings } from "../types/api_types";
 import { ErrorCode } from "../constants/error_codes";
 import { LogLevelEnum } from "../constants/enums";
 import { BaseCMI } from "../cmi/common/base_cmi";
 import { ValidationError } from "../exceptions";
 import { StringKeyMap } from "../utilities";
 export interface IHttpService {
-    processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate: boolean, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void, processListeners: (functionName: string, CMIElement?: string, value?: any) => void): ResultObject;
+    readonly reportsRequestCompletion?: boolean;
+    processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate: boolean, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void, processListeners: (functionName: string, CMIElement?: string, value?: any) => void, metadata?: CommitMetadata, onRequestComplete?: () => void): ResultObject;
     updateSettings(settings: Settings): void;
 }
 export type ScormEventCallback = (...args: any[]) => void;
@@ -13,7 +14,7 @@ export interface IEventService {
     on(listenerName: string, callback: ScormEventCallback): void;
     off(listenerName: string, callback: ScormEventCallback): void;
     clear(listenerName: string): void;
-    processListeners(functionName: string, CMIElement?: string, value?: any): void;
+    processListeners(functionName: string, CMIElement?: string, value?: any, context?: CommitEventContext): void;
     reset(): void;
 }
 export interface ISerializationService {
@@ -49,7 +50,10 @@ export interface ILoggingService {
     debug(logMessage: string): void;
 }
 export interface IOfflineStorageService {
-    storeOffline(courseId: string, commitData: CommitObject): ResultObject;
+    storeOffline(courseId: string, commitData: CommitObject, metadata?: {
+        isTerminateCommit?: boolean;
+        sequence?: number;
+    }): ResultObject;
     getOfflineData(courseId: string): Promise<CommitObject | null>;
     syncOfflineData(): Promise<boolean>;
     hasPendingOfflineData(courseId: string): Promise<boolean>;

@@ -4,7 +4,7 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import { CMI } from "./cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
-import { CommitObject, ResultObject, SequencingStateMetadata, Settings } from "./types";
+import { CommitObject, CommitTrigger, ResultObject, SequencingStateMetadata, Settings } from "./types";
 import { IHttpService } from "./interfaces";
 import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
 declare class Scorm2004API extends BaseAPI {
@@ -56,7 +56,7 @@ declare class Scorm2004API extends BaseAPI {
     replaceWithAnotherScormAPI(newAPI: Scorm2004API): void;
     renderCommitCMI(terminateCommit: boolean, includeTotalTime?: boolean): StringKeyMap | Array<any>;
     renderCommitObject(terminateCommit: boolean, includeTotalTime?: boolean): CommitObject;
-    storeData(terminateCommit: boolean): ResultObject;
+    storeData(terminateCommit: boolean, trigger?: CommitTrigger): ResultObject;
     private configureSequencing;
     private configureActivityTree;
     private configureSequencingRules;

@@ -1,4 +1,4 @@
-import { LogLevel } from "../types/api_types";
+import { CommitEventContext, LogLevel } from "../types/api_types";
 import { IEventService, ScormEventCallback } from "../interfaces/services";
 export declare class EventService implements IEventService {
     private listenerMap;
@@ -9,7 +9,7 @@ export declare class EventService implements IEventService {
     on(listenerName: string, callback: ScormEventCallback): void;
     off(listenerName: string, callback: ScormEventCallback): void;
     clear(listenerName: string): void;
-    processListeners(functionName: string, CMIElement?: string, value?: any): void;
+    processListeners(functionName: string, CMIElement?: string, value?: any, context?: CommitEventContext): void;
     reset(): void;
 }
 //# sourceMappingURL=EventService.d.ts.map

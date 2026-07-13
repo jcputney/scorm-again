@@ -198,6 +198,15 @@ this.Scorm2004API = (function () {
     };
   }
 
+  const appendQueryParam = (url, name, value) => {
+    const fragmentIndex = url.indexOf("#");
+    const baseUrl = fragmentIndex === -1 ? url : url.slice(0, fragmentIndex);
+    const fragment = fragmentIndex === -1 ? "" : url.slice(fragmentIndex);
+    const separator = baseUrl.includes("?") ? baseUrl.endsWith("?") || baseUrl.endsWith("&") ? "" : "&" : "?";
+    const queryParam = `${encodeURIComponent(name)}=${encodeURIComponent(String(value))}`;
+    return `${baseUrl}${separator}${queryParam}${fragment}`;
+  };
+
   var __defProp$15 = Object.defineProperty;
   var __defNormalProp$15 = (obj, key, value) => key in obj ? __defProp$15(obj, key, {
     enumerable: true,
@@ -728,6 +737,7 @@ this.Scorm2004API = (function () {
     xhrWithCredentials: false,
     fetchMode: "cors",
     asyncModeBeaconBehavior: "never",
+    includeCommitSequence: false,
     responseHandler: async function (response) {
       if (typeof response !== "undefined") {
         let httpResult = null;
@@ -1141,7 +1151,7 @@ this.Scorm2004API = (function () {
     wrapper() {
       if (!this._cancelled) {
         if (this._API.isInitialized()) {
-          (async () => await this._API.commit(this._callback))();
+          (async () => await this._API.commit(this._callback, false, "autocommit"))();
         }
       }
     }
@@ -4614,6 +4624,7 @@ this.Scorm2004API = (function () {
      * @param {ErrorCode} error_codes - The error codes object
      */
     constructor(settings, error_codes) {
+      __publicField$Q(this, "reportsRequestCompletion", true);
       __publicField$Q(this, "settings");
       __publicField$Q(this, "error_codes");
       this.settings = settings;
@@ -4632,13 +4643,17 @@ this.Scorm2004API = (function () {
      * @param {boolean} immediate - Whether to send the request immediately without waiting
      * @param {Function} apiLog - Function to log API messages with appropriate levels
      * @param {Function} processListeners - Function to trigger event listeners for commit events
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @param {Function} onRequestComplete - Callback invoked after the background request settles
      * @return {ResultObject} - Immediate optimistic success result
      */
     processHttpRequest(url, params) {
       let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
       let apiLog = arguments.length > 3 ? arguments[3] : undefined;
       let processListeners = arguments.length > 4 ? arguments[4] : undefined;
-      this._performAsyncRequest(url, params, immediate, apiLog, processListeners);
+      let metadata = arguments.length > 5 ? arguments[5] : undefined;
+      let onRequestComplete = arguments.length > 6 ? arguments[6] : undefined;
+      this._performAsyncRequest(url, params, immediate, apiLog, processListeners, metadata, onRequestComplete);
       return {
         result: global_constants.SCORM_TRUE,
         errorCode: 0
@@ -4651,11 +4666,14 @@ this.Scorm2004API = (function () {
      * @param {boolean} immediate - Whether this is an immediate request
      * @param apiLog - Function to log API messages
      * @param {Function} processListeners - Function to process event listeners
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @param {Function} onRequestComplete - Callback invoked after the request settles
      * @private
      */
-    async _performAsyncRequest(url, params, immediate, apiLog, processListeners) {
+    async _performAsyncRequest(url, params, immediate, apiLog, processListeners, metadata, onRequestComplete) {
       try {
-        const processedParams = this.settings.requestHandler(params);
+        const handledParams = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+        const processedParams = handledParams;
         let response;
         if (immediate && this.settings.asyncModeBeaconBehavior !== "never") {
           response = await this.performBeacon(url, processedParams);
@@ -4671,7 +4689,9 @@ this.Scorm2004API = (function () {
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         apiLog("processHttpRequest", `Async request failed: ${message}`, LogLevelEnum.ERROR);
-        processListeners("CommitError");
+        processListeners("CommitError", void 0, this.error_codes.GENERAL_COMMIT_FAILURE || 391);
+      } finally {
+        onRequestComplete?.();
       }
     }
     /**
@@ -5635,8 +5655,9 @@ ${stackTrace}`);
      * @param {string} functionName - The name of the function that triggered the event
      * @param {string} CMIElement - The CMI element that was affected
      * @param {any} value - The value that was set
+     * @param {CommitEventContext} context - Optional context for commit lifecycle events
      */
-    processListeners(functionName, CMIElement, value) {
+    processListeners(functionName, CMIElement, value, context) {
       this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
       const listeners = this.listenerMap.get(functionName);
       if (!listeners) return;
@@ -5656,9 +5677,17 @@ ${stackTrace}`);
           if (functionName.startsWith("Sequence")) {
             listener.callback(value);
           } else if (functionName === "CommitError") {
-            listener.callback(value);
+            if (context !== void 0) {
+              listener.callback(value, context);
+            } else {
+              listener.callback(value);
+            }
           } else if (functionName === "CommitSuccess") {
-            listener.callback();
+            if (context !== void 0) {
+              listener.callback(context);
+            } else {
+              listener.callback();
+            }
           } else {
             listener.callback(CMIElement, value);
           }
@@ -5767,16 +5796,23 @@ ${stackTrace}`);
      * Store commit data offline
      * @param {string} courseId - Identifier for the course
      * @param {CommitObject} commitData - The data to store offline
+     * @param {OfflineCommitMetadata} metadata - Metadata captured with the original commit
      * @returns {ResultObject} - Result of the storage operation
      */
-    storeOffline(courseId, commitData) {
+    storeOffline(courseId, commitData, metadata) {
       try {
         const queueItem = {
           id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           courseId,
           timestamp: Date.now(),
           data: commitData,
-          syncAttempts: 0
+          syncAttempts: 0,
+          ...(metadata?.isTerminateCommit !== void 0 ? {
+            isTerminateCommit: metadata.isTerminateCommit
+          } : {}),
+          ...(metadata?.sequence !== void 0 ? {
+            sequence: metadata.sequence
+          } : {})
         };
         const currentQueue = this.getFromStorage(this.syncQueue) || [];
         currentQueue.push(queueItem);
@@ -5835,7 +5871,14 @@ ${stackTrace}`);
             continue;
           }
           try {
-            const syncResult = await this.sendDataToLMS(item.data);
+            const syncResult = await this.sendDataToLMS(item.data, {
+              ...(item.isTerminateCommit !== void 0 ? {
+                isTerminateCommit: item.isTerminateCommit
+              } : {}),
+              ...(item.sequence !== void 0 ? {
+                sequence: item.sequence
+              } : {})
+            });
             if (syncResult.result === true || syncResult.result === global_constants.SCORM_TRUE) {
               this.apiLog("OfflineStorageService", `Successfully synced item ${item.id}`, LogLevelEnum.INFO);
             } else {
@@ -5862,17 +5905,27 @@ ${stackTrace}`);
     /**
      * Send data to the LMS when online
      * @param {CommitObject} data - The data to send to the LMS
+     * @param {OfflineCommitMetadata} metadata - Metadata captured with the original commit
      * @returns {Promise<ResultObject>} - Result of the sync operation
      */
-    async sendDataToLMS(data) {
-      if (!this.settings.lmsCommitUrl) {
+    async sendDataToLMS(data, metadata) {
+      const configuredCommitUrl = this.settings.lmsCommitUrl;
+      if (!configuredCommitUrl) {
         return {
           result: global_constants.SCORM_FALSE,
           errorCode: this.error_codes.GENERAL || 101
         };
       }
       try {
-        const processedData = this.settings.requestHandler(data);
+        const lmsCommitUrl = String(configuredCommitUrl);
+        const processedData = this.settings.requestHandler(data, {
+          isTerminateCommit: metadata?.isTerminateCommit ?? false,
+          trigger: "offline-replay",
+          ...(metadata?.sequence !== void 0 ? {
+            sequence: metadata.sequence
+          } : {})
+        });
+        const requestUrl = metadata?.isTerminateCommit && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
         const init = {
           method: "POST",
           mode: this.settings.fetchMode,
@@ -5885,7 +5938,7 @@ ${stackTrace}`);
         if (this.settings.xhrWithCredentials) {
           init.credentials = "include";
         }
-        const response = await fetch(this.settings.lmsCommitUrl, init);
+        const response = await fetch(requestUrl, init);
         const result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
         if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
           if (!Object.hasOwnProperty.call(result, "errorCode")) {
@@ -14782,6 +14835,8 @@ ${stackTrace}`);
      * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
      * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
      * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
      * @return {ResultObject} - The result of the request (synchronous)
      *
      * @remarks
@@ -14793,20 +14848,23 @@ ${stackTrace}`);
      */
     processHttpRequest(url, params) {
       let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      let metadata = arguments.length > 5 ? arguments[5] : undefined;
       if (immediate) {
-        return this._handleImmediateRequest(url, params);
+        return this._handleImmediateRequest(url, params, metadata);
       }
-      return this._performSyncXHR(url, params);
+      return this._performSyncXHR(url, params, metadata);
     }
     /**
      * Handles an immediate request using sendBeacon
      * @param {string} url - The URL to send the request to
      * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
      * @return {ResultObject} - The result based on beacon success
      * @private
      */
-    _handleImmediateRequest(url, params) {
-      const requestPayload = this.settings.requestHandler(params) ?? params;
+    _handleImmediateRequest(url, params, metadata) {
+      const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+      const requestPayload = handledPayload ?? params;
       const {
         body
       } = this._prepareRequestBody(requestPayload);
@@ -14822,11 +14880,13 @@ ${stackTrace}`);
      * Performs a synchronous XMLHttpRequest
      * @param {string} url - The URL to send the request to
      * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
      * @return {ResultObject} - The result of the request
      * @private
      */
-    _performSyncXHR(url, params) {
-      const requestPayload = this.settings.requestHandler(params) ?? params;
+    _performSyncXHR(url, params, metadata) {
+      const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+      const requestPayload = handledPayload ?? params;
       const {
         body,
         contentType
@@ -15004,6 +15064,13 @@ ${stackTrace}`);
       __publicField$o(this, "_offlineStorageService");
       __publicField$o(this, "_cmiValueAccessService");
       __publicField$o(this, "_courseId", "");
+      __publicField$o(this, "_pendingCommitCount", 0);
+      /**
+       * Monotonic sequence for commits captured by this API instance. It is
+       * intentionally not reset by reset().
+       */
+      __publicField$o(this, "_commitSequence", 0);
+      __publicField$o(this, "_commitSettleWaiters", []);
       /**
        * Canonical paths of every CMI element that has been explicitly assigned a
        * value via SetValue / loadFromJSON (both funnel through _commonSetCMIValue).
@@ -15243,6 +15310,54 @@ ${stackTrace}`);
       }
     }
     /**
+     * Gets the number of captured commit requests that have not yet settled.
+     *
+     * @return {number} The number of in-flight commits
+     */
+    get pendingCommitCount() {
+      return this._pendingCommitCount;
+    }
+    /**
+     * Resolves when all currently in-flight commits have settled. A timeout is
+     * best-effort: the promise resolves when it elapses even if commits remain,
+     * and callers can inspect pendingCommitCount afterward to detect that case.
+     *
+     * @param {Object} [options] - Settle options
+     * @param {number} [options.timeoutMs] - Maximum time to wait in milliseconds
+     * @return {Promise<void>} A promise that resolves after the drain or timeout
+     */
+    whenCommitsSettled(options) {
+      if (this._pendingCommitCount === 0) {
+        return Promise.resolve();
+      }
+      return new Promise(resolve => {
+        const waiter = {
+          resolve
+        };
+        if (options?.timeoutMs !== void 0) {
+          waiter.timeoutId = setTimeout(() => {
+            const waiterIndex = this._commitSettleWaiters.indexOf(waiter);
+            if (waiterIndex === -1) {
+              return;
+            }
+            this._commitSettleWaiters.splice(waiterIndex, 1);
+            resolve();
+          }, options.timeoutMs);
+        }
+        this._commitSettleWaiters.push(waiter);
+      });
+    }
+    /** Resolve and clear every waiter after the pending count reaches zero. */
+    _flushCommitSettleWaiters() {
+      const waiters = this._commitSettleWaiters.splice(0);
+      for (const waiter of waiters) {
+        if (waiter.timeoutId !== void 0) {
+          clearTimeout(waiter.timeoutId);
+        }
+        waiter.resolve();
+      }
+    }
+    /**
      * Terminates the current run of the API
      * @param {string} callbackName
      * @param {boolean} checkTerminated
@@ -15262,7 +15377,7 @@ ${stackTrace}`);
       } else {
         stateCheckPassed = true;
         this.processListeners("BeforeTerminate");
-        const result = this.storeData(true);
+        const result = this.storeData(true, "terminate");
         if ((result.errorCode ?? 0) > 0) {
           if (result.errorMessage) {
             this.apiLog("terminate", `Terminate failed with error: ${result.errorMessage}`, LogLevelEnum.ERROR);
@@ -15361,10 +15476,12 @@ ${stackTrace}`);
      * Orders LMS to store all content parameters
      * @param {string} callbackName
      * @param {boolean} checkTerminated
+     * @param {CommitTrigger} trigger - What initiated the commit
      * @return {string}
      */
     commit(callbackName) {
       let checkTerminated = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      let trigger = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "manual";
       this.clearScheduledCommit();
       let returnValue = global_constants.SCORM_TRUE;
       if (this.isNotInitialized()) {
@@ -15376,7 +15493,7 @@ ${stackTrace}`);
         this.throwSCORMError("api", errorCode);
         if (errorCode === 143) returnValue = global_constants.SCORM_FALSE;
       } else {
-        const result = this.storeData(false);
+        const result = this.storeData(false, trigger);
         const errorCode = result.errorCode ?? 0;
         if (errorCode > 0) {
           if (result.errorMessage) {
@@ -15708,9 +15825,14 @@ ${stackTrace}`);
      * @param {string} functionName - The name of the function/event that occurred
      * @param {string} CMIElement - Optional CMI element involved in the event
      * @param {any} value - Optional value associated with the event
+     * @param {CommitEventContext} context - Optional context for commit lifecycle events
      */
-    processListeners(functionName, CMIElement, value) {
-      this._eventService.processListeners(functionName, CMIElement, value);
+    processListeners(functionName, CMIElement, value, context) {
+      if (context !== void 0) {
+        this._eventService.processListeners(functionName, CMIElement, value, context);
+      } else {
+        this._eventService.processListeners(functionName, CMIElement, value);
+      }
     }
     /**
      * Throws a SCORM error with the specified error number and optional message.
@@ -15832,23 +15954,97 @@ ${stackTrace}`);
      * @param {string} url - The URL to send the request to
      * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
      * @param {boolean} immediate - Whether to send the request immediately without waiting
+     * @param {CommitTrigger} [trigger] - What initiated the commit
      * @returns {ResultObject} - The result of the request
      */
     processHttpRequest(url, params) {
       let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
-        this.apiLog("processHttpRequest", "Device is offline, storing data locally", LogLevelEnum.INFO);
-        if (params && typeof params === "object" && "cmi" in params) {
-          return this._offlineStorageService.storeOffline(this._courseId, params);
-        } else {
-          this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
-          return {
-            result: global_constants.SCORM_FALSE,
-            errorCode: this._error_codes.GENERAL ?? 101
-          };
+      let trigger = arguments.length > 3 ? arguments[3] : undefined;
+      const sequence = ++this._commitSequence;
+      this._pendingCommitCount += 1;
+      let settled = false;
+      let completionDeferred = false;
+      const settle = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        this._pendingCommitCount -= 1;
+        if (this._pendingCommitCount === 0) {
+          this._flushCommitSettleWaiters();
+        }
+      };
+      try {
+        const resolvedTrigger = trigger ?? (immediate ? "terminate" : "manual");
+        let finalParams = params;
+        if (immediate && this.settings.terminateCommitPayloadField) {
+          const field = this.settings.terminateCommitPayloadField;
+          if (Array.isArray(finalParams)) {
+            finalParams = [...finalParams, `${encodeURIComponent(field)}=true`];
+          } else if (finalParams && typeof finalParams === "object") {
+            finalParams = {
+              ...finalParams,
+              [field]: true
+            };
+          }
+        }
+        if (this.settings.includeCommitSequence === true) {
+          if (Array.isArray(finalParams)) {
+            finalParams = [...finalParams, `commitSequence=${sequence}`];
+          } else if (finalParams && typeof finalParams === "object") {
+            finalParams = {
+              ...finalParams,
+              commitSequence: sequence
+            };
+          }
+        }
+        const finalUrl = immediate && this.settings.terminateCommitParam ? appendQueryParam(url, this.settings.terminateCommitParam, "true") : url;
+        const metadata = {
+          isTerminateCommit: immediate,
+          trigger: resolvedTrigger,
+          sequence
+        };
+        const context = {
+          url: finalUrl,
+          trigger: resolvedTrigger,
+          isTerminateCommit: immediate,
+          sequence
+        };
+        if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
+          this.apiLog("processHttpRequest", "Device is offline, storing data locally", LogLevelEnum.INFO);
+          if (finalParams && typeof finalParams === "object" && "cmi" in finalParams) {
+            return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
+              isTerminateCommit: immediate,
+              sequence
+            });
+          } else {
+            this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
+            return {
+              result: global_constants.SCORM_FALSE,
+              errorCode: this._error_codes.GENERAL ?? 101
+            };
+          }
+        }
+        const apiLog = (functionName, message, level, element) => this.apiLog(functionName, message, level, element);
+        const processListeners = (functionName, CMIElement, value) => {
+          if (functionName === "CommitSuccess" || functionName === "CommitError") {
+            if (functionName === "CommitError" && typeof value === "number") {
+              context.errorCode = value;
+            }
+            settle();
+            this.processListeners(functionName, CMIElement, value, context);
+          } else {
+            this.processListeners(functionName, CMIElement, value);
+          }
+        };
+        const result = this._httpService.processHttpRequest(finalUrl, finalParams, immediate, apiLog, processListeners, metadata, settle);
+        completionDeferred = this._httpService.reportsRequestCompletion === true;
+        return result;
+      } finally {
+        if (!completionDeferred) {
+          settle();
         }
       }
-      return this._httpService.processHttpRequest(url, params, immediate, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value));
     }
     /**
      * Schedules a commit operation to occur after a specified delay.
@@ -21975,9 +22171,10 @@ ${stackTrace}`);
     /**
      * Attempts to store the data to the LMS
      * @param {boolean} terminateCommit
+     * @param {CommitTrigger} [trigger] - What initiated the commit
      * @return {ResultObject}
      */
-    storeData(terminateCommit) {
+    storeData(terminateCommit, trigger) {
       if (terminateCommit) {
         if (this.cmi.mode === "normal") {
           if (this.cmi.credit === "credit") {
@@ -22018,7 +22215,7 @@ ${stackTrace}`);
       }
       this._globalObjectiveManager.syncCmiToSequencingActivity(completionStatusEnum, successStatusEnum, scoreObject);
       if (typeof this.settings.lmsCommitUrl === "string") {
-        const result = this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
+        const result = this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit, trigger);
         if (navRequest && result.navRequest !== void 0 && result.navRequest !== "" && typeof result.navRequest === "string") {
           const parsed = parseNavigationRequest(result.navRequest);
           if (!parsed.valid) {
