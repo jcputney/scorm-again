@@ -1666,7 +1666,7 @@ This section documents all configuration settings available when creating API in
 |---------|------|---------|-------------|
 | `responseHandler` | `function` | Built-in | Custom handler for fetch responses: `(response: Response) => Promise<ResultObject>` |
 | `xhrResponseHandler` | `function` | Built-in | Custom handler for XHR responses: `(xhr: XMLHttpRequest) => ResultObject` |
-| `requestHandler` | `function` | Identity | Transform commit object before sending: `(commitObject) => transformedObject` |
+| `requestHandler` | `function` | Identity | Transform commit object before sending: `(commitObject, metadata?) => transformedObject`. The optional `CommitMetadata` argument is `{ isTerminateCommit, trigger, sequence }`; one-argument handlers keep working unchanged. |
 
 ### Logging
 
@@ -2265,9 +2265,11 @@ When API calls fail, `GetLastError()` returns an error code. Use these tables to
 #### Transient Errors (391 - Commit Failure)
 
 ```javascript
-api.on("CommitError", function() {
-  const errorCode = api.GetLastError();
-  if (errorCode === "391") {
+api.on("CommitError", function(errorCode, context) {
+  // errorCode is the first argument; context ({ url, trigger, isTerminateCommit,
+  // sequence, errorCode }) is appended when the commit was dispatched through the
+  // asynchronous HTTP service. Zero-argument listeners keep working unchanged.
+  if (errorCode === 391) {
     // Retry with exponential backoff
     retryCommit(attempts + 1);
   }

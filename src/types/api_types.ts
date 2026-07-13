@@ -3,6 +3,25 @@ import { StringKeyMap } from "../utilities";
 import { SequencingSettings } from "./sequencing_types";
 import type { IHttpService } from "../interfaces/services";
 
+/** Describes what initiated a commit request. */
+export type CommitTrigger = "autocommit" | "manual" | "terminate" | "offline-replay";
+
+/** Metadata passed as an optional second argument to the requestHandler hook. */
+export type CommitMetadata = {
+  isTerminateCommit: boolean;
+  trigger: CommitTrigger;
+  sequence?: number;
+};
+
+/** Context object delivered with CommitSuccess and CommitError events. */
+export type CommitEventContext = {
+  url: string;
+  trigger: CommitTrigger;
+  isTerminateCommit: boolean;
+  sequence?: number;
+  errorCode?: number;
+};
+
 /**
  * Base settings type with all properties optional
  */
@@ -30,7 +49,13 @@ export type Settings = {
   fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate" | undefined;
   responseHandler?: ((response: Response) => Promise<ResultObject>) | undefined;
   xhrResponseHandler?: ((xhr: XMLHttpRequest) => ResultObject) | undefined;
-  requestHandler?: ((commitObject: unknown) => unknown) | undefined;
+  requestHandler?: ((commitObject: unknown, metadata?: CommitMetadata) => unknown) | undefined;
+  /** Query-string parameter added to terminate-time commit URLs when configured. */
+  terminateCommitParam?: string | undefined;
+  /** Payload field added to terminate-time commits when configured. */
+  terminateCommitPayloadField?: string | undefined;
+  /** Whether commit payloads include a monotonic commitSequence value. */
+  includeCommitSequence?: boolean | undefined;
   onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
   mastery_override?: boolean | undefined;
   score_overrides_status?: boolean | undefined;
@@ -98,7 +123,13 @@ export type InternalSettings = {
   fetchMode: "cors" | "no-cors" | "same-origin" | "navigate";
   responseHandler: (response: Response) => Promise<ResultObject>;
   xhrResponseHandler: (xhr: XMLHttpRequest) => ResultObject;
-  requestHandler: (commitObject: unknown) => unknown;
+  requestHandler: (commitObject: unknown, metadata?: CommitMetadata) => unknown;
+  /** Query-string parameter added to terminate-time commit URLs when configured. */
+  terminateCommitParam?: string | undefined;
+  /** Payload field added to terminate-time commits when configured. */
+  terminateCommitPayloadField?: string | undefined;
+  /** Whether commit payloads include a monotonic commitSequence value. */
+  includeCommitSequence?: boolean | undefined;
   onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
   mastery_override?: boolean | undefined;
   score_overrides_status?: boolean | undefined;
@@ -194,6 +225,7 @@ export type CommitObject = {
   sessionId?: string;
   activityId?: string;
   attempt?: number;
+  commitSequence?: number;
 };
 
 /**

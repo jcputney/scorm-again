@@ -378,6 +378,9 @@ The APIs include several settings to customize the functionality of each API:
 | `commitRequestDataType`    | 'application/json;charset=UTF-8' |                                                      string                                                       | This setting is provided in case your LMS expects a different content type or character set.                                                                                                                                                                                                                                                                                                                                                            |
 | `renderCommonCommitFields` |              false               |                                                    true/false                                                     | Determines whether the API should render the common fields in the commit object. Common fields are `successStatus`, `completionStatus`, `totalTimeSeconds`, `score`, and `runtimeData`. The `runtimeData` field contains the render CMI object. This allows for easier processing on the LMS.                                                                                                                                                           |
 | `autoCompleteLessonStatus` |              false               |                                                    true/false                                                     | Controls termination behaviour for SCOs that never set `cmi.core.lesson_status`. When false (default), the API leaves the status as `incomplete`; when true, it restores the legacy behaviour of auto-upgrading to `completed`.                                                                                                                                                                                                                        |
+| `terminateCommitParam`     |            undefined             |                                                      string                                                       | When set, the terminate-time commit's URL gets `?<name>=true` appended (or `&<name>=true` if `lmsCommitUrl` already has a query string), letting the server distinguish the final commit from heartbeat commits. Applies to normal terminate commits, sendBeacon terminate commits, and offline replays of a terminate commit.                                                                                                                          |
+| `terminateCommitPayloadField` |          undefined             |                                                      string                                                       | When set, the terminate-time commit's payload gets `<name>: true` added (object formats) or `<name>=true` appended (`params` format). Independent of `terminateCommitParam`; either or both may be used.                                                                                                                                                                                                                                                |
+| `includeCommitSequence`    |              false               |                                                    true/false                                                     | When enabled, every commit payload includes a `commitSequence` field with a monotonically increasing number assigned when the commit is captured. Offline-replayed commits keep their original sequence, so servers can reject stale, out-of-order commits.                                                                                                                                                                                             |
 | `autoProgress`             |              false               |                                                    true/false                                                     | In case Sequencing is being used, you can tell the API to automatically throw the `SequenceNext` event.                                                                                                                                                                                                                                                                                                                                                 |
 | `logLevel`                 |                4                 | number \| string \| LogLevelEnum<br><br>`1` => DEBUG<br>`2` => INFO<br>`3` => WARN<br>`4` => ERROR<br>`5` => NONE | By default, the APIs only log error messages.                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `mastery_override`         |              false               |                                                    true/false                                                     | (SCORM 1.2) Used to override a module's `cmi.core.lesson_status` so that a pass/fail is determined based on a mastery score and the user's raw score, rather than using whatever status is provided by the module. An example of this would be if a module is published using a `Complete/Incomplete` final status, but the LMS always wants to receive a `Passed/Failed` for quizzes, then we can use this setting to override the given final status. |
@@ -390,7 +393,7 @@ The APIs include several settings to customize the functionality of each API:
 | `httpService`              |               null               |                                                    IHttpService                                                    | Advanced: Inject custom HTTP service implementation. Overrides `useAsynchronousCommits`.                                                                                                                                                                                                                                                                                                                                                                |
 | `xhrResponseHandler`       |             function             |                                         function(xhr) => ResultObject                                          | Custom response handler for synchronous XMLHttpRequest responses. Called when `useAsynchronousCommits=false`.                                                                                                                                                                                                                                                                                                                                           |
 | `responseHandler`          |             function             |                                   async function(response) => Promise<ResultObject>                                    | Custom response handler for async fetch Response objects. Called when `useAsynchronousCommits=true`. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }`                                                                                                                                                                                                                                                   |
-| `requestHandler`           |             function             |                                                                                                                   | A function to transform the commit object before sending it to `lmsCommitUrl`. By default it's the identity function (no transformation).                                                                                                                                                                                                                                                                                                               |
+| `requestHandler`           |             function             |                                                                                                                   | A function to transform the commit object before sending it to `lmsCommitUrl`. Receives an optional second `CommitMetadata` argument (`{ isTerminateCommit, trigger, sequence }`); existing one-argument handlers keep working unchanged. By default it's the identity function (no transformation).                                                                                                                                                                                                                                                                                                               |
 | `onLogMessage`             |             function             |                                                                                                                   | A function to be called whenever a message is logged. Defaults to console.{error,warn,info,debug,log}                                                                                                                                                                                                                                                                                                                                                   |
 | `scoItemIds`               |                []                |                                                     string[]                                                      | A list of valid SCO IDs to be used for choice/jump sequence validation. If a `sequencing` configuration is provided with an activity tree, this list will be automatically populated with all activity IDs from the tree.                                                                                                                                                                                                                               |
 | `scoItemIdValidator`       |              false               |                                                 false / function                                                  | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity.                                                                                                                                                                                                                                                                                                           |
@@ -431,6 +434,64 @@ var settings = {
       return commitObject;
    }
 };
+```
+
+The handler also receives an optional second argument describing the commit, so a single
+handler can react to terminate-time commits or offline replays:
+
+```javascript
+var settings = {
+   requestHandler: function (commitObject, metadata) {
+      // metadata = { isTerminateCommit, trigger, sequence }
+      // trigger is "manual" | "autocommit" | "terminate" | "offline-replay"
+      if (metadata && metadata.isTerminateCommit) {
+         commitObject.final = true;
+      }
+      return commitObject;
+   }
+};
+```
+
+## Commit Lifecycle Observability
+
+Every commit sent through the API is tracked while it is in flight. This is aimed at LMS
+player pages that need a reliable teardown sequence — for example, draining pending
+autocommits before calling Terminate, then waiting for the final commit to resolve before
+navigating away or logging the learner out.
+
+```javascript
+// Number of commits currently in flight. Always 0 with the default synchronous
+// HTTP service, which blocks until the LMS responds.
+api.pendingCommitCount;
+
+// Resolves once all in-flight commits have settled. If timeoutMs elapses first,
+// the promise resolves anyway (best-effort drain) — check pendingCommitCount
+// afterward to detect that case.
+await api.whenCommitsSettled({ timeoutMs: 4000 });
+```
+
+`CommitSuccess` and `CommitError` listeners receive a context object describing the commit.
+These events are fired by the asynchronous HTTP service (`useAsynchronousCommits: true`);
+the default synchronous service returns results directly to the SCO instead.
+
+```javascript
+api.on("CommitSuccess", function (context) {
+   // context = { url, trigger, isTerminateCommit, sequence }
+});
+
+api.on("CommitError", function (errorCode, context) {
+   // errorCode stays the first argument for backward compatibility
+});
+```
+
+A typical teardown for a player using asynchronous commits:
+
+```javascript
+// Force the terminate commit through fetch so its result is observable
+api.settings.asyncModeBeaconBehavior = "never";
+await api.whenCommitsSettled({ timeoutMs: 1000 }); // drain heartbeat commits
+api.Terminate("");                                 // fires the final commit
+await api.whenCommitsSettled({ timeoutMs: 4000 }); // wait for it to resolve
 ```
 
 ### onLogMessage

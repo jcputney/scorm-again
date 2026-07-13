@@ -1,4 +1,4 @@
-import { flatten, formatMessage, StringKeyMap, stringMatches } from "./utilities";
+import { appendQueryParam, flatten, formatMessage, StringKeyMap, stringMatches } from "./utilities";
 import { BaseCMI, BaseRootCMI } from "./cmi/common/base_cmi";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
@@ -10,7 +10,10 @@ import {
   LogLevelEnum,
 } from "./constants";
 import {
+  CommitEventContext,
+  CommitMetadata,
   CommitObject,
+  CommitTrigger,
   InternalSettings,
   LogLevel,
   ResultObject,
@@ -40,6 +43,11 @@ import {
   SynchronousHttpService,
 } from "./services";
 
+type CommitSettleWaiter = {
+  resolve: () => void;
+  timeoutId?: ReturnType<typeof setTimeout>;
+};
+
 /**
  * Base API class for SCORM 1.2 and SCORM 2004. Should be considered
  * abstract, and never initialized on its own.
@@ -56,6 +64,15 @@ export default abstract class BaseAPI implements IBaseAPI {
   private readonly _offlineStorageService?: IOfflineStorageService;
   private readonly _cmiValueAccessService: CMIValueAccessService;
   private _courseId: string = "";
+  private _pendingCommitCount = 0;
+
+  /**
+   * Monotonic sequence for commits captured by this API instance. It is
+   * intentionally not reset by reset().
+   */
+  private _commitSequence = 0;
+
+  private readonly _commitSettleWaiters: CommitSettleWaiter[] = [];
 
   /**
    * Canonical paths of every CMI element that has been explicitly assigned a
@@ -619,10 +636,11 @@ export default abstract class BaseAPI implements IBaseAPI {
    * APIs that inherit BaseAPI should override this function
    *
    * @param {boolean} _calculateTotalTime
+   * @param {CommitTrigger} [_trigger] - What initiated the commit
    * @return {ResultObject}
    * @abstract
    */
-  abstract storeData(_calculateTotalTime: boolean): ResultObject;
+  abstract storeData(_calculateTotalTime: boolean, _trigger?: CommitTrigger): ResultObject;
 
   /**
    * Render the cmi object to the proper format for LMS commit
@@ -710,6 +728,59 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
+   * Gets the number of captured commit requests that have not yet settled.
+   *
+   * @return {number} The number of in-flight commits
+   */
+  get pendingCommitCount(): number {
+    return this._pendingCommitCount;
+  }
+
+  /**
+   * Resolves when all currently in-flight commits have settled. A timeout is
+   * best-effort: the promise resolves when it elapses even if commits remain,
+   * and callers can inspect pendingCommitCount afterward to detect that case.
+   *
+   * @param {Object} [options] - Settle options
+   * @param {number} [options.timeoutMs] - Maximum time to wait in milliseconds
+   * @return {Promise<void>} A promise that resolves after the drain or timeout
+   */
+  whenCommitsSettled(options?: { timeoutMs?: number }): Promise<void> {
+    if (this._pendingCommitCount === 0) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      const waiter: CommitSettleWaiter = { resolve };
+
+      if (options?.timeoutMs !== undefined) {
+        waiter.timeoutId = setTimeout(() => {
+          const waiterIndex = this._commitSettleWaiters.indexOf(waiter);
+          if (waiterIndex === -1) {
+            return;
+          }
+
+          this._commitSettleWaiters.splice(waiterIndex, 1);
+          resolve();
+        }, options.timeoutMs);
+      }
+
+      this._commitSettleWaiters.push(waiter);
+    });
+  }
+
+  /** Resolve and clear every waiter after the pending count reaches zero. */
+  private _flushCommitSettleWaiters(): void {
+    const waiters = this._commitSettleWaiters.splice(0);
+    for (const waiter of waiters) {
+      if (waiter.timeoutId !== undefined) {
+        clearTimeout(waiter.timeoutId);
+      }
+      waiter.resolve();
+    }
+  }
+
+  /**
    * Terminates the current run of the API
    * @param {string} callbackName
    * @param {boolean} checkTerminated
@@ -740,7 +811,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       // Fire BeforeTerminate event for offline sync
       this.processListeners("BeforeTerminate");
 
-      const result: ResultObject = this.storeData(true);
+      const result: ResultObject = this.storeData(true, "terminate");
       if ((result.errorCode ?? 0) > 0) {
         // Log detailed error information before throwing SCORM error
         if (result.errorMessage) {
@@ -910,9 +981,14 @@ export default abstract class BaseAPI implements IBaseAPI {
    * Orders LMS to store all content parameters
    * @param {string} callbackName
    * @param {boolean} checkTerminated
+   * @param {CommitTrigger} trigger - What initiated the commit
    * @return {string}
    */
-  commit(callbackName: string, checkTerminated: boolean = false): string {
+  commit(
+    callbackName: string,
+    checkTerminated: boolean = false,
+    trigger: CommitTrigger = "manual",
+  ): string {
     this.clearScheduledCommit();
 
     // Per SCORM 2004 3rd Edition RTE Section 3.1.4.3:
@@ -932,7 +1008,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 143
       if (errorCode === 143) returnValue = global_constants.SCORM_FALSE;
     } else {
-      const result = this.storeData(false);
+      const result = this.storeData(false, trigger);
       const errorCode = result.errorCode ?? 0;
       if (errorCode > 0) {
         // Log detailed error information before throwing SCORM error
@@ -1365,9 +1441,19 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} functionName - The name of the function/event that occurred
    * @param {string} CMIElement - Optional CMI element involved in the event
    * @param {any} value - Optional value associated with the event
+   * @param {CommitEventContext} context - Optional context for commit lifecycle events
    */
-  processListeners(functionName: string, CMIElement?: string, value?: any) {
-    this._eventService.processListeners(functionName, CMIElement, value);
+  processListeners(
+    functionName: string,
+    CMIElement?: string,
+    value?: any,
+    context?: CommitEventContext,
+  ) {
+    if (context !== undefined) {
+      this._eventService.processListeners(functionName, CMIElement, value, context);
+    } else {
+      this._eventService.processListeners(functionName, CMIElement, value);
+    }
   }
 
   /**
@@ -1519,50 +1605,132 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} url - The URL to send the request to
    * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
    * @param {boolean} immediate - Whether to send the request immediately without waiting
+   * @param {CommitTrigger} [trigger] - What initiated the commit
    * @returns {ResultObject} - The result of the request
    */
   processHttpRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
+    trigger?: CommitTrigger,
   ): ResultObject {
-    // If offline support is enabled and device is offline, store data locally instead of sending
-    if (
-      this.settings.enableOfflineSupport &&
-      this._offlineStorageService &&
-      !this._offlineStorageService.isDeviceOnline() &&
-      this._courseId
-    ) {
-      this.apiLog(
-        "processHttpRequest",
-        "Device is offline, storing data locally",
-        LogLevelEnum.INFO,
-      );
+    const sequence = ++this._commitSequence;
+    this._pendingCommitCount += 1;
 
-      if (params && typeof params === "object" && "cmi" in params) {
-        // Store offline and return actual storage result (localStorage is synchronous)
-        return this._offlineStorageService.storeOffline(this._courseId, params as CommitObject);
-      } else {
+    let settled = false;
+    let completionDeferred = false;
+    const settle = (): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      this._pendingCommitCount -= 1;
+      if (this._pendingCommitCount === 0) {
+        this._flushCommitSettleWaiters();
+      }
+    };
+
+    try {
+      const resolvedTrigger: CommitTrigger = trigger ?? (immediate ? "terminate" : "manual");
+      let finalParams: CommitObject | StringKeyMap | Array<any> = params;
+
+      if (immediate && this.settings.terminateCommitPayloadField) {
+        const field = this.settings.terminateCommitPayloadField;
+        if (Array.isArray(finalParams)) {
+          finalParams = [...finalParams, `${encodeURIComponent(field)}=true`];
+        } else if (finalParams && typeof finalParams === "object") {
+          finalParams = { ...finalParams, [field]: true };
+        }
+      }
+
+      if (this.settings.includeCommitSequence === true) {
+        if (Array.isArray(finalParams)) {
+          finalParams = [...finalParams, `commitSequence=${sequence}`];
+        } else if (finalParams && typeof finalParams === "object") {
+          finalParams = { ...finalParams, commitSequence: sequence };
+        }
+      }
+
+      const finalUrl =
+        immediate && this.settings.terminateCommitParam
+          ? appendQueryParam(url, this.settings.terminateCommitParam, "true")
+          : url;
+      const metadata: CommitMetadata = {
+        isTerminateCommit: immediate,
+        trigger: resolvedTrigger,
+        sequence,
+      };
+      const context: CommitEventContext = {
+        url: finalUrl,
+        trigger: resolvedTrigger,
+        isTerminateCommit: immediate,
+        sequence,
+      };
+
+      // If offline support is enabled and device is offline, store data locally instead of sending
+      if (
+        this.settings.enableOfflineSupport &&
+        this._offlineStorageService &&
+        !this._offlineStorageService.isDeviceOnline() &&
+        this._courseId
+      ) {
         this.apiLog(
           "processHttpRequest",
-          "Invalid commit data format for offline storage",
-          LogLevelEnum.ERROR,
+          "Device is offline, storing data locally",
+          LogLevelEnum.INFO,
         );
-        return {
-          result: global_constants.SCORM_FALSE,
-          errorCode: this._error_codes.GENERAL ?? 101,
-        };
+
+        if (finalParams && typeof finalParams === "object" && "cmi" in finalParams) {
+          // Store offline and return actual storage result (localStorage is synchronous)
+          return this._offlineStorageService.storeOffline(
+            this._courseId,
+            finalParams as CommitObject,
+            { isTerminateCommit: immediate, sequence },
+          );
+        } else {
+          this.apiLog(
+            "processHttpRequest",
+            "Invalid commit data format for offline storage",
+            LogLevelEnum.ERROR,
+          );
+          return {
+            result: global_constants.SCORM_FALSE,
+            errorCode: this._error_codes.GENERAL ?? 101,
+          };
+        }
+      }
+
+      // Otherwise, proceed with HTTP request (synchronous or async based on service)
+      const apiLog = (functionName: string, message: any, level: LogLevelEnum, element?: string) =>
+        this.apiLog(functionName, message, level, element);
+      const processListeners = (functionName: string, CMIElement?: string, value?: any) => {
+        if (functionName === "CommitSuccess" || functionName === "CommitError") {
+          if (functionName === "CommitError" && typeof value === "number") {
+            context.errorCode = value;
+          }
+          settle();
+          this.processListeners(functionName, CMIElement, value, context);
+        } else {
+          this.processListeners(functionName, CMIElement, value);
+        }
+      };
+      const result = this._httpService.processHttpRequest(
+        finalUrl,
+        finalParams,
+        immediate,
+        apiLog,
+        processListeners,
+        metadata,
+        settle,
+      );
+      completionDeferred = this._httpService.reportsRequestCompletion === true;
+      return result;
+    } finally {
+      if (!completionDeferred) {
+        settle();
       }
     }
-
-    // Otherwise, proceed with HTTP request (synchronous or async based on service)
-    return this._httpService.processHttpRequest(
-      url,
-      params,
-      immediate,
-      (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
-      (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value),
-    );
   }
 
   /**

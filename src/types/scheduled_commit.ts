@@ -38,7 +38,7 @@ export class ScheduledCommit {
     if (!this._cancelled) {
       // Only proceed with scheduled commit if API is properly initialized
       if (this._API.isInitialized()) {
-        (async () => await this._API.commit(this._callback))();
+        (async () => await this._API.commit(this._callback, false, "autocommit"))();
       }
     }
   }

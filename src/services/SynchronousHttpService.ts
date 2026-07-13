@@ -1,4 +1,4 @@
-import { CommitObject, InternalSettings, ResultObject } from "../types/api_types";
+import { CommitMetadata, CommitObject, InternalSettings, ResultObject } from "../types/api_types";
 import { global_constants } from "../constants/api_constants";
 import { IHttpService } from "../interfaces/services";
 import { ErrorCode } from "../constants/error_codes";
@@ -32,6 +32,8 @@ export class SynchronousHttpService implements IHttpService {
    * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
    * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
    * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
    * @return {ResultObject} - The result of the request (synchronous)
    *
    * @remarks
@@ -52,31 +54,38 @@ export class SynchronousHttpService implements IHttpService {
       CMIElement?: string,
     ) => void,
     _processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+    metadata?: CommitMetadata,
+    _onRequestComplete?: () => void,
   ): ResultObject {
     if (immediate) {
       // Termination: use sendBeacon (fire-and-forget, best effort)
       // @spec SCORM 2004 RTE 4.1.7 - API calls must be synchronous
-      return this._handleImmediateRequest(url, params);
+      return this._handleImmediateRequest(url, params, metadata);
     }
 
     // Standard commit: synchronous XHR (blocks until complete)
     // @spec SCORM 2004 RTE 4.1.7 - API calls must be synchronous
-    return this._performSyncXHR(url, params);
+    return this._performSyncXHR(url, params, metadata);
   }
 
   /**
    * Handles an immediate request using sendBeacon
    * @param {string} url - The URL to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
    * @return {ResultObject} - The result based on beacon success
    * @private
    */
   private _handleImmediateRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
+    metadata?: CommitMetadata,
   ): ResultObject {
-    const requestPayload = (this.settings.requestHandler(params) ?? params) as
-      CommitObject | StringKeyMap | Array<any>;
+    const handledPayload =
+      metadata === undefined
+        ? this.settings.requestHandler(params)
+        : this.settings.requestHandler(params, metadata);
+    const requestPayload = (handledPayload ?? params) as CommitObject | StringKeyMap | Array<any>;
     const { body } = this._prepareRequestBody(requestPayload);
 
     // Use text/plain for sendBeacon to avoid CORS preflight issues.
@@ -98,15 +107,20 @@ export class SynchronousHttpService implements IHttpService {
    * Performs a synchronous XMLHttpRequest
    * @param {string} url - The URL to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
    * @return {ResultObject} - The result of the request
    * @private
    */
   private _performSyncXHR(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
+    metadata?: CommitMetadata,
   ): ResultObject {
-    const requestPayload = (this.settings.requestHandler(params) ?? params) as
-      CommitObject | StringKeyMap | Array<any>;
+    const handledPayload =
+      metadata === undefined
+        ? this.settings.requestHandler(params)
+        : this.settings.requestHandler(params, metadata);
+    const requestPayload = (handledPayload ?? params) as CommitObject | StringKeyMap | Array<any>;
     const { body, contentType } = this._prepareRequestBody(requestPayload);
 
     const xhr = new XMLHttpRequest();

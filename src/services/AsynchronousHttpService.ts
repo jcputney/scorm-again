@@ -1,4 +1,4 @@
-import { CommitObject, InternalSettings, ResultObject } from "../types/api_types";
+import { CommitMetadata, CommitObject, InternalSettings, ResultObject } from "../types/api_types";
 import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
 import { IHttpService } from "../interfaces/services";
@@ -8,8 +8,14 @@ import { StringKeyMap } from "../utilities";
 /**
  * Service for handling asynchronous HTTP communication with the LMS
  * WARNING: Not SCORM-compliant - always returns immediate success
+ *
+ * Subclasses inherit reportsRequestCompletion = true. An override of processHttpRequest must
+ * therefore forward onRequestComplete to the asynchronous work, or at minimum forward
+ * processListeners so the eventual CommitSuccess or CommitError event can settle the request.
  */
 export class AsynchronousHttpService implements IHttpService {
+  readonly reportsRequestCompletion = true;
+
   private settings: InternalSettings;
   private error_codes: ErrorCode;
 
@@ -36,6 +42,8 @@ export class AsynchronousHttpService implements IHttpService {
    * @param {boolean} immediate - Whether to send the request immediately without waiting
    * @param {Function} apiLog - Function to log API messages with appropriate levels
    * @param {Function} processListeners - Function to trigger event listeners for commit events
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @param {Function} onRequestComplete - Callback invoked after the background request settles
    * @return {ResultObject} - Immediate optimistic success result
    */
   processHttpRequest(
@@ -49,9 +57,19 @@ export class AsynchronousHttpService implements IHttpService {
       CMIElement?: string,
     ) => void,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+    metadata?: CommitMetadata,
+    onRequestComplete?: () => void,
   ): ResultObject {
     // Fire request in background - don't wait for result
-    this._performAsyncRequest(url, params, immediate, apiLog, processListeners);
+    this._performAsyncRequest(
+      url,
+      params,
+      immediate,
+      apiLog,
+      processListeners,
+      metadata,
+      onRequestComplete,
+    );
 
     // Immediately return optimistic success
     return {
@@ -67,6 +85,8 @@ export class AsynchronousHttpService implements IHttpService {
    * @param {boolean} immediate - Whether this is an immediate request
    * @param apiLog - Function to log API messages
    * @param {Function} processListeners - Function to process event listeners
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @param {Function} onRequestComplete - Callback invoked after the request settles
    * @private
    */
   private async _performAsyncRequest(
@@ -80,10 +100,15 @@ export class AsynchronousHttpService implements IHttpService {
       CMIElement?: string,
     ) => void,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+    metadata?: CommitMetadata,
+    onRequestComplete?: () => void,
   ): Promise<void> {
     try {
-      const processedParams = this.settings.requestHandler(params) as
-        CommitObject | StringKeyMap | Array<any>;
+      const handledParams =
+        metadata === undefined
+          ? this.settings.requestHandler(params)
+          : this.settings.requestHandler(params, metadata);
+      const processedParams = handledParams as CommitObject | StringKeyMap | Array<any>;
 
       let response: Response;
       if (immediate && this.settings.asyncModeBeaconBehavior !== "never") {
@@ -103,7 +128,9 @@ export class AsynchronousHttpService implements IHttpService {
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       apiLog("processHttpRequest", `Async request failed: ${message}`, LogLevelEnum.ERROR);
-      processListeners("CommitError");
+      processListeners("CommitError", undefined, this.error_codes.GENERAL_COMMIT_FAILURE || 391);
+    } finally {
+      onRequestComplete?.();
     }
   }
 
