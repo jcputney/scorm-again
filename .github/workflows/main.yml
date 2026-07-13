@@ -445,12 +445,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7.0.0
         with:
-          # Push the dist/ commit as the PAT owner (a master-ruleset bypass actor)
-          # so the required status check does not reject github-actions[bot]'s
-          # direct push. Falls back to the default token until DIST_COMMIT_TOKEN
-          # is configured, preserving current behaviour.
-          token: ${{ secrets.DIST_COMMIT_TOKEN || github.token }}
-          persist-credentials: true
+          # Do not persist checkout credentials into .git/config: this job runs
+          # third-party code (npm install lifecycle scripts, codecov bundle
+          # analyzer) that could read them. The dist/ push authenticates via
+          # scoped credentials set just before the commit step.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -476,6 +475,16 @@ jobs:
 
       - name: Format code with Prettier
         run: npm run prettier
+
+      # Authenticate the dist/ push as the PAT owner (a master-ruleset bypass
+      # actor) via the remote URL, scoped to the final step only, so the PAT
+      # is never on disk while npm install or the bundle analyzer run. Falls
+      # back to the default token until DIST_COMMIT_TOKEN is configured.
+      - name: Set scoped push credentials
+        env:
+          PUSH_TOKEN: ${{ secrets.DIST_COMMIT_TOKEN || github.token }}
+        run: |
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
 
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v7.1.0
