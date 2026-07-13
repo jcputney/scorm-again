@@ -3,7 +3,15 @@
  * These interfaces are used for dependency injection to improve testability.
  */
 
-import { CommitObject, LogLevel, RefValue, ResultObject, Settings } from "../types/api_types";
+import {
+  CommitEventContext,
+  CommitMetadata,
+  CommitObject,
+  LogLevel,
+  RefValue,
+  ResultObject,
+  Settings,
+} from "../types/api_types";
 import { ErrorCode } from "../constants/error_codes";
 import { LogLevelEnum } from "../constants/enums";
 import { BaseCMI } from "../cmi/common/base_cmi";
@@ -15,12 +23,23 @@ import { StringKeyMap } from "../utilities";
  */
 export interface IHttpService {
   /**
+   * Set this to true when a custom service defers request completion until after
+   * processHttpRequest returns. Deferring services must also invoke onRequestComplete exactly
+   * once when each request settles. Subclasses of AsynchronousHttpService inherit this flag and
+   * must forward onRequestComplete, or at minimum forward processListeners so the CommitSuccess
+   * or CommitError event can provide the fallback settlement signal.
+   */
+  readonly reportsRequestCompletion?: boolean;
+
+  /**
    * Send the request to the LMS
    * @param {string} url - The URL to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
    * @param {boolean} immediate - Whether to send the request immediately
    * @param {Function} apiLog - Function to log API messages
    * @param {Function} processListeners - Function to process event listeners
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @param {Function} onRequestComplete - Callback invoked after an asynchronous request settles
    * @return {ResultObject} - The result of the request (synchronous)
    */
   processHttpRequest(
@@ -34,6 +53,8 @@ export interface IHttpService {
       CMIElement?: string,
     ) => void,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+    metadata?: CommitMetadata,
+    onRequestComplete?: () => void,
   ): ResultObject;
 
   /**
@@ -50,8 +71,8 @@ export interface IHttpService {
  * Callback type for SCORM event listeners.
  * Covers all dispatch signatures used by EventService.processListeners:
  * - Sequence events: (target: string) => void
- * - CommitError: (errorCode: string) => void
- * - CommitSuccess: () => void
+ * - CommitError: (errorCode: number | undefined, context?: CommitEventContext) => void
+ * - CommitSuccess: (context?: CommitEventContext) => void
  * - Regular events: (CMIElement: string, value: any) => void
  */
 export type ScormEventCallback = (...args: any[]) => void;
@@ -89,8 +110,14 @@ export interface IEventService {
    * @param {string} functionName - The name of the function that triggered the event
    * @param {string} CMIElement - The CMI element that was affected
    * @param {any} value - The value that was set
+   * @param {CommitEventContext} context - Optional context for commit lifecycle events
    */
-  processListeners(functionName: string, CMIElement?: string, value?: any): void;
+  processListeners(
+    functionName: string,
+    CMIElement?: string,
+    value?: any,
+    context?: CommitEventContext,
+  ): void;
 
   /**
    * Resets the event service by clearing all listeners
@@ -377,9 +404,14 @@ export interface IOfflineStorageService {
    * Store data offline when LMS is not available
    * @param {string} courseId - Identifier for the course
    * @param {CommitObject} commitData - The data to store offline
+   * @param {Object} metadata - Optional terminate and sequence metadata captured with the commit
    * @returns {ResultObject} - Result of the storage operation (synchronous - uses localStorage)
    */
-  storeOffline(courseId: string, commitData: CommitObject): ResultObject;
+  storeOffline(
+    courseId: string,
+    commitData: CommitObject,
+    metadata?: { isTerminateCommit?: boolean; sequence?: number },
+  ): ResultObject;
 
   /**
    * Get stored offline data for a course

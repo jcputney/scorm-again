@@ -1091,7 +1091,10 @@ describe("OfflineStorageService Tests", () => {
         await service["sendDataToLMS"](commitData);
 
         // Verify request handler was called
-        expect(requestHandler).toHaveBeenCalledWith(commitData);
+        expect(requestHandler).toHaveBeenCalledWith(commitData, {
+          isTerminateCommit: false,
+          trigger: "offline-replay",
+        });
       });
 
       it("should use response handler if configured", async () => {

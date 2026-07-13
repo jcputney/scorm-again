@@ -58,6 +58,11 @@ describe("BaseAPI requestHandler Tests", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(requestHandlerSpy).toHaveBeenCalledOnce();
+      expect(requestHandlerSpy).toHaveBeenCalledWith(expect.any(Object), {
+        isTerminateCommit: false,
+        sequence: 1,
+        trigger: "manual",
+      });
 
       // Verify the params were transformed
       const callArgs = fetchStub.mock.calls[0]?.[1];

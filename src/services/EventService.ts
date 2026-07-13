@@ -1,4 +1,4 @@
-import { LogLevel } from "../types/api_types";
+import { CommitEventContext, LogLevel } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
 import { IEventService, ScormEventCallback } from "../interfaces/services";
 
@@ -202,8 +202,14 @@ export class EventService implements IEventService {
    * @param {string} functionName - The name of the function that triggered the event
    * @param {string} CMIElement - The CMI element that was affected
    * @param {any} value - The value that was set
+   * @param {CommitEventContext} context - Optional context for commit lifecycle events
    */
-  processListeners(functionName: string, CMIElement?: string, value?: any) {
+  processListeners(
+    functionName: string,
+    CMIElement?: string,
+    value?: any,
+    context?: CommitEventContext,
+  ) {
     this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
 
     // Get listeners for this function name
@@ -239,18 +245,26 @@ export class EventService implements IEventService {
         // Dispatch to callback with appropriate arguments based on event type
         // Different event types have different callback signatures:
         // - Sequence events: callback(target)
-        // - CommitError: callback(errorCode)
-        // - CommitSuccess: callback()
+        // - CommitError: callback(errorCode, context?)
+        // - CommitSuccess: callback(context?)
         // - Regular events: callback(CMIElement, value)
         if (functionName.startsWith("Sequence")) {
           // For sequence events, pass the target as the first argument
           listener.callback(value);
         } else if (functionName === "CommitError") {
-          // For commit error events, pass the error code
-          listener.callback(value);
+          // Keep the error code at argument zero and append context when available.
+          if (context !== undefined) {
+            listener.callback(value, context);
+          } else {
+            listener.callback(value);
+          }
         } else if (functionName === "CommitSuccess") {
-          // For commit success events, pass no arguments
-          listener.callback();
+          // Legacy listeners receive zero arguments when no context is available.
+          if (context !== undefined) {
+            listener.callback(context);
+          } else {
+            listener.callback();
+          }
         } else {
           // For regular events, pass CMIElement and value
           listener.callback(CMIElement, value);

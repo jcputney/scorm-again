@@ -50,13 +50,16 @@ window.API_1484_11 = new Scorm2004API(settings);
 | `xhrWithCredentials` | `false` | boolean | Sets the withCredentials flag on the request to the LMS. |
 | `xhrHeaders` | `{}` | object | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send. |
 | `httpService` | `null` | IHttpService \| null | Advanced: Inject custom HTTP service implementation. Overrides `useAsynchronousCommits`. |
+| `terminateCommitParam` | `undefined` | string | When set, the terminate-time commit's URL gets `?<name>=true` appended (or `&<name>=true` if `lmsCommitUrl` already has a query string), letting the server distinguish the final commit from heartbeat commits. Applies to normal terminate commits, sendBeacon terminate commits, and offline replays of a terminate commit. |
+| `terminateCommitPayloadField` | `undefined` | string | When set, the terminate-time commit's payload gets `<name>: true` added (object formats) or `<name>=true` appended (`params` format). Independent of `terminateCommitParam`; either or both may be used. |
+| `includeCommitSequence` | `false` | boolean | When enabled, every commit payload includes a `commitSequence` field with a monotonically increasing number assigned when the commit is captured. Offline-replayed commits keep their original sequence, so servers can reject stale, out-of-order commits. |
 
 ### Data Format Settings
 
 | Setting | Default | Type | Description |
 |---------|---------|------|-------------|
 | `dataCommitFormat` | `'json'` | string | Format for sending data to the LMS. Options: `'json'`, `'flattened'`, `'params'`. See [Data Formats](./data-formats.md) for details. |
-| `requestHandler` | function | function | A function to transform the commit object before sending it to `lmsCommitUrl`. By default it's the identity function (no transformation). |
+| `requestHandler` | function | function | A function to transform the commit object before sending it to `lmsCommitUrl`. Receives an optional second `CommitMetadata` argument (`{ isTerminateCommit, trigger, sequence }`); existing one-argument handlers keep working unchanged. By default it's the identity function (no transformation). |
 | `responseHandler` | function | async function | Custom response handler for async fetch Response objects. Called when `useAsynchronousCommits=true`. The APIs expect the result from the LMS to be in the format: `{ "result": true, "errorCode": 0 }` (errorCode is optional). |
 | `xhrResponseHandler` | function | function | Custom response handler for synchronous XMLHttpRequest responses. Called when `useAsynchronousCommits=false`. |
 

@@ -24,6 +24,7 @@ import {
 import {
   ActivitySettings,
   CommitObject,
+  CommitTrigger,
   ResultObject,
   RollupRulesSettings,
   SequencingCollectionSettings,
@@ -844,9 +845,10 @@ class Scorm2004API extends BaseAPI {
   /**
    * Attempts to store the data to the LMS
    * @param {boolean} terminateCommit
+   * @param {CommitTrigger} [trigger] - What initiated the commit
    * @return {ResultObject}
    */
-  storeData(terminateCommit: boolean): ResultObject {
+  storeData(terminateCommit: boolean, trigger?: CommitTrigger): ResultObject {
     if (terminateCommit) {
       if (this.cmi.mode === "normal") {
         if (this.cmi.credit === "credit") {
@@ -901,6 +903,7 @@ class Scorm2004API extends BaseAPI {
         this.settings.lmsCommitUrl,
         commitObject,
         terminateCommit,
+        trigger,
       );
 
       if (

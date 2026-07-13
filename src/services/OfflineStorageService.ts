@@ -2,6 +2,12 @@ import { CommitObject, InternalSettings, ResultObject } from "../types/api_types
 import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
 import { ErrorCode } from "../constants/error_codes";
+import { appendQueryParam } from "../utilities";
+
+type OfflineCommitMetadata = {
+  isTerminateCommit?: boolean;
+  sequence?: number;
+};
 
 /**
  * Interface for sync queue item
@@ -12,6 +18,8 @@ interface SyncQueueItem {
   timestamp: number;
   data: CommitObject;
   syncAttempts: number;
+  isTerminateCommit?: boolean;
+  sequence?: number;
 }
 
 /**
@@ -160,9 +168,14 @@ export class OfflineStorageService {
    * Store commit data offline
    * @param {string} courseId - Identifier for the course
    * @param {CommitObject} commitData - The data to store offline
+   * @param {OfflineCommitMetadata} metadata - Metadata captured with the original commit
    * @returns {ResultObject} - Result of the storage operation
    */
-  storeOffline(courseId: string, commitData: CommitObject): ResultObject {
+  storeOffline(
+    courseId: string,
+    commitData: CommitObject,
+    metadata?: OfflineCommitMetadata,
+  ): ResultObject {
     try {
       // Store the data in the sync queue with timestamp and unique ID
       const queueItem: SyncQueueItem = {
@@ -171,6 +184,10 @@ export class OfflineStorageService {
         timestamp: Date.now(),
         data: commitData,
         syncAttempts: 0,
+        ...(metadata?.isTerminateCommit !== undefined
+          ? { isTerminateCommit: metadata.isTerminateCommit }
+          : {}),
+        ...(metadata?.sequence !== undefined ? { sequence: metadata.sequence } : {}),
       };
 
       // Get current queue
@@ -277,7 +294,12 @@ export class OfflineStorageService {
 
         try {
           // Attempt to sync this item
-          const syncResult = await this.sendDataToLMS(item.data);
+          const syncResult = await this.sendDataToLMS(item.data, {
+            ...(item.isTerminateCommit !== undefined
+              ? { isTerminateCommit: item.isTerminateCommit }
+              : {}),
+            ...(item.sequence !== undefined ? { sequence: item.sequence } : {}),
+          });
 
           if (
             (syncResult.result as unknown) === true ||
@@ -336,10 +358,15 @@ export class OfflineStorageService {
   /**
    * Send data to the LMS when online
    * @param {CommitObject} data - The data to send to the LMS
+   * @param {OfflineCommitMetadata} metadata - Metadata captured with the original commit
    * @returns {Promise<ResultObject>} - Result of the sync operation
    */
-  private async sendDataToLMS(data: CommitObject): Promise<ResultObject> {
-    if (!this.settings.lmsCommitUrl) {
+  private async sendDataToLMS(
+    data: CommitObject,
+    metadata?: OfflineCommitMetadata,
+  ): Promise<ResultObject> {
+    const configuredCommitUrl = this.settings.lmsCommitUrl;
+    if (!configuredCommitUrl) {
       return {
         result: global_constants.SCORM_FALSE,
         errorCode: this.error_codes.GENERAL || 101,
@@ -347,8 +374,19 @@ export class OfflineStorageService {
     }
 
     try {
+      const lmsCommitUrl = String(configuredCommitUrl);
+
       // Apply request handler if configured
-      const processedData = this.settings.requestHandler(data);
+      const processedData = this.settings.requestHandler(data, {
+        isTerminateCommit: metadata?.isTerminateCommit ?? false,
+        trigger: "offline-replay",
+        ...(metadata?.sequence !== undefined ? { sequence: metadata.sequence } : {}),
+      });
+
+      const requestUrl =
+        metadata?.isTerminateCommit && this.settings.terminateCommitParam
+          ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true")
+          : lmsCommitUrl;
 
       // Send the data to the LMS
       const init = {
@@ -365,7 +403,7 @@ export class OfflineStorageService {
         init.credentials = "include";
       }
 
-      const response = await fetch(this.settings.lmsCommitUrl as string, init);
+      const response = await fetch(requestUrl, init);
 
       // Process the response using the configured handler
       const result =

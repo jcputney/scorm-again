@@ -140,11 +140,44 @@ api.on("BeforeTerminate", function() {
 
 ### CommitSuccess
 
-Fires when a commit to the LMS succeeds (internal event, not typically used by LMS integrators).
+Fires when a commit to the LMS succeeds. Fired by the asynchronous HTTP service
+(`useAsynchronousCommits: true`) when the background request resolves; the default
+synchronous service returns results directly to the SCO instead of firing commit events.
+
+Callbacks receive a `CommitEventContext` object:
+
+```javascript
+api.on("CommitSuccess", function (context) {
+  console.log(context.url);               // commit URL (including any terminate marker)
+  console.log(context.trigger);           // "manual" | "autocommit" | "terminate" | "offline-replay"
+  console.log(context.isTerminateCommit); // true for the terminate-time commit
+  console.log(context.sequence);          // monotonic capture-order sequence number
+});
+```
 
 ### CommitError
 
-Fires when a commit to the LMS fails (internal event, not typically used by LMS integrators).
+Fires when a commit to the LMS fails. The error code remains the first callback argument
+(unchanged from previous versions); the context object is appended as a second argument:
+
+```javascript
+api.on("CommitError", function (errorCode, context) {
+  console.warn("Commit failed", errorCode, context.url, context.trigger);
+});
+```
+
+### Draining commits before teardown
+
+Player pages can wait for in-flight commits instead of listening for individual events:
+
+```javascript
+// Number of commits currently in flight (always 0 with the default synchronous service)
+api.pendingCommitCount;
+
+// Resolves when all in-flight commits settle, or when the timeout elapses
+// (best-effort — check pendingCommitCount afterward to detect a timeout)
+await api.whenCommitsSettled({ timeoutMs: 4000 });
+```
 
 ---
 

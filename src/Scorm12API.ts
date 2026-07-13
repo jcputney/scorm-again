@@ -17,7 +17,7 @@ import {
   scorm12_regex,
   SuccessStatus,
 } from "./constants";
-import { CommitObject, ResultObject, ScoreObject, Settings } from "./types";
+import { CommitObject, CommitTrigger, ResultObject, ScoreObject, Settings } from "./types";
 import { IHttpService } from "./interfaces";
 
 /**
@@ -529,9 +529,10 @@ class Scorm12API extends BaseAPI {
    * Attempts to store the data to the LMS
    *
    * @param {boolean} terminateCommit
+   * @param {CommitTrigger} [trigger] - What initiated the commit
    * @return {ResultObject}
    */
-  storeData(terminateCommit: boolean): ResultObject {
+  storeData(terminateCommit: boolean, trigger?: CommitTrigger): ResultObject {
     if (terminateCommit) {
       const originalStatus = this.cmi.core.lesson_status;
 
@@ -542,7 +543,7 @@ class Scorm12API extends BaseAPI {
         if (startingStatus === "" && originalStatus === "not attempted") {
           this.cmi.core.lesson_status = "browsed";
           // Skip Stage 1 and Stage 2 for browse mode
-          return this.processCommitData(terminateCommit);
+          return this.processCommitData(terminateCommit, trigger);
         }
       }
 
@@ -593,13 +594,18 @@ class Scorm12API extends BaseAPI {
       }
     }
 
-    return this.processCommitData(terminateCommit);
+    return this.processCommitData(terminateCommit, trigger);
   }
 
-  private processCommitData(terminateCommit: boolean): ResultObject {
+  private processCommitData(terminateCommit: boolean, trigger?: CommitTrigger): ResultObject {
     const commitObject = this.getCommitObject(terminateCommit);
     if (typeof this.settings.lmsCommitUrl === "string") {
-      return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
+      return this.processHttpRequest(
+        this.settings.lmsCommitUrl,
+        commitObject,
+        terminateCommit,
+        trigger,
+      );
     } else {
       return {
         result: global_constants.SCORM_TRUE,

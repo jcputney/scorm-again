@@ -555,6 +555,8 @@ describe("BaseAPI", () => {
         false,
         expect.any(Function),
         expect.any(Function),
+        expect.any(Object),
+        expect.any(Function),
       );
     });
 
@@ -583,7 +585,11 @@ describe("BaseAPI", () => {
 
       expect(result).toEqual({ result: global_constants.SCORM_TRUE, errorCode: 0 });
       expect(offlineStorageService.isDeviceOnline).toHaveBeenCalled();
-      expect(offlineStorageService.storeOffline).toHaveBeenCalledWith("course123", params);
+      expect(offlineStorageService.storeOffline).toHaveBeenCalledWith(
+        "course123",
+        params,
+        expect.any(Object),
+      );
       expect(apiLogSpy).toHaveBeenCalledWith(
         "processHttpRequest",
         "Device is offline, storing data locally",
@@ -617,7 +623,11 @@ describe("BaseAPI", () => {
         errorCode: errorCodes.GENERAL,
       });
       expect(offlineStorageService.isDeviceOnline).toHaveBeenCalled();
-      expect(offlineStorageService.storeOffline).toHaveBeenCalledWith("course123", params);
+      expect(offlineStorageService.storeOffline).toHaveBeenCalledWith(
+        "course123",
+        params,
+        expect.any(Object),
+      );
     });
 
     it("should return error when offline and params format is invalid", async () => {
@@ -752,7 +762,7 @@ describe("BaseAPI", () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         // Assert
-        expect(commitSpy).toHaveBeenCalledWith("testCallback");
+        expect(commitSpy).toHaveBeenCalledWith("testCallback", false, "autocommit");
       });
     });
   });
@@ -847,7 +857,7 @@ describe("BaseAPI", () => {
 
       expect(result).toBe(global_constants.SCORM_TRUE);
       expect(api.currentState).toBe(global_constants.STATE_TERMINATED);
-      expect(storeDataSpy).toHaveBeenCalledWith(true);
+      expect(storeDataSpy).toHaveBeenCalledWith(true, "terminate");
       expect(processListenersSpy).toHaveBeenCalledWith("Terminate");
     });
 
@@ -1057,7 +1067,7 @@ describe("BaseAPI", () => {
       const result = api.commit("Commit", true);
 
       expect(result).toBe(global_constants.SCORM_TRUE);
-      expect(storeDataSpy).toHaveBeenCalledWith(false);
+      expect(storeDataSpy).toHaveBeenCalledWith(false, "manual");
       expect(processListenersSpy).toHaveBeenCalledWith("Commit");
       expect(clearScheduledCommitSpy).toHaveBeenCalledOnce();
     });
