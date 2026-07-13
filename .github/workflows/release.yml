@@ -106,11 +106,12 @@ jobs:
         uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
-          # Push the post-release version bump as the PAT owner (a master-ruleset
-          # bypass actor) so the required status check does not reject
-          # github-actions[bot]'s direct push. Falls back to the default token
-          # until DIST_COMMIT_TOKEN is configured, preserving current behaviour.
-          token: ${{ secrets.DIST_COMMIT_TOKEN || github.token }}
+          # Do not persist checkout credentials into .git/config: this job runs
+          # third-party code (npm install lifecycle scripts, cyclonedx, npm pack)
+          # that could read them. The only later step needing git auth is the
+          # version-bump push, which sets its own scoped credentials just
+          # before pushing.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -340,6 +341,18 @@ jobs:
         run: |
           npm version ${{ steps.next_version.outputs.next_version }} --no-git-tag-version
           echo "Updated package.json to version ${{ steps.next_version.outputs.next_version }}"
+
+      # Authenticate the version-bump push as the PAT owner (a master-ruleset
+      # bypass actor) via the remote URL, scoped to the final steps only. The
+      # PAT is deliberately NOT given to actions/checkout: persisted checkout
+      # credentials sit in .git/config while npm lifecycle scripts run, and a
+      # ruleset-bypassing PAT must not be readable there. Falls back to the
+      # default token until DIST_COMMIT_TOKEN is configured.
+      - name: Set scoped push credentials
+        env:
+          PUSH_TOKEN: ${{ secrets.DIST_COMMIT_TOKEN || github.token }}
+        run: |
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
 
       # Commit version bump to master
       - name: Commit version bump
