@@ -1,6 +1,6 @@
 import esbuild from "rollup-plugin-esbuild";
 import cache from "@mo36924/rollup-plugin-cache";
-import { babel } from "@rollup/plugin-babel";
+import { swc } from "rollup-plugin-swc3";
 import { minify } from "terser";
 
 /**
@@ -221,19 +221,11 @@ Object.entries(entries).forEach(([name, input]) => {
         tsconfig: "./tsconfig.json",
         sourceMap: generateSourceMap,
       }),
-      babel({
-        babelHelpers: "bundled",
-        presets: [
-          [
-            "@babel/preset-env",
-            {
-              targets: {
-                browsers: ["ie 11", "> 0.25%, not dead"],
-              },
-            },
-          ],
-        ],
-        extensions: [".js", ".ts"],
+      swc({
+        tsconfig: false,
+        env: {
+          targets: "ie 11",
+        },
       }),
     ],
   });
@@ -257,19 +249,11 @@ Object.entries(entries).forEach(([name, input]) => {
           tsconfig: "./tsconfig.json",
           sourceMap: generateSourceMap,
         }),
-        babel({
-          babelHelpers: "bundled",
-          presets: [
-            [
-              "@babel/preset-env",
-              {
-                targets: {
-                  browsers: ["ie 11", "> 0.25%, not dead"],
-                },
-              },
-            ],
-          ],
-          extensions: [".js", ".ts"],
+        swc({
+          tsconfig: false,
+          env: {
+            targets: "ie 11",
+          },
         }),
         createTerserPlugin({
           compress: {
