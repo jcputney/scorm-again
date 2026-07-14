@@ -117,7 +117,6 @@
     "playwright": "1.61.1",
     "prettier": "3.9.5",
     "rollup": "4.62.2",
-    "rollup-plugin-dts": "6.4.1",
     "rollup-plugin-esbuild": "6.2.1",
     "rollup-plugin-swc3": "^0.12.1",
     "standard-version": "9.5.0",
