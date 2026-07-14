@@ -22306,19 +22306,13 @@ class Scorm2004DataSerializer {
     } else {
       delete cmiExport.cmi.total_time;
     }
-    const result = [];
     const flattened = flatten(cmiExport);
     const settings = this.context.getSettings();
     switch (settings.dataCommitFormat) {
       case "flattened":
-        return flatten(cmiExport);
+        return flattened;
       case "params":
-        for (const item in flattened) {
-          if ({}.hasOwnProperty.call(flattened, item)) {
-            result.push(`${item}=${flattened[item]}`);
-          }
-        }
-        return result;
+        return Object.entries(flattened).map(([item, value]) => `${item}=${value}`);
       case "json":
       default:
         return cmiExport;

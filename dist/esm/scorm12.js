@@ -6179,18 +6179,12 @@ class Scorm12API extends BaseAPI {
     if (terminateCommit || includeTotalTime) {
       cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
     }
-    const result = [];
     const flattened = flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {
       case "flattened":
         return flattened;
       case "params":
-        for (const item in flattened) {
-          if ({}.hasOwnProperty.call(flattened, item)) {
-            result.push(`${item}=${flattened[item]}`);
-          }
-        }
-        return result;
+        return Object.entries(flattened).map(([item, value]) => `${item}=${value}`);
       case "json":
       default:
         return cmiExport;
