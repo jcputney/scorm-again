@@ -290,16 +290,8 @@ export class TerminationHandler {
       }
     } while (processedExit);
 
-    // TB.2.3 step 3.6: Return sequencing request from post-condition
-    // Move to parent if no sequencing request follows (neither original nor post-condition)
-    if (!hasSequencingRequest && !postConditionResult.sequencingRequest) {
-      const current = this.activityTree.currentActivity || currentActivity;
-      if (current.parent) {
-        // Set parent as current without activating it
-        // The parent should remain inactive if it was terminated by the EXIT_PARENT cascade
-        this.activityTree.setCurrentActivityWithoutActivation(current.parent);
-      }
-    }
+    // TB.2.3 step 3.6: Return sequencing request from post-condition.
+    // Current Activity is only changed by explicit termination actions above.
 
     return {
       terminationRequest: SequencingRequestType.EXIT,

@@ -64,8 +64,8 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
     );
   });
 
-  describe("Direct _currentActivity assignment state consistency", () => {
-    it("should properly deactivate old current activity when bypassing setter at line 674", () => {
+  describe("Plain EXIT current activity state consistency", () => {
+    it("should keep the terminated activity current when a post-condition does not trigger", () => {
       // Set up activity with post-condition that will NOT trigger
       const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
         new SequencingRule(RuleActionType.CONTINUE);
@@ -76,8 +76,7 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
       child1.isActive = true;
       grandchild1.isCompleted = false; // Post-condition won't trigger
 
-      // Navigation request is just EXIT with no sequencing
-      // This will hit the code path at line 674 where _currentActivity is set directly
+      // Navigation request is just EXIT with no sequencing.
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
       expect(result.valid).toBe(true);
@@ -85,19 +84,17 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
       // The old current activity (grandchild1) should be deactivated
       expect(grandchild1.isActive).toBe(false);
 
-      // The parent (child1) becomes the new current activity
-      expect(activityTree.currentActivity).toBe(child1);
+      // Current activity remains the just-ended activity.
+      expect(activityTree.currentActivity).toBe(grandchild1);
 
-      // Key test: child1 SHOULD remain active because it was already active as an ancestor
-      // The method preserves the active state of the new current and shared ancestors
+      // Ancestors remain active because they were already active.
       expect(child1.isActive).toBe(true);
 
       // Root should also remain active (shared ancestor)
       expect(root.isActive).toBe(true);
     });
 
-    it("should maintain consistent state after EXIT with post-condition that doesn't trigger", () => {
-      // This test verifies that the direct _currentActivity assignment doesn't break state
+    it("should maintain consistent state after EXIT with no sequencing request", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = true;
@@ -107,17 +104,14 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
 
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
 
       // Child1 and root remain active (they were already active as ancestors)
-      // The method preserves their state since they're ancestors of the new current
       expect(child1.isActive).toBe(true);
       expect(root.isActive).toBe(true);
     });
 
-    it("should handle null parent when bypassing setter", () => {
-      // Edge case: what if current.parent is null but we try to set it?
-      // This shouldn't happen in practice due to the if (current.parent) check
+    it("should handle EXIT at root as session exit", () => {
       activityTree.currentActivity = root;
       root.isActive = true;
 
@@ -129,29 +123,22 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
       expect(activityTree.currentActivity).toBeNull();
     });
 
-    it("should properly handle subsequent navigation after direct assignment", () => {
-      // Set up initial state where we'll hit the direct assignment path
+    it("should allow subsequent continue navigation after plain EXIT", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = true;
 
-      // First EXIT - will use setCurrentActivityWithoutActivation to set currentActivity to child1
       const result1 = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
       expect(result1.valid).toBe(true);
-      expect(activityTree.currentActivity).toBe(child1);
-      expect(child1.isActive).toBe(true); // Remains active (was already active as ancestor)
+      expect(activityTree.currentActivity).toBe(grandchild1);
 
-      // Now verify we can still navigate correctly from this state
-      // This tests that the direct assignment didn't break the activity tree state
-      activityTree.currentActivity = null; // Reset session
-
-      const result2 = overallProcess.processNavigationRequest(NavigationRequestType.START);
+      const result2 = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
       expect(result2.valid).toBe(true);
-      // Should be able to start fresh
+      expect(result2.targetActivity).toBe(grandchild2);
     });
 
     it("should compare behavior: setter activation vs direct assignment", () => {
-      // Test 1: Normal setter behavior (like line 634)
+      // Test 1: Normal setter behavior
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = false;
@@ -162,7 +149,7 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
       expect(child1.isActive).toBe(true); // Setter activates
       expect(root.isActive).toBe(true); // Setter activates ancestors
 
-      // Test 2: Direct assignment behavior (like line 674)
+      // Test 2: Direct assignment behavior
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = false;
@@ -212,9 +199,9 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
       expect(root.isActive).toBe(true); // Still active (shared ancestor)
     });
 
-    it("should demonstrate the problem direct assignment is trying to solve", () => {
-      // Scenario: We've terminated an activity and want to set parent as current
-      // but we DON'T want to activate the parent (it was also terminated)
+    it("should demonstrate the non-activating current activity helper", () => {
+      // Scenario: a sequencing action needs to set a new current activity
+      // without activating that activity or its ancestors.
 
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
@@ -223,12 +210,11 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
       // Terminate grandchild1
       grandchild1.isActive = false;
 
-      // Now we want to set child1 as current WITHOUT activating it
+      // Now we want to set child1 as current WITHOUT activating it.
       // If we use the setter:
       // activityTree.currentActivity = child1;
       // This would activate child1 and root, which is wrong after termination
 
-      // So we use the dedicated method:
       activityTree.setCurrentActivityWithoutActivation(child1);
 
       // Verify: child1 is current and REMAINS active (it was already active)
@@ -239,9 +225,7 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
   });
 
   describe("Alternative solutions to direct assignment", () => {
-    it("should verify if ActivityTree needs a setCurrentActivityWithoutActivation method", () => {
-      // This test demonstrates what a proper method might look like
-
+    it("should demonstrate the deactivation logic needed by non-activating assignment", () => {
       // Current state
       activityTree.currentActivity = grandchild1;
       expect(grandchild1.isActive).toBe(true);
@@ -273,62 +257,32 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
     });
   });
 
-  describe("Impact analysis: does direct assignment cause bugs?", () => {
-    it("should check if old currentActivity is properly deactivated before direct assignment", () => {
-      // Set up the exact scenario from line 674
+  describe("Impact analysis: non-activating current activity assignment", () => {
+    it("should preserve old current deactivation when setting current without activation", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = true;
 
-      // Before line 674 executes, grandchild1 has already been deactivated
-      // by endAttemptProcess (line 582)
-      grandchild1.isActive = false; // This happens in endAttemptProcess
+      grandchild1.isActive = false;
+      activityTree.setCurrentActivityWithoutActivation(child1);
 
-      // Now the direct assignment happens (line 674)
-      const current = grandchild1;
-      if (current.parent) {
-        (activityTree as any)._currentActivity = current.parent;
-      }
-
-      // The question: is the old currentActivity (grandchild1) still in the correct state?
-      // Yes, because it was already deactivated by endAttemptProcess
       expect(grandchild1.isActive).toBe(false);
       expect(activityTree.currentActivity).toBe(child1);
-
-      // But what about child1's previous active state?
-      // It's currently true, but we're setting it as current WITHOUT activation
-      // This could be inconsistent
-      expect(child1.isActive).toBe(true); // Still active from before
+      expect(child1.isActive).toBe(true);
     });
 
-    it("should verify the actual state in the TB.2.3 step 3.6 scenario", () => {
-      // This simulates the exact conditions when line 674 is reached:
-      // 1. EXIT has been processed
-      // 2. No sequencing request follows
-      // 3. We want to set parent as current without activating it
-
-      // Initial state
+    it("should verify the actual state after plain EXIT with no sequencing request", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = true;
       root.isActive = true;
 
-      // TB.2.3 step 3.1: endAttemptProcess deactivates grandchild1
-      grandchild1.isActive = false;
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
-      // TB.2.3 step 3.6: Set parent as current without activating
-      const current = grandchild1;
-      if (current.parent) {
-        (activityTree as any)._currentActivity = current.parent;
-      }
-
-      // State check:
-      expect(activityTree.currentActivity).toBe(child1);
-      expect(grandchild1.isActive).toBe(false); // Correctly deactivated
-
-      // The issue: child1 is still active, but it SHOULD be inactive
-      // because we're exiting from it without a sequencing request
-      expect(child1.isActive).toBe(true); // This is potentially wrong!
+      expect(result.valid).toBe(true);
+      expect(activityTree.currentActivity).toBe(grandchild1);
+      expect(grandchild1.isActive).toBe(false);
+      expect(child1.isActive).toBe(true);
     });
   });
 });

@@ -844,7 +844,8 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
       // Should perform normal exit (not exit all)
       expect(result.valid).toBe(true);
-      // Current activity should change but session shouldn't completely end
+      // Current activity remains the just-ended activity, and the session does not completely end.
+      expect(activityTree.currentActivity).toBe(grandchild1);
       expect(grandchild1.isActive).toBe(false);
     });
 

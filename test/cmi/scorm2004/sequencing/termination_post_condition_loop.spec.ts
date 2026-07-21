@@ -102,8 +102,8 @@ describe("Post-Condition Loop in Termination Request Process", () => {
       // Verify the post-condition EXIT_PARENT caused level2 to also be terminated
       expect(level2.isActive).toBe(false);
 
-      // Verify we're now at level1 (parent of level2)
-      expect(activityTree.currentActivity).toBe(level1);
+      // Verify we're now at level2, the parent explicitly exited by EXIT_PARENT.
+      expect(activityTree.currentActivity).toBe(level2);
     });
 
     it("should end attempt on parent activity when EXIT_PARENT is processed", () => {
@@ -154,8 +154,8 @@ describe("Post-Condition Loop in Termination Request Process", () => {
       expect(level2.isActive).toBe(false);
       expect(level1.isActive).toBe(false);
 
-      // Should now be at root
-      expect(activityTree.currentActivity).toBe(root);
+      // Should now be at level1, the last ancestor explicitly exited by EXIT_PARENT.
+      expect(activityTree.currentActivity).toBe(level1);
     });
 
     it("should cascade through 3 levels with chained EXIT_PARENT", () => {
@@ -318,7 +318,6 @@ describe("Post-Condition Loop in Termination Request Process", () => {
     it("should evaluate RETRY post-condition after termination", () => {
       // Setup: Activity with RETRY post-condition at root level
       // Testing at root, post-condition sequencing requests are actually processed
-      // and RETRY from a child would fail because currentActivity moves to parent after termination
       const retryRule = new SequencingRule(RuleActionType.RETRY);
       retryRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
       root.sequencingRules.addPostConditionRule(retryRule);
@@ -480,8 +479,8 @@ describe("Post-Condition Loop in Termination Request Process", () => {
       // level2 should still be active (no cascade)
       expect(level2.isActive).toBe(true);
 
-      // Current activity should move to parent
-      expect(activityTree.currentActivity).toBe(level2);
+      // Current activity remains the terminated activity.
+      expect(activityTree.currentActivity).toBe(level3);
     });
 
     it("should handle partial cascade when post-condition chain ends", () => {
@@ -511,8 +510,8 @@ describe("Post-Condition Loop in Termination Request Process", () => {
       // level1 should still be active (cascade stopped)
       expect(level1.isActive).toBe(true);
 
-      // Current activity should be at level1
-      expect(activityTree.currentActivity).toBe(level1);
+      // Current activity remains the last activity explicitly exited by EXIT_PARENT.
+      expect(activityTree.currentActivity).toBe(level2);
     });
   });
 
@@ -541,8 +540,8 @@ describe("Post-Condition Loop in Termination Request Process", () => {
       // level2 should still be active (post-condition didn't match)
       expect(level2.isActive).toBe(true);
 
-      // Current activity should move to parent
-      expect(activityTree.currentActivity).toBe(level2);
+      // Current activity remains the terminated activity because EXIT_PARENT did not trigger.
+      expect(activityTree.currentActivity).toBe(level3);
     });
 
     it("should handle RETRY at root correctly", () => {
