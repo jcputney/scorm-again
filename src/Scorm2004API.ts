@@ -239,7 +239,29 @@ class Scorm2004API extends BaseAPI {
     this.commonReset(settings);
 
     this.cmi?.reset();
+    this.applyCurrentActivityLaunchData();
     this.adl?.reset();
+  }
+
+  /**
+   * Apply launch-static activity data to CMI while the new SCO is pre-initialize.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.9 - cmi.completion_threshold
+   */
+  private applyCurrentActivityLaunchData(): void {
+    const currentActivity = this._sequencing?.getCurrentActivity();
+    if (!this.cmi || !currentActivity) {
+      return;
+    }
+
+    const contentActivityData =
+      this._sequencing.overallSequencingProcess?.getContentActivityData(currentActivity);
+    const completionThreshold =
+      contentActivityData?.completionThreshold ??
+      currentActivity.completionThreshold?.toString() ??
+      "";
+
+    this.cmi.completion_threshold = completionThreshold;
   }
 
   /**
@@ -853,14 +875,16 @@ class Scorm2004API extends BaseAPI {
       if (this.cmi.mode === "normal") {
         if (this.cmi.credit === "credit") {
           if (this.cmi.completion_threshold && this.cmi.progress_measure) {
-            if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+            if (
+              parseFloat(this.cmi.progress_measure) >= parseFloat(this.cmi.completion_threshold)
+            ) {
               this.cmi.completion_status = "completed";
             } else {
               this.cmi.completion_status = "incomplete";
             }
           }
           if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
-            if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+            if (parseFloat(this.cmi.score.scaled) >= parseFloat(this.cmi.scaled_passing_score)) {
               this.cmi.success_status = "passed";
             } else {
               this.cmi.success_status = "failed";

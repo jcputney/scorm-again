@@ -8,6 +8,7 @@ import {
 } from "../../cmi/scorm2004/interactions";
 import { CMICommentsObject } from "../../cmi/scorm2004/comments";
 import { ADLDataObject } from "../../cmi/scorm2004/adl";
+import { evaluateCompletionStatusFromThreshold } from "../../cmi/scorm2004/completion_status_evaluation";
 import {
   CompletionStatus,
   CorrectResponses,
@@ -97,8 +98,7 @@ export class Scorm2004CMIHandler {
     const parts = CMIElement.split(".");
     const index = Number(parts[2]);
     const interaction = this.context.cmi.interactions.childArray[index] as
-      | CMIInteractionsObject
-      | undefined;
+      CMIInteractionsObject | undefined;
 
     if (this.context.isInitialized()) {
       if (typeof interaction === "undefined" || !interaction.type) {
@@ -167,34 +167,11 @@ export class Scorm2004CMIHandler {
    * @returns {string} The evaluated completion status
    */
   evaluateCompletionStatus(): string {
-    const threshold = this.context.cmi.completion_threshold;
-    const progressMeasure = this.context.cmi.progress_measure;
-    const storedStatus = this.context.cmi.completion_status;
-
-    // If completion_threshold is defined
-    if (threshold !== "" && threshold !== null && threshold !== undefined) {
-      const thresholdValue = parseFloat(String(threshold));
-
-      if (!isNaN(thresholdValue)) {
-        // Check if progress_measure is set
-        if (progressMeasure !== "" && progressMeasure !== null && progressMeasure !== undefined) {
-          const progressValue = parseFloat(String(progressMeasure));
-
-          if (!isNaN(progressValue)) {
-            // Evaluate based on threshold comparison
-            return progressValue >= thresholdValue
-              ? CompletionStatus.COMPLETED
-              : CompletionStatus.INCOMPLETE;
-          }
-        }
-
-        // completion_threshold is defined but progress_measure is not set
-        return CompletionStatus.UNKNOWN;
-      }
-    }
-
-    // No completion_threshold defined - return stored value
-    return storedStatus || CompletionStatus.UNKNOWN;
+    return evaluateCompletionStatusFromThreshold({
+      completionThreshold: this.context.cmi.completion_threshold,
+      progressMeasure: this.context.cmi.progress_measure,
+      storedCompletionStatus: this.context.cmi.completion_status,
+    });
   }
 
   /**

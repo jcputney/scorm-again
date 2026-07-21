@@ -342,6 +342,69 @@ describe("SCORM 2004 API Sequencing Configuration Tests", () => {
       expect(root.children[0].isCompleted).toBe(true);
     });
 
+    it("should configure per-activity completionThreshold settings", () => {
+      const sequencingSettings = {
+        activityTree: {
+          id: "root",
+          title: "Root",
+          children: [
+            {
+              id: "threshold-sco",
+              title: "Threshold SCO",
+              completionThreshold: {
+                completedByMeasure: true,
+                minProgressMeasure: 0.5,
+                progressWeight: 0.25,
+              },
+            },
+          ],
+        },
+      };
+
+      const apiInstance = api({ sequencing: sequencingSettings });
+      const activity = apiInstance._sequencing.activityTree.getActivity("threshold-sco");
+
+      expect(activity?.completedByMeasure).toBe(true);
+      expect(activity?.minProgressMeasure).toBe(0.5);
+      expect(activity?.completionThreshold).toBe("0.5");
+      expect(activity?.progressWeight).toBe(0.25);
+    });
+
+    it("should populate cmi.completion_threshold from the delivered activity before initialize", () => {
+      const apiInstance = api({
+        sequencing: {
+          activityTree: {
+            id: "root",
+            title: "Root",
+            sequencingControls: {
+              flow: true,
+            },
+            children: [
+              {
+                id: "threshold-sco",
+                title: "Threshold SCO",
+                completionThreshold: {
+                  completedByMeasure: true,
+                  minProgressMeasure: 0.5,
+                },
+              },
+            ],
+          },
+        },
+      });
+
+      expect(apiInstance.lmsInitialize("")).toBe("true");
+      expect(apiInstance.getSequencingState().currentActivity?.id).toBe("threshold-sco");
+
+      apiInstance.reset();
+      expect(apiInstance.cmi.completion_threshold).toBe("0.5");
+
+      expect(apiInstance.lmsInitialize("")).toBe("true");
+      expect(apiInstance.lmsGetValue("cmi.completion_threshold")).toBe("0.5");
+      expect(apiInstance.lmsSetValue("cmi.progress_measure", "0.5")).toBe("true");
+      expect(apiInstance.lmsGetValue("cmi.completion_status")).toBe("completed");
+    });
+
     it("should handle partial sequencing controls configuration", () => {
       const sequencingSettings = {
         sequencingControls: {
