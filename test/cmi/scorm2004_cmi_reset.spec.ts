@@ -17,6 +17,17 @@ describe("SCORM 2004 CMI Reset Tests", () => {
       expect((cmi as any)._initialized).toBe(false);
     });
 
+    it("should clear the self-reported session start time", () => {
+      const cmi = new CMI();
+      cmi.setStartTime();
+
+      expect(cmi.start_time).toBeDefined();
+
+      cmi.reset();
+
+      expect(cmi.start_time).toBeUndefined();
+    });
+
     it("should keep learner information but reset status information", () => {
       const cmi = new CMI();
 

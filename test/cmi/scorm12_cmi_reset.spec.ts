@@ -12,6 +12,17 @@ describe("SCORM 1.2 CMI Reset Tests", () => {
       expect((cmi as any)._initialized).toBe(false);
     });
 
+    it("should clear the self-reported session start time", () => {
+      const cmi = new CMI();
+      cmi.setStartTime();
+
+      expect(cmi.start_time).toBeDefined();
+
+      cmi.reset();
+
+      expect(cmi.start_time).toBeUndefined();
+    });
+
     it("should clear launch_data and comments on reset", () => {
       const cmi = new CMI();
 

@@ -61,6 +61,7 @@ export class CMI extends BaseRootCMI {
    */
   reset(): void {
     this._initialized = false;
+    this._start_time = undefined;
 
     this._launch_data = "";
     this._comments = "";
