@@ -354,6 +354,14 @@ jobs:
         run: |
           git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
 
+      # The artifact download leaves dist/ differing from the tag's committed
+      # dist, and git-auto-commit's internal checkout of master refuses to
+      # proceed over a dirty tree ("would be overwritten by checkout" — this
+      # broke the 3.1.2 release's bump). Only package.json/package-lock.json
+      # belong in the bump commit, so discard everything else first.
+      - name: Discard build artifacts before bump commit
+        run: git checkout -- dist/ || true
+
       # Commit version bump to master
       - name: Commit version bump
         uses: stefanzweifel/git-auto-commit-action@v7.2.0
