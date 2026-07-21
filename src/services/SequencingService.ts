@@ -17,6 +17,8 @@ import { CMI } from "../cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "../cmi/scorm2004/objectives";
 import { ADL } from "../cmi/scorm2004/adl";
 import { global_constants } from "../constants/api_constants";
+import { CompletionStatus } from "../constants/enums";
+import { evaluateCompletionStatusFromThreshold } from "../cmi/scorm2004/completion_status_evaluation";
 import { RuleCondition } from "../cmi/scorm2004/sequencing/sequencing_rules";
 import {
   AuxiliaryResource,
@@ -544,8 +546,35 @@ export class SequencingService {
    * Update activity properties from current CMI values
    */
   private updateActivityFromCMI(activity: Activity): void {
+    // Update progress measure
+    let hasProgressMeasure = false;
+    if (this.cmi.progress_measure !== "") {
+      const progressMeasure = parseFloat(this.cmi.progress_measure);
+      if (!isNaN(progressMeasure)) {
+        hasProgressMeasure = true;
+        activity.progressMeasure = progressMeasure;
+        activity.progressMeasureStatus = true;
+        activity.attemptCompletionAmount = progressMeasure;
+        activity.attemptCompletionAmountStatus = true;
+      }
+    }
+
+    if (!hasProgressMeasure) {
+      activity.attemptCompletionAmountStatus = false;
+    }
+
     // Update completion status
-    if (this.cmi.completion_status !== "unknown") {
+    if (activity.completedByMeasure) {
+      const completionStatus = evaluateCompletionStatusFromThreshold({
+        completionThreshold: activity.minProgressMeasure,
+        progressMeasure: this.cmi.progress_measure,
+        storedCompletionStatus: CompletionStatus.UNKNOWN,
+      });
+
+      activity.completionStatus = completionStatus as
+        "completed" | "incomplete" | "not attempted" | "unknown";
+      activity.attemptProgressStatus = completionStatus !== CompletionStatus.UNKNOWN;
+    } else if (this.cmi.completion_status !== "unknown") {
       activity.completionStatus = this.cmi.completion_status as
         "completed" | "incomplete" | "not attempted" | "unknown";
       // Mark that content has set completion status
@@ -561,15 +590,6 @@ export class SequencingService {
       // Mark that content has set objective satisfaction status
       if (activity.primaryObjective) {
         activity.primaryObjective.progressStatus = true;
-      }
-    }
-
-    // Update progress measure
-    if (this.cmi.progress_measure !== "") {
-      const progressMeasure = parseFloat(this.cmi.progress_measure);
-      if (!isNaN(progressMeasure)) {
-        activity.progressMeasure = progressMeasure;
-        activity.progressMeasureStatus = true;
       }
     }
 

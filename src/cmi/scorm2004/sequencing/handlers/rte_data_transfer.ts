@@ -1,5 +1,6 @@
 import { Activity } from "../activity";
 import { CompletionStatus, SuccessStatus } from "../../../../constants/enums";
+import { evaluateCompletionStatusFromThreshold } from "../../completion_status_evaluation";
 
 /**
  * Interface for CMI data provided for RTE data transfer
@@ -156,11 +157,45 @@ export class RteDataTransferService {
    * @param {CMIDataForTransfer} cmiData - CMI data from runtime
    */
   public transferPrimaryObjective(activity: Activity, cmiData: CMIDataForTransfer): void {
+    // Transfer progress measure first so completedByMeasure completion derivation
+    // and measure rollup both see the latest value.
+    let hasProgressMeasure = false;
+    if (cmiData.progress_measure && cmiData.progress_measure !== "") {
+      const progressMeasure = parseFloat(cmiData.progress_measure);
+      if (!isNaN(progressMeasure)) {
+        hasProgressMeasure = true;
+        activity.progressMeasure = progressMeasure;
+        activity.progressMeasureStatus = true;
+        activity.attemptCompletionAmount = progressMeasure;
+        activity.attemptCompletionAmountStatus = true;
+
+        if (activity.primaryObjective) {
+          activity.primaryObjective.progressMeasure = progressMeasure;
+          activity.primaryObjective.progressMeasureStatus = true;
+        }
+      }
+    }
+
+    if (!hasProgressMeasure) {
+      activity.attemptCompletionAmountStatus = false;
+    }
+
     // Transfer completion status
-    const validatedCompletionStatus = validateCompletionStatus(cmiData.completion_status);
-    if (validatedCompletionStatus && validatedCompletionStatus !== CompletionStatus.UNKNOWN) {
-      activity.completionStatus = validatedCompletionStatus;
-      activity.attemptProgressStatus = true;
+    if (activity.completedByMeasure) {
+      const completionStatus = evaluateCompletionStatusFromThreshold({
+        completionThreshold: activity.minProgressMeasure,
+        progressMeasure: cmiData.progress_measure,
+        storedCompletionStatus: CompletionStatus.UNKNOWN,
+      });
+
+      activity.completionStatus = completionStatus as CompletionStatus;
+      activity.attemptProgressStatus = completionStatus !== CompletionStatus.UNKNOWN;
+    } else {
+      const validatedCompletionStatus = validateCompletionStatus(cmiData.completion_status);
+      if (validatedCompletionStatus && validatedCompletionStatus !== CompletionStatus.UNKNOWN) {
+        activity.completionStatus = validatedCompletionStatus;
+        activity.attemptProgressStatus = true;
+      }
     }
 
     // Collect values that need to be transferred
@@ -211,20 +246,6 @@ export class RteDataTransferService {
         activity.primaryObjective.progressStatus = true;
       }
     }
-
-    // Transfer progress measure
-    if (cmiData.progress_measure && cmiData.progress_measure !== "") {
-      const progressMeasure = parseFloat(cmiData.progress_measure);
-      if (!isNaN(progressMeasure)) {
-        activity.progressMeasure = progressMeasure;
-        activity.progressMeasureStatus = true;
-
-        if (activity.primaryObjective) {
-          activity.primaryObjective.progressMeasure = progressMeasure;
-          activity.primaryObjective.progressMeasureStatus = true;
-        }
-      }
-    }
   }
 
   /**
@@ -268,7 +289,10 @@ export class RteDataTransferService {
 
       // Transfer completion status
       const validatedObjCompletionStatus = validateCompletionStatus(cmiObjective.completion_status);
-      if (validatedObjCompletionStatus && validatedObjCompletionStatus !== CompletionStatus.UNKNOWN) {
+      if (
+        validatedObjCompletionStatus &&
+        validatedObjCompletionStatus !== CompletionStatus.UNKNOWN
+      ) {
         activityObjective.completionStatus = validatedObjCompletionStatus;
       }
 

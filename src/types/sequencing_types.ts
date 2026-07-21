@@ -51,6 +51,12 @@ export type AdlRollupConsiderationsSettings = {
   measureSatisfactionIfActive?: boolean;
 };
 
+export type CompletionThresholdSettings = {
+  completedByMeasure?: boolean;
+  minProgressMeasure?: number;
+  progressWeight?: number;
+};
+
 export type ActivitySettings = {
   id: string;
   title: string;
@@ -75,6 +81,7 @@ export type ActivitySettings = {
   sequencingControls?: SequencingControlsSettings;
   rollupRules?: RollupRulesSettings;
   rollupConsiderations?: AdlRollupConsiderationsSettings;
+  completionThreshold?: CompletionThresholdSettings;
   selectionRandomizationState?: SelectionRandomizationStateSettings;
   hideLmsUi?: HideLmsUiItem[];
   sequencingCollectionRefs?: string | string[];

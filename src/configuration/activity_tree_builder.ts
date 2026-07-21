@@ -154,6 +154,23 @@ export class ActivityTreeBuilder {
       activity.applyRollupConsiderations(activitySettings.rollupConsiderations);
     }
 
+    if (activitySettings.completionThreshold) {
+      const threshold = activitySettings.completionThreshold;
+
+      if (threshold.completedByMeasure !== undefined) {
+        activity.completedByMeasure = threshold.completedByMeasure;
+      }
+      if (threshold.minProgressMeasure !== undefined) {
+        activity.minProgressMeasure = threshold.minProgressMeasure;
+        activity.completionThreshold = threshold.minProgressMeasure.toString();
+      } else if (threshold.completedByMeasure) {
+        activity.completionThreshold = activity.minProgressMeasure.toString();
+      }
+      if (threshold.progressWeight !== undefined) {
+        activity.progressWeight = threshold.progressWeight;
+      }
+    }
+
     if (activitySettings.hideLmsUi) {
       const mergedHide = this.sequencingConfigBuilder.mergeHideLmsUi(
         activity.hideLmsUi,

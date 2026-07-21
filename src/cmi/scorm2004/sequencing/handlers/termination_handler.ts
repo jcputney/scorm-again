@@ -1,6 +1,10 @@
 import { Activity } from "../activity";
 import { ActivityTree } from "../activity_tree";
-import { SequencingProcess, SequencingRequestType, PostConditionResult } from "../sequencing_process";
+import {
+  SequencingProcess,
+  SequencingRequestType,
+  PostConditionResult,
+} from "../sequencing_process";
 import { RollupProcess } from "../rollup_process";
 import { RuleActionType } from "../sequencing_rules";
 import { SelectionRandomization } from "../selection_randomization";
@@ -61,7 +65,7 @@ export class TerminationHandler {
     rollupProcess: RollupProcess,
     globalObjectiveMap: Map<string, any>,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
-    options?: TerminationHandlerOptions
+    options?: TerminationHandlerOptions,
   ) {
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
@@ -99,7 +103,7 @@ export class TerminationHandler {
   public processTerminationRequest(
     request: SequencingRequestType,
     hasSequencingRequest: boolean = false,
-    exitType?: string
+    exitType?: string,
   ): TerminationResult {
     const currentActivity = this.activityTree.currentActivity;
 
@@ -114,8 +118,7 @@ export class TerminationHandler {
 
     // TB.2.3-2: Check if trying to terminate already-terminated activity
     if (
-      (request === SequencingRequestType.EXIT ||
-        request === SequencingRequestType.ABANDON) &&
+      (request === SequencingRequestType.EXIT || request === SequencingRequestType.ABANDON) &&
       !currentActivity.isActive
     ) {
       return {
@@ -186,15 +189,12 @@ export class TerminationHandler {
    */
   public handleExitTermination(
     currentActivity: Activity,
-    hasSequencingRequest: boolean
+    hasSequencingRequest: boolean,
   ): TerminationResult {
     return this.handleExit(currentActivity, hasSequencingRequest);
   }
 
-  private handleExit(
-    currentActivity: Activity,
-    hasSequencingRequest: boolean
-  ): TerminationResult {
+  private handleExit(currentActivity: Activity, hasSequencingRequest: boolean): TerminationResult {
     // TB.2.3 step 3.0: For cluster activities, terminate descendant attempts first
     if (currentActivity.children.length > 0) {
       this.terminateDescendants(currentActivity);
@@ -218,6 +218,23 @@ export class TerminationHandler {
       // Continue to post-condition evaluation on the new current activity (parent or original)
     }
 
+    // TB.2.1: Evaluate ancestor exit action rules from the root down to the
+    // parent of the terminating activity. A firing ancestor "exit" rule exits
+    // that cluster before TB.2.2 post-condition processing chooses the next
+    // sequencing request.
+    const ancestorExitResult = this.applyAncestorExitActionRules(currentActivity);
+    if (ancestorExitResult.action === "EXIT_ALL") {
+      return this.handleExitAll(ancestorExitResult.activity || currentActivity);
+    }
+    if (ancestorExitResult.exception) {
+      return {
+        terminationRequest: SequencingRequestType.EXIT,
+        sequencingRequest: null,
+        exception: ancestorExitResult.exception,
+        valid: false,
+      };
+    }
+
     // TB.2.3 step 3.3: POST-CONDITION LOOP
     let processedExit: boolean;
     let postConditionResult: PostConditionResult;
@@ -228,7 +245,7 @@ export class TerminationHandler {
 
       // TB.2.3 step 3.3.2: Apply Sequencing Post Condition Rules Subprocess
       postConditionResult = this.evaluatePostConditions(
-        this.activityTree.currentActivity || currentActivity
+        this.activityTree.currentActivity || currentActivity,
       );
 
       // TB.2.3 step 3.3.3: If returns EXIT_ALL, change termination type and break
@@ -273,12 +290,8 @@ export class TerminationHandler {
       // If processedExit is true, we need to continue loop to evaluate the new activity's post-conditions
       if (!processedExit) {
         const atRoot =
-          (this.activityTree.currentActivity || currentActivity) ===
-          this.activityTree.root;
-        if (
-          atRoot &&
-          postConditionResult.sequencingRequest !== SequencingRequestType.RETRY
-        ) {
+          (this.activityTree.currentActivity || currentActivity) === this.activityTree.root;
+        if (atRoot && postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
           // Return EXIT sequencing request (ends session)
           return {
             terminationRequest: SequencingRequestType.EXIT,
@@ -340,7 +353,7 @@ export class TerminationHandler {
    */
   private handleAbandon(
     currentActivity: Activity,
-    hasSequencingRequest: boolean
+    hasSequencingRequest: boolean,
   ): TerminationResult {
     // TB.2.3 step 6.1: Set activity as not active (no attempt end)
     currentActivity.isActive = false;
@@ -540,7 +553,7 @@ export class TerminationHandler {
    */
   public evaluateExitRules(
     activity: Activity,
-    recursionDepth: number = 0
+    recursionDepth: number = 0,
   ): { action: string | null; recursionDepth: number } {
     // Increment recursion depth to detect infinite loops
     recursionDepth++;
@@ -554,18 +567,16 @@ export class TerminationHandler {
 
       // Check rule condition combination
       if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every((condition) =>
-          condition.evaluate(activity)
-        );
+        conditionsMet = rule.conditions.every((condition) => condition.evaluate(activity));
       } else {
-        conditionsMet = rule.conditions.some((condition) =>
-          condition.evaluate(activity)
-        );
+        conditionsMet = rule.conditions.some((condition) => condition.evaluate(activity));
       }
 
       if (conditionsMet) {
         // Return the action to take with recursion tracking
-        if (rule.action === RuleActionType.EXIT_PARENT) {
+        if (rule.action === RuleActionType.EXIT) {
+          return { action: "EXIT", recursionDepth };
+        } else if (rule.action === RuleActionType.EXIT_PARENT) {
           return { action: "EXIT_PARENT", recursionDepth };
         } else if (rule.action === RuleActionType.EXIT_ALL) {
           return { action: "EXIT_ALL", recursionDepth };
@@ -608,6 +619,67 @@ export class TerminationHandler {
 
     // Then terminate all activities
     this.terminateAll(rootActivity);
+  }
+
+  /**
+   * Sequencing Exit Action Rules Subprocess (TB.2.1) ancestor walk
+   * @spec SN Book: TB.2.1 (Sequencing Exit Action Rules Subprocess)
+   * @param {Activity} terminatingActivity - The activity whose attempt just ended
+   * @return {{action: string | null, activity?: Activity, exception?: string}}
+   */
+  private applyAncestorExitActionRules(terminatingActivity: Activity): {
+    action: string | null;
+    activity?: Activity;
+    exception?: string;
+  } {
+    const activityPath: Activity[] = [];
+    let current: Activity | null = terminatingActivity.parent;
+
+    while (current) {
+      activityPath.unshift(current);
+      current = current.parent;
+    }
+
+    for (const activity of activityPath) {
+      const exitAction = this.exitActionRulesSubprocess(activity);
+
+      if (exitAction === "EXIT_ALL") {
+        this.fireEvent("onAncestorExitAction", {
+          activity: activity.id,
+          action: exitAction,
+        });
+        return { action: "EXIT_ALL", activity };
+      }
+
+      if (exitAction === "EXIT_PARENT") {
+        if (!activity.parent) {
+          return { action: "EXIT_PARENT", activity, exception: "TB.2.3-4" };
+        }
+
+        this.terminateDescendants(activity.parent);
+        this.activityTree.currentActivity = activity.parent;
+        this.endAttempt(activity.parent);
+        this.fireEvent("onAncestorExitAction", {
+          activity: activity.id,
+          action: exitAction,
+          currentActivity: activity.parent.id,
+        });
+        return { action: "EXIT_PARENT", activity: activity.parent };
+      }
+
+      if (exitAction === "EXIT") {
+        this.terminateDescendants(activity);
+        this.activityTree.currentActivity = activity;
+        this.endAttempt(activity);
+        this.fireEvent("onAncestorExitAction", {
+          activity: activity.id,
+          action: exitAction,
+        });
+        return { action: "EXIT", activity };
+      }
+    }
+
+    return { action: null };
   }
 
   /**
@@ -725,18 +797,16 @@ export class TerminationHandler {
 
       // Check rule condition combination
       if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every((condition) =>
-          condition.evaluate(activity)
-        );
+        conditionsMet = rule.conditions.every((condition) => condition.evaluate(activity));
       } else {
-        conditionsMet = rule.conditions.some((condition) =>
-          condition.evaluate(activity)
-        );
+        conditionsMet = rule.conditions.some((condition) => condition.evaluate(activity));
       }
 
       if (conditionsMet) {
         // Return the action to take
-        if (rule.action === RuleActionType.EXIT_PARENT) {
+        if (rule.action === RuleActionType.EXIT) {
+          return "EXIT";
+        } else if (rule.action === RuleActionType.EXIT_PARENT) {
           return "EXIT_PARENT";
         } else if (rule.action === RuleActionType.EXIT_ALL) {
           return "EXIT_ALL";
