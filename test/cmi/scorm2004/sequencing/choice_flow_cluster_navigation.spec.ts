@@ -13,6 +13,17 @@ import {
   SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
+function ruleWithConditions(
+  action: RuleActionType,
+  ...conditions: RuleCondition[]
+): SequencingRule {
+  const rule = new SequencingRule(action);
+  for (const condition of conditions) {
+    rule.addCondition(condition);
+  }
+  return rule;
+}
+
 /**
  * Tests for Choice Flow to Cluster Activities (SB.2.9.1, SB.2.9.2, SB.2.4)
  *
@@ -327,7 +338,7 @@ describe("Choice Flow to Cluster Activities", () => {
     it("should skip children with SKIP pre-condition rule when flowing into cluster", () => {
       // Add SKIP rule to lesson3
       const skipCondition = new RuleCondition(RuleConditionType.ALWAYS);
-      const skipRule = new SequencingRule(RuleActionType.SKIP, [skipCondition]);
+      const skipRule = ruleWithConditions(RuleActionType.SKIP, skipCondition);
       lesson3.sequencingRules.preConditionRules.push(skipRule);
 
       activityTree.currentActivity = lesson1;
@@ -347,9 +358,7 @@ describe("Choice Flow to Cluster Activities", () => {
     it("should skip children with DISABLED pre-condition rule when flowing into cluster", () => {
       // Add DISABLED rule to lesson3
       const disabledCondition = new RuleCondition(RuleConditionType.ALWAYS);
-      const disabledRule = new SequencingRule(RuleActionType.DISABLED, [
-        disabledCondition
-      ]);
+      const disabledRule = ruleWithConditions(RuleActionType.DISABLED, disabledCondition);
       lesson3.sequencingRules.preConditionRules.push(disabledRule);
 
       activityTree.currentActivity = lesson1;

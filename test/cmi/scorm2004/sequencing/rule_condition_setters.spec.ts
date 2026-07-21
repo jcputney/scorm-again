@@ -4,6 +4,7 @@ import {
   RuleConditionOperator,
   RuleConditionType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 
 describe("RuleCondition Setters", () => {
   describe("condition setter", () => {
@@ -75,10 +76,8 @@ describe("RuleCondition Setters", () => {
   describe("interaction between setters and evaluate", () => {
     it("should use updated condition in evaluate", () => {
       const condition = new RuleCondition(RuleConditionType.ALWAYS);
-      const activity = {
-        successStatus: "passed",
-        isCompleted: false
-      } as any;
+      const activity = new Activity();
+      activity.isCompleted = false;
 
       // With ALWAYS, evaluate should return true
       expect(condition.evaluate(activity)).toBe(true);
@@ -94,9 +93,8 @@ describe("RuleCondition Setters", () => {
 
     it("should use updated operator in evaluate", () => {
       const condition = new RuleCondition(RuleConditionType.COMPLETED);
-      const activity = {
-        isCompleted: true
-      } as any;
+      const activity = new Activity();
+      activity.isCompleted = true;
 
       // Without operator, evaluate should return true for completed activity
       expect(condition.evaluate(activity)).toBe(true);

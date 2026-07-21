@@ -43,29 +43,29 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
   });
 
   describe("Pre-Condition Rules", () => {
-    it("should skip activity when skip rule is triggered", () => {
+    it("should deliver a fresh activity when not completed evaluates to unknown", () => {
       // Add skip rule when not completed
       const skipRule = new SequencingRule(RuleActionType.SKIP);
       const notCompletedCondition = new RuleCondition(RuleConditionType.COMPLETED, RuleConditionOperator.NOT);
       skipRule.addCondition(notCompletedCondition);
       childActivity1.sequencingRules.addPreConditionRule(skipRule);
 
-      // Activity is not completed
-      childActivity1.completionStatus = CompletionStatus.INCOMPLETE;
+      // Fresh activity has unknown completion progress
 
       // Set parent as current but not active (terminated)
       activityTree.currentActivity = parentActivity;
       rootActivity.isActive = false;
       parentActivity.isActive = false;
 
-      // Try to deliver activity - should skip due to pre-condition
+      // Try to deliver activity - should not skip because not(unknown) is unknown
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "child1"
       );
 
-      // Should not deliver due to skip rule
-      expect(result.deliveryRequest).toBe("doNotDeliver");
+      // Unknown rule result does not apply
+      expect(result.deliveryRequest).toBe("deliver");
+      expect(result.targetActivity).toBe(childActivity1);
     });
 
     it("should disable activity when disabled rule is triggered", () => {

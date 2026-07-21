@@ -60,7 +60,7 @@ describe("SequencingRules", () => {
         expect(condition.evaluate(activity)).toBe(false);
 
         activity.successStatus = SuccessStatus.UNKNOWN;
-        expect(condition.evaluate(activity)).toBe(false);
+        expect(condition.evaluate(activity)).toBe("unknown");
       });
 
       it("should evaluate OBJECTIVE_MEASURE_GREATER_THAN condition", () => {
@@ -84,7 +84,7 @@ describe("SequencingRules", () => {
 
         activity.objectiveMeasureStatus = false;
         activity.objectiveNormalizedMeasure = 0.8;
-        expect(condition.evaluate(activity)).toBe(false);
+        expect(condition.evaluate(activity)).toBe("unknown");
       });
 
       it("should evaluate COMPLETED condition", () => {
@@ -203,11 +203,11 @@ describe("SequencingRules", () => {
     });
 
     describe("evaluate", () => {
-      it("should return true if there are no conditions", () => {
+      it("should return false if there are no conditions", () => {
         const rule = new SequencingRule();
         const activity = new Activity();
 
-        expect(rule.evaluate(activity)).toBe(true);
+        expect(rule.evaluate(activity)).toBe(false);
       });
 
       it("should evaluate conditions with AND combination", () => {

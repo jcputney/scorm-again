@@ -13,6 +13,17 @@ import {
   SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
+function ruleWithConditions(
+  action: RuleActionType,
+  ...conditions: RuleCondition[]
+): SequencingRule {
+  const rule = new SequencingRule(action);
+  for (const condition of conditions) {
+    rule.addCondition(condition);
+  }
+  return rule;
+}
+
 describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
   let activityTree: ActivityTree;
   let sequencingProcess: SequencingProcess;
@@ -363,7 +374,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       // Add skip rule to lesson2
       const skipCondition = new RuleCondition(RuleConditionType.ALWAYS);
-      const skipRule = new SequencingRule(RuleActionType.SKIP, [skipCondition]);
+      const skipRule = ruleWithConditions(RuleActionType.SKIP, skipCondition);
       lesson2.sequencingRules.preConditionRules.push(skipRule);
 
       const result = sequencingProcess.sequencingRequestProcess(
@@ -381,7 +392,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       // Add disabled rule to lesson2
       const disabledCondition = new RuleCondition(RuleConditionType.ALWAYS);
-      const disabledRule = new SequencingRule(RuleActionType.DISABLED, [disabledCondition]);
+      const disabledRule = ruleWithConditions(RuleActionType.DISABLED, disabledCondition);
       lesson2.sequencingRules.preConditionRules.push(disabledRule);
 
       const result = sequencingProcess.sequencingRequestProcess(
@@ -399,7 +410,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       // Add hide from choice rule
       const hideCondition = new RuleCondition(RuleConditionType.ALWAYS);
-      const hideRule = new SequencingRule(RuleActionType.HIDE_FROM_CHOICE, [hideCondition]);
+      const hideRule = ruleWithConditions(RuleActionType.HIDE_FROM_CHOICE, hideCondition);
       lesson2.sequencingRules.preConditionRules.push(hideRule);
 
       const result = sequencingProcess.sequencingRequestProcess(

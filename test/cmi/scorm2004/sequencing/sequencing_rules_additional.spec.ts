@@ -13,14 +13,14 @@ import { CompletionStatus } from "../../../../src/constants/enums";
 describe("Additional SequencingRules Tests", () => {
   describe("RuleCondition", () => {
     describe("evaluate", () => {
-      it("should evaluate OBJECTIVE_STATUS_KNOWN condition", () => {
+      it("should evaluate OBJECTIVE_STATUS_KNOWN from satisfied status known", () => {
         const condition = new RuleCondition(RuleConditionType.OBJECTIVE_STATUS_KNOWN);
         const activity = new Activity();
 
-        activity.objectiveMeasureStatus = true;
+        activity.objectiveSatisfiedStatusKnown = true;
         expect(condition.evaluate(activity)).toBe(true);
 
-        activity.objectiveMeasureStatus = false;
+        activity.objectiveSatisfiedStatusKnown = false;
         expect(condition.evaluate(activity)).toBe(false);
       });
 
@@ -56,7 +56,7 @@ describe("Additional SequencingRules Tests", () => {
 
         activity.objectiveMeasureStatus = false;
         activity.objectiveNormalizedMeasure = 0.3;
-        expect(condition.evaluate(activity)).toBe(false);
+        expect(condition.evaluate(activity)).toBe("unknown");
       });
 
       it("should evaluate PROGRESS_KNOWN condition", () => {
