@@ -249,6 +249,8 @@ export class GlobalObjectiveSynchronizer {
         // Only do READ operations in this phase
         if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
           objective.satisfiedStatus = globalObjective.satisfiedStatus;
+          objective.satisfiedStatusKnown = true;
+          objective.progressStatus = true;
           objective.measureStatus = true;
         }
 
@@ -260,6 +262,8 @@ export class GlobalObjectiveSynchronizer {
             const threshold =
               objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
             objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+            objective.satisfiedStatusKnown = true;
+            objective.progressStatus = true;
           }
         }
 
@@ -342,6 +346,8 @@ export class GlobalObjectiveSynchronizer {
       // Each activity has its own read permissions for the global objective
       if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
         objective.satisfiedStatus = globalObjective.satisfiedStatus;
+        objective.satisfiedStatusKnown = true;
+        objective.progressStatus = true;
         objective.measureStatus = true;
       }
 
@@ -354,6 +360,8 @@ export class GlobalObjectiveSynchronizer {
           const threshold =
             objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
           objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+          objective.satisfiedStatusKnown = true;
+          objective.progressStatus = true;
         }
       }
 
