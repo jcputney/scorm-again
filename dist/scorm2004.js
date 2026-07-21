@@ -15892,12 +15892,6 @@ this.Scorm2004API = (function () {
                           }
                       }
                   }while (processedExit);
-                  if (!hasSequencingRequest && !postConditionResult.sequencingRequest) {
-                      var current1 = this.activityTree.currentActivity || currentActivity;
-                      if (current1.parent) {
-                          this.activityTree.setCurrentActivityWithoutActivation(current1.parent);
-                      }
-                  }
                   return {
                       terminationRequest: SequencingRequestType.EXIT,
                       sequencingRequest: postConditionResult.sequencingRequest,

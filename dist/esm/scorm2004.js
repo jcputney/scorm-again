@@ -10776,12 +10776,6 @@ class TerminationHandler {
         }
       }
     } while (processedExit);
-    if (!hasSequencingRequest && !postConditionResult.sequencingRequest) {
-      const current = this.activityTree.currentActivity || currentActivity;
-      if (current.parent) {
-        this.activityTree.setCurrentActivityWithoutActivation(current.parent);
-      }
-    }
     return {
       terminationRequest: SequencingRequestType.EXIT,
       sequencingRequest: postConditionResult.sequencingRequest,
