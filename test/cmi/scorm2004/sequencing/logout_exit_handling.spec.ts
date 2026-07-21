@@ -127,6 +127,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
         "normal"
       );
       expect(normalResult.valid).toBe(true);
+      expect(activityTree.currentActivity).toBe(lesson1);
 
       // Reset for logout test
       activityTree.currentActivity = lesson1;

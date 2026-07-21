@@ -399,7 +399,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild1.isSuspended).toBe(false);
-      expect(activityTree.currentActivity).toBe(child1); // Should move to parent
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
 
     it("should maintain consistent state after SUSPEND", () => {
@@ -448,6 +448,48 @@ describe("Termination Request Process (TB.2.3)", () => {
   });
 
   describe("Exit Type Handling (cmi.exit)", () => {
+    it("should keep the current leaf after normal exit so continue can flow to the next sibling", () => {
+      const flatTree = new ActivityTree();
+      const flatRoot = new Activity("root", "Course");
+      const activity1 = new Activity("activity_1", "Activity 1");
+      const activity2 = new Activity("activity_2", "Activity 2");
+      const activity3 = new Activity("activity_3", "Activity 3");
+
+      flatRoot.addChild(activity1);
+      flatRoot.addChild(activity2);
+      flatRoot.addChild(activity3);
+      flatRoot.sequencingControls.flow = true;
+      flatTree.root = flatRoot;
+
+      const flatSequencingProcess = new SequencingProcess(flatTree);
+      const flatRollupProcess = new RollupProcess();
+      const flatOverallProcess = new OverallSequencingProcess(
+        flatTree,
+        flatSequencingProcess,
+        flatRollupProcess
+      );
+
+      flatTree.currentActivity = activity1;
+      activity1.isActive = true;
+
+      const exitResult = flatOverallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "normal"
+      );
+
+      expect(exitResult.valid).toBe(true);
+      expect(activity1.isActive).toBe(false);
+      expect(flatTree.currentActivity).toBe(activity1);
+
+      const continueResult = flatOverallProcess.processNavigationRequest(
+        NavigationRequestType.CONTINUE
+      );
+
+      expect(continueResult.valid).toBe(true);
+      expect(continueResult.targetActivity).toBe(activity2);
+    });
+
     it("should handle logout exit type and terminate all activities", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
@@ -484,7 +526,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(result.valid).toBe(true);
       // Normal exit should just exit current activity
       expect(grandchild1.isActive).toBe(false);
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
 
     it("should handle suspend exit type (note: exitType is informational)", () => {
@@ -503,7 +545,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       // EXIT with exitType="suspend" still performs normal exit
       // To actually suspend, use SUSPEND_ALL navigation request
       expect(grandchild1.isActive).toBe(false);
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
 
     it("should handle empty exit type as normal exit", () => {
@@ -520,7 +562,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(result.valid).toBe(true);
       // Empty exit should behave like normal exit
       expect(grandchild1.isActive).toBe(false);
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
   });
 
@@ -563,9 +605,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       // Navigation request is just EXIT with no sequencing
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
-      // Should just exit to parent without continuing
+      // Should just exit without continuing
       expect(result.valid).toBe(true);
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
   });
 
@@ -940,7 +982,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(grandchild2.isActive).toBe(false);
     });
 
-    it("should handle termination when parent becomes current after EXIT", () => {
+    it("should keep the terminated activity current after EXIT", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = false; // Parent not active
@@ -949,14 +991,13 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
-      // Parent should become current but remain inactive
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
       expect(child1.isActive).toBe(false);
     });
   });
 
   describe("Termination with Sequencing Requests", () => {
-    it("should not move to parent when EXIT has sequencing request following", () => {
+    it("should process post-condition sequencing requests after EXIT", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
 
@@ -970,19 +1011,17 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
-      // With CONTINUE post-condition, should attempt to continue
+      // With CONTINUE post-condition, should attempt to continue.
       if (result.valid) {
-        // Should not just move to parent; should try to find next activity
+        // Should not just stay on the exited activity; should try to find next activity.
         expect(activityTree.currentActivity).not.toBe(child1);
       }
     });
 
-    it("should not move to parent when ABANDON has sequencing request following", () => {
+    it("should move to parent when ABANDON has no sequencing request following", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
 
-      // ABANDON doesn't support post-conditions in SCORM spec
-      // But the hasSequencingRequest parameter prevents parent movement
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 
       expect(result.valid).toBe(true);
