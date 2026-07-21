@@ -721,6 +721,29 @@ describe("SCORM 2004 API Tests", () => {
 
       expect(commonResetSpy).toHaveBeenCalledOnce();
     });
+
+    it("should allow self-reported session time to initialize again after reset", (): void => {
+      const getTimeSpy = vi
+        .spyOn(Date.prototype, "getTime")
+        .mockReturnValueOnce(1000)
+        .mockReturnValueOnce(2000);
+
+      try {
+        const scorm2004API = basicApi({ selfReportSessionTime: true });
+
+        expect(scorm2004API.Initialize("")).toBe("true");
+        const firstStartTime = scorm2004API.cmi.start_time;
+        expect(firstStartTime).toBe(1000);
+
+        scorm2004API.reset();
+
+        expect(() => scorm2004API.Initialize("")).not.toThrow();
+        expect(scorm2004API.cmi.start_time).toBe(2000);
+        expect(scorm2004API.cmi.start_time).not.toBe(firstStartTime);
+      } finally {
+        getTimeSpy.mockRestore();
+      }
+    });
   });
 
   describe("Scorm2004API.Finish", () => {

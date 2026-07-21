@@ -486,6 +486,31 @@ describe("SCORM 1.2 API Tests", () => {
     });
   });
 
+  describe("reset()", () => {
+    it("should allow self-reported session time to initialize again after reset", (): void => {
+      const getTimeSpy = vi
+        .spyOn(Date.prototype, "getTime")
+        .mockReturnValueOnce(1000)
+        .mockReturnValueOnce(2000);
+
+      try {
+        const scorm12API = api({ selfReportSessionTime: true });
+
+        expect(scorm12API.LMSInitialize("")).toBe("true");
+        const firstStartTime = scorm12API.cmi.start_time;
+        expect(firstStartTime).toBe(1000);
+
+        scorm12API.reset();
+
+        expect(() => scorm12API.LMSInitialize("")).not.toThrow();
+        expect(scorm12API.cmi.start_time).toBe(2000);
+        expect(scorm12API.cmi.start_time).not.toBe(firstStartTime);
+      } finally {
+        getTimeSpy.mockRestore();
+      }
+    });
+  });
+
   describe("renderCommitCMI()", () => {
     it("should calculate total time when terminateCommit passed", () => {
       const scorm12API = api();

@@ -107,6 +107,7 @@ export class CMI extends BaseRootCMI {
    */
   reset() {
     this._initialized = false;
+    this._start_time = undefined;
 
     // Reset new component classes
     this.metadata?.reset();
