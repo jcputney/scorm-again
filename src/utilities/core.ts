@@ -578,6 +578,8 @@ export function stringMatches(str: string | null | undefined, tester: string): b
  * @param {T} fn - The function to memoize
  * @param {Function} [keyFn] - Optional function to generate a custom cache key.
  *                           Useful for functions with complex arguments that can't be serialized.
+ * @param {Object} [options] - Optional cache bounds. `maxEntries` applies FIFO eviction,
+ *                             while keys longer than `maxKeyLength` bypass the cache.
  * @return {T} A memoized version of the input function with the same signature
  *
  * @example
@@ -606,16 +608,24 @@ export function stringMatches(str: string | null | undefined, tester: string): b
 export function memoize<T extends (...args: any[]) => any>(
   fn: T,
   keyFn?: (...args: Parameters<T>) => string,
+  options?: { maxEntries?: number; maxKeyLength?: number },
 ): T {
   const cache = new Map<string, ReturnType<T>>();
 
   return ((...args: Parameters<T>): ReturnType<T> => {
     const key = keyFn ? keyFn(...args) : JSON.stringify(args);
 
+    if (options?.maxKeyLength !== undefined && key.length > options.maxKeyLength) {
+      return fn(...args);
+    }
+
     return cache.has(key)
       ? (cache.get(key) as ReturnType<T>)
       : (() => {
           const result = fn(...args);
+          if (options?.maxEntries !== undefined && cache.size >= options.maxEntries) {
+            cache.delete(cache.keys().next().value as string);
+          }
           cache.set(key, result);
           return result;
         })();
