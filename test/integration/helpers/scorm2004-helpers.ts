@@ -2050,6 +2050,7 @@ export async function getGlobalObjectiveStatus(
   satisfiedStatus: boolean | null;
   normalizedMeasure: number | null;
   progressStatus: boolean | null;
+  completionStatus?: string | null;
 } | null> {
   return await page.evaluate((targetId) => {
     const api = (window as any).API_1484_11;

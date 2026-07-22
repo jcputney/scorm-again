@@ -539,7 +539,7 @@ class Scorm2004API extends BaseAPI {
   private getActivityObjectiveSuccessStatus(
     activityObjective: ActivityObjective,
   ): SuccessStatus | null {
-    if (activityObjective.progressStatus) {
+    if (activityObjective.progressStatus || activityObjective.satisfiedStatusKnown) {
       return activityObjective.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
     }
 

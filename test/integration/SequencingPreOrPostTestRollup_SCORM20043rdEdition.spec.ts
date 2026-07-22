@@ -80,6 +80,14 @@ const ACTIVITY_TREE = {
           id: "pretest_item",
           title: "Pre Test",
           identifierref: "assessment_resource",
+          // Manifest declares <imsss:deliveryControls completionSetByContent="true"
+          // objectiveSetByContent="true"/> on this item, so UP.4 End-Attempt
+          // auto-satisfaction must not fire when the auto-delivered pretest
+          // terminates on choice-away.
+          deliveryControls: {
+            completionSetByContent: true,
+            objectiveSetByContent: true,
+          },
           sequencingRules: {
             preConditionRules: [
               {
@@ -180,6 +188,14 @@ const ACTIVITY_TREE = {
           id: "posttest_item",
           title: "Post Test",
           identifierref: "assessment_resource",
+          // Manifest declares <imsss:deliveryControls completionSetByContent="true"
+          // objectiveSetByContent="true"/> on this item, so UP.4 End-Attempt
+          // auto-satisfaction must not fire when the auto-delivered posttest
+          // terminates on choice-away.
+          deliveryControls: {
+            completionSetByContent: true,
+            objectiveSetByContent: true,
+          },
           sequencingRules: {
             preConditionRules: [
               {

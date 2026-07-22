@@ -68,7 +68,7 @@ export class GlobalObjectiveService {
         this.globalObjectiveMap.set(defaultId, {
           id: defaultId,
           satisfiedStatus: activity.objectiveSatisfiedStatus,
-          satisfiedStatusKnown: activity.objectiveMeasureStatus,
+          satisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
           normalizedMeasure: activity.objectiveNormalizedMeasure,
           normalizedMeasureKnown: activity.objectiveMeasureStatus,
           rawScore: "",
@@ -127,7 +127,7 @@ export class GlobalObjectiveService {
           this.globalObjectiveMap.set(targetId, {
             id: targetId,
             satisfiedStatus: objective.satisfiedStatus,
-            satisfiedStatusKnown: objective.measureStatus,
+            satisfiedStatusKnown: objective.satisfiedStatusKnown || objective.progressStatus,
             normalizedMeasure: objective.normalizedMeasure,
             normalizedMeasureKnown: objective.measureStatus,
             rawScore: "",
