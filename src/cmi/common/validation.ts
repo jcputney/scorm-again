@@ -42,6 +42,8 @@ export const checkValidFormat = memoize(
     const valueKey = typeof value === "string" ? value : `[${typeof value}]`;
     return `${CMIElement}:${valueKey}:${regexPattern}:${errorCode}:${allowEmptyString || false}`;
   },
+  // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
+  { maxEntries: 1000, maxKeyLength: 2000 },
 );
 
 /**
@@ -100,4 +102,5 @@ export const checkValidRange = memoize(
   // since it can't be stringified and doesn't affect the validation result
   (CMIElement, value, rangePattern, errorCode, _errorClass) =>
     `${CMIElement}:${value}:${rangePattern}:${errorCode}`,
+  { maxEntries: 1000 },
 );
