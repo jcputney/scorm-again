@@ -1548,12 +1548,6 @@ const HIDE_LMS_UI_TOKENS = [
   "suspendAll"
 ];
 
-var RuleConditionOperator = /* @__PURE__ */ ((RuleConditionOperator2) => {
-  RuleConditionOperator2["NOT"] = "not";
-  RuleConditionOperator2["AND"] = "and";
-  RuleConditionOperator2["OR"] = "or";
-  return RuleConditionOperator2;
-})(RuleConditionOperator || {});
 var RuleActionType = /* @__PURE__ */ ((RuleActionType2) => {
   RuleActionType2["SKIP"] = "skip";
   RuleActionType2["DISABLED"] = "disabled";
@@ -1568,6 +1562,48 @@ var RuleActionType = /* @__PURE__ */ ((RuleActionType2) => {
   RuleActionType2["EXIT"] = "exit";
   return RuleActionType2;
 })(RuleActionType || {});
+function kleeneNot(value) {
+  if (value === "unknown") {
+    return "unknown";
+  }
+  return !value;
+}
+function kleeneAnd(values) {
+  let hasUnknown = false;
+  for (const value of values) {
+    if (value === false) {
+      return false;
+    }
+    if (value === "unknown") {
+      hasUnknown = true;
+    }
+  }
+  return hasUnknown ? "unknown" : true;
+}
+function kleeneOr(values) {
+  let hasUnknown = false;
+  for (const value of values) {
+    if (value === true) {
+      return true;
+    }
+    if (value === "unknown") {
+      hasUnknown = true;
+    }
+  }
+  return hasUnknown ? "unknown" : false;
+}
+function combineRuleConditionResults(values, conditionCombination) {
+  if (values.length === 0) {
+    return false;
+  }
+  if (conditionCombination === "all" || conditionCombination === "and" /* AND */) {
+    return kleeneAnd(values);
+  }
+  if (conditionCombination === "any" || conditionCombination === "or" /* OR */) {
+    return kleeneOr(values);
+  }
+  return false;
+}
 class RuleCondition extends BaseCMI {
   _condition = "always" /* ALWAYS */;
   _operator = null;
@@ -1673,51 +1709,72 @@ class RuleCondition extends BaseCMI {
   /**
    * Evaluate the condition for an activity
    * @param {Activity} activity - The activity to evaluate the condition for
-   * @return {boolean} - True if the condition is met, false otherwise
+   * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
   evaluate(activity) {
     let result;
+    const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
     switch (this._condition) {
       case "satisfied" /* SATISFIED */:
       case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */:
-        if (referencedObjective) {
-          result = referencedObjective.satisfiedStatus === true;
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+        } else if (referencedObjective) {
+          result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus ? referencedObjective.satisfiedStatus === true : "unknown";
+        } else if (activity.objectiveSatisfiedStatusKnown) {
+          result = activity.objectiveSatisfiedStatus === true;
+        } else if (activity.successStatus !== SuccessStatus.UNKNOWN) {
+          result = activity.successStatus === SuccessStatus.PASSED;
         } else {
-          result = activity.successStatus === SuccessStatus.PASSED || activity.objectiveSatisfiedStatus === true;
+          result = "unknown";
         }
         break;
       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
-        result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+        result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.satisfiedStatusKnown : !!activity.objectiveSatisfiedStatusKnown;
         break;
       case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
-        result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+        result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
         break;
       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+          break;
+        }
         const greaterThanValue = this._parameters.get("threshold") || 0;
         const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
         const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-        result = !!measureStatus && measureValue > greaterThanValue;
+        result = measureStatus ? measureValue > greaterThanValue : "unknown";
         break;
       }
       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+          break;
+        }
         const lessThanValue = this._parameters.get("threshold") || 0;
         const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
         const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-        result = !!measureStatus && measureValue < lessThanValue;
+        result = measureStatus ? measureValue < lessThanValue : "unknown";
         break;
       }
       case "completed" /* COMPLETED */:
       case "activityCompleted" /* ACTIVITY_COMPLETED */:
-        if (referencedObjective) {
-          result = referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+        } else if (referencedObjective) {
+          result = referencedObjective.completionStatus === CompletionStatus.UNKNOWN ? "unknown" : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+        } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
+          result = "unknown";
         } else {
-          result = activity.isCompleted;
+          result = activity.completionStatus === CompletionStatus.COMPLETED;
         }
         break;
       case "progressKnown" /* PROGRESS_KNOWN */:
       case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */:
-        if (referencedObjective) {
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+        } else if (referencedObjective) {
           result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
         } else {
           result = activity.completionStatus !== "unknown";
@@ -1746,7 +1803,7 @@ class RuleCondition extends BaseCMI {
         break;
     }
     if (this._operator === "not" /* NOT */) {
-      result = !result;
+      result = kleeneNot(result);
     }
     return result;
   }
@@ -1953,15 +2010,10 @@ class SequencingRule extends BaseCMI {
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
   evaluate(activity) {
-    if (this._conditions.length === 0) {
-      return true;
-    }
-    if (this._conditionCombination === "all" || this._conditionCombination === "and" /* AND */) {
-      return this._conditions.every((condition) => condition.evaluate(activity));
-    } else if (this._conditionCombination === "any" || this._conditionCombination === "or" /* OR */) {
-      return this._conditions.some((condition) => condition.evaluate(activity));
-    }
-    return false;
+    return combineRuleConditionResults(
+      this._conditions.map((condition) => condition.evaluate(activity)),
+      this._conditionCombination
+    ) === true;
   }
   /**
    * toJSON for SequencingRule
@@ -2794,19 +2846,10 @@ class RuleEvaluationEngine {
    * Evaluates individual sequencing rule conditions
    * @param {Activity} activity - The activity to evaluate the rule for
    * @param {SequencingRule} rule - The rule to evaluate
-   * @return {boolean} - True if all rule conditions are met
+   * @return {boolean} - True only when the rule evaluates to definite true
    */
   checkRuleSubprocess(activity, rule) {
-    if (rule.conditions.length === 0) {
-      return true;
-    }
-    const conditionCombination = rule.conditionCombination;
-    if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
-      return rule.conditions.every((condition) => condition.evaluate(activity));
-    } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
-      return rule.conditions.some((condition) => condition.evaluate(activity));
-    }
-    return false;
+    return rule.evaluate(activity);
   }
   /**
    * Exit Action Rules Subprocess (TB.2.1)
@@ -3678,16 +3721,21 @@ class FlowTraversalService {
    * @param {Activity} fromActivity - The activity to flow from
    * @param {FlowSubprocessMode} direction - The flow direction
    * @return {FlowSubprocessResult} - Result containing the deliverable activity
+   * @spec SN Book: SB.2.3 (Flow Subprocess) - preserves the SB.2.1 effective traversal direction for SB.2.2.
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates candidates using the effective direction returned by SB.2.1.
    */
   flowSubprocess(fromActivity, direction) {
     let candidateActivity = fromActivity;
     let firstIteration = true;
     let lastCandidateHadNoChildren = false;
+    let currentDirection = direction;
+    let forwardOnlyCluster = null;
     while (candidateActivity) {
       const traversalResult = this.flowTreeTraversalSubprocess(
         candidateActivity,
-        direction,
-        firstIteration
+        currentDirection,
+        firstIteration,
+        forwardOnlyCluster
       );
       if (!traversalResult.activity) {
         let exceptionCode = null;
@@ -3705,17 +3753,22 @@ class FlowTraversalService {
           traversalResult.endSequencingSession
         );
       }
+      const effectiveDirection = traversalResult.direction || currentDirection;
+      if (traversalResult.forwardOnlyCluster) {
+        forwardOnlyCluster = traversalResult.forwardOnlyCluster;
+      }
       lastCandidateHadNoChildren = traversalResult.activity.children.length > 0 && traversalResult.activity.getAvailableChildren().length === 0;
       const deliverable = this.flowActivityTraversalSubprocess(
         traversalResult.activity,
-        direction === FlowSubprocessMode.FORWARD,
+        effectiveDirection === FlowSubprocessMode.FORWARD,
         true,
-        direction
+        effectiveDirection
       );
       if (deliverable) {
         return new FlowSubprocessResult(deliverable, true, null, false);
       }
       candidateActivity = traversalResult.activity;
+      currentDirection = effectiveDirection;
       firstIteration = false;
     }
     return new FlowSubprocessResult(null, false, null, false);
@@ -3726,11 +3779,13 @@ class FlowTraversalService {
    * @param {Activity} fromActivity - The activity to traverse from
    * @param {FlowSubprocessMode} direction - The traversal direction
    * @param {boolean} skipChildren - Whether to skip checking children
+   * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {FlowTreeTraversalResult} - The next activity and flags
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
    */
-  flowTreeTraversalSubprocess(fromActivity, direction, skipChildren = false) {
+  flowTreeTraversalSubprocess(fromActivity, direction, skipChildren = false, forwardTraversalBoundary = null) {
     if (direction === FlowSubprocessMode.FORWARD) {
-      return this.traverseForward(fromActivity, skipChildren);
+      return this.traverseForward(fromActivity, skipChildren, forwardTraversalBoundary);
     } else {
       return this.traverseBackward(fromActivity);
     }
@@ -3739,10 +3794,15 @@ class FlowTraversalService {
    * Traverse forward in the activity tree
    * @param {Activity} fromActivity - Starting activity
    * @param {boolean} skipChildren - Whether to skip children
+   * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {FlowTreeTraversalResult}
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - a reversed Forward traversal from a forwardOnly cluster remains within that cluster.
    */
-  traverseForward(fromActivity, skipChildren) {
-    if (skipChildren && this.isActivityLastOverall(fromActivity)) {
+  traverseForward(fromActivity, skipChildren, forwardTraversalBoundary = null) {
+    if (forwardTraversalBoundary && !this.isDescendantOfOrSelf(fromActivity, forwardTraversalBoundary)) {
+      return { activity: null, endSequencingSession: false };
+    }
+    if (!forwardTraversalBoundary && skipChildren && this.isActivityLastOverall(fromActivity)) {
       if (this.activityTree.root) {
         this.terminateDescendentAttempts(this.activityTree.root);
       }
@@ -3761,6 +3821,9 @@ class FlowTraversalService {
       if (nextSibling) {
         return { activity: nextSibling, endSequencingSession: false };
       }
+      if (forwardTraversalBoundary && (current === forwardTraversalBoundary || current.parent === forwardTraversalBoundary)) {
+        return { activity: null, endSequencingSession: false };
+      }
       current = current.parent;
     }
     if (this.activityTree.root) {
@@ -3772,6 +3835,7 @@ class FlowTraversalService {
    * Traverse backward in the activity tree
    * @param {Activity} fromActivity - Starting activity
    * @return {FlowTreeTraversalResult}
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
    */
   traverseBackward(fromActivity) {
     if (fromActivity.parent && fromActivity.parent.sequencingControls.forwardOnly) {
@@ -3779,10 +3843,7 @@ class FlowTraversalService {
     }
     const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
     if (previousSibling) {
-      return {
-        activity: this.getLastDescendant(previousSibling),
-        endSequencingSession: false
-      };
+      return this.getBackwardTraversalEntry(previousSibling);
     }
     let current = fromActivity;
     let ancestorIterations = 0;
@@ -3793,38 +3854,64 @@ class FlowTraversalService {
       }
       const parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
       if (parentPreviousSibling) {
-        return {
-          activity: this.getLastDescendant(parentPreviousSibling),
-          endSequencingSession: false
-        };
+        return this.getBackwardTraversalEntry(parentPreviousSibling);
       }
       current = current.parent;
     }
     return { activity: null, endSequencingSession: false };
   }
   /**
-   * Get the last descendant of an activity
+   * Get the activity entered by backward traversal.
    * @param {Activity} activity - The activity
-   * @return {Activity} - The last descendant
+   * @return {FlowTreeTraversalResult} - The entered activity and effective direction
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - entering a forwardOnly cluster while moving Backward uses the first available child and changes direction to Forward.
    */
-  getLastDescendant(activity) {
-    let lastDescendant = activity;
+  getBackwardTraversalEntry(activity) {
+    let enteredActivity = activity;
     let iterations = 0;
     const maxIterations = 1e4;
     while (true) {
       if (++iterations > maxIterations) {
-        throw new Error("Infinite loop detected while getting last descendant");
+        throw new Error("Infinite loop detected while getting backward traversal entry");
       }
-      this.ensureSelectionAndRandomization(lastDescendant);
-      const children = lastDescendant.getAvailableChildren();
+      this.ensureSelectionAndRandomization(enteredActivity);
+      const children = enteredActivity.getAvailableChildren();
       if (children.length === 0) {
         break;
       }
+      if (enteredActivity.sequencingControls.forwardOnly) {
+        return {
+          activity: children[0] || null,
+          endSequencingSession: false,
+          direction: FlowSubprocessMode.FORWARD,
+          forwardOnlyCluster: enteredActivity
+        };
+      }
       const lastChild = children[children.length - 1];
       if (!lastChild) break;
-      lastDescendant = lastChild;
+      enteredActivity = lastChild;
     }
-    return lastDescendant;
+    return {
+      activity: enteredActivity,
+      endSequencingSession: false
+    };
+  }
+  /**
+   * Check whether an activity is the same as or beneath an ancestor.
+   * @param {Activity} activity - The activity to check
+   * @param {Activity} ancestor - The expected ancestor
+   * @return {boolean} - True when activity is within ancestor
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - bounds Forward traversal after a forwardOnly direction reversal to the entered cluster.
+   */
+  isDescendantOfOrSelf(activity, ancestor) {
+    let current = activity;
+    while (current) {
+      if (current === ancestor) {
+        return true;
+      }
+      current = current.parent;
+    }
+    return false;
   }
   /**
    * Flow Activity Traversal Subprocess (SB.2.2)
@@ -6906,6 +6993,12 @@ class ActivityObjective {
   // objectives. It serves as a validity gate for other synced properties.
   _measureStatus = false;
   _normalizedMeasure = 0;
+  _rawScore = "";
+  _rawScoreKnown = false;
+  _minScore = "";
+  _minScoreKnown = false;
+  _maxScore = "";
+  _maxScoreKnown = false;
   _progressMeasure = 0;
   _progressMeasureStatus = false;
   _completionStatus = CompletionStatus.UNKNOWN;
@@ -6915,6 +7008,9 @@ class ActivityObjective {
   _normalizedMeasureDirty = false;
   _completionStatusDirty = false;
   _progressMeasureDirty = false;
+  _rawScoreDirty = false;
+  _minScoreDirty = false;
+  _maxScoreDirty = false;
   constructor(id, options = {}) {
     this._id = id;
     this._description = options.description ?? null;
@@ -6960,6 +7056,8 @@ class ActivityObjective {
     if (this._satisfiedStatus !== value) {
       this._satisfiedStatus = value;
       this._satisfiedStatusDirty = true;
+      this._satisfiedStatusKnown = true;
+      this._progressStatus = true;
     }
   }
   get satisfiedStatusKnown() {
@@ -6982,6 +7080,114 @@ class ActivityObjective {
       this._normalizedMeasure = value;
       this._normalizedMeasureDirty = true;
     }
+  }
+  /**
+   * Return the known raw score value held for ADLSEQ objective score mapping.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score mapInfo
+   */
+  get rawScore() {
+    return this._rawScore;
+  }
+  /**
+   * Store the RTE raw score associated with this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - raw score mapInfo
+   */
+  set rawScore(value) {
+    if (this._rawScore !== value) {
+      this._rawScore = value;
+      this._rawScoreDirty = true;
+    }
+    this._rawScoreKnown = value !== "";
+  }
+  /**
+   * Return whether this objective's raw score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score known state
+   */
+  get rawScoreKnown() {
+    return this._rawScoreKnown;
+  }
+  /**
+   * Set whether this objective's raw score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score known state
+   */
+  set rawScoreKnown(value) {
+    this._rawScoreKnown = value;
+  }
+  /**
+   * Return the known minimum score value held for ADLSEQ objective score mapping.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score mapInfo
+   */
+  get minScore() {
+    return this._minScore;
+  }
+  /**
+   * Store the RTE minimum score associated with this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - min score mapInfo
+   */
+  set minScore(value) {
+    if (this._minScore !== value) {
+      this._minScore = value;
+      this._minScoreDirty = true;
+    }
+    this._minScoreKnown = value !== "";
+  }
+  /**
+   * Return whether this objective's minimum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score known state
+   */
+  get minScoreKnown() {
+    return this._minScoreKnown;
+  }
+  /**
+   * Set whether this objective's minimum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score known state
+   */
+  set minScoreKnown(value) {
+    this._minScoreKnown = value;
+  }
+  /**
+   * Return the known maximum score value held for ADLSEQ objective score mapping.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score mapInfo
+   */
+  get maxScore() {
+    return this._maxScore;
+  }
+  /**
+   * Store the RTE maximum score associated with this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - max score mapInfo
+   */
+  set maxScore(value) {
+    if (this._maxScore !== value) {
+      this._maxScore = value;
+      this._maxScoreDirty = true;
+    }
+    this._maxScoreKnown = value !== "";
+  }
+  /**
+   * Return whether this objective's maximum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score known state
+   */
+  get maxScoreKnown() {
+    return this._maxScoreKnown;
+  }
+  /**
+   * Set whether this objective's maximum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score known state
+   */
+  set maxScoreKnown(value) {
+    this._maxScoreKnown = value;
   }
   get progressMeasure() {
     return this._progressMeasure;
@@ -7013,6 +7219,11 @@ class ActivityObjective {
   set progressStatus(value) {
     this._progressStatus = value;
   }
+  /**
+   * Report whether a local objective field has changed since the last global write.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - write maps use known local objective data
+   */
   isDirty(property) {
     switch (property) {
       case "satisfiedStatus":
@@ -7023,8 +7234,19 @@ class ActivityObjective {
         return this._completionStatusDirty;
       case "progressMeasure":
         return this._progressMeasureDirty;
+      case "rawScore":
+        return this._rawScoreDirty;
+      case "minScore":
+        return this._minScoreDirty;
+      case "maxScore":
+        return this._maxScoreDirty;
     }
   }
+  /**
+   * Clear a local objective dirty flag after a successful global write.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - write maps update global objective state
+   */
   clearDirty(property) {
     switch (property) {
       case "satisfiedStatus":
@@ -7039,13 +7261,31 @@ class ActivityObjective {
       case "progressMeasure":
         this._progressMeasureDirty = false;
         break;
+      case "rawScore":
+        this._rawScoreDirty = false;
+        break;
+      case "minScore":
+        this._minScoreDirty = false;
+        break;
+      case "maxScore":
+        this._maxScoreDirty = false;
+        break;
     }
   }
+  /**
+   * Clear all write-map dirty flags for this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo writes are field-specific
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo writes are field-specific
+   */
   clearAllDirty() {
     this._satisfiedStatusDirty = false;
     this._normalizedMeasureDirty = false;
     this._completionStatusDirty = false;
     this._progressMeasureDirty = false;
+    this._rawScoreDirty = false;
+    this._minScoreDirty = false;
+    this._maxScoreDirty = false;
   }
   /**
    * Initialize objective values from CMI data transfer
@@ -7055,6 +7295,8 @@ class ActivityObjective {
    * @param satisfiedStatus - The satisfied status from CMI
    * @param normalizedMeasure - The normalized measure from CMI
    * @param measureStatus - Whether measure is valid
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective satisfaction and measure transfer
    */
   initializeFromCMI(satisfiedStatus, normalizedMeasure, measureStatus) {
     this._satisfiedStatus = satisfiedStatus;
@@ -7063,17 +7305,93 @@ class ActivityObjective {
     this._normalizedMeasureDirty = true;
     this._measureStatus = measureStatus;
   }
+  /**
+   * Initialize raw/min/max objective score values from RTE data transfer.
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective score transfer
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score mapInfo writes
+   */
+  initializeScoreFromCMI(score) {
+    if (score.rawScore !== void 0 && score.rawScore !== "") {
+      this._rawScore = score.rawScore;
+      this._rawScoreKnown = true;
+      this._rawScoreDirty = true;
+    }
+    if (score.minScore !== void 0 && score.minScore !== "") {
+      this._minScore = score.minScore;
+      this._minScoreKnown = true;
+      this._minScoreDirty = true;
+    }
+    if (score.maxScore !== void 0 && score.maxScore !== "") {
+      this._maxScore = score.maxScore;
+      this._maxScoreKnown = true;
+      this._maxScoreDirty = true;
+    }
+  }
+  /**
+   * Apply read-mapped global objective state without marking the values dirty.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to global objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps are access-only
+   */
+  applyReadMappedState(state) {
+    if (state.satisfiedStatus !== void 0) {
+      this._satisfiedStatus = state.satisfiedStatus;
+      this._satisfiedStatusKnown = true;
+      this._progressStatus = true;
+    }
+    if (state.normalizedMeasure !== void 0) {
+      this._normalizedMeasure = state.normalizedMeasure;
+      this._measureStatus = true;
+    }
+    if (state.completionStatus !== void 0) {
+      this._completionStatus = state.completionStatus;
+    }
+    if (state.progressMeasure !== void 0) {
+      this._progressMeasure = state.progressMeasure;
+      this._progressMeasureStatus = true;
+    }
+    if (state.rawScore !== void 0) {
+      this._rawScore = state.rawScore;
+      this._rawScoreKnown = true;
+    }
+    if (state.minScore !== void 0) {
+      this._minScore = state.minScore;
+      this._minScoreKnown = true;
+    }
+    if (state.maxScore !== void 0) {
+      this._maxScore = state.maxScore;
+      this._maxScoreKnown = true;
+    }
+  }
+  /**
+   * Reset local objective state for a fresh activity attempt.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - unknown objective state before tracking data exists
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score map fields are unknown until transferred or read
+   */
   resetState() {
     this._satisfiedStatus = false;
     this._satisfiedStatusKnown = false;
     this._measureStatus = false;
     this._normalizedMeasure = 0;
+    this._rawScore = "";
+    this._rawScoreKnown = false;
+    this._minScore = "";
+    this._minScoreKnown = false;
+    this._maxScore = "";
+    this._maxScoreKnown = false;
     this._progressMeasure = 0;
     this._progressMeasureStatus = false;
     this._completionStatus = CompletionStatus.UNKNOWN;
     this._progressStatus = false;
     this.clearAllDirty();
   }
+  /**
+   * Copy primary activity objective state back into the primary objective model.
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - primary objective state is available to sequencing
+   */
   updateFromActivity(activity) {
     if (this._satisfiedStatus !== activity.objectiveSatisfiedStatus) {
       this._satisfiedStatus = activity.objectiveSatisfiedStatus;
@@ -7095,6 +7413,11 @@ class ActivityObjective {
       this._completionStatusDirty = true;
     }
   }
+  /**
+   * Apply primary objective state to the owning activity for sequencing rules and rollup.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - primary objective contributes activity state
+   */
   applyToActivity(activity) {
     if (!this._isPrimary) {
       return;
@@ -7105,7 +7428,8 @@ class ActivityObjective {
       this._normalizedMeasure,
       this._progressMeasure,
       this._progressMeasureStatus,
-      this._completionStatus
+      this._completionStatus,
+      this._progressStatus || this._satisfiedStatusKnown
     );
   }
 }
@@ -8175,7 +8499,7 @@ class Activity extends BaseCMI {
   /**
    * Setter for primary objective
    * @param {ActivityObjective | null} objective
-  */
+   */
   set primaryObjective(objective) {
     this._primaryObjective = objective;
     if (this._primaryObjective) {
@@ -8197,7 +8521,7 @@ class Activity extends BaseCMI {
   /**
    * Replace objectives collection
    * @param {ActivityObjective[]} objectives
-  */
+   */
   set objectives(objectives) {
     this._objectives = [...objectives];
     this.syncPrimaryObjectiveCollection();
@@ -8290,12 +8614,12 @@ class Activity extends BaseCMI {
     this._objectiveNormalizedMeasureDirty = false;
     this._objectiveMeasureStatusDirty = false;
   }
-  setPrimaryObjectiveState(satisfiedStatus, measureStatus, normalizedMeasure, progressMeasure, progressMeasureStatus, completionStatus) {
+  setPrimaryObjectiveState(satisfiedStatus, measureStatus, normalizedMeasure, progressMeasure, progressMeasureStatus, completionStatus, objectiveProgressStatus = true) {
     if (this._objectiveSatisfiedStatus !== satisfiedStatus) {
       this._objectiveSatisfiedStatus = satisfiedStatus;
       this._objectiveSatisfiedStatusDirty = true;
     }
-    this._objectiveSatisfiedStatusKnown = true;
+    this._objectiveSatisfiedStatusKnown = objectiveProgressStatus;
     if (this._objectiveMeasureStatus !== measureStatus) {
       this._objectiveMeasureStatus = measureStatus;
       this._objectiveMeasureStatusDirty = true;
@@ -8314,14 +8638,28 @@ class Activity extends BaseCMI {
       this._primaryObjective.progressMeasure = progressMeasure;
       this._primaryObjective.progressMeasureStatus = progressMeasureStatus;
       this._primaryObjective.completionStatus = completionStatus;
+      this._primaryObjective.satisfiedStatusKnown = objectiveProgressStatus;
+      this._primaryObjective.progressStatus = objectiveProgressStatus;
     }
   }
+  /**
+   * Snapshot objective state for sequencing persistence.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - objective state persists across attempts
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score-map state persists with objective state
+   */
   getObjectiveStateSnapshot() {
     const primarySnapshot = this._primaryObjective ? {
       id: this._primaryObjective.id,
       satisfiedStatus: this.objectiveSatisfiedStatus,
       measureStatus: this.objectiveMeasureStatus,
       normalizedMeasure: this.objectiveNormalizedMeasure,
+      rawScore: this._primaryObjective.rawScore,
+      rawScoreKnown: this._primaryObjective.rawScoreKnown,
+      minScore: this._primaryObjective.minScore,
+      minScoreKnown: this._primaryObjective.minScoreKnown,
+      maxScore: this._primaryObjective.maxScore,
+      maxScoreKnown: this._primaryObjective.maxScoreKnown,
       progressMeasure: this.progressMeasure ?? 0,
       progressMeasureStatus: this.progressMeasureStatus,
       progressStatus: this._primaryObjective.progressStatus,
@@ -8334,6 +8672,12 @@ class Activity extends BaseCMI {
       satisfiedStatus: objective.satisfiedStatus,
       measureStatus: objective.measureStatus,
       normalizedMeasure: objective.normalizedMeasure,
+      rawScore: objective.rawScore,
+      rawScoreKnown: objective.rawScoreKnown,
+      minScore: objective.minScore,
+      minScoreKnown: objective.minScoreKnown,
+      maxScore: objective.maxScore,
+      maxScoreKnown: objective.maxScoreKnown,
       progressMeasure: objective.progressMeasure,
       progressMeasureStatus: objective.progressMeasureStatus,
       progressStatus: objective.progressStatus,
@@ -8346,6 +8690,12 @@ class Activity extends BaseCMI {
       objectives: additionalSnapshots
     };
   }
+  /**
+   * Restore objective state from a sequencing persistence snapshot.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - persisted objective state restores sequencing state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - persisted score-map state restores objective score fields
+   */
   applyObjectiveStateSnapshot(snapshot) {
     if (snapshot.primary) {
       const primary = this.getObjectiveById(snapshot.primary.id);
@@ -8359,8 +8709,10 @@ class Activity extends BaseCMI {
           state.normalizedMeasure,
           state.progressMeasure,
           state.progressMeasureStatus,
-          state.completionStatus
+          state.completionStatus,
+          state.progressStatus
         );
+        this.applyObjectiveScoreSnapshot(primary.objective, state);
       }
     }
     for (const state of snapshot.objectives) {
@@ -8373,10 +8725,29 @@ class Activity extends BaseCMI {
         objective.progressMeasure = state.progressMeasure;
         objective.progressMeasureStatus = state.progressMeasureStatus;
         objective.completionStatus = state.completionStatus;
+        this.applyObjectiveScoreSnapshot(objective, state);
         objective.satisfiedByMeasure = state.satisfiedByMeasure ?? objective.satisfiedByMeasure;
         objective.minNormalizedMeasure = state.minNormalizedMeasure !== void 0 ? state.minNormalizedMeasure : objective.minNormalizedMeasure;
       }
     }
+  }
+  /**
+   * Restore known raw/min/max score fields from an objective state snapshot.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score known flags restore independently
+   */
+  applyObjectiveScoreSnapshot(objective, state) {
+    const scoreState = {};
+    if (state.rawScoreKnown) {
+      scoreState.rawScore = state.rawScore;
+    }
+    if (state.minScoreKnown) {
+      scoreState.minScore = state.minScore;
+    }
+    if (state.maxScoreKnown) {
+      scoreState.maxScore = state.maxScore;
+    }
+    objective.applyReadMappedState(scoreState);
   }
   /**
    * Get available children with selection and randomization applied
@@ -9768,11 +10139,18 @@ class GlobalObjectiveSynchronizer {
    *
    * @param activity - The activity to process
    * @param globalObjectives - Global objective map
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - write mapInfo transfers local objective state to global objectives
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score write maps
    */
   syncGlobalObjectivesWritePhase(activity, globalObjectives) {
+    if (!this.canWriteGlobalObjectives(activity)) {
+      return;
+    }
     const objectives = activity.getAllObjectives();
     for (const objective of objectives) {
       const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
+      const dirtyFieldsToClear = /* @__PURE__ */ new Set();
       for (const mapInfo of mapInfos) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         const globalObjective = this.ensureGlobalObjectiveEntry(
@@ -9780,35 +10158,53 @@ class GlobalObjectiveSynchronizer {
           targetId,
           objective
         );
-        if (mapInfo.writeSatisfiedStatus && objective.measureStatus && objective.isDirty("satisfiedStatus")) {
+        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective) && objective.isDirty("satisfiedStatus")) {
           globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
-          objective.clearDirty("satisfiedStatus");
+          dirtyFieldsToClear.add("satisfiedStatus");
         }
         if (mapInfo.writeNormalizedMeasure && objective.measureStatus && objective.isDirty("normalizedMeasure")) {
           globalObjective.normalizedMeasure = objective.normalizedMeasure;
           globalObjective.normalizedMeasureKnown = true;
-          objective.clearDirty("normalizedMeasure");
-          if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
+          dirtyFieldsToClear.add("normalizedMeasure");
+          if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
             const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
-            objective.clearDirty("satisfiedStatus");
+            dirtyFieldsToClear.add("satisfiedStatus");
           }
         }
         if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN && objective.isDirty("completionStatus")) {
           globalObjective.completionStatus = objective.completionStatus;
           globalObjective.completionStatusKnown = true;
-          objective.clearDirty("completionStatus");
+          dirtyFieldsToClear.add("completionStatus");
+        }
+        if (mapInfo.writeRawScore && objective.rawScoreKnown && objective.isDirty("rawScore")) {
+          globalObjective.rawScore = objective.rawScore;
+          globalObjective.rawScoreKnown = true;
+          dirtyFieldsToClear.add("rawScore");
+        }
+        if (mapInfo.writeMinScore && objective.minScoreKnown && objective.isDirty("minScore")) {
+          globalObjective.minScore = objective.minScore;
+          globalObjective.minScoreKnown = true;
+          dirtyFieldsToClear.add("minScore");
+        }
+        if (mapInfo.writeMaxScore && objective.maxScoreKnown && objective.isDirty("maxScore")) {
+          globalObjective.maxScore = objective.maxScore;
+          globalObjective.maxScoreKnown = true;
+          dirtyFieldsToClear.add("maxScore");
         }
         if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus && objective.isDirty("progressMeasure")) {
           globalObjective.progressMeasure = objective.progressMeasure;
           globalObjective.progressMeasureKnown = true;
-          objective.clearDirty("progressMeasure");
+          dirtyFieldsToClear.add("progressMeasure");
         }
         if (mapInfo.updateAttemptData) {
           this.updateActivityAttemptData(activity, globalObjective, objective);
         }
+      }
+      for (const property of dirtyFieldsToClear) {
+        objective.clearDirty(property);
       }
     }
   }
@@ -9817,6 +10213,9 @@ class GlobalObjectiveSynchronizer {
    *
    * @param activity - The activity to process
    * @param globalObjectives - Global objective map
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read mapInfo transfers global objective state into the local view
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps
    */
   syncGlobalObjectivesReadPhase(activity, globalObjectives) {
     const objectives = activity.getAllObjectives();
@@ -9827,25 +10226,13 @@ class GlobalObjectiveSynchronizer {
         const globalObjective = globalObjectives.get(targetId);
         if (!globalObjective) continue;
         const isPrimary = objective.isPrimary;
-        if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-          objective.satisfiedStatus = globalObjective.satisfiedStatus;
-          objective.measureStatus = true;
-        }
-        if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-          objective.normalizedMeasure = globalObjective.normalizedMeasure;
-          objective.measureStatus = true;
-          if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-            objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
-          }
-        }
-        if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
-          objective.progressMeasure = globalObjective.progressMeasure;
-          objective.progressMeasureStatus = true;
-        }
-        if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
-          objective.completionStatus = globalObjective.completionStatus;
-        }
+        const readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
+          activity,
+          objective,
+          mapInfo,
+          globalObjective
+        );
+        this.applyGlobalObjectiveReadState(objective, readState);
         if (isPrimary) {
           objective.applyToActivity(activity);
         }
@@ -9888,56 +10275,61 @@ class GlobalObjectiveSynchronizer {
    * @param objective - The objective to sync
    * @param mapInfo - Map info for this objective
    * @param globalObjective - The global objective
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo read/write synchronization
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo synchronization
    */
   syncObjectiveState(activity, objective, mapInfo, globalObjective) {
     try {
       const isPrimary = objective.isPrimary;
       const localObjective = this.getLocalObjectiveState(activity, objective, isPrimary);
-      if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-        objective.satisfiedStatus = globalObjective.satisfiedStatus;
-        objective.measureStatus = true;
-      }
-      if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-        objective.normalizedMeasure = globalObjective.normalizedMeasure;
-        objective.measureStatus = true;
-        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-          const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-          objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
-        }
-      }
-      if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
-        objective.progressMeasure = globalObjective.progressMeasure;
-        objective.progressMeasureStatus = true;
-      }
-      if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
-        objective.completionStatus = globalObjective.completionStatus;
-      }
+      const readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
+        activity,
+        objective,
+        mapInfo,
+        globalObjective
+      );
+      this.applyGlobalObjectiveReadState(objective, readState);
       if (objective.isPrimary) {
         objective.applyToActivity(activity);
       }
-      if (mapInfo.writeSatisfiedStatus && objective.measureStatus) {
-        globalObjective.satisfiedStatus = objective.satisfiedStatus;
-        globalObjective.satisfiedStatusKnown = true;
-      }
-      if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
-        globalObjective.normalizedMeasure = objective.normalizedMeasure;
-        globalObjective.normalizedMeasureKnown = true;
-        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-          const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-          globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
+      if (this.canWriteGlobalObjectives(activity)) {
+        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective)) {
+          globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
         }
-      }
-      if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN) {
-        globalObjective.completionStatus = objective.completionStatus;
-        globalObjective.completionStatusKnown = true;
-      }
-      if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus) {
-        globalObjective.progressMeasure = objective.progressMeasure;
-        globalObjective.progressMeasureKnown = true;
-      }
-      if (mapInfo.updateAttemptData) {
-        this.updateActivityAttemptData(activity, globalObjective, objective);
+        if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
+          globalObjective.normalizedMeasure = objective.normalizedMeasure;
+          globalObjective.normalizedMeasureKnown = true;
+          if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
+            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+            globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
+            globalObjective.satisfiedStatusKnown = true;
+          }
+        }
+        if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN) {
+          globalObjective.completionStatus = objective.completionStatus;
+          globalObjective.completionStatusKnown = true;
+        }
+        if (mapInfo.writeRawScore && objective.rawScoreKnown) {
+          globalObjective.rawScore = objective.rawScore;
+          globalObjective.rawScoreKnown = true;
+        }
+        if (mapInfo.writeMinScore && objective.minScoreKnown) {
+          globalObjective.minScore = objective.minScore;
+          globalObjective.minScoreKnown = true;
+        }
+        if (mapInfo.writeMaxScore && objective.maxScoreKnown) {
+          globalObjective.maxScore = objective.maxScore;
+          globalObjective.maxScoreKnown = true;
+        }
+        if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus) {
+          globalObjective.progressMeasure = objective.progressMeasure;
+          globalObjective.progressMeasureKnown = true;
+        }
+        if (mapInfo.updateAttemptData) {
+          this.updateActivityAttemptData(activity, globalObjective, objective);
+        }
       }
       this.eventCallback?.("objective_synchronized", {
         activityId: activity.id,
@@ -9956,25 +10348,80 @@ class GlobalObjectiveSynchronizer {
     }
   }
   /**
+   * Project a global objective through one local objective's read mapInfo.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to mapped global objective fields
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps are independent fields
+   */
+  static getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective) {
+    const readState = {};
+    if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
+      readState.satisfiedStatus = globalObjective.satisfiedStatus;
+    }
+    if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
+      readState.normalizedMeasure = globalObjective.normalizedMeasure;
+      if (objective.satisfiedByMeasure) {
+        const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+        readState.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+      }
+    }
+    if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
+      readState.completionStatus = globalObjective.completionStatus;
+    }
+    if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
+      readState.progressMeasure = globalObjective.progressMeasure;
+    }
+    if (mapInfo.readRawScore && globalObjective.rawScoreKnown) {
+      readState.rawScore = globalObjective.rawScore;
+    }
+    if (mapInfo.readMinScore && globalObjective.minScoreKnown) {
+      readState.minScore = globalObjective.minScore;
+    }
+    if (mapInfo.readMaxScore && globalObjective.maxScoreKnown) {
+      readState.maxScore = globalObjective.maxScore;
+    }
+    return readState;
+  }
+  /**
+   * Apply read-mapped state to an objective without marking those fields dirty.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps are access to global state, not local writes
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps do not imply score writes
+   */
+  applyGlobalObjectiveReadState(objective, readState) {
+    objective.applyReadMappedState(readState);
+  }
+  /**
    * Ensure global objective entry exists
    *
    * @param globalObjectives - Global objectives map
    * @param targetId - Target objective ID
    * @param objective - Source objective
    * @returns The global objective entry
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective entries hold mapped objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - global entries hold score-map state
    */
   ensureGlobalObjectiveEntry(globalObjectives, targetId, objective) {
     if (!globalObjectives.has(targetId)) {
       globalObjectives.set(targetId, {
         id: targetId,
-        satisfiedStatus: objective.satisfiedStatus,
-        satisfiedStatusKnown: objective.satisfiedStatusKnown,
-        normalizedMeasure: objective.normalizedMeasure,
-        normalizedMeasureKnown: objective.measureStatus,
-        progressMeasure: objective.progressMeasure,
-        progressMeasureKnown: objective.progressMeasureStatus,
-        completionStatus: objective.completionStatus,
-        completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+        satisfiedStatus: false,
+        satisfiedStatusKnown: false,
+        normalizedMeasure: 0,
+        normalizedMeasureKnown: false,
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score fields
+        // remain unknown until their corresponding write map explicitly writes them.
+        rawScore: "",
+        rawScoreKnown: false,
+        minScore: "",
+        minScoreKnown: false,
+        maxScore: "",
+        maxScoreKnown: false,
+        progressMeasure: 0,
+        progressMeasureKnown: false,
+        completionStatus: CompletionStatus.UNKNOWN,
+        completionStatusKnown: false,
         satisfiedByMeasure: objective.satisfiedByMeasure,
         minNormalizedMeasure: objective.minNormalizedMeasure
       });
@@ -9989,6 +10436,9 @@ class GlobalObjectiveSynchronizer {
    *
    * @param objective - The objective to create default map info for
    * @returns Default map info
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - mapInfo defaults are applied before objective synchronization
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score maps require explicit read/write flags
    */
   createDefaultMapInfo(objective) {
     return {
@@ -10001,8 +10451,33 @@ class GlobalObjectiveSynchronizer {
       writeCompletionStatus: true,
       readProgressMeasure: false,
       writeProgressMeasure: true,
+      readRawScore: false,
+      writeRawScore: false,
+      readMinScore: false,
+      writeMinScore: false,
+      readMaxScore: false,
+      writeMaxScore: false,
       updateAttemptData: objective.isPrimary
     };
+  }
+  /**
+   * Return whether the local objective has known satisfaction state to write.
+   *
+   * @spec SCORM 2004 4th Ed. SN 4.2.1 Tracking Model - Objective Progress
+   * Status identifies whether Objective Satisfied Status is known; Objective
+   * Measure Status is independent measure knowledge.
+   */
+  hasKnownSatisfiedStatus(objective) {
+    return objective.progressStatus || objective.satisfiedStatusKnown;
+  }
+  /**
+   * Return whether this activity is allowed to write tracked state to globals.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - when False, the LMS
+   * "does not initialize, manage or access any tracking status information".
+   */
+  canWriteGlobalObjectives(activity) {
+    return activity.sequencingControls.tracked !== false;
   }
   /**
    * Get local objective state
@@ -10011,6 +10486,9 @@ class GlobalObjectiveSynchronizer {
    * @param objective - The objective
    * @param isPrimary - Whether this is the primary objective
    * @returns Local objective state
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - local objective state used for synchronization
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - local score fields are part of mapped objective state
    */
   getLocalObjectiveState(activity, objective, isPrimary) {
     if (isPrimary) {
@@ -10019,6 +10497,12 @@ class GlobalObjectiveSynchronizer {
         satisfiedStatus: activity.objectiveSatisfiedStatus,
         measureStatus: activity.objectiveMeasureStatus,
         normalizedMeasure: activity.objectiveNormalizedMeasure,
+        rawScore: objective.rawScore,
+        rawScoreKnown: objective.rawScoreKnown,
+        minScore: objective.minScore,
+        minScoreKnown: objective.minScoreKnown,
+        maxScore: objective.maxScore,
+        maxScoreKnown: objective.maxScoreKnown,
         progressMeasure: activity.progressMeasure,
         progressMeasureStatus: activity.progressMeasureStatus,
         completionStatus: activity.completionStatus,
@@ -10030,6 +10514,12 @@ class GlobalObjectiveSynchronizer {
       satisfiedStatus: objective.satisfiedStatus,
       measureStatus: objective.measureStatus,
       normalizedMeasure: objective.normalizedMeasure,
+      rawScore: objective.rawScore,
+      rawScoreKnown: objective.rawScoreKnown,
+      minScore: objective.minScore,
+      minScoreKnown: objective.minScoreKnown,
+      maxScore: objective.maxScore,
+      maxScoreKnown: objective.maxScoreKnown,
       progressMeasure: objective.progressMeasure,
       progressMeasureStatus: objective.progressMeasureStatus,
       completionStatus: objective.completionStatus,
@@ -10052,7 +10542,7 @@ class GlobalObjectiveSynchronizer {
         (rule) => rule.action === "completed" || rule.action === "incomplete"
       );
       if (globalObjective.satisfiedStatusKnown && globalObjective.satisfiedStatus) {
-        if (!hasCompletionRollupRules && (activity.completionStatus === CompletionStatus.UNKNOWN || activity.completionStatus === CompletionStatus.INCOMPLETE)) {
+        if (!hasCompletionRollupRules && !activity.sequencingControls.completionSetByContent && !activity.attemptProgressStatus && (activity.completionStatus === CompletionStatus.UNKNOWN || activity.completionStatus === CompletionStatus.INCOMPLETE)) {
           activity.completionStatus = CompletionStatus.COMPLETED;
         }
         if (activity.successStatus === "unknown") {
@@ -10426,6 +10916,26 @@ class RollupProcess {
   }
 }
 
+function evaluateCompletionStatusFromThreshold({
+  completionThreshold,
+  progressMeasure,
+  storedCompletionStatus
+}) {
+  if (completionThreshold !== "" && completionThreshold !== null && completionThreshold !== void 0) {
+    const thresholdValue = parseFloat(String(completionThreshold));
+    if (!isNaN(thresholdValue)) {
+      if (progressMeasure !== "" && progressMeasure !== null && progressMeasure !== void 0) {
+        const progressValue = parseFloat(String(progressMeasure));
+        if (!isNaN(progressValue)) {
+          return progressValue >= thresholdValue ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
+        }
+      }
+      return CompletionStatus.UNKNOWN;
+    }
+  }
+  return storedCompletionStatus || CompletionStatus.UNKNOWN;
+}
+
 const VALID_COMPLETION_STATUSES = [
   CompletionStatus.COMPLETED,
   CompletionStatus.INCOMPLETE,
@@ -10478,12 +10988,43 @@ class RteDataTransferService {
    * Transfer primary objective data from CMI to activity
    * @param {Activity} activity - The activity to transfer data to
    * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - primary objective status and score data
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score write-map source data
    */
   transferPrimaryObjective(activity, cmiData) {
-    const validatedCompletionStatus = validateCompletionStatus(cmiData.completion_status);
-    if (validatedCompletionStatus && validatedCompletionStatus !== CompletionStatus.UNKNOWN) {
-      activity.completionStatus = validatedCompletionStatus;
-      activity.attemptProgressStatus = true;
+    let hasProgressMeasure = false;
+    if (cmiData.progress_measure && cmiData.progress_measure !== "") {
+      const progressMeasure = parseFloat(cmiData.progress_measure);
+      if (!isNaN(progressMeasure)) {
+        hasProgressMeasure = true;
+        activity.progressMeasure = progressMeasure;
+        activity.progressMeasureStatus = true;
+        activity.attemptCompletionAmount = progressMeasure;
+        activity.attemptCompletionAmountStatus = true;
+        if (activity.primaryObjective) {
+          activity.primaryObjective.progressMeasure = progressMeasure;
+          activity.primaryObjective.progressMeasureStatus = true;
+        }
+      }
+    }
+    if (!hasProgressMeasure) {
+      activity.attemptCompletionAmountStatus = false;
+    }
+    if (activity.completedByMeasure) {
+      const completionStatus = evaluateCompletionStatusFromThreshold({
+        completionThreshold: activity.minProgressMeasure,
+        progressMeasure: cmiData.progress_measure,
+        storedCompletionStatus: CompletionStatus.UNKNOWN
+      });
+      activity.completionStatus = completionStatus;
+      activity.attemptProgressStatus = completionStatus !== CompletionStatus.UNKNOWN;
+    } else {
+      const validatedCompletionStatus = validateCompletionStatus(cmiData.completion_status);
+      if (validatedCompletionStatus && validatedCompletionStatus !== CompletionStatus.UNKNOWN) {
+        activity.completionStatus = validatedCompletionStatus;
+        activity.attemptProgressStatus = true;
+      }
     }
     let hasSuccessStatus = false;
     let successStatus = false;
@@ -10496,9 +11037,9 @@ class RteDataTransferService {
       activity.objectiveSatisfiedStatus = successStatus;
       activity.objectiveSatisfiedStatusKnown = true;
       activity.successStatus = validatedSuccessStatus;
-      activity.objectiveMeasureStatus = true;
     }
     if (cmiData.score) {
+      activity.primaryObjective?.initializeScoreFromCMI(this.getObjectiveScoreState(cmiData.score));
       const normalized = this.normalizeScore(cmiData.score);
       if (normalized !== null) {
         normalizedScore = normalized;
@@ -10510,30 +11051,25 @@ class RteDataTransferService {
     if (activity.primaryObjective && (hasSuccessStatus || hasNormalizedMeasure)) {
       const finalStatus = hasSuccessStatus ? successStatus : activity.primaryObjective.satisfiedStatus;
       const finalMeasure = hasNormalizedMeasure ? normalizedScore : activity.primaryObjective.normalizedMeasure;
-      const measureStatus = hasSuccessStatus || hasNormalizedMeasure;
+      const measureStatus = hasNormalizedMeasure;
       activity.primaryObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
       if (hasSuccessStatus) {
         activity.primaryObjective.satisfiedStatusKnown = true;
         activity.primaryObjective.progressStatus = true;
       }
     }
-    if (cmiData.progress_measure && cmiData.progress_measure !== "") {
-      const progressMeasure = parseFloat(cmiData.progress_measure);
-      if (!isNaN(progressMeasure)) {
-        activity.progressMeasure = progressMeasure;
-        activity.progressMeasureStatus = true;
-        if (activity.primaryObjective) {
-          activity.primaryObjective.progressMeasure = progressMeasure;
-          activity.primaryObjective.progressMeasureStatus = true;
-        }
-      }
-    }
   }
   /**
-   * Transfer non-primary objective data from CMI to activity objectives
-   * Only transfers changed values to protect global objectives
+   * Transfer objective-array data from CMI to matching activity objectives.
+   * Only transfers changed values to protect global objectives.
    * @param {Activity} activity - The activity to transfer data to
    * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 - cmi.objectives.n data, including
+   * the primary objective entry, is part of the RTE objective data model.
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 and ADLSEQ objectives extension -
+   * mapped objective status and raw/min/max score data transfer through
+   * objective maps to sequencing state.
    */
   transferNonPrimaryObjectives(activity, cmiData) {
     if (!cmiData.objectives || cmiData.objectives.length === 0) {
@@ -10544,14 +11080,17 @@ class RteDataTransferService {
         continue;
       }
       const activityObjectiveMatch = activity.getObjectiveById(cmiObjective.id);
-      if (!activityObjectiveMatch || activityObjectiveMatch.isPrimary) {
+      if (!activityObjectiveMatch) {
         continue;
       }
       const activityObjective = activityObjectiveMatch.objective;
+      const isPrimaryObjective = activityObjectiveMatch.isPrimary;
       let hasSuccessStatus = false;
       let successStatus = false;
       let hasNormalizedMeasure = false;
       let normalizedScore = 0;
+      let hasCompletionStatus = false;
+      let hasProgressMeasure = false;
       const validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
       if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
         successStatus = validatedObjSuccessStatus === SuccessStatus.PASSED;
@@ -10561,8 +11100,10 @@ class RteDataTransferService {
       const validatedObjCompletionStatus = validateCompletionStatus(cmiObjective.completion_status);
       if (validatedObjCompletionStatus && validatedObjCompletionStatus !== CompletionStatus.UNKNOWN) {
         activityObjective.completionStatus = validatedObjCompletionStatus;
+        hasCompletionStatus = true;
       }
       if (cmiObjective.score) {
+        activityObjective.initializeScoreFromCMI(this.getObjectiveScoreState(cmiObjective.score));
         const normalized = this.normalizeScore(cmiObjective.score);
         if (normalized !== null) {
           normalizedScore = normalized;
@@ -10574,12 +11115,29 @@ class RteDataTransferService {
         const finalMeasure = hasNormalizedMeasure ? normalizedScore : activityObjective.normalizedMeasure;
         const measureStatus = hasNormalizedMeasure;
         activityObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
+        if (hasSuccessStatus) {
+          activityObjective.satisfiedStatusKnown = true;
+        }
       }
       if (cmiObjective.progress_measure && cmiObjective.progress_measure !== "") {
         const progressMeasure = parseFloat(cmiObjective.progress_measure);
         if (!isNaN(progressMeasure)) {
           activityObjective.progressMeasure = progressMeasure;
           activityObjective.progressMeasureStatus = true;
+          hasProgressMeasure = true;
+        }
+      }
+      if (isPrimaryObjective && (hasSuccessStatus || hasNormalizedMeasure || hasCompletionStatus || hasProgressMeasure)) {
+        activityObjective.applyToActivity(activity);
+        if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
+          activity.successStatus = validatedObjSuccessStatus;
+        }
+        if (hasCompletionStatus) {
+          activity.attemptProgressStatus = true;
+        }
+        if (hasProgressMeasure) {
+          activity.attemptCompletionAmount = activityObjective.progressMeasure;
+          activity.attemptCompletionAmountStatus = true;
         }
       }
     }
@@ -10607,6 +11165,25 @@ class RteDataTransferService {
       }
     }
     return null;
+  }
+  /**
+   * Convert RTE score data into objective score-map state without numeric reformatting.
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - score values transfer from RTE to sequencing state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score map fields are independent
+   */
+  getObjectiveScoreState(score) {
+    const scoreState = {};
+    if (score.raw !== void 0) {
+      scoreState.rawScore = score.raw;
+    }
+    if (score.min !== void 0) {
+      scoreState.minScore = score.min;
+    }
+    if (score.max !== void 0) {
+      scoreState.maxScore = score.max;
+    }
+    return scoreState;
   }
 }
 
@@ -10731,6 +11308,18 @@ class TerminationHandler {
         this.activityTree.currentActivity = currentActivity.parent;
         this.endAttempt(this.activityTree.currentActivity);
       }
+    }
+    const ancestorExitResult = this.applyAncestorExitActionRules(currentActivity);
+    if (ancestorExitResult.action === "EXIT_ALL") {
+      return this.handleExitAll(ancestorExitResult.activity || currentActivity);
+    }
+    if (ancestorExitResult.exception) {
+      return {
+        terminationRequest: SequencingRequestType.EXIT,
+        sequencingRequest: null,
+        exception: ancestorExitResult.exception,
+        valid: false
+      };
     }
     let processedExit;
     let postConditionResult;
@@ -10957,18 +11546,10 @@ class TerminationHandler {
     recursionDepth++;
     const exitRules = activity.sequencingRules.exitConditionRules;
     for (const rule of exitRules) {
-      let conditionsMet;
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every(
-          (condition) => condition.evaluate(activity)
-        );
-      } else {
-        conditionsMet = rule.conditions.some(
-          (condition) => condition.evaluate(activity)
-        );
-      }
-      if (conditionsMet) {
-        if (rule.action === RuleActionType.EXIT_PARENT) {
+      if (rule.evaluate(activity)) {
+        if (rule.action === RuleActionType.EXIT) {
+          return { action: "EXIT", recursionDepth };
+        } else if (rule.action === RuleActionType.EXIT_PARENT) {
           return { action: "EXIT_PARENT", recursionDepth };
         } else if (rule.action === RuleActionType.EXIT_ALL) {
           return { action: "EXIT_ALL", recursionDepth };
@@ -11001,6 +11582,55 @@ class TerminationHandler {
   handleMultiLevelExit(rootActivity) {
     this.processExitAtLevel(rootActivity, 0);
     this.terminateAll(rootActivity);
+  }
+  /**
+   * Sequencing Exit Action Rules Subprocess (TB.2.1) ancestor walk
+   * @spec SN Book: TB.2.1 (Sequencing Exit Action Rules Subprocess)
+   * @param {Activity} terminatingActivity - The activity whose attempt just ended
+   * @return {{action: string | null, activity?: Activity, exception?: string}}
+   */
+  applyAncestorExitActionRules(terminatingActivity) {
+    const activityPath = [];
+    let current = terminatingActivity.parent;
+    while (current) {
+      activityPath.unshift(current);
+      current = current.parent;
+    }
+    for (const activity of activityPath) {
+      const exitAction = this.exitActionRulesSubprocess(activity);
+      if (exitAction === "EXIT_ALL") {
+        this.fireEvent("onAncestorExitAction", {
+          activity: activity.id,
+          action: exitAction
+        });
+        return { action: "EXIT_ALL", activity };
+      }
+      if (exitAction === "EXIT_PARENT") {
+        if (!activity.parent) {
+          return { action: "EXIT_PARENT", activity, exception: "TB.2.3-4" };
+        }
+        this.terminateDescendants(activity.parent);
+        this.activityTree.currentActivity = activity.parent;
+        this.endAttempt(activity.parent);
+        this.fireEvent("onAncestorExitAction", {
+          activity: activity.id,
+          action: exitAction,
+          currentActivity: activity.parent.id
+        });
+        return { action: "EXIT_PARENT", activity: activity.parent };
+      }
+      if (exitAction === "EXIT") {
+        this.terminateDescendants(activity);
+        this.activityTree.currentActivity = activity;
+        this.endAttempt(activity);
+        this.fireEvent("onAncestorExitAction", {
+          activity: activity.id,
+          action: exitAction
+        });
+        return { action: "EXIT", activity };
+      }
+    }
+    return { action: null };
   }
   /**
    * Process exit actions at specific level
@@ -11082,18 +11712,10 @@ class TerminationHandler {
   exitActionRulesSubprocess(activity) {
     const exitRules = activity.sequencingRules.exitConditionRules;
     for (const rule of exitRules) {
-      let conditionsMet;
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every(
-          (condition) => condition.evaluate(activity)
-        );
-      } else {
-        conditionsMet = rule.conditions.some(
-          (condition) => condition.evaluate(activity)
-        );
-      }
-      if (conditionsMet) {
-        if (rule.action === RuleActionType.EXIT_PARENT) {
+      if (rule.evaluate(activity)) {
+        if (rule.action === RuleActionType.EXIT) {
+          return "EXIT";
+        } else if (rule.action === RuleActionType.EXIT_PARENT) {
           return "EXIT_PARENT";
         } else if (rule.action === RuleActionType.EXIT_ALL) {
           return "EXIT_ALL";
@@ -12609,6 +13231,9 @@ class GlobalObjectiveService {
    * Collect Global Objectives
    * Recursively collects global objectives from the activity tree
    * @param {Activity} activity - Activity to collect objectives from
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective map contains mapped objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score fields are unknown until written
    */
   collectObjectives(activity) {
     const objectives = activity.getAllObjectives();
@@ -12618,9 +13243,15 @@ class GlobalObjectiveService {
         this.globalObjectiveMap.set(defaultId, {
           id: defaultId,
           satisfiedStatus: activity.objectiveSatisfiedStatus,
-          satisfiedStatusKnown: activity.objectiveMeasureStatus,
+          satisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
           normalizedMeasure: activity.objectiveNormalizedMeasure,
           normalizedMeasureKnown: activity.objectiveMeasureStatus,
+          rawScore: "",
+          rawScoreKnown: false,
+          minScore: "",
+          minScoreKnown: false,
+          maxScore: "",
+          maxScoreKnown: false,
           progressMeasure: activity.progressMeasure,
           progressMeasureKnown: activity.progressMeasureStatus,
           completionStatus: activity.completionStatus,
@@ -12633,6 +13264,12 @@ class GlobalObjectiveService {
           writeCompletionStatus: true,
           readProgressMeasure: true,
           writeProgressMeasure: true,
+          readRawScore: false,
+          writeRawScore: false,
+          readMinScore: false,
+          writeMinScore: false,
+          readMaxScore: false,
+          writeMaxScore: false,
           satisfiedByMeasure: activity.scaledPassingScore !== null,
           minNormalizedMeasure: activity.scaledPassingScore,
           updateAttemptData: true
@@ -12660,9 +13297,15 @@ class GlobalObjectiveService {
           this.globalObjectiveMap.set(targetId, {
             id: targetId,
             satisfiedStatus: objective.satisfiedStatus,
-            satisfiedStatusKnown: objective.measureStatus,
+            satisfiedStatusKnown: objective.satisfiedStatusKnown || objective.progressStatus,
             normalizedMeasure: objective.normalizedMeasure,
             normalizedMeasureKnown: objective.measureStatus,
+            rawScore: "",
+            rawScoreKnown: false,
+            minScore: "",
+            minScoreKnown: false,
+            maxScore: "",
+            maxScoreKnown: false,
             progressMeasure: objective.progressMeasure,
             progressMeasureKnown: objective.progressMeasureStatus,
             completionStatus: objective.completionStatus,
@@ -14645,25 +15288,42 @@ class SequencingService {
   }
   /**
    * Update activity properties from current CMI values
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - current CMI values update activity objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max scores are available to objective write maps
    */
   updateActivityFromCMI(activity) {
-    if (this.cmi.completion_status !== "unknown") {
+    let hasProgressMeasure = false;
+    if (this.cmi.progress_measure !== "") {
+      const progressMeasure = parseFloat(this.cmi.progress_measure);
+      if (!isNaN(progressMeasure)) {
+        hasProgressMeasure = true;
+        activity.progressMeasure = progressMeasure;
+        activity.progressMeasureStatus = true;
+        activity.attemptCompletionAmount = progressMeasure;
+        activity.attemptCompletionAmountStatus = true;
+      }
+    }
+    if (!hasProgressMeasure) {
+      activity.attemptCompletionAmountStatus = false;
+    }
+    if (activity.completedByMeasure) {
+      const completionStatus = evaluateCompletionStatusFromThreshold({
+        completionThreshold: activity.minProgressMeasure,
+        progressMeasure: this.cmi.progress_measure,
+        storedCompletionStatus: CompletionStatus.UNKNOWN
+      });
+      activity.completionStatus = completionStatus;
+      activity.attemptProgressStatus = completionStatus !== CompletionStatus.UNKNOWN;
+    } else if (this.cmi.completion_status !== "unknown") {
       activity.completionStatus = this.cmi.completion_status;
       activity.attemptProgressStatus = true;
     }
     if (this.cmi.success_status !== "unknown") {
       activity.successStatus = this.cmi.success_status;
       activity.objectiveSatisfiedStatus = this.cmi.success_status === "passed";
-      activity.objectiveMeasureStatus = true;
       if (activity.primaryObjective) {
         activity.primaryObjective.progressStatus = true;
-      }
-    }
-    if (this.cmi.progress_measure !== "") {
-      const progressMeasure = parseFloat(this.cmi.progress_measure);
-      if (!isNaN(progressMeasure)) {
-        activity.progressMeasure = progressMeasure;
-        activity.progressMeasureStatus = true;
       }
     }
     if (this.cmi.score && this.cmi.score.scaled !== "") {
@@ -14674,6 +15334,17 @@ class SequencingService {
         if (activity.primaryObjective) {
           activity.primaryObjective.progressStatus = true;
         }
+      }
+    }
+    if (activity.primaryObjective && this.cmi.score) {
+      if (this.cmi.score.raw !== "") {
+        activity.primaryObjective.rawScore = this.cmi.score.raw;
+      }
+      if (this.cmi.score.min !== "") {
+        activity.primaryObjective.minScore = this.cmi.score.min;
+      }
+      if (this.cmi.score.max !== "") {
+        activity.primaryObjective.maxScore = this.cmi.score.max;
       }
     }
     if (activity.primaryObjective) {
@@ -18859,6 +19530,7 @@ class CMI extends BaseRootCMI {
    */
   reset() {
     this._initialized = false;
+    this._start_time = void 0;
     this.metadata?.reset();
     this.learner?.reset();
     this.status?.reset();
@@ -20822,22 +21494,11 @@ class Scorm2004CMIHandler {
    * @returns {string} The evaluated completion status
    */
   evaluateCompletionStatus() {
-    const threshold = this.context.cmi.completion_threshold;
-    const progressMeasure = this.context.cmi.progress_measure;
-    const storedStatus = this.context.cmi.completion_status;
-    if (threshold !== "" && threshold !== null && threshold !== void 0) {
-      const thresholdValue = parseFloat(String(threshold));
-      if (!isNaN(thresholdValue)) {
-        if (progressMeasure !== "" && progressMeasure !== null && progressMeasure !== void 0) {
-          const progressValue = parseFloat(String(progressMeasure));
-          if (!isNaN(progressValue)) {
-            return progressValue >= thresholdValue ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
-          }
-        }
-        return CompletionStatus.UNKNOWN;
-      }
-    }
-    return storedStatus || CompletionStatus.UNKNOWN;
+    return evaluateCompletionStatusFromThreshold({
+      completionThreshold: this.context.cmi.completion_threshold,
+      progressMeasure: this.context.cmi.progress_measure,
+      storedCompletionStatus: this.context.cmi.completion_status
+    });
   }
   /**
    * Evaluates success_status per SCORM 2004 RTE Table 4.2.21.1a
@@ -20944,6 +21605,9 @@ class SequencingConfigurationBuilder {
     }
     if (settings.objectiveSetByContent !== void 0) {
       target.objectiveSetByContent = settings.objectiveSetByContent;
+    }
+    if (settings.tracked !== void 0) {
+      target.tracked = settings.tracked;
     }
   }
   /**
@@ -21482,6 +22146,12 @@ class ActivityTreeBuilder {
         activitySettings.sequencingControls
       );
     }
+    if (activitySettings.deliveryControls) {
+      this.sequencingConfigBuilder.applySequencingControlsSettings(
+        activity.sequencingControls,
+        activitySettings.deliveryControls
+      );
+    }
     if (activitySettings.sequencingRules) {
       this.sequencingConfigBuilder.applySequencingRulesSettings(
         activity.sequencingRules,
@@ -21496,6 +22166,21 @@ class ActivityTreeBuilder {
     }
     if (activitySettings.rollupConsiderations) {
       activity.applyRollupConsiderations(activitySettings.rollupConsiderations);
+    }
+    if (activitySettings.completionThreshold) {
+      const threshold = activitySettings.completionThreshold;
+      if (threshold.completedByMeasure !== void 0) {
+        activity.completedByMeasure = threshold.completedByMeasure;
+      }
+      if (threshold.minProgressMeasure !== void 0) {
+        activity.minProgressMeasure = threshold.minProgressMeasure;
+        activity.completionThreshold = threshold.minProgressMeasure.toString();
+      } else if (threshold.completedByMeasure) {
+        activity.completionThreshold = activity.minProgressMeasure.toString();
+      }
+      if (threshold.progressWeight !== void 0) {
+        activity.progressWeight = threshold.progressWeight;
+      }
     }
     if (activitySettings.hideLmsUi) {
       const mergedHide = this.sequencingConfigBuilder.mergeHideLmsUi(
@@ -21556,19 +22241,19 @@ class ActivityTreeBuilder {
   createActivityObjectiveFromSettings(objectiveSettings, isPrimary) {
     const mapInfo = (objectiveSettings.mapInfo || []).map((info) => ({
       targetObjectiveID: info.targetObjectiveID,
-      readSatisfiedStatus: info.readSatisfiedStatus ?? false,
-      readNormalizedMeasure: info.readNormalizedMeasure ?? false,
+      readSatisfiedStatus: info.readSatisfiedStatus ?? true,
+      readNormalizedMeasure: info.readNormalizedMeasure ?? true,
       writeSatisfiedStatus: info.writeSatisfiedStatus ?? false,
       writeNormalizedMeasure: info.writeNormalizedMeasure ?? false,
-      readCompletionStatus: info.readCompletionStatus ?? false,
+      readCompletionStatus: info.readCompletionStatus ?? true,
       writeCompletionStatus: info.writeCompletionStatus ?? false,
-      readProgressMeasure: info.readProgressMeasure ?? false,
+      readProgressMeasure: info.readProgressMeasure ?? true,
       writeProgressMeasure: info.writeProgressMeasure ?? false,
-      readRawScore: info.readRawScore ?? false,
+      readRawScore: info.readRawScore ?? true,
       writeRawScore: info.writeRawScore ?? false,
-      readMinScore: info.readMinScore ?? false,
+      readMinScore: info.readMinScore ?? true,
       writeMinScore: info.writeMinScore ?? false,
-      readMaxScore: info.readMaxScore ?? false,
+      readMaxScore: info.readMaxScore ?? true,
       writeMaxScore: info.writeMaxScore ?? false,
       updateAttemptData: info.updateAttemptData ?? false
     }));
@@ -21750,6 +22435,9 @@ class GlobalObjectiveManager {
    *
    * @param {string} objectiveId - The global objective ID
    * @param {CMIObjectivesObject} objective - The CMI objective object with updated values
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objectives synchronize CMI objective data
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score fields synchronize independently
    */
   updateGlobalObjectiveFromCMI(objectiveId, objective) {
     if (!objectiveId || !this.context.sequencingService) {
@@ -21775,6 +22463,18 @@ class GlobalObjectiveManager {
       updatePayload.normalizedMeasure = normalizedMeasure;
       updatePayload.normalizedMeasureKnown = true;
     }
+    if (objective.score?.raw !== void 0 && objective.score.raw !== "") {
+      updatePayload.rawScore = objective.score.raw;
+      updatePayload.rawScoreKnown = true;
+    }
+    if (objective.score?.min !== void 0 && objective.score.min !== "") {
+      updatePayload.minScore = objective.score.min;
+      updatePayload.minScoreKnown = true;
+    }
+    if (objective.score?.max !== void 0 && objective.score.max !== "") {
+      updatePayload.maxScore = objective.score.max;
+      updatePayload.maxScoreKnown = true;
+    }
     const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
     if (progressMeasure !== null) {
       updatePayload.progressMeasure = progressMeasure;
@@ -21794,12 +22494,21 @@ class GlobalObjectiveManager {
    *
    * @param {CMIObjectivesObject} objective - The CMI objectives object containing data about a specific learning objective.
    * @return {GlobalObjectiveMapEntry} An object containing mapped properties and their values based on the provided objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective map entries capture objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score entries carry per-field known flags
    */
   buildObjectiveMapEntryFromCMI(objective) {
     const entry = {
       id: objective.id,
       satisfiedStatusKnown: false,
       normalizedMeasureKnown: false,
+      rawScore: "",
+      rawScoreKnown: false,
+      minScore: "",
+      minScoreKnown: false,
+      maxScore: "",
+      maxScoreKnown: false,
       progressMeasureKnown: false,
       completionStatusKnown: false,
       readSatisfiedStatus: true,
@@ -21809,7 +22518,13 @@ class GlobalObjectiveManager {
       readCompletionStatus: true,
       writeCompletionStatus: true,
       readProgressMeasure: true,
-      writeProgressMeasure: true
+      writeProgressMeasure: true,
+      readRawScore: true,
+      writeRawScore: true,
+      readMinScore: true,
+      writeMinScore: true,
+      readMaxScore: true,
+      writeMaxScore: true
     };
     if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
       entry.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
@@ -21819,6 +22534,18 @@ class GlobalObjectiveManager {
     if (normalizedMeasure !== null) {
       entry.normalizedMeasure = normalizedMeasure;
       entry.normalizedMeasureKnown = true;
+    }
+    if (objective.score?.raw !== void 0 && objective.score.raw !== "") {
+      entry.rawScore = objective.score.raw;
+      entry.rawScoreKnown = true;
+    }
+    if (objective.score?.min !== void 0 && objective.score.min !== "") {
+      entry.minScore = objective.score.min;
+      entry.minScoreKnown = true;
+    }
+    if (objective.score?.max !== void 0 && objective.score.max !== "") {
+      entry.maxScore = objective.score.max;
+      entry.maxScoreKnown = true;
     }
     const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
     if (progressMeasure !== null) {
@@ -21840,6 +22567,9 @@ class GlobalObjectiveManager {
    * @return {CMIObjectivesObject[]} An array of `CMIObjectivesObject` instances built
    *                                  from the provided snapshot map. Returns an empty array
    *                                  if the snapshot is invalid or no valid objectives can be created.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective snapshots restore CMI objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score known fields restore independently
    */
   buildCMIObjectivesFromMap(snapshot) {
     const objectives = [];
@@ -21858,6 +22588,15 @@ class GlobalObjectiveManager {
       const normalizedMeasure = this.parseObjectiveNumber(entry.normalizedMeasure);
       if (entry.normalizedMeasureKnown === true && normalizedMeasure !== null) {
         objective.score.scaled = String(normalizedMeasure);
+      }
+      if (entry.rawScoreKnown === true) {
+        objective.score.raw = String(entry.rawScore ?? "");
+      }
+      if (entry.minScoreKnown === true) {
+        objective.score.min = String(entry.minScore ?? "");
+      }
+      if (entry.maxScoreKnown === true) {
+        objective.score.max = String(entry.maxScore ?? "");
       }
       const progressMeasure = this.parseObjectiveNumber(entry.progressMeasure);
       if (entry.progressMeasureKnown === true && progressMeasure !== null) {
@@ -21969,6 +22708,9 @@ class GlobalObjectiveManager {
    * @param {CompletionStatus} completionStatus
    * @param {SuccessStatus} successStatus
    * @param {ScoreObject} scoreObject
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - CMI score data updates the current primary objective
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score data is available for write maps
    */
   syncCmiToSequencingActivity(completionStatus, successStatus, scoreObject) {
     if (!this.context.sequencing) {
@@ -21993,6 +22735,15 @@ class GlobalObjectiveManager {
     if (scoreObject?.scaled !== void 0 && scoreObject.scaled !== null) {
       primaryObjective.normalizedMeasure = scoreObject.scaled;
       primaryObjective.measureStatus = true;
+    }
+    if (scoreObject?.raw !== void 0 && scoreObject.raw !== null) {
+      primaryObjective.rawScore = String(scoreObject.raw);
+    }
+    if (scoreObject?.min !== void 0 && scoreObject.min !== null) {
+      primaryObjective.minScore = String(scoreObject.min);
+    }
+    if (scoreObject?.max !== void 0 && scoreObject.max !== null) {
+      primaryObjective.maxScore = String(scoreObject.max);
     }
   }
   /**
@@ -22540,7 +23291,238 @@ class Scorm2004API extends BaseAPI {
   reset(settings) {
     this.commonReset(settings);
     this.cmi?.reset();
+    this.applyCurrentActivityLaunchData();
     this.adl?.reset();
+  }
+  /**
+   * Apply launch-static activity data to CMI while the new SCO is pre-initialize.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+   */
+  applyCurrentActivityLaunchData() {
+    const currentActivity = this._sequencing?.getCurrentActivity();
+    if (!currentActivity) {
+      return;
+    }
+    this.applyActivityLaunchData(currentActivity);
+  }
+  /**
+   * Apply launch-static CMI data when sequencing delivers a new activity before SCO Initialize.
+   *
+   * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process establishes the delivered activity.
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold is initialized before SCO access.
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives is initialized before SCO access.
+   */
+  applyDeliveredActivityLaunchData(activity) {
+    if (!this.isNotInitialized()) {
+      return;
+    }
+    this.applyActivityLaunchData(activity);
+  }
+  /**
+   * Copy the delivered activity's static launch data into the fresh CMI model.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+   */
+  applyActivityLaunchData(currentActivity) {
+    if (!this.cmi) {
+      return;
+    }
+    const contentActivityData = this._sequencing.overallSequencingProcess?.getContentActivityData(currentActivity);
+    const completionThreshold = contentActivityData?.completionThreshold ?? currentActivity.completionThreshold?.toString() ?? "";
+    this.cmi.completion_threshold = completionThreshold;
+    this.seedCurrentActivityObjectives(currentActivity);
+  }
+  /**
+   * Seed CMI objective ids after Initialize when automatic sequencing starts during Initialize.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+   */
+  applyCurrentActivityObjectiveData() {
+    const currentActivity = this._sequencing?.getCurrentActivity();
+    if (!this.cmi || !currentActivity) {
+      return;
+    }
+    this.seedCurrentActivityObjectives(currentActivity);
+  }
+  /**
+   * Seed CMI objectives from primary and secondary activity objectives.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 - Initialization of Run-Time Objectives from Sequencing Information
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id and success_status
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - objective read maps seed the RTE view
+   */
+  seedCurrentActivityObjectives(currentActivity) {
+    const activityObjectives = [];
+    if (currentActivity.primaryObjective) {
+      activityObjectives.push(currentActivity.primaryObjective);
+    }
+    activityObjectives.push(...currentActivity.objectives);
+    const seededObjectiveIds = /* @__PURE__ */ new Set();
+    for (const activityObjective of activityObjectives) {
+      const objectiveId = this.getSeedableObjectiveId(activityObjective);
+      if (!objectiveId || seededObjectiveIds.has(objectiveId)) {
+        continue;
+      }
+      seededObjectiveIds.add(objectiveId);
+      const index = this.findOrSeedCMIObjective(objectiveId);
+      if (index === null) {
+        continue;
+      }
+      const cmiObjective = this.cmi.objectives.findObjectiveByIndex(index);
+      if (cmiObjective && this.cmi.objectives.initialized && !cmiObjective.initialized) {
+        cmiObjective.initialize();
+      }
+      const successStatus = this.getActivityObjectiveSuccessStatus(activityObjective);
+      if (successStatus) {
+        this._commonSetCMIValue(
+          "SeedActivityObjective",
+          true,
+          `cmi.objectives.${index}.success_status`,
+          successStatus
+        );
+      }
+      this.seedObjectiveReadMapValues(currentActivity, activityObjective, index);
+    }
+  }
+  /**
+   * Seed CMI objective fields from this objective's read-mapped global objectives.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 - Run-Time Objectives are initialized from sequencing information
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read mapInfo grants access to mapped global objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps seed RTE score fields
+   */
+  seedObjectiveReadMapValues(currentActivity, activityObjective, objectiveIndex) {
+    const globalObjectiveMap = this._sequencing.overallSequencingProcess?.getGlobalObjectiveMap();
+    if (!globalObjectiveMap || activityObjective.mapInfo.length === 0) {
+      return;
+    }
+    for (const mapInfo of activityObjective.mapInfo) {
+      const targetObjectiveId = mapInfo.targetObjectiveID || activityObjective.id;
+      const globalObjective = globalObjectiveMap.get(targetObjectiveId);
+      if (!globalObjective) {
+        continue;
+      }
+      const readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
+        currentActivity,
+        activityObjective,
+        mapInfo,
+        globalObjective
+      );
+      this.applyObjectiveReadStateToCMI(objectiveIndex, readState);
+    }
+  }
+  /**
+   * Copy mapped global objective state into the seeded CMI objective entry.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives launch-time initialization
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps populate the RTE view without creating local writes
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps populate CMI objective scores
+   */
+  applyObjectiveReadStateToCMI(objectiveIndex, readState) {
+    if (readState.satisfiedStatus !== void 0) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.success_status`,
+        readState.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED
+      );
+    }
+    if (readState.normalizedMeasure !== void 0) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.scaled`,
+        String(readState.normalizedMeasure)
+      );
+    }
+    if (readState.completionStatus !== void 0) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.completion_status`,
+        readState.completionStatus
+      );
+    }
+    if (readState.progressMeasure !== void 0) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.progress_measure`,
+        String(readState.progressMeasure)
+      );
+    }
+    if (readState.rawScore !== void 0) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.raw`,
+        readState.rawScore
+      );
+    }
+    if (readState.minScore !== void 0) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.min`,
+        readState.minScore
+      );
+    }
+    if (readState.maxScore !== void 0) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.max`,
+        readState.maxScore
+      );
+    }
+  }
+  /**
+   * Return a manifest-defined objective id that can initialize cmi.objectives.n.id.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id
+   */
+  getSeedableObjectiveId(activityObjective) {
+    const objectiveId = activityObjective.id;
+    if (typeof objectiveId !== "string" || objectiveId.trim() === "") {
+      return null;
+    }
+    return objectiveId;
+  }
+  /**
+   * Find an existing CMI objective id or create the next CMI objective array entry.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives._count
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id
+   */
+  findOrSeedCMIObjective(objectiveId) {
+    const existingIndex = this.cmi.objectives.childArray.findIndex((objective) => {
+      return objective.id === objectiveId;
+    });
+    if (existingIndex >= 0) {
+      return existingIndex;
+    }
+    const index = this.cmi.objectives.childArray.length;
+    const result = this._commonSetCMIValue(
+      "SeedActivityObjective",
+      true,
+      `cmi.objectives.${index}.id`,
+      objectiveId
+    );
+    return result === global_constants.SCORM_TRUE ? index : null;
+  }
+  /**
+   * Translate a known activity objective satisfied status to cmi.objectives.n.success_status.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.success_status
+   */
+  getActivityObjectiveSuccessStatus(activityObjective) {
+    if (activityObjective.progressStatus || activityObjective.satisfiedStatusKnown) {
+      return activityObjective.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+    }
+    return null;
   }
   /**
    * Getter for _version
@@ -22621,6 +23603,7 @@ class Scorm2004API extends BaseAPI {
     );
     if (result === global_constants.SCORM_TRUE && this._sequencingService) {
       this._sequencingService.initialize();
+      this.applyCurrentActivityObjectiveData();
     }
     if (result === global_constants.SCORM_TRUE) {
       this._globalObjectiveManager.restoreGlobalObjectivesToCMI();
@@ -22875,7 +23858,7 @@ class Scorm2004API extends BaseAPI {
         objective_id = objective ? objective.id : void 0;
       }
       const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
-      if (is_global) {
+      if (is_global && this.currentActivityAllowsGlobalObjectiveWrites()) {
         const { index: global_index } = this._globalObjectiveManager.findOrCreateGlobalObjective(objective_id);
         const global_element = CMIElement.replace(
           element_base,
@@ -22889,6 +23872,15 @@ class Scorm2004API extends BaseAPI {
       }
     }
     return this._commonSetCMIValue("SetValue", true, CMIElement, value);
+  }
+  /**
+   * Return whether the current activity can update shared global objectives.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - when False, the LMS
+   * "does not initialize, manage or access any tracking status information".
+   */
+  currentActivityAllowsGlobalObjectiveWrites() {
+    return this._sequencing?.getCurrentActivity()?.sequencingControls.tracked !== false;
   }
   /**
    * Gets or builds a new child element to add to the array
@@ -23052,14 +24044,14 @@ class Scorm2004API extends BaseAPI {
       if (this.cmi.mode === "normal") {
         if (this.cmi.credit === "credit") {
           if (this.cmi.completion_threshold && this.cmi.progress_measure) {
-            if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+            if (parseFloat(this.cmi.progress_measure) >= parseFloat(this.cmi.completion_threshold)) {
               this.cmi.completion_status = "completed";
             } else {
               this.cmi.completion_status = "incomplete";
             }
           }
           if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
-            if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+            if (parseFloat(this.cmi.score.scaled) >= parseFloat(this.cmi.scaled_passing_score)) {
               this.cmi.success_status = "passed";
             } else {
               this.cmi.success_status = "failed";
@@ -23234,9 +24226,9 @@ class Scorm2004API extends BaseAPI {
         this.loggingService,
         sequencingConfig
       );
-      if (settings?.sequencing?.eventListeners) {
-        this._sequencingService.setEventListeners(settings.sequencing.eventListeners);
-      }
+      this._sequencingService.setEventListeners(
+        this.buildSequencingEventListeners(settings?.sequencing?.eventListeners)
+      );
       this._globalObjectiveManager.updateSequencingService(this._sequencingService);
       this._dataSerializer.updateSequencingService(this._sequencingService);
       if (settings?.sequencingStatePersistence) {
@@ -23260,6 +24252,22 @@ class Scorm2004API extends BaseAPI {
     }
   }
   /**
+   * Wrap LMS-provided sequencing listeners with API-owned delivery bookkeeping.
+   *
+   * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+   */
+  buildSequencingEventListeners(listeners) {
+    return {
+      ...listeners,
+      onActivityDelivery: (activity) => {
+        this.applyDeliveredActivityLaunchData(activity);
+        listeners?.onActivityDelivery?.(activity);
+      }
+    };
+  }
+  /**
    * Get the sequencing service
    * @return {SequencingService | null}
    */
@@ -23269,10 +24277,13 @@ class Scorm2004API extends BaseAPI {
   /**
    * Set sequencing event listeners
    * @param {SequencingEventListeners} listeners
+   *
+   * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5 / 4.2.17 - launch-static CMI data
    */
   setSequencingEventListeners(listeners) {
     if (this._sequencingService) {
-      this._sequencingService.setEventListeners(listeners);
+      this._sequencingService.setEventListeners(this.buildSequencingEventListeners(listeners));
     }
   }
   /**

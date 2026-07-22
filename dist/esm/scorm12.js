@@ -5575,6 +5575,7 @@ class CMI extends BaseRootCMI {
    */
   reset() {
     this._initialized = false;
+    this._start_time = void 0;
     this._launch_data = "";
     this._comments = "";
     this.core?.reset();

@@ -43,5 +43,6 @@ export declare class RteDataTransferService {
     transferPrimaryObjective(activity: Activity, cmiData: CMIDataForTransfer): void;
     transferNonPrimaryObjectives(activity: Activity, cmiData: CMIDataForTransfer): void;
     normalizeScore(score: ScoreData): number | null;
+    private getObjectiveScoreState;
 }
 //# sourceMappingURL=rte_data_transfer.d.ts.map

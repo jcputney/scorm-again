@@ -32,6 +32,16 @@ declare class Scorm2004API extends BaseAPI {
     GetErrorString: (CMIErrorCode: string | number) => string;
     GetDiagnostic: (CMIErrorCode: string | number) => string;
     reset(settings?: Settings): void;
+    private applyCurrentActivityLaunchData;
+    private applyDeliveredActivityLaunchData;
+    private applyActivityLaunchData;
+    private applyCurrentActivityObjectiveData;
+    private seedCurrentActivityObjectives;
+    private seedObjectiveReadMapValues;
+    private applyObjectiveReadStateToCMI;
+    private getSeedableObjectiveId;
+    private findOrSeedCMIObjective;
+    private getActivityObjectiveSuccessStatus;
     get version(): string;
     get globalObjectives(): CMIObjectivesObject[];
     set _globalObjectives(objectives: CMIObjectivesObject[]);
@@ -47,6 +57,7 @@ declare class Scorm2004API extends BaseAPI {
     lmsGetErrorString(CMIErrorCode: string | number): string;
     lmsGetDiagnostic(CMIErrorCode: string | number): string;
     setCMIValue(CMIElement: string, value: any): string;
+    private currentActivityAllowsGlobalObjectiveWrites;
     getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null;
     validateCorrectResponse(CMIElement: string, value: any): void;
     private _peekCMIValue;
@@ -63,6 +74,7 @@ declare class Scorm2004API extends BaseAPI {
     private configureSequencingControls;
     private configureRollupRules;
     private initializeSequencingService;
+    private buildSequencingEventListeners;
     getSequencingService(): SequencingService | null;
     setSequencingEventListeners(listeners: SequencingEventListeners): void;
     updateSequencingConfiguration(config: SequencingConfiguration): void;

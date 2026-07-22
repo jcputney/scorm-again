@@ -36,6 +36,11 @@ export declare enum RuleActionType {
     PREVIOUS = "previous",
     EXIT = "exit"
 }
+export type RuleConditionEvaluation = boolean | "unknown";
+export declare function kleeneNot(value: RuleConditionEvaluation): RuleConditionEvaluation;
+export declare function kleeneAnd(values: RuleConditionEvaluation[]): RuleConditionEvaluation;
+export declare function kleeneOr(values: RuleConditionEvaluation[]): RuleConditionEvaluation;
+export declare function combineRuleConditionResults(values: RuleConditionEvaluation[], conditionCombination: string | RuleConditionOperator): RuleConditionEvaluation;
 export declare class RuleCondition extends BaseCMI {
     private _condition;
     private _operator;
@@ -56,7 +61,7 @@ export declare class RuleCondition extends BaseCMI {
     get referencedObjective(): string | null;
     set referencedObjective(objectiveId: string | null);
     private resolveReferencedObjective;
-    evaluate(activity: Activity): boolean;
+    evaluate(activity: Activity): RuleConditionEvaluation;
     private evaluateTimeLimitExceeded;
     private evaluateOutsideAvailableTimeRange;
     private parseISO8601Duration;

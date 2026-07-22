@@ -1,4 +1,4 @@
-import { Activity, ActivityObjective, ObjectiveMapInfo } from "../activity";
+import { Activity, ActivityObjective, ActivityObjectiveReadState, ObjectiveMapInfo } from "../activity";
 import { CompletionStatus } from "../../../../constants/enums";
 export type EventCallback = (eventType: string, data?: unknown) => void;
 export interface GlobalObjective {
@@ -7,6 +7,12 @@ export interface GlobalObjective {
     satisfiedStatusKnown: boolean;
     normalizedMeasure: number;
     normalizedMeasureKnown: boolean;
+    rawScore: string;
+    rawScoreKnown: boolean;
+    minScore: string;
+    minScoreKnown: boolean;
+    maxScore: string;
+    maxScoreKnown: boolean;
     progressMeasure: number;
     progressMeasureKnown: boolean;
     completionStatus: CompletionStatus;
@@ -27,6 +33,12 @@ export interface LocalObjectiveState {
     satisfiedStatus: boolean;
     measureStatus: boolean;
     normalizedMeasure: number;
+    rawScore: string;
+    rawScoreKnown: boolean;
+    minScore: string;
+    minScoreKnown: boolean;
+    maxScore: string;
+    maxScoreKnown: boolean;
     progressMeasure: number;
     progressMeasureStatus: boolean;
     completionStatus: CompletionStatus;
@@ -41,8 +53,12 @@ export declare class GlobalObjectiveSynchronizer {
     syncGlobalObjectivesReadPhase(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
     synchronizeGlobalObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
     syncObjectiveState(activity: Activity, objective: ActivityObjective, mapInfo: ObjectiveMapInfo, globalObjective: GlobalObjective): void;
+    static getGlobalObjectiveReadState(activity: Activity, objective: ActivityObjective, mapInfo: ObjectiveMapInfo, globalObjective: GlobalObjective): ActivityObjectiveReadState;
+    private applyGlobalObjectiveReadState;
     ensureGlobalObjectiveEntry(globalObjectives: Map<string, GlobalObjective>, targetId: string, objective: ActivityObjective): GlobalObjective;
     createDefaultMapInfo(objective: ActivityObjective): ObjectiveMapInfo;
+    private hasKnownSatisfiedStatus;
+    private canWriteGlobalObjectives;
     getLocalObjectiveState(activity: Activity, objective: ActivityObjective, isPrimary: boolean): LocalObjectiveState;
     updateActivityAttemptData(activity: Activity, globalObjective: GlobalObjective, objective: ActivityObjective): void;
 }

@@ -2015,6 +2015,12 @@ this.Scorm12API = (function () {
   var __publicField$i = function __publicField(obj, key, value) {
       return __defNormalProp$i(obj, (typeof key === "undefined" ? "undefined" : _type_of$j(key)) !== "symbol" ? key + "" : key, value);
   };
+  function kleeneNot(value) {
+      if (value === "unknown") {
+          return "unknown";
+      }
+      return !value;
+  }
   var _RuleCondition = /*#__PURE__*/ function(BaseCMI) {
       _inherits$9(_RuleCondition, BaseCMI);
       function _RuleCondition() {
@@ -2120,53 +2126,74 @@ this.Scorm12API = (function () {
               /**
      * Evaluate the condition for an activity
      * @param {Activity} activity - The activity to evaluate the condition for
-     * @return {boolean} - True if the condition is met, false otherwise
+     * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
      */ key: "evaluate",
               value: function evaluate(activity) {
                   var result;
+                  var hasReferencedObjective = this._referencedObjective !== null;
                   var referencedObjective = this.resolveReferencedObjective(activity);
                   switch(this._condition){
                       case "satisfied" /* SATISFIED */ :
                       case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */ :
-                          if (referencedObjective) {
-                              result = referencedObjective.satisfiedStatus === true;
+                          if (hasReferencedObjective && !referencedObjective) {
+                              result = false;
+                          } else if (referencedObjective) {
+                              result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus ? referencedObjective.satisfiedStatus === true : "unknown";
+                          } else if (activity.objectiveSatisfiedStatusKnown) {
+                              result = activity.objectiveSatisfiedStatus === true;
+                          } else if (activity.successStatus !== SuccessStatus.UNKNOWN) {
+                              result = activity.successStatus === SuccessStatus.PASSED;
                           } else {
-                              result = activity.successStatus === SuccessStatus.PASSED || activity.objectiveSatisfiedStatus === true;
+                              result = "unknown";
                           }
                           break;
                       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ :
-                          result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+                          result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.satisfiedStatusKnown : !!activity.objectiveSatisfiedStatusKnown;
                           break;
                       case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */ :
-                          result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+                          result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
                           break;
                       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ :
                           {
+                              if (hasReferencedObjective && !referencedObjective) {
+                                  result = false;
+                                  break;
+                              }
                               var greaterThanValue = this._parameters.get("threshold") || 0;
                               var measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
                               var measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-                              result = !!measureStatus && measureValue > greaterThanValue;
+                              result = measureStatus ? measureValue > greaterThanValue : "unknown";
                               break;
                           }
                       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ :
                           {
+                              if (hasReferencedObjective && !referencedObjective) {
+                                  result = false;
+                                  break;
+                              }
                               var lessThanValue = this._parameters.get("threshold") || 0;
                               var measureStatus1 = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
                               var measureValue1 = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-                              result = !!measureStatus1 && measureValue1 < lessThanValue;
+                              result = measureStatus1 ? measureValue1 < lessThanValue : "unknown";
                               break;
                           }
                       case "completed" /* COMPLETED */ :
                       case "activityCompleted" /* ACTIVITY_COMPLETED */ :
-                          if (referencedObjective) {
-                              result = referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+                          if (hasReferencedObjective && !referencedObjective) {
+                              result = false;
+                          } else if (referencedObjective) {
+                              result = referencedObjective.completionStatus === CompletionStatus.UNKNOWN ? "unknown" : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+                          } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
+                              result = "unknown";
                           } else {
-                              result = activity.isCompleted;
+                              result = activity.completionStatus === CompletionStatus.COMPLETED;
                           }
                           break;
                       case "progressKnown" /* PROGRESS_KNOWN */ :
                       case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */ :
-                          if (referencedObjective) {
+                          if (hasReferencedObjective && !referencedObjective) {
+                              result = false;
+                          } else if (referencedObjective) {
                               result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
                           } else {
                               result = activity.completionStatus !== "unknown";
@@ -2195,7 +2222,7 @@ this.Scorm12API = (function () {
                           break;
                   }
                   if (this._operator === "not" /* NOT */ ) {
-                      result = !result;
+                      result = kleeneNot(result);
                   }
                   return result;
               }
@@ -9726,6 +9753,7 @@ this.Scorm12API = (function () {
               value: function reset() {
                   var _this_core, _this_objectives, _this_interactions, _this_student_data, _this_student_preference;
                   this._initialized = false;
+                  this._start_time = void 0;
                   this._launch_data = "";
                   this._comments = "";
                   (_this_core = this.core) === null || _this_core === void 0 ? void 0 : _this_core.reset();

@@ -17,6 +17,16 @@ export type AdlRollupConsiderationsSettings = {
     requiredForIncomplete?: AdlRollupConsiderationRequirement;
     measureSatisfactionIfActive?: boolean;
 };
+export type CompletionThresholdSettings = {
+    completedByMeasure?: boolean;
+    minProgressMeasure?: number;
+    progressWeight?: number;
+};
+export type DeliveryControlsSettings = {
+    tracked?: boolean;
+    completionSetByContent?: boolean;
+    objectiveSetByContent?: boolean;
+};
 export type ActivitySettings = {
     id: string;
     title: string;
@@ -38,8 +48,10 @@ export type ActivitySettings = {
     objectives?: ObjectiveSettings[];
     sequencingRules?: SequencingRulesSettings;
     sequencingControls?: SequencingControlsSettings;
+    deliveryControls?: DeliveryControlsSettings;
     rollupRules?: RollupRulesSettings;
     rollupConsiderations?: AdlRollupConsiderationsSettings;
+    completionThreshold?: CompletionThresholdSettings;
     selectionRandomizationState?: SelectionRandomizationStateSettings;
     hideLmsUi?: HideLmsUiItem[];
     sequencingCollectionRefs?: string | string[];
@@ -109,6 +121,7 @@ export type SequencingControlsSettings = {
     reorderChildren?: boolean;
     completionSetByContent?: boolean;
     objectiveSetByContent?: boolean;
+    tracked?: boolean;
 };
 export type SelectionRandomizationStateSettings = {
     childOrder?: string[];

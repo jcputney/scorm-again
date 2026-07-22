@@ -175,6 +175,12 @@ export type GlobalObjectiveMapEntry = {
     satisfiedStatusKnown?: boolean;
     normalizedMeasure?: number;
     normalizedMeasureKnown?: boolean;
+    rawScore?: string;
+    rawScoreKnown?: boolean;
+    minScore?: string;
+    minScoreKnown?: boolean;
+    maxScore?: string;
+    maxScoreKnown?: boolean;
     progressMeasure?: number;
     progressMeasureKnown?: boolean;
     completionStatus?: string;
@@ -187,6 +193,12 @@ export type GlobalObjectiveMapEntry = {
     writeProgressMeasure?: boolean;
     readCompletionStatus?: boolean;
     writeCompletionStatus?: boolean;
+    readRawScore?: boolean;
+    writeRawScore?: boolean;
+    readMinScore?: boolean;
+    writeMinScore?: boolean;
+    readMaxScore?: boolean;
+    writeMaxScore?: boolean;
     lastUpdated?: string;
 };
 //# sourceMappingURL=api_types.d.ts.map

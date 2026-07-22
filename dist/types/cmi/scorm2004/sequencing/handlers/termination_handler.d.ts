@@ -40,6 +40,7 @@ export declare class TerminationHandler {
     };
     evaluatePostConditions(activity: Activity): PostConditionResult;
     private handleMultiLevelExit;
+    private applyAncestorExitActionRules;
     private processExitAtLevel;
     cleanupSuspendedActivity(): void;
     private terminateAll;

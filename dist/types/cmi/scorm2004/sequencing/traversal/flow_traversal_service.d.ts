@@ -6,16 +6,19 @@ export interface FlowTreeTraversalResult {
     activity: Activity | null;
     endSequencingSession: boolean;
     exception?: string;
+    direction?: FlowSubprocessMode;
+    forwardOnlyCluster?: Activity;
 }
 export declare class FlowTraversalService {
     private activityTree;
     private ruleEngine;
     constructor(activityTree: ActivityTree, ruleEngine: RuleEvaluationEngine);
     flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): FlowSubprocessResult;
-    flowTreeTraversalSubprocess(fromActivity: Activity, direction: FlowSubprocessMode, skipChildren?: boolean): FlowTreeTraversalResult;
+    flowTreeTraversalSubprocess(fromActivity: Activity, direction: FlowSubprocessMode, skipChildren?: boolean, forwardTraversalBoundary?: Activity | null): FlowTreeTraversalResult;
     private traverseForward;
     private traverseBackward;
-    private getLastDescendant;
+    private getBackwardTraversalEntry;
+    private isDescendantOfOrSelf;
     flowActivityTraversalSubprocess(activity: Activity, _direction: boolean, considerChildren: boolean, mode: FlowSubprocessMode): Activity | null;
     checkActivityProcess(activity: Activity): boolean;
     ensureSelectionAndRandomization(activity: Activity): void;

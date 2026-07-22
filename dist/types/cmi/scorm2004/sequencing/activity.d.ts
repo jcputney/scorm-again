@@ -34,6 +34,12 @@ export interface ActivityObjectiveState {
     satisfiedStatus: boolean;
     measureStatus: boolean;
     normalizedMeasure: number;
+    rawScore: string;
+    rawScoreKnown: boolean;
+    minScore: string;
+    minScoreKnown: boolean;
+    maxScore: string;
+    maxScoreKnown: boolean;
     progressMeasure: number;
     progressMeasureStatus: boolean;
     completionStatus: CompletionStatus;
@@ -41,6 +47,18 @@ export interface ActivityObjectiveState {
     minNormalizedMeasure?: number | null;
     progressStatus: boolean;
 }
+export interface ActivityObjectiveScoreState {
+    rawScore?: string;
+    minScore?: string;
+    maxScore?: string;
+}
+export interface ActivityObjectiveReadState extends ActivityObjectiveScoreState {
+    satisfiedStatus?: boolean;
+    normalizedMeasure?: number;
+    progressMeasure?: number;
+    completionStatus?: CompletionStatus;
+}
+export type ActivityObjectiveDirtyProperty = "satisfiedStatus" | "normalizedMeasure" | "completionStatus" | "progressMeasure" | "rawScore" | "minScore" | "maxScore";
 export type RollupConsiderationRequirement = "always" | "ifAttempted" | "ifNotSkipped" | "ifNotSuspended";
 export interface RollupConsiderationsConfig {
     requiredForSatisfied: RollupConsiderationRequirement;
@@ -68,6 +86,12 @@ export declare class ActivityObjective {
     private _satisfiedStatusKnown;
     private _measureStatus;
     private _normalizedMeasure;
+    private _rawScore;
+    private _rawScoreKnown;
+    private _minScore;
+    private _minScoreKnown;
+    private _maxScore;
+    private _maxScoreKnown;
     private _progressMeasure;
     private _progressMeasureStatus;
     private _completionStatus;
@@ -76,6 +100,9 @@ export declare class ActivityObjective {
     private _normalizedMeasureDirty;
     private _completionStatusDirty;
     private _progressMeasureDirty;
+    private _rawScoreDirty;
+    private _minScoreDirty;
+    private _maxScoreDirty;
     constructor(id: string, options?: ActivityObjectiveOptions);
     get id(): string;
     get description(): string | null;
@@ -95,6 +122,18 @@ export declare class ActivityObjective {
     set measureStatus(value: boolean);
     get normalizedMeasure(): number;
     set normalizedMeasure(value: number);
+    get rawScore(): string;
+    set rawScore(value: string);
+    get rawScoreKnown(): boolean;
+    set rawScoreKnown(value: boolean);
+    get minScore(): string;
+    set minScore(value: string);
+    get minScoreKnown(): boolean;
+    set minScoreKnown(value: boolean);
+    get maxScore(): string;
+    set maxScore(value: string);
+    get maxScoreKnown(): boolean;
+    set maxScoreKnown(value: boolean);
     get progressMeasure(): number;
     set progressMeasure(value: number);
     get progressMeasureStatus(): boolean;
@@ -103,10 +142,12 @@ export declare class ActivityObjective {
     set completionStatus(value: CompletionStatus);
     get progressStatus(): boolean;
     set progressStatus(value: boolean);
-    isDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): boolean;
-    clearDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): void;
+    isDirty(property: ActivityObjectiveDirtyProperty): boolean;
+    clearDirty(property: ActivityObjectiveDirtyProperty): void;
     clearAllDirty(): void;
     initializeFromCMI(satisfiedStatus: boolean, normalizedMeasure: number, measureStatus: boolean): void;
+    initializeScoreFromCMI(score: ActivityObjectiveScoreState): void;
+    applyReadMappedState(state: ActivityObjectiveReadState): void;
     resetState(): void;
     updateFromActivity(activity: Activity): void;
     applyToActivity(activity: Activity): void;
@@ -321,10 +362,10 @@ export declare class Activity extends BaseCMI {
     } | null;
     getAllObjectives(): ActivityObjective[];
     private updatePrimaryObjectiveFromActivity;
-    isObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): boolean;
-    clearObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): void;
+    isObjectiveDirty(property: "satisfiedStatus" | "normalizedMeasure" | "measureStatus"): boolean;
+    clearObjectiveDirty(property: "satisfiedStatus" | "normalizedMeasure" | "measureStatus"): void;
     clearAllObjectiveDirty(): void;
-    setPrimaryObjectiveState(satisfiedStatus: boolean, measureStatus: boolean, normalizedMeasure: number, progressMeasure: number, progressMeasureStatus: boolean, completionStatus: CompletionStatus): void;
+    setPrimaryObjectiveState(satisfiedStatus: boolean, measureStatus: boolean, normalizedMeasure: number, progressMeasure: number, progressMeasureStatus: boolean, completionStatus: CompletionStatus, objectiveProgressStatus?: boolean): void;
     getObjectiveStateSnapshot(): {
         primary: ActivityObjectiveState | null;
         objectives: ActivityObjectiveState[];
@@ -333,6 +374,7 @@ export declare class Activity extends BaseCMI {
         primary: ActivityObjectiveState | null;
         objectives: ActivityObjectiveState[];
     }): void;
+    private applyObjectiveScoreSnapshot;
     getAvailableChildren(): Activity[];
     setProcessedChildren(processedChildren: Activity[]): void;
     resetProcessedChildren(): void;

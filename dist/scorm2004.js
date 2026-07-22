@@ -1,7 +1,7 @@
 this.Scorm2004API = (function () {
   'use strict';
 
-  function _array_like_to_array$f(arr, len) {
+  function _array_like_to_array$g(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -9,10 +9,10 @@ this.Scorm2004API = (function () {
   function _array_with_holes$6(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _array_without_holes$a(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
+  function _array_without_holes$b(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
-  function _iterable_to_array$a(iter) {
+  function _iterable_to_array$b(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
   function _iterable_to_array_limit$6(arr, i) {
@@ -42,22 +42,22 @@ this.Scorm2004API = (function () {
   function _non_iterable_rest$6() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _non_iterable_spread$a() {
+  function _non_iterable_spread$b() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$6(arr, i) {
-      return _array_with_holes$6(arr) || _iterable_to_array_limit$6(arr, i) || _unsupported_iterable_to_array$f(arr, i) || _non_iterable_rest$6();
+      return _array_with_holes$6(arr) || _iterable_to_array_limit$6(arr, i) || _unsupported_iterable_to_array$g(arr, i) || _non_iterable_rest$6();
   }
-  function _to_consumable_array$a(arr) {
-      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$a();
+  function _to_consumable_array$b(arr) {
+      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$b();
   }
-  function _unsupported_iterable_to_array$f(o, minLen) {
+  function _unsupported_iterable_to_array$g(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
   }
   var SECONDS_PER_SECOND = 1;
   var SECONDS_PER_MINUTE = 60;
@@ -219,9 +219,9 @@ this.Scorm2004API = (function () {
           for(var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++){
               args[_key] = arguments[_key];
           }
-          var key = keyFn ? keyFn.apply(void 0, _to_consumable_array$a(args)) : JSON.stringify(args);
+          var key = keyFn ? keyFn.apply(void 0, _to_consumable_array$b(args)) : JSON.stringify(args);
           return cache.has(key) ? cache.get(key) : function() {
-              var result = fn.apply(void 0, _to_consumable_array$a(args));
+              var result = fn.apply(void 0, _to_consumable_array$b(args));
               cache.set(key, result);
               return result;
           }();
@@ -1034,7 +1034,7 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function ownKeys$4(object, enumerableOnly) {
+  function ownKeys$5(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -1042,12 +1042,12 @@ this.Scorm2004API = (function () {
       }
       return keys;
   }
-  function _object_spread_props$4(target, source) {
+  function _object_spread_props$5(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) {
           Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-          ownKeys$4(Object(source)).forEach(function(key) {
+          ownKeys$5(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
@@ -1083,7 +1083,7 @@ this.Scorm2004API = (function () {
       VALUE_OUT_OF_RANGE: 101,
       DEPENDENCY_NOT_ESTABLISHED: 101
   };
-  var scorm12_errors = _object_spread_props$4(_object_spread$f({}, global_errors), {
+  var scorm12_errors = _object_spread_props$5(_object_spread$f({}, global_errors), {
       RETRIEVE_BEFORE_INIT: 301,
       STORE_BEFORE_INIT: 301,
       COMMIT_BEFORE_INIT: 301,
@@ -1103,7 +1103,7 @@ this.Scorm2004API = (function () {
       VALUE_OUT_OF_RANGE: 405,
       DEPENDENCY_NOT_ESTABLISHED: 408
   });
-  var scorm2004_errors = _object_spread_props$4(_object_spread$f({}, global_errors), {
+  var scorm2004_errors = _object_spread_props$5(_object_spread$f({}, global_errors), {
       INITIALIZATION_FAILED: 102,
       INITIALIZED: 103,
       TERMINATED: 104,
@@ -2720,12 +2720,6 @@ this.Scorm2004API = (function () {
   var __publicField$11 = function __publicField(obj, key, value) {
       return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
   };
-  var RuleConditionOperator = /* @__PURE__ */ function(RuleConditionOperator2) {
-      RuleConditionOperator2["NOT"] = "not";
-      RuleConditionOperator2["AND"] = "and";
-      RuleConditionOperator2["OR"] = "or";
-      return RuleConditionOperator2;
-  }(RuleConditionOperator || {});
   var RuleActionType = /* @__PURE__ */ function(RuleActionType2) {
       RuleActionType2["SKIP"] = "skip";
       RuleActionType2["DISABLED"] = "disabled";
@@ -2740,6 +2734,82 @@ this.Scorm2004API = (function () {
       RuleActionType2["EXIT"] = "exit";
       return RuleActionType2;
   }(RuleActionType || {});
+  function kleeneNot(value) {
+      if (value === "unknown") {
+          return "unknown";
+      }
+      return !value;
+  }
+  function kleeneAnd(values) {
+      var hasUnknown = false;
+      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+      try {
+          for(var _iterator = values[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+              var value = _step.value;
+              if (value === false) {
+                  return false;
+              }
+              if (value === "unknown") {
+                  hasUnknown = true;
+              }
+          }
+      } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+      } finally{
+          try {
+              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                  _iterator.return();
+              }
+          } finally{
+              if (_didIteratorError) {
+                  throw _iteratorError;
+              }
+          }
+      }
+      return hasUnknown ? "unknown" : true;
+  }
+  function kleeneOr(values) {
+      var hasUnknown = false;
+      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+      try {
+          for(var _iterator = values[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+              var value = _step.value;
+              if (value === true) {
+                  return true;
+              }
+              if (value === "unknown") {
+                  hasUnknown = true;
+              }
+          }
+      } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+      } finally{
+          try {
+              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                  _iterator.return();
+              }
+          } finally{
+              if (_didIteratorError) {
+                  throw _iteratorError;
+              }
+          }
+      }
+      return hasUnknown ? "unknown" : false;
+  }
+  function combineRuleConditionResults(values, conditionCombination) {
+      if (values.length === 0) {
+          return false;
+      }
+      if (conditionCombination === "all" || conditionCombination === "and" /* AND */ ) {
+          return kleeneAnd(values);
+      }
+      if (conditionCombination === "any" || conditionCombination === "or" /* OR */ ) {
+          return kleeneOr(values);
+      }
+      return false;
+  }
   var _RuleCondition = /*#__PURE__*/ function(BaseCMI) {
       _inherits$l(_RuleCondition, BaseCMI);
       function _RuleCondition() {
@@ -2845,53 +2915,74 @@ this.Scorm2004API = (function () {
               /**
      * Evaluate the condition for an activity
      * @param {Activity} activity - The activity to evaluate the condition for
-     * @return {boolean} - True if the condition is met, false otherwise
+     * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
      */ key: "evaluate",
               value: function evaluate(activity) {
                   var result;
+                  var hasReferencedObjective = this._referencedObjective !== null;
                   var referencedObjective = this.resolveReferencedObjective(activity);
                   switch(this._condition){
                       case "satisfied" /* SATISFIED */ :
                       case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */ :
-                          if (referencedObjective) {
-                              result = referencedObjective.satisfiedStatus === true;
+                          if (hasReferencedObjective && !referencedObjective) {
+                              result = false;
+                          } else if (referencedObjective) {
+                              result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus ? referencedObjective.satisfiedStatus === true : "unknown";
+                          } else if (activity.objectiveSatisfiedStatusKnown) {
+                              result = activity.objectiveSatisfiedStatus === true;
+                          } else if (activity.successStatus !== SuccessStatus.UNKNOWN) {
+                              result = activity.successStatus === SuccessStatus.PASSED;
                           } else {
-                              result = activity.successStatus === SuccessStatus.PASSED || activity.objectiveSatisfiedStatus === true;
+                              result = "unknown";
                           }
                           break;
                       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ :
-                          result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+                          result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.satisfiedStatusKnown : !!activity.objectiveSatisfiedStatusKnown;
                           break;
                       case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */ :
-                          result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+                          result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
                           break;
                       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ :
                           {
+                              if (hasReferencedObjective && !referencedObjective) {
+                                  result = false;
+                                  break;
+                              }
                               var greaterThanValue = this._parameters.get("threshold") || 0;
                               var measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
                               var measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-                              result = !!measureStatus && measureValue > greaterThanValue;
+                              result = measureStatus ? measureValue > greaterThanValue : "unknown";
                               break;
                           }
                       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ :
                           {
+                              if (hasReferencedObjective && !referencedObjective) {
+                                  result = false;
+                                  break;
+                              }
                               var lessThanValue = this._parameters.get("threshold") || 0;
                               var measureStatus1 = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
                               var measureValue1 = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-                              result = !!measureStatus1 && measureValue1 < lessThanValue;
+                              result = measureStatus1 ? measureValue1 < lessThanValue : "unknown";
                               break;
                           }
                       case "completed" /* COMPLETED */ :
                       case "activityCompleted" /* ACTIVITY_COMPLETED */ :
-                          if (referencedObjective) {
-                              result = referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+                          if (hasReferencedObjective && !referencedObjective) {
+                              result = false;
+                          } else if (referencedObjective) {
+                              result = referencedObjective.completionStatus === CompletionStatus.UNKNOWN ? "unknown" : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+                          } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
+                              result = "unknown";
                           } else {
-                              result = activity.isCompleted;
+                              result = activity.completionStatus === CompletionStatus.COMPLETED;
                           }
                           break;
                       case "progressKnown" /* PROGRESS_KNOWN */ :
                       case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */ :
-                          if (referencedObjective) {
+                          if (hasReferencedObjective && !referencedObjective) {
+                              result = false;
+                          } else if (referencedObjective) {
                               result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
                           } else {
                               result = activity.completionStatus !== "unknown";
@@ -2920,7 +3011,7 @@ this.Scorm2004API = (function () {
                           break;
                   }
                   if (this._operator === "not" /* NOT */ ) {
-                      result = !result;
+                      result = kleeneNot(result);
                   }
                   return result;
               }
@@ -3169,19 +3260,9 @@ this.Scorm2004API = (function () {
      * @return {boolean} - True if the rule conditions are met, false otherwise
      */ key: "evaluate",
               value: function evaluate(activity) {
-                  if (this._conditions.length === 0) {
-                      return true;
-                  }
-                  if (this._conditionCombination === "all" || this._conditionCombination === "and" /* AND */ ) {
-                      return this._conditions.every(function(condition) {
-                          return condition.evaluate(activity);
-                      });
-                  } else if (this._conditionCombination === "any" || this._conditionCombination === "or" /* OR */ ) {
-                      return this._conditions.some(function(condition) {
-                          return condition.evaluate(activity);
-                      });
-                  }
-                  return false;
+                  return combineRuleConditionResults(this._conditions.map(function(condition) {
+                      return condition.evaluate(activity);
+                  }), this._conditionCombination) === true;
               }
           },
           {
@@ -4415,23 +4496,10 @@ this.Scorm2004API = (function () {
      * Evaluates individual sequencing rule conditions
      * @param {Activity} activity - The activity to evaluate the rule for
      * @param {SequencingRule} rule - The rule to evaluate
-     * @return {boolean} - True if all rule conditions are met
+     * @return {boolean} - True only when the rule evaluates to definite true
      */ key: "checkRuleSubprocess",
               value: function checkRuleSubprocess(activity, rule) {
-                  if (rule.conditions.length === 0) {
-                      return true;
-                  }
-                  var conditionCombination = rule.conditionCombination;
-                  if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
-                      return rule.conditions.every(function(condition) {
-                          return condition.evaluate(activity);
-                      });
-                  } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
-                      return rule.conditions.some(function(condition) {
-                          return condition.evaluate(activity);
-                      });
-                  }
-                  return false;
+                  return rule.evaluate(activity);
               }
           },
           {
@@ -5272,13 +5340,13 @@ this.Scorm2004API = (function () {
       return SequencingControls;
   }(BaseCMI);
 
-  function _array_like_to_array$e(arr, len) {
+  function _array_like_to_array$f(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$9(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
+  function _array_without_holes$a(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
   function _class_call_check$10(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -5298,22 +5366,22 @@ this.Scorm2004API = (function () {
       if (staticProps) _defineProperties$10(Constructor, staticProps);
       return Constructor;
   }
-  function _iterable_to_array$9(iter) {
+  function _iterable_to_array$a(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$9() {
+  function _non_iterable_spread$a() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$9(arr) {
-      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$9();
+  function _to_consumable_array$a(arr) {
+      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$a();
   }
-  function _unsupported_iterable_to_array$e(o, minLen) {
+  function _unsupported_iterable_to_array$f(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
@@ -5329,7 +5397,7 @@ this.Scorm2004API = (function () {
      * @return {Activity[]} - The selected child activities
      */ function selectChildrenProcess(activity) {
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$9(activity.children);
+                  var children = _to_consumable_array$a(activity.children);
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       return children;
                   }
@@ -5398,7 +5466,7 @@ this.Scorm2004API = (function () {
      */ function randomizeChildrenProcess(activity) {
                   var _activity_children;
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$9(activity.children);
+                  var children = _to_consumable_array$a(activity.children);
                   if (controls.randomizationTiming === RandomizationTiming.NEVER) {
                       return children;
                   }
@@ -5408,7 +5476,7 @@ this.Scorm2004API = (function () {
                   if (!controls.randomizeChildren) {
                       return children;
                   }
-                  var randomizedChildren = _to_consumable_array$9(children);
+                  var randomizedChildren = _to_consumable_array$a(children);
                   for(var i = randomizedChildren.length - 1; i > 0; i--){
                       var j = Math.floor(Math.random() * (i + 1));
                       var tempI = randomizedChildren[i];
@@ -5422,7 +5490,7 @@ this.Scorm2004API = (function () {
                       controls.reorderChildren = true;
                   }
                   activity.children.length = 0;
-                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$9(randomizedChildren));
+                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$a(randomizedChildren));
                   return randomizedChildren;
               }
           },
@@ -5557,13 +5625,17 @@ this.Scorm2004API = (function () {
      * @param {Activity} fromActivity - The activity to flow from
      * @param {FlowSubprocessMode} direction - The flow direction
      * @return {FlowSubprocessResult} - Result containing the deliverable activity
+     * @spec SN Book: SB.2.3 (Flow Subprocess) - preserves the SB.2.1 effective traversal direction for SB.2.2.
+     * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates candidates using the effective direction returned by SB.2.1.
      */ key: "flowSubprocess",
               value: function flowSubprocess(fromActivity, direction) {
                   var candidateActivity = fromActivity;
                   var firstIteration = true;
                   var lastCandidateHadNoChildren = false;
+                  var currentDirection = direction;
+                  var forwardOnlyCluster = null;
                   while(candidateActivity){
-                      var traversalResult = this.flowTreeTraversalSubprocess(candidateActivity, direction, firstIteration);
+                      var traversalResult = this.flowTreeTraversalSubprocess(candidateActivity, currentDirection, firstIteration, forwardOnlyCluster);
                       if (!traversalResult.activity) {
                           var exceptionCode = null;
                           if (traversalResult.exception) {
@@ -5575,12 +5647,17 @@ this.Scorm2004API = (function () {
                           }
                           return new FlowSubprocessResult(candidateActivity, false, exceptionCode, traversalResult.endSequencingSession);
                       }
+                      var effectiveDirection = traversalResult.direction || currentDirection;
+                      if (traversalResult.forwardOnlyCluster) {
+                          forwardOnlyCluster = traversalResult.forwardOnlyCluster;
+                      }
                       lastCandidateHadNoChildren = traversalResult.activity.children.length > 0 && traversalResult.activity.getAvailableChildren().length === 0;
-                      var deliverable = this.flowActivityTraversalSubprocess(traversalResult.activity, direction === FlowSubprocessMode.FORWARD, true, direction);
+                      var deliverable = this.flowActivityTraversalSubprocess(traversalResult.activity, effectiveDirection === FlowSubprocessMode.FORWARD, true, effectiveDirection);
                       if (deliverable) {
                           return new FlowSubprocessResult(deliverable, true, null, false);
                       }
                       candidateActivity = traversalResult.activity;
+                      currentDirection = effectiveDirection;
                       firstIteration = false;
                   }
                   return new FlowSubprocessResult(null, false, null, false);
@@ -5593,12 +5670,14 @@ this.Scorm2004API = (function () {
      * @param {Activity} fromActivity - The activity to traverse from
      * @param {FlowSubprocessMode} direction - The traversal direction
      * @param {boolean} skipChildren - Whether to skip checking children
+     * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
      * @return {FlowTreeTraversalResult} - The next activity and flags
+     * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
      */ key: "flowTreeTraversalSubprocess",
               value: function flowTreeTraversalSubprocess(fromActivity, direction) {
-                  var skipChildren = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
+                  var skipChildren = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, forwardTraversalBoundary = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null;
                   if (direction === FlowSubprocessMode.FORWARD) {
-                      return this.traverseForward(fromActivity, skipChildren);
+                      return this.traverseForward(fromActivity, skipChildren, forwardTraversalBoundary);
                   } else {
                       return this.traverseBackward(fromActivity);
                   }
@@ -5609,10 +5688,19 @@ this.Scorm2004API = (function () {
      * Traverse forward in the activity tree
      * @param {Activity} fromActivity - Starting activity
      * @param {boolean} skipChildren - Whether to skip children
+     * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
      * @return {FlowTreeTraversalResult}
+     * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - a reversed Forward traversal from a forwardOnly cluster remains within that cluster.
      */ key: "traverseForward",
               value: function traverseForward(fromActivity, skipChildren) {
-                  if (skipChildren && this.isActivityLastOverall(fromActivity)) {
+                  var forwardTraversalBoundary = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
+                  if (forwardTraversalBoundary && !this.isDescendantOfOrSelf(fromActivity, forwardTraversalBoundary)) {
+                      return {
+                          activity: null,
+                          endSequencingSession: false
+                      };
+                  }
+                  if (!forwardTraversalBoundary && skipChildren && this.isActivityLastOverall(fromActivity)) {
                       if (this.activityTree.root) {
                           this.terminateDescendentAttempts(this.activityTree.root);
                       }
@@ -5640,6 +5728,12 @@ this.Scorm2004API = (function () {
                               endSequencingSession: false
                           };
                       }
+                      if (forwardTraversalBoundary && (current === forwardTraversalBoundary || current.parent === forwardTraversalBoundary)) {
+                          return {
+                              activity: null,
+                              endSequencingSession: false
+                          };
+                      }
                       current = current.parent;
                   }
                   if (this.activityTree.root) {
@@ -5656,6 +5750,7 @@ this.Scorm2004API = (function () {
      * Traverse backward in the activity tree
      * @param {Activity} fromActivity - Starting activity
      * @return {FlowTreeTraversalResult}
+     * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
      */ key: "traverseBackward",
               value: function traverseBackward(fromActivity) {
                   if (fromActivity.parent && fromActivity.parent.sequencingControls.forwardOnly) {
@@ -5667,10 +5762,7 @@ this.Scorm2004API = (function () {
                   }
                   var previousSibling = this.activityTree.getPreviousSibling(fromActivity);
                   if (previousSibling) {
-                      return {
-                          activity: this.getLastDescendant(previousSibling),
-                          endSequencingSession: false
-                      };
+                      return this.getBackwardTraversalEntry(previousSibling);
                   }
                   var current = fromActivity;
                   var ancestorIterations = 0;
@@ -5681,10 +5773,7 @@ this.Scorm2004API = (function () {
                       }
                       var parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
                       if (parentPreviousSibling) {
-                          return {
-                              activity: this.getLastDescendant(parentPreviousSibling),
-                              endSequencingSession: false
-                          };
+                          return this.getBackwardTraversalEntry(parentPreviousSibling);
                       }
                       current = current.parent;
                   }
@@ -5696,28 +5785,59 @@ this.Scorm2004API = (function () {
           },
           {
               /**
-     * Get the last descendant of an activity
+     * Get the activity entered by backward traversal.
      * @param {Activity} activity - The activity
-     * @return {Activity} - The last descendant
-     */ key: "getLastDescendant",
-              value: function getLastDescendant(activity) {
-                  var lastDescendant = activity;
+     * @return {FlowTreeTraversalResult} - The entered activity and effective direction
+     * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - entering a forwardOnly cluster while moving Backward uses the first available child and changes direction to Forward.
+     */ key: "getBackwardTraversalEntry",
+              value: function getBackwardTraversalEntry(activity) {
+                  var enteredActivity = activity;
                   var iterations = 0;
                   var maxIterations = 1e4;
                   while(true){
                       if (++iterations > maxIterations) {
-                          throw new Error("Infinite loop detected while getting last descendant");
+                          throw new Error("Infinite loop detected while getting backward traversal entry");
                       }
-                      this.ensureSelectionAndRandomization(lastDescendant);
-                      var children = lastDescendant.getAvailableChildren();
+                      this.ensureSelectionAndRandomization(enteredActivity);
+                      var children = enteredActivity.getAvailableChildren();
                       if (children.length === 0) {
                           break;
                       }
+                      if (enteredActivity.sequencingControls.forwardOnly) {
+                          return {
+                              activity: children[0] || null,
+                              endSequencingSession: false,
+                              direction: FlowSubprocessMode.FORWARD,
+                              forwardOnlyCluster: enteredActivity
+                          };
+                      }
                       var lastChild = children[children.length - 1];
                       if (!lastChild) break;
-                      lastDescendant = lastChild;
+                      enteredActivity = lastChild;
                   }
-                  return lastDescendant;
+                  return {
+                      activity: enteredActivity,
+                      endSequencingSession: false
+                  };
+              }
+          },
+          {
+              /**
+     * Check whether an activity is the same as or beneath an ancestor.
+     * @param {Activity} activity - The activity to check
+     * @param {Activity} ancestor - The expected ancestor
+     * @return {boolean} - True when activity is within ancestor
+     * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - bounds Forward traversal after a forwardOnly direction reversal to the entered cluster.
+     */ key: "isDescendantOfOrSelf",
+              value: function isDescendantOfOrSelf(activity, ancestor) {
+                  var current = activity;
+                  while(current){
+                      if (current === ancestor) {
+                          return true;
+                      }
+                      current = current.parent;
+                  }
+                  return false;
               }
           },
           {
@@ -7359,7 +7479,7 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function ownKeys$3(object, enumerableOnly) {
+  function ownKeys$4(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -7367,12 +7487,12 @@ this.Scorm2004API = (function () {
       }
       return keys;
   }
-  function _object_spread_props$3(target, source) {
+  function _object_spread_props$4(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) {
           Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-          ownKeys$3(Object(source)).forEach(function(key) {
+          ownKeys$4(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
@@ -7656,7 +7776,7 @@ this.Scorm2004API = (function () {
                               method: "POST",
                               mode: this.settings.fetchMode,
                               body: body,
-                              headers: _object_spread_props$3(_object_spread$c({}, this.settings.xhrHeaders), {
+                              headers: _object_spread_props$4(_object_spread$c({}, this.settings.xhrHeaders), {
                                   "Content-Type": contentType
                               }),
                               keepalive: true
@@ -9057,7 +9177,7 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function ownKeys$2(object, enumerableOnly) {
+  function ownKeys$3(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -9065,12 +9185,12 @@ this.Scorm2004API = (function () {
       }
       return keys;
   }
-  function _object_spread_props$2(target, source) {
+  function _object_spread_props$3(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) {
           Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-          ownKeys$2(Object(source)).forEach(function(key) {
+          ownKeys$3(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
@@ -9543,7 +9663,7 @@ this.Scorm2004API = (function () {
                                       method: "POST",
                                       mode: this.settings.fetchMode,
                                       body: JSON.stringify(processedData),
-                                      headers: _object_spread_props$2(_object_spread$b({}, this.settings.xhrHeaders), {
+                                      headers: _object_spread_props$3(_object_spread$b({}, this.settings.xhrHeaders), {
                                           "Content-Type": this.settings.commitRequestDataType
                                       })
                                   };
@@ -10422,13 +10542,13 @@ this.Scorm2004API = (function () {
       return RollupRules;
   }(BaseCMI);
 
-  function _array_like_to_array$d(arr, len) {
+  function _array_like_to_array$e(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$8(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
+  function _array_without_holes$9(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
   }
   function _assert_this_initialized$i(self) {
       if (self === void 0) {
@@ -10515,10 +10635,10 @@ this.Scorm2004API = (function () {
           return left instanceof right;
       }
   }
-  function _iterable_to_array$8(iter) {
+  function _iterable_to_array$9(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$8() {
+  function _non_iterable_spread$9() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$a(target) {
@@ -10556,20 +10676,20 @@ this.Scorm2004API = (function () {
       }
       return object;
   }
-  function _to_consumable_array$8(arr) {
-      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$8();
+  function _to_consumable_array$9(arr) {
+      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$9();
   }
   function _type_of$J(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$d(o, minLen) {
+  function _unsupported_iterable_to_array$e(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
   }
   function _is_native_reflect_construct$i() {
       try {
@@ -10608,6 +10728,12 @@ this.Scorm2004API = (function () {
           // objectives. It serves as a validity gate for other synced properties.
           __publicField$J(this, "_measureStatus", false);
           __publicField$J(this, "_normalizedMeasure", 0);
+          __publicField$J(this, "_rawScore", "");
+          __publicField$J(this, "_rawScoreKnown", false);
+          __publicField$J(this, "_minScore", "");
+          __publicField$J(this, "_minScoreKnown", false);
+          __publicField$J(this, "_maxScore", "");
+          __publicField$J(this, "_maxScoreKnown", false);
           __publicField$J(this, "_progressMeasure", 0);
           __publicField$J(this, "_progressMeasureStatus", false);
           __publicField$J(this, "_completionStatus", CompletionStatus.UNKNOWN);
@@ -10617,11 +10743,14 @@ this.Scorm2004API = (function () {
           __publicField$J(this, "_normalizedMeasureDirty", false);
           __publicField$J(this, "_completionStatusDirty", false);
           __publicField$J(this, "_progressMeasureDirty", false);
+          __publicField$J(this, "_rawScoreDirty", false);
+          __publicField$J(this, "_minScoreDirty", false);
+          __publicField$J(this, "_maxScoreDirty", false);
           this._id = id;
           this._description = (_options_description = options.description) !== null && _options_description !== void 0 ? _options_description : null;
           this._satisfiedByMeasure = (_options_satisfiedByMeasure = options.satisfiedByMeasure) !== null && _options_satisfiedByMeasure !== void 0 ? _options_satisfiedByMeasure : false;
           this._minNormalizedMeasure = (_options_minNormalizedMeasure = options.minNormalizedMeasure) !== null && _options_minNormalizedMeasure !== void 0 ? _options_minNormalizedMeasure : null;
-          this._mapInfo = options.mapInfo ? _to_consumable_array$8(options.mapInfo) : [];
+          this._mapInfo = options.mapInfo ? _to_consumable_array$9(options.mapInfo) : [];
           this._isPrimary = (_options_isPrimary = options.isPrimary) !== null && _options_isPrimary !== void 0 ? _options_isPrimary : false;
       }
       _create_class$N(ActivityObjective, [
@@ -10661,7 +10790,7 @@ this.Scorm2004API = (function () {
                   return this._mapInfo;
               },
               set: function set(mapInfo) {
-                  this._mapInfo = _to_consumable_array$8(mapInfo);
+                  this._mapInfo = _to_consumable_array$9(mapInfo);
               }
           },
           {
@@ -10682,6 +10811,8 @@ this.Scorm2004API = (function () {
                   if (this._satisfiedStatus !== value) {
                       this._satisfiedStatus = value;
                       this._satisfiedStatusDirty = true;
+                      this._satisfiedStatusKnown = true;
+                      this._progressStatus = true;
                   }
               }
           },
@@ -10713,6 +10844,120 @@ this.Scorm2004API = (function () {
                       this._normalizedMeasure = value;
                       this._normalizedMeasureDirty = true;
                   }
+              }
+          },
+          {
+              key: "rawScore",
+              get: /**
+     * Return the known raw score value held for ADLSEQ objective score mapping.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score mapInfo
+     */ function get() {
+                  return this._rawScore;
+              },
+              set: /**
+     * Store the RTE raw score associated with this objective.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - raw score mapInfo
+     */ function set(value) {
+                  if (this._rawScore !== value) {
+                      this._rawScore = value;
+                      this._rawScoreDirty = true;
+                  }
+                  this._rawScoreKnown = value !== "";
+              }
+          },
+          {
+              key: "rawScoreKnown",
+              get: /**
+     * Return whether this objective's raw score is known.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score known state
+     */ function get() {
+                  return this._rawScoreKnown;
+              },
+              set: /**
+     * Set whether this objective's raw score is known.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score known state
+     */ function set(value) {
+                  this._rawScoreKnown = value;
+              }
+          },
+          {
+              key: "minScore",
+              get: /**
+     * Return the known minimum score value held for ADLSEQ objective score mapping.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score mapInfo
+     */ function get() {
+                  return this._minScore;
+              },
+              set: /**
+     * Store the RTE minimum score associated with this objective.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - min score mapInfo
+     */ function set(value) {
+                  if (this._minScore !== value) {
+                      this._minScore = value;
+                      this._minScoreDirty = true;
+                  }
+                  this._minScoreKnown = value !== "";
+              }
+          },
+          {
+              key: "minScoreKnown",
+              get: /**
+     * Return whether this objective's minimum score is known.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score known state
+     */ function get() {
+                  return this._minScoreKnown;
+              },
+              set: /**
+     * Set whether this objective's minimum score is known.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score known state
+     */ function set(value) {
+                  this._minScoreKnown = value;
+              }
+          },
+          {
+              key: "maxScore",
+              get: /**
+     * Return the known maximum score value held for ADLSEQ objective score mapping.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score mapInfo
+     */ function get() {
+                  return this._maxScore;
+              },
+              set: /**
+     * Store the RTE maximum score associated with this objective.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - max score mapInfo
+     */ function set(value) {
+                  if (this._maxScore !== value) {
+                      this._maxScore = value;
+                      this._maxScoreDirty = true;
+                  }
+                  this._maxScoreKnown = value !== "";
+              }
+          },
+          {
+              key: "maxScoreKnown",
+              get: /**
+     * Return whether this objective's maximum score is known.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score known state
+     */ function get() {
+                  return this._maxScoreKnown;
+              },
+              set: /**
+     * Set whether this objective's maximum score is known.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score known state
+     */ function set(value) {
+                  this._maxScoreKnown = value;
               }
           },
           {
@@ -10758,7 +11003,11 @@ this.Scorm2004API = (function () {
               }
           },
           {
-              key: "isDirty",
+              /**
+     * Report whether a local objective field has changed since the last global write.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - write maps use known local objective data
+     */ key: "isDirty",
               value: function isDirty(property) {
                   switch(property){
                       case "satisfiedStatus":
@@ -10769,11 +11018,21 @@ this.Scorm2004API = (function () {
                           return this._completionStatusDirty;
                       case "progressMeasure":
                           return this._progressMeasureDirty;
+                      case "rawScore":
+                          return this._rawScoreDirty;
+                      case "minScore":
+                          return this._minScoreDirty;
+                      case "maxScore":
+                          return this._maxScoreDirty;
                   }
               }
           },
           {
-              key: "clearDirty",
+              /**
+     * Clear a local objective dirty flag after a successful global write.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - write maps update global objective state
+     */ key: "clearDirty",
               value: function clearDirty(property) {
                   switch(property){
                       case "satisfiedStatus":
@@ -10788,16 +11047,33 @@ this.Scorm2004API = (function () {
                       case "progressMeasure":
                           this._progressMeasureDirty = false;
                           break;
+                      case "rawScore":
+                          this._rawScoreDirty = false;
+                          break;
+                      case "minScore":
+                          this._minScoreDirty = false;
+                          break;
+                      case "maxScore":
+                          this._maxScoreDirty = false;
+                          break;
                   }
               }
           },
           {
-              key: "clearAllDirty",
+              /**
+     * Clear all write-map dirty flags for this objective.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo writes are field-specific
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo writes are field-specific
+     */ key: "clearAllDirty",
               value: function clearAllDirty() {
                   this._satisfiedStatusDirty = false;
                   this._normalizedMeasureDirty = false;
                   this._completionStatusDirty = false;
                   this._progressMeasureDirty = false;
+                  this._rawScoreDirty = false;
+                  this._minScoreDirty = false;
+                  this._maxScoreDirty = false;
               }
           },
           {
@@ -10809,6 +11085,8 @@ this.Scorm2004API = (function () {
      * @param satisfiedStatus - The satisfied status from CMI
      * @param normalizedMeasure - The normalized measure from CMI
      * @param measureStatus - Whether measure is valid
+     *
+     * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective satisfaction and measure transfer
      */ key: "initializeFromCMI",
               value: function initializeFromCMI(satisfiedStatus, normalizedMeasure, measureStatus) {
                   this._satisfiedStatus = satisfiedStatus;
@@ -10819,12 +11097,86 @@ this.Scorm2004API = (function () {
               }
           },
           {
-              key: "resetState",
+              /**
+     * Initialize raw/min/max objective score values from RTE data transfer.
+     *
+     * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective score transfer
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score mapInfo writes
+     */ key: "initializeScoreFromCMI",
+              value: function initializeScoreFromCMI(score) {
+                  if (score.rawScore !== void 0 && score.rawScore !== "") {
+                      this._rawScore = score.rawScore;
+                      this._rawScoreKnown = true;
+                      this._rawScoreDirty = true;
+                  }
+                  if (score.minScore !== void 0 && score.minScore !== "") {
+                      this._minScore = score.minScore;
+                      this._minScoreKnown = true;
+                      this._minScoreDirty = true;
+                  }
+                  if (score.maxScore !== void 0 && score.maxScore !== "") {
+                      this._maxScore = score.maxScore;
+                      this._maxScoreKnown = true;
+                      this._maxScoreDirty = true;
+                  }
+              }
+          },
+          {
+              /**
+     * Apply read-mapped global objective state without marking the values dirty.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to global objective state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps are access-only
+     */ key: "applyReadMappedState",
+              value: function applyReadMappedState(state) {
+                  if (state.satisfiedStatus !== void 0) {
+                      this._satisfiedStatus = state.satisfiedStatus;
+                      this._satisfiedStatusKnown = true;
+                      this._progressStatus = true;
+                  }
+                  if (state.normalizedMeasure !== void 0) {
+                      this._normalizedMeasure = state.normalizedMeasure;
+                      this._measureStatus = true;
+                  }
+                  if (state.completionStatus !== void 0) {
+                      this._completionStatus = state.completionStatus;
+                  }
+                  if (state.progressMeasure !== void 0) {
+                      this._progressMeasure = state.progressMeasure;
+                      this._progressMeasureStatus = true;
+                  }
+                  if (state.rawScore !== void 0) {
+                      this._rawScore = state.rawScore;
+                      this._rawScoreKnown = true;
+                  }
+                  if (state.minScore !== void 0) {
+                      this._minScore = state.minScore;
+                      this._minScoreKnown = true;
+                  }
+                  if (state.maxScore !== void 0) {
+                      this._maxScore = state.maxScore;
+                      this._maxScoreKnown = true;
+                  }
+              }
+          },
+          {
+              /**
+     * Reset local objective state for a fresh activity attempt.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - unknown objective state before tracking data exists
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score map fields are unknown until transferred or read
+     */ key: "resetState",
               value: function resetState() {
                   this._satisfiedStatus = false;
                   this._satisfiedStatusKnown = false;
                   this._measureStatus = false;
                   this._normalizedMeasure = 0;
+                  this._rawScore = "";
+                  this._rawScoreKnown = false;
+                  this._minScore = "";
+                  this._minScoreKnown = false;
+                  this._maxScore = "";
+                  this._maxScoreKnown = false;
                   this._progressMeasure = 0;
                   this._progressMeasureStatus = false;
                   this._completionStatus = CompletionStatus.UNKNOWN;
@@ -10833,7 +11185,11 @@ this.Scorm2004API = (function () {
               }
           },
           {
-              key: "updateFromActivity",
+              /**
+     * Copy primary activity objective state back into the primary objective model.
+     *
+     * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - primary objective state is available to sequencing
+     */ key: "updateFromActivity",
               value: function updateFromActivity(activity) {
                   if (this._satisfiedStatus !== activity.objectiveSatisfiedStatus) {
                       this._satisfiedStatus = activity.objectiveSatisfiedStatus;
@@ -10857,12 +11213,16 @@ this.Scorm2004API = (function () {
               }
           },
           {
-              key: "applyToActivity",
+              /**
+     * Apply primary objective state to the owning activity for sequencing rules and rollup.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - primary objective contributes activity state
+     */ key: "applyToActivity",
               value: function applyToActivity(activity) {
                   if (!this._isPrimary) {
                       return;
                   }
-                  activity.setPrimaryObjectiveState(this._satisfiedStatus, this._measureStatus, this._normalizedMeasure, this._progressMeasure, this._progressMeasureStatus, this._completionStatus);
+                  activity.setPrimaryObjectiveState(this._satisfiedStatus, this._measureStatus, this._normalizedMeasure, this._progressMeasure, this._progressMeasureStatus, this._completionStatus, this._progressStatus || this._satisfiedStatusKnown);
               }
           }
       ]);
@@ -11214,7 +11574,7 @@ this.Scorm2004API = (function () {
                       (_this__children = this._children).splice.apply(_this__children, [
                           0,
                           this._children.length
-                      ].concat(_to_consumable_array$8(reordered)));
+                      ].concat(_to_consumable_array$9(reordered)));
                   }
               }
           },
@@ -12099,7 +12459,7 @@ this.Scorm2004API = (function () {
               set: /**
      * Setter for primary objective
      * @param {ActivityObjective | null} objective
-    */ function set(objective) {
+     */ function set(objective) {
                   this._primaryObjective = objective;
                   if (this._primaryObjective) {
                       this._primaryObjective.isPrimary = true;
@@ -12127,8 +12487,8 @@ this.Scorm2004API = (function () {
               set: /**
      * Replace objectives collection
      * @param {ActivityObjective[]} objectives
-    */ function set(objectives) {
-                  this._objectives = _to_consumable_array$8(objectives);
+     */ function set(objectives) {
+                  this._objectives = _to_consumable_array$9(objectives);
                   this.syncPrimaryObjectiveCollection();
               }
           },
@@ -12167,7 +12527,7 @@ this.Scorm2004API = (function () {
                   }
                   this._objectives = [
                       this._primaryObjective
-                  ].concat(_to_consumable_array$8(this._objectives));
+                  ].concat(_to_consumable_array$9(this._objectives));
               }
           },
           {
@@ -12262,11 +12622,12 @@ this.Scorm2004API = (function () {
           {
               key: "setPrimaryObjectiveState",
               value: function setPrimaryObjectiveState(satisfiedStatus, measureStatus, normalizedMeasure, progressMeasure, progressMeasureStatus, completionStatus) {
+                  var objectiveProgressStatus = arguments.length > 6 && arguments[6] !== void 0 ? arguments[6] : true;
                   if (this._objectiveSatisfiedStatus !== satisfiedStatus) {
                       this._objectiveSatisfiedStatus = satisfiedStatus;
                       this._objectiveSatisfiedStatusDirty = true;
                   }
-                  this._objectiveSatisfiedStatusKnown = true;
+                  this._objectiveSatisfiedStatusKnown = objectiveProgressStatus;
                   if (this._objectiveMeasureStatus !== measureStatus) {
                       this._objectiveMeasureStatus = measureStatus;
                       this._objectiveMeasureStatusDirty = true;
@@ -12285,11 +12646,18 @@ this.Scorm2004API = (function () {
                       this._primaryObjective.progressMeasure = progressMeasure;
                       this._primaryObjective.progressMeasureStatus = progressMeasureStatus;
                       this._primaryObjective.completionStatus = completionStatus;
+                      this._primaryObjective.satisfiedStatusKnown = objectiveProgressStatus;
+                      this._primaryObjective.progressStatus = objectiveProgressStatus;
                   }
               }
           },
           {
-              key: "getObjectiveStateSnapshot",
+              /**
+     * Snapshot objective state for sequencing persistence.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - objective state persists across attempts
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score-map state persists with objective state
+     */ key: "getObjectiveStateSnapshot",
               value: function getObjectiveStateSnapshot() {
                   var _this_progressMeasure;
                   var primarySnapshot = this._primaryObjective ? {
@@ -12297,6 +12665,12 @@ this.Scorm2004API = (function () {
                       satisfiedStatus: this.objectiveSatisfiedStatus,
                       measureStatus: this.objectiveMeasureStatus,
                       normalizedMeasure: this.objectiveNormalizedMeasure,
+                      rawScore: this._primaryObjective.rawScore,
+                      rawScoreKnown: this._primaryObjective.rawScoreKnown,
+                      minScore: this._primaryObjective.minScore,
+                      minScoreKnown: this._primaryObjective.minScoreKnown,
+                      maxScore: this._primaryObjective.maxScore,
+                      maxScoreKnown: this._primaryObjective.maxScoreKnown,
                       progressMeasure: (_this_progressMeasure = this.progressMeasure) !== null && _this_progressMeasure !== void 0 ? _this_progressMeasure : 0,
                       progressMeasureStatus: this.progressMeasureStatus,
                       progressStatus: this._primaryObjective.progressStatus,
@@ -12310,6 +12684,12 @@ this.Scorm2004API = (function () {
                           satisfiedStatus: objective.satisfiedStatus,
                           measureStatus: objective.measureStatus,
                           normalizedMeasure: objective.normalizedMeasure,
+                          rawScore: objective.rawScore,
+                          rawScoreKnown: objective.rawScoreKnown,
+                          minScore: objective.minScore,
+                          minScoreKnown: objective.minScoreKnown,
+                          maxScore: objective.maxScore,
+                          maxScoreKnown: objective.maxScoreKnown,
                           progressMeasure: objective.progressMeasure,
                           progressMeasureStatus: objective.progressMeasureStatus,
                           progressStatus: objective.progressStatus,
@@ -12325,7 +12705,12 @@ this.Scorm2004API = (function () {
               }
           },
           {
-              key: "applyObjectiveStateSnapshot",
+              /**
+     * Restore objective state from a sequencing persistence snapshot.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - persisted objective state restores sequencing state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - persisted score-map state restores objective score fields
+     */ key: "applyObjectiveStateSnapshot",
               value: function applyObjectiveStateSnapshot(snapshot) {
                   if (snapshot.primary) {
                       var primary = this.getObjectiveById(snapshot.primary.id);
@@ -12334,7 +12719,8 @@ this.Scorm2004API = (function () {
                           var state = snapshot.primary;
                           primary.objective.satisfiedByMeasure = (_state_satisfiedByMeasure = state.satisfiedByMeasure) !== null && _state_satisfiedByMeasure !== void 0 ? _state_satisfiedByMeasure : primary.objective.satisfiedByMeasure;
                           primary.objective.minNormalizedMeasure = state.minNormalizedMeasure !== void 0 ? state.minNormalizedMeasure : primary.objective.minNormalizedMeasure;
-                          this.setPrimaryObjectiveState(state.satisfiedStatus, state.measureStatus, state.normalizedMeasure, state.progressMeasure, state.progressMeasureStatus, state.completionStatus);
+                          this.setPrimaryObjectiveState(state.satisfiedStatus, state.measureStatus, state.normalizedMeasure, state.progressMeasure, state.progressMeasureStatus, state.completionStatus, state.progressStatus);
+                          this.applyObjectiveScoreSnapshot(primary.objective, state);
                       }
                   }
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
@@ -12351,6 +12737,7 @@ this.Scorm2004API = (function () {
                               objective.progressMeasure = state1.progressMeasure;
                               objective.progressMeasureStatus = state1.progressMeasureStatus;
                               objective.completionStatus = state1.completionStatus;
+                              this.applyObjectiveScoreSnapshot(objective, state1);
                               objective.satisfiedByMeasure = (_state_satisfiedByMeasure1 = state1.satisfiedByMeasure) !== null && _state_satisfiedByMeasure1 !== void 0 ? _state_satisfiedByMeasure1 : objective.satisfiedByMeasure;
                               objective.minNormalizedMeasure = state1.minNormalizedMeasure !== void 0 ? state1.minNormalizedMeasure : objective.minNormalizedMeasure;
                           }
@@ -12369,6 +12756,26 @@ this.Scorm2004API = (function () {
                           }
                       }
                   }
+              }
+          },
+          {
+              /**
+     * Restore known raw/min/max score fields from an objective state snapshot.
+     *
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score known flags restore independently
+     */ key: "applyObjectiveScoreSnapshot",
+              value: function applyObjectiveScoreSnapshot(objective, state) {
+                  var scoreState = {};
+                  if (state.rawScoreKnown) {
+                      scoreState.rawScore = state.rawScore;
+                  }
+                  if (state.minScoreKnown) {
+                      scoreState.minScore = state.minScore;
+                  }
+                  if (state.maxScoreKnown) {
+                      scoreState.maxScore = state.maxScore;
+                  }
+                  objective.applyReadMappedState(scoreState);
               }
           },
           {
@@ -12733,7 +13140,7 @@ this.Scorm2004API = (function () {
                       minProgressMeasure: this._minProgressMeasure,
                       progressWeight: this._progressWeight,
                       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
-                      hideLmsUi: _to_consumable_array$8(this._hideLmsUi),
+                      hideLmsUi: _to_consumable_array$9(this._hideLmsUi),
                       auxiliaryResources: this._auxiliaryResources.map(function(resource) {
                           return _object_spread$a({}, resource);
                       }),
@@ -12791,7 +13198,7 @@ this.Scorm2004API = (function () {
           {
               key: "addAuxiliaryResource",
               value: function addAuxiliaryResource(resource) {
-                  this.auxiliaryResources = _to_consumable_array$8(this._auxiliaryResources).concat([
+                  this.auxiliaryResources = _to_consumable_array$9(this._auxiliaryResources).concat([
                       resource
                   ]);
               }
@@ -12819,7 +13226,7 @@ this.Scorm2004API = (function () {
      * Getter for hideLmsUi directives
      * @return {HideLmsUiItem[]}
      */ function get() {
-                  return _to_consumable_array$8(this._hideLmsUi);
+                  return _to_consumable_array$9(this._hideLmsUi);
               },
               set: /**
      * Setter for hideLmsUi directives
@@ -14372,6 +14779,7 @@ this.Scorm2004API = (function () {
   }
   function _create_class$F(Constructor, protoProps, staticProps) {
       if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$F(Constructor, staticProps);
       return Constructor;
   }
   function _instanceof$9(left, right) {
@@ -14519,8 +14927,14 @@ this.Scorm2004API = (function () {
      *
      * @param activity - The activity to process
      * @param globalObjectives - Global objective map
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - write mapInfo transfers local objective state to global objectives
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score write maps
      */ key: "syncGlobalObjectivesWritePhase",
               value: function syncGlobalObjectivesWritePhase(activity, globalObjectives) {
+                  if (!this.canWriteGlobalObjectives(activity)) {
+                      return;
+                  }
                   var objectives = activity.getAllObjectives();
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
@@ -14529,38 +14943,54 @@ this.Scorm2004API = (function () {
                           var mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [
                               this.createDefaultMapInfo(objective)
                           ];
+                          var dirtyFieldsToClear = /* @__PURE__ */ new Set();
                           var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
                           try {
                               for(var _iterator1 = mapInfos[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
                                   var mapInfo = _step1.value;
                                   var targetId = mapInfo.targetObjectiveID || objective.id;
                                   var globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective);
-                                  if (mapInfo.writeSatisfiedStatus && objective.measureStatus && objective.isDirty("satisfiedStatus")) {
+                                  if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective) && objective.isDirty("satisfiedStatus")) {
                                       globalObjective.satisfiedStatus = objective.satisfiedStatus;
                                       globalObjective.satisfiedStatusKnown = true;
-                                      objective.clearDirty("satisfiedStatus");
+                                      dirtyFieldsToClear.add("satisfiedStatus");
                                   }
                                   if (mapInfo.writeNormalizedMeasure && objective.measureStatus && objective.isDirty("normalizedMeasure")) {
                                       globalObjective.normalizedMeasure = objective.normalizedMeasure;
                                       globalObjective.normalizedMeasureKnown = true;
-                                      objective.clearDirty("normalizedMeasure");
-                                      if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
+                                      dirtyFieldsToClear.add("normalizedMeasure");
+                                      if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
                                           var _ref, _objective_minNormalizedMeasure;
                                           var threshold = (_ref = (_objective_minNormalizedMeasure = objective.minNormalizedMeasure) !== null && _objective_minNormalizedMeasure !== void 0 ? _objective_minNormalizedMeasure : activity.scaledPassingScore) !== null && _ref !== void 0 ? _ref : 0.7;
                                           globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
                                           globalObjective.satisfiedStatusKnown = true;
-                                          objective.clearDirty("satisfiedStatus");
+                                          dirtyFieldsToClear.add("satisfiedStatus");
                                       }
                                   }
                                   if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN && objective.isDirty("completionStatus")) {
                                       globalObjective.completionStatus = objective.completionStatus;
                                       globalObjective.completionStatusKnown = true;
-                                      objective.clearDirty("completionStatus");
+                                      dirtyFieldsToClear.add("completionStatus");
+                                  }
+                                  if (mapInfo.writeRawScore && objective.rawScoreKnown && objective.isDirty("rawScore")) {
+                                      globalObjective.rawScore = objective.rawScore;
+                                      globalObjective.rawScoreKnown = true;
+                                      dirtyFieldsToClear.add("rawScore");
+                                  }
+                                  if (mapInfo.writeMinScore && objective.minScoreKnown && objective.isDirty("minScore")) {
+                                      globalObjective.minScore = objective.minScore;
+                                      globalObjective.minScoreKnown = true;
+                                      dirtyFieldsToClear.add("minScore");
+                                  }
+                                  if (mapInfo.writeMaxScore && objective.maxScoreKnown && objective.isDirty("maxScore")) {
+                                      globalObjective.maxScore = objective.maxScore;
+                                      globalObjective.maxScoreKnown = true;
+                                      dirtyFieldsToClear.add("maxScore");
                                   }
                                   if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus && objective.isDirty("progressMeasure")) {
                                       globalObjective.progressMeasure = objective.progressMeasure;
                                       globalObjective.progressMeasureKnown = true;
-                                      objective.clearDirty("progressMeasure");
+                                      dirtyFieldsToClear.add("progressMeasure");
                                   }
                                   if (mapInfo.updateAttemptData) {
                                       this.updateActivityAttemptData(activity, globalObjective, objective);
@@ -14577,6 +15007,26 @@ this.Scorm2004API = (function () {
                               } finally{
                                   if (_didIteratorError1) {
                                       throw _iteratorError1;
+                                  }
+                              }
+                          }
+                          var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                          try {
+                              for(var _iterator2 = dirtyFieldsToClear[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                                  var property = _step2.value;
+                                  objective.clearDirty(property);
+                              }
+                          } catch (err) {
+                              _didIteratorError2 = true;
+                              _iteratorError2 = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                      _iterator2.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError2) {
+                                      throw _iteratorError2;
                                   }
                               }
                           }
@@ -14603,6 +15053,9 @@ this.Scorm2004API = (function () {
      *
      * @param activity - The activity to process
      * @param globalObjectives - Global objective map
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - read mapInfo transfers global objective state into the local view
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps
      */ key: "syncGlobalObjectivesReadPhase",
               value: function syncGlobalObjectivesReadPhase(activity, globalObjectives) {
                   var objectives = activity.getAllObjectives();
@@ -14622,26 +15075,8 @@ this.Scorm2004API = (function () {
                                   var globalObjective = globalObjectives.get(targetId);
                                   if (!globalObjective) continue;
                                   var isPrimary = objective.isPrimary;
-                                  if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-                                      objective.satisfiedStatus = globalObjective.satisfiedStatus;
-                                      objective.measureStatus = true;
-                                  }
-                                  if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-                                      objective.normalizedMeasure = globalObjective.normalizedMeasure;
-                                      objective.measureStatus = true;
-                                      if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-                                          var _ref, _objective_minNormalizedMeasure;
-                                          var threshold = (_ref = (_objective_minNormalizedMeasure = objective.minNormalizedMeasure) !== null && _objective_minNormalizedMeasure !== void 0 ? _objective_minNormalizedMeasure : activity.scaledPassingScore) !== null && _ref !== void 0 ? _ref : 0.7;
-                                          objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
-                                      }
-                                  }
-                                  if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
-                                      objective.progressMeasure = globalObjective.progressMeasure;
-                                      objective.progressMeasureStatus = true;
-                                  }
-                                  if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
-                                      objective.completionStatus = globalObjective.completionStatus;
-                                  }
+                                  var readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective);
+                                  this.applyGlobalObjectiveReadState(objective, readState);
                                   if (isPrimary) {
                                       objective.applyToActivity(activity);
                                   }
@@ -14748,59 +15183,58 @@ this.Scorm2004API = (function () {
      * @param objective - The objective to sync
      * @param mapInfo - Map info for this objective
      * @param globalObjective - The global objective
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo read/write synchronization
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo synchronization
      */ key: "syncObjectiveState",
               value: function syncObjectiveState(activity, objective, mapInfo, globalObjective) {
                   try {
                       var _this_eventCallback, _this;
                       var isPrimary = objective.isPrimary;
                       var localObjective = this.getLocalObjectiveState(activity, objective, isPrimary);
-                      if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-                          objective.satisfiedStatus = globalObjective.satisfiedStatus;
-                          objective.measureStatus = true;
-                      }
-                      if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-                          objective.normalizedMeasure = globalObjective.normalizedMeasure;
-                          objective.measureStatus = true;
-                          if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-                              var _ref, _objective_minNormalizedMeasure;
-                              var threshold = (_ref = (_objective_minNormalizedMeasure = objective.minNormalizedMeasure) !== null && _objective_minNormalizedMeasure !== void 0 ? _objective_minNormalizedMeasure : activity.scaledPassingScore) !== null && _ref !== void 0 ? _ref : 0.7;
-                              objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
-                          }
-                      }
-                      if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
-                          objective.progressMeasure = globalObjective.progressMeasure;
-                          objective.progressMeasureStatus = true;
-                      }
-                      if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
-                          objective.completionStatus = globalObjective.completionStatus;
-                      }
+                      var readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective);
+                      this.applyGlobalObjectiveReadState(objective, readState);
                       if (objective.isPrimary) {
                           objective.applyToActivity(activity);
                       }
-                      if (mapInfo.writeSatisfiedStatus && objective.measureStatus) {
-                          globalObjective.satisfiedStatus = objective.satisfiedStatus;
-                          globalObjective.satisfiedStatusKnown = true;
-                      }
-                      if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
-                          globalObjective.normalizedMeasure = objective.normalizedMeasure;
-                          globalObjective.normalizedMeasureKnown = true;
-                          if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-                              var _ref1, _objective_minNormalizedMeasure1;
-                              var threshold1 = (_ref1 = (_objective_minNormalizedMeasure1 = objective.minNormalizedMeasure) !== null && _objective_minNormalizedMeasure1 !== void 0 ? _objective_minNormalizedMeasure1 : activity.scaledPassingScore) !== null && _ref1 !== void 0 ? _ref1 : 0.7;
-                              globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold1;
+                      if (this.canWriteGlobalObjectives(activity)) {
+                          if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective)) {
+                              globalObjective.satisfiedStatus = objective.satisfiedStatus;
                               globalObjective.satisfiedStatusKnown = true;
                           }
-                      }
-                      if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN) {
-                          globalObjective.completionStatus = objective.completionStatus;
-                          globalObjective.completionStatusKnown = true;
-                      }
-                      if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus) {
-                          globalObjective.progressMeasure = objective.progressMeasure;
-                          globalObjective.progressMeasureKnown = true;
-                      }
-                      if (mapInfo.updateAttemptData) {
-                          this.updateActivityAttemptData(activity, globalObjective, objective);
+                          if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
+                              globalObjective.normalizedMeasure = objective.normalizedMeasure;
+                              globalObjective.normalizedMeasureKnown = true;
+                              if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
+                                  var _ref, _objective_minNormalizedMeasure;
+                                  var threshold = (_ref = (_objective_minNormalizedMeasure = objective.minNormalizedMeasure) !== null && _objective_minNormalizedMeasure !== void 0 ? _objective_minNormalizedMeasure : activity.scaledPassingScore) !== null && _ref !== void 0 ? _ref : 0.7;
+                                  globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
+                                  globalObjective.satisfiedStatusKnown = true;
+                              }
+                          }
+                          if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN) {
+                              globalObjective.completionStatus = objective.completionStatus;
+                              globalObjective.completionStatusKnown = true;
+                          }
+                          if (mapInfo.writeRawScore && objective.rawScoreKnown) {
+                              globalObjective.rawScore = objective.rawScore;
+                              globalObjective.rawScoreKnown = true;
+                          }
+                          if (mapInfo.writeMinScore && objective.minScoreKnown) {
+                              globalObjective.minScore = objective.minScore;
+                              globalObjective.minScoreKnown = true;
+                          }
+                          if (mapInfo.writeMaxScore && objective.maxScoreKnown) {
+                              globalObjective.maxScore = objective.maxScore;
+                              globalObjective.maxScoreKnown = true;
+                          }
+                          if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus) {
+                              globalObjective.progressMeasure = objective.progressMeasure;
+                              globalObjective.progressMeasureKnown = true;
+                          }
+                          if (mapInfo.updateAttemptData) {
+                              this.updateActivityAttemptData(activity, globalObjective, objective);
+                          }
                       }
                       (_this_eventCallback = (_this = this).eventCallback) === null || _this_eventCallback === void 0 ? void 0 : _this_eventCallback.call(_this, "objective_synchronized", {
                           activityId: activity.id,
@@ -14822,25 +15256,47 @@ this.Scorm2004API = (function () {
           },
           {
               /**
+     * Apply read-mapped state to an objective without marking those fields dirty.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps are access to global state, not local writes
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps do not imply score writes
+     */ key: "applyGlobalObjectiveReadState",
+              value: function applyGlobalObjectiveReadState(objective, readState) {
+                  objective.applyReadMappedState(readState);
+              }
+          },
+          {
+              /**
      * Ensure global objective entry exists
      *
      * @param globalObjectives - Global objectives map
      * @param targetId - Target objective ID
      * @param objective - Source objective
      * @returns The global objective entry
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective entries hold mapped objective state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - global entries hold score-map state
      */ key: "ensureGlobalObjectiveEntry",
               value: function ensureGlobalObjectiveEntry(globalObjectives, targetId, objective) {
                   if (!globalObjectives.has(targetId)) {
                       globalObjectives.set(targetId, {
                           id: targetId,
-                          satisfiedStatus: objective.satisfiedStatus,
-                          satisfiedStatusKnown: objective.satisfiedStatusKnown,
-                          normalizedMeasure: objective.normalizedMeasure,
-                          normalizedMeasureKnown: objective.measureStatus,
-                          progressMeasure: objective.progressMeasure,
-                          progressMeasureKnown: objective.progressMeasureStatus,
-                          completionStatus: objective.completionStatus,
-                          completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+                          satisfiedStatus: false,
+                          satisfiedStatusKnown: false,
+                          normalizedMeasure: 0,
+                          normalizedMeasureKnown: false,
+                          // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score fields
+                          // remain unknown until their corresponding write map explicitly writes them.
+                          rawScore: "",
+                          rawScoreKnown: false,
+                          minScore: "",
+                          minScoreKnown: false,
+                          maxScore: "",
+                          maxScoreKnown: false,
+                          progressMeasure: 0,
+                          progressMeasureKnown: false,
+                          completionStatus: CompletionStatus.UNKNOWN,
+                          completionStatusKnown: false,
                           satisfiedByMeasure: objective.satisfiedByMeasure,
                           minNormalizedMeasure: objective.minNormalizedMeasure
                       });
@@ -14857,6 +15313,9 @@ this.Scorm2004API = (function () {
      *
      * @param objective - The objective to create default map info for
      * @returns Default map info
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - mapInfo defaults are applied before objective synchronization
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score maps require explicit read/write flags
      */ key: "createDefaultMapInfo",
               value: function createDefaultMapInfo(objective) {
                   return {
@@ -14869,8 +15328,37 @@ this.Scorm2004API = (function () {
                       writeCompletionStatus: true,
                       readProgressMeasure: false,
                       writeProgressMeasure: true,
+                      readRawScore: false,
+                      writeRawScore: false,
+                      readMinScore: false,
+                      writeMinScore: false,
+                      readMaxScore: false,
+                      writeMaxScore: false,
                       updateAttemptData: objective.isPrimary
                   };
+              }
+          },
+          {
+              /**
+     * Return whether the local objective has known satisfaction state to write.
+     *
+     * @spec SCORM 2004 4th Ed. SN 4.2.1 Tracking Model - Objective Progress
+     * Status identifies whether Objective Satisfied Status is known; Objective
+     * Measure Status is independent measure knowledge.
+     */ key: "hasKnownSatisfiedStatus",
+              value: function hasKnownSatisfiedStatus(objective) {
+                  return objective.progressStatus || objective.satisfiedStatusKnown;
+              }
+          },
+          {
+              /**
+     * Return whether this activity is allowed to write tracked state to globals.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - when False, the LMS
+     * "does not initialize, manage or access any tracking status information".
+     */ key: "canWriteGlobalObjectives",
+              value: function canWriteGlobalObjectives(activity) {
+                  return activity.sequencingControls.tracked !== false;
               }
           },
           {
@@ -14881,6 +15369,9 @@ this.Scorm2004API = (function () {
      * @param objective - The objective
      * @param isPrimary - Whether this is the primary objective
      * @returns Local objective state
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - local objective state used for synchronization
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - local score fields are part of mapped objective state
      */ key: "getLocalObjectiveState",
               value: function getLocalObjectiveState(activity, objective, isPrimary) {
                   if (isPrimary) {
@@ -14889,6 +15380,12 @@ this.Scorm2004API = (function () {
                           satisfiedStatus: activity.objectiveSatisfiedStatus,
                           measureStatus: activity.objectiveMeasureStatus,
                           normalizedMeasure: activity.objectiveNormalizedMeasure,
+                          rawScore: objective.rawScore,
+                          rawScoreKnown: objective.rawScoreKnown,
+                          minScore: objective.minScore,
+                          minScoreKnown: objective.minScoreKnown,
+                          maxScore: objective.maxScore,
+                          maxScoreKnown: objective.maxScoreKnown,
                           progressMeasure: activity.progressMeasure,
                           progressMeasureStatus: activity.progressMeasureStatus,
                           completionStatus: activity.completionStatus,
@@ -14900,6 +15397,12 @@ this.Scorm2004API = (function () {
                       satisfiedStatus: objective.satisfiedStatus,
                       measureStatus: objective.measureStatus,
                       normalizedMeasure: objective.normalizedMeasure,
+                      rawScore: objective.rawScore,
+                      rawScoreKnown: objective.rawScoreKnown,
+                      minScore: objective.minScore,
+                      minScoreKnown: objective.minScoreKnown,
+                      maxScore: objective.maxScore,
+                      maxScoreKnown: objective.maxScoreKnown,
                       progressMeasure: objective.progressMeasure,
                       progressMeasureStatus: objective.progressMeasureStatus,
                       completionStatus: objective.completionStatus,
@@ -14924,7 +15427,7 @@ this.Scorm2004API = (function () {
                           return rule.action === "completed" || rule.action === "incomplete";
                       });
                       if (globalObjective.satisfiedStatusKnown && globalObjective.satisfiedStatus) {
-                          if (!hasCompletionRollupRules && (activity.completionStatus === CompletionStatus.UNKNOWN || activity.completionStatus === CompletionStatus.INCOMPLETE)) {
+                          if (!hasCompletionRollupRules && !activity.sequencingControls.completionSetByContent && !activity.attemptProgressStatus && (activity.completionStatus === CompletionStatus.UNKNOWN || activity.completionStatus === CompletionStatus.INCOMPLETE)) {
                               activity.completionStatus = CompletionStatus.COMPLETED;
                           }
                           if (activity.successStatus === "unknown") {
@@ -14965,17 +15468,56 @@ this.Scorm2004API = (function () {
                   }
               }
           }
+      ], [
+          {
+              key: "getGlobalObjectiveReadState",
+              value: /**
+     * Project a global objective through one local objective's read mapInfo.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to mapped global objective fields
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps are independent fields
+     */ function getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective) {
+                  var readState = {};
+                  if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
+                      readState.satisfiedStatus = globalObjective.satisfiedStatus;
+                  }
+                  if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
+                      readState.normalizedMeasure = globalObjective.normalizedMeasure;
+                      if (objective.satisfiedByMeasure) {
+                          var _ref, _objective_minNormalizedMeasure;
+                          var threshold = (_ref = (_objective_minNormalizedMeasure = objective.minNormalizedMeasure) !== null && _objective_minNormalizedMeasure !== void 0 ? _objective_minNormalizedMeasure : activity.scaledPassingScore) !== null && _ref !== void 0 ? _ref : 0.7;
+                          readState.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+                      }
+                  }
+                  if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
+                      readState.completionStatus = globalObjective.completionStatus;
+                  }
+                  if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
+                      readState.progressMeasure = globalObjective.progressMeasure;
+                  }
+                  if (mapInfo.readRawScore && globalObjective.rawScoreKnown) {
+                      readState.rawScore = globalObjective.rawScore;
+                  }
+                  if (mapInfo.readMinScore && globalObjective.minScoreKnown) {
+                      readState.minScore = globalObjective.minScore;
+                  }
+                  if (mapInfo.readMaxScore && globalObjective.maxScoreKnown) {
+                      readState.maxScore = globalObjective.maxScore;
+                  }
+                  return readState;
+              }
+          }
       ]);
       return GlobalObjectiveSynchronizer;
   }();
 
-  function _array_like_to_array$c(arr, len) {
+  function _array_like_to_array$d(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$7(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$c(arr);
+  function _array_without_holes$8(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
   }
   function _class_call_check$E(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -15003,26 +15545,26 @@ this.Scorm2004API = (function () {
           return left instanceof right;
       }
   }
-  function _iterable_to_array$7(iter) {
+  function _iterable_to_array$8(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$7() {
+  function _non_iterable_spread$8() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$7(arr) {
-      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$c(arr) || _non_iterable_spread$7();
+  function _to_consumable_array$8(arr) {
+      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$8();
   }
   function _type_of$B(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$c(o, minLen) {
+  function _unsupported_iterable_to_array$d(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
   }
   var __defProp$B = Object.defineProperty;
   var __defNormalProp$B = function __defNormalProp(obj, key, value) {
@@ -15173,7 +15715,7 @@ this.Scorm2004API = (function () {
      * @returns Array of rollup state log entries
      */ key: "getRollupStateLog",
               value: function getRollupStateLog() {
-                  return _to_consumable_array$7(this.rollupStateLog);
+                  return _to_consumable_array$8(this.rollupStateLog);
               }
           },
           {
@@ -15433,6 +15975,23 @@ this.Scorm2004API = (function () {
       return RollupProcess;
   }();
 
+  function evaluateCompletionStatusFromThreshold(param) {
+      var completionThreshold = param.completionThreshold, progressMeasure = param.progressMeasure, storedCompletionStatus = param.storedCompletionStatus;
+      if (completionThreshold !== "" && completionThreshold !== null && completionThreshold !== void 0) {
+          var thresholdValue = parseFloat(String(completionThreshold));
+          if (!isNaN(thresholdValue)) {
+              if (progressMeasure !== "" && progressMeasure !== null && progressMeasure !== void 0) {
+                  var progressValue = parseFloat(String(progressMeasure));
+                  if (!isNaN(progressValue)) {
+                      return progressValue >= thresholdValue ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
+                  }
+              }
+              return CompletionStatus.UNKNOWN;
+          }
+      }
+      return storedCompletionStatus || CompletionStatus.UNKNOWN;
+  }
+
   function _class_call_check$C(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
           throw new TypeError("Cannot call a class as a function");
@@ -15524,12 +16083,43 @@ this.Scorm2004API = (function () {
      * Transfer primary objective data from CMI to activity
      * @param {Activity} activity - The activity to transfer data to
      * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+     *
+     * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - primary objective status and score data
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score write-map source data
      */ key: "transferPrimaryObjective",
               value: function transferPrimaryObjective(activity, cmiData) {
-                  var validatedCompletionStatus = validateCompletionStatus(cmiData.completion_status);
-                  if (validatedCompletionStatus && validatedCompletionStatus !== CompletionStatus.UNKNOWN) {
-                      activity.completionStatus = validatedCompletionStatus;
-                      activity.attemptProgressStatus = true;
+                  var hasProgressMeasure = false;
+                  if (cmiData.progress_measure && cmiData.progress_measure !== "") {
+                      var progressMeasure = parseFloat(cmiData.progress_measure);
+                      if (!isNaN(progressMeasure)) {
+                          hasProgressMeasure = true;
+                          activity.progressMeasure = progressMeasure;
+                          activity.progressMeasureStatus = true;
+                          activity.attemptCompletionAmount = progressMeasure;
+                          activity.attemptCompletionAmountStatus = true;
+                          if (activity.primaryObjective) {
+                              activity.primaryObjective.progressMeasure = progressMeasure;
+                              activity.primaryObjective.progressMeasureStatus = true;
+                          }
+                      }
+                  }
+                  if (!hasProgressMeasure) {
+                      activity.attemptCompletionAmountStatus = false;
+                  }
+                  if (activity.completedByMeasure) {
+                      var completionStatus = evaluateCompletionStatusFromThreshold({
+                          completionThreshold: activity.minProgressMeasure,
+                          progressMeasure: cmiData.progress_measure,
+                          storedCompletionStatus: CompletionStatus.UNKNOWN
+                      });
+                      activity.completionStatus = completionStatus;
+                      activity.attemptProgressStatus = completionStatus !== CompletionStatus.UNKNOWN;
+                  } else {
+                      var validatedCompletionStatus = validateCompletionStatus(cmiData.completion_status);
+                      if (validatedCompletionStatus && validatedCompletionStatus !== CompletionStatus.UNKNOWN) {
+                          activity.completionStatus = validatedCompletionStatus;
+                          activity.attemptProgressStatus = true;
+                      }
                   }
                   var hasSuccessStatus = false;
                   var successStatus = false;
@@ -15542,9 +16132,10 @@ this.Scorm2004API = (function () {
                       activity.objectiveSatisfiedStatus = successStatus;
                       activity.objectiveSatisfiedStatusKnown = true;
                       activity.successStatus = validatedSuccessStatus;
-                      activity.objectiveMeasureStatus = true;
                   }
                   if (cmiData.score) {
+                      var _activity_primaryObjective;
+                      (_activity_primaryObjective = activity.primaryObjective) === null || _activity_primaryObjective === void 0 ? void 0 : _activity_primaryObjective.initializeScoreFromCMI(this.getObjectiveScoreState(cmiData.score));
                       var normalized = this.normalizeScore(cmiData.score);
                       if (normalized !== null) {
                           normalizedScore = normalized;
@@ -15556,32 +16147,27 @@ this.Scorm2004API = (function () {
                   if (activity.primaryObjective && (hasSuccessStatus || hasNormalizedMeasure)) {
                       var finalStatus = hasSuccessStatus ? successStatus : activity.primaryObjective.satisfiedStatus;
                       var finalMeasure = hasNormalizedMeasure ? normalizedScore : activity.primaryObjective.normalizedMeasure;
-                      var measureStatus = hasSuccessStatus || hasNormalizedMeasure;
+                      var measureStatus = hasNormalizedMeasure;
                       activity.primaryObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
                       if (hasSuccessStatus) {
                           activity.primaryObjective.satisfiedStatusKnown = true;
                           activity.primaryObjective.progressStatus = true;
                       }
                   }
-                  if (cmiData.progress_measure && cmiData.progress_measure !== "") {
-                      var progressMeasure = parseFloat(cmiData.progress_measure);
-                      if (!isNaN(progressMeasure)) {
-                          activity.progressMeasure = progressMeasure;
-                          activity.progressMeasureStatus = true;
-                          if (activity.primaryObjective) {
-                              activity.primaryObjective.progressMeasure = progressMeasure;
-                              activity.primaryObjective.progressMeasureStatus = true;
-                          }
-                      }
-                  }
               }
           },
           {
               /**
-     * Transfer non-primary objective data from CMI to activity objectives
-     * Only transfers changed values to protect global objectives
+     * Transfer objective-array data from CMI to matching activity objectives.
+     * Only transfers changed values to protect global objectives.
      * @param {Activity} activity - The activity to transfer data to
      * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17 - cmi.objectives.n data, including
+     * the primary objective entry, is part of the RTE objective data model.
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 and ADLSEQ objectives extension -
+     * mapped objective status and raw/min/max score data transfer through
+     * objective maps to sequencing state.
      */ key: "transferNonPrimaryObjectives",
               value: function transferNonPrimaryObjectives(activity, cmiData) {
                   if (!cmiData.objectives || cmiData.objectives.length === 0) {
@@ -15595,14 +16181,17 @@ this.Scorm2004API = (function () {
                               continue;
                           }
                           var activityObjectiveMatch = activity.getObjectiveById(cmiObjective.id);
-                          if (!activityObjectiveMatch || activityObjectiveMatch.isPrimary) {
+                          if (!activityObjectiveMatch) {
                               continue;
                           }
                           var activityObjective = activityObjectiveMatch.objective;
+                          var isPrimaryObjective = activityObjectiveMatch.isPrimary;
                           var hasSuccessStatus = false;
                           var successStatus = false;
                           var hasNormalizedMeasure = false;
                           var normalizedScore = 0;
+                          var hasCompletionStatus = false;
+                          var hasProgressMeasure = false;
                           var validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
                           if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
                               successStatus = validatedObjSuccessStatus === SuccessStatus.PASSED;
@@ -15612,8 +16201,10 @@ this.Scorm2004API = (function () {
                           var validatedObjCompletionStatus = validateCompletionStatus(cmiObjective.completion_status);
                           if (validatedObjCompletionStatus && validatedObjCompletionStatus !== CompletionStatus.UNKNOWN) {
                               activityObjective.completionStatus = validatedObjCompletionStatus;
+                              hasCompletionStatus = true;
                           }
                           if (cmiObjective.score) {
+                              activityObjective.initializeScoreFromCMI(this.getObjectiveScoreState(cmiObjective.score));
                               var normalized = this.normalizeScore(cmiObjective.score);
                               if (normalized !== null) {
                                   normalizedScore = normalized;
@@ -15625,12 +16216,29 @@ this.Scorm2004API = (function () {
                               var finalMeasure = hasNormalizedMeasure ? normalizedScore : activityObjective.normalizedMeasure;
                               var measureStatus = hasNormalizedMeasure;
                               activityObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
+                              if (hasSuccessStatus) {
+                                  activityObjective.satisfiedStatusKnown = true;
+                              }
                           }
                           if (cmiObjective.progress_measure && cmiObjective.progress_measure !== "") {
                               var progressMeasure = parseFloat(cmiObjective.progress_measure);
                               if (!isNaN(progressMeasure)) {
                                   activityObjective.progressMeasure = progressMeasure;
                                   activityObjective.progressMeasureStatus = true;
+                                  hasProgressMeasure = true;
+                              }
+                          }
+                          if (isPrimaryObjective && (hasSuccessStatus || hasNormalizedMeasure || hasCompletionStatus || hasProgressMeasure)) {
+                              activityObjective.applyToActivity(activity);
+                              if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
+                                  activity.successStatus = validatedObjSuccessStatus;
+                              }
+                              if (hasCompletionStatus) {
+                                  activity.attemptProgressStatus = true;
+                              }
+                              if (hasProgressMeasure) {
+                                  activity.attemptCompletionAmount = activityObjective.progressMeasure;
+                                  activity.attemptCompletionAmountStatus = true;
                               }
                           }
                       }
@@ -15674,6 +16282,27 @@ this.Scorm2004API = (function () {
                       }
                   }
                   return null;
+              }
+          },
+          {
+              /**
+     * Convert RTE score data into objective score-map state without numeric reformatting.
+     *
+     * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - score values transfer from RTE to sequencing state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score map fields are independent
+     */ key: "getObjectiveScoreState",
+              value: function getObjectiveScoreState(score) {
+                  var scoreState = {};
+                  if (score.raw !== void 0) {
+                      scoreState.rawScore = score.raw;
+                  }
+                  if (score.min !== void 0) {
+                      scoreState.minScore = score.min;
+                  }
+                  if (score.max !== void 0) {
+                      scoreState.maxScore = score.max;
+                  }
+                  return scoreState;
               }
           }
       ]);
@@ -15849,6 +16478,18 @@ this.Scorm2004API = (function () {
                           this.activityTree.currentActivity = currentActivity.parent;
                           this.endAttempt(this.activityTree.currentActivity);
                       }
+                  }
+                  var ancestorExitResult = this.applyAncestorExitActionRules(currentActivity);
+                  if (ancestorExitResult.action === "EXIT_ALL") {
+                      return this.handleExitAll(ancestorExitResult.activity || currentActivity);
+                  }
+                  if (ancestorExitResult.exception) {
+                      return {
+                          terminationRequest: SequencingRequestType.EXIT,
+                          sequencingRequest: null,
+                          exception: ancestorExitResult.exception,
+                          valid: false
+                      };
                   }
                   var processedExit;
                   var postConditionResult;
@@ -16125,18 +16766,13 @@ this.Scorm2004API = (function () {
                   try {
                       for(var _iterator = exitRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          var conditionsMet = void 0;
-                          if (rule.conditionCombination === "all") {
-                              conditionsMet = rule.conditions.every(function(condition) {
-                                  return condition.evaluate(activity);
-                              });
-                          } else {
-                              conditionsMet = rule.conditions.some(function(condition) {
-                                  return condition.evaluate(activity);
-                              });
-                          }
-                          if (conditionsMet) {
-                              if (rule.action === RuleActionType.EXIT_PARENT) {
+                          if (rule.evaluate(activity)) {
+                              if (rule.action === RuleActionType.EXIT) {
+                                  return {
+                                      action: "EXIT",
+                                      recursionDepth: recursionDepth
+                                  };
+                              } else if (rule.action === RuleActionType.EXIT_PARENT) {
                                   return {
                                       action: "EXIT_PARENT",
                                       recursionDepth: recursionDepth
@@ -16196,6 +16832,89 @@ this.Scorm2004API = (function () {
               value: function handleMultiLevelExit(rootActivity) {
                   this.processExitAtLevel(rootActivity, 0);
                   this.terminateAll(rootActivity);
+              }
+          },
+          {
+              /**
+     * Sequencing Exit Action Rules Subprocess (TB.2.1) ancestor walk
+     * @spec SN Book: TB.2.1 (Sequencing Exit Action Rules Subprocess)
+     * @param {Activity} terminatingActivity - The activity whose attempt just ended
+     * @return {{action: string | null, activity?: Activity, exception?: string}}
+     */ key: "applyAncestorExitActionRules",
+              value: function applyAncestorExitActionRules(terminatingActivity) {
+                  var activityPath = [];
+                  var current = terminatingActivity.parent;
+                  while(current){
+                      activityPath.unshift(current);
+                      current = current.parent;
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = activityPath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var activity = _step.value;
+                          var exitAction = this.exitActionRulesSubprocess(activity);
+                          if (exitAction === "EXIT_ALL") {
+                              this.fireEvent("onAncestorExitAction", {
+                                  activity: activity.id,
+                                  action: exitAction
+                              });
+                              return {
+                                  action: "EXIT_ALL",
+                                  activity: activity
+                              };
+                          }
+                          if (exitAction === "EXIT_PARENT") {
+                              if (!activity.parent) {
+                                  return {
+                                      action: "EXIT_PARENT",
+                                      activity: activity,
+                                      exception: "TB.2.3-4"
+                                  };
+                              }
+                              this.terminateDescendants(activity.parent);
+                              this.activityTree.currentActivity = activity.parent;
+                              this.endAttempt(activity.parent);
+                              this.fireEvent("onAncestorExitAction", {
+                                  activity: activity.id,
+                                  action: exitAction,
+                                  currentActivity: activity.parent.id
+                              });
+                              return {
+                                  action: "EXIT_PARENT",
+                                  activity: activity.parent
+                              };
+                          }
+                          if (exitAction === "EXIT") {
+                              this.terminateDescendants(activity);
+                              this.activityTree.currentActivity = activity;
+                              this.endAttempt(activity);
+                              this.fireEvent("onAncestorExitAction", {
+                                  activity: activity.id,
+                                  action: exitAction
+                              });
+                              return {
+                                  action: "EXIT",
+                                  activity: activity
+                              };
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return {
+                      action: null
+                  };
               }
           },
           {
@@ -16341,18 +17060,10 @@ this.Scorm2004API = (function () {
                   try {
                       for(var _iterator = exitRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          var conditionsMet = void 0;
-                          if (rule.conditionCombination === "all") {
-                              conditionsMet = rule.conditions.every(function(condition) {
-                                  return condition.evaluate(activity);
-                              });
-                          } else {
-                              conditionsMet = rule.conditions.some(function(condition) {
-                                  return condition.evaluate(activity);
-                              });
-                          }
-                          if (conditionsMet) {
-                              if (rule.action === RuleActionType.EXIT_PARENT) {
+                          if (rule.evaluate(activity)) {
+                              if (rule.action === RuleActionType.EXIT) {
+                                  return "EXIT";
+                              } else if (rule.action === RuleActionType.EXIT_PARENT) {
                                   return "EXIT_PARENT";
                               } else if (rule.action === RuleActionType.EXIT_ALL) {
                                   return "EXIT_ALL";
@@ -16483,13 +17194,13 @@ this.Scorm2004API = (function () {
       return TerminationHandler;
   }();
 
-  function _array_like_to_array$b(arr, len) {
+  function _array_like_to_array$c(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$6(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$b(arr);
+  function _array_without_holes$7(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$c(arr);
   }
   function _class_call_check$A(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -16522,10 +17233,10 @@ this.Scorm2004API = (function () {
       }
       return obj;
   }
-  function _iterable_to_array$6(iter) {
+  function _iterable_to_array$7(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$6() {
+  function _non_iterable_spread$7() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$9(target) {
@@ -16543,20 +17254,20 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _to_consumable_array$6(arr) {
-      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$b(arr) || _non_iterable_spread$6();
+  function _to_consumable_array$7(arr) {
+      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$c(arr) || _non_iterable_spread$7();
   }
   function _type_of$x(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$b(o, minLen) {
+  function _unsupported_iterable_to_array$c(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$b(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$b(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
   }
   var __defProp$x = Object.defineProperty;
   var __defNormalProp$x = function __defNormalProp(obj, key, value) {
@@ -16606,7 +17317,7 @@ this.Scorm2004API = (function () {
           this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
           };
-          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$6(options.defaultHideLmsUi) : [];
+          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$7(options.defaultHideLmsUi) : [];
           this.defaultAuxiliaryResources = (options === null || options === void 0 ? void 0 : options.defaultAuxiliaryResources) ? options.defaultAuxiliaryResources.map(function(resource) {
               return _object_spread$9({}, resource);
           }) : [];
@@ -17050,7 +17761,7 @@ this.Scorm2004API = (function () {
       ]);
       return _DeliveryHandler;
   }();
-  __publicField$x(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$6(HIDE_LMS_UI_TOKENS));
+  __publicField$x(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$7(HIDE_LMS_UI_TOKENS));
   var DeliveryHandler = _DeliveryHandler;
 
   function _class_call_check$z(instance, Constructor) {
@@ -18421,7 +19132,7 @@ this.Scorm2004API = (function () {
       return NavigationValidityService;
   }();
 
-  function _array_like_to_array$a(arr, len) {
+  function _array_like_to_array$b(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -18510,7 +19221,7 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function ownKeys$1(object, enumerableOnly) {
+  function ownKeys$2(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -18518,31 +19229,31 @@ this.Scorm2004API = (function () {
       }
       return keys;
   }
-  function _object_spread_props$1(target, source) {
+  function _object_spread_props$2(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) {
           Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-          ownKeys$1(Object(source)).forEach(function(key) {
+          ownKeys$2(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
   }
   function _sliced_to_array$5(arr, i) {
-      return _array_with_holes$5(arr) || _iterable_to_array_limit$5(arr, i) || _unsupported_iterable_to_array$a(arr, i) || _non_iterable_rest$5();
+      return _array_with_holes$5(arr) || _iterable_to_array_limit$5(arr, i) || _unsupported_iterable_to_array$b(arr, i) || _non_iterable_rest$5();
   }
   function _type_of$u(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$a(o, minLen) {
+  function _unsupported_iterable_to_array$b(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$a(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$b(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$a(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$b(o, minLen);
   }
   var __defProp$u = Object.defineProperty;
   var __defNormalProp$u = function __defNormalProp(obj, key, value) {
@@ -18593,6 +19304,9 @@ this.Scorm2004API = (function () {
      * Collect Global Objectives
      * Recursively collects global objectives from the activity tree
      * @param {Activity} activity - Activity to collect objectives from
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective map contains mapped objective state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score fields are unknown until written
      */ key: "collectObjectives",
               value: function collectObjectives(activity) {
                   var objectives = activity.getAllObjectives();
@@ -18602,9 +19316,15 @@ this.Scorm2004API = (function () {
                           this.globalObjectiveMap.set(defaultId, {
                               id: defaultId,
                               satisfiedStatus: activity.objectiveSatisfiedStatus,
-                              satisfiedStatusKnown: activity.objectiveMeasureStatus,
+                              satisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
                               normalizedMeasure: activity.objectiveNormalizedMeasure,
                               normalizedMeasureKnown: activity.objectiveMeasureStatus,
+                              rawScore: "",
+                              rawScoreKnown: false,
+                              minScore: "",
+                              minScoreKnown: false,
+                              maxScore: "",
+                              maxScoreKnown: false,
                               progressMeasure: activity.progressMeasure,
                               progressMeasureKnown: activity.progressMeasureStatus,
                               completionStatus: activity.completionStatus,
@@ -18617,6 +19337,12 @@ this.Scorm2004API = (function () {
                               writeCompletionStatus: true,
                               readProgressMeasure: true,
                               writeProgressMeasure: true,
+                              readRawScore: false,
+                              writeRawScore: false,
+                              readMinScore: false,
+                              writeMinScore: false,
+                              readMaxScore: false,
+                              writeMaxScore: false,
                               satisfiedByMeasure: activity.scaledPassingScore !== null,
                               minNormalizedMeasure: activity.scaledPassingScore,
                               updateAttemptData: true
@@ -18651,9 +19377,15 @@ this.Scorm2004API = (function () {
                                       this.globalObjectiveMap.set(targetId, {
                                           id: targetId,
                                           satisfiedStatus: objective.satisfiedStatus,
-                                          satisfiedStatusKnown: objective.measureStatus,
+                                          satisfiedStatusKnown: objective.satisfiedStatusKnown || objective.progressStatus,
                                           normalizedMeasure: objective.normalizedMeasure,
                                           normalizedMeasureKnown: objective.measureStatus,
+                                          rawScore: "",
+                                          rawScoreKnown: false,
+                                          minScore: "",
+                                          minScoreKnown: false,
+                                          maxScore: "",
+                                          maxScoreKnown: false,
                                           progressMeasure: objective.progressMeasure,
                                           progressMeasureKnown: objective.progressMeasureStatus,
                                           completionStatus: objective.completionStatus,
@@ -18768,7 +19500,7 @@ this.Scorm2004API = (function () {
      */ key: "updateObjective",
               value: function updateObjective(objectiveId, objectiveData) {
                   try {
-                      this.globalObjectiveMap.set(objectiveId, _object_spread_props$1(_object_spread$8({}, this.globalObjectiveMap.get(objectiveId), objectiveData), {
+                      this.globalObjectiveMap.set(objectiveId, _object_spread_props$2(_object_spread$8({}, this.globalObjectiveMap.get(objectiveId), objectiveData), {
                           lastUpdated: /* @__PURE__ */ new Date().toISOString()
                       }));
                       this.fireEvent("onGlobalObjectiveUpdated", {
@@ -19421,13 +20153,13 @@ this.Scorm2004API = (function () {
       return SequencingStateManager;
   }();
 
-  function _array_like_to_array$9(arr, len) {
+  function _array_like_to_array$a(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$5(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$9(arr);
+  function _array_without_holes$6(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$a(arr);
   }
   function _class_call_check$v(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -19447,26 +20179,26 @@ this.Scorm2004API = (function () {
       if (protoProps) _defineProperties$v(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _iterable_to_array$5(iter) {
+  function _iterable_to_array$6(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$5() {
+  function _non_iterable_spread$6() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$5(arr) {
-      return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$9(arr) || _non_iterable_spread$5();
+  function _to_consumable_array$6(arr) {
+      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$a(arr) || _non_iterable_spread$6();
   }
   function _type_of$s(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$9(o, minLen) {
+  function _unsupported_iterable_to_array$a(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$9(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$a(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$9(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$a(o, minLen);
   }
   var __defProp$s = Object.defineProperty;
   var __defNormalProp$s = function __defNormalProp(obj, key, value) {
@@ -20064,7 +20796,7 @@ this.Scorm2004API = (function () {
                   }
                   if (activity.prerequisiteActivities) {
                       var _prerequisites;
-                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$5(activity.prerequisiteActivities));
+                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$6(activity.prerequisiteActivities));
                   }
                   return Array.from(new Set(prerequisites));
               }
@@ -20116,7 +20848,7 @@ this.Scorm2004API = (function () {
                       }
                   }
                   if (activity.sequencingRules) {
-                      var allRules = _to_consumable_array$5(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$5(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$5(activity.sequencingRules.postConditionRules || []));
+                      var allRules = _to_consumable_array$6(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$6(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$6(activity.sequencingRules.postConditionRules || []));
                       var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
                       try {
                           for(var _iterator1 = allRules[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
@@ -20933,13 +21665,13 @@ this.Scorm2004API = (function () {
       return OverallSequencingProcess;
   }();
 
-  function _array_like_to_array$8(arr, len) {
+  function _array_like_to_array$9(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$4(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$8(arr);
+  function _array_without_holes$5(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$9(arr);
   }
   function _class_call_check$t(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -20972,10 +21704,10 @@ this.Scorm2004API = (function () {
       }
       return obj;
   }
-  function _iterable_to_array$4(iter) {
+  function _iterable_to_array$5(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$4() {
+  function _non_iterable_spread$5() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$7(target) {
@@ -20993,20 +21725,20 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _to_consumable_array$4(arr) {
-      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$8(arr) || _non_iterable_spread$4();
+  function _to_consumable_array$5(arr) {
+      return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$9(arr) || _non_iterable_spread$5();
   }
   function _type_of$q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$8(o, minLen) {
+  function _unsupported_iterable_to_array$9(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$8(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$9(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$8(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$9(o, minLen);
   }
   var __defProp$q = Object.defineProperty;
   var __defNormalProp$q = function __defNormalProp(obj, key, value) {
@@ -21098,7 +21830,7 @@ this.Scorm2004API = (function () {
                           this.sequencingProcess = new SequencingProcess(this.sequencing.activityTree, this.sequencing.sequencingRules, this.sequencing.sequencingControls, this.adl.nav, seqOptions);
                           var overallOptions = {};
                           if (this.configuration.now) overallOptions.now = this.configuration.now;
-                          overallOptions.defaultHideLmsUi = _to_consumable_array$4(this.sequencing.hideLmsUi);
+                          overallOptions.defaultHideLmsUi = _to_consumable_array$5(this.sequencing.hideLmsUi);
                           if (this.sequencing.auxiliaryResources.length > 0) {
                               overallOptions.defaultAuxiliaryResources = this.sequencing.auxiliaryResources.map(function(resource) {
                                   return {
@@ -21405,25 +22137,42 @@ this.Scorm2004API = (function () {
           {
               /**
      * Update activity properties from current CMI values
+     *
+     * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - current CMI values update activity objective state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max scores are available to objective write maps
      */ key: "updateActivityFromCMI",
               value: function updateActivityFromCMI(activity) {
-                  if (this.cmi.completion_status !== "unknown") {
+                  var hasProgressMeasure = false;
+                  if (this.cmi.progress_measure !== "") {
+                      var progressMeasure = parseFloat(this.cmi.progress_measure);
+                      if (!isNaN(progressMeasure)) {
+                          hasProgressMeasure = true;
+                          activity.progressMeasure = progressMeasure;
+                          activity.progressMeasureStatus = true;
+                          activity.attemptCompletionAmount = progressMeasure;
+                          activity.attemptCompletionAmountStatus = true;
+                      }
+                  }
+                  if (!hasProgressMeasure) {
+                      activity.attemptCompletionAmountStatus = false;
+                  }
+                  if (activity.completedByMeasure) {
+                      var completionStatus = evaluateCompletionStatusFromThreshold({
+                          completionThreshold: activity.minProgressMeasure,
+                          progressMeasure: this.cmi.progress_measure,
+                          storedCompletionStatus: CompletionStatus.UNKNOWN
+                      });
+                      activity.completionStatus = completionStatus;
+                      activity.attemptProgressStatus = completionStatus !== CompletionStatus.UNKNOWN;
+                  } else if (this.cmi.completion_status !== "unknown") {
                       activity.completionStatus = this.cmi.completion_status;
                       activity.attemptProgressStatus = true;
                   }
                   if (this.cmi.success_status !== "unknown") {
                       activity.successStatus = this.cmi.success_status;
                       activity.objectiveSatisfiedStatus = this.cmi.success_status === "passed";
-                      activity.objectiveMeasureStatus = true;
                       if (activity.primaryObjective) {
                           activity.primaryObjective.progressStatus = true;
-                      }
-                  }
-                  if (this.cmi.progress_measure !== "") {
-                      var progressMeasure = parseFloat(this.cmi.progress_measure);
-                      if (!isNaN(progressMeasure)) {
-                          activity.progressMeasure = progressMeasure;
-                          activity.progressMeasureStatus = true;
                       }
                   }
                   if (this.cmi.score && this.cmi.score.scaled !== "") {
@@ -21434,6 +22183,17 @@ this.Scorm2004API = (function () {
                           if (activity.primaryObjective) {
                               activity.primaryObjective.progressStatus = true;
                           }
+                      }
+                  }
+                  if (activity.primaryObjective && this.cmi.score) {
+                      if (this.cmi.score.raw !== "") {
+                          activity.primaryObjective.rawScore = this.cmi.score.raw;
+                      }
+                      if (this.cmi.score.min !== "") {
+                          activity.primaryObjective.minScore = this.cmi.score.min;
+                      }
+                      if (this.cmi.score.max !== "") {
+                          activity.primaryObjective.maxScore = this.cmi.score.max;
                       }
                   }
                   if (activity.primaryObjective) {
@@ -21598,7 +22358,7 @@ this.Scorm2004API = (function () {
                       var listener = this.eventListeners[eventType];
                       if (listener && typeof listener === "function") {
                           try {
-                              listener.apply(void 0, _to_consumable_array$4(args));
+                              listener.apply(void 0, _to_consumable_array$5(args));
                               this.log("debug", "Internal listener for ".concat(eventType, " executed successfully"));
                           } catch (listenerError) {
                               this.log("error", "Internal listener for ".concat(eventType, " failed: ").concat(listenerError));
@@ -21609,7 +22369,7 @@ this.Scorm2004API = (function () {
                           (_this_eventService = this.eventService).processListeners.apply(_this_eventService, [
                               "Sequencing.".concat(eventType),
                               args[0]
-                          ].concat(_to_consumable_array$4(args.slice(1))));
+                          ].concat(_to_consumable_array$5(args.slice(1))));
                           this.log("debug", "Event service listeners for ".concat(eventType, " processed"));
                       } catch (eventServiceError) {
                           this.log("warn", "Event service failed for ".concat(eventType, ": ").concat(eventServiceError));
@@ -21619,7 +22379,7 @@ this.Scorm2004API = (function () {
                               var globalListeners = window.scormSequencingEvents;
                               if (globalListeners[eventType] && typeof globalListeners[eventType] === "function") {
                                   var _globalListeners;
-                                  (_globalListeners = globalListeners)[eventType].apply(_globalListeners, _to_consumable_array$4(args));
+                                  (_globalListeners = globalListeners)[eventType].apply(_globalListeners, _to_consumable_array$5(args));
                                   this.log("debug", "Global listener for ".concat(eventType, " executed"));
                               }
                           }
@@ -22057,7 +22817,7 @@ this.Scorm2004API = (function () {
       return SerializationService;
   }();
 
-  function _array_like_to_array$7(arr, len) {
+  function _array_like_to_array$8(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -22119,19 +22879,19 @@ this.Scorm2004API = (function () {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$4(arr, i) {
-      return _array_with_holes$4(arr) || _iterable_to_array_limit$4(arr, i) || _unsupported_iterable_to_array$7(arr, i) || _non_iterable_rest$4();
+      return _array_with_holes$4(arr) || _iterable_to_array_limit$4(arr, i) || _unsupported_iterable_to_array$8(arr, i) || _non_iterable_rest$4();
   }
   function _type_of$p(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$7(o, minLen) {
+  function _unsupported_iterable_to_array$8(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$7(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$8(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$7(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$8(o, minLen);
   }
   var __defProp$p = Object.defineProperty;
   var __defNormalProp$p = function __defNormalProp(obj, key, value) {
@@ -22400,13 +23160,13 @@ this.Scorm2004API = (function () {
   }();
   var validationService = new ValidationService();
 
-  function _array_like_to_array$6(arr, len) {
+  function _array_like_to_array$7(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$3(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$6(arr);
+  function _array_without_holes$4(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$7(arr);
   }
   function _class_call_check$p(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -22447,10 +23207,10 @@ this.Scorm2004API = (function () {
           return left instanceof right;
       }
   }
-  function _iterable_to_array$3(iter) {
+  function _iterable_to_array$4(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$3() {
+  function _non_iterable_spread$4() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$6(target) {
@@ -22468,7 +23228,7 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function ownKeys(object, enumerableOnly) {
+  function ownKeys$1(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -22476,31 +23236,31 @@ this.Scorm2004API = (function () {
       }
       return keys;
   }
-  function _object_spread_props(target, source) {
+  function _object_spread_props$1(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) {
           Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-          ownKeys(Object(source)).forEach(function(key) {
+          ownKeys$1(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
   }
-  function _to_consumable_array$3(arr) {
-      return _array_without_holes$3(arr) || _iterable_to_array$3(arr) || _unsupported_iterable_to_array$6(arr) || _non_iterable_spread$3();
+  function _to_consumable_array$4(arr) {
+      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$7(arr) || _non_iterable_spread$4();
   }
   function _type_of$o(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$6(o, minLen) {
+  function _unsupported_iterable_to_array$7(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$6(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$7(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$7(o, minLen);
   }
   var __defProp$o = Object.defineProperty;
   var __defNormalProp$o = function __defNormalProp(obj, key, value) {
@@ -23586,20 +24346,20 @@ this.Scorm2004API = (function () {
                       if (immediate && this.settings.terminateCommitPayloadField) {
                           var field = this.settings.terminateCommitPayloadField;
                           if (Array.isArray(finalParams)) {
-                              finalParams = _to_consumable_array$3(finalParams).concat([
+                              finalParams = _to_consumable_array$4(finalParams).concat([
                                   "".concat(encodeURIComponent(field), "=true")
                               ]);
                           } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$o(finalParams)) === "object") {
-                              finalParams = _object_spread_props(_object_spread$6({}, finalParams), _define_property$6({}, field, true));
+                              finalParams = _object_spread_props$1(_object_spread$6({}, finalParams), _define_property$6({}, field, true));
                           }
                       }
                       if (this.settings.includeCommitSequence === true) {
                           if (Array.isArray(finalParams)) {
-                              finalParams = _to_consumable_array$3(finalParams).concat([
+                              finalParams = _to_consumable_array$4(finalParams).concat([
                                   "commitSequence=".concat(sequence)
                               ]);
                           } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$o(finalParams)) === "object") {
-                              finalParams = _object_spread_props(_object_spread$6({}, finalParams), {
+                              finalParams = _object_spread_props$1(_object_spread$6({}, finalParams), {
                                   commitSequence: sequence
                               });
                           }
@@ -24098,7 +24858,7 @@ this.Scorm2004API = (function () {
       ];
   }
 
-  function _array_like_to_array$5(arr, len) {
+  function _array_like_to_array$6(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -24210,7 +24970,7 @@ this.Scorm2004API = (function () {
       return _set_prototype_of$g(o, p);
   }
   function _sliced_to_array$3(arr, i) {
-      return _array_with_holes$3(arr) || _iterable_to_array_limit$3(arr, i) || _unsupported_iterable_to_array$5(arr, i) || _non_iterable_rest$3();
+      return _array_with_holes$3(arr) || _iterable_to_array_limit$3(arr, i) || _unsupported_iterable_to_array$6(arr, i) || _non_iterable_rest$3();
   }
   function _super_prop_base$6(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
@@ -24223,13 +24983,13 @@ this.Scorm2004API = (function () {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$5(o, minLen) {
+  function _unsupported_iterable_to_array$6(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$5(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$6(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$5(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
   }
   function _is_native_reflect_construct$g() {
       try {
@@ -27299,6 +28059,7 @@ this.Scorm2004API = (function () {
               value: function reset() {
                   var _this_metadata, _this_learner, _this_status, _this_session, _this_content, _this_settings, _this_thresholds, _this_objectives, _this_interactions, _this_score, _this_comments_from_learner, _this_comments_from_lms, _this_learner_preference;
                   this._initialized = false;
+                  this._start_time = void 0;
                   (_this_metadata = this.metadata) === null || _this_metadata === void 0 ? void 0 : _this_metadata.reset();
                   (_this_learner = this.learner) === null || _this_learner === void 0 ? void 0 : _this_learner.reset();
                   (_this_status = this.status) === null || _this_status === void 0 ? void 0 : _this_status.reset();
@@ -29074,13 +29835,13 @@ this.Scorm2004API = (function () {
       return ActivityTree;
   }(BaseCMI);
 
-  function _array_like_to_array$4(arr, len) {
+  function _array_like_to_array$5(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$2(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$4(arr);
+  function _array_without_holes$3(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$5(arr);
   }
   function _assert_this_initialized$1(self) {
       if (self === void 0) {
@@ -29166,10 +29927,10 @@ this.Scorm2004API = (function () {
           return left instanceof right;
       }
   }
-  function _iterable_to_array$2(iter) {
+  function _iterable_to_array$3(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread$2() {
+  function _non_iterable_spread$3() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$4(target) {
@@ -29207,20 +29968,20 @@ this.Scorm2004API = (function () {
       }
       return object;
   }
-  function _to_consumable_array$2(arr) {
-      return _array_without_holes$2(arr) || _iterable_to_array$2(arr) || _unsupported_iterable_to_array$4(arr) || _non_iterable_spread$2();
+  function _to_consumable_array$3(arr) {
+      return _array_without_holes$3(arr) || _iterable_to_array$3(arr) || _unsupported_iterable_to_array$5(arr) || _non_iterable_spread$3();
   }
   function _type_of$7(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$4(o, minLen) {
+  function _unsupported_iterable_to_array$5(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$4(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$5(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$4(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$5(o, minLen);
   }
   function _is_native_reflect_construct$1() {
       try {
@@ -29348,10 +30109,10 @@ this.Scorm2004API = (function () {
           {
               key: "hideLmsUi",
               get: function get() {
-                  return _to_consumable_array$2(this._hideLmsUi);
+                  return _to_consumable_array$3(this._hideLmsUi);
               },
               set: function set(items) {
-                  this._hideLmsUi = _to_consumable_array$2(items);
+                  this._hideLmsUi = _to_consumable_array$3(items);
               }
           },
           {
@@ -29886,22 +30647,11 @@ this.Scorm2004API = (function () {
      * @returns {string} The evaluated completion status
      */ key: "evaluateCompletionStatus",
               value: function evaluateCompletionStatus() {
-                  var threshold = this.context.cmi.completion_threshold;
-                  var progressMeasure = this.context.cmi.progress_measure;
-                  var storedStatus = this.context.cmi.completion_status;
-                  if (threshold !== "" && threshold !== null && threshold !== void 0) {
-                      var thresholdValue = parseFloat(String(threshold));
-                      if (!isNaN(thresholdValue)) {
-                          if (progressMeasure !== "" && progressMeasure !== null && progressMeasure !== void 0) {
-                              var progressValue = parseFloat(String(progressMeasure));
-                              if (!isNaN(progressValue)) {
-                                  return progressValue >= thresholdValue ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
-                              }
-                          }
-                          return CompletionStatus.UNKNOWN;
-                      }
-                  }
-                  return storedStatus || CompletionStatus.UNKNOWN;
+                  return evaluateCompletionStatusFromThreshold({
+                      completionThreshold: this.context.cmi.completion_threshold,
+                      progressMeasure: this.context.cmi.progress_measure,
+                      storedCompletionStatus: this.context.cmi.completion_status
+                  });
               }
           },
           {
@@ -29942,7 +30692,7 @@ this.Scorm2004API = (function () {
       return Scorm2004CMIHandler;
   }();
 
-  function _array_like_to_array$3(arr, len) {
+  function _array_like_to_array$4(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -29950,8 +30700,8 @@ this.Scorm2004API = (function () {
   function _array_with_holes$2(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _array_without_holes$1(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$3(arr);
+  function _array_without_holes$2(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$4(arr);
   }
   function _class_call_check$5(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -29984,7 +30734,7 @@ this.Scorm2004API = (function () {
       }
       return obj;
   }
-  function _iterable_to_array$1(iter) {
+  function _iterable_to_array$2(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
   function _iterable_to_array_limit$2(arr, i) {
@@ -30014,7 +30764,7 @@ this.Scorm2004API = (function () {
   function _non_iterable_rest$2() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _non_iterable_spread$1() {
+  function _non_iterable_spread$2() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$3(target) {
@@ -30033,18 +30783,18 @@ this.Scorm2004API = (function () {
       return target;
   }
   function _sliced_to_array$2(arr, i) {
-      return _array_with_holes$2(arr) || _iterable_to_array_limit$2(arr, i) || _unsupported_iterable_to_array$3(arr, i) || _non_iterable_rest$2();
+      return _array_with_holes$2(arr) || _iterable_to_array_limit$2(arr, i) || _unsupported_iterable_to_array$4(arr, i) || _non_iterable_rest$2();
   }
-  function _to_consumable_array$1(arr) {
-      return _array_without_holes$1(arr) || _iterable_to_array$1(arr) || _unsupported_iterable_to_array$3(arr) || _non_iterable_spread$1();
+  function _to_consumable_array$2(arr) {
+      return _array_without_holes$2(arr) || _iterable_to_array$2(arr) || _unsupported_iterable_to_array$4(arr) || _non_iterable_spread$2();
   }
-  function _unsupported_iterable_to_array$3(o, minLen) {
+  function _unsupported_iterable_to_array$4(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$3(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$4(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$3(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$4(o, minLen);
   }
   var SequencingConfigurationBuilder = /*#__PURE__*/ function() {
       function SequencingConfigurationBuilder() {
@@ -30122,6 +30872,9 @@ this.Scorm2004API = (function () {
                   }
                   if (settings.objectiveSetByContent !== void 0) {
                       target.objectiveSetByContent = settings.objectiveSetByContent;
+                  }
+                  if (settings.tracked !== void 0) {
+                      target.tracked = settings.tracked;
                   }
               }
           },
@@ -30582,7 +31335,7 @@ this.Scorm2004API = (function () {
                   if (!additional || additional.length === 0) {
                       return current;
                   }
-                  return this.sanitizeHideLmsUi(_to_consumable_array$1(current).concat(_to_consumable_array$1(additional)));
+                  return this.sanitizeHideLmsUi(_to_consumable_array$2(current).concat(_to_consumable_array$2(additional)));
               }
           },
           {
@@ -30650,7 +31403,7 @@ this.Scorm2004API = (function () {
                   var seen = /* @__PURE__ */ new Set();
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
-                      for(var _iterator = _to_consumable_array$1(existing !== null && existing !== void 0 ? existing : []).concat(_to_consumable_array$1(additions !== null && additions !== void 0 ? additions : []))[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                      for(var _iterator = _to_consumable_array$2(existing !== null && existing !== void 0 ? existing : []).concat(_to_consumable_array$2(additions !== null && additions !== void 0 ? additions : []))[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var resource = _step.value;
                           if (!resource) {
                               continue;
@@ -30692,13 +31445,13 @@ this.Scorm2004API = (function () {
               value: function cloneSelectionRandomizationState(state) {
                   var clone = {};
                   if (state.childOrder) {
-                      clone.childOrder = _to_consumable_array$1(state.childOrder);
+                      clone.childOrder = _to_consumable_array$2(state.childOrder);
                   }
                   if (state.selectedChildIds) {
-                      clone.selectedChildIds = _to_consumable_array$1(state.selectedChildIds);
+                      clone.selectedChildIds = _to_consumable_array$2(state.selectedChildIds);
                   }
                   if (state.hiddenFromChoiceChildIds) {
-                      clone.hiddenFromChoiceChildIds = _to_consumable_array$1(state.hiddenFromChoiceChildIds);
+                      clone.hiddenFromChoiceChildIds = _to_consumable_array$2(state.hiddenFromChoiceChildIds);
                   }
                   if (state.selectionCountStatus !== void 0) {
                       clone.selectionCountStatus = state.selectionCountStatus;
@@ -30779,13 +31532,13 @@ this.Scorm2004API = (function () {
       return SequencingConfigurationBuilder;
   }();
 
-  function _array_like_to_array$2(arr, len) {
+  function _array_like_to_array$3(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$2(arr);
+  function _array_without_holes$1(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$3(arr);
   }
   function _class_call_check$4(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -30805,26 +31558,26 @@ this.Scorm2004API = (function () {
       if (protoProps) _defineProperties$4(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _iterable_to_array(iter) {
+  function _iterable_to_array$1(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
-  function _non_iterable_spread() {
+  function _non_iterable_spread$1() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array(arr) {
-      return _array_without_holes(arr) || _iterable_to_array(arr) || _unsupported_iterable_to_array$2(arr) || _non_iterable_spread();
+  function _to_consumable_array$1(arr) {
+      return _array_without_holes$1(arr) || _iterable_to_array$1(arr) || _unsupported_iterable_to_array$3(arr) || _non_iterable_spread$1();
   }
   function _type_of$4(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$2(o, minLen) {
+  function _unsupported_iterable_to_array$3(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$2(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$3(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$2(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$3(o, minLen);
   }
   var __defProp$4 = Object.defineProperty;
   var __defNormalProp$4 = function __defNormalProp(obj, key, value) {
@@ -30966,6 +31719,9 @@ this.Scorm2004API = (function () {
                   if (activitySettings.sequencingControls) {
                       this.sequencingConfigBuilder.applySequencingControlsSettings(activity.sequencingControls, activitySettings.sequencingControls);
                   }
+                  if (activitySettings.deliveryControls) {
+                      this.sequencingConfigBuilder.applySequencingControlsSettings(activity.sequencingControls, activitySettings.deliveryControls);
+                  }
                   if (activitySettings.sequencingRules) {
                       this.sequencingConfigBuilder.applySequencingRulesSettings(activity.sequencingRules, activitySettings.sequencingRules);
                   }
@@ -30974,6 +31730,21 @@ this.Scorm2004API = (function () {
                   }
                   if (activitySettings.rollupConsiderations) {
                       activity.applyRollupConsiderations(activitySettings.rollupConsiderations);
+                  }
+                  if (activitySettings.completionThreshold) {
+                      var threshold = activitySettings.completionThreshold;
+                      if (threshold.completedByMeasure !== void 0) {
+                          activity.completedByMeasure = threshold.completedByMeasure;
+                      }
+                      if (threshold.minProgressMeasure !== void 0) {
+                          activity.minProgressMeasure = threshold.minProgressMeasure;
+                          activity.completionThreshold = threshold.minProgressMeasure.toString();
+                      } else if (threshold.completedByMeasure) {
+                          activity.completionThreshold = activity.minProgressMeasure.toString();
+                      }
+                      if (threshold.progressWeight !== void 0) {
+                          activity.progressWeight = threshold.progressWeight;
+                      }
                   }
                   if (activitySettings.hideLmsUi) {
                       var mergedHide = this.sequencingConfigBuilder.mergeHideLmsUi(activity.hideLmsUi, activitySettings.hideLmsUi);
@@ -31051,7 +31822,7 @@ this.Scorm2004API = (function () {
                       for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var child = _step.value;
                           var _ids;
-                          (_ids = ids).push.apply(_ids, _to_consumable_array(this.extractActivityIds(child)));
+                          (_ids = ids).push.apply(_ids, _to_consumable_array$1(this.extractActivityIds(child)));
                       }
                   } catch (err) {
                       _didIteratorError = true;
@@ -31083,19 +31854,19 @@ this.Scorm2004API = (function () {
                       var _info_readSatisfiedStatus, _info_readNormalizedMeasure, _info_writeSatisfiedStatus, _info_writeNormalizedMeasure, _info_readCompletionStatus, _info_writeCompletionStatus, _info_readProgressMeasure, _info_writeProgressMeasure, _info_readRawScore, _info_writeRawScore, _info_readMinScore, _info_writeMinScore, _info_readMaxScore, _info_writeMaxScore, _info_updateAttemptData;
                       return {
                           targetObjectiveID: info.targetObjectiveID,
-                          readSatisfiedStatus: (_info_readSatisfiedStatus = info.readSatisfiedStatus) !== null && _info_readSatisfiedStatus !== void 0 ? _info_readSatisfiedStatus : false,
-                          readNormalizedMeasure: (_info_readNormalizedMeasure = info.readNormalizedMeasure) !== null && _info_readNormalizedMeasure !== void 0 ? _info_readNormalizedMeasure : false,
+                          readSatisfiedStatus: (_info_readSatisfiedStatus = info.readSatisfiedStatus) !== null && _info_readSatisfiedStatus !== void 0 ? _info_readSatisfiedStatus : true,
+                          readNormalizedMeasure: (_info_readNormalizedMeasure = info.readNormalizedMeasure) !== null && _info_readNormalizedMeasure !== void 0 ? _info_readNormalizedMeasure : true,
                           writeSatisfiedStatus: (_info_writeSatisfiedStatus = info.writeSatisfiedStatus) !== null && _info_writeSatisfiedStatus !== void 0 ? _info_writeSatisfiedStatus : false,
                           writeNormalizedMeasure: (_info_writeNormalizedMeasure = info.writeNormalizedMeasure) !== null && _info_writeNormalizedMeasure !== void 0 ? _info_writeNormalizedMeasure : false,
-                          readCompletionStatus: (_info_readCompletionStatus = info.readCompletionStatus) !== null && _info_readCompletionStatus !== void 0 ? _info_readCompletionStatus : false,
+                          readCompletionStatus: (_info_readCompletionStatus = info.readCompletionStatus) !== null && _info_readCompletionStatus !== void 0 ? _info_readCompletionStatus : true,
                           writeCompletionStatus: (_info_writeCompletionStatus = info.writeCompletionStatus) !== null && _info_writeCompletionStatus !== void 0 ? _info_writeCompletionStatus : false,
-                          readProgressMeasure: (_info_readProgressMeasure = info.readProgressMeasure) !== null && _info_readProgressMeasure !== void 0 ? _info_readProgressMeasure : false,
+                          readProgressMeasure: (_info_readProgressMeasure = info.readProgressMeasure) !== null && _info_readProgressMeasure !== void 0 ? _info_readProgressMeasure : true,
                           writeProgressMeasure: (_info_writeProgressMeasure = info.writeProgressMeasure) !== null && _info_writeProgressMeasure !== void 0 ? _info_writeProgressMeasure : false,
-                          readRawScore: (_info_readRawScore = info.readRawScore) !== null && _info_readRawScore !== void 0 ? _info_readRawScore : false,
+                          readRawScore: (_info_readRawScore = info.readRawScore) !== null && _info_readRawScore !== void 0 ? _info_readRawScore : true,
                           writeRawScore: (_info_writeRawScore = info.writeRawScore) !== null && _info_writeRawScore !== void 0 ? _info_writeRawScore : false,
-                          readMinScore: (_info_readMinScore = info.readMinScore) !== null && _info_readMinScore !== void 0 ? _info_readMinScore : false,
+                          readMinScore: (_info_readMinScore = info.readMinScore) !== null && _info_readMinScore !== void 0 ? _info_readMinScore : true,
                           writeMinScore: (_info_writeMinScore = info.writeMinScore) !== null && _info_writeMinScore !== void 0 ? _info_writeMinScore : false,
-                          readMaxScore: (_info_readMaxScore = info.readMaxScore) !== null && _info_readMaxScore !== void 0 ? _info_readMaxScore : false,
+                          readMaxScore: (_info_readMaxScore = info.readMaxScore) !== null && _info_readMaxScore !== void 0 ? _info_readMaxScore : true,
                           writeMaxScore: (_info_writeMaxScore = info.writeMaxScore) !== null && _info_writeMaxScore !== void 0 ? _info_writeMaxScore : false,
                           updateAttemptData: (_info_updateAttemptData = info.updateAttemptData) !== null && _info_updateAttemptData !== void 0 ? _info_updateAttemptData : false
                       };
@@ -31113,7 +31884,7 @@ this.Scorm2004API = (function () {
       return ActivityTreeBuilder;
   }();
 
-  function _array_like_to_array$1(arr, len) {
+  function _array_like_to_array$2(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -31195,19 +31966,19 @@ this.Scorm2004API = (function () {
       return target;
   }
   function _sliced_to_array$1(arr, i) {
-      return _array_with_holes$1(arr) || _iterable_to_array_limit$1(arr, i) || _unsupported_iterable_to_array$1(arr, i) || _non_iterable_rest$1();
+      return _array_with_holes$1(arr) || _iterable_to_array_limit$1(arr, i) || _unsupported_iterable_to_array$2(arr, i) || _non_iterable_rest$1();
   }
   function _type_of$3(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$1(o, minLen) {
+  function _unsupported_iterable_to_array$2(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$1(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$2(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$1(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$2(o, minLen);
   }
   var __defProp$3 = Object.defineProperty;
   var __defNormalProp$3 = function __defNormalProp(obj, key, value) {
@@ -31354,9 +32125,12 @@ this.Scorm2004API = (function () {
      *
      * @param {string} objectiveId - The global objective ID
      * @param {CMIObjectivesObject} objective - The CMI objective object with updated values
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objectives synchronize CMI objective data
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score fields synchronize independently
      */ key: "updateGlobalObjectiveFromCMI",
               value: function updateGlobalObjectiveFromCMI(objectiveId, objective) {
-                  var _objective_score;
+                  var _objective_score, _objective_score1, _objective_score2, _objective_score3;
                   if (!objectiveId || !this.context.sequencingService) {
                       return;
                   }
@@ -31380,6 +32154,18 @@ this.Scorm2004API = (function () {
                       updatePayload.normalizedMeasure = normalizedMeasure;
                       updatePayload.normalizedMeasureKnown = true;
                   }
+                  if (((_objective_score1 = objective.score) === null || _objective_score1 === void 0 ? void 0 : _objective_score1.raw) !== void 0 && objective.score.raw !== "") {
+                      updatePayload.rawScore = objective.score.raw;
+                      updatePayload.rawScoreKnown = true;
+                  }
+                  if (((_objective_score2 = objective.score) === null || _objective_score2 === void 0 ? void 0 : _objective_score2.min) !== void 0 && objective.score.min !== "") {
+                      updatePayload.minScore = objective.score.min;
+                      updatePayload.minScoreKnown = true;
+                  }
+                  if (((_objective_score3 = objective.score) === null || _objective_score3 === void 0 ? void 0 : _objective_score3.max) !== void 0 && objective.score.max !== "") {
+                      updatePayload.maxScore = objective.score.max;
+                      updatePayload.maxScoreKnown = true;
+                  }
                   var progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
                   if (progressMeasure !== null) {
                       updatePayload.progressMeasure = progressMeasure;
@@ -31401,13 +32187,22 @@ this.Scorm2004API = (function () {
      *
      * @param {CMIObjectivesObject} objective - The CMI objectives object containing data about a specific learning objective.
      * @return {GlobalObjectiveMapEntry} An object containing mapped properties and their values based on the provided objective.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective map entries capture objective state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score entries carry per-field known flags
      */ key: "buildObjectiveMapEntryFromCMI",
               value: function buildObjectiveMapEntryFromCMI(objective) {
-                  var _objective_score;
+                  var _objective_score, _objective_score1, _objective_score2, _objective_score3;
                   var entry = {
                       id: objective.id,
                       satisfiedStatusKnown: false,
                       normalizedMeasureKnown: false,
+                      rawScore: "",
+                      rawScoreKnown: false,
+                      minScore: "",
+                      minScoreKnown: false,
+                      maxScore: "",
+                      maxScoreKnown: false,
                       progressMeasureKnown: false,
                       completionStatusKnown: false,
                       readSatisfiedStatus: true,
@@ -31417,7 +32212,13 @@ this.Scorm2004API = (function () {
                       readCompletionStatus: true,
                       writeCompletionStatus: true,
                       readProgressMeasure: true,
-                      writeProgressMeasure: true
+                      writeProgressMeasure: true,
+                      readRawScore: true,
+                      writeRawScore: true,
+                      readMinScore: true,
+                      writeMinScore: true,
+                      readMaxScore: true,
+                      writeMaxScore: true
                   };
                   if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
                       entry.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
@@ -31427,6 +32228,18 @@ this.Scorm2004API = (function () {
                   if (normalizedMeasure !== null) {
                       entry.normalizedMeasure = normalizedMeasure;
                       entry.normalizedMeasureKnown = true;
+                  }
+                  if (((_objective_score1 = objective.score) === null || _objective_score1 === void 0 ? void 0 : _objective_score1.raw) !== void 0 && objective.score.raw !== "") {
+                      entry.rawScore = objective.score.raw;
+                      entry.rawScoreKnown = true;
+                  }
+                  if (((_objective_score2 = objective.score) === null || _objective_score2 === void 0 ? void 0 : _objective_score2.min) !== void 0 && objective.score.min !== "") {
+                      entry.minScore = objective.score.min;
+                      entry.minScoreKnown = true;
+                  }
+                  if (((_objective_score3 = objective.score) === null || _objective_score3 === void 0 ? void 0 : _objective_score3.max) !== void 0 && objective.score.max !== "") {
+                      entry.maxScore = objective.score.max;
+                      entry.maxScoreKnown = true;
                   }
                   var progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
                   if (progressMeasure !== null) {
@@ -31450,6 +32263,9 @@ this.Scorm2004API = (function () {
      * @return {CMIObjectivesObject[]} An array of `CMIObjectivesObject` instances built
      *                                  from the provided snapshot map. Returns an empty array
      *                                  if the snapshot is invalid or no valid objectives can be created.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective snapshots restore CMI objective state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score known fields restore independently
      */ key: "buildCMIObjectivesFromMap",
               value: function buildCMIObjectivesFromMap(snapshot) {
                   var objectives = [];
@@ -31472,6 +32288,18 @@ this.Scorm2004API = (function () {
                           var normalizedMeasure = this.parseObjectiveNumber(entry.normalizedMeasure);
                           if (entry.normalizedMeasureKnown === true && normalizedMeasure !== null) {
                               objective.score.scaled = String(normalizedMeasure);
+                          }
+                          if (entry.rawScoreKnown === true) {
+                              var _entry_rawScore;
+                              objective.score.raw = String((_entry_rawScore = entry.rawScore) !== null && _entry_rawScore !== void 0 ? _entry_rawScore : "");
+                          }
+                          if (entry.minScoreKnown === true) {
+                              var _entry_minScore;
+                              objective.score.min = String((_entry_minScore = entry.minScore) !== null && _entry_minScore !== void 0 ? _entry_minScore : "");
+                          }
+                          if (entry.maxScoreKnown === true) {
+                              var _entry_maxScore;
+                              objective.score.max = String((_entry_maxScore = entry.maxScore) !== null && _entry_maxScore !== void 0 ? _entry_maxScore : "");
                           }
                           var progressMeasure = this.parseObjectiveNumber(entry.progressMeasure);
                           if (entry.progressMeasureKnown === true && progressMeasure !== null) {
@@ -31641,6 +32469,9 @@ this.Scorm2004API = (function () {
      * @param {CompletionStatus} completionStatus
      * @param {SuccessStatus} successStatus
      * @param {ScoreObject} scoreObject
+     *
+     * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - CMI score data updates the current primary objective
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score data is available for write maps
      */ key: "syncCmiToSequencingActivity",
               value: function syncCmiToSequencingActivity(completionStatus, successStatus, scoreObject) {
                   if (!this.context.sequencing) {
@@ -31665,6 +32496,15 @@ this.Scorm2004API = (function () {
                   if ((scoreObject === null || scoreObject === void 0 ? void 0 : scoreObject.scaled) !== void 0 && scoreObject.scaled !== null) {
                       primaryObjective.normalizedMeasure = scoreObject.scaled;
                       primaryObjective.measureStatus = true;
+                  }
+                  if ((scoreObject === null || scoreObject === void 0 ? void 0 : scoreObject.raw) !== void 0 && scoreObject.raw !== null) {
+                      primaryObjective.rawScore = String(scoreObject.raw);
+                  }
+                  if ((scoreObject === null || scoreObject === void 0 ? void 0 : scoreObject.min) !== void 0 && scoreObject.min !== null) {
+                      primaryObjective.minScore = String(scoreObject.min);
+                  }
+                  if ((scoreObject === null || scoreObject === void 0 ? void 0 : scoreObject.max) !== void 0 && scoreObject.max !== null) {
+                      primaryObjective.maxScore = String(scoreObject.max);
                   }
               }
           },
@@ -32229,7 +33069,7 @@ this.Scorm2004API = (function () {
       return SequencingStatePersistence;
   }();
 
-  function _array_like_to_array(arr, len) {
+  function _array_like_to_array$1(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -32283,19 +33123,19 @@ this.Scorm2004API = (function () {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array(arr, i) {
-      return _array_with_holes(arr) || _iterable_to_array_limit(arr, i) || _unsupported_iterable_to_array(arr, i) || _non_iterable_rest();
+      return _array_with_holes(arr) || _iterable_to_array_limit(arr, i) || _unsupported_iterable_to_array$1(arr, i) || _non_iterable_rest();
   }
   function _type_of$1(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array(o, minLen) {
+  function _unsupported_iterable_to_array$1(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$1(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$1(o, minLen);
   }
   var __defProp$1 = Object.defineProperty;
   var __defNormalProp$1 = function __defNormalProp(obj, key, value) {
@@ -32472,6 +33312,14 @@ this.Scorm2004API = (function () {
       return Scorm2004DataSerializer;
   }();
 
+  function _array_like_to_array(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_without_holes(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array(arr);
+  }
   function _assert_this_initialized(self) {
       if (self === void 0) {
           throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -32569,6 +33417,12 @@ this.Scorm2004API = (function () {
           return left instanceof right;
       }
   }
+  function _iterable_to_array(iter) {
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+  }
+  function _non_iterable_spread() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
   function _object_spread(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
@@ -32580,6 +33434,25 @@ this.Scorm2004API = (function () {
           }
           ownKeys.forEach(function(key) {
               _define_property(target, key, source[key]);
+          });
+      }
+      return target;
+  }
+  function ownKeys(object, enumerableOnly) {
+      var keys = Object.keys(object);
+      if (Object.getOwnPropertySymbols) {
+          var symbols = Object.getOwnPropertySymbols(object);
+          keys.push.apply(keys, symbols);
+      }
+      return keys;
+  }
+  function _object_spread_props(target, source) {
+      source = source != null ? source : {};
+      if (Object.getOwnPropertyDescriptors) {
+          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+          ownKeys(Object(source)).forEach(function(key) {
+              Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
@@ -32597,9 +33470,20 @@ this.Scorm2004API = (function () {
       };
       return _set_prototype_of(o, p);
   }
+  function _to_consumable_array(arr) {
+      return _array_without_holes(arr) || _iterable_to_array(arr) || _unsupported_iterable_to_array(arr) || _non_iterable_spread();
+  }
   function _type_of(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array(o, minLen);
   }
   function _is_native_reflect_construct() {
       try {
@@ -32863,7 +33747,248 @@ this.Scorm2004API = (function () {
                   var _this_cmi, _this_adl;
                   this.commonReset(settings);
                   (_this_cmi = this.cmi) === null || _this_cmi === void 0 ? void 0 : _this_cmi.reset();
+                  this.applyCurrentActivityLaunchData();
                   (_this_adl = this.adl) === null || _this_adl === void 0 ? void 0 : _this_adl.reset();
+              }
+          },
+          {
+              /**
+     * Apply launch-static activity data to CMI while the new SCO is pre-initialize.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+     */ key: "applyCurrentActivityLaunchData",
+              value: function applyCurrentActivityLaunchData() {
+                  var _this__sequencing;
+                  var currentActivity = (_this__sequencing = this._sequencing) === null || _this__sequencing === void 0 ? void 0 : _this__sequencing.getCurrentActivity();
+                  if (!currentActivity) {
+                      return;
+                  }
+                  this.applyActivityLaunchData(currentActivity);
+              }
+          },
+          {
+              /**
+     * Apply launch-static CMI data when sequencing delivers a new activity before SCO Initialize.
+     *
+     * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process establishes the delivered activity.
+     * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold is initialized before SCO access.
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives is initialized before SCO access.
+     */ key: "applyDeliveredActivityLaunchData",
+              value: function applyDeliveredActivityLaunchData(activity) {
+                  if (!this.isNotInitialized()) {
+                      return;
+                  }
+                  this.applyActivityLaunchData(activity);
+              }
+          },
+          {
+              /**
+     * Copy the delivered activity's static launch data into the fresh CMI model.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+     */ key: "applyActivityLaunchData",
+              value: function applyActivityLaunchData(currentActivity) {
+                  var _ref, _ref1;
+                  var _this__sequencing_overallSequencingProcess, _currentActivity_completionThreshold;
+                  if (!this.cmi) {
+                      return;
+                  }
+                  var contentActivityData = (_this__sequencing_overallSequencingProcess = this._sequencing.overallSequencingProcess) === null || _this__sequencing_overallSequencingProcess === void 0 ? void 0 : _this__sequencing_overallSequencingProcess.getContentActivityData(currentActivity);
+                  var completionThreshold = (_ref = (_ref1 = contentActivityData === null || contentActivityData === void 0 ? void 0 : contentActivityData.completionThreshold) !== null && _ref1 !== void 0 ? _ref1 : (_currentActivity_completionThreshold = currentActivity.completionThreshold) === null || _currentActivity_completionThreshold === void 0 ? void 0 : _currentActivity_completionThreshold.toString()) !== null && _ref !== void 0 ? _ref : "";
+                  this.cmi.completion_threshold = completionThreshold;
+                  this.seedCurrentActivityObjectives(currentActivity);
+              }
+          },
+          {
+              /**
+     * Seed CMI objective ids after Initialize when automatic sequencing starts during Initialize.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+     */ key: "applyCurrentActivityObjectiveData",
+              value: function applyCurrentActivityObjectiveData() {
+                  var _this__sequencing;
+                  var currentActivity = (_this__sequencing = this._sequencing) === null || _this__sequencing === void 0 ? void 0 : _this__sequencing.getCurrentActivity();
+                  if (!this.cmi || !currentActivity) {
+                      return;
+                  }
+                  this.seedCurrentActivityObjectives(currentActivity);
+              }
+          },
+          {
+              /**
+     * Seed CMI objectives from primary and secondary activity objectives.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17 - Initialization of Run-Time Objectives from Sequencing Information
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id and success_status
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - objective read maps seed the RTE view
+     */ key: "seedCurrentActivityObjectives",
+              value: function seedCurrentActivityObjectives(currentActivity) {
+                  var _activityObjectives;
+                  var activityObjectives = [];
+                  if (currentActivity.primaryObjective) {
+                      activityObjectives.push(currentActivity.primaryObjective);
+                  }
+                  (_activityObjectives = activityObjectives).push.apply(_activityObjectives, _to_consumable_array(currentActivity.objectives));
+                  var seededObjectiveIds = /* @__PURE__ */ new Set();
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = activityObjectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var activityObjective = _step.value;
+                          var objectiveId = this.getSeedableObjectiveId(activityObjective);
+                          if (!objectiveId || seededObjectiveIds.has(objectiveId)) {
+                              continue;
+                          }
+                          seededObjectiveIds.add(objectiveId);
+                          var index = this.findOrSeedCMIObjective(objectiveId);
+                          if (index === null) {
+                              continue;
+                          }
+                          var cmiObjective = this.cmi.objectives.findObjectiveByIndex(index);
+                          if (cmiObjective && this.cmi.objectives.initialized && !cmiObjective.initialized) {
+                              cmiObjective.initialize();
+                          }
+                          var successStatus = this.getActivityObjectiveSuccessStatus(activityObjective);
+                          if (successStatus) {
+                              this._commonSetCMIValue("SeedActivityObjective", true, "cmi.objectives.".concat(index, ".success_status"), successStatus);
+                          }
+                          this.seedObjectiveReadMapValues(currentActivity, activityObjective, index);
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              /**
+     * Seed CMI objective fields from this objective's read-mapped global objectives.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17 - Run-Time Objectives are initialized from sequencing information
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - read mapInfo grants access to mapped global objective state
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps seed RTE score fields
+     */ key: "seedObjectiveReadMapValues",
+              value: function seedObjectiveReadMapValues(currentActivity, activityObjective, objectiveIndex) {
+                  var _this__sequencing_overallSequencingProcess;
+                  var globalObjectiveMap = (_this__sequencing_overallSequencingProcess = this._sequencing.overallSequencingProcess) === null || _this__sequencing_overallSequencingProcess === void 0 ? void 0 : _this__sequencing_overallSequencingProcess.getGlobalObjectiveMap();
+                  if (!globalObjectiveMap || activityObjective.mapInfo.length === 0) {
+                      return;
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = activityObjective.mapInfo[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var mapInfo = _step.value;
+                          var targetObjectiveId = mapInfo.targetObjectiveID || activityObjective.id;
+                          var globalObjective = globalObjectiveMap.get(targetObjectiveId);
+                          if (!globalObjective) {
+                              continue;
+                          }
+                          var readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(currentActivity, activityObjective, mapInfo, globalObjective);
+                          this.applyObjectiveReadStateToCMI(objectiveIndex, readState);
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              /**
+     * Copy mapped global objective state into the seeded CMI objective entry.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives launch-time initialization
+     * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps populate the RTE view without creating local writes
+     * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps populate CMI objective scores
+     */ key: "applyObjectiveReadStateToCMI",
+              value: function applyObjectiveReadStateToCMI(objectiveIndex, readState) {
+                  if (readState.satisfiedStatus !== void 0) {
+                      this._commonSetCMIValue("SeedActivityObjectiveReadMap", true, "cmi.objectives.".concat(objectiveIndex, ".success_status"), readState.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED);
+                  }
+                  if (readState.normalizedMeasure !== void 0) {
+                      this._commonSetCMIValue("SeedActivityObjectiveReadMap", true, "cmi.objectives.".concat(objectiveIndex, ".score.scaled"), String(readState.normalizedMeasure));
+                  }
+                  if (readState.completionStatus !== void 0) {
+                      this._commonSetCMIValue("SeedActivityObjectiveReadMap", true, "cmi.objectives.".concat(objectiveIndex, ".completion_status"), readState.completionStatus);
+                  }
+                  if (readState.progressMeasure !== void 0) {
+                      this._commonSetCMIValue("SeedActivityObjectiveReadMap", true, "cmi.objectives.".concat(objectiveIndex, ".progress_measure"), String(readState.progressMeasure));
+                  }
+                  if (readState.rawScore !== void 0) {
+                      this._commonSetCMIValue("SeedActivityObjectiveReadMap", true, "cmi.objectives.".concat(objectiveIndex, ".score.raw"), readState.rawScore);
+                  }
+                  if (readState.minScore !== void 0) {
+                      this._commonSetCMIValue("SeedActivityObjectiveReadMap", true, "cmi.objectives.".concat(objectiveIndex, ".score.min"), readState.minScore);
+                  }
+                  if (readState.maxScore !== void 0) {
+                      this._commonSetCMIValue("SeedActivityObjectiveReadMap", true, "cmi.objectives.".concat(objectiveIndex, ".score.max"), readState.maxScore);
+                  }
+              }
+          },
+          {
+              /**
+     * Return a manifest-defined objective id that can initialize cmi.objectives.n.id.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id
+     */ key: "getSeedableObjectiveId",
+              value: function getSeedableObjectiveId(activityObjective) {
+                  var objectiveId = activityObjective.id;
+                  if (typeof objectiveId !== "string" || objectiveId.trim() === "") {
+                      return null;
+                  }
+                  return objectiveId;
+              }
+          },
+          {
+              /**
+     * Find an existing CMI objective id or create the next CMI objective array entry.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives._count
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id
+     */ key: "findOrSeedCMIObjective",
+              value: function findOrSeedCMIObjective(objectiveId) {
+                  var existingIndex = this.cmi.objectives.childArray.findIndex(function(objective) {
+                      return objective.id === objectiveId;
+                  });
+                  if (existingIndex >= 0) {
+                      return existingIndex;
+                  }
+                  var index = this.cmi.objectives.childArray.length;
+                  var result = this._commonSetCMIValue("SeedActivityObjective", true, "cmi.objectives.".concat(index, ".id"), objectiveId);
+                  return result === global_constants.SCORM_TRUE ? index : null;
+              }
+          },
+          {
+              /**
+     * Translate a known activity objective satisfied status to cmi.objectives.n.success_status.
+     *
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.success_status
+     */ key: "getActivityObjectiveSuccessStatus",
+              value: function getActivityObjectiveSuccessStatus(activityObjective) {
+                  if (activityObjective.progressStatus || activityObjective.satisfiedStatusKnown) {
+                      return activityObjective.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+                  }
+                  return null;
               }
           },
           {
@@ -32953,6 +34078,7 @@ this.Scorm2004API = (function () {
                   var result = this.initialize("Initialize", "LMS was already initialized!", "LMS is already finished!");
                   if (result === global_constants.SCORM_TRUE && this._sequencingService) {
                       this._sequencingService.initialize();
+                      this.applyCurrentActivityObjectiveData();
                   }
                   if (result === global_constants.SCORM_TRUE) {
                       this._globalObjectiveManager.restoreGlobalObjectivesToCMI();
@@ -33232,7 +34358,7 @@ this.Scorm2004API = (function () {
                           objective_id = objective ? objective.id : void 0;
                       }
                       var is_global = objective_id && ((_this_settings_globalObjectiveIds = this.settings.globalObjectiveIds) === null || _this_settings_globalObjectiveIds === void 0 ? void 0 : _this_settings_globalObjectiveIds.includes(objective_id));
-                      if (is_global) {
+                      if (is_global && this.currentActivityAllowsGlobalObjectiveWrites()) {
                           var _this__globalObjectiveManager_findOrCreateGlobalObjective = this._globalObjectiveManager.findOrCreateGlobalObjective(objective_id), global_index = _this__globalObjectiveManager_findOrCreateGlobalObjective.index;
                           var global_element = CMIElement.replace(element_base, "_globalObjectives.".concat(global_index));
                           this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
@@ -33243,6 +34369,18 @@ this.Scorm2004API = (function () {
                       }
                   }
                   return this._commonSetCMIValue("SetValue", true, CMIElement, value);
+              }
+          },
+          {
+              /**
+     * Return whether the current activity can update shared global objectives.
+     *
+     * @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - when False, the LMS
+     * "does not initialize, manage or access any tracking status information".
+     */ key: "currentActivityAllowsGlobalObjectiveWrites",
+              value: function currentActivityAllowsGlobalObjectiveWrites() {
+                  var _this__sequencing_getCurrentActivity, _this__sequencing;
+                  return ((_this__sequencing = this._sequencing) === null || _this__sequencing === void 0 ? void 0 : (_this__sequencing_getCurrentActivity = _this__sequencing.getCurrentActivity()) === null || _this__sequencing_getCurrentActivity === void 0 ? void 0 : _this__sequencing_getCurrentActivity.sequencingControls.tracked) !== false;
               }
           },
           {
@@ -33426,14 +34564,14 @@ this.Scorm2004API = (function () {
                       if (this.cmi.mode === "normal") {
                           if (this.cmi.credit === "credit") {
                               if (this.cmi.completion_threshold && this.cmi.progress_measure) {
-                                  if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+                                  if (parseFloat(this.cmi.progress_measure) >= parseFloat(this.cmi.completion_threshold)) {
                                       this.cmi.completion_status = "completed";
                                   } else {
                                       this.cmi.completion_status = "incomplete";
                                   }
                               }
                               if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
-                                  if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+                                  if (parseFloat(this.cmi.score.scaled) >= parseFloat(this.cmi.scaled_passing_score)) {
                                       this.cmi.success_status = "passed";
                                   } else {
                                       this.cmi.success_status = "failed";
@@ -33588,9 +34726,7 @@ this.Scorm2004API = (function () {
                           logLevel: (_ref4 = settings === null || settings === void 0 ? void 0 : (_settings_sequencing4 = settings.sequencing) === null || _settings_sequencing4 === void 0 ? void 0 : _settings_sequencing4.logLevel) !== null && _ref4 !== void 0 ? _ref4 : "info"
                       };
                       this._sequencingService = new SequencingService(this._sequencing, this.cmi, this.adl, this.eventService || this, this.loggingService, sequencingConfig);
-                      if (settings === null || settings === void 0 ? void 0 : (_settings_sequencing5 = settings.sequencing) === null || _settings_sequencing5 === void 0 ? void 0 : _settings_sequencing5.eventListeners) {
-                          this._sequencingService.setEventListeners(settings.sequencing.eventListeners);
-                      }
+                      this._sequencingService.setEventListeners(this.buildSequencingEventListeners(settings === null || settings === void 0 ? void 0 : (_settings_sequencing5 = settings.sequencing) === null || _settings_sequencing5 === void 0 ? void 0 : _settings_sequencing5.eventListeners));
                       this._globalObjectiveManager.updateSequencingService(this._sequencingService);
                       this._dataSerializer.updateSequencingService(this._sequencingService);
                       if (settings === null || settings === void 0 ? void 0 : settings.sequencingStatePersistence) {
@@ -33615,6 +34751,25 @@ this.Scorm2004API = (function () {
           },
           {
               /**
+     * Wrap LMS-provided sequencing listeners with API-owned delivery bookkeeping.
+     *
+     * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process
+     * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+     * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+     */ key: "buildSequencingEventListeners",
+              value: function buildSequencingEventListeners(listeners) {
+                  var _this = this;
+                  return _object_spread_props(_object_spread({}, listeners), {
+                      onActivityDelivery: function onActivityDelivery(activity) {
+                          var _listeners_onActivityDelivery;
+                          _this.applyDeliveredActivityLaunchData(activity);
+                          listeners === null || listeners === void 0 ? void 0 : (_listeners_onActivityDelivery = listeners.onActivityDelivery) === null || _listeners_onActivityDelivery === void 0 ? void 0 : _listeners_onActivityDelivery.call(listeners, activity);
+                      }
+                  });
+              }
+          },
+          {
+              /**
      * Get the sequencing service
      * @return {SequencingService | null}
      */ key: "getSequencingService",
@@ -33626,10 +34781,13 @@ this.Scorm2004API = (function () {
               /**
      * Set sequencing event listeners
      * @param {SequencingEventListeners} listeners
+     *
+     * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process
+     * @spec SCORM 2004 4th Ed. RTE 4.2.5 / 4.2.17 - launch-static CMI data
      */ key: "setSequencingEventListeners",
               value: function setSequencingEventListeners(listeners) {
                   if (this._sequencingService) {
-                      this._sequencingService.setEventListeners(listeners);
+                      this._sequencingService.setEventListeners(this.buildSequencingEventListeners(listeners));
                   }
               }
           },
