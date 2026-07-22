@@ -197,12 +197,18 @@ function stringMatches(str, tester) {
   }
   return new RegExp(tester).test(str);
 }
-function memoize(fn, keyFn) {
+function memoize(fn, keyFn, options) {
   const cache = /* @__PURE__ */ new Map();
   return ((...args) => {
     const key = keyFn ? keyFn(...args) : JSON.stringify(args);
+    if (options?.maxKeyLength !== void 0 && key.length > options.maxKeyLength) {
+      return fn(...args);
+    }
     return cache.has(key) ? cache.get(key) : (() => {
       const result = fn(...args);
+      if (options?.maxEntries !== void 0 && cache.size >= options.maxEntries) {
+        cache.delete(cache.keys().next().value);
+      }
       cache.set(key, result);
       return result;
     })();
@@ -1103,6 +1109,8 @@ const scorm2004_regex = {
   CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
   /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */
   CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+  /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */
+  CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).*$)?$",
   /** CMILangcr - Language tag pattern with content */
   CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
   /** CMILangString250cr - String with optional language tag (carriage return variant) */
@@ -6681,7 +6689,9 @@ const checkValidFormat = memoize(
   (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) => {
     const valueKey = typeof value === "string" ? value : `[${typeof value}]`;
     return `${CMIElement}:${valueKey}:${regexPattern}:${errorCode}:${allowEmptyString || false}`;
-  }
+  },
+  // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
+  { maxEntries: 1e3, maxKeyLength: 2e3 }
 );
 const checkValidRange = memoize(
   (CMIElement, value, rangePattern, errorCode, errorClass) => {
@@ -6704,7 +6714,8 @@ const checkValidRange = memoize(
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
-  (CMIElement, value, rangePattern, errorCode, _errorClass) => `${CMIElement}:${value}:${rangePattern}:${errorCode}`
+  (CMIElement, value, rangePattern, errorCode, _errorClass) => `${CMIElement}:${value}:${rangePattern}:${errorCode}`,
+  { maxEntries: 1e3 }
 );
 
 function check2004ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
@@ -20244,7 +20255,7 @@ class CMIInteractionsObject extends BaseCMI {
       if (check2004ValidFormat(
         this._cmi_element + ".description",
         description,
-        scorm2004_regex.CMILangString250,
+        scorm2004_regex.CMILangString,
         true
       )) {
         this._description = description;
@@ -20954,7 +20965,7 @@ class CMIObjectivesObject extends BaseCMI {
       if (check2004ValidFormat(
         this._cmi_element + ".description",
         description,
-        scorm2004_regex.CMILangString250,
+        scorm2004_regex.CMILangString,
         true
       )) {
         this._description = description;

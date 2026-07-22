@@ -217,15 +217,21 @@ this.Scorm12API = (function () {
       }
       return new RegExp(tester).test(str);
   }
-  function memoize(fn, keyFn) {
+  function memoize(fn, keyFn, options) {
       var cache = /* @__PURE__ */ new Map();
       return function() {
           for(var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++){
               args[_key] = arguments[_key];
           }
           var key = keyFn ? keyFn.apply(void 0, _to_consumable_array$3(args)) : JSON.stringify(args);
+          if ((options === null || options === void 0 ? void 0 : options.maxKeyLength) !== void 0 && key.length > options.maxKeyLength) {
+              return fn.apply(void 0, _to_consumable_array$3(args));
+          }
           return cache.has(key) ? cache.get(key) : function() {
               var result = fn.apply(void 0, _to_consumable_array$3(args));
+              if ((options === null || options === void 0 ? void 0 : options.maxEntries) !== void 0 && cache.size >= options.maxEntries) {
+                  cache.delete(cache.keys().next().value);
+              }
               cache.set(key, result);
               return result;
           }();
@@ -1536,6 +1542,7 @@ this.Scorm12API = (function () {
      * Subtag: 2-8 alphanumeric characters
      */ CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
       /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */ CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+      /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */ CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).*$)?$",
       /** CMILangcr - Language tag pattern with content */ CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
       /** CMILangString250cr - String with optional language tag (carriage return variant) */ CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
       /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */ CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
@@ -5071,6 +5078,10 @@ this.Scorm12API = (function () {
   function(CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
       var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$c(value), "]");
       return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
+  }, // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
+  {
+      maxEntries: 1e3,
+      maxKeyLength: 2e3
   });
   var checkValidRange = memoize(function(CMIElement, value, rangePattern, errorCode, errorClass) {
       var ranges = rangePattern.split("#");
@@ -5093,6 +5104,8 @@ this.Scorm12API = (function () {
   // since it can't be stringified and doesn't affect the validation result
   function(CMIElement, value, rangePattern, errorCode, _errorClass) {
       return "".concat(CMIElement, ":").concat(value, ":").concat(rangePattern, ":").concat(errorCode);
+  }, {
+      maxEntries: 1e3
   });
 
   function _array_like_to_array$3(arr, len) {

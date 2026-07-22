@@ -34,6 +34,7 @@ export declare const scorm2004_regex: {
     CMIString64000: string;
     CMILang: string;
     CMILangString250: string;
+    CMILangString: string;
     CMILangcr: string;
     CMILangString250cr: string;
     CMILangString4000: string;
