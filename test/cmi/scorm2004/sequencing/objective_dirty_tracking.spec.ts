@@ -558,18 +558,20 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
       // Second objective should not be written (will use default/initial value)
       const globalObj2 = globalObjectives.get("global2");
-      expect(globalObj2.satisfiedStatus).toBe(true); // from initialization, not write
+      expect(globalObj2.satisfiedStatus).toBe(false); // unwritten default
       expect(globalObj2.satisfiedStatusKnown).toBe(false); // not written
     });
 
-    it("should require measureStatus to be true for writes", () => {
+    it("should require objective progress status to be known for satisfied writes", () => {
       objective.satisfiedStatus = true;
-      objective.measureStatus = false; // not valid
+      objective.measureStatus = true;
+      objective.satisfiedStatusKnown = false;
+      objective.progressStatus = false;
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
       const globalObj = globalObjectives.get("global1");
-      // Should not write because measureStatus is false
+      // Should not write because Objective Progress Status is unknown.
       expect(globalObj.satisfiedStatusKnown).toBe(false);
     });
 

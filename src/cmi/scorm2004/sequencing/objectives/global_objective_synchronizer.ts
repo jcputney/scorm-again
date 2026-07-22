@@ -1,4 +1,10 @@
-import { Activity, ActivityObjective, ObjectiveMapInfo } from "../activity";
+import {
+  Activity,
+  ActivityObjective,
+  ActivityObjectiveDirtyProperty,
+  ActivityObjectiveReadState,
+  ObjectiveMapInfo,
+} from "../activity";
 import { CompletionStatus } from "../../../../constants/enums";
 
 /**
@@ -15,6 +21,12 @@ export interface GlobalObjective {
   satisfiedStatusKnown: boolean;
   normalizedMeasure: number;
   normalizedMeasureKnown: boolean;
+  rawScore: string;
+  rawScoreKnown: boolean;
+  minScore: string;
+  minScoreKnown: boolean;
+  maxScore: string;
+  maxScoreKnown: boolean;
   progressMeasure: number;
   progressMeasureKnown: boolean;
   completionStatus: CompletionStatus;
@@ -39,6 +51,12 @@ export interface LocalObjectiveState {
   satisfiedStatus: boolean;
   measureStatus: boolean;
   normalizedMeasure: number;
+  rawScore: string;
+  rawScoreKnown: boolean;
+  minScore: string;
+  minScoreKnown: boolean;
+  maxScore: string;
+  maxScoreKnown: boolean;
   progressMeasure: number;
   progressMeasureStatus: boolean;
   completionStatus: CompletionStatus;
@@ -140,18 +158,24 @@ export class GlobalObjectiveSynchronizer {
    *
    * @param activity - The activity to process
    * @param globalObjectives - Global objective map
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - write mapInfo transfers local objective state to global objectives
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score write maps
    */
   public syncGlobalObjectivesWritePhase(
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
   ): void {
+    if (!this.canWriteGlobalObjectives(activity)) {
+      return;
+    }
+
     const objectives = activity.getAllObjectives();
 
     for (const objective of objectives) {
       const mapInfos =
-        objective.mapInfo.length > 0
-          ? objective.mapInfo
-          : [this.createDefaultMapInfo(objective)];
+        objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
+      const dirtyFieldsToClear = new Set<ActivityObjectiveDirtyProperty>();
 
       for (const mapInfo of mapInfos) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
@@ -165,12 +189,12 @@ export class GlobalObjectiveSynchronizer {
         // Only write if the objective property has been modified (dirty flag set)
         if (
           mapInfo.writeSatisfiedStatus &&
-          objective.measureStatus &&
+          this.hasKnownSatisfiedStatus(objective) &&
           objective.isDirty("satisfiedStatus")
         ) {
           globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
-          objective.clearDirty("satisfiedStatus");
+          dirtyFieldsToClear.add("satisfiedStatus");
         }
 
         if (
@@ -180,16 +204,17 @@ export class GlobalObjectiveSynchronizer {
         ) {
           globalObjective.normalizedMeasure = objective.normalizedMeasure;
           globalObjective.normalizedMeasureKnown = true;
-          objective.clearDirty("normalizedMeasure");
+          dirtyFieldsToClear.add("normalizedMeasure");
 
-          if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-            const threshold =
-              objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+          // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Write Normalized Measure
+          // and Write Objective Satisfied Status are independent mapInfo controls.
+          // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - Objective
+          // Satisfied By Measure derives satisfaction only for objectives that declare it.
+          if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
+            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
-            // Clear satisfiedStatus dirty flag since we've just synchronized the derived value.
-            // When satisfaction is derived from measure, it should always update when measure changes.
-            objective.clearDirty("satisfiedStatus");
+            dirtyFieldsToClear.add("satisfiedStatus");
           }
         }
 
@@ -200,7 +225,31 @@ export class GlobalObjectiveSynchronizer {
         ) {
           globalObjective.completionStatus = objective.completionStatus;
           globalObjective.completionStatusKnown = true;
-          objective.clearDirty("completionStatus");
+          dirtyFieldsToClear.add("completionStatus");
+        }
+
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Write Raw Score
+        // only updates the mapped global objective when the corresponding map is true.
+        if (mapInfo.writeRawScore && objective.rawScoreKnown && objective.isDirty("rawScore")) {
+          globalObjective.rawScore = objective.rawScore;
+          globalObjective.rawScoreKnown = true;
+          dirtyFieldsToClear.add("rawScore");
+        }
+
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Write Min Score
+        // only updates the mapped global objective when the corresponding map is true.
+        if (mapInfo.writeMinScore && objective.minScoreKnown && objective.isDirty("minScore")) {
+          globalObjective.minScore = objective.minScore;
+          globalObjective.minScoreKnown = true;
+          dirtyFieldsToClear.add("minScore");
+        }
+
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Write Max Score
+        // only updates the mapped global objective when the corresponding map is true.
+        if (mapInfo.writeMaxScore && objective.maxScoreKnown && objective.isDirty("maxScore")) {
+          globalObjective.maxScore = objective.maxScore;
+          globalObjective.maxScoreKnown = true;
+          dirtyFieldsToClear.add("maxScore");
         }
 
         if (
@@ -210,12 +259,16 @@ export class GlobalObjectiveSynchronizer {
         ) {
           globalObjective.progressMeasure = objective.progressMeasure;
           globalObjective.progressMeasureKnown = true;
-          objective.clearDirty("progressMeasure");
+          dirtyFieldsToClear.add("progressMeasure");
         }
 
         if (mapInfo.updateAttemptData) {
           this.updateActivityAttemptData(activity, globalObjective, objective);
         }
+      }
+
+      for (const property of dirtyFieldsToClear) {
+        objective.clearDirty(property);
       }
     }
   }
@@ -225,6 +278,9 @@ export class GlobalObjectiveSynchronizer {
    *
    * @param activity - The activity to process
    * @param globalObjectives - Global objective map
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read mapInfo transfers global objective state into the local view
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps
    */
   public syncGlobalObjectivesReadPhase(
     activity: Activity,
@@ -234,9 +290,7 @@ export class GlobalObjectiveSynchronizer {
 
     for (const objective of objectives) {
       const mapInfos =
-        objective.mapInfo.length > 0
-          ? objective.mapInfo
-          : [this.createDefaultMapInfo(objective)];
+        objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
 
       for (const mapInfo of mapInfos) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
@@ -246,35 +300,13 @@ export class GlobalObjectiveSynchronizer {
 
         const isPrimary = objective.isPrimary;
 
-        // Only do READ operations in this phase
-        if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-          objective.satisfiedStatus = globalObjective.satisfiedStatus;
-          objective.satisfiedStatusKnown = true;
-          objective.progressStatus = true;
-          objective.measureStatus = true;
-        }
-
-        if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-          objective.normalizedMeasure = globalObjective.normalizedMeasure;
-          objective.measureStatus = true;
-
-          if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-            const threshold =
-              objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-            objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
-            objective.satisfiedStatusKnown = true;
-            objective.progressStatus = true;
-          }
-        }
-
-        if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
-          objective.progressMeasure = globalObjective.progressMeasure;
-          objective.progressMeasureStatus = true;
-        }
-
-        if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
-          objective.completionStatus = globalObjective.completionStatus as CompletionStatus;
-        }
+        const readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
+          activity,
+          objective,
+          mapInfo,
+          globalObjective,
+        );
+        this.applyGlobalObjectiveReadState(objective, readState);
 
         // Apply primary objective changes to activity
         if (isPrimary) {
@@ -307,9 +339,7 @@ export class GlobalObjectiveSynchronizer {
 
     for (const objective of objectives) {
       const mapInfos =
-        objective.mapInfo.length > 0
-          ? objective.mapInfo
-          : [this.createDefaultMapInfo(objective)];
+        objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
 
       for (const mapInfo of mapInfos) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
@@ -331,6 +361,9 @@ export class GlobalObjectiveSynchronizer {
    * @param objective - The objective to sync
    * @param mapInfo - Map info for this objective
    * @param globalObjective - The global objective
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo read/write synchronization
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo synchronization
    */
   public syncObjectiveState(
     activity: Activity,
@@ -342,76 +375,78 @@ export class GlobalObjectiveSynchronizer {
       const isPrimary = objective.isPrimary;
       const localObjective = this.getLocalObjectiveState(activity, objective, isPrimary);
 
-      // Read from global to local using THIS ACTIVITY'S mapInfo directives
-      // Each activity has its own read permissions for the global objective
-      if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-        objective.satisfiedStatus = globalObjective.satisfiedStatus;
-        objective.satisfiedStatusKnown = true;
-        objective.progressStatus = true;
-        objective.measureStatus = true;
-      }
-
-      // Read normalized measure
-      if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-        objective.normalizedMeasure = globalObjective.normalizedMeasure;
-        objective.measureStatus = true;
-
-        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-          const threshold =
-            objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-          objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
-          objective.satisfiedStatusKnown = true;
-          objective.progressStatus = true;
-        }
-      }
-
-      if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
-        objective.progressMeasure = globalObjective.progressMeasure;
-        objective.progressMeasureStatus = true;
-      }
-
-      if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
-        objective.completionStatus = globalObjective.completionStatus as CompletionStatus;
-      }
+      const readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
+        activity,
+        objective,
+        mapInfo,
+        globalObjective,
+      );
+      this.applyGlobalObjectiveReadState(objective, readState);
 
       if (objective.isPrimary) {
         objective.applyToActivity(activity);
       }
 
-      // Write from local to global using THIS ACTIVITY'S mapInfo directives
-      // Each activity has its own write permissions for the global objective
-      if (mapInfo.writeSatisfiedStatus && objective.measureStatus) {
-        globalObjective.satisfiedStatus = objective.satisfiedStatus;
-        globalObjective.satisfiedStatusKnown = true;
-      }
-
-      if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
-        globalObjective.normalizedMeasure = objective.normalizedMeasure;
-        globalObjective.normalizedMeasureKnown = true;
-
-        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
-          const threshold =
-            objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-          globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
+      if (this.canWriteGlobalObjectives(activity)) {
+        // Write from local to global using THIS ACTIVITY'S mapInfo directives
+        // Each activity has its own write permissions for the global objective
+        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective)) {
+          globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
         }
-      }
 
-      if (
-        mapInfo.writeCompletionStatus &&
-        objective.completionStatus !== CompletionStatus.UNKNOWN
-      ) {
-        globalObjective.completionStatus = objective.completionStatus;
-        globalObjective.completionStatusKnown = true;
-      }
+        if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
+          globalObjective.normalizedMeasure = objective.normalizedMeasure;
+          globalObjective.normalizedMeasureKnown = true;
 
-      if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus) {
-        globalObjective.progressMeasure = objective.progressMeasure;
-        globalObjective.progressMeasureKnown = true;
-      }
+          // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Write Normalized Measure
+          // and Write Objective Satisfied Status are independent mapInfo controls.
+          // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - Objective
+          // Satisfied By Measure derives satisfaction only for objectives that declare it.
+          if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
+            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+            globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
+            globalObjective.satisfiedStatusKnown = true;
+          }
+        }
 
-      if (mapInfo.updateAttemptData) {
-        this.updateActivityAttemptData(activity, globalObjective, objective);
+        if (
+          mapInfo.writeCompletionStatus &&
+          objective.completionStatus !== CompletionStatus.UNKNOWN
+        ) {
+          globalObjective.completionStatus = objective.completionStatus;
+          globalObjective.completionStatusKnown = true;
+        }
+
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Write Raw Score
+        // only updates the mapped global objective when the corresponding map is true.
+        if (mapInfo.writeRawScore && objective.rawScoreKnown) {
+          globalObjective.rawScore = objective.rawScore;
+          globalObjective.rawScoreKnown = true;
+        }
+
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Write Min Score
+        // only updates the mapped global objective when the corresponding map is true.
+        if (mapInfo.writeMinScore && objective.minScoreKnown) {
+          globalObjective.minScore = objective.minScore;
+          globalObjective.minScoreKnown = true;
+        }
+
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Write Max Score
+        // only updates the mapped global objective when the corresponding map is true.
+        if (mapInfo.writeMaxScore && objective.maxScoreKnown) {
+          globalObjective.maxScore = objective.maxScore;
+          globalObjective.maxScoreKnown = true;
+        }
+
+        if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus) {
+          globalObjective.progressMeasure = objective.progressMeasure;
+          globalObjective.progressMeasureKnown = true;
+        }
+
+        if (mapInfo.updateAttemptData) {
+          this.updateActivityAttemptData(activity, globalObjective, objective);
+        }
       }
 
       // Fire synchronization event for monitoring/logging
@@ -434,12 +469,94 @@ export class GlobalObjectiveSynchronizer {
   }
 
   /**
+   * Project a global objective through one local objective's read mapInfo.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to mapped global objective fields
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps are independent fields
+   */
+  public static getGlobalObjectiveReadState(
+    activity: Activity,
+    objective: ActivityObjective,
+    mapInfo: ObjectiveMapInfo,
+    globalObjective: GlobalObjective,
+  ): ActivityObjectiveReadState {
+    const readState: ActivityObjectiveReadState = {};
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Objective
+    // Satisfied Status applies only when the global satisfied status is known.
+    if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
+      readState.satisfiedStatus = globalObjective.satisfiedStatus;
+    }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Normalized
+    // Measure does not require Read Objective Satisfied Status.
+    if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
+      readState.normalizedMeasure = globalObjective.normalizedMeasure;
+
+      // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - local
+      // satisfiedByMeasure derives a local satisfied status from the read measure.
+      if (objective.satisfiedByMeasure) {
+        const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+        readState.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+      }
+    }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Completion
+    // Status applies only when the mapped global completion status is known.
+    if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
+      readState.completionStatus = globalObjective.completionStatus as CompletionStatus;
+    }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Progress
+    // Measure applies only when the mapped global progress measure is known.
+    if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
+      readState.progressMeasure = globalObjective.progressMeasure;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Raw Score
+    // applies only when the mapped global raw score is known.
+    if (mapInfo.readRawScore && globalObjective.rawScoreKnown) {
+      readState.rawScore = globalObjective.rawScore;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Min Score
+    // applies only when the mapped global min score is known.
+    if (mapInfo.readMinScore && globalObjective.minScoreKnown) {
+      readState.minScore = globalObjective.minScore;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Max Score
+    // applies only when the mapped global max score is known.
+    if (mapInfo.readMaxScore && globalObjective.maxScoreKnown) {
+      readState.maxScore = globalObjective.maxScore;
+    }
+
+    return readState;
+  }
+
+  /**
+   * Apply read-mapped state to an objective without marking those fields dirty.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps are access to global state, not local writes
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps do not imply score writes
+   */
+  private applyGlobalObjectiveReadState(
+    objective: ActivityObjective,
+    readState: ActivityObjectiveReadState,
+  ): void {
+    objective.applyReadMappedState(readState);
+  }
+
+  /**
    * Ensure global objective entry exists
    *
    * @param globalObjectives - Global objectives map
    * @param targetId - Target objective ID
    * @param objective - Source objective
    * @returns The global objective entry
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective entries hold mapped objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - global entries hold score-map state
    */
   public ensureGlobalObjectiveEntry(
     globalObjectives: Map<string, GlobalObjective>,
@@ -452,14 +569,22 @@ export class GlobalObjectiveSynchronizer {
       // Each activity uses its OWN mapInfo for read/write decisions in syncObjectiveState.
       globalObjectives.set(targetId, {
         id: targetId,
-        satisfiedStatus: objective.satisfiedStatus,
-        satisfiedStatusKnown: objective.satisfiedStatusKnown,
-        normalizedMeasure: objective.normalizedMeasure,
-        normalizedMeasureKnown: objective.measureStatus,
-        progressMeasure: objective.progressMeasure,
-        progressMeasureKnown: objective.progressMeasureStatus,
-        completionStatus: objective.completionStatus,
-        completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+        satisfiedStatus: false,
+        satisfiedStatusKnown: false,
+        normalizedMeasure: 0,
+        normalizedMeasureKnown: false,
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score fields
+        // remain unknown until their corresponding write map explicitly writes them.
+        rawScore: "",
+        rawScoreKnown: false,
+        minScore: "",
+        minScoreKnown: false,
+        maxScore: "",
+        maxScoreKnown: false,
+        progressMeasure: 0,
+        progressMeasureKnown: false,
+        completionStatus: CompletionStatus.UNKNOWN,
+        completionStatusKnown: false,
         satisfiedByMeasure: objective.satisfiedByMeasure,
         minNormalizedMeasure: objective.minNormalizedMeasure,
       });
@@ -476,6 +601,9 @@ export class GlobalObjectiveSynchronizer {
    *
    * @param objective - The objective to create default map info for
    * @returns Default map info
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - mapInfo defaults are applied before objective synchronization
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score maps require explicit read/write flags
    */
   public createDefaultMapInfo(objective: ActivityObjective): ObjectiveMapInfo {
     return {
@@ -488,8 +616,35 @@ export class GlobalObjectiveSynchronizer {
       writeCompletionStatus: true,
       readProgressMeasure: false,
       writeProgressMeasure: true,
+      readRawScore: false,
+      writeRawScore: false,
+      readMinScore: false,
+      writeMinScore: false,
+      readMaxScore: false,
+      writeMaxScore: false,
       updateAttemptData: objective.isPrimary,
     };
+  }
+
+  /**
+   * Return whether the local objective has known satisfaction state to write.
+   *
+   * @spec SCORM 2004 4th Ed. SN 4.2.1 Tracking Model - Objective Progress
+   * Status identifies whether Objective Satisfied Status is known; Objective
+   * Measure Status is independent measure knowledge.
+   */
+  private hasKnownSatisfiedStatus(objective: ActivityObjective): boolean {
+    return objective.progressStatus || objective.satisfiedStatusKnown;
+  }
+
+  /**
+   * Return whether this activity is allowed to write tracked state to globals.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - when False, the LMS
+   * "does not initialize, manage or access any tracking status information".
+   */
+  private canWriteGlobalObjectives(activity: Activity): boolean {
+    return activity.sequencingControls.tracked !== false;
   }
 
   /**
@@ -499,6 +654,9 @@ export class GlobalObjectiveSynchronizer {
    * @param objective - The objective
    * @param isPrimary - Whether this is the primary objective
    * @returns Local objective state
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - local objective state used for synchronization
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - local score fields are part of mapped objective state
    */
   public getLocalObjectiveState(
     activity: Activity,
@@ -511,6 +669,12 @@ export class GlobalObjectiveSynchronizer {
         satisfiedStatus: activity.objectiveSatisfiedStatus,
         measureStatus: activity.objectiveMeasureStatus,
         normalizedMeasure: activity.objectiveNormalizedMeasure,
+        rawScore: objective.rawScore,
+        rawScoreKnown: objective.rawScoreKnown,
+        minScore: objective.minScore,
+        minScoreKnown: objective.minScoreKnown,
+        maxScore: objective.maxScore,
+        maxScoreKnown: objective.maxScoreKnown,
         progressMeasure: activity.progressMeasure,
         progressMeasureStatus: activity.progressMeasureStatus,
         completionStatus: activity.completionStatus,
@@ -523,6 +687,12 @@ export class GlobalObjectiveSynchronizer {
       satisfiedStatus: objective.satisfiedStatus,
       measureStatus: objective.measureStatus,
       normalizedMeasure: objective.normalizedMeasure,
+      rawScore: objective.rawScore,
+      rawScoreKnown: objective.rawScoreKnown,
+      minScore: objective.minScore,
+      minScoreKnown: objective.minScoreKnown,
+      maxScore: objective.maxScore,
+      maxScoreKnown: objective.maxScoreKnown,
       progressMeasure: objective.progressMeasure,
       progressMeasureStatus: objective.progressMeasureStatus,
       completionStatus: objective.completionStatus,
@@ -558,6 +728,8 @@ export class GlobalObjectiveSynchronizer {
         // UNLESS the activity has explicit rollup rules for completion
         if (
           !hasCompletionRollupRules &&
+          !activity.sequencingControls.completionSetByContent &&
+          !activity.attemptProgressStatus &&
           (activity.completionStatus === CompletionStatus.UNKNOWN ||
             activity.completionStatus === CompletionStatus.INCOMPLETE)
         ) {
@@ -576,10 +748,7 @@ export class GlobalObjectiveSynchronizer {
       }
 
       // Update completion amount based on progress measure
-      if (
-        globalObjective.progressMeasureKnown &&
-        globalObjective.progressMeasure !== undefined
-      ) {
+      if (globalObjective.progressMeasureKnown && globalObjective.progressMeasure !== undefined) {
         activity.attemptCompletionAmount = globalObjective.progressMeasure;
       }
 

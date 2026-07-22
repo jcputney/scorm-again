@@ -55,6 +55,9 @@ export class GlobalObjectiveService {
    * Collect Global Objectives
    * Recursively collects global objectives from the activity tree
    * @param {Activity} activity - Activity to collect objectives from
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective map contains mapped objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score fields are unknown until written
    */
   private collectObjectives(activity: Activity): void {
     const objectives = activity.getAllObjectives();
@@ -68,6 +71,12 @@ export class GlobalObjectiveService {
           satisfiedStatusKnown: activity.objectiveMeasureStatus,
           normalizedMeasure: activity.objectiveNormalizedMeasure,
           normalizedMeasureKnown: activity.objectiveMeasureStatus,
+          rawScore: "",
+          rawScoreKnown: false,
+          minScore: "",
+          minScoreKnown: false,
+          maxScore: "",
+          maxScoreKnown: false,
           progressMeasure: activity.progressMeasure,
           progressMeasureKnown: activity.progressMeasureStatus,
           completionStatus: activity.completionStatus,
@@ -80,6 +89,12 @@ export class GlobalObjectiveService {
           writeCompletionStatus: true,
           readProgressMeasure: true,
           writeProgressMeasure: true,
+          readRawScore: false,
+          writeRawScore: false,
+          readMinScore: false,
+          writeMinScore: false,
+          readMaxScore: false,
+          writeMaxScore: false,
           satisfiedByMeasure: activity.scaledPassingScore !== null,
           minNormalizedMeasure: activity.scaledPassingScore,
           updateAttemptData: true,
@@ -115,11 +130,16 @@ export class GlobalObjectiveService {
             satisfiedStatusKnown: objective.measureStatus,
             normalizedMeasure: objective.normalizedMeasure,
             normalizedMeasureKnown: objective.measureStatus,
+            rawScore: "",
+            rawScoreKnown: false,
+            minScore: "",
+            minScoreKnown: false,
+            maxScore: "",
+            maxScoreKnown: false,
             progressMeasure: objective.progressMeasure,
             progressMeasureKnown: objective.progressMeasureStatus,
             completionStatus: objective.completionStatus,
-            completionStatusKnown:
-              objective.completionStatus !== CompletionStatus.UNKNOWN,
+            completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
             readSatisfiedStatus: mapInfo.readSatisfiedStatus ?? false,
             writeSatisfiedStatus: mapInfo.writeSatisfiedStatus ?? false,
             readNormalizedMeasure: mapInfo.readNormalizedMeasure ?? false,

@@ -107,6 +107,9 @@ export class SequencingConfigurationBuilder {
     if (settings.objectiveSetByContent !== undefined) {
       target.objectiveSetByContent = settings.objectiveSetByContent;
     }
+    if (settings.tracked !== undefined) {
+      target.tracked = settings.tracked;
+    }
   }
 
   /**

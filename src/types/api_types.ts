@@ -331,6 +331,18 @@ export type GlobalObjectiveMapEntry = {
   normalizedMeasure?: number;
   /** Whether the normalized measure is known/set */
   normalizedMeasureKnown?: boolean;
+  /** Raw score value from ADLSEQ objective score mapping */
+  rawScore?: string;
+  /** Whether the raw score is known/set */
+  rawScoreKnown?: boolean;
+  /** Minimum score value from ADLSEQ objective score mapping */
+  minScore?: string;
+  /** Whether the minimum score is known/set */
+  minScoreKnown?: boolean;
+  /** Maximum score value from ADLSEQ objective score mapping */
+  maxScore?: string;
+  /** Whether the maximum score is known/set */
+  maxScoreKnown?: boolean;
   /** Progress measure value (typically 0 to 1) */
   progressMeasure?: number;
   /** Whether the progress measure is known/set */
@@ -355,6 +367,18 @@ export type GlobalObjectiveMapEntry = {
   readCompletionStatus?: boolean;
   /** Whether completion status can be written */
   writeCompletionStatus?: boolean;
+  /** Whether raw score can be read */
+  readRawScore?: boolean;
+  /** Whether raw score can be written */
+  writeRawScore?: boolean;
+  /** Whether minimum score can be read */
+  readMinScore?: boolean;
+  /** Whether minimum score can be written */
+  writeMinScore?: boolean;
+  /** Whether maximum score can be read */
+  readMaxScore?: boolean;
+  /** Whether maximum score can be written */
+  writeMaxScore?: boolean;
   /** Timestamp of last update */
   lastUpdated?: string;
 };

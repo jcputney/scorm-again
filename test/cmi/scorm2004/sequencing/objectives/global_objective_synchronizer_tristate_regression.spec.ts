@@ -137,4 +137,59 @@ describe("GlobalObjectiveSynchronizer tri-state regression", () => {
     expect(objective.satisfiedStatusKnown).toBe(true);
     expect(objective.progressStatus).toBe(true);
   });
+
+  it("writes a known false satisfied status even when objective measure is unknown", () => {
+    const activity = new Activity("activity_2", "Activity 2");
+    const objective = new ActivityObjective("PRIMARYOBJ", { isPrimary: true });
+    activity.primaryObjective = objective;
+    objective.mapInfo = [
+      {
+        targetObjectiveID: "gObj-OB10a-1",
+        readSatisfiedStatus: false,
+        writeSatisfiedStatus: true,
+        readNormalizedMeasure: false,
+        writeNormalizedMeasure: false,
+        readCompletionStatus: false,
+        writeCompletionStatus: false,
+        readProgressMeasure: false,
+        writeProgressMeasure: false,
+      },
+    ];
+    objective.initializeFromCMI(false, 0, false);
+    objective.satisfiedStatusKnown = true;
+    objective.progressStatus = true;
+
+    const globalObjectives = new Map<string, GlobalObjective>([
+      [
+        "gObj-OB10a-1",
+        {
+          id: "gObj-OB10a-1",
+          satisfiedStatus: false,
+          satisfiedStatusKnown: false,
+          normalizedMeasure: 0,
+          normalizedMeasureKnown: false,
+          rawScore: "",
+          rawScoreKnown: false,
+          minScore: "",
+          minScoreKnown: false,
+          maxScore: "",
+          maxScoreKnown: false,
+          progressMeasure: 0,
+          progressMeasureKnown: false,
+          completionStatus: CompletionStatus.UNKNOWN,
+          completionStatusKnown: false,
+          satisfiedByMeasure: false,
+          minNormalizedMeasure: null,
+        },
+      ],
+    ]);
+
+    new GlobalObjectiveSynchronizer().syncGlobalObjectivesWritePhase(activity, globalObjectives);
+
+    // Encodes SCORM 2004 4th Ed. SN objective tracking semantics: Objective
+    // Progress Status known with Objective Satisfied Status false is a known
+    // failed result and does not require Objective Measure Status.
+    expect(globalObjectives.get("gObj-OB10a-1")?.satisfiedStatus).toBe(false);
+    expect(globalObjectives.get("gObj-OB10a-1")?.satisfiedStatusKnown).toBe(true);
+  });
 });

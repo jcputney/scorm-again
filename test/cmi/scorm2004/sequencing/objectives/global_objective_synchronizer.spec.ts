@@ -1,10 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   GlobalObjective,
-  GlobalObjectiveSynchronizer
+  GlobalObjectiveSynchronizer,
 } from "../../../../../src/cmi/scorm2004/sequencing/objectives/global_objective_synchronizer";
 import { Activity, ActivityObjective } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import { CompletionStatus } from "../../../../../src/constants/enums";
+
+function createGlobalObjective(overrides: Partial<GlobalObjective> = {}): GlobalObjective {
+  return {
+    id: "global-obj-1",
+    satisfiedStatus: false,
+    satisfiedStatusKnown: false,
+    normalizedMeasure: 0,
+    normalizedMeasureKnown: false,
+    rawScore: "",
+    rawScoreKnown: false,
+    minScore: "",
+    minScoreKnown: false,
+    maxScore: "",
+    maxScoreKnown: false,
+    progressMeasure: 0,
+    progressMeasureKnown: false,
+    completionStatus: CompletionStatus.UNKNOWN,
+    completionStatusKnown: false,
+    satisfiedByMeasure: false,
+    minNormalizedMeasure: null,
+    ...overrides,
+  };
+}
 
 describe("GlobalObjectiveSynchronizer", () => {
   let synchronizer: GlobalObjectiveSynchronizer;
@@ -47,15 +70,15 @@ describe("GlobalObjectiveSynchronizer", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "global_objective_processing_started",
         expect.objectContaining({
-          activityId: "root"
-        })
+          activityId: "root",
+        }),
       );
 
       expect(eventCallback).toHaveBeenCalledWith(
         "global_objective_processing_completed",
         expect.objectContaining({
-          activityId: "root"
-        })
+          activityId: "root",
+        }),
       );
     });
 
@@ -66,7 +89,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         getAllObjectives: () => {
           throw new Error("Test error");
         },
-        children: []
+        children: [],
       } as unknown as Activity;
 
       synchronizer.processGlobalObjectiveMapping(brokenActivity, globalObjectives);
@@ -75,8 +98,8 @@ describe("GlobalObjectiveSynchronizer", () => {
         "global_objective_processing_error",
         expect.objectContaining({
           activityId: "broken",
-          error: expect.any(String)
-        })
+          error: expect.any(String),
+        }),
       );
     });
   });
@@ -119,6 +142,8 @@ describe("GlobalObjectiveSynchronizer", () => {
       objective.satisfiedStatus = false;
       objective.satisfiedStatus = true; // This change sets dirty flag
       objective.measureStatus = true;
+      objective.satisfiedStatusKnown = true;
+      objective.progressStatus = true;
       objective.mapInfo = [
         {
           targetObjectiveID: "global-obj-1",
@@ -130,8 +155,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -143,7 +168,7 @@ describe("GlobalObjectiveSynchronizer", () => {
       expect(globalObjectives.get("global-obj-1")?.satisfiedStatusKnown).toBe(true);
     });
 
-    it("should write normalized measure and derive satisfaction from measure", () => {
+    it("should write normalized measure and derive satisfaction when writeSatisfiedStatus is true", () => {
       const objective = new ActivityObjective("obj1");
       objective.normalizedMeasure = 0; // Default value
       objective.normalizedMeasure = 0.85; // Change triggers dirty flag
@@ -152,7 +177,7 @@ describe("GlobalObjectiveSynchronizer", () => {
       objective.mapInfo = [
         {
           targetObjectiveID: "global-obj-1",
-          writeSatisfiedStatus: false,
+          writeSatisfiedStatus: true,
           readSatisfiedStatus: false,
           writeNormalizedMeasure: true,
           readNormalizedMeasure: false,
@@ -160,12 +185,14 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
 
+      // Encodes SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a: a normalized
+      // measure write does not imply a satisfied-status write unless that map is true.
       synchronizer.syncGlobalObjectivesWritePhase(child1, globalObjectives);
 
       const globalObj = globalObjectives.get("global-obj-1");
@@ -189,8 +216,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -218,8 +245,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: true,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -229,6 +256,64 @@ describe("GlobalObjectiveSynchronizer", () => {
       const globalObj = globalObjectives.get("global-obj-1");
       expect(globalObj?.progressMeasure).toBe(0.5);
       expect(globalObj?.progressMeasureKnown).toBe(true);
+    });
+
+    it("should write raw min and max scores only when score write maps are true", () => {
+      const objective = new ActivityObjective("obj1");
+      objective.rawScore = "256.78";
+      objective.minScore = "0";
+      objective.maxScore = "500";
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: false,
+          readSatisfiedStatus: false,
+          writeNormalizedMeasure: false,
+          readNormalizedMeasure: false,
+          writeCompletionStatus: false,
+          readCompletionStatus: false,
+          writeProgressMeasure: false,
+          readProgressMeasure: false,
+          writeRawScore: true,
+          writeMinScore: true,
+          writeMaxScore: true,
+          updateAttemptData: false,
+        },
+        {
+          targetObjectiveID: "score-writes-disabled",
+          writeSatisfiedStatus: false,
+          readSatisfiedStatus: false,
+          writeNormalizedMeasure: false,
+          readNormalizedMeasure: false,
+          writeCompletionStatus: false,
+          readCompletionStatus: false,
+          writeProgressMeasure: false,
+          readProgressMeasure: false,
+          writeRawScore: false,
+          writeMinScore: false,
+          writeMaxScore: false,
+          updateAttemptData: false,
+        },
+      ];
+
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max
+      // scores are written to global objectives only by their own write maps.
+      synchronizer.syncGlobalObjectivesWritePhase(child1, globalObjectives);
+
+      const writtenGlobalObj = globalObjectives.get("global-obj-1");
+      expect(writtenGlobalObj?.rawScore).toBe("256.78");
+      expect(writtenGlobalObj?.rawScoreKnown).toBe(true);
+      expect(writtenGlobalObj?.minScore).toBe("0");
+      expect(writtenGlobalObj?.minScoreKnown).toBe(true);
+      expect(writtenGlobalObj?.maxScore).toBe("500");
+      expect(writtenGlobalObj?.maxScoreKnown).toBe(true);
+
+      const blockedGlobalObj = globalObjectives.get("score-writes-disabled");
+      expect(blockedGlobalObj?.rawScoreKnown).toBe(false);
+      expect(blockedGlobalObj?.minScoreKnown).toBe(false);
+      expect(blockedGlobalObj?.maxScoreKnown).toBe(false);
     });
 
     it("should use default mapInfo when no mapInfo is specified", () => {
@@ -260,7 +345,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
       globalObjectives.set("global-obj-1", globalObj);
 
@@ -276,8 +361,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -285,7 +370,9 @@ describe("GlobalObjectiveSynchronizer", () => {
       synchronizer.syncGlobalObjectivesReadPhase(child1, globalObjectives);
 
       expect(objective.satisfiedStatus).toBe(true);
-      expect(objective.measureStatus).toBe(true);
+      expect(objective.satisfiedStatusKnown).toBe(true);
+      expect(objective.progressStatus).toBe(true);
+      expect(objective.measureStatus).toBe(false);
     });
 
     it("should read normalized measure and derive satisfaction", () => {
@@ -300,7 +387,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: true,
-        minNormalizedMeasure: 0.8
+        minNormalizedMeasure: 0.8,
       };
       globalObjectives.set("global-obj-1", globalObj);
 
@@ -317,8 +404,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -341,7 +428,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
       globalObjectives.set("global-obj-1", globalObj);
 
@@ -357,8 +444,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: true,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -381,7 +468,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.COMPLETED,
         completionStatusKnown: true,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
       globalObjectives.set("global-obj-1", globalObj);
 
@@ -397,8 +484,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: true,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -406,6 +493,55 @@ describe("GlobalObjectiveSynchronizer", () => {
       synchronizer.syncGlobalObjectivesReadPhase(child1, globalObjectives);
 
       expect(objective.completionStatus).toBe(CompletionStatus.COMPLETED);
+    });
+
+    it("should read raw min and max scores without dirtying local score fields", () => {
+      globalObjectives.set(
+        "global-obj-1",
+        createGlobalObjective({
+          rawScore: "256.78",
+          rawScoreKnown: true,
+          minScore: "0",
+          minScoreKnown: true,
+          maxScore: "500",
+          maxScoreKnown: true,
+        }),
+      );
+
+      const objective = new ActivityObjective("obj1");
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: false,
+          readSatisfiedStatus: false,
+          writeNormalizedMeasure: false,
+          readNormalizedMeasure: false,
+          writeCompletionStatus: false,
+          readCompletionStatus: false,
+          writeProgressMeasure: false,
+          readProgressMeasure: false,
+          readRawScore: true,
+          readMinScore: true,
+          readMaxScore: true,
+          updateAttemptData: false,
+        },
+      ];
+
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      // @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension -
+      // read maps expose global score fields without making local write data dirty.
+      synchronizer.syncGlobalObjectivesReadPhase(child1, globalObjectives);
+
+      expect(objective.rawScore).toBe("256.78");
+      expect(objective.rawScoreKnown).toBe(true);
+      expect(objective.minScore).toBe("0");
+      expect(objective.minScoreKnown).toBe(true);
+      expect(objective.maxScore).toBe("500");
+      expect(objective.maxScoreKnown).toBe(true);
+      expect(objective.isDirty("rawScore")).toBe(false);
+      expect(objective.isDirty("minScore")).toBe(false);
+      expect(objective.isDirty("maxScore")).toBe(false);
     });
 
     it("should skip read if global objective not found", () => {
@@ -421,8 +557,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
@@ -445,7 +581,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
       globalObjectives.set("global-obj-1", globalObj);
 
@@ -462,8 +598,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       const applyToActivitySpy = vi.spyOn(objective, "applyToActivity");
@@ -487,10 +623,7 @@ describe("GlobalObjectiveSynchronizer", () => {
       synchronizer.synchronizeGlobalObjectives(child1, globalObjectives);
 
       expect(globalObjectives.has("obj1")).toBe(true);
-      expect(eventCallback).toHaveBeenCalledWith(
-        "objective_synchronized",
-        expect.any(Object)
-      );
+      expect(eventCallback).toHaveBeenCalledWith("objective_synchronized", expect.any(Object));
     });
   });
 
@@ -509,7 +642,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         readCompletionStatus: false,
         writeProgressMeasure: false,
         readProgressMeasure: false,
-        updateAttemptData: false
+        updateAttemptData: false,
       };
 
       // Create a global objective that will cause an error
@@ -524,7 +657,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
 
       // Mock applyToActivity to throw
@@ -539,8 +672,8 @@ describe("GlobalObjectiveSynchronizer", () => {
         expect.objectContaining({
           activityId: "child1",
           objectiveId: "obj1",
-          error: expect.any(String)
-        })
+          error: expect.any(String),
+        }),
       );
     });
 
@@ -551,7 +684,7 @@ describe("GlobalObjectiveSynchronizer", () => {
 
       const mapInfo = {
         targetObjectiveID: "global-obj-1",
-        writeSatisfiedStatus: false,
+        writeSatisfiedStatus: true,
         readSatisfiedStatus: false,
         writeNormalizedMeasure: true,
         readNormalizedMeasure: true,
@@ -559,7 +692,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         readCompletionStatus: false,
         writeProgressMeasure: false,
         readProgressMeasure: false,
-        updateAttemptData: false
+        updateAttemptData: false,
       };
 
       const globalObj: GlobalObjective = {
@@ -573,9 +706,12 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: true,
-        minNormalizedMeasure: 0.7
+        minNormalizedMeasure: 0.7,
       };
 
+      // Encodes SCORM 2004 4th Ed. SN 3.10 Objective Description plus
+      // Table 3.10.3a: local satisfiedByMeasure may derive satisfaction from
+      // a read measure, and writeSatisfiedStatus controls writing that status.
       synchronizer.syncObjectiveState(child1, objective, mapInfo, globalObj);
 
       expect(objective.satisfiedStatus).toBe(true);
@@ -595,14 +731,16 @@ describe("GlobalObjectiveSynchronizer", () => {
       const result = synchronizer.ensureGlobalObjectiveEntry(
         globalObjectives,
         "global-obj-1",
-        objective
+        objective,
       );
 
       expect(result.id).toBe("global-obj-1");
-      expect(result.satisfiedStatus).toBe(true);
-      expect(result.normalizedMeasure).toBe(0.8);
-      expect(result.normalizedMeasureKnown).toBe(true);
-      expect(result.completionStatus).toBe(CompletionStatus.COMPLETED);
+      expect(result.satisfiedStatus).toBe(false);
+      expect(result.satisfiedStatusKnown).toBe(false);
+      expect(result.normalizedMeasure).toBe(0);
+      expect(result.normalizedMeasureKnown).toBe(false);
+      expect(result.completionStatus).toBe(CompletionStatus.UNKNOWN);
+      expect(result.completionStatusKnown).toBe(false);
     });
 
     it("should return existing entry if exists", () => {
@@ -617,7 +755,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.INCOMPLETE,
         completionStatusKnown: true,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
       globalObjectives.set("global-obj-1", existingEntry);
 
@@ -627,7 +765,7 @@ describe("GlobalObjectiveSynchronizer", () => {
       const result = synchronizer.ensureGlobalObjectiveEntry(
         globalObjectives,
         "global-obj-1",
-        objective
+        objective,
       );
 
       // Should return existing entry, not create new one
@@ -733,7 +871,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatusKnown: false,
         satisfiedByMeasure: false,
         minNormalizedMeasure: null,
-        updateAttemptData: false
+        updateAttemptData: false,
       };
 
       const originalStatus = child1.completionStatus;
@@ -760,7 +898,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
 
       synchronizer.updateActivityAttemptData(child1, globalObj, objective);
@@ -787,7 +925,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatusKnown: false,
         satisfiedByMeasure: false,
         minNormalizedMeasure: null,
-        attemptCount: 3
+        attemptCount: 3,
       };
 
       synchronizer.updateActivityAttemptData(child1, globalObj, objective);
@@ -810,7 +948,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
 
       synchronizer.updateActivityAttemptData(child1, globalObj, objective);
@@ -837,7 +975,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         attemptAbsoluteDuration: "PT1H30M0S",
         attemptExperiencedDuration: "PT1H0M0S",
         activityAbsoluteDuration: "PT2H0M0S",
-        activityExperiencedDuration: "PT1H45M0S"
+        activityExperiencedDuration: "PT1H45M0S",
       };
 
       synchronizer.updateActivityAttemptData(child1, globalObj, objective);
@@ -864,7 +1002,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatusKnown: false,
         satisfiedByMeasure: false,
         minNormalizedMeasure: null,
-        location: "page5"
+        location: "page5",
       };
 
       synchronizer.updateActivityAttemptData(child1, globalObj, objective);
@@ -890,7 +1028,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatusKnown: false,
         satisfiedByMeasure: false,
         minNormalizedMeasure: null,
-        suspendData: "some-suspend-data"
+        suspendData: "some-suspend-data",
       };
 
       synchronizer.updateActivityAttemptData(child1, globalObj, objective);
@@ -913,14 +1051,14 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
 
       // Create a broken activity that throws on property access
       const brokenActivity = {
         get rollupRules() {
           throw new Error("Test error");
-        }
+        },
       } as unknown as Activity;
 
       synchronizer.updateActivityAttemptData(brokenActivity, globalObj, objective);
@@ -928,8 +1066,8 @@ describe("GlobalObjectiveSynchronizer", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "attempt_data_update_error",
         expect.objectContaining({
-          error: expect.any(String)
-        })
+          error: expect.any(String),
+        }),
       );
     });
 
@@ -943,9 +1081,9 @@ describe("GlobalObjectiveSynchronizer", () => {
           {
             action: "completed",
             conditions: [],
-            childActivitySet: "all"
-          }
-        ]
+            childActivitySet: "all",
+          },
+        ],
       };
 
       const globalObj: GlobalObjective = {
@@ -959,7 +1097,7 @@ describe("GlobalObjectiveSynchronizer", () => {
         completionStatus: CompletionStatus.UNKNOWN,
         completionStatusKnown: false,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: null
+        minNormalizedMeasure: null,
       };
 
       synchronizer.updateActivityAttemptData(child1, globalObj, objective);
@@ -976,6 +1114,8 @@ describe("GlobalObjectiveSynchronizer", () => {
       objective1.satisfiedStatus = false; // Default
       objective1.satisfiedStatus = true; // Change triggers dirty
       objective1.measureStatus = true;
+      objective1.satisfiedStatusKnown = true;
+      objective1.progressStatus = true;
       objective1.mapInfo = [
         {
           targetObjectiveID: "shared-global",
@@ -987,8 +1127,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       const objective2 = new ActivityObjective("reader-obj");
@@ -1003,8 +1143,8 @@ describe("GlobalObjectiveSynchronizer", () => {
           readCompletionStatus: false,
           writeProgressMeasure: false,
           readProgressMeasure: false,
-          updateAttemptData: false
-        }
+          updateAttemptData: false,
+        },
       ];
 
       vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective1]);

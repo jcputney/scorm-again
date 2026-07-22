@@ -1,4 +1,4 @@
-import { Activity } from "../activity";
+import { Activity, ActivityObjectiveScoreState } from "../activity";
 import { CompletionStatus, SuccessStatus } from "../../../../constants/enums";
 import { evaluateCompletionStatusFromThreshold } from "../../completion_status_evaluation";
 
@@ -155,6 +155,9 @@ export class RteDataTransferService {
    * Transfer primary objective data from CMI to activity
    * @param {Activity} activity - The activity to transfer data to
    * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - primary objective status and score data
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score write-map source data
    */
   public transferPrimaryObjective(activity: Activity, cmiData: CMIDataForTransfer): void {
     // Transfer progress measure first so completedByMeasure completion derivation
@@ -212,13 +215,14 @@ export class RteDataTransferService {
       activity.objectiveSatisfiedStatus = successStatus;
       activity.objectiveSatisfiedStatusKnown = true; // Mark as known when transferred from CMI
       activity.successStatus = validatedSuccessStatus;
-      // Set measureStatus to true so global objective mapping can write to global map
-      // Per SCORM 2004 SN Book, when success_status is known, the objective has known status
-      activity.objectiveMeasureStatus = true;
     }
 
     // Transfer score (with normalization support)
     if (cmiData.score) {
+      // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max
+      // score write maps use the RTE score values, independent of scaled score.
+      activity.primaryObjective?.initializeScoreFromCMI(this.getObjectiveScoreState(cmiData.score));
+
       const normalized = this.normalizeScore(cmiData.score);
       if (normalized !== null) {
         normalizedScore = normalized;
@@ -237,7 +241,7 @@ export class RteDataTransferService {
       const finalMeasure = hasNormalizedMeasure
         ? normalizedScore
         : activity.primaryObjective.normalizedMeasure;
-      const measureStatus = hasSuccessStatus || hasNormalizedMeasure;
+      const measureStatus = hasNormalizedMeasure;
 
       activity.primaryObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
 
@@ -249,10 +253,16 @@ export class RteDataTransferService {
   }
 
   /**
-   * Transfer non-primary objective data from CMI to activity objectives
-   * Only transfers changed values to protect global objectives
+   * Transfer objective-array data from CMI to matching activity objectives.
+   * Only transfers changed values to protect global objectives.
    * @param {Activity} activity - The activity to transfer data to
    * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 - cmi.objectives.n data, including
+   * the primary objective entry, is part of the RTE objective data model.
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 and ADLSEQ objectives extension -
+   * mapped objective status and raw/min/max score data transfer through
+   * objective maps to sequencing state.
    */
   public transferNonPrimaryObjectives(activity: Activity, cmiData: CMIDataForTransfer): void {
     if (!cmiData.objectives || cmiData.objectives.length === 0) {
@@ -266,18 +276,20 @@ export class RteDataTransferService {
 
       // Find matching activity objective by ID
       const activityObjectiveMatch = activity.getObjectiveById(cmiObjective.id);
-      if (!activityObjectiveMatch || activityObjectiveMatch.isPrimary) {
-        // Skip if not found or if it's the primary objective (already handled)
+      if (!activityObjectiveMatch) {
         continue;
       }
 
       const activityObjective = activityObjectiveMatch.objective;
+      const isPrimaryObjective = activityObjectiveMatch.isPrimary;
 
       // Track whether we need to initialize from CMI
       let hasSuccessStatus = false;
       let successStatus = false;
       let hasNormalizedMeasure = false;
       let normalizedScore = 0;
+      let hasCompletionStatus = false;
+      let hasProgressMeasure = false;
 
       // Transfer success status (only if changed during runtime)
       const validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
@@ -294,10 +306,15 @@ export class RteDataTransferService {
         validatedObjCompletionStatus !== CompletionStatus.UNKNOWN
       ) {
         activityObjective.completionStatus = validatedObjCompletionStatus;
+        hasCompletionStatus = true;
       }
 
       // Transfer score (with normalization)
       if (cmiObjective.score) {
+        // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max
+        // score write maps use the RTE objective score values, independent of scaled score.
+        activityObjective.initializeScoreFromCMI(this.getObjectiveScoreState(cmiObjective.score));
+
         const normalized = this.normalizeScore(cmiObjective.score);
         if (normalized !== null) {
           normalizedScore = normalized;
@@ -314,6 +331,10 @@ export class RteDataTransferService {
           : activityObjective.normalizedMeasure;
         const measureStatus = hasNormalizedMeasure;
         activityObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
+
+        if (hasSuccessStatus) {
+          activityObjective.satisfiedStatusKnown = true;
+        }
       }
 
       // Transfer progress measure
@@ -322,6 +343,31 @@ export class RteDataTransferService {
         if (!isNaN(progressMeasure)) {
           activityObjective.progressMeasure = progressMeasure;
           activityObjective.progressMeasureStatus = true;
+          hasProgressMeasure = true;
+        }
+      }
+
+      if (
+        isPrimaryObjective &&
+        (hasSuccessStatus || hasNormalizedMeasure || hasCompletionStatus || hasProgressMeasure)
+      ) {
+        // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - a SCO may set
+        // the delivered primary objective through cmi.objectives.n; those
+        // values must become the activity's primary objective state before
+        // UP.4 End Attempt auto-satisfaction or mapped global writes run.
+        activityObjective.applyToActivity(activity);
+
+        if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
+          activity.successStatus = validatedObjSuccessStatus;
+        }
+
+        if (hasCompletionStatus) {
+          activity.attemptProgressStatus = true;
+        }
+
+        if (hasProgressMeasure) {
+          activity.attemptCompletionAmount = activityObjective.progressMeasure;
+          activity.attemptCompletionAmountStatus = true;
         }
       }
     }
@@ -365,5 +411,27 @@ export class RteDataTransferService {
     }
 
     return null;
+  }
+
+  /**
+   * Convert RTE score data into objective score-map state without numeric reformatting.
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - score values transfer from RTE to sequencing state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score map fields are independent
+   */
+  private getObjectiveScoreState(score: ScoreData): ActivityObjectiveScoreState {
+    const scoreState: ActivityObjectiveScoreState = {};
+
+    if (score.raw !== undefined) {
+      scoreState.rawScore = score.raw;
+    }
+    if (score.min !== undefined) {
+      scoreState.minScore = score.min;
+    }
+    if (score.max !== undefined) {
+      scoreState.maxScore = score.max;
+    }
+
+    return scoreState;
   }
 }

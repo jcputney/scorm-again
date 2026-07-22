@@ -239,6 +239,9 @@ export class GlobalObjectiveManager {
    *
    * @param {string} objectiveId - The global objective ID
    * @param {CMIObjectivesObject} objective - The CMI objective object with updated values
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objectives synchronize CMI objective data
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score fields synchronize independently
    */
   updateGlobalObjectiveFromCMI(objectiveId: string, objective: CMIObjectivesObject): void {
     if (!objectiveId || !this.context.sequencingService) {
@@ -270,6 +273,27 @@ export class GlobalObjectiveManager {
       updatePayload.normalizedMeasureKnown = true;
     }
 
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score
+    // updates independently of scaled, min, and max score fields.
+    if (objective.score?.raw !== undefined && objective.score.raw !== "") {
+      updatePayload.rawScore = objective.score.raw;
+      updatePayload.rawScoreKnown = true;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score
+    // updates independently of raw, scaled, and max score fields.
+    if (objective.score?.min !== undefined && objective.score.min !== "") {
+      updatePayload.minScore = objective.score.min;
+      updatePayload.minScoreKnown = true;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score
+    // updates independently of raw, scaled, and min score fields.
+    if (objective.score?.max !== undefined && objective.score.max !== "") {
+      updatePayload.maxScore = objective.score.max;
+      updatePayload.maxScoreKnown = true;
+    }
+
     const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
     if (progressMeasure !== null) {
       updatePayload.progressMeasure = progressMeasure;
@@ -293,12 +317,21 @@ export class GlobalObjectiveManager {
    *
    * @param {CMIObjectivesObject} objective - The CMI objectives object containing data about a specific learning objective.
    * @return {GlobalObjectiveMapEntry} An object containing mapped properties and their values based on the provided objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective map entries capture objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score entries carry per-field known flags
    */
   buildObjectiveMapEntryFromCMI(objective: CMIObjectivesObject): GlobalObjectiveMapEntry {
     const entry: GlobalObjectiveMapEntry = {
       id: objective.id,
       satisfiedStatusKnown: false,
       normalizedMeasureKnown: false,
+      rawScore: "",
+      rawScoreKnown: false,
+      minScore: "",
+      minScoreKnown: false,
+      maxScore: "",
+      maxScoreKnown: false,
       progressMeasureKnown: false,
       completionStatusKnown: false,
       readSatisfiedStatus: true,
@@ -309,6 +342,12 @@ export class GlobalObjectiveManager {
       writeCompletionStatus: true,
       readProgressMeasure: true,
       writeProgressMeasure: true,
+      readRawScore: true,
+      writeRawScore: true,
+      readMinScore: true,
+      writeMinScore: true,
+      readMaxScore: true,
+      writeMaxScore: true,
     };
 
     if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
@@ -320,6 +359,27 @@ export class GlobalObjectiveManager {
     if (normalizedMeasure !== null) {
       entry.normalizedMeasure = normalizedMeasure;
       entry.normalizedMeasureKnown = true;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score
+    // snapshot state carries its own known flag.
+    if (objective.score?.raw !== undefined && objective.score.raw !== "") {
+      entry.rawScore = objective.score.raw;
+      entry.rawScoreKnown = true;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score
+    // snapshot state carries its own known flag.
+    if (objective.score?.min !== undefined && objective.score.min !== "") {
+      entry.minScore = objective.score.min;
+      entry.minScoreKnown = true;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score
+    // snapshot state carries its own known flag.
+    if (objective.score?.max !== undefined && objective.score.max !== "") {
+      entry.maxScore = objective.score.max;
+      entry.maxScoreKnown = true;
     }
 
     const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
@@ -345,6 +405,9 @@ export class GlobalObjectiveManager {
    * @return {CMIObjectivesObject[]} An array of `CMIObjectivesObject` instances built
    *                                  from the provided snapshot map. Returns an empty array
    *                                  if the snapshot is invalid or no valid objectives can be created.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective snapshots restore CMI objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score known fields restore independently
    */
   buildCMIObjectivesFromMap(
     snapshot: Record<string, GlobalObjectiveMapEntry>,
@@ -370,6 +433,24 @@ export class GlobalObjectiveManager {
       const normalizedMeasure = this.parseObjectiveNumber(entry.normalizedMeasure);
       if (entry.normalizedMeasureKnown === true && normalizedMeasure !== null) {
         objective.score.scaled = String(normalizedMeasure);
+      }
+
+      // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score
+      // restores only when its known flag is true.
+      if (entry.rawScoreKnown === true) {
+        objective.score.raw = String(entry.rawScore ?? "");
+      }
+
+      // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score
+      // restores only when its known flag is true.
+      if (entry.minScoreKnown === true) {
+        objective.score.min = String(entry.minScore ?? "");
+      }
+
+      // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score
+      // restores only when its known flag is true.
+      if (entry.maxScoreKnown === true) {
+        objective.score.max = String(entry.maxScore ?? "");
       }
 
       const progressMeasure = this.parseObjectiveNumber(entry.progressMeasure);
@@ -507,6 +588,9 @@ export class GlobalObjectiveManager {
    * @param {CompletionStatus} completionStatus
    * @param {SuccessStatus} successStatus
    * @param {ScoreObject} scoreObject
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - CMI score data updates the current primary objective
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score data is available for write maps
    */
   syncCmiToSequencingActivity(
     completionStatus: CompletionStatus,
@@ -543,6 +627,24 @@ export class GlobalObjectiveManager {
     if (scoreObject?.scaled !== undefined && scoreObject.scaled !== null) {
       primaryObjective.normalizedMeasure = scoreObject.scaled;
       primaryObjective.measureStatus = true;
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score is
+    // available to raw-score write maps independently of scaled score.
+    if (scoreObject?.raw !== undefined && scoreObject.raw !== null) {
+      primaryObjective.rawScore = String(scoreObject.raw);
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score is
+    // available to min-score write maps independently of scaled score.
+    if (scoreObject?.min !== undefined && scoreObject.min !== null) {
+      primaryObjective.minScore = String(scoreObject.min);
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score is
+    // available to max-score write maps independently of scaled score.
+    if (scoreObject?.max !== undefined && scoreObject.max !== null) {
+      primaryObjective.maxScore = String(scoreObject.max);
     }
   }
 

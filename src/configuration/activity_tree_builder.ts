@@ -135,6 +135,12 @@ export class ActivityTreeBuilder {
         activitySettings.sequencingControls,
       );
     }
+    if (activitySettings.deliveryControls) {
+      this.sequencingConfigBuilder.applySequencingControlsSettings(
+        activity.sequencingControls,
+        activitySettings.deliveryControls,
+      );
+    }
 
     if (activitySettings.sequencingRules) {
       this.sequencingConfigBuilder.applySequencingRulesSettings(

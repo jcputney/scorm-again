@@ -210,4 +210,75 @@ describe("SCORM 2004 tri-state sequencing rule conditions", () => {
     prepareNextVisit(api);
     expect(currentActivityId(api)).toBe("fallback");
   });
+
+  it("does not skip when a read-mapped global has only a measure and no satisfied status", () => {
+    const api = createApi({
+      id: "OB-03b-measure-only-global",
+      title: "OB-03b measure-only global",
+      sequencingControls: {
+        choice: false,
+        flow: true,
+      },
+      children: [
+        {
+          id: "measure_writer",
+          title: "Measure Writer",
+          primaryObjective: {
+            objectiveID: "PRIMARYOBJ",
+            satisfiedByMeasure: true,
+            minNormalizedMeasure: 0.6,
+            mapInfo: [
+              {
+                targetObjectiveID: "gObj-OB03-1",
+                readSatisfiedStatus: false,
+                writeSatisfiedStatus: false,
+                writeNormalizedMeasure: true,
+              },
+            ],
+          },
+        },
+        {
+          id: "satisfied_reader",
+          title: "Satisfied Reader",
+          primaryObjective: {
+            objectiveID: "PRIMARYOBJ",
+            mapInfo: [
+              {
+                targetObjectiveID: "gObj-OB03-1",
+              },
+            ],
+          },
+          sequencingRules: {
+            preConditionRules: [
+              {
+                action: "skip",
+                conditionCombination: "all",
+                conditions: [
+                  {
+                    condition: "satisfied",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          id: "fallback",
+          title: "Fallback",
+        },
+      ],
+    });
+
+    start(api);
+    expect(currentActivityId(api)).toBe("measure_writer");
+
+    // Encodes ADL CTS LMSTestPackage_OB-03b mapInfo default-read shape and
+    // SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a separate satisfied vs measure maps.
+    expect(
+      continueFromCurrentActivity(api, [
+        ["cmi.score.scaled", "1.0"],
+        ["cmi.exit", "normal"],
+      ]),
+    ).toBe("satisfied_reader");
+  });
 });

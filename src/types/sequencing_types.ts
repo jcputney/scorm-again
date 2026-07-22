@@ -57,6 +57,12 @@ export type CompletionThresholdSettings = {
   progressWeight?: number;
 };
 
+export type DeliveryControlsSettings = {
+  tracked?: boolean;
+  completionSetByContent?: boolean;
+  objectiveSetByContent?: boolean;
+};
+
 export type ActivitySettings = {
   id: string;
   title: string;
@@ -79,6 +85,7 @@ export type ActivitySettings = {
   // Optional per-activity sequencing configuration
   sequencingRules?: SequencingRulesSettings;
   sequencingControls?: SequencingControlsSettings;
+  deliveryControls?: DeliveryControlsSettings;
   rollupRules?: RollupRulesSettings;
   rollupConsiderations?: AdlRollupConsiderationsSettings;
   completionThreshold?: CompletionThresholdSettings;
@@ -175,6 +182,7 @@ export type SequencingControlsSettings = {
   reorderChildren?: boolean;
   completionSetByContent?: boolean;
   objectiveSetByContent?: boolean;
+  tracked?: boolean;
 };
 
 export type SelectionRandomizationStateSettings = {

@@ -43,8 +43,11 @@ describe("Global Objective Mapping Tests", () => {
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
       expect(objective.satisfiedStatus).toBe(true);
-      expect(objective.measureStatus).toBe(true);
+      expect(objective.satisfiedStatusKnown).toBe(true);
+      expect(objective.progressStatus).toBe(true);
+      expect(objective.measureStatus).toBe(false);
       expect(activity.objectiveSatisfiedStatus).toBe(true);
+      expect(activity.objectiveMeasureStatus).toBe(false);
     });
 
     it("should not read satisfied status when readSatisfiedStatus is false", () => {
@@ -282,7 +285,7 @@ describe("Global Objective Mapping Tests", () => {
       expect(globalObj.satisfiedStatus).toBe(false);
     });
 
-    it("should not write satisfied status when measureStatus is false", () => {
+    it("should not write satisfied status when objective progress status is unknown", () => {
       const activity = new Activity("activity1");
       const objective = new ActivityObjective("obj1", {
         isPrimary: true,
@@ -295,12 +298,14 @@ describe("Global Objective Mapping Tests", () => {
       });
       activity.primaryObjective = objective;
       objective.satisfiedStatus = true;
-      objective.measureStatus = false; // No measure status
+      objective.measureStatus = true;
+      objective.satisfiedStatusKnown = false;
+      objective.progressStatus = false;
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
       const globalObj = globalObjectives.get("GLOBAL_OBJ");
-      // Should not write status without measure status
+      // Should not write status without Objective Progress Status.
       expect(globalObj.satisfiedStatusKnown).toBe(false);
     });
   });
@@ -361,7 +366,7 @@ describe("Global Objective Mapping Tests", () => {
       expect(globalObj.normalizedMeasure).toBeCloseTo(0.5);
     });
 
-    it("should derive and write satisfied status when satisfiedByMeasure is true", () => {
+    it("should derive and write satisfied status when satisfiedByMeasure and writeSatisfiedStatus are true", () => {
       const activity = new Activity("activity1");
       activity.scaledPassingScore = 0.7;
       const objective = new ActivityObjective("obj1", {
@@ -371,6 +376,7 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
+            writeSatisfiedStatus: true,
             writeNormalizedMeasure: true
           }
         ]
@@ -381,6 +387,8 @@ describe("Global Objective Mapping Tests", () => {
       activity.objectiveNormalizedMeasure = 0.85;
       activity.objectiveMeasureStatus = true;
 
+      // Encodes SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a: Write Objective
+      // Satisfied Status must be explicitly enabled separately from Write Normalized Measure.
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
       const globalObj = globalObjectives.get("GLOBAL_OBJ");
