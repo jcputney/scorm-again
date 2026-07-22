@@ -2,7 +2,6 @@ import { Activity } from "../activity";
 import {
   SequencingRule,
   RuleActionType,
-  RuleConditionOperator
 } from "../sequencing_rules";
 import { SequencingRequestType } from "./sequencing_request_types";
 import { getDurationAsSeconds } from "../../../../utilities";
@@ -77,23 +76,10 @@ export class RuleEvaluationEngine {
    * Evaluates individual sequencing rule conditions
    * @param {Activity} activity - The activity to evaluate the rule for
    * @param {SequencingRule} rule - The rule to evaluate
-   * @return {boolean} - True if all rule conditions are met
+   * @return {boolean} - True only when the rule evaluates to definite true
    */
   public checkRuleSubprocess(activity: Activity, rule: SequencingRule): boolean {
-    // If no conditions, the rule always applies
-    if (rule.conditions.length === 0) {
-      return true;
-    }
-
-    const conditionCombination = rule.conditionCombination;
-
-    if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
-      return rule.conditions.every((condition) => condition.evaluate(activity));
-    } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
-      return rule.conditions.some((condition) => condition.evaluate(activity));
-    }
-
-    return false;
+    return rule.evaluate(activity);
   }
 
   /**

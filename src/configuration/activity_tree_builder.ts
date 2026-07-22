@@ -135,6 +135,12 @@ export class ActivityTreeBuilder {
         activitySettings.sequencingControls,
       );
     }
+    if (activitySettings.deliveryControls) {
+      this.sequencingConfigBuilder.applySequencingControlsSettings(
+        activity.sequencingControls,
+        activitySettings.deliveryControls,
+      );
+    }
 
     if (activitySettings.sequencingRules) {
       this.sequencingConfigBuilder.applySequencingRulesSettings(
@@ -244,19 +250,19 @@ export class ActivityTreeBuilder {
   ): ActivityObjective {
     const mapInfo: ObjectiveMapInfo[] = (objectiveSettings.mapInfo || []).map((info) => ({
       targetObjectiveID: info.targetObjectiveID,
-      readSatisfiedStatus: info.readSatisfiedStatus ?? false,
-      readNormalizedMeasure: info.readNormalizedMeasure ?? false,
+      readSatisfiedStatus: info.readSatisfiedStatus ?? true,
+      readNormalizedMeasure: info.readNormalizedMeasure ?? true,
       writeSatisfiedStatus: info.writeSatisfiedStatus ?? false,
       writeNormalizedMeasure: info.writeNormalizedMeasure ?? false,
-      readCompletionStatus: info.readCompletionStatus ?? false,
+      readCompletionStatus: info.readCompletionStatus ?? true,
       writeCompletionStatus: info.writeCompletionStatus ?? false,
-      readProgressMeasure: info.readProgressMeasure ?? false,
+      readProgressMeasure: info.readProgressMeasure ?? true,
       writeProgressMeasure: info.writeProgressMeasure ?? false,
-      readRawScore: info.readRawScore ?? false,
+      readRawScore: info.readRawScore ?? true,
       writeRawScore: info.writeRawScore ?? false,
-      readMinScore: info.readMinScore ?? false,
+      readMinScore: info.readMinScore ?? true,
       writeMinScore: info.writeMinScore ?? false,
-      readMaxScore: info.readMaxScore ?? false,
+      readMaxScore: info.readMaxScore ?? true,
       writeMaxScore: info.writeMaxScore ?? false,
       updateAttemptData: info.updateAttemptData ?? false,
     }));

@@ -41,6 +41,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
     it("should check referenced objective when specified", () => {
       const objective = new ActivityObjective("obj1");
       objective.satisfiedStatus = true;
+      objective.satisfiedStatusKnown = true;
       activity.objectives = [objective];
 
       const condition = new RuleCondition(RuleConditionType.SATISFIED);
@@ -56,21 +57,21 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
   });
 
   describe("Condition Type: objectiveStatusKnown", () => {
-    it("should return true when objective measure status is known", () => {
-      activity.objectiveMeasureStatus = true;
+    it("should return true when objective satisfied status is known", () => {
+      activity.objectiveSatisfiedStatusKnown = true;
       const condition = new RuleCondition(RuleConditionType.OBJECTIVE_STATUS_KNOWN);
       expect(condition.evaluate(activity)).toBe(true);
     });
 
-    it("should return false when objective measure status is unknown", () => {
-      activity.objectiveMeasureStatus = false;
+    it("should return false when objective satisfied status is unknown", () => {
+      activity.objectiveSatisfiedStatusKnown = false;
       const condition = new RuleCondition(RuleConditionType.OBJECTIVE_STATUS_KNOWN);
       expect(condition.evaluate(activity)).toBe(false);
     });
 
-    it("should check referenced objective measure status", () => {
+    it("should check referenced objective satisfied status known", () => {
       const objective = new ActivityObjective("obj1");
-      objective.measureStatus = true;
+      objective.satisfiedStatusKnown = true;
       activity.objectives = [objective];
 
       const condition = new RuleCondition(RuleConditionType.OBJECTIVE_STATUS_KNOWN);
@@ -118,7 +119,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       expect(condition.evaluate(activity)).toBe(false);
     });
 
-    it("should return false when measure status is not set", () => {
+    it("should return unknown when measure status is not set", () => {
       activity.objectiveMeasureStatus = false;
       activity.objectiveNormalizedMeasure = 0.8;
       const params = new Map([["threshold", 0.5]]);
@@ -127,7 +128,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
         null,
         params
       );
-      expect(condition.evaluate(activity)).toBe(false);
+      expect(condition.evaluate(activity)).toBe("unknown");
     });
 
     it("should handle edge case of exactly equal values", () => {
@@ -168,7 +169,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       expect(condition.evaluate(activity)).toBe(false);
     });
 
-    it("should return false when measure status is not set", () => {
+    it("should return unknown when measure status is not set", () => {
       activity.objectiveMeasureStatus = false;
       activity.objectiveNormalizedMeasure = 0.3;
       const params = new Map([["threshold", 0.5]]);
@@ -177,7 +178,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
         null,
         params
       );
-      expect(condition.evaluate(activity)).toBe(false);
+      expect(condition.evaluate(activity)).toBe("unknown");
     });
   });
 
@@ -542,9 +543,11 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
     it("should evaluate against referenced objective by ID", () => {
       const objective1 = new ActivityObjective("obj1");
       objective1.satisfiedStatus = true;
+      objective1.satisfiedStatusKnown = true;
 
       const objective2 = new ActivityObjective("obj2");
       objective2.satisfiedStatus = false;
+      objective2.satisfiedStatusKnown = true;
 
       activity.objectives = [objective1, objective2];
 
@@ -637,9 +640,9 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
   });
 
   describe("Edge Cases and Boundary Conditions", () => {
-    it("should handle empty rule (no conditions) as always true", () => {
+    it("should handle empty rule (no conditions) as non-applicable", () => {
       const rule = new SequencingRule(RuleActionType.SKIP, "all");
-      expect(rule.evaluate(activity)).toBe(true);
+      expect(rule.evaluate(activity)).toBe(false);
     });
 
     it("should handle measure exactly at boundary", () => {

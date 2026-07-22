@@ -109,11 +109,11 @@ describe("SequencingRule Edge Cases", () => {
   });
 
   describe("evaluate", () => {
-    it("should return true if there are no conditions", () => {
+    it("should return false if there are no conditions", () => {
       const rule = new SequencingRule();
       const activity = new Activity();
 
-      expect(rule.evaluate(activity)).toBe(true);
+      expect(rule.evaluate(activity)).toBe(false);
     });
 
     it("should evaluate 'all' condition combination correctly", () => {

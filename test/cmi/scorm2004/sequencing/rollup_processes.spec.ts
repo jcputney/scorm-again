@@ -1320,7 +1320,9 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
         expect(objective.satisfiedStatus).toBe(true);
-        expect(objective.measureStatus).toBe(true);
+        expect(objective.satisfiedStatusKnown).toBe(true);
+        expect(objective.progressStatus).toBe(true);
+        expect(objective.measureStatus).toBe(false);
       });
 
       it("should read normalized measure from global objectives", () => {

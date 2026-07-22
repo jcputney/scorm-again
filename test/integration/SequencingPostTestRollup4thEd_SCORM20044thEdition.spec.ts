@@ -4,6 +4,7 @@ import {
   completeAssessmentSCO,
   ensureApiInitialized,
   getCmiValue,
+  getGlobalObjectiveStatus,
   getWrapperConfigs,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
@@ -529,16 +530,15 @@ wrappers.forEach((wrapper) => {
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
 
+      // cmi.objectives is pre-seeded at Initialize from the activity's sequencing
+      // objectives (RTE 4.2.17); entry 0 is playing_item's LOCAL primary objective id.
+      const seededObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      expect(seededObjectiveId).toBe("playing_completed");
+
       // Set completion status for playing_item (4th Edition feature)
       // In 4th Edition, completion status can be stored on global objectives
       await page.evaluate(() => {
         const api = (window as any).API_1484_11;
-        // Set the global objective for playing_item to completed
-        // Note: This uses completion status, not success status
-        api.lmsSetValue(
-          "cmi.objectives.0.id",
-          "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
-        );
         // Set completion status (4th Edition feature)
         api.lmsSetValue("cmi.completion_status", "completed");
         api.lmsCommit();
@@ -546,15 +546,18 @@ wrappers.forEach((wrapper) => {
 
       await page.waitForTimeout(1000);
 
-      // Verify the objective was set correctly
-      const objectiveId = await getCmiValue(page, "cmi.objectives.0.id");
-      expect(objectiveId).toBe(
-        "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
-      );
-
       // Verify completion status was set
       const completionStatus = await getCmiValue(page, "cmi.completion_status");
       expect(completionStatus).toBe("completed");
+
+      // Optionally verify the global objective map agrees
+      const globalStatus = await getGlobalObjectiveStatus(
+        page,
+        "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
+      );
+      if (globalStatus) {
+        expect(globalStatus.completionStatus).toBe("completed");
+      }
     });
 
     /**
@@ -579,14 +582,14 @@ wrappers.forEach((wrapper) => {
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
 
+      // cmi.objectives is pre-seeded at Initialize from the activity's sequencing
+      // objectives (RTE 4.2.17); entry 0 is playing_item's LOCAL primary objective id.
+      const seededObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      expect(seededObjectiveId).toBe("playing_completed");
+
       // Complete the current SCO (playing_item) by setting completion status
       await page.evaluate(() => {
         const api = (window as any).API_1484_11;
-        // Set the global objective for playing_item
-        api.lmsSetValue(
-          "cmi.objectives.0.id",
-          "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
-        );
         // Set completion status (4th Edition feature)
         api.lmsSetValue("cmi.completion_status", "completed");
         api.lmsCommit();
@@ -596,12 +599,6 @@ wrappers.forEach((wrapper) => {
 
       // Wait for sequencing to process the completion status change
       await page.waitForTimeout(2000);
-
-      // Verify the objective and completion status were set correctly
-      const objectiveId = await getCmiValue(page, "cmi.objectives.0.id");
-      expect(objectiveId).toBe(
-        "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
-      );
 
       const completionStatus = await getCmiValue(page, "cmi.completion_status");
       expect(completionStatus).toBe("completed");
@@ -904,41 +901,52 @@ wrappers.forEach((wrapper) => {
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
 
+      // cmi.objectives is pre-seeded at Initialize for each SCO; entry 0 is always
+      // the current SCO's own LOCAL primary objective id (immutable once set).
       // Navigate through all SCOs by completing each one
+      // contentKey is the module's ?content=<key> query value, used to confirm the
+      // next SCO has actually loaded (and reseeded cmi.objectives) before checking it.
       const scoSequence = [
         {
           id: "playing_item",
-          objectiveId: "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
+          objectiveId: "playing_completed",
+          contentKey: "playing",
         },
         {
           id: "etuqiette_item",
-          objectiveId: "com.scorm.golfsamples.sequencing.forcedsequential.ettiquette_completed",
+          objectiveId: "ettiquette_completed",
+          contentKey: "etiquette",
         },
         {
           id: "handicapping_item",
-          objectiveId: "com.scorm.golfsamples.sequencing.forcedsequential.handicapping_completed",
+          objectiveId: "handicapping_completed",
+          contentKey: "handicapping",
         },
         {
           id: "havingfun_item",
-          objectiveId: "com.scorm.golfsamples.sequencing.forcedsequential.havingfun_completed",
+          objectiveId: "havingfun_completed",
+          contentKey: "havingfun",
         },
         {
           id: "assessment_item",
           objectiveId: null, // Assessment has no primary objective
+          contentKey: "assessment",
         },
       ];
 
       for (let i = 0; i < scoSequence.length; i++) {
         const sco = scoSequence[i];
 
+        // Verify the seeded entry for content SCOs (assessment has none)
+        if (sco.objectiveId) {
+          const seededObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+          expect(seededObjectiveId).toBe(sco.objectiveId);
+        }
+
         // Set completion status for current SCO (4th Edition feature)
         await page.evaluate(
-          ({ objectiveId, index, totalLength }) => {
+          ({ index, totalLength }) => {
             const api = (window as any).API_1484_11;
-            if (objectiveId) {
-              // Set objective for content SCOs
-              api.lmsSetValue(`cmi.objectives.${index}.id`, objectiveId);
-            }
             // Set completion status (4th Edition feature)
             api.lmsSetValue("cmi.completion_status", "completed");
             // Navigate to next
@@ -948,19 +956,29 @@ wrappers.forEach((wrapper) => {
             }
             api.lmsCommit();
           },
-          { objectiveId: sco.objectiveId, index: i, totalLength: scoSequence.length },
+          { index: i, totalLength: scoSequence.length },
         );
 
-        await page.waitForTimeout(1500);
-
-        // Verify completion status was set
-        if (sco.objectiveId) {
-          const setObjectiveId = await getCmiValue(page, `cmi.objectives.${i}.id`);
-          expect(setObjectiveId).toBe(sco.objectiveId);
-        }
+        await page.waitForTimeout(500);
 
         const completionStatus = await getCmiValue(page, "cmi.completion_status");
         expect(completionStatus).toBe("completed");
+
+        if (i < scoSequence.length - 1) {
+          // This harness drives one persistent API instance rather than reloading a
+          // content iframe per SCO, so the SCO transition (Terminate+Initialize,
+          // which is what reseeds cmi.objectives for the new activity) is simulated
+          // explicitly here, matching the "prepareNextVisit" pattern used elsewhere
+          // in this test suite (see SX02CompletionThresholdExitRules).
+          await page.evaluate(() => {
+            const api = (window as any).API_1484_11;
+            if (api.processNavigationRequest) {
+              api.processNavigationRequest("continue");
+            }
+            api.reset();
+            api.lmsInitialize("");
+          });
+        }
       }
 
       // Verify final completion status
@@ -1409,40 +1427,40 @@ wrappers.forEach((wrapper) => {
 
       await page.waitForTimeout(500);
 
-      // Set global objective for playing_item (should persist across SCOs)
-      // In 4th Edition, we use completion status
+      // cmi.objectives is pre-seeded at Initialize; entry 0 is playing_item's LOCAL
+      // primary objective id. In 4th Edition, we use completion status.
+      const playingObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      expect(playingObjectiveId).toBe("playing_completed");
+
       await page.evaluate(() => {
         const api = (window as any).API_1484_11;
-        api.lmsSetValue(
-          "cmi.objectives.0.id",
-          "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
-        );
         api.lmsSetValue("cmi.completion_status", "completed");
         api.lmsCommit();
       });
 
       await page.waitForTimeout(1000);
 
-      // Verify global objective was set
-      const playingObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
-      expect(playingObjectiveId).toBe(
-        "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
-      );
-
       // Verify SCO-specific data was set
       const locationBefore = await getCmiValue(page, "cmi.location");
       expect(locationBefore).toBe("page_5");
 
-      // Navigate to next SCO (etiquette_item) by processing continue request
+      // Navigate to next SCO (etiquette_item) by processing continue request.
+      // This harness drives one persistent API instance rather than reloading a
+      // content iframe per SCO, so the SCO transition (Terminate+Initialize,
+      // which is what reseeds cmi.objectives for the new activity) is simulated
+      // explicitly here, matching the "prepareNextVisit" pattern used elsewhere
+      // in this test suite (see SX02CompletionThresholdExitRules).
       await page.evaluate(() => {
         const api = (window as any).API_1484_11;
         api.lmsSetValue("adl.nav.request", "_continue");
         if (api.processNavigationRequest) {
           api.processNavigationRequest("continue");
         }
+        api.reset();
+        api.lmsInitialize("");
       });
 
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1000);
 
       // After navigation, verify:
       // 1. API was reset (cmi.entry should be reset to "ab-initio" or "resume" for new SCO)
@@ -1457,11 +1475,30 @@ wrappers.forEach((wrapper) => {
       // Location may persist or be reset - both are valid behaviors
       expect(typeof locationAfter === "string").toBe(true);
 
-      // 3. Global objective should persist
+      // 3. Entry 0 is now the NEW SCO's (etiquette_item) own primary objective.
       const objectiveIdAfter = await getCmiValue(page, "cmi.objectives.0.id");
-      expect(objectiveIdAfter).toBe(
+      expect(objectiveIdAfter).toBe("ettiquette_completed");
+
+      // Global persistence: etiquette_item's previous_sco_completed entry
+      // (read-mapped to playing_completed) should be seeded completed, and the
+      // global objective map should agree.
+      const previousScoCompletionStatus = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const count = parseInt(api.lmsGetValue("cmi.objectives._count") || "0", 10);
+        for (let i = 0; i < count; i++) {
+          if (api.lmsGetValue(`cmi.objectives.${i}.id`) === "previous_sco_completed") {
+            return api.lmsGetValue(`cmi.objectives.${i}.completion_status`);
+          }
+        }
+        return null;
+      });
+      expect(previousScoCompletionStatus).toBe("completed");
+
+      const globalStatus = await getGlobalObjectiveStatus(
+        page,
         "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed",
       );
+      expect(globalStatus?.completionStatus).toBe("completed");
 
       // 4. Verify sequencing state exists and navigation was processed
       // Note: Navigation may not immediately update currentActivity if SCO content hasn't loaded
@@ -1510,24 +1547,24 @@ wrappers.forEach((wrapper) => {
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
 
-      // Set a global objective (4th Edition uses completion status)
+      // cmi.objectives is pre-seeded at Initialize; entry 0 is playing_item's LOCAL
+      // primary objective id. Ids are immutable once set (error 351), so completion
+      // status is set on the seeded entry rather than writing a new id (4th Edition
+      // uses completion status).
+      const localObjectiveId = "playing_completed";
       const globalObjectiveId =
         "com.scorm.golfsamples.sequencing.forcedsequential.playing_completed";
-      await page.evaluate(
-        ({ objectiveId }) => {
-          const api = (window as any).API_1484_11;
-          api.lmsSetValue("cmi.objectives.0.id", objectiveId);
-          api.lmsSetValue("cmi.completion_status", "completed");
-          api.lmsCommit();
-        },
-        { objectiveId: globalObjectiveId },
-      );
+
+      const seededObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      expect(seededObjectiveId).toBe(localObjectiveId);
+
+      await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        api.lmsSetValue("cmi.completion_status", "completed");
+        api.lmsCommit();
+      });
 
       await page.waitForTimeout(1000);
-
-      // Verify global objective was set
-      const objectiveIdBefore = await getCmiValue(page, "cmi.objectives.0.id");
-      expect(objectiveIdBefore).toBe(globalObjectiveId);
 
       // Explicitly call reset() to simulate SCO transition
       await page.evaluate(() => {
@@ -1541,12 +1578,12 @@ wrappers.forEach((wrapper) => {
 
       // Verify global objective still exists after reset
       const globalObjectiveAfter = await page.evaluate(
-        ({ objectiveId }) => {
+        ({ globalId, localId }) => {
           const api = (window as any).API_1484_11;
           // Try to access via global objectives if available
           if (api.globalObjectives && Array.isArray(api.globalObjectives)) {
             const globalObj = api.globalObjectives.find(
-              (obj: any) => obj && obj.id === objectiveId,
+              (obj: any) => obj && (obj.id === globalId || obj.id === localId),
             );
             if (globalObj) {
               return {
@@ -1557,7 +1594,7 @@ wrappers.forEach((wrapper) => {
           }
           // Fallback: try to read from cmi.objectives (may be reset)
           const objId = api.lmsGetValue("cmi.objectives.0.id");
-          if (objId === objectiveId) {
+          if (objId === globalId || objId === localId) {
             return {
               id: objId,
               completion_status: api.lmsGetValue("cmi.completion_status"),
@@ -1569,7 +1606,7 @@ wrappers.forEach((wrapper) => {
           }
           return null;
         },
-        { objectiveId: globalObjectiveId },
+        { globalId: globalObjectiveId, localId: localObjectiveId },
       );
 
       // Global objective should persist after reset IF it was set up with mapInfo
@@ -1580,7 +1617,7 @@ wrappers.forEach((wrapper) => {
         expect(globalObjectiveAfter._globalObjectivesExists).toBe(true);
       } else if (globalObjectiveAfter) {
         // Objective was found (either in globalObjectives or cmi.objectives)
-        expect(globalObjectiveAfter.id).toBe(globalObjectiveId);
+        expect([globalObjectiveId, localObjectiveId]).toContain(globalObjectiveAfter.id);
       } else {
         // Neither found - verify the API has the globalObjectives property
         const hasGlobalObjectives = await page.evaluate(() => {

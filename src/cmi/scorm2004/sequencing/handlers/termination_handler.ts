@@ -562,17 +562,7 @@ export class TerminationHandler {
     const exitRules = activity.sequencingRules.exitConditionRules;
 
     for (const rule of exitRules) {
-      // Evaluate the rule conditions
-      let conditionsMet: boolean;
-
-      // Check rule condition combination
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every((condition) => condition.evaluate(activity));
-      } else {
-        conditionsMet = rule.conditions.some((condition) => condition.evaluate(activity));
-      }
-
-      if (conditionsMet) {
+      if (rule.evaluate(activity)) {
         // Return the action to take with recursion tracking
         if (rule.action === RuleActionType.EXIT) {
           return { action: "EXIT", recursionDepth };
@@ -792,17 +782,7 @@ export class TerminationHandler {
     const exitRules = activity.sequencingRules.exitConditionRules;
 
     for (const rule of exitRules) {
-      // Evaluate the rule conditions
-      let conditionsMet: boolean;
-
-      // Check rule condition combination
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every((condition) => condition.evaluate(activity));
-      } else {
-        conditionsMet = rule.conditions.some((condition) => condition.evaluate(activity));
-      }
-
-      if (conditionsMet) {
+      if (rule.evaluate(activity)) {
         // Return the action to take
         if (rule.action === RuleActionType.EXIT) {
           return "EXIT";

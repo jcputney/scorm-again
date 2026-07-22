@@ -8,7 +8,11 @@ import { SequencingControls } from "./sequencing_controls";
 import { SequencingRules } from "./sequencing_rules";
 import { RollupRules } from "./rollup_rules";
 import { validateISO8601Duration } from "../../../utilities";
-import { AuxiliaryResource, HideLmsUiItem, HIDE_LMS_UI_TOKENS } from "../../../types/sequencing_types";
+import {
+  AuxiliaryResource,
+  HideLmsUiItem,
+  HIDE_LMS_UI_TOKENS,
+} from "../../../types/sequencing_types";
 
 export interface ObjectiveMapInfo {
   targetObjectiveID: string;
@@ -42,6 +46,12 @@ export interface ActivityObjectiveState {
   satisfiedStatus: boolean;
   measureStatus: boolean;
   normalizedMeasure: number;
+  rawScore: string;
+  rawScoreKnown: boolean;
+  minScore: string;
+  minScoreKnown: boolean;
+  maxScore: string;
+  maxScoreKnown: boolean;
   progressMeasure: number;
   progressMeasureStatus: boolean;
   completionStatus: CompletionStatus;
@@ -50,11 +60,30 @@ export interface ActivityObjectiveState {
   progressStatus: boolean;
 }
 
+export interface ActivityObjectiveScoreState {
+  rawScore?: string;
+  minScore?: string;
+  maxScore?: string;
+}
+
+export interface ActivityObjectiveReadState extends ActivityObjectiveScoreState {
+  satisfiedStatus?: boolean;
+  normalizedMeasure?: number;
+  progressMeasure?: number;
+  completionStatus?: CompletionStatus;
+}
+
+export type ActivityObjectiveDirtyProperty =
+  | "satisfiedStatus"
+  | "normalizedMeasure"
+  | "completionStatus"
+  | "progressMeasure"
+  | "rawScore"
+  | "minScore"
+  | "maxScore";
+
 export type RollupConsiderationRequirement =
-  | "always"
-  | "ifAttempted"
-  | "ifNotSkipped"
-  | "ifNotSuspended";
+  "always" | "ifAttempted" | "ifNotSkipped" | "ifNotSuspended";
 
 export interface RollupConsiderationsConfig {
   requiredForSatisfied: RollupConsiderationRequirement;
@@ -91,6 +120,12 @@ export class ActivityObjective {
   // objectives. It serves as a validity gate for other synced properties.
   private _measureStatus: boolean = false;
   private _normalizedMeasure: number = 0;
+  private _rawScore: string = "";
+  private _rawScoreKnown: boolean = false;
+  private _minScore: string = "";
+  private _minScoreKnown: boolean = false;
+  private _maxScore: string = "";
+  private _maxScoreKnown: boolean = false;
   private _progressMeasure: number = 0;
   private _progressMeasureStatus: boolean = false;
   private _completionStatus: CompletionStatus = CompletionStatus.UNKNOWN;
@@ -101,6 +136,9 @@ export class ActivityObjective {
   private _normalizedMeasureDirty: boolean = false;
   private _completionStatusDirty: boolean = false;
   private _progressMeasureDirty: boolean = false;
+  private _rawScoreDirty: boolean = false;
+  private _minScoreDirty: boolean = false;
+  private _maxScoreDirty: boolean = false;
 
   constructor(id: string, options: ActivityObjectiveOptions = {}) {
     this._id = id;
@@ -159,6 +197,8 @@ export class ActivityObjective {
     if (this._satisfiedStatus !== value) {
       this._satisfiedStatus = value;
       this._satisfiedStatusDirty = true;
+      this._satisfiedStatusKnown = true;
+      this._progressStatus = true;
     }
   }
 
@@ -187,6 +227,126 @@ export class ActivityObjective {
       this._normalizedMeasure = value;
       this._normalizedMeasureDirty = true;
     }
+  }
+
+  /**
+   * Return the known raw score value held for ADLSEQ objective score mapping.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score mapInfo
+   */
+  get rawScore(): string {
+    return this._rawScore;
+  }
+
+  /**
+   * Store the RTE raw score associated with this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - raw score mapInfo
+   */
+  set rawScore(value: string) {
+    if (this._rawScore !== value) {
+      this._rawScore = value;
+      this._rawScoreDirty = true;
+    }
+    this._rawScoreKnown = value !== "";
+  }
+
+  /**
+   * Return whether this objective's raw score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score known state
+   */
+  get rawScoreKnown(): boolean {
+    return this._rawScoreKnown;
+  }
+
+  /**
+   * Set whether this objective's raw score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score known state
+   */
+  set rawScoreKnown(value: boolean) {
+    this._rawScoreKnown = value;
+  }
+
+  /**
+   * Return the known minimum score value held for ADLSEQ objective score mapping.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score mapInfo
+   */
+  get minScore(): string {
+    return this._minScore;
+  }
+
+  /**
+   * Store the RTE minimum score associated with this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - min score mapInfo
+   */
+  set minScore(value: string) {
+    if (this._minScore !== value) {
+      this._minScore = value;
+      this._minScoreDirty = true;
+    }
+    this._minScoreKnown = value !== "";
+  }
+
+  /**
+   * Return whether this objective's minimum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score known state
+   */
+  get minScoreKnown(): boolean {
+    return this._minScoreKnown;
+  }
+
+  /**
+   * Set whether this objective's minimum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - min score known state
+   */
+  set minScoreKnown(value: boolean) {
+    this._minScoreKnown = value;
+  }
+
+  /**
+   * Return the known maximum score value held for ADLSEQ objective score mapping.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score mapInfo
+   */
+  get maxScore(): string {
+    return this._maxScore;
+  }
+
+  /**
+   * Store the RTE maximum score associated with this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - max score mapInfo
+   */
+  set maxScore(value: string) {
+    if (this._maxScore !== value) {
+      this._maxScore = value;
+      this._maxScoreDirty = true;
+    }
+    this._maxScoreKnown = value !== "";
+  }
+
+  /**
+   * Return whether this objective's maximum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score known state
+   */
+  get maxScoreKnown(): boolean {
+    return this._maxScoreKnown;
+  }
+
+  /**
+   * Set whether this objective's maximum score is known.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - max score known state
+   */
+  set maxScoreKnown(value: boolean) {
+    this._maxScoreKnown = value;
   }
 
   get progressMeasure(): number {
@@ -227,29 +387,75 @@ export class ActivityObjective {
     this._progressStatus = value;
   }
 
-  public isDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): boolean {
+  /**
+   * Report whether a local objective field has changed since the last global write.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - write maps use known local objective data
+   */
+  public isDirty(property: ActivityObjectiveDirtyProperty): boolean {
     switch (property) {
-      case 'satisfiedStatus': return this._satisfiedStatusDirty;
-      case 'normalizedMeasure': return this._normalizedMeasureDirty;
-      case 'completionStatus': return this._completionStatusDirty;
-      case 'progressMeasure': return this._progressMeasureDirty;
+      case "satisfiedStatus":
+        return this._satisfiedStatusDirty;
+      case "normalizedMeasure":
+        return this._normalizedMeasureDirty;
+      case "completionStatus":
+        return this._completionStatusDirty;
+      case "progressMeasure":
+        return this._progressMeasureDirty;
+      case "rawScore":
+        return this._rawScoreDirty;
+      case "minScore":
+        return this._minScoreDirty;
+      case "maxScore":
+        return this._maxScoreDirty;
     }
   }
 
-  public clearDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): void {
+  /**
+   * Clear a local objective dirty flag after a successful global write.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - write maps update global objective state
+   */
+  public clearDirty(property: ActivityObjectiveDirtyProperty): void {
     switch (property) {
-      case 'satisfiedStatus': this._satisfiedStatusDirty = false; break;
-      case 'normalizedMeasure': this._normalizedMeasureDirty = false; break;
-      case 'completionStatus': this._completionStatusDirty = false; break;
-      case 'progressMeasure': this._progressMeasureDirty = false; break;
+      case "satisfiedStatus":
+        this._satisfiedStatusDirty = false;
+        break;
+      case "normalizedMeasure":
+        this._normalizedMeasureDirty = false;
+        break;
+      case "completionStatus":
+        this._completionStatusDirty = false;
+        break;
+      case "progressMeasure":
+        this._progressMeasureDirty = false;
+        break;
+      case "rawScore":
+        this._rawScoreDirty = false;
+        break;
+      case "minScore":
+        this._minScoreDirty = false;
+        break;
+      case "maxScore":
+        this._maxScoreDirty = false;
+        break;
     }
   }
 
+  /**
+   * Clear all write-map dirty flags for this objective.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo writes are field-specific
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo writes are field-specific
+   */
   public clearAllDirty(): void {
     this._satisfiedStatusDirty = false;
     this._normalizedMeasureDirty = false;
     this._completionStatusDirty = false;
     this._progressMeasureDirty = false;
+    this._rawScoreDirty = false;
+    this._minScoreDirty = false;
+    this._maxScoreDirty = false;
   }
 
   /**
@@ -260,11 +466,13 @@ export class ActivityObjective {
    * @param satisfiedStatus - The satisfied status from CMI
    * @param normalizedMeasure - The normalized measure from CMI
    * @param measureStatus - Whether measure is valid
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective satisfaction and measure transfer
    */
   public initializeFromCMI(
     satisfiedStatus: boolean,
     normalizedMeasure: number,
-    measureStatus: boolean
+    measureStatus: boolean,
   ): void {
     this._satisfiedStatus = satisfiedStatus;
     this._satisfiedStatusDirty = true;
@@ -273,11 +481,92 @@ export class ActivityObjective {
     this._measureStatus = measureStatus;
   }
 
+  /**
+   * Initialize raw/min/max objective score values from RTE data transfer.
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective score transfer
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score mapInfo writes
+   */
+  public initializeScoreFromCMI(score: ActivityObjectiveScoreState): void {
+    if (score.rawScore !== undefined && score.rawScore !== "") {
+      this._rawScore = score.rawScore;
+      this._rawScoreKnown = true;
+      this._rawScoreDirty = true;
+    }
+
+    if (score.minScore !== undefined && score.minScore !== "") {
+      this._minScore = score.minScore;
+      this._minScoreKnown = true;
+      this._minScoreDirty = true;
+    }
+
+    if (score.maxScore !== undefined && score.maxScore !== "") {
+      this._maxScore = score.maxScore;
+      this._maxScoreKnown = true;
+      this._maxScoreDirty = true;
+    }
+  }
+
+  /**
+   * Apply read-mapped global objective state without marking the values dirty.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to global objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps are access-only
+   */
+  public applyReadMappedState(state: ActivityObjectiveReadState): void {
+    if (state.satisfiedStatus !== undefined) {
+      this._satisfiedStatus = state.satisfiedStatus;
+      this._satisfiedStatusKnown = true;
+      this._progressStatus = true;
+    }
+
+    if (state.normalizedMeasure !== undefined) {
+      this._normalizedMeasure = state.normalizedMeasure;
+      this._measureStatus = true;
+    }
+
+    if (state.completionStatus !== undefined) {
+      this._completionStatus = state.completionStatus;
+    }
+
+    if (state.progressMeasure !== undefined) {
+      this._progressMeasure = state.progressMeasure;
+      this._progressMeasureStatus = true;
+    }
+
+    if (state.rawScore !== undefined) {
+      this._rawScore = state.rawScore;
+      this._rawScoreKnown = true;
+    }
+
+    if (state.minScore !== undefined) {
+      this._minScore = state.minScore;
+      this._minScoreKnown = true;
+    }
+
+    if (state.maxScore !== undefined) {
+      this._maxScore = state.maxScore;
+      this._maxScoreKnown = true;
+    }
+  }
+
+  /**
+   * Reset local objective state for a fresh activity attempt.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - unknown objective state before tracking data exists
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score map fields are unknown until transferred or read
+   */
   resetState(): void {
     this._satisfiedStatus = false;
     this._satisfiedStatusKnown = false;
     this._measureStatus = false;
     this._normalizedMeasure = 0;
+    this._rawScore = "";
+    this._rawScoreKnown = false;
+    this._minScore = "";
+    this._minScoreKnown = false;
+    this._maxScore = "";
+    this._maxScoreKnown = false;
     this._progressMeasure = 0;
     this._progressMeasureStatus = false;
     this._completionStatus = CompletionStatus.UNKNOWN;
@@ -285,6 +574,11 @@ export class ActivityObjective {
     this.clearAllDirty();
   }
 
+  /**
+   * Copy primary activity objective state back into the primary objective model.
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - primary objective state is available to sequencing
+   */
   updateFromActivity(activity: Activity): void {
     if (this._satisfiedStatus !== activity.objectiveSatisfiedStatus) {
       this._satisfiedStatus = activity.objectiveSatisfiedStatus;
@@ -307,6 +601,11 @@ export class ActivityObjective {
     }
   }
 
+  /**
+   * Apply primary objective state to the owning activity for sequencing rules and rollup.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - primary objective contributes activity state
+   */
   applyToActivity(activity: Activity): void {
     if (!this._isPrimary) {
       return;
@@ -318,7 +617,8 @@ export class ActivityObjective {
       this._normalizedMeasure,
       this._progressMeasure,
       this._progressMeasureStatus,
-      this._completionStatus
+      this._completionStatus,
+      this._progressStatus || this._satisfiedStatusKnown,
     );
   }
 }
@@ -398,7 +698,7 @@ export class Activity extends BaseCMI {
     requiredForNotSatisfied: "always",
     requiredForCompleted: "always",
     requiredForIncomplete: "always",
-    measureSatisfactionIfActive: true
+    measureSatisfactionIfActive: true,
   };
   // Individual rollup consideration properties for this activity (RB.1.4.2)
   // These determine when THIS activity is included in parent rollup calculations
@@ -556,7 +856,7 @@ export class Activity extends BaseCMI {
     if (!(child instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".children",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     child._parent = this;
@@ -789,7 +1089,7 @@ export class Activity extends BaseCMI {
       this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
       this._objectiveSatisfiedStatusDirty = true;
     }
-    this._objectiveSatisfiedStatusKnown = true;  // Mark as known when explicitly set
+    this._objectiveSatisfiedStatusKnown = true; // Mark as known when explicitly set
     // Update success status based on objective satisfaction
     if (objectiveSatisfiedStatus) {
       this._successStatus = SuccessStatus.PASSED;
@@ -1095,7 +1395,6 @@ export class Activity extends BaseCMI {
     this._endTimeLimit = endTimeLimit;
   }
 
-
   /**
    * Getter for attemptAbsoluteDurationLimit
    * @return {string | null}
@@ -1113,7 +1412,7 @@ export class Activity extends BaseCMI {
       if (!validateISO8601Duration(attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan)) {
         throw new Scorm2004ValidationError(
           this._cmi_element + ".attemptAbsoluteDurationLimit",
-          scorm2004_errors.TYPE_MISMATCH as number
+          scorm2004_errors.TYPE_MISMATCH as number,
         );
       }
     }
@@ -1136,7 +1435,7 @@ export class Activity extends BaseCMI {
     if (!validateISO8601Duration(attemptExperiencedDuration, scorm2004_regex.CMITimespan)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".attemptExperiencedDuration",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._attemptExperiencedDuration = attemptExperiencedDuration;
@@ -1159,7 +1458,7 @@ export class Activity extends BaseCMI {
       if (!validateISO8601Duration(activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan)) {
         throw new Scorm2004ValidationError(
           this._cmi_element + ".activityAbsoluteDurationLimit",
-          scorm2004_errors.TYPE_MISMATCH as number
+          scorm2004_errors.TYPE_MISMATCH as number,
         );
       }
     }
@@ -1182,7 +1481,7 @@ export class Activity extends BaseCMI {
     if (!validateISO8601Duration(activityExperiencedDuration, scorm2004_regex.CMITimespan)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".activityExperiencedDuration",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._activityExperiencedDuration = activityExperiencedDuration;
@@ -1236,7 +1535,7 @@ export class Activity extends BaseCMI {
     if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".attemptAbsoluteDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._attemptAbsoluteDurationValue = duration;
@@ -1258,7 +1557,7 @@ export class Activity extends BaseCMI {
     if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".attemptExperiencedDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._attemptExperiencedDurationValue = duration;
@@ -1280,7 +1579,7 @@ export class Activity extends BaseCMI {
     if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".activityAbsoluteDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._activityAbsoluteDurationValue = duration;
@@ -1302,7 +1601,7 @@ export class Activity extends BaseCMI {
     if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".activityExperiencedDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._activityExperiencedDurationValue = duration;
@@ -1355,7 +1654,6 @@ export class Activity extends BaseCMI {
   set activityEndedDate(date: Date | null) {
     this._activityEndedDate = date;
   }
-
 
   /**
    * Getter for sequencingControls
@@ -1416,7 +1714,7 @@ export class Activity extends BaseCMI {
   applyRollupConsiderations(settings: Partial<RollupConsiderationsConfig>): void {
     this._rollupConsiderations = {
       ...this._rollupConsiderations,
-      ...settings
+      ...settings,
     };
   }
 
@@ -1504,7 +1802,7 @@ export class Activity extends BaseCMI {
     if (value < 0.0 || value > 1.0) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".minProgressMeasure",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._minProgressMeasure = value;
@@ -1518,7 +1816,7 @@ export class Activity extends BaseCMI {
     if (value < 0.0) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".progressWeight",
-        scorm2004_errors.TYPE_MISMATCH as number
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._progressWeight = value;
@@ -1543,13 +1841,14 @@ export class Activity extends BaseCMI {
   /**
    * Setter for primary objective
    * @param {ActivityObjective | null} objective
-  */
+   */
   set primaryObjective(objective: ActivityObjective | null) {
     this._primaryObjective = objective;
     if (this._primaryObjective) {
       this._primaryObjective.isPrimary = true;
       if (this._primaryObjective.minNormalizedMeasure !== null) {
-        this._scaledPassingScore = this._primaryObjective.minNormalizedMeasure ?? this._scaledPassingScore;
+        this._scaledPassingScore =
+          this._primaryObjective.minNormalizedMeasure ?? this._scaledPassingScore;
       }
       this._primaryObjective.updateFromActivity(this);
     }
@@ -1567,7 +1866,7 @@ export class Activity extends BaseCMI {
   /**
    * Replace objectives collection
    * @param {ActivityObjective[]} objectives
-  */
+   */
   set objectives(objectives: ActivityObjective[]) {
     this._objectives = [...objectives];
     this.syncPrimaryObjectiveCollection();
@@ -1593,7 +1892,7 @@ export class Activity extends BaseCMI {
     }
 
     const existingIndex = this._objectives.findIndex(
-      (objective) => objective.id === this._primaryObjective?.id
+      (objective) => objective.id === this._primaryObjective?.id,
     );
 
     if (existingIndex >= 0) {
@@ -1611,7 +1910,7 @@ export class Activity extends BaseCMI {
    */
   getObjectiveById(objectiveId: string): {
     objective: ActivityObjective;
-    isPrimary: boolean
+    isPrimary: boolean;
   } | null {
     if (this._primaryObjective?.id === objectiveId) {
       return { objective: this._primaryObjective, isPrimary: true };
@@ -1635,7 +1934,7 @@ export class Activity extends BaseCMI {
     // Filter out the primary objective from _objectives to avoid duplicates
     // since syncPrimaryObjectiveCollection() adds it to _objectives
     const additionalObjectives = this._objectives.filter(
-      obj => obj !== this._primaryObjective && obj.id !== this._primaryObjective?.id
+      (obj) => obj !== this._primaryObjective && obj.id !== this._primaryObjective?.id,
     );
     return objectives.concat(additionalObjectives);
   }
@@ -1646,19 +1945,32 @@ export class Activity extends BaseCMI {
     }
   }
 
-  public isObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): boolean {
+  public isObjectiveDirty(
+    property: "satisfiedStatus" | "normalizedMeasure" | "measureStatus",
+  ): boolean {
     switch (property) {
-      case 'satisfiedStatus': return this._objectiveSatisfiedStatusDirty;
-      case 'normalizedMeasure': return this._objectiveNormalizedMeasureDirty;
-      case 'measureStatus': return this._objectiveMeasureStatusDirty;
+      case "satisfiedStatus":
+        return this._objectiveSatisfiedStatusDirty;
+      case "normalizedMeasure":
+        return this._objectiveNormalizedMeasureDirty;
+      case "measureStatus":
+        return this._objectiveMeasureStatusDirty;
     }
   }
 
-  public clearObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): void {
+  public clearObjectiveDirty(
+    property: "satisfiedStatus" | "normalizedMeasure" | "measureStatus",
+  ): void {
     switch (property) {
-      case 'satisfiedStatus': this._objectiveSatisfiedStatusDirty = false; break;
-      case 'normalizedMeasure': this._objectiveNormalizedMeasureDirty = false; break;
-      case 'measureStatus': this._objectiveMeasureStatusDirty = false; break;
+      case "satisfiedStatus":
+        this._objectiveSatisfiedStatusDirty = false;
+        break;
+      case "normalizedMeasure":
+        this._objectiveNormalizedMeasureDirty = false;
+        break;
+      case "measureStatus":
+        this._objectiveMeasureStatusDirty = false;
+        break;
     }
   }
 
@@ -1674,13 +1986,14 @@ export class Activity extends BaseCMI {
     normalizedMeasure: number,
     progressMeasure: number,
     progressMeasureStatus: boolean,
-    completionStatus: CompletionStatus
+    completionStatus: CompletionStatus,
+    objectiveProgressStatus: boolean = true,
   ): void {
     if (this._objectiveSatisfiedStatus !== satisfiedStatus) {
       this._objectiveSatisfiedStatus = satisfiedStatus;
       this._objectiveSatisfiedStatusDirty = true;
     }
-    this._objectiveSatisfiedStatusKnown = true;  // Mark as known when state is explicitly set
+    this._objectiveSatisfiedStatusKnown = objectiveProgressStatus;
     if (this._objectiveMeasureStatus !== measureStatus) {
       this._objectiveMeasureStatus = measureStatus;
       this._objectiveMeasureStatusDirty = true;
@@ -1700,26 +2013,40 @@ export class Activity extends BaseCMI {
       this._primaryObjective.progressMeasure = progressMeasure;
       this._primaryObjective.progressMeasureStatus = progressMeasureStatus;
       this._primaryObjective.completionStatus = completionStatus;
+      this._primaryObjective.satisfiedStatusKnown = objectiveProgressStatus;
+      this._primaryObjective.progressStatus = objectiveProgressStatus;
     }
   }
 
+  /**
+   * Snapshot objective state for sequencing persistence.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - objective state persists across attempts
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score-map state persists with objective state
+   */
   public getObjectiveStateSnapshot(): {
     primary: ActivityObjectiveState | null;
     objectives: ActivityObjectiveState[];
   } {
     const primarySnapshot: ActivityObjectiveState | null = this._primaryObjective
       ? {
-        id: this._primaryObjective.id,
-        satisfiedStatus: this.objectiveSatisfiedStatus,
-        measureStatus: this.objectiveMeasureStatus,
-        normalizedMeasure: this.objectiveNormalizedMeasure,
-        progressMeasure: this.progressMeasure ?? 0,
-        progressMeasureStatus: this.progressMeasureStatus,
-        progressStatus: this._primaryObjective.progressStatus,
-        completionStatus: this.completionStatus as CompletionStatus,
-        satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
-        minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure
-      }
+          id: this._primaryObjective.id,
+          satisfiedStatus: this.objectiveSatisfiedStatus,
+          measureStatus: this.objectiveMeasureStatus,
+          normalizedMeasure: this.objectiveNormalizedMeasure,
+          rawScore: this._primaryObjective.rawScore,
+          rawScoreKnown: this._primaryObjective.rawScoreKnown,
+          minScore: this._primaryObjective.minScore,
+          minScoreKnown: this._primaryObjective.minScoreKnown,
+          maxScore: this._primaryObjective.maxScore,
+          maxScoreKnown: this._primaryObjective.maxScoreKnown,
+          progressMeasure: this.progressMeasure ?? 0,
+          progressMeasureStatus: this.progressMeasureStatus,
+          progressStatus: this._primaryObjective.progressStatus,
+          completionStatus: this.completionStatus as CompletionStatus,
+          satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
+          minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure,
+        }
       : null;
 
     const additionalSnapshots: ActivityObjectiveState[] = this._objectives.map((objective) => ({
@@ -1727,20 +2054,32 @@ export class Activity extends BaseCMI {
       satisfiedStatus: objective.satisfiedStatus,
       measureStatus: objective.measureStatus,
       normalizedMeasure: objective.normalizedMeasure,
+      rawScore: objective.rawScore,
+      rawScoreKnown: objective.rawScoreKnown,
+      minScore: objective.minScore,
+      minScoreKnown: objective.minScoreKnown,
+      maxScore: objective.maxScore,
+      maxScoreKnown: objective.maxScoreKnown,
       progressMeasure: objective.progressMeasure,
       progressMeasureStatus: objective.progressMeasureStatus,
       progressStatus: objective.progressStatus,
       completionStatus: objective.completionStatus as CompletionStatus,
       satisfiedByMeasure: objective.satisfiedByMeasure,
-      minNormalizedMeasure: objective.minNormalizedMeasure
+      minNormalizedMeasure: objective.minNormalizedMeasure,
     }));
 
     return {
       primary: primarySnapshot,
-      objectives: additionalSnapshots
+      objectives: additionalSnapshots,
     };
   }
 
+  /**
+   * Restore objective state from a sequencing persistence snapshot.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - persisted objective state restores sequencing state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - persisted score-map state restores objective score fields
+   */
   public applyObjectiveStateSnapshot(snapshot: {
     primary: ActivityObjectiveState | null;
     objectives: ActivityObjectiveState[];
@@ -1749,17 +2088,22 @@ export class Activity extends BaseCMI {
       const primary = this.getObjectiveById(snapshot.primary.id);
       if (primary && primary.isPrimary) {
         const state = snapshot.primary;
-        primary.objective.satisfiedByMeasure = state.satisfiedByMeasure ?? primary.objective.satisfiedByMeasure;
+        primary.objective.satisfiedByMeasure =
+          state.satisfiedByMeasure ?? primary.objective.satisfiedByMeasure;
         primary.objective.minNormalizedMeasure =
-          state.minNormalizedMeasure !== undefined ? state.minNormalizedMeasure : primary.objective.minNormalizedMeasure;
+          state.minNormalizedMeasure !== undefined
+            ? state.minNormalizedMeasure
+            : primary.objective.minNormalizedMeasure;
         this.setPrimaryObjectiveState(
           state.satisfiedStatus,
           state.measureStatus,
           state.normalizedMeasure,
           state.progressMeasure,
           state.progressMeasureStatus,
-          state.completionStatus
+          state.completionStatus,
+          state.progressStatus,
         );
+        this.applyObjectiveScoreSnapshot(primary.objective, state);
       }
     }
 
@@ -1773,11 +2117,38 @@ export class Activity extends BaseCMI {
         objective.progressMeasure = state.progressMeasure;
         objective.progressMeasureStatus = state.progressMeasureStatus;
         objective.completionStatus = state.completionStatus;
+        this.applyObjectiveScoreSnapshot(objective, state);
         objective.satisfiedByMeasure = state.satisfiedByMeasure ?? objective.satisfiedByMeasure;
         objective.minNormalizedMeasure =
-          state.minNormalizedMeasure !== undefined ? state.minNormalizedMeasure : objective.minNormalizedMeasure;
+          state.minNormalizedMeasure !== undefined
+            ? state.minNormalizedMeasure
+            : objective.minNormalizedMeasure;
       }
     }
+  }
+
+  /**
+   * Restore known raw/min/max score fields from an objective state snapshot.
+   *
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score known flags restore independently
+   */
+  private applyObjectiveScoreSnapshot(
+    objective: ActivityObjective,
+    state: ActivityObjectiveState,
+  ): void {
+    const scoreState: ActivityObjectiveReadState = {};
+
+    if (state.rawScoreKnown) {
+      scoreState.rawScore = state.rawScore;
+    }
+    if (state.minScoreKnown) {
+      scoreState.minScore = state.minScore;
+    }
+    if (state.maxScoreKnown) {
+      scoreState.maxScore = state.maxScore;
+    }
+
+    objective.applyReadMappedState(scoreState);
   }
 
   /**
@@ -1944,25 +2315,27 @@ export class Activity extends BaseCMI {
       progressWeight: this._progressWeight,
       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
       // Selection/randomization state preservation
-      processedChildren: this._processedChildren ? this._processedChildren.map(c => c.id) : null,
+      processedChildren: this._processedChildren ? this._processedChildren.map((c) => c.id) : null,
       isNewAttempt: this._isNewAttempt,
       selectionCountStatus: this._sequencingControls.selectionCountStatus,
       reorderChildren: this._sequencingControls.reorderChildren,
       // Objective state preservation
-      primaryObjective: this._primaryObjective ? {
-        id: this._primaryObjective.id,
-        satisfiedStatus: this._primaryObjective.satisfiedStatus,
-        measureStatus: this._primaryObjective.measureStatus,
-        normalizedMeasure: this._primaryObjective.normalizedMeasure,
-        progressMeasure: this._primaryObjective.progressMeasure,
-        progressMeasureStatus: this._primaryObjective.progressMeasureStatus,
-        completionStatus: this._primaryObjective.completionStatus,
-        satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
-        minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure,
-        progressStatus: this._primaryObjective.progressStatus,
-        mapInfo: this._primaryObjective.mapInfo
-      } : null,
-      objectives: this._objectives.map(obj => ({
+      primaryObjective: this._primaryObjective
+        ? {
+            id: this._primaryObjective.id,
+            satisfiedStatus: this._primaryObjective.satisfiedStatus,
+            measureStatus: this._primaryObjective.measureStatus,
+            normalizedMeasure: this._primaryObjective.normalizedMeasure,
+            progressMeasure: this._primaryObjective.progressMeasure,
+            progressMeasureStatus: this._primaryObjective.progressMeasureStatus,
+            completionStatus: this._primaryObjective.completionStatus,
+            satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
+            minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure,
+            progressStatus: this._primaryObjective.progressStatus,
+            mapInfo: this._primaryObjective.mapInfo,
+          }
+        : null,
+      objectives: this._objectives.map((obj) => ({
         id: obj.id,
         satisfiedStatus: obj.satisfiedStatus,
         measureStatus: obj.measureStatus,
@@ -1973,10 +2346,10 @@ export class Activity extends BaseCMI {
         satisfiedByMeasure: obj.satisfiedByMeasure,
         minNormalizedMeasure: obj.minNormalizedMeasure,
         progressStatus: obj.progressStatus,
-        mapInfo: obj.mapInfo
+        mapInfo: obj.mapInfo,
       })),
       // Recursively save children state
-      children: this._children.map(child => child.getSuspensionState())
+      children: this._children.map((child) => child.getSuspensionState()),
     };
   }
 
@@ -1998,26 +2371,39 @@ export class Activity extends BaseCMI {
     this._attemptCount = state.attemptCount ?? this._attemptCount;
     this._attemptCompletionAmount = state.attemptCompletionAmount ?? this._attemptCompletionAmount;
     this._attemptAbsoluteDuration = state.attemptAbsoluteDuration ?? this._attemptAbsoluteDuration;
-    this._attemptExperiencedDuration = state.attemptExperiencedDuration ?? this._attemptExperiencedDuration;
-    this._activityAbsoluteDuration = state.activityAbsoluteDuration ?? this._activityAbsoluteDuration;
-    this._activityExperiencedDuration = state.activityExperiencedDuration ?? this._activityExperiencedDuration;
-    this._attemptAbsoluteDurationValue = state.attemptAbsoluteDurationValue ?? this._attemptAbsoluteDurationValue;
-    this._attemptExperiencedDurationValue = state.attemptExperiencedDurationValue ?? this._attemptExperiencedDurationValue;
-    this._activityAbsoluteDurationValue = state.activityAbsoluteDurationValue ?? this._activityAbsoluteDurationValue;
-    this._activityExperiencedDurationValue = state.activityExperiencedDurationValue ?? this._activityExperiencedDurationValue;
-    this._activityStartTimestampUtc = state.activityStartTimestampUtc ?? this._activityStartTimestampUtc;
-    this._attemptStartTimestampUtc = state.attemptStartTimestampUtc ?? this._attemptStartTimestampUtc;
+    this._attemptExperiencedDuration =
+      state.attemptExperiencedDuration ?? this._attemptExperiencedDuration;
+    this._activityAbsoluteDuration =
+      state.activityAbsoluteDuration ?? this._activityAbsoluteDuration;
+    this._activityExperiencedDuration =
+      state.activityExperiencedDuration ?? this._activityExperiencedDuration;
+    this._attemptAbsoluteDurationValue =
+      state.attemptAbsoluteDurationValue ?? this._attemptAbsoluteDurationValue;
+    this._attemptExperiencedDurationValue =
+      state.attemptExperiencedDurationValue ?? this._attemptExperiencedDurationValue;
+    this._activityAbsoluteDurationValue =
+      state.activityAbsoluteDurationValue ?? this._activityAbsoluteDurationValue;
+    this._activityExperiencedDurationValue =
+      state.activityExperiencedDurationValue ?? this._activityExperiencedDurationValue;
+    this._activityStartTimestampUtc =
+      state.activityStartTimestampUtc ?? this._activityStartTimestampUtc;
+    this._attemptStartTimestampUtc =
+      state.attemptStartTimestampUtc ?? this._attemptStartTimestampUtc;
 
     // Restore tracking data
-    this._objectiveSatisfiedStatus = state.objectiveSatisfiedStatus ?? this._objectiveSatisfiedStatus;
-    this._objectiveSatisfiedStatusKnown = state.objectiveSatisfiedStatusKnown ?? this._objectiveSatisfiedStatusKnown;
+    this._objectiveSatisfiedStatus =
+      state.objectiveSatisfiedStatus ?? this._objectiveSatisfiedStatus;
+    this._objectiveSatisfiedStatusKnown =
+      state.objectiveSatisfiedStatusKnown ?? this._objectiveSatisfiedStatusKnown;
     this._objectiveMeasureStatus = state.objectiveMeasureStatus ?? this._objectiveMeasureStatus;
-    this._objectiveNormalizedMeasure = state.objectiveNormalizedMeasure ?? this._objectiveNormalizedMeasure;
+    this._objectiveNormalizedMeasure =
+      state.objectiveNormalizedMeasure ?? this._objectiveNormalizedMeasure;
     this._scaledPassingScore = state.scaledPassingScore ?? this._scaledPassingScore;
     this._progressMeasure = state.progressMeasure ?? this._progressMeasure;
     this._progressMeasureStatus = state.progressMeasureStatus ?? this._progressMeasureStatus;
     this._location = state.location ?? this._location;
-    this._attemptAbsoluteStartTime = state.attemptAbsoluteStartTime ?? this._attemptAbsoluteStartTime;
+    this._attemptAbsoluteStartTime =
+      state.attemptAbsoluteStartTime ?? this._attemptAbsoluteStartTime;
     this._activityAttemptActive = state.activityAttemptActive ?? this._activityAttemptActive;
     this._isHiddenFromChoice = state.isHiddenFromChoice ?? this._isHiddenFromChoice;
     this._isAvailable = state.isAvailable ?? this._isAvailable;
@@ -2035,7 +2421,8 @@ export class Activity extends BaseCMI {
     this._completedByMeasure = state.completedByMeasure ?? this._completedByMeasure;
     this._minProgressMeasure = state.minProgressMeasure ?? this._minProgressMeasure;
     this._progressWeight = state.progressWeight ?? this._progressWeight;
-    this._attemptCompletionAmountStatus = state.attemptCompletionAmountStatus ?? this._attemptCompletionAmountStatus;
+    this._attemptCompletionAmountStatus =
+      state.attemptCompletionAmountStatus ?? this._attemptCompletionAmountStatus;
 
     // Restore selection/randomization state
     this._isNewAttempt = state.isNewAttempt ?? this._isNewAttempt;
@@ -2048,7 +2435,7 @@ export class Activity extends BaseCMI {
 
     // Restore processedChildren - map IDs back to actual children
     if (state.processedChildren) {
-      const childMap = new Map(this._children.map(c => [c.id, c]));
+      const childMap = new Map(this._children.map((c) => [c.id, c]));
       this._processedChildren = state.processedChildren
         .map((id: string) => childMap.get(id))
         .filter((c: Activity | undefined) => c !== undefined) as Activity[];
@@ -2058,24 +2445,33 @@ export class Activity extends BaseCMI {
 
     // Restore objective state
     if (state.primaryObjective && this._primaryObjective) {
-      this._primaryObjective.satisfiedStatus = state.primaryObjective.satisfiedStatus ?? this._primaryObjective.satisfiedStatus;
-      this._primaryObjective.measureStatus = state.primaryObjective.measureStatus ?? this._primaryObjective.measureStatus;
-      this._primaryObjective.normalizedMeasure = state.primaryObjective.normalizedMeasure ?? this._primaryObjective.normalizedMeasure;
-      this._primaryObjective.progressMeasure = state.primaryObjective.progressMeasure ?? this._primaryObjective.progressMeasure;
-      this._primaryObjective.progressMeasureStatus = state.primaryObjective.progressMeasureStatus ?? this._primaryObjective.progressMeasureStatus;
-      this._primaryObjective.completionStatus = state.primaryObjective.completionStatus ?? this._primaryObjective.completionStatus;
-      this._primaryObjective.progressStatus = state.primaryObjective.progressStatus ?? this._primaryObjective.progressStatus;
+      this._primaryObjective.satisfiedStatus =
+        state.primaryObjective.satisfiedStatus ?? this._primaryObjective.satisfiedStatus;
+      this._primaryObjective.measureStatus =
+        state.primaryObjective.measureStatus ?? this._primaryObjective.measureStatus;
+      this._primaryObjective.normalizedMeasure =
+        state.primaryObjective.normalizedMeasure ?? this._primaryObjective.normalizedMeasure;
+      this._primaryObjective.progressMeasure =
+        state.primaryObjective.progressMeasure ?? this._primaryObjective.progressMeasure;
+      this._primaryObjective.progressMeasureStatus =
+        state.primaryObjective.progressMeasureStatus ??
+        this._primaryObjective.progressMeasureStatus;
+      this._primaryObjective.completionStatus =
+        state.primaryObjective.completionStatus ?? this._primaryObjective.completionStatus;
+      this._primaryObjective.progressStatus =
+        state.primaryObjective.progressStatus ?? this._primaryObjective.progressStatus;
     }
 
     if (state.objectives) {
       for (const objState of state.objectives) {
-        const objective = this._objectives.find(o => o.id === objState.id);
+        const objective = this._objectives.find((o) => o.id === objState.id);
         if (objective) {
           objective.satisfiedStatus = objState.satisfiedStatus ?? objective.satisfiedStatus;
           objective.measureStatus = objState.measureStatus ?? objective.measureStatus;
           objective.normalizedMeasure = objState.normalizedMeasure ?? objective.normalizedMeasure;
           objective.progressMeasure = objState.progressMeasure ?? objective.progressMeasure;
-          objective.progressMeasureStatus = objState.progressMeasureStatus ?? objective.progressMeasureStatus;
+          objective.progressMeasureStatus =
+            objState.progressMeasureStatus ?? objective.progressMeasureStatus;
           objective.completionStatus = objState.completionStatus ?? objective.completionStatus;
           objective.progressStatus = objState.progressStatus ?? objective.progressStatus;
         }
@@ -2086,7 +2482,7 @@ export class Activity extends BaseCMI {
     if (state.children && Array.isArray(state.children)) {
       for (let i = 0; i < state.children.length && i < this._children.length; i++) {
         const childState = state.children[i];
-        const child = this._children.find(c => c.id === childState.id);
+        const child = this._children.find((c) => c.id === childState.id);
         if (child) {
           child.restoreSuspensionState(childState);
         }
@@ -2127,11 +2523,11 @@ export class Activity extends BaseCMI {
       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
       hideLmsUi: [...this._hideLmsUi],
       auxiliaryResources: this._auxiliaryResources.map((resource) => ({ ...resource })),
-      children: this._children.map((child) => child.toJSON())
+      children: this._children.map((child) => child.toJSON()),
     };
     this.jsonString = false;
     return result;
- }
+  }
 
   get auxiliaryResources(): AuxiliaryResource[] {
     return this._auxiliaryResources.map((resource) => ({ ...resource }));
@@ -2142,8 +2538,8 @@ export class Activity extends BaseCMI {
     const seen = new Set<string>();
     for (const resource of resources || []) {
       if (!resource) continue;
-      const resourceId = typeof resource.resourceId === 'string' ? resource.resourceId.trim() : '';
-      const purpose = typeof resource.purpose === 'string' ? resource.purpose.trim() : '';
+      const resourceId = typeof resource.resourceId === "string" ? resource.resourceId.trim() : "";
+      const purpose = typeof resource.purpose === "string" ? resource.purpose.trim() : "";
       if (!resourceId || seen.has(resourceId)) {
         continue;
       }
@@ -2166,8 +2562,8 @@ export class Activity extends BaseCMI {
     return {
       measureStatus: this._objectiveMeasureStatus,
       normalizedMeasure: this._objectiveNormalizedMeasure,
-      objectiveProgressStatus: this._objectiveSatisfiedStatus !== null &&
-                                this._objectiveSatisfiedStatus !== undefined,
+      objectiveProgressStatus:
+        this._objectiveSatisfiedStatus !== null && this._objectiveSatisfiedStatus !== undefined,
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       attemptProgressStatus: this._completionStatus !== CompletionStatus.UNKNOWN,
       attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED,
@@ -2181,18 +2577,17 @@ export class Activity extends BaseCMI {
    * @param {RollupStatusSnapshot} current - Current status snapshot
    * @return {boolean} - True if statuses are equal (no change), false if different
    */
-  static compareRollupStatus(
-    prior: RollupStatusSnapshot,
-    current: RollupStatusSnapshot
-  ): boolean {
+  static compareRollupStatus(prior: RollupStatusSnapshot, current: RollupStatusSnapshot): boolean {
     const EPSILON = 0.0001; // Floating point comparison tolerance
 
-    return prior.measureStatus === current.measureStatus &&
-           Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON &&
-           prior.objectiveProgressStatus === current.objectiveProgressStatus &&
-           prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus &&
-           prior.attemptProgressStatus === current.attemptProgressStatus &&
-           prior.attemptCompletionStatus === current.attemptCompletionStatus;
+    return (
+      prior.measureStatus === current.measureStatus &&
+      Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON &&
+      prior.objectiveProgressStatus === current.objectiveProgressStatus &&
+      prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus &&
+      prior.attemptProgressStatus === current.attemptProgressStatus &&
+      prior.attemptCompletionStatus === current.attemptCompletionStatus
+    );
   }
 
   /**

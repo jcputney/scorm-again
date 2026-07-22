@@ -13,6 +13,15 @@ import { CMIInteractionsObject } from "./cmi/scorm2004/interactions";
 import { ADL } from "./cmi/scorm2004/adl";
 import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
 import {
+  Activity,
+  ActivityObjective,
+  ActivityObjectiveReadState,
+} from "./cmi/scorm2004/sequencing/activity";
+import {
+  GlobalObjective,
+  GlobalObjectiveSynchronizer,
+} from "./cmi/scorm2004/sequencing/objectives/global_objective_synchronizer";
+import {
   CompletionStatus,
   global_constants,
   LogLevelEnum,
@@ -246,11 +255,43 @@ class Scorm2004API extends BaseAPI {
   /**
    * Apply launch-static activity data to CMI while the new SCO is pre-initialize.
    *
-   * @spec SCORM 2004 4th Ed. RTE 4.2.9 - cmi.completion_threshold
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
    */
   private applyCurrentActivityLaunchData(): void {
     const currentActivity = this._sequencing?.getCurrentActivity();
-    if (!this.cmi || !currentActivity) {
+    if (!currentActivity) {
+      return;
+    }
+
+    this.applyActivityLaunchData(currentActivity);
+  }
+
+  /**
+   * Apply launch-static CMI data when sequencing delivers a new activity before SCO Initialize.
+   *
+   * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process establishes the delivered activity.
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold is initialized before SCO access.
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives is initialized before SCO access.
+   */
+  private applyDeliveredActivityLaunchData(activity: Activity): void {
+    // @spec SCORM 2004 4th Ed. RTE 3.1.6 - API Instance State Transition;
+    // launch data is prepared before the SCO opens its communication session.
+    if (!this.isNotInitialized()) {
+      return;
+    }
+
+    this.applyActivityLaunchData(activity);
+  }
+
+  /**
+   * Copy the delivered activity's static launch data into the fresh CMI model.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+   */
+  private applyActivityLaunchData(currentActivity: Activity): void {
+    if (!this.cmi) {
       return;
     }
 
@@ -262,6 +303,247 @@ class Scorm2004API extends BaseAPI {
       "";
 
     this.cmi.completion_threshold = completionThreshold;
+    this.seedCurrentActivityObjectives(currentActivity);
+  }
+
+  /**
+   * Seed CMI objective ids after Initialize when automatic sequencing starts during Initialize.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+   */
+  private applyCurrentActivityObjectiveData(): void {
+    const currentActivity = this._sequencing?.getCurrentActivity();
+    if (!this.cmi || !currentActivity) {
+      return;
+    }
+
+    this.seedCurrentActivityObjectives(currentActivity);
+  }
+
+  /**
+   * Seed CMI objectives from primary and secondary activity objectives.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 - Initialization of Run-Time Objectives from Sequencing Information
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id and success_status
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 / ADLSEQ objectives extension - objective read maps seed the RTE view
+   */
+  private seedCurrentActivityObjectives(currentActivity: Activity): void {
+    const activityObjectives: ActivityObjective[] = [];
+
+    if (currentActivity.primaryObjective) {
+      activityObjectives.push(currentActivity.primaryObjective);
+    }
+
+    activityObjectives.push(...currentActivity.objectives);
+
+    const seededObjectiveIds = new Set<string>();
+    for (const activityObjective of activityObjectives) {
+      const objectiveId = this.getSeedableObjectiveId(activityObjective);
+      if (!objectiveId || seededObjectiveIds.has(objectiveId)) {
+        continue;
+      }
+      seededObjectiveIds.add(objectiveId);
+
+      const index = this.findOrSeedCMIObjective(objectiveId);
+      if (index === null) {
+        continue;
+      }
+
+      const cmiObjective = this.cmi.objectives.findObjectiveByIndex(index);
+      if (cmiObjective && this.cmi.objectives.initialized && !cmiObjective.initialized) {
+        cmiObjective.initialize();
+      }
+
+      const successStatus = this.getActivityObjectiveSuccessStatus(activityObjective);
+      if (successStatus) {
+        this._commonSetCMIValue(
+          "SeedActivityObjective",
+          true,
+          `cmi.objectives.${index}.success_status`,
+          successStatus,
+        );
+      }
+
+      this.seedObjectiveReadMapValues(currentActivity, activityObjective, index);
+    }
+  }
+
+  /**
+   * Seed CMI objective fields from this objective's read-mapped global objectives.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 - Run-Time Objectives are initialized from sequencing information
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read mapInfo grants access to mapped global objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps seed RTE score fields
+   */
+  private seedObjectiveReadMapValues(
+    currentActivity: Activity,
+    activityObjective: ActivityObjective,
+    objectiveIndex: number,
+  ): void {
+    const globalObjectiveMap = this._sequencing.overallSequencingProcess?.getGlobalObjectiveMap();
+    if (!globalObjectiveMap || activityObjective.mapInfo.length === 0) {
+      return;
+    }
+
+    for (const mapInfo of activityObjective.mapInfo) {
+      const targetObjectiveId = mapInfo.targetObjectiveID || activityObjective.id;
+      const globalObjective = globalObjectiveMap.get(targetObjectiveId) as
+        GlobalObjective | undefined;
+      if (!globalObjective) {
+        continue;
+      }
+
+      const readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
+        currentActivity,
+        activityObjective,
+        mapInfo,
+        globalObjective,
+      );
+      this.applyObjectiveReadStateToCMI(objectiveIndex, readState);
+    }
+  }
+
+  /**
+   * Copy mapped global objective state into the seeded CMI objective entry.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives launch-time initialization
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps populate the RTE view without creating local writes
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps populate CMI objective scores
+   */
+  private applyObjectiveReadStateToCMI(
+    objectiveIndex: number,
+    readState: ActivityObjectiveReadState,
+  ): void {
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 - unknown global satisfied status
+    // leaves cmi.objectives.n.success_status at its default unknown value.
+    if (readState.satisfiedStatus !== undefined) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.success_status`,
+        readState.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED,
+      );
+    }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 - unknown global normalized measure
+    // leaves cmi.objectives.n.score.scaled uninitialized.
+    if (readState.normalizedMeasure !== undefined) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.scaled`,
+        String(readState.normalizedMeasure),
+      );
+    }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 - unknown global completion status
+    // leaves cmi.objectives.n.completion_status at its default unknown value.
+    if (readState.completionStatus !== undefined) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.completion_status`,
+        readState.completionStatus,
+      );
+    }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 - unknown global progress measure
+    // leaves cmi.objectives.n.progress_measure uninitialized.
+    if (readState.progressMeasure !== undefined) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.progress_measure`,
+        String(readState.progressMeasure),
+      );
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - unknown global
+    // raw score leaves cmi.objectives.n.score.raw uninitialized.
+    if (readState.rawScore !== undefined) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.raw`,
+        readState.rawScore,
+      );
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - unknown global
+    // min score leaves cmi.objectives.n.score.min uninitialized.
+    if (readState.minScore !== undefined) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.min`,
+        readState.minScore,
+      );
+    }
+
+    // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - unknown global
+    // max score leaves cmi.objectives.n.score.max uninitialized.
+    if (readState.maxScore !== undefined) {
+      this._commonSetCMIValue(
+        "SeedActivityObjectiveReadMap",
+        true,
+        `cmi.objectives.${objectiveIndex}.score.max`,
+        readState.maxScore,
+      );
+    }
+  }
+
+  /**
+   * Return a manifest-defined objective id that can initialize cmi.objectives.n.id.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id
+   */
+  private getSeedableObjectiveId(activityObjective: ActivityObjective): string | null {
+    const objectiveId: unknown = activityObjective.id;
+    if (typeof objectiveId !== "string" || objectiveId.trim() === "") {
+      return null;
+    }
+    return objectiveId;
+  }
+
+  /**
+   * Find an existing CMI objective id or create the next CMI objective array entry.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives._count
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.id
+   */
+  private findOrSeedCMIObjective(objectiveId: string): number | null {
+    const existingIndex = this.cmi.objectives.childArray.findIndex((objective) => {
+      return (objective as CMIObjectivesObject).id === objectiveId;
+    });
+
+    if (existingIndex >= 0) {
+      return existingIndex;
+    }
+
+    const index = this.cmi.objectives.childArray.length;
+    const result = this._commonSetCMIValue(
+      "SeedActivityObjective",
+      true,
+      `cmi.objectives.${index}.id`,
+      objectiveId,
+    );
+
+    return result === global_constants.SCORM_TRUE ? index : null;
+  }
+
+  /**
+   * Translate a known activity objective satisfied status to cmi.objectives.n.success_status.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives.n.success_status
+   */
+  private getActivityObjectiveSuccessStatus(
+    activityObjective: ActivityObjective,
+  ): SuccessStatus | null {
+    if (activityObjective.progressStatus || activityObjective.satisfiedStatusKnown) {
+      return activityObjective.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+    }
+
+    return null;
   }
 
   /**
@@ -353,6 +635,7 @@ class Scorm2004API extends BaseAPI {
 
     if (result === global_constants.SCORM_TRUE && this._sequencingService) {
       this._sequencingService.initialize();
+      this.applyCurrentActivityObjectiveData();
     }
 
     if (result === global_constants.SCORM_TRUE) {
@@ -662,7 +945,7 @@ class Scorm2004API extends BaseAPI {
 
       const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
 
-      if (is_global) {
+      if (is_global && this.currentActivityAllowsGlobalObjectiveWrites()) {
         const { index: global_index } =
           this._globalObjectiveManager.findOrCreateGlobalObjective(objective_id);
 
@@ -679,6 +962,16 @@ class Scorm2004API extends BaseAPI {
       }
     }
     return this._commonSetCMIValue("SetValue", true, CMIElement, value);
+  }
+
+  /**
+   * Return whether the current activity can update shared global objectives.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - when False, the LMS
+   * "does not initialize, manage or access any tracking status information".
+   */
+  private currentActivityAllowsGlobalObjectiveWrites(): boolean {
+    return this._sequencing?.getCurrentActivity()?.sequencingControls.tracked !== false;
   }
 
   /**
@@ -1096,9 +1389,13 @@ class Scorm2004API extends BaseAPI {
         sequencingConfig,
       );
 
-      if (settings?.sequencing?.eventListeners) {
-        this._sequencingService.setEventListeners(settings.sequencing.eventListeners);
-      }
+      // @spec SCORM 2004 4th Ed. SN DB.2 - delivery establishes the current
+      // activity before the SCO can call Initialize.
+      // @spec SCORM 2004 4th Ed. RTE 4.2.5 / 4.2.17 - launch-static CMI
+      // elements are initialized for the activity's associated SCO.
+      this._sequencingService.setEventListeners(
+        this.buildSequencingEventListeners(settings?.sequencing?.eventListeners),
+      );
 
       // Update context references after sequencing service is created
       this._globalObjectiveManager.updateSequencingService(this._sequencingService);
@@ -1128,6 +1425,25 @@ class Scorm2004API extends BaseAPI {
   }
 
   /**
+   * Wrap LMS-provided sequencing listeners with API-owned delivery bookkeeping.
+   *
+   * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5, Table 4.2.5a - cmi.completion_threshold
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives
+   */
+  private buildSequencingEventListeners(
+    listeners?: SequencingEventListeners,
+  ): SequencingEventListeners {
+    return {
+      ...listeners,
+      onActivityDelivery: (activity) => {
+        this.applyDeliveredActivityLaunchData(activity as Activity);
+        listeners?.onActivityDelivery?.(activity);
+      },
+    };
+  }
+
+  /**
    * Get the sequencing service
    * @return {SequencingService | null}
    */
@@ -1138,10 +1454,13 @@ class Scorm2004API extends BaseAPI {
   /**
    * Set sequencing event listeners
    * @param {SequencingEventListeners} listeners
+   *
+   * @spec SCORM 2004 4th Ed. SN DB.2 - Content Delivery Environment Process
+   * @spec SCORM 2004 4th Ed. RTE 4.2.5 / 4.2.17 - launch-static CMI data
    */
   public setSequencingEventListeners(listeners: SequencingEventListeners): void {
     if (this._sequencingService) {
-      this._sequencingService.setEventListeners(listeners);
+      this._sequencingService.setEventListeners(this.buildSequencingEventListeners(listeners));
     }
   }
 

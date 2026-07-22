@@ -14,6 +14,8 @@ export interface FlowTreeTraversalResult {
   activity: Activity | null;
   endSequencingSession: boolean;
   exception?: string;
+  direction?: FlowSubprocessMode;
+  forwardOnlyCluster?: Activity;
 }
 
 /**
@@ -42,6 +44,8 @@ export class FlowTraversalService {
    * @param {Activity} fromActivity - The activity to flow from
    * @param {FlowSubprocessMode} direction - The flow direction
    * @return {FlowSubprocessResult} - Result containing the deliverable activity
+   * @spec SN Book: SB.2.3 (Flow Subprocess) - preserves the SB.2.1 effective traversal direction for SB.2.2.
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates candidates using the effective direction returned by SB.2.1.
    */
   public flowSubprocess(
     fromActivity: Activity,
@@ -50,12 +54,15 @@ export class FlowTraversalService {
     let candidateActivity: Activity | null = fromActivity;
     let firstIteration = true;
     let lastCandidateHadNoChildren = false;
+    let currentDirection = direction;
+    let forwardOnlyCluster: Activity | null = null;
 
     while (candidateActivity) {
       const traversalResult = this.flowTreeTraversalSubprocess(
         candidateActivity,
-        direction,
-        firstIteration
+        currentDirection,
+        firstIteration,
+        forwardOnlyCluster
       );
 
       if (!traversalResult.activity) {
@@ -76,15 +83,20 @@ export class FlowTraversalService {
         );
       }
 
+      const effectiveDirection = traversalResult.direction || currentDirection;
+      if (traversalResult.forwardOnlyCluster) {
+        forwardOnlyCluster = traversalResult.forwardOnlyCluster;
+      }
+
       lastCandidateHadNoChildren =
         traversalResult.activity.children.length > 0 &&
         traversalResult.activity.getAvailableChildren().length === 0;
 
       const deliverable = this.flowActivityTraversalSubprocess(
         traversalResult.activity,
-        direction === FlowSubprocessMode.FORWARD,
+        effectiveDirection === FlowSubprocessMode.FORWARD,
         true,
-        direction
+        effectiveDirection
       );
 
       if (deliverable) {
@@ -92,6 +104,7 @@ export class FlowTraversalService {
       }
 
       candidateActivity = traversalResult.activity;
+      currentDirection = effectiveDirection;
       firstIteration = false;
     }
 
@@ -104,15 +117,18 @@ export class FlowTraversalService {
    * @param {Activity} fromActivity - The activity to traverse from
    * @param {FlowSubprocessMode} direction - The traversal direction
    * @param {boolean} skipChildren - Whether to skip checking children
+   * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {FlowTreeTraversalResult} - The next activity and flags
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
    */
   public flowTreeTraversalSubprocess(
     fromActivity: Activity,
     direction: FlowSubprocessMode,
-    skipChildren: boolean = false
+    skipChildren: boolean = false,
+    forwardTraversalBoundary: Activity | null = null
   ): FlowTreeTraversalResult {
     if (direction === FlowSubprocessMode.FORWARD) {
-      return this.traverseForward(fromActivity, skipChildren);
+      return this.traverseForward(fromActivity, skipChildren, forwardTraversalBoundary);
     } else {
       return this.traverseBackward(fromActivity);
     }
@@ -122,14 +138,24 @@ export class FlowTraversalService {
    * Traverse forward in the activity tree
    * @param {Activity} fromActivity - Starting activity
    * @param {boolean} skipChildren - Whether to skip children
+   * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {FlowTreeTraversalResult}
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - a reversed Forward traversal from a forwardOnly cluster remains within that cluster.
    */
   private traverseForward(
     fromActivity: Activity,
-    skipChildren: boolean
+    skipChildren: boolean,
+    forwardTraversalBoundary: Activity | null = null
   ): FlowTreeTraversalResult {
+    if (
+      forwardTraversalBoundary &&
+      !this.isDescendantOfOrSelf(fromActivity, forwardTraversalBoundary)
+    ) {
+      return { activity: null, endSequencingSession: false };
+    }
+
     // Check if we're at the last activity
-    if (skipChildren && this.isActivityLastOverall(fromActivity)) {
+    if (!forwardTraversalBoundary && skipChildren && this.isActivityLastOverall(fromActivity)) {
       // Terminate all descendent attempts at root
       if (this.activityTree.root) {
         this.terminateDescendentAttempts(this.activityTree.root);
@@ -153,6 +179,12 @@ export class FlowTraversalService {
       if (nextSibling) {
         return { activity: nextSibling, endSequencingSession: false };
       }
+      if (
+        forwardTraversalBoundary &&
+        (current === forwardTraversalBoundary || current.parent === forwardTraversalBoundary)
+      ) {
+        return { activity: null, endSequencingSession: false };
+      }
       current = current.parent;
     }
 
@@ -167,6 +199,7 @@ export class FlowTraversalService {
    * Traverse backward in the activity tree
    * @param {Activity} fromActivity - Starting activity
    * @return {FlowTreeTraversalResult}
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
    */
   private traverseBackward(fromActivity: Activity): FlowTreeTraversalResult {
     // Check forwardOnly constraint
@@ -177,10 +210,7 @@ export class FlowTraversalService {
     // Try to get previous sibling
     const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
     if (previousSibling) {
-      return {
-        activity: this.getLastDescendant(previousSibling),
-        endSequencingSession: false
-      };
+      return this.getBackwardTraversalEntry(previousSibling);
     }
 
     // No previous sibling, try going up to parent
@@ -195,10 +225,7 @@ export class FlowTraversalService {
 
       const parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
       if (parentPreviousSibling) {
-        return {
-          activity: this.getLastDescendant(parentPreviousSibling),
-          endSequencingSession: false
-        };
+        return this.getBackwardTraversalEntry(parentPreviousSibling);
       }
       current = current.parent;
     }
@@ -208,32 +235,65 @@ export class FlowTraversalService {
   }
 
   /**
-   * Get the last descendant of an activity
+   * Get the activity entered by backward traversal.
    * @param {Activity} activity - The activity
-   * @return {Activity} - The last descendant
+   * @return {FlowTreeTraversalResult} - The entered activity and effective direction
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - entering a forwardOnly cluster while moving Backward uses the first available child and changes direction to Forward.
    */
-  private getLastDescendant(activity: Activity): Activity {
-    let lastDescendant = activity;
+  private getBackwardTraversalEntry(activity: Activity): FlowTreeTraversalResult {
+    let enteredActivity = activity;
     let iterations = 0;
     const maxIterations = 10000;
 
     while (true) {
       if (++iterations > maxIterations) {
-        throw new Error("Infinite loop detected while getting last descendant");
+        throw new Error("Infinite loop detected while getting backward traversal entry");
       }
 
-      this.ensureSelectionAndRandomization(lastDescendant);
-      const children = lastDescendant.getAvailableChildren();
+      this.ensureSelectionAndRandomization(enteredActivity);
+      const children = enteredActivity.getAvailableChildren();
       if (children.length === 0) {
         break;
       }
 
+      if (enteredActivity.sequencingControls.forwardOnly) {
+        // @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - a Backward traversal entering a forwardOnly cluster starts at the first available child and reverses direction.
+        return {
+          activity: children[0] || null,
+          endSequencingSession: false,
+          direction: FlowSubprocessMode.FORWARD,
+          forwardOnlyCluster: enteredActivity
+        };
+      }
+
       const lastChild = children[children.length - 1];
       if (!lastChild) break;
-      lastDescendant = lastChild;
+      enteredActivity = lastChild;
     }
 
-    return lastDescendant;
+    return {
+      activity: enteredActivity,
+      endSequencingSession: false
+    };
+  }
+
+  /**
+   * Check whether an activity is the same as or beneath an ancestor.
+   * @param {Activity} activity - The activity to check
+   * @param {Activity} ancestor - The expected ancestor
+   * @return {boolean} - True when activity is within ancestor
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - bounds Forward traversal after a forwardOnly direction reversal to the entered cluster.
+   */
+  private isDescendantOfOrSelf(activity: Activity, ancestor: Activity): boolean {
+    let current: Activity | null = activity;
+    while (current) {
+      if (current === ancestor) {
+        return true;
+      }
+      current = current.parent;
+    }
+
+    return false;
   }
 
   /**

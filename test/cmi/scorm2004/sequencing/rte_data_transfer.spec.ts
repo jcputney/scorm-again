@@ -259,17 +259,23 @@ describe("RTE Data Transfer", () => {
       }).not.toThrow();
     });
 
-    it("should not transfer primary objective via objectives array", () => {
-      // Primary objective should be handled separately
+    it("should transfer matching primary objective data via objectives array", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
-        success_status: "passed",
+        success_status: "unknown",
         objectives: [
           {
             id: "primary_obj",
-            success_status: "failed" // Try to override via objectives
-          }
-        ]
+            success_status: "failed",
+            completion_status: "completed",
+            score: {
+              raw: "256.78",
+              min: "254",
+              max: "0.8",
+            },
+            progress_measure: "0.5",
+          },
+        ],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -279,15 +285,23 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
 
-      // Primary objective should get success from cmi.success_status, not objectives array
-      expect(leafActivity.primaryObjective?.satisfiedStatus).toBe(true);
-      expect(leafActivity.successStatus).toBe("passed");
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - cmi.objectives.n
+      // entries matched to the activity primary objective transfer into the
+      // primary objective state used by objective maps.
+      expect(leafActivity.primaryObjective?.satisfiedStatus).toBe(false);
+      expect(leafActivity.primaryObjective?.progressStatus).toBe(true);
+      expect(leafActivity.primaryObjective?.completionStatus).toBe(CompletionStatus.COMPLETED);
+      expect(leafActivity.primaryObjective?.rawScore).toBe("256.78");
+      expect(leafActivity.primaryObjective?.minScore).toBe("254");
+      expect(leafActivity.primaryObjective?.maxScore).toBe("0.8");
+      expect(leafActivity.primaryObjective?.progressMeasure).toBe(0.5);
+      expect(leafActivity.successStatus).toBe("failed");
     });
   });
 

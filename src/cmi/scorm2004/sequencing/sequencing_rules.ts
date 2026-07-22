@@ -54,6 +54,71 @@ export enum RuleActionType {
   EXIT = "exit",
 }
 
+export type RuleConditionEvaluation = boolean | "unknown";
+
+export function kleeneNot(value: RuleConditionEvaluation): RuleConditionEvaluation {
+  if (value === "unknown") {
+    return "unknown";
+  }
+
+  return !value;
+}
+
+export function kleeneAnd(values: RuleConditionEvaluation[]): RuleConditionEvaluation {
+  let hasUnknown = false;
+
+  for (const value of values) {
+    if (value === false) {
+      return false;
+    }
+    if (value === "unknown") {
+      hasUnknown = true;
+    }
+  }
+
+  return hasUnknown ? "unknown" : true;
+}
+
+export function kleeneOr(values: RuleConditionEvaluation[]): RuleConditionEvaluation {
+  let hasUnknown = false;
+
+  for (const value of values) {
+    if (value === true) {
+      return true;
+    }
+    if (value === "unknown") {
+      hasUnknown = true;
+    }
+  }
+
+  return hasUnknown ? "unknown" : false;
+}
+
+export function combineRuleConditionResults(
+  values: RuleConditionEvaluation[],
+  conditionCombination: string | RuleConditionOperator,
+): RuleConditionEvaluation {
+  if (values.length === 0) {
+    return false;
+  }
+
+  if (
+    conditionCombination === "all" ||
+    conditionCombination === RuleConditionOperator.AND
+  ) {
+    return kleeneAnd(values);
+  }
+
+  if (
+    conditionCombination === "any" ||
+    conditionCombination === RuleConditionOperator.OR
+  ) {
+    return kleeneOr(values);
+  }
+
+  return false;
+}
+
 /**
  * Class representing a sequencing rule condition
  */
@@ -182,36 +247,51 @@ export class RuleCondition extends BaseCMI {
   /**
    * Evaluate the condition for an activity
    * @param {Activity} activity - The activity to evaluate the condition for
-   * @return {boolean} - True if the condition is met, false otherwise
+   * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
-  evaluate(activity: Activity): boolean {
-    let result;
+  evaluate(activity: Activity): RuleConditionEvaluation {
+    let result: RuleConditionEvaluation;
+    const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
 
     switch (this._condition) {
       case RuleConditionType.SATISFIED:
       case RuleConditionType.OBJECTIVE_SATISFIED:
-        if (referencedObjective) {
-          result = referencedObjective.satisfiedStatus === true;
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+        } else if (referencedObjective) {
+          result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus
+            ? referencedObjective.satisfiedStatus === true
+            : "unknown";
+        } else if (activity.objectiveSatisfiedStatusKnown) {
+          result = activity.objectiveSatisfiedStatus === true;
+        } else if (activity.successStatus !== SuccessStatus.UNKNOWN) {
+          result = activity.successStatus === SuccessStatus.PASSED;
         } else {
-          result =
-            activity.successStatus === SuccessStatus.PASSED ||
-            activity.objectiveSatisfiedStatus === true;
+          result = "unknown";
         }
         break;
       case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
         // noinspection PointlessBooleanExpressionJS
-        result = referencedObjective
-          ? !!referencedObjective.measureStatus
-          : !!activity.objectiveMeasureStatus;
+        result = hasReferencedObjective && !referencedObjective
+          ? false
+          : referencedObjective
+          ? !!referencedObjective.satisfiedStatusKnown
+          : !!activity.objectiveSatisfiedStatusKnown;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
         // noinspection PointlessBooleanExpressionJS
-        result = referencedObjective
+        result = hasReferencedObjective && !referencedObjective
+          ? false
+          : referencedObjective
           ? !!referencedObjective.measureStatus
           : !!activity.objectiveMeasureStatus;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+          break;
+        }
         const greaterThanValue = this._parameters.get("threshold") || 0;
         const measureStatus = referencedObjective
           ? referencedObjective.measureStatus
@@ -219,10 +299,14 @@ export class RuleCondition extends BaseCMI {
         const measureValue = referencedObjective
           ? referencedObjective.normalizedMeasure
           : activity.objectiveNormalizedMeasure;
-        result = !!measureStatus && measureValue > greaterThanValue;
+        result = measureStatus ? measureValue > greaterThanValue : "unknown";
         break;
       }
       case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+          break;
+        }
         const lessThanValue = this._parameters.get("threshold") || 0;
         const measureStatus = referencedObjective
           ? referencedObjective.measureStatus
@@ -230,24 +314,32 @@ export class RuleCondition extends BaseCMI {
         const measureValue = referencedObjective
           ? referencedObjective.normalizedMeasure
           : activity.objectiveNormalizedMeasure;
-        result = !!measureStatus && measureValue < lessThanValue;
+        result = measureStatus ? measureValue < lessThanValue : "unknown";
         break;
       }
       case RuleConditionType.COMPLETED:
       case RuleConditionType.ACTIVITY_COMPLETED:
         // SCORM 2004 4th Edition: When referencedObjective is specified,
         // check the objective's completion status instead of the activity's
-        if (referencedObjective) {
-          result = referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+        } else if (referencedObjective) {
+          result = referencedObjective.completionStatus === CompletionStatus.UNKNOWN
+            ? "unknown"
+            : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+        } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
+          result = "unknown";
         } else {
-          result = activity.isCompleted;
+          result = activity.completionStatus === CompletionStatus.COMPLETED;
         }
         break;
       case RuleConditionType.PROGRESS_KNOWN:
       case RuleConditionType.ACTIVITY_PROGRESS_KNOWN:
         // SCORM 2004 4th Edition: When referencedObjective is specified,
         // check the objective's completion status instead of the activity's
-        if (referencedObjective) {
+        if (hasReferencedObjective && !referencedObjective) {
+          result = false;
+        } else if (referencedObjective) {
           result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
         } else {
           result = activity.completionStatus !== "unknown";
@@ -279,7 +371,7 @@ export class RuleCondition extends BaseCMI {
     }
 
     if (this._operator === RuleConditionOperator.NOT) {
-      result = !result;
+      result = kleeneNot(result);
     }
 
     return result;
@@ -543,23 +635,12 @@ export class SequencingRule extends BaseCMI {
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
   evaluate(activity: Activity): boolean {
-    if (this._conditions.length === 0) {
-      return true;
-    }
-
-    if (
-      this._conditionCombination === "all" ||
-      this._conditionCombination === RuleConditionOperator.AND
-    ) {
-      return this._conditions.every((condition) => condition.evaluate(activity));
-    } else if (
-      this._conditionCombination === "any" ||
-      this._conditionCombination === RuleConditionOperator.OR
-    ) {
-      return this._conditions.some((condition) => condition.evaluate(activity));
-    }
-
-    return false;
+    return (
+      combineRuleConditionResults(
+        this._conditions.map((condition) => condition.evaluate(activity)),
+        this._conditionCombination,
+      ) === true
+    );
   }
 
   /**

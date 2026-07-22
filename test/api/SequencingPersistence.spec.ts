@@ -66,9 +66,11 @@ describe("SCORM 2004 sequencing persistence", () => {
     const api = new Scorm2004API(settings);
     expect(api.Initialize("")).toBe("true");
 
-    api.SetValue("cmi.objectives.0.id", "GLOBAL_PRIMARY");
-    api.SetValue("cmi.objectives.0.success_status", "passed");
-    api.SetValue("cmi.objectives.0.score.scaled", "0.82");
+    expect(api.GetValue("cmi.objectives.0.id")).toBe("SCO_PRIMARY");
+
+    api.SetValue("cmi.objectives.1.id", "GLOBAL_PRIMARY");
+    api.SetValue("cmi.objectives.1.success_status", "passed");
+    api.SetValue("cmi.objectives.1.score.scaled", "0.82");
 
     const saved = await api.saveSequencingState(metadata);
     expect(saved).toBe(true);

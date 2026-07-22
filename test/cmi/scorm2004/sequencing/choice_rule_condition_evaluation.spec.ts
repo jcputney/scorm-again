@@ -13,6 +13,17 @@ import {
   SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
+function ruleWithConditions(
+  action: RuleActionType,
+  ...conditions: RuleCondition[]
+): SequencingRule {
+  const rule = new SequencingRule(action);
+  for (const condition of conditions) {
+    rule.addCondition(condition);
+  }
+  return rule;
+}
+
 /**
  * Tests for Rule Condition Evaluation during Choice Flow
  *
@@ -70,7 +81,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
     it("should skip activity when DISABLED rule has ALWAYS condition", () => {
       // ALWAYS condition always evaluates to true
       const condition = new RuleCondition(RuleConditionType.ALWAYS);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       activityTree.currentActivity = lesson1;
@@ -88,7 +99,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
     it("should skip activity when DISABLED rule has ATTEMPTED condition and activity was attempted", () => {
       const condition = new RuleCondition(RuleConditionType.ATTEMPTED);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Mark lesson3 as attempted
@@ -109,7 +120,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
     it("should exercise ATTEMPTED condition code path during cluster flow", () => {
       const condition = new RuleCondition(RuleConditionType.ATTEMPTED);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // lesson3 was NOT attempted
@@ -123,15 +134,14 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         "module2"
       );
 
-      // Exercises the ATTEMPTED condition evaluation code path
-      // Note: Current behavior skips to lesson4 due to rule presence in checkActivityProcess
+      // ATTEMPTED is false, so DISABLED does not apply
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson4");
+      expect(result.targetActivity?.id).toBe("lesson3");
     });
 
     it("should skip activity when DISABLED rule has COMPLETED condition and activity is completed", () => {
       const condition = new RuleCondition(RuleConditionType.COMPLETED);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Mark lesson3 as completed
@@ -153,7 +163,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
     it("should skip activity when DISABLED rule has SATISFIED condition and objective is satisfied", () => {
       const condition = new RuleCondition(RuleConditionType.SATISFIED);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Mark lesson3 objective as satisfied
@@ -177,7 +187,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
     it("should skip activity when DISABLED rule has NOT COMPLETED condition and activity is not completed", () => {
       // NOT COMPLETED = activity is incomplete
       const condition = new RuleCondition(RuleConditionType.COMPLETED, "not");
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // lesson3 is NOT completed
@@ -200,7 +210,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
     it("should exercise NOT operator code path during cluster flow", () => {
       // Tests the NOT operator evaluation path
       const condition = new RuleCondition(RuleConditionType.COMPLETED, "not");
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // lesson3 IS completed
@@ -215,9 +225,9 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         "module2"
       );
 
-      // Exercises the NOT operator code path in evaluateRuleConditions
+      // NOT COMPLETED is false, so DISABLED does not apply
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson4");
+      expect(result.targetActivity?.id).toBe("lesson3");
     });
   });
 
@@ -226,10 +236,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       // Two conditions that must ALL be true
       const condition1 = new RuleCondition(RuleConditionType.ATTEMPTED);
       const condition2 = new RuleCondition(RuleConditionType.COMPLETED);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [
-        condition1,
-        condition2
-      ]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition1, condition2);
       // Default combination mode is "all"
       lesson3.sequencingRules.preConditionRules.push(rule);
 
@@ -254,10 +261,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
     it("should exercise multiple conditions (AND logic) code path", () => {
       const condition1 = new RuleCondition(RuleConditionType.ATTEMPTED);
       const condition2 = new RuleCondition(RuleConditionType.COMPLETED);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [
-        condition1,
-        condition2
-      ]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition1, condition2);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Only first condition true (attempted=true, completed=false)
@@ -273,16 +277,16 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         "module2"
       );
 
-      // Exercises multiple condition evaluation with AND logic
+      // One AND condition is false, so DISABLED does not apply
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson4");
+      expect(result.targetActivity?.id).toBe("lesson3");
     });
   });
 
   describe("SKIP rule evaluation", () => {
     it("should skip activity with SKIP rule when condition is met", () => {
       const condition = new RuleCondition(RuleConditionType.COMPLETED);
-      const rule = new SequencingRule(RuleActionType.SKIP, [condition]);
+      const rule = ruleWithConditions(RuleActionType.SKIP, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Mark as completed
@@ -304,7 +308,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
     it("should exercise SKIP rule COMPLETED condition code path", () => {
       const condition = new RuleCondition(RuleConditionType.COMPLETED);
-      const rule = new SequencingRule(RuleActionType.SKIP, [condition]);
+      const rule = ruleWithConditions(RuleActionType.SKIP, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Not completed
@@ -319,16 +323,16 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         "module2"
       );
 
-      // Exercises the SKIP rule with COMPLETED condition code path
+      // COMPLETED is false, so SKIP does not apply
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson4");
+      expect(result.targetActivity?.id).toBe("lesson3");
     });
   });
 
   describe("Direct choice to activity with pre-condition rules", () => {
     it("should fail direct choice to activity with DISABLED rule", () => {
       const condition = new RuleCondition(RuleConditionType.ALWAYS);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       activityTree.currentActivity = lesson1;
@@ -346,7 +350,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
     it("should fail direct choice to activity with SKIP rule", () => {
       const condition = new RuleCondition(RuleConditionType.ALWAYS);
-      const rule = new SequencingRule(RuleActionType.SKIP, [condition]);
+      const rule = ruleWithConditions(RuleActionType.SKIP, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       activityTree.currentActivity = lesson1;
@@ -371,7 +375,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         null,
         params
       );
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Set measure as known
@@ -399,7 +403,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         null,
         params
       );
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Set measure above threshold
@@ -427,7 +431,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         null,
         params
       );
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Set measure below threshold
@@ -442,9 +446,9 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         "module2"
       );
 
-      // Exercises the objectiveMeasureGreaterThan threshold comparison code path
+      // measure <= 0.8, so DISABLED does not apply
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson4");
+      expect(result.targetActivity?.id).toBe("lesson3");
     });
 
     it("should skip activity when DISABLED rule has objectiveMeasureLessThan condition and measure is below threshold", () => {
@@ -455,7 +459,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         null,
         params
       );
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Set measure below threshold
@@ -479,7 +483,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
   describe("Progress and attempt conditions", () => {
     it("should skip activity when DISABLED rule has progressKnown condition and progress is known", () => {
       const condition = new RuleCondition(RuleConditionType.PROGRESS_KNOWN);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Set progress as known (not unknown)
@@ -500,7 +504,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
     it("should exercise progressKnown condition evaluation code path", () => {
       const condition = new RuleCondition(RuleConditionType.PROGRESS_KNOWN);
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Set progress as unknown
@@ -514,16 +518,16 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
         "module2"
       );
 
-      // Exercises the progressKnown condition evaluation code path
+      // progress is unknown, so DISABLED does not apply
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson4");
+      expect(result.targetActivity?.id).toBe("lesson3");
     });
 
     it("should skip activity when DISABLED rule has attemptLimitExceeded condition and limit is exceeded", () => {
       const condition = new RuleCondition(
         RuleConditionType.ATTEMPT_LIMIT_EXCEEDED
       );
-      const rule = new SequencingRule(RuleActionType.DISABLED, [condition]);
+      const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
       // Set attempt limit exceeded

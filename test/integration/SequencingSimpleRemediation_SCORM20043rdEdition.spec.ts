@@ -1228,6 +1228,12 @@ wrappers.forEach((wrapper) => {
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
 
+      // cmi.objectives is pre-seeded at Initialize with the current activity's
+      // LOCAL primary objective (RTE 4.2.17), and ids are immutable once set
+      // (error 351), so the global objective entries are appended after it.
+      const seededObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      expect(seededObjectiveId).toBe("learning_objective_satisfied");
+
       // Set all learning objectives
       const objectives = [
         "com.scorm.golfsamples.sequencing.simpleremediation.20043rd.playing_satisfied",
@@ -1245,14 +1251,14 @@ wrappers.forEach((wrapper) => {
             api.lmsSetValue(`cmi.objectives.${index}.score.scaled`, "0.8");
             api.lmsCommit();
           },
-          { objectiveId: objectives[i], index: i },
+          { objectiveId: objectives[i], index: i + 1 },
         );
         await page.waitForTimeout(1000);
       }
 
       // Verify all objectives were set
       for (let i = 0; i < objectives.length; i++) {
-        const objectiveId = await getCmiValue(page, `cmi.objectives.${i}.id`);
+        const objectiveId = await getCmiValue(page, `cmi.objectives.${i + 1}.id`);
         expect(objectiveId).toBe(objectives[i]);
       }
     });
@@ -1363,22 +1369,28 @@ wrappers.forEach((wrapper) => {
 
       await page.waitForTimeout(500);
 
+      // cmi.objectives is pre-seeded at Initialize with the current activity's
+      // LOCAL primary objective (RTE 4.2.17), and ids are immutable once set
+      // (error 351), so the global objective entry is appended after it.
+      const seededObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      expect(seededObjectiveId).toBe("learning_objective_satisfied");
+
       // Set global objective for playing_item (should persist across SCOs)
       await page.evaluate(() => {
         const api = (window as any).API_1484_11;
         api.lmsSetValue(
-          "cmi.objectives.0.id",
+          "cmi.objectives.1.id",
           "com.scorm.golfsamples.sequencing.simpleremediation.20043rd.playing_satisfied",
         );
-        api.lmsSetValue("cmi.objectives.0.success_status", "passed");
-        api.lmsSetValue("cmi.objectives.0.score.scaled", "0.9");
+        api.lmsSetValue("cmi.objectives.1.success_status", "passed");
+        api.lmsSetValue("cmi.objectives.1.score.scaled", "0.9");
         api.lmsCommit();
       });
 
       await page.waitForTimeout(1000);
 
       // Verify global objective was set
-      const playingObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      const playingObjectiveId = await getCmiValue(page, "cmi.objectives.1.id");
       expect(playingObjectiveId).toBe(
         "com.scorm.golfsamples.sequencing.simpleremediation.20043rd.playing_satisfied",
       );
@@ -1411,17 +1423,29 @@ wrappers.forEach((wrapper) => {
       // Location may persist or be reset - both are valid behaviors
       expect(typeof locationAfter === "string").toBe(true);
 
-      // 3. Global objective should persist
-      const objectiveIdAfter = await getCmiValue(page, "cmi.objectives.0.id");
-      expect(objectiveIdAfter).toBe(
-        "com.scorm.golfsamples.sequencing.simpleremediation.20043rd.playing_satisfied",
-      );
-
-      const successStatusAfter = await getCmiValue(page, "cmi.objectives.0.success_status");
-      expect(successStatusAfter).toBe("passed");
-
-      const scaledScoreAfter = await getCmiValue(page, "cmi.objectives.0.score.scaled");
-      expect(scaledScoreAfter).toBe("0.9");
+      // 3. Global objective should persist. After the transition, entry 0 belongs
+      // to the new SCO's own seeded objective, so find the persisted global entry
+      // by id instead of assuming its index.
+      const persistedGlobal = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const count = parseInt(api.lmsGetValue("cmi.objectives._count") || "0", 10);
+        for (let i = 0; i < count; i++) {
+          const id = api.lmsGetValue(`cmi.objectives.${i}.id`);
+          if (
+            id === "com.scorm.golfsamples.sequencing.simpleremediation.20043rd.playing_satisfied"
+          ) {
+            return {
+              id,
+              success_status: api.lmsGetValue(`cmi.objectives.${i}.success_status`),
+              scaled: api.lmsGetValue(`cmi.objectives.${i}.score.scaled`),
+            };
+          }
+        }
+        return null;
+      });
+      expect(persistedGlobal).not.toBeNull();
+      expect(persistedGlobal?.success_status).toBe("passed");
+      expect(persistedGlobal?.scaled).toBe("0.9");
 
       // 4. Verify sequencing state exists and navigation was processed
       // Note: Navigation may not immediately update currentActivity if SCO content hasn't loaded
@@ -1470,15 +1494,21 @@ wrappers.forEach((wrapper) => {
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
 
+      // cmi.objectives is pre-seeded at Initialize with the current activity's
+      // LOCAL primary objective (RTE 4.2.17), and ids are immutable once set
+      // (error 351), so the global objective entry is appended after it.
+      const seededObjectiveId = await getCmiValue(page, "cmi.objectives.0.id");
+      expect(seededObjectiveId).toBe("learning_objective_satisfied");
+
       // Set a global objective
       const globalObjectiveId =
         "com.scorm.golfsamples.sequencing.simpleremediation.20043rd.playing_satisfied";
       await page.evaluate(
         ({ objectiveId }) => {
           const api = (window as any).API_1484_11;
-          api.lmsSetValue("cmi.objectives.0.id", objectiveId);
-          api.lmsSetValue("cmi.objectives.0.success_status", "passed");
-          api.lmsSetValue("cmi.objectives.0.score.scaled", "0.9");
+          api.lmsSetValue("cmi.objectives.1.id", objectiveId);
+          api.lmsSetValue("cmi.objectives.1.success_status", "passed");
+          api.lmsSetValue("cmi.objectives.1.score.scaled", "0.9");
           api.lmsCommit();
         },
         { objectiveId: globalObjectiveId },
@@ -1487,7 +1517,7 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(1000);
 
       // Verify global objective was set
-      const objectiveIdBefore = await getCmiValue(page, "cmi.objectives.0.id");
+      const objectiveIdBefore = await getCmiValue(page, "cmi.objectives.1.id");
       expect(objectiveIdBefore).toBe(globalObjectiveId);
 
       // Explicitly call reset() to simulate SCO transition
@@ -1517,14 +1547,19 @@ wrappers.forEach((wrapper) => {
               };
             }
           }
-          // Fallback: try to read from cmi.objectives (may be reset)
-          const objId = api.lmsGetValue("cmi.objectives.0.id");
-          if (objId === objectiveId) {
-            return {
-              id: objId,
-              success_status: api.lmsGetValue("cmi.objectives.0.success_status"),
-              scaled: api.lmsGetValue("cmi.objectives.0.score.scaled"),
-            };
+          // Fallback: try to read from cmi.objectives (may be reset). The entry's
+          // index can shift after reset because reseeding puts the new activity's
+          // own objectives first, so scan by id.
+          const count = parseInt(api.lmsGetValue("cmi.objectives._count") || "0", 10);
+          for (let i = 0; i < count; i++) {
+            const objId = api.lmsGetValue(`cmi.objectives.${i}.id`);
+            if (objId === objectiveId) {
+              return {
+                id: objId,
+                success_status: api.lmsGetValue(`cmi.objectives.${i}.success_status`),
+                scaled: api.lmsGetValue(`cmi.objectives.${i}.score.scaled`),
+              };
+            }
           }
           // If neither found, check if globalObjectives exists at all
           if (api.globalObjectives) {

@@ -64,9 +64,9 @@ describe("RuleEvaluationEngine", () => {
   });
 
   describe("checkRuleSubprocess", () => {
-    it("should return true for rule with no conditions", () => {
+    it("should return false for rule with no conditions", () => {
       const rule = new SequencingRule(RuleActionType.SKIP);
-      expect(engine.checkRuleSubprocess(activity, rule)).toBe(true);
+      expect(engine.checkRuleSubprocess(activity, rule)).toBe(false);
     });
 
     it("should evaluate AND conditions correctly", () => {

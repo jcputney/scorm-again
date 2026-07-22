@@ -544,6 +544,9 @@ export class SequencingService {
 
   /**
    * Update activity properties from current CMI values
+   *
+   * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - current CMI values update activity objective state
+   * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max scores are available to objective write maps
    */
   private updateActivityFromCMI(activity: Activity): void {
     // Update progress measure
@@ -585,15 +588,16 @@ export class SequencingService {
     if (this.cmi.success_status !== "unknown") {
       activity.successStatus = this.cmi.success_status as "passed" | "failed" | "unknown";
       activity.objectiveSatisfiedStatus = this.cmi.success_status === "passed";
-      // Set measureStatus to true since we now have a known satisfied status
-      activity.objectiveMeasureStatus = true;
-      // Mark that content has set objective satisfaction status
+      // Mark that content has set objective satisfaction status. Objective
+      // Measure Status remains independent unless score data is present.
       if (activity.primaryObjective) {
         activity.primaryObjective.progressStatus = true;
       }
     }
 
     // Update score information
+    // @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - scaled score updates
+    // the objective normalized measure for sequencing.
     if (this.cmi.score && this.cmi.score.scaled !== "") {
       const scaledScore = parseFloat(this.cmi.score.scaled);
       if (!isNaN(scaledScore)) {
@@ -603,6 +607,20 @@ export class SequencingService {
         if (activity.primaryObjective) {
           activity.primaryObjective.progressStatus = true;
         }
+      }
+    }
+
+    if (activity.primaryObjective && this.cmi.score) {
+      // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max
+      // score maps use their own field-level known state.
+      if (this.cmi.score.raw !== "") {
+        activity.primaryObjective.rawScore = this.cmi.score.raw;
+      }
+      if (this.cmi.score.min !== "") {
+        activity.primaryObjective.minScore = this.cmi.score.min;
+      }
+      if (this.cmi.score.max !== "") {
+        activity.primaryObjective.maxScore = this.cmi.score.max;
       }
     }
 
