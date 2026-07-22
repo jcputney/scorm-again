@@ -521,7 +521,7 @@ describe("Boundary Value Tests", () => {
     });
 
     describe("String length boundaries - description", () => {
-      // Spec Reference: SCORM 2004 RTE Section 4.2 - Long Identifier (250 chars)
+      // Spec Reference: SCORM 2004 RTE C.1.3 - The 250-character SPM is not enforced
 
       it("Should accept interaction description at exactly 250 characters", () => {
         api.lmsSetValue("cmi.interactions.0.id", "int-1");
@@ -531,9 +531,36 @@ describe("Boundary Value Tests", () => {
         expect(api.lmsGetLastError()).toBe("0");
       });
 
-      it("Should reject interaction description at 251 characters", () => {
+      it("Should accept interaction description at 251 characters", () => {
         api.lmsSetValue("cmi.interactions.0.id", "int-1");
         const description = "x".repeat(251);
+        const result = api.lmsSetValue("cmi.interactions.0.description", description);
+        expect(result).toBe("true");
+        expect(api.lmsGetLastError()).toBe("0");
+        expect(api.lmsGetValue("cmi.interactions.0.description")).toBe(description);
+      });
+
+      it("Should accept Articulate Rise interaction description at 253 characters (#1642)", () => {
+        api.lmsSetValue("cmi.interactions.0.id", "int-1");
+        const description = "x".repeat(253);
+        const result = api.lmsSetValue("cmi.interactions.0.description", description);
+        expect(result).toBe("true");
+        expect(api.lmsGetLastError()).toBe("0");
+        expect(api.lmsGetValue("cmi.interactions.0.description")).toBe(description);
+      });
+
+      it("Should accept interaction description with language prefix and body over 250 characters", () => {
+        api.lmsSetValue("cmi.interactions.0.id", "int-1");
+        const description = "{lang=en}" + "x".repeat(251);
+        const result = api.lmsSetValue("cmi.interactions.0.description", description);
+        expect(result).toBe("true");
+        expect(api.lmsGetLastError()).toBe("0");
+        expect(api.lmsGetValue("cmi.interactions.0.description")).toBe(description);
+      });
+
+      it("Should reject interaction description with malformed language prefix", () => {
+        api.lmsSetValue("cmi.interactions.0.id", "int-1");
+        const description = "{lang=123}" + "x".repeat(251);
         const result = api.lmsSetValue("cmi.interactions.0.description", description);
         expect(result).toBe("false");
         expect(api.lmsGetLastError()).toBe("406");

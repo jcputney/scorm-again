@@ -187,6 +187,7 @@ export const scorm2004Values: Scorm2004Values = {
     "{lang=en-98} learner comment",
     "{lang=eng-98-9} learner comment",
     "{lang=eng-98-9fhgj}" + "x".repeat(250),
+    "{lang=eng-98-9fhgj}" + "x".repeat(251),
     "learner comment",
     "learner comment}",
     "{lang=i-xx}",
@@ -198,7 +199,6 @@ export const scorm2004Values: Scorm2004Values = {
     "{lang=i-x}",
     "{lang=eng-98-9fhgj}{ learner comment",
     "{learner comment",
-    "{lang=eng-98-9fhgj}" + "x".repeat(251),
     "{lang=eng-98-9fhgj}{" + "x".repeat(249),
   ],
   validNavRequest: [

@@ -270,11 +270,14 @@ export class CMIObjectivesObject extends BaseCMI {
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
+      // Note: SCORM 2004 specifies an SPM of 250 chars for description (localized_string_type).
+      // We intentionally do NOT enforce this limit to maximize LMS compatibility (#1642).
+      // The {lang=...} prefix format is still validated.
       if (
         check2004ValidFormat(
           this._cmi_element + ".description",
           description,
-          scorm2004_regex.CMILangString250,
+          scorm2004_regex.CMILangString,
           true,
         )
       ) {

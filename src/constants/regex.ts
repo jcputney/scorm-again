@@ -179,6 +179,9 @@ export const scorm2004_regex = {
   /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */
   CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
 
+  /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */
+  CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).*$)?$",
+
   /** CMILangcr - Language tag pattern with content */
   CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
 

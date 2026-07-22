@@ -316,15 +316,16 @@ describe("SCORM 2004 Objectives Tests", () => {
           expect(objectiveObj.description).toBe("Another description");
         });
 
-        it("should reject invalid description values", () => {
+        it("should accept long descriptions and reject malformed language tags", () => {
           const objectiveObj = new CMIObjectivesObject();
           objectiveObj.id = "objective-1"; // Set ID first to avoid dependency error
 
-          // Create a string that's too long (more than 250 characters)
-          const tooLongDescription = "a".repeat(251);
+          const longDescription = "a".repeat(251);
+          objectiveObj.description = longDescription;
+          expect(objectiveObj.description).toBe(longDescription);
 
           expect(() => {
-            objectiveObj.description = tooLongDescription;
+            objectiveObj.description = "{lang=123}Invalid description";
           }).toThrow();
         });
 
