@@ -41,6 +41,7 @@ export type Settings = {
   commitRequestDataType?: string | undefined;
   autoProgress?: boolean | undefined;
   logLevel?: LogLevel | undefined;
+  uninitializedGetLogLevel?: LogLevel | undefined;
   selfReportSessionTime?: boolean | undefined;
   alwaysSendTotalTime?: boolean | undefined;
   strict_errors?: boolean | undefined;
@@ -113,6 +114,7 @@ export type InternalSettings = {
   commitRequestDataType: string;
   autoProgress: boolean;
   logLevel: LogLevel;
+  uninitializedGetLogLevel: LogLevel;
   selfReportSessionTime: boolean;
   renderCommonCommitFields: boolean;
   autoCompleteLessonStatus: boolean;

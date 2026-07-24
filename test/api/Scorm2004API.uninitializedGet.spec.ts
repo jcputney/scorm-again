@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
 import Scorm12API from "../../src/Scorm12API";
 import { LogLevelEnum } from "../../src/constants/enums";
-import { StringKeyMap } from "../../src";
+import { Settings, StringKeyMap } from "../../src";
 
 /**
  * Regression coverage for ADL conformance finding #2: per IEEE 1484.11.2 /
@@ -13,12 +13,20 @@ import { StringKeyMap } from "../../src";
  * boundary's behaviour, including the edges the fixture corpus does not reach.
  */
 
-const init2004 = (startingData?: StringKeyMap): Scorm2004API => {
-  const api = new Scorm2004API({ logLevel: LogLevelEnum.NONE });
+const init2004 = (startingData?: StringKeyMap, settings?: Settings): Scorm2004API => {
+  const api = new Scorm2004API({ logLevel: LogLevelEnum.NONE, ...settings });
   api.loadFromJSON(startingData ?? {}, "");
   api.lmsInitialize();
   return api;
 };
+
+const getLogLevelsForElement = (
+  onLogMessage: ReturnType<typeof vi.fn>,
+  element: string,
+): unknown[] =>
+  onLogMessage.mock.calls
+    .filter(([, logMessage]) => logMessage.includes(element))
+    .map(([messageLevel]) => messageLevel);
 
 describe("SCORM 2004 GetValue 403 (VALUE_NOT_INITIALIZED)", () => {
   describe("read before set → 403 for no-default elements", () => {
@@ -83,6 +91,61 @@ describe("SCORM 2004 GetValue 403 (VALUE_NOT_INITIALIZED)", () => {
       api.lmsSetValue("cmi.comments_from_learner.0.comment", "hi");
       expect(api.lmsGetValue("cmi.comments_from_learner.0.timestamp")).toBe("");
       expect(api.lmsGetLastError()).toBe("403");
+    });
+  });
+
+  describe("logging severity", () => {
+    it("logs an uninitialized no-default element at WARN by default", () => {
+      const onLogMessage = vi.fn();
+      const api = init2004(undefined, {
+        logLevel: LogLevelEnum.WARN,
+        onLogMessage,
+      });
+      onLogMessage.mockClear();
+
+      expect(api.lmsGetValue("cmi.suspend_data")).toBe("");
+      expect(api.lmsGetLastError()).toBe("403");
+      expect(getLogLevelsForElement(onLogMessage, "cmi.suspend_data")).toEqual([
+        LogLevelEnum.WARN,
+        LogLevelEnum.WARN,
+      ]);
+    });
+
+    it.each(["ERROR", LogLevelEnum.ERROR] as const)(
+      "logs an uninitialized no-default element at the configured %s level",
+      (uninitializedGetLogLevel) => {
+        const onLogMessage = vi.fn();
+        const api = init2004(undefined, {
+          logLevel: LogLevelEnum.WARN,
+          uninitializedGetLogLevel,
+          onLogMessage,
+        });
+        onLogMessage.mockClear();
+
+        expect(api.lmsGetValue("cmi.location")).toBe("");
+        expect(api.lmsGetLastError()).toBe("403");
+        expect(getLogLevelsForElement(onLogMessage, "cmi.location")).toEqual([
+          uninitializedGetLogLevel,
+          uninitializedGetLogLevel,
+        ]);
+      },
+    );
+
+    it("keeps out-of-range collection reads at ERROR", () => {
+      const onLogMessage = vi.fn();
+      const api = init2004(undefined, {
+        logLevel: LogLevelEnum.WARN,
+        onLogMessage,
+      });
+      api.lmsSetValue("cmi.objectives.0.id", "obj-1");
+      onLogMessage.mockClear();
+
+      expect(api.lmsGetValue("cmi.objectives.5.id")).toBe("");
+      expect(api.lmsGetLastError()).toBe("403");
+      expect(getLogLevelsForElement(onLogMessage, "cmi.objectives.5.id")).toEqual([
+        LogLevelEnum.ERROR,
+        LogLevelEnum.ERROR,
+      ]);
     });
   });
 

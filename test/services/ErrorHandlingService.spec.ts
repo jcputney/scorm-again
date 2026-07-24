@@ -6,6 +6,7 @@ import {
 import { LogLevelEnum } from "../../src/constants/enums";
 import { ValidationError } from "../../src/exceptions";
 import { global_constants } from "../../src";
+import { getLoggingService } from "../../src/services/LoggingService";
 
 describe("ErrorHandlingService", () => {
   let errorHandlingService: ErrorHandlingService;
@@ -68,14 +69,42 @@ describe("ErrorHandlingService", () => {
     });
 
     it("should call apiLog with the error message", () => {
-      errorHandlingService.throwSCORMError("api", 101);
-      expect(apiLogStub).toHaveBeenCalledOnce();
-      expect(apiLogStub).toHaveBeenCalledWith(
-        "throwSCORMError",
-        "101: Error message",
-        LogLevelEnum.ERROR,
-        "api",
-      );
+      const loggingServiceLogSpy = vi.spyOn(getLoggingService(), "log");
+      try {
+        errorHandlingService.throwSCORMError("api", 101);
+        expect(apiLogStub).toHaveBeenCalledOnce();
+        expect(apiLogStub).toHaveBeenCalledWith(
+          "throwSCORMError",
+          "101: Error message",
+          LogLevelEnum.ERROR,
+          "api",
+        );
+        expect(loggingServiceLogSpy).toHaveBeenCalledWith(
+          LogLevelEnum.ERROR,
+          "SCORM Error 101: Error message [Element: api]",
+        );
+      } finally {
+        loggingServiceLogSpy.mockRestore();
+      }
+    });
+
+    it("should apply the provided message level to both log emissions", () => {
+      const loggingServiceLogSpy = vi.spyOn(getLoggingService(), "log");
+      try {
+        errorHandlingService.throwSCORMError("api", 101, "Custom error message", LogLevelEnum.WARN);
+        expect(apiLogStub).toHaveBeenCalledWith(
+          "throwSCORMError",
+          "101: Custom error message",
+          LogLevelEnum.WARN,
+          "api",
+        );
+        expect(loggingServiceLogSpy).toHaveBeenCalledWith(
+          LogLevelEnum.WARN,
+          "SCORM Error 101: Custom error message [Element: api]",
+        );
+      } finally {
+        loggingServiceLogSpy.mockRestore();
+      }
     });
 
     it("should use the provided message if available", () => {

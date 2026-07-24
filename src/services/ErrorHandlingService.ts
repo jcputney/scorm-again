@@ -3,6 +3,7 @@ import { global_constants } from "../constants/api_constants";
 import { ErrorCode } from "../constants/error_codes";
 import { ValidationError } from "../exceptions";
 import { IErrorHandlingService, ILoggingService } from "../interfaces/services";
+import { LogLevel } from "../types/api_types";
 import { getLoggingService } from "./LoggingService";
 
 /**
@@ -15,7 +16,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
   private readonly _apiLog: (
     functionName: string,
     message: string,
-    logLevel?: LogLevelEnum,
+    logLevel?: LogLevel,
     CMIElement?: string,
   ) => void;
   private readonly _getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string;
@@ -34,7 +35,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
     apiLog: (
       functionName: string,
       message: string,
-      logLevel?: LogLevelEnum,
+      logLevel?: LogLevel,
       CMIElement?: string,
     ) => void,
     getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string,
@@ -81,7 +82,12 @@ export class ErrorHandlingService implements IErrorHandlingService {
    * @param {string} message - The error message
    * @throws {ValidationError} - If throwException is true, throws a ValidationError
    */
-  throwSCORMError(CMIElement: string, errorNumber: number, message?: string): void {
+  throwSCORMError(
+    CMIElement: string,
+    errorNumber: number,
+    message?: string,
+    messageLevel: LogLevel = LogLevelEnum.ERROR,
+  ): void {
     // Store custom diagnostic if provided, otherwise clear it
     this._lastDiagnostic = message || "";
 
@@ -93,8 +99,8 @@ export class ErrorHandlingService implements IErrorHandlingService {
     const formattedMessage = `SCORM Error ${errorNumber}: ${message}${CMIElement ? ` [Element: ${CMIElement}]` : ""}`;
 
     // Log using both the API log and the logging service for consistency
-    this._apiLog("throwSCORMError", errorNumber + ": " + message, LogLevelEnum.ERROR, CMIElement);
-    this._loggingService.error(formattedMessage);
+    this._apiLog("throwSCORMError", errorNumber + ": " + message, messageLevel, CMIElement);
+    this._loggingService.log(messageLevel, formattedMessage);
 
     this._lastErrorCode = String(errorNumber);
   }
@@ -219,12 +225,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
 // Export a factory function to create the service
 export function createErrorHandlingService(
   errorCodes: ErrorCode,
-  apiLog: (
-    functionName: string,
-    message: string,
-    logLevel?: LogLevelEnum,
-    CMIElement?: string,
-  ) => void,
+  apiLog: (functionName: string, message: string, logLevel?: LogLevel, CMIElement?: string) => void,
   getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string,
   loggingService?: ILoggingService,
 ): ErrorHandlingService {

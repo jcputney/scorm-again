@@ -16,6 +16,7 @@ export const DefaultSettings: InternalSettings = {
   commitRequestDataType: "application/json;charset=UTF-8",
   autoProgress: false,
   logLevel: LogLevelEnum.ERROR,
+  uninitializedGetLogLevel: LogLevelEnum.WARN,
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
   renderCommonCommitFields: false,
