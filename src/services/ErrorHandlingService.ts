@@ -83,7 +83,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
    * @throws {ValidationError} - If throwException is true, throws a ValidationError
    */
   throwSCORMError(
-    CMIElement: string,
+    CMIElement: string | undefined,
     errorNumber: number,
     message?: string,
     messageLevel: LogLevel = LogLevelEnum.ERROR,
