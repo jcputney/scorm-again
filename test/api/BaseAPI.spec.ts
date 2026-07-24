@@ -1283,6 +1283,7 @@ describe("BaseAPI", () => {
         "cmi.core.student_id",
         errorCodes.GENERAL,
         "Error message",
+        undefined,
       );
     });
 

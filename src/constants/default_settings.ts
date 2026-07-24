@@ -17,6 +17,7 @@ export const DefaultSettings: InternalSettings = {
   terminationCommitContentType: "text/plain;charset=UTF-8",
   autoProgress: false,
   logLevel: LogLevelEnum.ERROR,
+  uninitializedGetLogLevel: LogLevelEnum.WARN,
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
   renderCommonCommitFields: false,

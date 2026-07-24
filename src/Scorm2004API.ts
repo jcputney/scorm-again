@@ -1102,6 +1102,7 @@ class Scorm2004API extends BaseAPI {
       CMIElement,
       this._error_codes.VALUE_NOT_INITIALIZED ?? 403,
       `The data model element passed to GetValue (${CMIElement}) has not been initialized.`,
+      this.settings.uninitializedGetLogLevel,
     );
   }
 

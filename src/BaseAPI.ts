@@ -1472,8 +1472,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     CMIElement: string | undefined,
     errorNumber: number | undefined,
     message?: string,
+    messageLevel?: LogLevel,
   ) {
-    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message);
+    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message, messageLevel);
   }
 
   /**
