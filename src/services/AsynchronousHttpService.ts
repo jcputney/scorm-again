@@ -194,8 +194,9 @@ export class AsynchronousHttpService implements IHttpService {
    */
   private async performBeacon(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
     const { body, contentType } = this._prepareRequestBody(params);
-    const beaconContentType =
-      params instanceof Array ? contentType : this.settings.terminationCommitContentType;
+    const beaconContentType = Array.isArray(params)
+      ? contentType
+      : this.settings.terminationCommitContentType;
     this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
 
     // Send the beacon request
