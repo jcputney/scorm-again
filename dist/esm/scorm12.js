@@ -1,5 +1,22 @@
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+const CORS_SAFELISTED_CONTENT_TYPES = [
+  "text/plain",
+  "application/x-www-form-urlencoded",
+  "multipart/form-data"
+];
+function isCorsSafelistedContentType(contentType) {
+  const essence = ((contentType || "").split(";")[0] ?? "").trim().toLowerCase();
+  return CORS_SAFELISTED_CONTENT_TYPES.includes(essence);
+}
+function isCrossOriginUrl(url) {
+  if (typeof location === "undefined" || !location || !location.origin) return false;
+  try {
+    return new URL(url, location.href).origin !== location.origin;
+  } catch {
+    return false;
+  }
+}
 const getSecondsAsHHMMSS = (totalSeconds) => {
   if (!totalSeconds || totalSeconds <= 0) {
     return "00:00:00";
@@ -530,8 +547,10 @@ const DefaultSettings = {
   lmsCommitUrl: false,
   dataCommitFormat: "json",
   commitRequestDataType: "application/json;charset=UTF-8",
+  terminationCommitContentType: "text/plain;charset=UTF-8",
   autoProgress: false,
   logLevel: LogLevelEnum.ERROR,
+  uninitializedGetLogLevel: LogLevelEnum.WARN,
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
   renderCommonCommitFields: false,
@@ -1061,7 +1080,9 @@ class AsynchronousHttpService {
    */
   async performBeacon(url, params) {
     const { body, contentType } = this._prepareRequestBody(params);
-    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+    const beaconContentType = Array.isArray(params) ? contentType : this.settings.terminationCommitContentType;
+    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
     return Promise.resolve({
       status: beaconSuccess ? 200 : 0,
       ok: beaconSuccess,
@@ -1074,6 +1095,14 @@ class AsynchronousHttpService {
         errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
       })
     });
+  }
+  _warnIfBeaconContentTypeUnsafe(url, contentType) {
+    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+      this.settings.onLogMessage?.(
+        LogLevelEnum.WARN,
+        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`
+      );
+    }
   }
   /**
    * Transforms the response from the LMS to a ResultObject
@@ -1742,14 +1771,14 @@ class ErrorHandlingService {
    * @param {string} message - The error message
    * @throws {ValidationError} - If throwException is true, throws a ValidationError
    */
-  throwSCORMError(CMIElement, errorNumber, message) {
+  throwSCORMError(CMIElement, errorNumber, message, messageLevel = LogLevelEnum.ERROR) {
     this._lastDiagnostic = message || "";
     if (!message) {
       message = this._getLmsErrorMessageDetails(errorNumber, true);
     }
     const formattedMessage = `SCORM Error ${errorNumber}: ${message}${CMIElement ? ` [Element: ${CMIElement}]` : ""}`;
-    this._apiLog("throwSCORMError", errorNumber + ": " + message, LogLevelEnum.ERROR, CMIElement);
-    this._loggingService.error(formattedMessage);
+    this._apiLog("throwSCORMError", errorNumber + ": " + message, messageLevel, CMIElement);
+    this._loggingService.log(messageLevel, formattedMessage);
     this._lastErrorCode = String(errorNumber);
   }
   /**
@@ -2748,14 +2777,21 @@ class SynchronousHttpService {
     const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
     const requestPayload = handledPayload ?? params;
     const { body } = this._prepareRequestBody(requestPayload);
-    const beaconSuccess = navigator.sendBeacon(
-      url,
-      new Blob([body], { type: "text/plain;charset=UTF-8" })
-    );
+    const beaconContentType = this.settings.terminationCommitContentType;
+    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
     return {
       result: beaconSuccess ? "true" : "false",
       errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
     };
+  }
+  _warnIfBeaconContentTypeUnsafe(url, contentType) {
+    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+      this.settings.onLogMessage?.(
+        LogLevelEnum.WARN,
+        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`
+      );
+    }
   }
   /**
    * Performs a synchronous XMLHttpRequest
@@ -3783,8 +3819,8 @@ class BaseAPI {
    * // Throw a "not initialized" error
    * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
    */
-  throwSCORMError(CMIElement, errorNumber, message) {
-    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message);
+  throwSCORMError(CMIElement, errorNumber, message, messageLevel) {
+    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message, messageLevel);
   }
   /**
    * Clears the last SCORM error code when an operation succeeds.

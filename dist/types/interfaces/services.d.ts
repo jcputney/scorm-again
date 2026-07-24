@@ -34,7 +34,7 @@ export interface IErrorHandlingService {
     get lastErrorCode(): string;
     set lastErrorCode(errorCode: string);
     get lastDiagnostic(): string;
-    throwSCORMError(CMIElement: string | undefined, errorNumber: number, message?: string): void;
+    throwSCORMError(CMIElement: string | undefined, errorNumber: number, message?: string, messageLevel?: LogLevel): void;
     clearSCORMError(success: string): void;
     handleValueAccessException(CMIElement: string, e: ValidationError | Error | unknown, returnValue: string): string;
     get errorCodes(): ErrorCode;

@@ -3,6 +3,8 @@ export declare const SECONDS_PER_MINUTE = 60;
 export declare const SECONDS_PER_HOUR: number;
 export declare const SECONDS_PER_DAY: number;
 export type StringKeyMap = Record<string, unknown>;
+export declare function isCorsSafelistedContentType(contentType: string): boolean;
+export declare function isCrossOriginUrl(url: string): boolean;
 export declare const getSecondsAsHHMMSS: (totalSeconds: number | null) => string;
 export declare const getSecondsAsISODuration: (seconds: number | null) => string;
 export declare const getTimeAsSeconds: (timeString: string | number | boolean | null, timeRegex: RegExp | string) => number;

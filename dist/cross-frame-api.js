@@ -9,9 +9,7 @@ this.CrossFrameAPI = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _object_spread(target) {
@@ -39,9 +37,8 @@ this.CrossFrameAPI = (function () {
   }
   function _object_spread_props(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
@@ -135,9 +132,7 @@ this.CrossFrameAPI = (function () {
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -157,9 +152,7 @@ this.CrossFrameAPI = (function () {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _iterable_to_array_limit(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -186,7 +179,7 @@ this.CrossFrameAPI = (function () {
       return _arr;
   }
   function _non_iterable_rest() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array(arr, i) {
       return _array_with_holes(arr) || _iterable_to_array_limit(arr, i) || _unsupported_iterable_to_array(arr, i) || _non_iterable_rest();

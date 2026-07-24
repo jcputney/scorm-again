@@ -13,7 +13,9 @@
       if (Array.isArray(arr)) return _array_like_to_array$h(arr);
   }
   function _iterable_to_array$b(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _iterable_to_array_limit$7(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -40,10 +42,10 @@
       return _arr;
   }
   function _non_iterable_rest$7() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$b() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$7(arr, i) {
       return _array_with_holes$7(arr) || _iterable_to_array_limit$7(arr, i) || _unsupported_iterable_to_array$h(arr, i) || _non_iterable_rest$7();
@@ -63,6 +65,24 @@
   var SECONDS_PER_MINUTE = 60;
   var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
   var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+  var CORS_SAFELISTED_CONTENT_TYPES = [
+      "text/plain",
+      "application/x-www-form-urlencoded",
+      "multipart/form-data"
+  ];
+  function isCorsSafelistedContentType(contentType) {
+      var _split_;
+      var essence = ((_split_ = (contentType || "").split(";")[0]) !== null && _split_ !== void 0 ? _split_ : "").trim().toLowerCase();
+      return CORS_SAFELISTED_CONTENT_TYPES.includes(essence);
+  }
+  function isCrossOriginUrl(url) {
+      if (typeof location === "undefined" || !location || !location.origin) return false;
+      try {
+          return new URL(url, location.href).origin !== location.origin;
+      } catch (unused) {
+          return false;
+      }
+  }
   var designations = {
       D: SECONDS_PER_DAY,
       H: SECONDS_PER_HOUR,
@@ -357,9 +377,7 @@
   };
 
   function _assert_this_initialized$y(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$y(_this, derived, args) {
@@ -367,9 +385,7 @@
       return _possible_constructor_return$y(_this, _is_native_reflect_construct$y() ? Reflect.construct(derived, args || [], _get_prototype_of$y(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$1k(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1h(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -403,10 +419,16 @@
       });
       if (superClass) _set_prototype_of$y(subClass, superClass);
   }
+  function _is_native_reflect_construct$y() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$y = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$y(self, call) {
-      if (call && (_type_of$1g(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$1g(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$y(self);
   }
   function _set_prototype_of$y(o, p) {
@@ -419,14 +441,6 @@
   function _type_of$1g(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$y() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$y = function() {
-          return !!result;
-      })();
   }
   var __defProp$1d = Object.defineProperty;
   var __defNormalProp$1d = function __defNormalProp(obj, key, value) {
@@ -499,7 +513,7 @@
      */ key: "setStartTime",
               value: function setStartTime() {
                   if (this._start_time === void 0) {
-                      this._start_time = /* @__PURE__ */ new Date().getTime();
+                      this._start_time = (/* @__PURE__ */ new Date()).getTime();
                   } else {
                       throw new Error("Start time has already been set.");
                   }
@@ -510,9 +524,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$x(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$x(_this, derived, args) {
@@ -520,14 +532,11 @@
       return _possible_constructor_return$x(_this, _is_native_reflect_construct$x() ? Reflect.construct(derived, args || [], _get_prototype_of$x(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$1j(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _construct(Parent, args, Class) {
-      if (_is_native_reflect_construct$x()) {
-          _construct = Reflect.construct;
-      } else {
+      if (_is_native_reflect_construct$x()) _construct = Reflect.construct;
+      else {
           _construct = function construct(Parent, args, Class) {
               var a = [
                   null
@@ -576,10 +585,16 @@
   function _is_native_function(fn) {
       return Function.toString.call(fn).indexOf("[native code]") !== -1;
   }
+  function _is_native_reflect_construct$x() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$x = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$x(self, call) {
-      if (call && (_type_of$1f(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$1f(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$x(self);
   }
   function _set_prototype_of$x(o, p) {
@@ -595,11 +610,9 @@
   }
   function _wrap_native_super(Class) {
       var _cache = typeof Map === "function" ? new Map() : undefined;
-      _wrap_native_super = function wrapNativeSuper(Class) {
+      _wrap_native_super = function(Class) {
           if (Class === null || !_is_native_function(Class)) return Class;
-          if (typeof Class !== "function") {
-              throw new TypeError("Super expression must either be null or a function");
-          }
+          if (typeof Class !== "function") throw new TypeError("Super expression must either be null or a function");
           if (typeof _cache !== "undefined") {
               if (_cache.has(Class)) return _cache.get(Class);
               _cache.set(Class, Wrapper);
@@ -618,14 +631,6 @@
           return _set_prototype_of$x(Wrapper, Class);
       };
       return _wrap_native_super(Class);
-  }
-  function _is_native_reflect_construct$x() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$x = function() {
-          return !!result;
-      })();
   }
   var __defProp$1c = Object.defineProperty;
   var __defNormalProp$1c = function __defNormalProp(obj, key, value) {
@@ -898,9 +903,7 @@
   };
 
   function _assert_this_initialized$w(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$w(_this, derived, args) {
@@ -908,9 +911,7 @@
       return _possible_constructor_return$w(_this, _is_native_reflect_construct$w() ? Reflect.construct(derived, args || [], _get_prototype_of$w(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$1i(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _get_prototype_of$w(o) {
       _get_prototype_of$w = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
@@ -931,10 +932,16 @@
       });
       if (superClass) _set_prototype_of$w(subClass, superClass);
   }
+  function _is_native_reflect_construct$w() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$w = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$w(self, call) {
-      if (call && (_type_of$1e(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$1e(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$w(self);
   }
   function _set_prototype_of$w(o, p) {
@@ -947,14 +954,6 @@
   function _type_of$1e(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$w() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$w = function() {
-          return !!result;
-      })();
   }
   var scorm12_errors$1 = scorm12_constants.error_descriptions;
   var Scorm12ValidationError = /*#__PURE__*/ function(ValidationError) {
@@ -987,9 +986,7 @@
   }(ValidationError);
 
   function _assert_this_initialized$v(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$v(_this, derived, args) {
@@ -997,9 +994,7 @@
       return _possible_constructor_return$v(_this, _is_native_reflect_construct$v() ? Reflect.construct(derived, args || [], _get_prototype_of$v(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$1h(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _get_prototype_of$v(o) {
       _get_prototype_of$v = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
@@ -1020,10 +1015,16 @@
       });
       if (superClass) _set_prototype_of$v(subClass, superClass);
   }
+  function _is_native_reflect_construct$v() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$v = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$v(self, call) {
-      if (call && (_type_of$1d(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$1d(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$v(self);
   }
   function _set_prototype_of$v(o, p) {
@@ -1036,14 +1037,6 @@
   function _type_of$1d(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$v() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$v = function() {
-          return !!result;
-      })();
   }
   var scorm2004_errors$1 = scorm2004_constants.error_descriptions;
   var Scorm2004ValidationError = /*#__PURE__*/ function(ValidationError) {
@@ -1082,9 +1075,7 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _object_spread$g(target) {
@@ -1112,9 +1103,8 @@
   }
   function _object_spread_props$5(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$5(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
@@ -1200,9 +1190,7 @@
   });
 
   function _assert_this_initialized$u(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$u(_this, derived, args) {
@@ -1210,9 +1198,7 @@
       return _possible_constructor_return$u(_this, _is_native_reflect_construct$u() ? Reflect.construct(derived, args || [], _get_prototype_of$u(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$1g(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1f(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -1246,10 +1232,16 @@
       });
       if (superClass) _set_prototype_of$u(subClass, superClass);
   }
+  function _is_native_reflect_construct$u() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$u = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$u(self, call) {
-      if (call && (_type_of$1c(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$1c(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$u(self);
   }
   function _set_prototype_of$u(o, p) {
@@ -1262,14 +1254,6 @@
   function _type_of$1c(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$u() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$u = function() {
-          return !!result;
-      })();
   }
   var __defProp$1b = Object.defineProperty;
   var __defNormalProp$1b = function __defNormalProp(obj, key, value) {
@@ -1401,11 +1385,8 @@
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$5(fn) {
       return function() {
@@ -1530,8 +1511,10 @@
       lmsCommitUrl: false,
       dataCommitFormat: "json",
       commitRequestDataType: "application/json;charset=UTF-8",
+      terminationCommitContentType: "text/plain;charset=UTF-8",
       autoProgress: false,
       logLevel: LogLevelEnum.ERROR,
+      uninitializedGetLogLevel: LogLevelEnum.WARN,
       selfReportSessionTime: false,
       alwaysSendTotalTime: false,
       renderCommonCommitFields: false,
@@ -2067,9 +2050,7 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _object_spread$f(target) {
@@ -2583,11 +2564,8 @@
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$4(fn) {
       return function() {
@@ -2605,9 +2583,7 @@
       };
   }
   function _class_call_check$1f(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1e(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -2621,10 +2597,6 @@
   function _create_class$1e(Constructor, protoProps, staticProps) {
       if (protoProps) _defineProperties$1e(Constructor.prototype, protoProps);
       return Constructor;
-  }
-  function _type_of$1b(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   function _ts_generator$4(thisArg, body) {
       var f, y, t, _ = {
@@ -2725,6 +2697,10 @@
           };
       }
   }
+  function _type_of$1b(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
   var __defProp$1a = Object.defineProperty;
   var __defNormalProp$1a = function __defNormalProp(obj, key, value) {
       return key in obj ? __defProp$1a(obj, key, {
@@ -2805,9 +2781,7 @@
   ];
 
   function _assert_this_initialized$t(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$t(_this, derived, args) {
@@ -2815,9 +2789,7 @@
       return _possible_constructor_return$t(_this, _is_native_reflect_construct$t() ? Reflect.construct(derived, args || [], _get_prototype_of$t(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$1e(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1d(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -2856,14 +2828,18 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
+  }
+  function _is_native_reflect_construct$t() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$t = function() {
+          return !!result;
+      })();
   }
   function _possible_constructor_return$t(self, call) {
-      if (call && (_type_of$1a(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$1a(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$t(self);
   }
   function _set_prototype_of$t(o, p) {
@@ -2876,14 +2852,6 @@
   function _type_of$1a(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$t() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$t = function() {
-          return !!result;
-      })();
   }
   var __defProp$19 = Object.defineProperty;
   var __defNormalProp$19 = function __defNormalProp(obj, key, value) {
@@ -3666,9 +3634,7 @@
   }(BaseCMI);
 
   function _class_call_check$1d(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1c(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -3966,9 +3932,7 @@
   }();
 
   function _class_call_check$1c(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1b(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -4507,9 +4471,7 @@
   }();
 
   function _class_call_check$1b(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _type_of$17(obj) {
       "@swc/helpers - typeof";
@@ -4588,9 +4550,7 @@
   }(FlowSubprocessMode || {});
 
   function _class_call_check$1a(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1a(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -4941,9 +4901,7 @@
   }();
 
   function _assert_this_initialized$s(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$s(_this, derived, args) {
@@ -4951,9 +4909,7 @@
       return _possible_constructor_return$s(_this, _is_native_reflect_construct$s() ? Reflect.construct(derived, args || [], _get_prototype_of$s(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$19(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$19(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -4987,10 +4943,16 @@
       });
       if (superClass) _set_prototype_of$s(subClass, superClass);
   }
+  function _is_native_reflect_construct$s() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$s = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$s(self, call) {
-      if (call && (_type_of$15(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$15(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$s(self);
   }
   function _set_prototype_of$s(o, p) {
@@ -5003,14 +4965,6 @@
   function _type_of$15(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$s() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$s = function() {
-          return !!result;
-      })();
   }
   var __defProp$14 = Object.defineProperty;
   var __defNormalProp$14 = function __defNormalProp(obj, key, value) {
@@ -5526,9 +5480,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
   function _class_call_check$18(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$18(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -5544,10 +5496,12 @@
       return Constructor;
   }
   function _iterable_to_array$a(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$a() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$a(arr) {
       return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$a();
@@ -5755,9 +5709,7 @@
   }();
 
   function _class_call_check$17(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$17(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -6214,9 +6166,7 @@
   }();
 
   function _class_call_check$16(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$16(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -6383,9 +6333,7 @@
   }();
 
   function _class_call_check$15(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$15(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -6712,9 +6660,7 @@
   }();
 
   function _class_call_check$14(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$14(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -6899,9 +6845,7 @@
   }();
 
   function _class_call_check$13(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$13(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -7050,9 +6994,7 @@
   }();
 
   function _class_call_check$12(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$12(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -7398,9 +7340,7 @@
   }();
 
   function _class_call_check$11(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$11(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -7423,9 +7363,7 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _object_spread$e(target) {
@@ -7581,11 +7519,8 @@
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$3(fn) {
       return function() {
@@ -7603,9 +7538,7 @@
       };
   }
   function _class_call_check$10(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$10(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -7628,18 +7561,14 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof$g(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _object_spread$d(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -7666,18 +7595,13 @@
   }
   function _object_spread_props$4(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$4(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
-  }
-  function _type_of$Z(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   function _ts_generator$3(thisArg, body) {
       var f, y, t, _ = {
@@ -7777,6 +7701,10 @@
               done: true
           };
       }
+  }
+  function _type_of$Z(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   var __defProp$Y = Object.defineProperty;
   var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
@@ -7979,14 +7907,16 @@
      * @private
      */ function performBeacon(url, params) {
                   return _async_to_generator$3(function() {
-                      var _this, _this__prepareRequestBody, body, contentType, beaconSuccess;
+                      var _this, _this__prepareRequestBody, body, contentType, beaconContentType, beaconSuccess;
                       return _ts_generator$3(this, function(_state) {
                           _this = this;
                           _this__prepareRequestBody = this._prepareRequestBody(params), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
+                          beaconContentType = Array.isArray(params) ? contentType : this.settings.terminationCommitContentType;
+                          this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
                           beaconSuccess = navigator.sendBeacon(url, new Blob([
                               body
                           ], {
-                              type: contentType
+                              type: beaconContentType
                           }));
                           return [
                               2,
@@ -8023,6 +7953,15 @@
                           ];
                       });
                   }).call(this);
+              }
+          },
+          {
+              key: "_warnIfBeaconContentTypeUnsafe",
+              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
+                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+                      var _this_settings_onLogMessage, _this_settings;
+                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
+                  }
               }
           },
           {
@@ -8146,9 +8085,7 @@
   }();
 
   function _class_call_check$$(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$$(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -8167,9 +8104,7 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of$Y(obj) {
       "@swc/helpers - typeof";
@@ -8560,9 +8495,7 @@
   }();
 
   function _class_call_check$_(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$_(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -8781,9 +8714,7 @@
   }
 
   function _class_call_check$Z(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$Z(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -8802,9 +8733,7 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of$W(obj) {
       "@swc/helpers - typeof";
@@ -8874,13 +8803,14 @@
      * @throws {ValidationError} - If throwException is true, throws a ValidationError
      */ key: "throwSCORMError",
               value: function throwSCORMError(CMIElement, errorNumber, message) {
+                  var messageLevel = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : LogLevelEnum.ERROR;
                   this._lastDiagnostic = message || "";
                   if (!message) {
                       message = this._getLmsErrorMessageDetails(errorNumber, true);
                   }
                   var formattedMessage = "SCORM Error ".concat(errorNumber, ": ").concat(message).concat(CMIElement ? " [Element: ".concat(CMIElement, "]") : "");
-                  this._apiLog("throwSCORMError", errorNumber + ": " + message, LogLevelEnum.ERROR, CMIElement);
-                  this._loggingService.error(formattedMessage);
+                  this._apiLog("throwSCORMError", errorNumber + ": " + message, messageLevel, CMIElement);
+                  this._loggingService.log(messageLevel, formattedMessage);
                   this._lastErrorCode = String(errorNumber);
               }
           },
@@ -8986,9 +8916,7 @@
   }
 
   function _class_call_check$Y(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$Y(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -9279,11 +9207,8 @@
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$2(fn) {
       return function() {
@@ -9301,9 +9226,7 @@
       };
   }
   function _class_call_check$X(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$X(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -9326,18 +9249,14 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof$d(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _object_spread$c(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -9364,18 +9283,13 @@
   }
   function _object_spread_props$3(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$3(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
-  }
-  function _type_of$U(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   function _ts_generator$2(thisArg, body) {
       var f, y, t, _ = {
@@ -9475,6 +9389,10 @@
               done: true
           };
       }
+  }
+  function _type_of$U(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   var __defProp$T = Object.defineProperty;
   var __defNormalProp$T = function __defNormalProp(obj, key, value) {
@@ -10067,9 +9985,7 @@
   }
 
   function _assert_this_initialized$r(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$r(_this, derived, args) {
@@ -10077,9 +9993,7 @@
       return _possible_constructor_return$r(_this, _is_native_reflect_construct$r() ? Reflect.construct(derived, args || [], _get_prototype_of$r(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$W(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$W(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -10117,14 +10031,18 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
+  }
+  function _is_native_reflect_construct$r() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$r = function() {
+          return !!result;
+      })();
   }
   function _possible_constructor_return$r(self, call) {
-      if (call && (_type_of$S(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$S(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$r(self);
   }
   function _set_prototype_of$r(o, p) {
@@ -10137,14 +10055,6 @@
   function _type_of$S(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$r() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$r = function() {
-          return !!result;
-      })();
   }
   var __defProp$S = Object.defineProperty;
   var __defNormalProp$S = function __defNormalProp(obj, key, value) {
@@ -10734,9 +10644,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
   function _assert_this_initialized$q(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$q(_this, derived, args) {
@@ -10744,9 +10652,7 @@
       return _possible_constructor_return$q(_this, _is_native_reflect_construct$q() ? Reflect.construct(derived, args || [], _get_prototype_of$q(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$V(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$V(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -10770,22 +10676,17 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _get$a(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$a = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$a = Reflect.get;
+      else {
           _get$a = function get(target, property, receiver) {
               var base = _super_prop_base$a(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -10814,15 +10715,23 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
+  }
+  function _is_native_reflect_construct$q() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$q = function() {
+          return !!result;
+      })();
   }
   function _iterable_to_array$9(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$9() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$b(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -10840,9 +10749,7 @@
       return target;
   }
   function _possible_constructor_return$q(self, call) {
-      if (call && (_type_of$R(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$R(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$q(self);
   }
   function _set_prototype_of$q(o, p) {
@@ -10873,14 +10780,6 @@
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
-  }
-  function _is_native_reflect_construct$q() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$q = function() {
-          return !!result;
-      })();
   }
   var __defProp$R = Object.defineProperty;
   var __defNormalProp$R = function __defNormalProp(obj, key, value) {
@@ -13463,9 +13362,7 @@
   }(BaseCMI);
 
   function _class_call_check$U(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$U(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -13645,9 +13542,7 @@
   }();
 
   function _class_call_check$T(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$T(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -13834,9 +13729,7 @@
   }();
 
   function _class_call_check$S(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$S(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -14108,9 +14001,7 @@
   }();
 
   function _class_call_check$R(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$R(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -14327,9 +14218,7 @@
   }();
 
   function _class_call_check$Q(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$Q(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -14495,9 +14384,7 @@
   }();
 
   function _class_call_check$P(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$P(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -14646,9 +14533,7 @@
   }();
 
   function _class_call_check$O(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$O(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -14667,9 +14552,7 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of$L(obj) {
       "@swc/helpers - typeof";
@@ -14947,9 +14830,7 @@
   }();
 
   function _class_call_check$N(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$N(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -14969,9 +14850,7 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of$K(obj) {
       "@swc/helpers - typeof";
@@ -15267,7 +15146,7 @@
                                       activityId: activity.id,
                                       objectiveId: objective.id,
                                       globalState: globalObjective,
-                                      synchronizationTime: /* @__PURE__ */ new Date().toISOString()
+                                      synchronizationTime: (/* @__PURE__ */ new Date()).toISOString()
                                   });
                               }
                           } catch (err) {
@@ -15424,7 +15303,7 @@
                           objectiveId: objective.id,
                           localState: localObjective,
                           globalState: globalObjective,
-                          synchronizationTime: /* @__PURE__ */ new Date().toISOString()
+                          synchronizationTime: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   } catch (error) {
                       var _this_eventCallback1, _this1;
@@ -15432,7 +15311,7 @@
                           activityId: activity.id,
                           objectiveId: objective.id,
                           error: _instanceof$9(error, Error) ? error.message : String(error),
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
               }
@@ -15646,7 +15525,7 @@
                       (_this_eventCallback = (_this = this).eventCallback) === null || _this_eventCallback === void 0 ? void 0 : _this_eventCallback.call(_this, "attempt_data_update_error", {
                           activityId: activity.id,
                           error: _instanceof$9(error, Error) ? error.message : String(error),
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
               }
@@ -15703,9 +15582,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$e(arr);
   }
   function _class_call_check$M(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$M(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -15724,15 +15601,15 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _iterable_to_array$8(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$8() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$8(arr) {
       return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$8();
@@ -15784,7 +15661,7 @@
                       var _this_eventCallback, _this, _this_eventCallback1, _this1;
                       (_this_eventCallback = (_this = this).eventCallback) === null || _this_eventCallback === void 0 ? void 0 : _this_eventCallback.call(_this, "rollup_validation_started", {
                           activityId: rootActivity.id,
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                       var inconsistencies = [];
                       this.validateActivityRollupState(rootActivity, inconsistencies);
@@ -15881,7 +15758,7 @@
                   }
                   this.rollupStateLog.push({
                       activity: activityId,
-                      timestamp: /* @__PURE__ */ new Date().toISOString(),
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
                       state: {
                           measureStatus: activity.objectiveMeasureStatus,
                           measure: activity.objectiveNormalizedMeasure,
@@ -15914,9 +15791,7 @@
   }();
 
   function _class_call_check$L(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$L(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -16176,9 +16051,7 @@
   }
 
   function _class_call_check$K(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$K(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -16257,7 +16130,7 @@
                   this.transferNonPrimaryObjectives(activity, cmiData);
                   this.context.fireEvent("onRteDataTransfer", {
                       activityId: activity.id,
-                      timestamp: /* @__PURE__ */ new Date().toISOString()
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString()
                   });
               }
           },
@@ -16493,9 +16366,7 @@
   }();
 
   function _class_call_check$J(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$J(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -16924,7 +16795,7 @@
                           return a.id;
                       }),
                       pathLength: activityPath.length,
-                      timestamp: /* @__PURE__ */ new Date().toISOString()
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString()
                   });
                   return {
                       terminationRequest: SequencingRequestType.SUSPEND_ALL,
@@ -17001,7 +16872,7 @@
                           activity: activity.id,
                           sequencingRequest: postResult.sequencingRequest,
                           terminationRequest: postResult.terminationRequest,
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
                   return postResult;
@@ -17311,7 +17182,7 @@
                                       activity.wasAutoCompleted = true;
                                       this.fireEvent("onAutoCompletion", {
                                           activityId: activity.id,
-                                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                                       });
                                   }
                               }
@@ -17326,7 +17197,7 @@
                                           activity.wasAutoSatisfied = true;
                                           this.fireEvent("onAutoSatisfaction", {
                                               activityId: activity.id,
-                                              timestamp: /* @__PURE__ */ new Date().toISOString()
+                                              timestamp: (/* @__PURE__ */ new Date()).toISOString()
                                           });
                                       }
                                   }
@@ -17386,9 +17257,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$d(arr);
   }
   function _class_call_check$I(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$I(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -17411,16 +17280,16 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _iterable_to_array$7(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$7() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$a(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -17583,7 +17452,7 @@
               value: function processDeliveryRequest(activity) {
                   this.fireEvent("onDeliveryRequestProcessing", {
                       activity: activity.id,
-                      timestamp: /* @__PURE__ */ new Date().toISOString()
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString()
                   });
                   if (activity.children.length > 0) {
                       return new DeliveryRequest(false, null, "DB.1.1-1");
@@ -17948,9 +17817,7 @@
   var DeliveryHandler = _DeliveryHandler;
 
   function _class_call_check$H(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$H(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -18443,9 +18310,7 @@
   }();
 
   function _class_call_check$G(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$G(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -19324,9 +19189,7 @@
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$F(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$F(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -19349,18 +19212,14 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof$7(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _iterable_to_array_limit$6(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -19387,7 +19246,7 @@
       return _arr;
   }
   function _non_iterable_rest$6() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$9(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -19414,9 +19273,8 @@
   }
   function _object_spread_props$2(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$2(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
@@ -19472,12 +19330,12 @@
                       }
                       this.fireEvent("onGlobalObjectiveMapInitialized", {
                           objectiveCount: this.globalObjectiveMap.size,
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   } catch (error) {
                       this.fireEvent("onGlobalObjectiveMapError", {
                           error: _instanceof$7(error, Error) ? error.message : String(error),
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
               }
@@ -19684,18 +19542,18 @@
               value: function updateObjective(objectiveId, objectiveData) {
                   try {
                       this.globalObjectiveMap.set(objectiveId, _object_spread_props$2(_object_spread$9({}, this.globalObjectiveMap.get(objectiveId), objectiveData), {
-                          lastUpdated: /* @__PURE__ */ new Date().toISOString()
+                          lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
                       }));
                       this.fireEvent("onGlobalObjectiveUpdated", {
                           objectiveId: objectiveId,
                           data: objectiveData,
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   } catch (error) {
                       this.fireEvent("onGlobalObjectiveUpdateError", {
                           objectiveId: objectiveId,
                           error: _instanceof$7(error, Error) ? error.message : String(error),
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
               }
@@ -19760,7 +19618,7 @@
               value: function clear() {
                   this.globalObjectiveMap.clear();
                   this.fireEvent("onGlobalObjectiveMapCleared", {
-                      timestamp: /* @__PURE__ */ new Date().toISOString()
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString()
                   });
               }
           },
@@ -19809,7 +19667,7 @@
                   }
                   this.fireEvent("onGlobalObjectiveMapRestored", {
                       objectiveCount: this.globalObjectiveMap.size,
-                      timestamp: /* @__PURE__ */ new Date().toISOString()
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString()
                   });
               }
           },
@@ -19834,9 +19692,7 @@
   }();
 
   function _class_call_check$E(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$E(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -19855,9 +19711,7 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of$B(obj) {
       "@swc/helpers - typeof";
@@ -19930,7 +19784,7 @@
                   var _this_activityTree_currentActivity, _this_activityTree_suspendedActivity;
                   return {
                       version: "1.0",
-                      timestamp: /* @__PURE__ */ new Date().toISOString(),
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
                       contentDelivered: this.contentDeliveredGetter ? this.contentDeliveredGetter() : false,
                       currentActivity: ((_this_activityTree_currentActivity = this.activityTree.currentActivity) === null || _this_activityTree_currentActivity === void 0 ? void 0 : _this_activityTree_currentActivity.id) || null,
                       suspendedActivity: ((_this_activityTree_suspendedActivity = this.activityTree.suspendedActivity) === null || _this_activityTree_suspendedActivity === void 0 ? void 0 : _this_activityTree_suspendedActivity.id) || null,
@@ -20255,7 +20109,7 @@
                       currentActivityId: ((_this_activityTree_currentActivity = this.activityTree.currentActivity) === null || _this_activityTree_currentActivity === void 0 ? void 0 : _this_activityTree_currentActivity.id) || null,
                       suspendedActivityId: ((_this_activityTree_suspendedActivity = this.activityTree.suspendedActivity) === null || _this_activityTree_suspendedActivity === void 0 ? void 0 : _this_activityTree_suspendedActivity.id) || null,
                       globalObjectives: this.globalObjectiveService.getSnapshot(),
-                      timestamp: /* @__PURE__ */ new Date().toISOString()
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString()
                   };
                   this.fireEvent("onSuspensionStateCaptured", {
                       hasActivityTree: !!state.activityTree,
@@ -20277,7 +20131,7 @@
                   if (!state) {
                       this.fireEvent("onSuspensionStateRestoreError", {
                           error: "No suspension state provided",
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                       return;
                   }
@@ -20305,12 +20159,12 @@
                           suspendedActivityId: state.suspendedActivityId,
                           globalObjectiveCount: state.globalObjectives ? Object.keys(state.globalObjectives).length : 0,
                           originalTimestamp: state.timestamp,
-                          restoreTimestamp: /* @__PURE__ */ new Date().toISOString()
+                          restoreTimestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   } catch (error) {
                       this.fireEvent("onSuspensionStateRestoreError", {
                           error: _instanceof$6(error, Error) ? error.message : String(error),
-                          timestamp: /* @__PURE__ */ new Date().toISOString()
+                          timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                       throw error;
                   }
@@ -20345,9 +20199,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$b(arr);
   }
   function _class_call_check$D(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$D(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -20363,10 +20215,12 @@
       return Constructor;
   }
   function _iterable_to_array$6(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$6() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$6(arr) {
       return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$b(arr) || _non_iterable_spread$6();
@@ -21314,9 +21168,7 @@
   }();
 
   function _class_call_check$C(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$C(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -21857,9 +21709,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$a(arr);
   }
   function _class_call_check$B(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$B(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -21882,16 +21732,16 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _iterable_to_array$5(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$5() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$8(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -22583,12 +22433,12 @@
                       var listener = this.eventListeners["onSequencingDebug"];
                       if (listener && typeof listener === "function") {
                           listener(event, _object_spread$8({
-                              timestamp: /* @__PURE__ */ new Date().toISOString()
+                              timestamp: (/* @__PURE__ */ new Date()).toISOString()
                           }, data));
                       }
                       try {
                           this.eventService.processListeners("Sequencing.onSequencingDebug", event, _object_spread$8({
-                              timestamp: /* @__PURE__ */ new Date().toISOString()
+                              timestamp: (/* @__PURE__ */ new Date()).toISOString()
                           }, data));
                       } catch (eventServiceError) {}
                   } catch (error) {
@@ -22727,9 +22577,7 @@
   }();
 
   function _class_call_check$A(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$A(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -23009,9 +22857,7 @@
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$z(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$z(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -23030,9 +22876,7 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _iterable_to_array_limit$5(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -23059,7 +22903,7 @@
       return _arr;
   }
   function _non_iterable_rest$5() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$5(arr, i) {
       return _array_with_holes$5(arr) || _iterable_to_array_limit$5(arr, i) || _unsupported_iterable_to_array$9(arr, i) || _non_iterable_rest$5();
@@ -23137,15 +22981,26 @@
                   var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
                   var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
                   var body = this._prepareRequestBody(requestPayload).body;
+                  var beaconContentType = this.settings.terminationCommitContentType;
+                  this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
                   var beaconSuccess = navigator.sendBeacon(url, new Blob([
                       body
                   ], {
-                      type: "text/plain;charset=UTF-8"
+                      type: beaconContentType
                   }));
                   return {
                       result: beaconSuccess ? "true" : "false",
                       errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
                   };
+              }
+          },
+          {
+              key: "_warnIfBeaconContentTypeUnsafe",
+              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
+                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+                      var _this_settings_onLogMessage, _this_settings;
+                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
+                  }
               }
           },
           {
@@ -23226,9 +23081,7 @@
   }
 
   function _class_call_check$y(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$y(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -23352,9 +23205,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$8(arr);
   }
   function _class_call_check$x(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$x(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -23377,24 +23228,22 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof$4(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _iterable_to_array$4(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$4() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$7(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -23421,9 +23270,8 @@
   }
   function _object_spread_props$1(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$1(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
@@ -24371,8 +24219,8 @@
      * // Throw a "not initialized" error
      * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
      */ key: "throwSCORMError",
-              value: function throwSCORMError(CMIElement, errorNumber, message) {
-                  this._errorHandlingService.throwSCORMError(CMIElement, errorNumber !== null && errorNumber !== void 0 ? errorNumber : 0, message);
+              value: function throwSCORMError(CMIElement, errorNumber, message, messageLevel) {
+                  this._errorHandlingService.throwSCORMError(CMIElement, errorNumber !== null && errorNumber !== void 0 ? errorNumber : 0, message, messageLevel);
               }
           },
           {
@@ -24755,9 +24603,7 @@
   }();
 
   function _assert_this_initialized$p(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$p(_this, derived, args) {
@@ -24765,9 +24611,7 @@
       return _possible_constructor_return$p(_this, _is_native_reflect_construct$p() ? Reflect.construct(derived, args || [], _get_prototype_of$p(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$w(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$w(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -24801,10 +24645,16 @@
       });
       if (superClass) _set_prototype_of$p(subClass, superClass);
   }
+  function _is_native_reflect_construct$p() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$p = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$p(self, call) {
-      if (call && (_type_of$v(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$v(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$p(self);
   }
   function _set_prototype_of$p(o, p) {
@@ -24817,14 +24667,6 @@
   function _type_of$v(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$p() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$p = function() {
-          return !!result;
-      })();
   }
   var __defProp$v = Object.defineProperty;
   var __defNormalProp$v = function __defNormalProp(obj, key, value) {
@@ -25003,9 +24845,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$o(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$o(_this, derived, args) {
@@ -25013,9 +24853,7 @@
       return _possible_constructor_return$o(_this, _is_native_reflect_construct$o() ? Reflect.construct(derived, args || [], _get_prototype_of$o(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$v(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$v(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -25031,16 +24869,13 @@
       return Constructor;
   }
   function _get$9(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$9 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$9 = Reflect.get;
+      else {
           _get$9 = function get(target, property, receiver) {
               var base = _super_prop_base$9(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -25065,10 +24900,16 @@
       });
       if (superClass) _set_prototype_of$o(subClass, superClass);
   }
+  function _is_native_reflect_construct$o() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$o = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$o(self, call) {
-      if (call && (_type_of$u(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$u(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$o(self);
   }
   function _set_prototype_of$o(o, p) {
@@ -25088,14 +24929,6 @@
   function _type_of$u(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$o() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$o = function() {
-          return !!result;
-      })();
   }
   var __defProp$u = Object.defineProperty;
   var __defNormalProp$u = function __defNormalProp(obj, key, value) {
@@ -25449,7 +25282,7 @@
               value: function getCurrentTotalTime(start_time) {
                   var sessionTime = this._session_time;
                   if (typeof start_time !== "undefined") {
-                      var seconds = /* @__PURE__ */ new Date().getTime() - start_time;
+                      var seconds = (/* @__PURE__ */ new Date()).getTime() - start_time;
                       sessionTime = getSecondsAsHHMMSS(seconds / 1e3);
                   }
                   return addHHMMSSTimeStrings(this._total_time, sessionTime, new RegExp(scorm12_regex.CMITimespan));
@@ -25497,9 +25330,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$n(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$n(_this, derived, args) {
@@ -25507,9 +25338,7 @@
       return _possible_constructor_return$n(_this, _is_native_reflect_construct$n() ? Reflect.construct(derived, args || [], _get_prototype_of$n(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$u(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$u(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -25543,10 +25372,16 @@
       });
       if (superClass) _set_prototype_of$n(subClass, superClass);
   }
+  function _is_native_reflect_construct$n() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$n = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$n(self, call) {
-      if (call && (_type_of$t(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$t(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$n(self);
   }
   function _set_prototype_of$n(o, p) {
@@ -25559,14 +25394,6 @@
   function _type_of$t(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$n() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$n = function() {
-          return !!result;
-      })();
   }
   var __defProp$t = Object.defineProperty;
   var __defNormalProp$t = function __defNormalProp(obj, key, value) {
@@ -25705,9 +25532,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$m(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$m(_this, derived, args) {
@@ -25715,9 +25540,7 @@
       return _possible_constructor_return$m(_this, _is_native_reflect_construct$m() ? Reflect.construct(derived, args || [], _get_prototype_of$m(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$t(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$t(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -25751,10 +25574,16 @@
       });
       if (superClass) _set_prototype_of$m(subClass, superClass);
   }
+  function _is_native_reflect_construct$m() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$m = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$m(self, call) {
-      if (call && (_type_of$s(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$s(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$m(self);
   }
   function _set_prototype_of$m(o, p) {
@@ -25767,14 +25596,6 @@
   function _type_of$s(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$m() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$m = function() {
-          return !!result;
-      })();
   }
   var __defProp$s = Object.defineProperty;
   var __defNormalProp$s = function __defNormalProp(obj, key, value) {
@@ -25945,9 +25766,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$l(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$l(_this, derived, args) {
@@ -25955,9 +25774,7 @@
       return _possible_constructor_return$l(_this, _is_native_reflect_construct$l() ? Reflect.construct(derived, args || [], _get_prototype_of$l(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$s(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$s(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -25991,10 +25808,16 @@
       });
       if (superClass) _set_prototype_of$l(subClass, superClass);
   }
+  function _is_native_reflect_construct$l() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$l = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$l(self, call) {
-      if (call && (_type_of$r(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$r(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$l(self);
   }
   function _set_prototype_of$l(o, p) {
@@ -26007,14 +25830,6 @@
   function _type_of$r(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$l() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$l = function() {
-          return !!result;
-      })();
   }
   var __defProp$r = Object.defineProperty;
   var __defNormalProp$r = function __defNormalProp(obj, key, value) {
@@ -26176,9 +25991,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$k(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$k(_this, derived, args) {
@@ -26186,9 +25999,7 @@
       return _possible_constructor_return$k(_this, _is_native_reflect_construct$k() ? Reflect.construct(derived, args || [], _get_prototype_of$k(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$r(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$r(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -26204,16 +26015,13 @@
       return Constructor;
   }
   function _get$8(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$8 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$8 = Reflect.get;
+      else {
           _get$8 = function get(target, property, receiver) {
               var base = _super_prop_base$8(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -26238,10 +26046,16 @@
       });
       if (superClass) _set_prototype_of$k(subClass, superClass);
   }
+  function _is_native_reflect_construct$k() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$k = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$k(self, call) {
-      if (call && (_type_of$q(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$q(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$k(self);
   }
   function _set_prototype_of$k(o, p) {
@@ -26261,14 +26075,6 @@
   function _type_of$q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$k() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$k = function() {
-          return !!result;
-      })();
   }
   var __defProp$q = Object.defineProperty;
   var __defNormalProp$q = function __defNormalProp(obj, key, value) {
@@ -26671,9 +26477,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$j(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$j(_this, derived, args) {
@@ -26681,9 +26485,7 @@
       return _possible_constructor_return$j(_this, _is_native_reflect_construct$j() ? Reflect.construct(derived, args || [], _get_prototype_of$j(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$q(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$q(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -26699,16 +26501,13 @@
       return Constructor;
   }
   function _get$7(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$7 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$7 = Reflect.get;
+      else {
           _get$7 = function get(target, property, receiver) {
               var base = _super_prop_base$7(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -26733,10 +26532,16 @@
       });
       if (superClass) _set_prototype_of$j(subClass, superClass);
   }
+  function _is_native_reflect_construct$j() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$j = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$j(self, call) {
-      if (call && (_type_of$p(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$p(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$j(self);
   }
   function _set_prototype_of$j(o, p) {
@@ -26756,14 +26561,6 @@
   function _type_of$p(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$j() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$j = function() {
-          return !!result;
-      })();
   }
   var __defProp$p = Object.defineProperty;
   var __defNormalProp$p = function __defNormalProp(obj, key, value) {
@@ -27007,9 +26804,7 @@
   }(BaseRootCMI);
 
   function _assert_this_initialized$i(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$i(_this, derived, args) {
@@ -27017,9 +26812,7 @@
       return _possible_constructor_return$i(_this, _is_native_reflect_construct$i() ? Reflect.construct(derived, args || [], _get_prototype_of$i(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$p(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$p(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -27053,10 +26846,16 @@
       });
       if (superClass) _set_prototype_of$i(subClass, superClass);
   }
+  function _is_native_reflect_construct$i() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$i = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$i(self, call) {
-      if (call && (_type_of$o(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$o(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$i(self);
   }
   function _set_prototype_of$i(o, p) {
@@ -27069,14 +26868,6 @@
   function _type_of$o(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$i() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$i = function() {
-          return !!result;
-      })();
   }
   var __defProp$o = Object.defineProperty;
   var __defNormalProp$o = function __defNormalProp(obj, key, value) {
@@ -27167,9 +26958,7 @@
       if (Array.isArray(arr)) return arr;
   }
   function _assert_this_initialized$h(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$h(_this, derived, args) {
@@ -27177,9 +26966,7 @@
       return _possible_constructor_return$h(_this, _is_native_reflect_construct$h() ? Reflect.construct(derived, args || [], _get_prototype_of$h(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$o(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$o(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -27203,9 +26990,7 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _get_prototype_of$h(o) {
@@ -27226,6 +27011,14 @@
           }
       });
       if (superClass) _set_prototype_of$h(subClass, superClass);
+  }
+  function _is_native_reflect_construct$h() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$h = function() {
+          return !!result;
+      })();
   }
   function _iterable_to_array_limit$4(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -27252,7 +27045,7 @@
       return _arr;
   }
   function _non_iterable_rest$4() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$6(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -27270,9 +27063,7 @@
       return target;
   }
   function _possible_constructor_return$h(self, call) {
-      if (call && (_type_of$n(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$n(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$h(self);
   }
   function _set_prototype_of$h(o, p) {
@@ -27296,14 +27087,6 @@
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$7(o, minLen);
-  }
-  function _is_native_reflect_construct$h() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$h = function() {
-          return !!result;
-      })();
   }
   var __defProp$n = Object.defineProperty;
   var __defNormalProp$n = function __defNormalProp(obj, key, value) {
@@ -27854,9 +27637,7 @@
   var Scorm12API = _Scorm12API;
 
   function _assert_this_initialized$g(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$g(_this, derived, args) {
@@ -27864,9 +27645,7 @@
       return _possible_constructor_return$g(_this, _is_native_reflect_construct$g() ? Reflect.construct(derived, args || [], _get_prototype_of$g(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$n(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$n(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -27900,10 +27679,16 @@
       });
       if (superClass) _set_prototype_of$g(subClass, superClass);
   }
+  function _is_native_reflect_construct$g() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$g = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$g(self, call) {
-      if (call && (_type_of$m(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$m(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$g(self);
   }
   function _set_prototype_of$g(o, p) {
@@ -27916,14 +27701,6 @@
   function _type_of$m(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$g() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$g = function() {
-          return !!result;
-      })();
   }
   var __defProp$m = Object.defineProperty;
   var __defNormalProp$m = function __defNormalProp(obj, key, value) {
@@ -28149,9 +27926,7 @@
       if (Array.isArray(arr)) return arr;
   }
   function _assert_this_initialized$f(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$f(_this, derived, args) {
@@ -28159,9 +27934,7 @@
       return _possible_constructor_return$f(_this, _is_native_reflect_construct$f() ? Reflect.construct(derived, args || [], _get_prototype_of$f(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$m(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$m(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -28177,16 +27950,13 @@
       return Constructor;
   }
   function _get$6(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$6 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$6 = Reflect.get;
+      else {
           _get$6 = function get(target, property, receiver) {
               var base = _super_prop_base$6(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -28210,6 +27980,14 @@
           }
       });
       if (superClass) _set_prototype_of$f(subClass, superClass);
+  }
+  function _is_native_reflect_construct$f() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$f = function() {
+          return !!result;
+      })();
   }
   function _iterable_to_array_limit$3(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -28236,12 +28014,10 @@
       return _arr;
   }
   function _non_iterable_rest$3() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _possible_constructor_return$f(self, call) {
-      if (call && (_type_of$l(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$l(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$f(self);
   }
   function _set_prototype_of$f(o, p) {
@@ -28272,14 +28048,6 @@
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
-  }
-  function _is_native_reflect_construct$f() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$f = function() {
-          return !!result;
-      })();
   }
   var __defProp$l = Object.defineProperty;
   var __defNormalProp$l = function __defNormalProp(obj, key, value) {
@@ -28904,9 +28672,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$e(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$e(_this, derived, args) {
@@ -28914,9 +28680,7 @@
       return _possible_constructor_return$e(_this, _is_native_reflect_construct$e() ? Reflect.construct(derived, args || [], _get_prototype_of$e(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$l(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$l(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -28932,16 +28696,13 @@
       return Constructor;
   }
   function _get$5(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$5 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$5 = Reflect.get;
+      else {
           _get$5 = function get(target, property, receiver) {
               var base = _super_prop_base$5(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -28966,10 +28727,16 @@
       });
       if (superClass) _set_prototype_of$e(subClass, superClass);
   }
+  function _is_native_reflect_construct$e() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$e = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$e(self, call) {
-      if (call && (_type_of$k(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$k(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$e(self);
   }
   function _set_prototype_of$e(o, p) {
@@ -28989,14 +28756,6 @@
   function _type_of$k(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$e() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$e = function() {
-          return !!result;
-      })();
   }
   var __defProp$k = Object.defineProperty;
   var __defNormalProp$k = function __defNormalProp(obj, key, value) {
@@ -29100,9 +28859,7 @@
   }(CMIScore);
 
   function _assert_this_initialized$d(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$d(_this, derived, args) {
@@ -29110,9 +28867,7 @@
       return _possible_constructor_return$d(_this, _is_native_reflect_construct$d() ? Reflect.construct(derived, args || [], _get_prototype_of$d(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$k(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$k(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -29146,10 +28901,16 @@
       });
       if (superClass) _set_prototype_of$d(subClass, superClass);
   }
+  function _is_native_reflect_construct$d() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$d = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$d(self, call) {
-      if (call && (_type_of$j(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$j(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$d(self);
   }
   function _set_prototype_of$d(o, p) {
@@ -29162,14 +28923,6 @@
   function _type_of$j(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$d() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$d = function() {
-          return !!result;
-      })();
   }
   var __defProp$j = Object.defineProperty;
   var __defNormalProp$j = function __defNormalProp(obj, key, value) {
@@ -29331,9 +29084,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$c(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$c(_this, derived, args) {
@@ -29341,9 +29092,7 @@
       return _possible_constructor_return$c(_this, _is_native_reflect_construct$c() ? Reflect.construct(derived, args || [], _get_prototype_of$c(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$j(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$j(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -29359,16 +29108,13 @@
       return Constructor;
   }
   function _get$4(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$4 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$4 = Reflect.get;
+      else {
           _get$4 = function get(target, property, receiver) {
               var base = _super_prop_base$4(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -29393,10 +29139,16 @@
       });
       if (superClass) _set_prototype_of$c(subClass, superClass);
   }
+  function _is_native_reflect_construct$c() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$c = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$c(self, call) {
-      if (call && (_type_of$i(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$i(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$c(self);
   }
   function _set_prototype_of$c(o, p) {
@@ -29416,14 +29168,6 @@
   function _type_of$i(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$c() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$c = function() {
-          return !!result;
-      })();
   }
   var __defProp$i = Object.defineProperty;
   var __defNormalProp$i = function __defNormalProp(obj, key, value) {
@@ -29687,9 +29431,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$b(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$b(_this, derived, args) {
@@ -29697,9 +29439,7 @@
       return _possible_constructor_return$b(_this, _is_native_reflect_construct$b() ? Reflect.construct(derived, args || [], _get_prototype_of$b(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$i(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$i(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -29733,10 +29473,16 @@
       });
       if (superClass) _set_prototype_of$b(subClass, superClass);
   }
+  function _is_native_reflect_construct$b() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$b = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$b(self, call) {
-      if (call && (_type_of$h(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$h(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$b(self);
   }
   function _set_prototype_of$b(o, p) {
@@ -29749,14 +29495,6 @@
   function _type_of$h(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$b() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$b = function() {
-          return !!result;
-      })();
   }
   var __defProp$h = Object.defineProperty;
   var __defNormalProp$h = function __defNormalProp(obj, key, value) {
@@ -29826,9 +29564,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$a(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$a(_this, derived, args) {
@@ -29836,9 +29572,7 @@
       return _possible_constructor_return$a(_this, _is_native_reflect_construct$a() ? Reflect.construct(derived, args || [], _get_prototype_of$a(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$h(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$h(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -29872,10 +29606,16 @@
       });
       if (superClass) _set_prototype_of$a(subClass, superClass);
   }
+  function _is_native_reflect_construct$a() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$a = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$a(self, call) {
-      if (call && (_type_of$g(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$g(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$a(self);
   }
   function _set_prototype_of$a(o, p) {
@@ -29888,14 +29628,6 @@
   function _type_of$g(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$a() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$a = function() {
-          return !!result;
-      })();
   }
   var __defProp$g = Object.defineProperty;
   var __defNormalProp$g = function __defNormalProp(obj, key, value) {
@@ -29973,9 +29705,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$9(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$9(_this, derived, args) {
@@ -29983,9 +29713,7 @@
       return _possible_constructor_return$9(_this, _is_native_reflect_construct$9() ? Reflect.construct(derived, args || [], _get_prototype_of$9(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$g(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$g(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -30019,10 +29747,16 @@
       });
       if (superClass) _set_prototype_of$9(subClass, superClass);
   }
+  function _is_native_reflect_construct$9() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$9 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$9(self, call) {
-      if (call && (_type_of$f(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$f(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$9(self);
   }
   function _set_prototype_of$9(o, p) {
@@ -30035,14 +29769,6 @@
   function _type_of$f(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$9() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$9 = function() {
-          return !!result;
-      })();
   }
   var __defProp$f = Object.defineProperty;
   var __defNormalProp$f = function __defNormalProp(obj, key, value) {
@@ -30137,9 +29863,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$8(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$8(_this, derived, args) {
@@ -30147,9 +29871,7 @@
       return _possible_constructor_return$8(_this, _is_native_reflect_construct$8() ? Reflect.construct(derived, args || [], _get_prototype_of$8(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$f(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$f(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -30183,10 +29905,16 @@
       });
       if (superClass) _set_prototype_of$8(subClass, superClass);
   }
+  function _is_native_reflect_construct$8() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$8 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$8(self, call) {
-      if (call && (_type_of$e(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$e(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$8(self);
   }
   function _set_prototype_of$8(o, p) {
@@ -30199,14 +29927,6 @@
   function _type_of$e(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$8() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$8 = function() {
-          return !!result;
-      })();
   }
   var __defProp$e = Object.defineProperty;
   var __defNormalProp$e = function __defNormalProp(obj, key, value) {
@@ -30336,7 +30056,7 @@
               value: function getCurrentTotalTime(start_time) {
                   var sessionTime = this._session_time;
                   if (typeof start_time !== "undefined") {
-                      var seconds = /* @__PURE__ */ new Date().getTime() - start_time;
+                      var seconds = (/* @__PURE__ */ new Date()).getTime() - start_time;
                       sessionTime = getSecondsAsISODuration(seconds / 1e3);
                   }
                   return addTwoDurations(this._total_time, sessionTime, scorm2004_regex.CMITimespan);
@@ -30365,9 +30085,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$7(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$7(_this, derived, args) {
@@ -30375,9 +30093,7 @@
       return _possible_constructor_return$7(_this, _is_native_reflect_construct$7() ? Reflect.construct(derived, args || [], _get_prototype_of$7(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$e(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$e(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -30411,10 +30127,16 @@
       });
       if (superClass) _set_prototype_of$7(subClass, superClass);
   }
+  function _is_native_reflect_construct$7() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$7 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$7(self, call) {
-      if (call && (_type_of$d(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$d(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$7(self);
   }
   function _set_prototype_of$7(o, p) {
@@ -30427,14 +30149,6 @@
   function _type_of$d(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$7() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$7 = function() {
-          return !!result;
-      })();
   }
   var __defProp$d = Object.defineProperty;
   var __defNormalProp$d = function __defNormalProp(obj, key, value) {
@@ -30530,9 +30244,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$6(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$6(_this, derived, args) {
@@ -30540,9 +30252,7 @@
       return _possible_constructor_return$6(_this, _is_native_reflect_construct$6() ? Reflect.construct(derived, args || [], _get_prototype_of$6(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$d(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$d(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -30576,10 +30286,16 @@
       });
       if (superClass) _set_prototype_of$6(subClass, superClass);
   }
+  function _is_native_reflect_construct$6() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$6 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$6(self, call) {
-      if (call && (_type_of$c(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$c(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$6(self);
   }
   function _set_prototype_of$6(o, p) {
@@ -30592,14 +30308,6 @@
   function _type_of$c(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$6() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$6 = function() {
-          return !!result;
-      })();
   }
   var __defProp$c = Object.defineProperty;
   var __defNormalProp$c = function __defNormalProp(obj, key, value) {
@@ -30730,9 +30438,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$5(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$5(_this, derived, args) {
@@ -30740,9 +30446,7 @@
       return _possible_constructor_return$5(_this, _is_native_reflect_construct$5() ? Reflect.construct(derived, args || [], _get_prototype_of$5(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$c(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$c(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -30776,10 +30480,16 @@
       });
       if (superClass) _set_prototype_of$5(subClass, superClass);
   }
+  function _is_native_reflect_construct$5() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$5 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$5(self, call) {
-      if (call && (_type_of$b(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$b(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$5(self);
   }
   function _set_prototype_of$5(o, p) {
@@ -30792,14 +30502,6 @@
   function _type_of$b(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$5() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$5 = function() {
-          return !!result;
-      })();
   }
   var __defProp$b = Object.defineProperty;
   var __defNormalProp$b = function __defNormalProp(obj, key, value) {
@@ -30905,9 +30607,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$4(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$4(_this, derived, args) {
@@ -30915,9 +30615,7 @@
       return _possible_constructor_return$4(_this, _is_native_reflect_construct$4() ? Reflect.construct(derived, args || [], _get_prototype_of$4(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$b(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$b(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -30933,16 +30631,13 @@
       return Constructor;
   }
   function _get$3(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$3 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$3 = Reflect.get;
+      else {
           _get$3 = function get(target, property, receiver) {
               var base = _super_prop_base$3(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -30967,10 +30662,16 @@
       });
       if (superClass) _set_prototype_of$4(subClass, superClass);
   }
+  function _is_native_reflect_construct$4() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$4 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$4(self, call) {
-      if (call && (_type_of$a(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$a(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$4(self);
   }
   function _set_prototype_of$4(o, p) {
@@ -30990,14 +30691,6 @@
   function _type_of$a(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$4() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$4 = function() {
-          return !!result;
-      })();
   }
   var __defProp$a = Object.defineProperty;
   var __defNormalProp$a = function __defNormalProp(obj, key, value) {
@@ -31526,9 +31219,7 @@
   }(BaseRootCMI);
 
   function _assert_this_initialized$3(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$3(_this, derived, args) {
@@ -31536,9 +31227,7 @@
       return _possible_constructor_return$3(_this, _is_native_reflect_construct$3() ? Reflect.construct(derived, args || [], _get_prototype_of$3(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$a(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$a(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -31561,22 +31250,17 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _get$2(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$2 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$2 = Reflect.get;
+      else {
           _get$2 = function get(target, property, receiver) {
               var base = _super_prop_base$2(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -31601,6 +31285,14 @@
       });
       if (superClass) _set_prototype_of$3(subClass, superClass);
   }
+  function _is_native_reflect_construct$3() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$3 = function() {
+          return !!result;
+      })();
+  }
   function _object_spread$5(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
@@ -31617,9 +31309,7 @@
       return target;
   }
   function _possible_constructor_return$3(self, call) {
-      if (call && (_type_of$9(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$9(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$3(self);
   }
   function _set_prototype_of$3(o, p) {
@@ -31639,14 +31329,6 @@
   function _type_of$9(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$3() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$3 = function() {
-          return !!result;
-      })();
   }
   var __defProp$9 = Object.defineProperty;
   var __defNormalProp$9 = function __defNormalProp(obj, key, value) {
@@ -32370,9 +32052,7 @@
   }(BaseCMI);
 
   function _assert_this_initialized$2(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$2(_this, derived, args) {
@@ -32380,9 +32060,7 @@
       return _possible_constructor_return$2(_this, _is_native_reflect_construct$2() ? Reflect.construct(derived, args || [], _get_prototype_of$2(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$9(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$9(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -32398,16 +32076,13 @@
       return Constructor;
   }
   function _get$1(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$1 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$1 = Reflect.get;
+      else {
           _get$1 = function get(target, property, receiver) {
               var base = _super_prop_base$1(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -32436,14 +32111,18 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
+  }
+  function _is_native_reflect_construct$2() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$2 = function() {
+          return !!result;
+      })();
   }
   function _possible_constructor_return$2(self, call) {
-      if (call && (_type_of$8(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$8(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$2(self);
   }
   function _set_prototype_of$2(o, p) {
@@ -32463,14 +32142,6 @@
   function _type_of$8(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$2() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$2 = function() {
-          return !!result;
-      })();
   }
   var __defProp$8 = Object.defineProperty;
   var __defNormalProp$8 = function __defNormalProp(obj, key, value) {
@@ -32878,9 +32549,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$5(arr);
   }
   function _assert_this_initialized$1(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$1(_this, derived, args) {
@@ -32888,9 +32557,7 @@
       return _possible_constructor_return$1(_this, _is_native_reflect_construct$1() ? Reflect.construct(derived, args || [], _get_prototype_of$1(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$8(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$8(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -32913,22 +32580,17 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _get(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get = Reflect.get;
+      else {
           _get = function get(target, property, receiver) {
               var base = _super_prop_base(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -32957,15 +32619,23 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
+  }
+  function _is_native_reflect_construct$1() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$1 = function() {
+          return !!result;
+      })();
   }
   function _iterable_to_array$3(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$3() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$4(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -32983,9 +32653,7 @@
       return target;
   }
   function _possible_constructor_return$1(self, call) {
-      if (call && (_type_of$7(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$7(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$1(self);
   }
   function _set_prototype_of$1(o, p) {
@@ -33016,14 +32684,6 @@
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$5(o, minLen);
-  }
-  function _is_native_reflect_construct$1() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$1 = function() {
-          return !!result;
-      })();
   }
   var __defProp$7 = Object.defineProperty;
   var __defNormalProp$7 = function __defNormalProp(obj, key, value) {
@@ -33293,9 +32953,7 @@
   }(BaseCMI);
 
   function _class_call_check$7(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$7(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -33552,9 +33210,7 @@
   }();
 
   function _class_call_check$6(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$6(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -33738,9 +33394,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$4(arr);
   }
   function _class_call_check$5(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$5(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -33763,13 +33417,13 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _iterable_to_array$2(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _iterable_to_array_limit$2(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -33796,10 +33450,10 @@
       return _arr;
   }
   function _non_iterable_rest$2() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$2() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$3(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -34575,9 +34229,7 @@
       if (Array.isArray(arr)) return _array_like_to_array$3(arr);
   }
   function _class_call_check$4(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$4(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -34593,10 +34245,12 @@
       return Constructor;
   }
   function _iterable_to_array$1(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$1() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$1(arr) {
       return _array_without_holes$1(arr) || _iterable_to_array$1(arr) || _unsupported_iterable_to_array$3(arr) || _non_iterable_spread$1();
@@ -34927,9 +34581,7 @@
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$3(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$3(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -34952,9 +34604,7 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _iterable_to_array_limit$1(arr, i) {
@@ -34982,7 +34632,7 @@
       return _arr;
   }
   function _non_iterable_rest$1() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$2(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -35576,11 +35226,8 @@
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$1(fn) {
       return function() {
@@ -35598,9 +35245,7 @@
       };
   }
   function _class_call_check$2(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$2(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -35623,18 +35268,14 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof$1(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _object_spread$1(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -35650,10 +35291,6 @@
           });
       }
       return target;
-  }
-  function _type_of$2(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   function _ts_generator$1(thisArg, body) {
       var f, y, t, _ = {
@@ -35754,6 +35391,10 @@
           };
       }
   }
+  function _type_of$2(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
   var __defProp$2 = Object.defineProperty;
   var __defNormalProp$2 = function __defNormalProp(obj, key, value) {
       return key in obj ? __defProp$2(obj, key, {
@@ -35808,7 +35449,7 @@
                                       learnerId: this.context.learnerId || "unknown",
                                       courseId: settings.courseId || "unknown",
                                       attemptNumber: 1,
-                                      lastUpdated: /* @__PURE__ */ new Date().toISOString(),
+                                      lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
                                       version: settings.sequencingStatePersistence.stateVersion || "1.0"
                                   }, metadata);
                                   config = settings.sequencingStatePersistence;
@@ -35936,7 +35577,7 @@
                   var settings = this.context.getSettings();
                   var state = {
                       version: ((_settings_sequencingStatePersistence = settings.sequencingStatePersistence) === null || _settings_sequencingStatePersistence === void 0 ? void 0 : _settings_sequencingStatePersistence.stateVersion) || "1.0",
-                      timestamp: /* @__PURE__ */ new Date().toISOString(),
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
                       sequencing: null,
                       currentActivityId: null,
                       globalObjectives: this.globalObjectiveManager.globalObjectives.map(function(obj) {
@@ -36112,9 +35753,7 @@
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$1(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -36154,7 +35793,7 @@
       return _arr;
   }
   function _non_iterable_rest() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array(arr, i) {
       return _array_with_holes(arr) || _iterable_to_array_limit(arr, i) || _unsupported_iterable_to_array$1(arr, i) || _non_iterable_rest();
@@ -36355,9 +35994,7 @@
       if (Array.isArray(arr)) return _array_like_to_array(arr);
   }
   function _assert_this_initialized(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
@@ -36368,11 +36005,8 @@
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator(fn) {
       return function() {
@@ -36394,9 +36028,7 @@
       return _possible_constructor_return(_this, _is_native_reflect_construct() ? Reflect.construct(derived, args || [], _get_prototype_of(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -36419,9 +36051,7 @@
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _get_prototype_of(o) {
@@ -36447,15 +36077,23 @@
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
+  }
+  function _is_native_reflect_construct() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct = function() {
+          return !!result;
+      })();
   }
   function _iterable_to_array(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -36482,9 +36120,8 @@
   }
   function _object_spread_props(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
@@ -36492,9 +36129,7 @@
       return target;
   }
   function _possible_constructor_return(self, call) {
-      if (call && (_type_of(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized(self);
   }
   function _set_prototype_of(o, p) {
@@ -36506,26 +36141,6 @@
   }
   function _to_consumable_array(arr) {
       return _array_without_holes(arr) || _iterable_to_array(arr) || _unsupported_iterable_to_array(arr) || _non_iterable_spread();
-  }
-  function _type_of(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _unsupported_iterable_to_array(o, minLen) {
-      if (!o) return;
-      if (typeof o === "string") return _array_like_to_array(o, minLen);
-      var n = Object.prototype.toString.call(o).slice(8, -1);
-      if (n === "Object" && o.constructor) n = o.constructor.name;
-      if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array(o, minLen);
-  }
-  function _is_native_reflect_construct() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct = function() {
-          return !!result;
-      })();
   }
   function _ts_generator(thisArg, body) {
       var f, y, t, _ = {
@@ -36625,6 +36240,18 @@
               done: true
           };
       }
+  }
+  function _type_of(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array(o, minLen);
   }
   var __defProp = Object.defineProperty;
   var __defNormalProp = function __defNormalProp(obj, key, value) {
@@ -37529,7 +37156,7 @@
                   if (returnValue !== "") return;
                   if (this._setCMIElements.has(CMIElement)) return;
                   if (!NO_DEFAULT_2004_ELEMENTS.has(normalizeCMIIndices(CMIElement))) return;
-                  this.throwSCORMError(CMIElement, (_this__error_codes_VALUE_NOT_INITIALIZED = this._error_codes.VALUE_NOT_INITIALIZED) !== null && _this__error_codes_VALUE_NOT_INITIALIZED !== void 0 ? _this__error_codes_VALUE_NOT_INITIALIZED : 403, "The data model element passed to GetValue (".concat(CMIElement, ") has not been initialized."));
+                  this.throwSCORMError(CMIElement, (_this__error_codes_VALUE_NOT_INITIALIZED = this._error_codes.VALUE_NOT_INITIALIZED) !== null && _this__error_codes_VALUE_NOT_INITIALIZED !== void 0 ? _this__error_codes_VALUE_NOT_INITIALIZED : 403, "The data model element passed to GetValue (".concat(CMIElement, ") has not been initialized."), this.settings.uninitializedGetLogLevel);
               }
           },
           {

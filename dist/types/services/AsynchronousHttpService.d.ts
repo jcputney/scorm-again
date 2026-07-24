@@ -13,6 +13,7 @@ export declare class AsynchronousHttpService implements IHttpService {
     private _prepareRequestBody;
     private performFetch;
     private performBeacon;
+    private _warnIfBeaconContentTypeUnsafe;
     private transformResponse;
     private _isSuccessResponse;
     updateSettings(settings: InternalSettings): void;

@@ -2,9 +2,7 @@ this.CrossFrameLMS = (function () {
   'use strict';
 
   function _class_call_check(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -24,9 +22,7 @@ this.CrossFrameLMS = (function () {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of(obj) {
       "@swc/helpers - typeof";

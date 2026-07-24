@@ -13,7 +13,9 @@ this.Scorm12API = (function () {
       if (Array.isArray(arr)) return _array_like_to_array$5(arr);
   }
   function _iterable_to_array$3(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _iterable_to_array_limit$2(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -40,10 +42,10 @@ this.Scorm12API = (function () {
       return _arr;
   }
   function _non_iterable_rest$2() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$3() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$2(arr, i) {
       return _array_with_holes$2(arr) || _iterable_to_array_limit$2(arr, i) || _unsupported_iterable_to_array$5(arr, i) || _non_iterable_rest$2();
@@ -61,6 +63,24 @@ this.Scorm12API = (function () {
   }
   var SECONDS_PER_MINUTE = 60;
   var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+  var CORS_SAFELISTED_CONTENT_TYPES = [
+      "text/plain",
+      "application/x-www-form-urlencoded",
+      "multipart/form-data"
+  ];
+  function isCorsSafelistedContentType(contentType) {
+      var _split_;
+      var essence = ((_split_ = (contentType || "").split(";")[0]) !== null && _split_ !== void 0 ? _split_ : "").trim().toLowerCase();
+      return CORS_SAFELISTED_CONTENT_TYPES.includes(essence);
+  }
+  function isCrossOriginUrl(url) {
+      if (typeof location === "undefined" || !location || !location.origin) return false;
+      try {
+          return new URL(url, location.href).origin !== location.origin;
+      } catch (unused) {
+          return false;
+      }
+  }
   var getSecondsAsHHMMSS = function getSecondsAsHHMMSS(totalSeconds) {
       if (!totalSeconds || totalSeconds <= 0) {
           return "00:00:00";
@@ -248,9 +268,7 @@ this.Scorm12API = (function () {
   };
 
   function _assert_this_initialized$d(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$d(_this, derived, args) {
@@ -258,9 +276,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$d(_this, _is_native_reflect_construct$d() ? Reflect.construct(derived, args || [], _get_prototype_of$d(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$q(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$p(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -294,10 +310,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$d(subClass, superClass);
   }
+  function _is_native_reflect_construct$d() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$d = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$d(self, call) {
-      if (call && (_type_of$o(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$o(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$d(self);
   }
   function _set_prototype_of$d(o, p) {
@@ -310,14 +332,6 @@ this.Scorm12API = (function () {
   function _type_of$o(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$d() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$d = function() {
-          return !!result;
-      })();
   }
   var __defProp$m = Object.defineProperty;
   var __defNormalProp$m = function __defNormalProp(obj, key, value) {
@@ -390,7 +404,7 @@ this.Scorm12API = (function () {
      */ key: "setStartTime",
               value: function setStartTime() {
                   if (this._start_time === void 0) {
-                      this._start_time = /* @__PURE__ */ new Date().getTime();
+                      this._start_time = (/* @__PURE__ */ new Date()).getTime();
                   } else {
                       throw new Error("Start time has already been set.");
                   }
@@ -401,9 +415,7 @@ this.Scorm12API = (function () {
   }(BaseCMI);
 
   function _assert_this_initialized$c(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$c(_this, derived, args) {
@@ -411,14 +423,11 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$c(_this, _is_native_reflect_construct$c() ? Reflect.construct(derived, args || [], _get_prototype_of$c(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$p(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _construct(Parent, args, Class) {
-      if (_is_native_reflect_construct$c()) {
-          _construct = Reflect.construct;
-      } else {
+      if (_is_native_reflect_construct$c()) _construct = Reflect.construct;
+      else {
           _construct = function construct(Parent, args, Class) {
               var a = [
                   null
@@ -467,10 +476,16 @@ this.Scorm12API = (function () {
   function _is_native_function(fn) {
       return Function.toString.call(fn).indexOf("[native code]") !== -1;
   }
+  function _is_native_reflect_construct$c() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$c = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$c(self, call) {
-      if (call && (_type_of$n(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$n(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$c(self);
   }
   function _set_prototype_of$c(o, p) {
@@ -486,11 +501,9 @@ this.Scorm12API = (function () {
   }
   function _wrap_native_super(Class) {
       var _cache = typeof Map === "function" ? new Map() : undefined;
-      _wrap_native_super = function wrapNativeSuper(Class) {
+      _wrap_native_super = function(Class) {
           if (Class === null || !_is_native_function(Class)) return Class;
-          if (typeof Class !== "function") {
-              throw new TypeError("Super expression must either be null or a function");
-          }
+          if (typeof Class !== "function") throw new TypeError("Super expression must either be null or a function");
           if (typeof _cache !== "undefined") {
               if (_cache.has(Class)) return _cache.get(Class);
               _cache.set(Class, Wrapper);
@@ -509,14 +522,6 @@ this.Scorm12API = (function () {
           return _set_prototype_of$c(Wrapper, Class);
       };
       return _wrap_native_super(Class);
-  }
-  function _is_native_reflect_construct$c() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$c = function() {
-          return !!result;
-      })();
   }
   var __defProp$l = Object.defineProperty;
   var __defNormalProp$l = function __defNormalProp(obj, key, value) {
@@ -672,9 +677,7 @@ this.Scorm12API = (function () {
   };
 
   function _assert_this_initialized$b(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$b(_this, derived, args) {
@@ -682,9 +685,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$b(_this, _is_native_reflect_construct$b() ? Reflect.construct(derived, args || [], _get_prototype_of$b(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$o(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _get_prototype_of$b(o) {
       _get_prototype_of$b = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
@@ -705,10 +706,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$b(subClass, superClass);
   }
+  function _is_native_reflect_construct$b() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$b = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$b(self, call) {
-      if (call && (_type_of$m(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$m(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$b(self);
   }
   function _set_prototype_of$b(o, p) {
@@ -721,14 +728,6 @@ this.Scorm12API = (function () {
   function _type_of$m(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$b() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$b = function() {
-          return !!result;
-      })();
   }
   var scorm12_errors$1 = scorm12_constants.error_descriptions;
   var Scorm12ValidationError = /*#__PURE__*/ function(ValidationError) {
@@ -768,9 +767,7 @@ this.Scorm12API = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _object_spread$6(target) {
@@ -798,9 +795,8 @@ this.Scorm12API = (function () {
   }
   function _object_spread_props$3(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$3(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
@@ -886,9 +882,7 @@ this.Scorm12API = (function () {
   });
 
   function _assert_this_initialized$a(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$a(_this, derived, args) {
@@ -896,9 +890,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$a(_this, _is_native_reflect_construct$a() ? Reflect.construct(derived, args || [], _get_prototype_of$a(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$n(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$n(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -932,10 +924,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$a(subClass, superClass);
   }
+  function _is_native_reflect_construct$a() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$a = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$a(self, call) {
-      if (call && (_type_of$l(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$l(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$a(self);
   }
   function _set_prototype_of$a(o, p) {
@@ -948,14 +946,6 @@ this.Scorm12API = (function () {
   function _type_of$l(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$a() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$a = function() {
-          return !!result;
-      })();
   }
   var __defProp$k = Object.defineProperty;
   var __defNormalProp$k = function __defNormalProp(obj, key, value) {
@@ -1082,11 +1072,8 @@ this.Scorm12API = (function () {
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$3(fn) {
       return function() {
@@ -1211,8 +1198,10 @@ this.Scorm12API = (function () {
       lmsCommitUrl: false,
       dataCommitFormat: "json",
       commitRequestDataType: "application/json;charset=UTF-8",
+      terminationCommitContentType: "text/plain;charset=UTF-8",
       autoProgress: false,
       logLevel: LogLevelEnum.ERROR,
+      uninitializedGetLogLevel: LogLevelEnum.WARN,
       selfReportSessionTime: false,
       alwaysSendTotalTime: false,
       renderCommonCommitFields: false,
@@ -1594,9 +1583,7 @@ this.Scorm12API = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _object_spread$5(target) {
@@ -1716,11 +1703,8 @@ this.Scorm12API = (function () {
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$2(fn) {
       return function() {
@@ -1738,9 +1722,7 @@ this.Scorm12API = (function () {
       };
   }
   function _class_call_check$m(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$m(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -1754,10 +1736,6 @@ this.Scorm12API = (function () {
   function _create_class$m(Constructor, protoProps, staticProps) {
       if (protoProps) _defineProperties$m(Constructor.prototype, protoProps);
       return Constructor;
-  }
-  function _type_of$k(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   function _ts_generator$2(thisArg, body) {
       var f, y, t, _ = {
@@ -1858,6 +1836,10 @@ this.Scorm12API = (function () {
           };
       }
   }
+  function _type_of$k(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
   var __defProp$j = Object.defineProperty;
   var __defNormalProp$j = function __defNormalProp(obj, key, value) {
       return key in obj ? __defProp$j(obj, key, {
@@ -1938,9 +1920,7 @@ this.Scorm12API = (function () {
   ];
 
   function _assert_this_initialized$9(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$9(_this, derived, args) {
@@ -1948,9 +1928,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$9(_this, _is_native_reflect_construct$9() ? Reflect.construct(derived, args || [], _get_prototype_of$9(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$l(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$l(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -1985,10 +1963,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$9(subClass, superClass);
   }
+  function _is_native_reflect_construct$9() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$9 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$9(self, call) {
-      if (call && (_type_of$j(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$j(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$9(self);
   }
   function _set_prototype_of$9(o, p) {
@@ -2001,14 +1985,6 @@ this.Scorm12API = (function () {
   function _type_of$j(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$9() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$9 = function() {
-          return !!result;
-      })();
   }
   var __defProp$i = Object.defineProperty;
   var __defNormalProp$i = function __defNormalProp(obj, key, value) {
@@ -2394,9 +2370,7 @@ this.Scorm12API = (function () {
       if (Array.isArray(arr)) return _array_like_to_array$4(arr);
   }
   function _class_call_check$k(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$k(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -2412,10 +2386,12 @@ this.Scorm12API = (function () {
       return Constructor;
   }
   function _iterable_to_array$2(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$2() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$2(arr) {
       return _array_without_holes$2(arr) || _iterable_to_array$2(arr) || _unsupported_iterable_to_array$4(arr) || _non_iterable_spread$2();
@@ -2630,11 +2606,8 @@ this.Scorm12API = (function () {
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator$1(fn) {
       return function() {
@@ -2652,9 +2625,7 @@ this.Scorm12API = (function () {
       };
   }
   function _class_call_check$j(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$j(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -2677,18 +2648,14 @@ this.Scorm12API = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof$5(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _object_spread$4(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -2715,18 +2682,13 @@ this.Scorm12API = (function () {
   }
   function _object_spread_props$2(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$2(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
-  }
-  function _type_of$i(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   function _ts_generator$1(thisArg, body) {
       var f, y, t, _ = {
@@ -2826,6 +2788,10 @@ this.Scorm12API = (function () {
               done: true
           };
       }
+  }
+  function _type_of$i(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   var __defProp$h = Object.defineProperty;
   var __defNormalProp$h = function __defNormalProp(obj, key, value) {
@@ -3028,14 +2994,16 @@ this.Scorm12API = (function () {
      * @private
      */ function performBeacon(url, params) {
                   return _async_to_generator$1(function() {
-                      var _this, _this__prepareRequestBody, body, contentType, beaconSuccess;
+                      var _this, _this__prepareRequestBody, body, contentType, beaconContentType, beaconSuccess;
                       return _ts_generator$1(this, function(_state) {
                           _this = this;
                           _this__prepareRequestBody = this._prepareRequestBody(params), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
+                          beaconContentType = Array.isArray(params) ? contentType : this.settings.terminationCommitContentType;
+                          this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
                           beaconSuccess = navigator.sendBeacon(url, new Blob([
                               body
                           ], {
-                              type: contentType
+                              type: beaconContentType
                           }));
                           return [
                               2,
@@ -3072,6 +3040,15 @@ this.Scorm12API = (function () {
                           ];
                       });
                   }).call(this);
+              }
+          },
+          {
+              key: "_warnIfBeaconContentTypeUnsafe",
+              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
+                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+                      var _this_settings_onLogMessage, _this_settings;
+                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
+                  }
               }
           },
           {
@@ -3195,9 +3172,7 @@ this.Scorm12API = (function () {
   }();
 
   function _class_call_check$i(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$i(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -3216,9 +3191,7 @@ this.Scorm12API = (function () {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of$h(obj) {
       "@swc/helpers - typeof";
@@ -3609,9 +3582,7 @@ this.Scorm12API = (function () {
   }();
 
   function _class_call_check$h(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$h(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -3830,9 +3801,7 @@ this.Scorm12API = (function () {
   }
 
   function _class_call_check$g(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$g(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -3851,9 +3820,7 @@ this.Scorm12API = (function () {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _type_of$f(obj) {
       "@swc/helpers - typeof";
@@ -3923,13 +3890,14 @@ this.Scorm12API = (function () {
      * @throws {ValidationError} - If throwException is true, throws a ValidationError
      */ key: "throwSCORMError",
               value: function throwSCORMError(CMIElement, errorNumber, message) {
+                  var messageLevel = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : LogLevelEnum.ERROR;
                   this._lastDiagnostic = message || "";
                   if (!message) {
                       message = this._getLmsErrorMessageDetails(errorNumber, true);
                   }
                   var formattedMessage = "SCORM Error ".concat(errorNumber, ": ").concat(message).concat(CMIElement ? " [Element: ".concat(CMIElement, "]") : "");
-                  this._apiLog("throwSCORMError", errorNumber + ": " + message, LogLevelEnum.ERROR, CMIElement);
-                  this._loggingService.error(formattedMessage);
+                  this._apiLog("throwSCORMError", errorNumber + ": " + message, messageLevel, CMIElement);
+                  this._loggingService.log(messageLevel, formattedMessage);
                   this._lastErrorCode = String(errorNumber);
               }
           },
@@ -4035,9 +4003,7 @@ this.Scorm12API = (function () {
   }
 
   function _class_call_check$f(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$f(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -4328,11 +4294,8 @@ this.Scorm12API = (function () {
           reject(error);
           return;
       }
-      if (info.done) {
-          resolve(value);
-      } else {
-          Promise.resolve(value).then(_next, _throw);
-      }
+      if (info.done) resolve(value);
+      else Promise.resolve(value).then(_next, _throw);
   }
   function _async_to_generator(fn) {
       return function() {
@@ -4350,9 +4313,7 @@ this.Scorm12API = (function () {
       };
   }
   function _class_call_check$e(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$e(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -4375,18 +4336,14 @@ this.Scorm12API = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof$2(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _object_spread$3(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -4413,18 +4370,13 @@ this.Scorm12API = (function () {
   }
   function _object_spread_props$1(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys$1(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
-  }
-  function _type_of$d(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   function _ts_generator(thisArg, body) {
       var f, y, t, _ = {
@@ -4524,6 +4476,10 @@ this.Scorm12API = (function () {
               done: true
           };
       }
+  }
+  function _type_of$d(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
   var __defProp$c = Object.defineProperty;
   var __defNormalProp$c = function __defNormalProp(obj, key, value) {
@@ -5117,9 +5073,7 @@ this.Scorm12API = (function () {
       if (Array.isArray(arr)) return _array_like_to_array$3(arr);
   }
   function _class_call_check$d(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$d(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -5142,16 +5096,16 @@ this.Scorm12API = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _iterable_to_array$1(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread$1() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$2(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -5314,7 +5268,7 @@ this.Scorm12API = (function () {
               value: function processDeliveryRequest(activity) {
                   this.fireEvent("onDeliveryRequestProcessing", {
                       activity: activity.id,
-                      timestamp: /* @__PURE__ */ new Date().toISOString()
+                      timestamp: (/* @__PURE__ */ new Date()).toISOString()
                   });
                   if (activity.children.length > 0) {
                       return new DeliveryRequest(false, null, "DB.1.1-1");
@@ -5678,9 +5632,7 @@ this.Scorm12API = (function () {
   __publicField$b(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$1(HIDE_LMS_UI_TOKENS));
 
   function _class_call_check$c(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$c(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -5960,9 +5912,7 @@ this.Scorm12API = (function () {
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$b(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$b(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -5981,9 +5931,7 @@ this.Scorm12API = (function () {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _iterable_to_array_limit$1(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -6010,7 +5958,7 @@ this.Scorm12API = (function () {
       return _arr;
   }
   function _non_iterable_rest$1() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$1(arr, i) {
       return _array_with_holes$1(arr) || _iterable_to_array_limit$1(arr, i) || _unsupported_iterable_to_array$2(arr, i) || _non_iterable_rest$1();
@@ -6088,15 +6036,26 @@ this.Scorm12API = (function () {
                   var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
                   var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
                   var body = this._prepareRequestBody(requestPayload).body;
+                  var beaconContentType = this.settings.terminationCommitContentType;
+                  this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
                   var beaconSuccess = navigator.sendBeacon(url, new Blob([
                       body
                   ], {
-                      type: "text/plain;charset=UTF-8"
+                      type: beaconContentType
                   }));
                   return {
                       result: beaconSuccess ? "true" : "false",
                       errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
                   };
+              }
+          },
+          {
+              key: "_warnIfBeaconContentTypeUnsafe",
+              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
+                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+                      var _this_settings_onLogMessage, _this_settings;
+                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
+                  }
               }
           },
           {
@@ -6177,9 +6136,7 @@ this.Scorm12API = (function () {
   }
 
   function _class_call_check$a(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$a(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -6303,9 +6260,7 @@ this.Scorm12API = (function () {
       if (Array.isArray(arr)) return _array_like_to_array$1(arr);
   }
   function _class_call_check$9(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$9(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -6328,24 +6283,22 @@ this.Scorm12API = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _instanceof(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
-      } else {
-          return left instanceof right;
-      }
+      } else return left instanceof right;
   }
   function _iterable_to_array(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
   }
   function _non_iterable_spread() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$1(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -6372,9 +6325,8 @@ this.Scorm12API = (function () {
   }
   function _object_spread_props(target, source) {
       source = source != null ? source : {};
-      if (Object.getOwnPropertyDescriptors) {
-          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
           ownKeys(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
@@ -7322,8 +7274,8 @@ this.Scorm12API = (function () {
      * // Throw a "not initialized" error
      * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
      */ key: "throwSCORMError",
-              value: function throwSCORMError(CMIElement, errorNumber, message) {
-                  this._errorHandlingService.throwSCORMError(CMIElement, errorNumber !== null && errorNumber !== void 0 ? errorNumber : 0, message);
+              value: function throwSCORMError(CMIElement, errorNumber, message, messageLevel) {
+                  this._errorHandlingService.throwSCORMError(CMIElement, errorNumber !== null && errorNumber !== void 0 ? errorNumber : 0, message, messageLevel);
               }
           },
           {
@@ -7706,9 +7658,7 @@ this.Scorm12API = (function () {
   }();
 
   function _assert_this_initialized$8(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$8(_this, derived, args) {
@@ -7716,9 +7666,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$8(_this, _is_native_reflect_construct$8() ? Reflect.construct(derived, args || [], _get_prototype_of$8(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$8(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$8(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -7752,10 +7700,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$8(subClass, superClass);
   }
+  function _is_native_reflect_construct$8() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$8 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$8(self, call) {
-      if (call && (_type_of$8(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$8(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$8(self);
   }
   function _set_prototype_of$8(o, p) {
@@ -7768,14 +7722,6 @@ this.Scorm12API = (function () {
   function _type_of$8(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$8() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$8 = function() {
-          return !!result;
-      })();
   }
   var __defProp$8 = Object.defineProperty;
   var __defNormalProp$8 = function __defNormalProp(obj, key, value) {
@@ -7954,9 +7900,7 @@ this.Scorm12API = (function () {
   }(BaseCMI);
 
   function _assert_this_initialized$7(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$7(_this, derived, args) {
@@ -7964,9 +7908,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$7(_this, _is_native_reflect_construct$7() ? Reflect.construct(derived, args || [], _get_prototype_of$7(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$7(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$7(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -7982,16 +7924,13 @@ this.Scorm12API = (function () {
       return Constructor;
   }
   function _get$2(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$2 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$2 = Reflect.get;
+      else {
           _get$2 = function get(target, property, receiver) {
               var base = _super_prop_base$2(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -8016,10 +7955,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$7(subClass, superClass);
   }
+  function _is_native_reflect_construct$7() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$7 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$7(self, call) {
-      if (call && (_type_of$7(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$7(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$7(self);
   }
   function _set_prototype_of$7(o, p) {
@@ -8039,14 +7984,6 @@ this.Scorm12API = (function () {
   function _type_of$7(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$7() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$7 = function() {
-          return !!result;
-      })();
   }
   var __defProp$7 = Object.defineProperty;
   var __defNormalProp$7 = function __defNormalProp(obj, key, value) {
@@ -8400,7 +8337,7 @@ this.Scorm12API = (function () {
               value: function getCurrentTotalTime(start_time) {
                   var sessionTime = this._session_time;
                   if (typeof start_time !== "undefined") {
-                      var seconds = /* @__PURE__ */ new Date().getTime() - start_time;
+                      var seconds = (/* @__PURE__ */ new Date()).getTime() - start_time;
                       sessionTime = getSecondsAsHHMMSS(seconds / 1e3);
                   }
                   return addHHMMSSTimeStrings(this._total_time, sessionTime, new RegExp(scorm12_regex.CMITimespan));
@@ -8448,9 +8385,7 @@ this.Scorm12API = (function () {
   }(BaseCMI);
 
   function _assert_this_initialized$6(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$6(_this, derived, args) {
@@ -8458,9 +8393,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$6(_this, _is_native_reflect_construct$6() ? Reflect.construct(derived, args || [], _get_prototype_of$6(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$6(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$6(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -8494,10 +8427,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$6(subClass, superClass);
   }
+  function _is_native_reflect_construct$6() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$6 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$6(self, call) {
-      if (call && (_type_of$6(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$6(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$6(self);
   }
   function _set_prototype_of$6(o, p) {
@@ -8510,14 +8449,6 @@ this.Scorm12API = (function () {
   function _type_of$6(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$6() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$6 = function() {
-          return !!result;
-      })();
   }
   var __defProp$6 = Object.defineProperty;
   var __defNormalProp$6 = function __defNormalProp(obj, key, value) {
@@ -8656,9 +8587,7 @@ this.Scorm12API = (function () {
   }(BaseCMI);
 
   function _assert_this_initialized$5(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$5(_this, derived, args) {
@@ -8666,9 +8595,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$5(_this, _is_native_reflect_construct$5() ? Reflect.construct(derived, args || [], _get_prototype_of$5(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$5(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$5(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -8702,10 +8629,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$5(subClass, superClass);
   }
+  function _is_native_reflect_construct$5() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$5 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$5(self, call) {
-      if (call && (_type_of$5(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$5(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$5(self);
   }
   function _set_prototype_of$5(o, p) {
@@ -8718,14 +8651,6 @@ this.Scorm12API = (function () {
   function _type_of$5(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$5() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$5 = function() {
-          return !!result;
-      })();
   }
   var __defProp$5 = Object.defineProperty;
   var __defNormalProp$5 = function __defNormalProp(obj, key, value) {
@@ -8896,9 +8821,7 @@ this.Scorm12API = (function () {
   }(BaseCMI);
 
   function _assert_this_initialized$4(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$4(_this, derived, args) {
@@ -8906,9 +8829,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$4(_this, _is_native_reflect_construct$4() ? Reflect.construct(derived, args || [], _get_prototype_of$4(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$4(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$4(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -8942,10 +8863,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$4(subClass, superClass);
   }
+  function _is_native_reflect_construct$4() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$4 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$4(self, call) {
-      if (call && (_type_of$4(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$4(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$4(self);
   }
   function _set_prototype_of$4(o, p) {
@@ -8958,14 +8885,6 @@ this.Scorm12API = (function () {
   function _type_of$4(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$4() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$4 = function() {
-          return !!result;
-      })();
   }
   var __defProp$4 = Object.defineProperty;
   var __defNormalProp$4 = function __defNormalProp(obj, key, value) {
@@ -9127,9 +9046,7 @@ this.Scorm12API = (function () {
   }(BaseCMI);
 
   function _assert_this_initialized$3(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$3(_this, derived, args) {
@@ -9137,9 +9054,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$3(_this, _is_native_reflect_construct$3() ? Reflect.construct(derived, args || [], _get_prototype_of$3(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$3(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$3(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -9155,16 +9070,13 @@ this.Scorm12API = (function () {
       return Constructor;
   }
   function _get$1(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get$1 = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$1 = Reflect.get;
+      else {
           _get$1 = function get(target, property, receiver) {
               var base = _super_prop_base$1(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -9189,10 +9101,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$3(subClass, superClass);
   }
+  function _is_native_reflect_construct$3() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$3 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$3(self, call) {
-      if (call && (_type_of$3(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$3(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$3(self);
   }
   function _set_prototype_of$3(o, p) {
@@ -9212,14 +9130,6 @@ this.Scorm12API = (function () {
   function _type_of$3(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$3() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$3 = function() {
-          return !!result;
-      })();
   }
   var __defProp$3 = Object.defineProperty;
   var __defNormalProp$3 = function __defNormalProp(obj, key, value) {
@@ -9622,9 +9532,7 @@ this.Scorm12API = (function () {
   }(BaseCMI);
 
   function _assert_this_initialized$2(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$2(_this, derived, args) {
@@ -9632,9 +9540,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$2(_this, _is_native_reflect_construct$2() ? Reflect.construct(derived, args || [], _get_prototype_of$2(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$2(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$2(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -9650,16 +9556,13 @@ this.Scorm12API = (function () {
       return Constructor;
   }
   function _get(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) {
-          _get = Reflect.get;
-      } else {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get = Reflect.get;
+      else {
           _get = function get(target, property, receiver) {
               var base = _super_prop_base(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) {
-                  return desc.get.call(receiver || target);
-              }
+              if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
@@ -9684,10 +9587,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$2(subClass, superClass);
   }
+  function _is_native_reflect_construct$2() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$2 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$2(self, call) {
-      if (call && (_type_of$2(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$2(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$2(self);
   }
   function _set_prototype_of$2(o, p) {
@@ -9707,14 +9616,6 @@ this.Scorm12API = (function () {
   function _type_of$2(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$2() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$2 = function() {
-          return !!result;
-      })();
   }
   var __defProp$2 = Object.defineProperty;
   var __defNormalProp$2 = function __defNormalProp(obj, key, value) {
@@ -9958,9 +9859,7 @@ this.Scorm12API = (function () {
   }(BaseRootCMI);
 
   function _assert_this_initialized$1(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super$1(_this, derived, args) {
@@ -9968,9 +9867,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return$1(_this, _is_native_reflect_construct$1() ? Reflect.construct(derived, args || [], _get_prototype_of$1(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$1(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties$1(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -10004,10 +9901,16 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$1(subClass, superClass);
   }
+  function _is_native_reflect_construct$1() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$1 = function() {
+          return !!result;
+      })();
+  }
   function _possible_constructor_return$1(self, call) {
-      if (call && (_type_of$1(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of$1(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$1(self);
   }
   function _set_prototype_of$1(o, p) {
@@ -10020,14 +9923,6 @@ this.Scorm12API = (function () {
   function _type_of$1(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _is_native_reflect_construct$1() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$1 = function() {
-          return !!result;
-      })();
   }
   var __defProp$1 = Object.defineProperty;
   var __defNormalProp$1 = function __defNormalProp(obj, key, value) {
@@ -10118,9 +10013,7 @@ this.Scorm12API = (function () {
       if (Array.isArray(arr)) return arr;
   }
   function _assert_this_initialized(self) {
-      if (self === void 0) {
-          throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
   function _call_super(_this, derived, args) {
@@ -10128,9 +10021,7 @@ this.Scorm12API = (function () {
       return _possible_constructor_return(_this, _is_native_reflect_construct() ? Reflect.construct(derived, args || [], _get_prototype_of(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties(target, props) {
       for(var i = 0; i < props.length; i++){
@@ -10154,9 +10045,7 @@ this.Scorm12API = (function () {
               configurable: true,
               writable: true
           });
-      } else {
-          obj[key] = value;
-      }
+      } else obj[key] = value;
       return obj;
   }
   function _get_prototype_of(o) {
@@ -10177,6 +10066,14 @@ this.Scorm12API = (function () {
           }
       });
       if (superClass) _set_prototype_of(subClass, superClass);
+  }
+  function _is_native_reflect_construct() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct = function() {
+          return !!result;
+      })();
   }
   function _iterable_to_array_limit(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
@@ -10203,7 +10100,7 @@ this.Scorm12API = (function () {
       return _arr;
   }
   function _non_iterable_rest() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread(target) {
       for(var i = 1; i < arguments.length; i++){
@@ -10221,9 +10118,7 @@ this.Scorm12API = (function () {
       return target;
   }
   function _possible_constructor_return(self, call) {
-      if (call && (_type_of(call) === "object" || typeof call === "function")) {
-          return call;
-      }
+      if (call && (_type_of(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized(self);
   }
   function _set_prototype_of(o, p) {
@@ -10247,14 +10142,6 @@ this.Scorm12API = (function () {
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array(o, minLen);
-  }
-  function _is_native_reflect_construct() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct = function() {
-          return !!result;
-      })();
   }
   var __defProp = Object.defineProperty;
   var __defNormalProp = function __defNormalProp(obj, key, value) {

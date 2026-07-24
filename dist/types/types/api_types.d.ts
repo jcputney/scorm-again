@@ -27,6 +27,7 @@ export type Settings = {
     commitRequestDataType?: string | undefined;
     autoProgress?: boolean | undefined;
     logLevel?: LogLevel | undefined;
+    uninitializedGetLogLevel?: LogLevel | undefined;
     selfReportSessionTime?: boolean | undefined;
     alwaysSendTotalTime?: boolean | undefined;
     strict_errors?: boolean | undefined;
@@ -37,6 +38,7 @@ export type Settings = {
     xhrResponseHandler?: ((xhr: XMLHttpRequest) => ResultObject) | undefined;
     requestHandler?: ((commitObject: unknown, metadata?: CommitMetadata) => unknown) | undefined;
     terminateCommitParam?: string | undefined;
+    terminationCommitContentType?: string | undefined;
     terminateCommitPayloadField?: string | undefined;
     includeCommitSequence?: boolean | undefined;
     onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
@@ -72,6 +74,7 @@ export type InternalSettings = {
     commitRequestDataType: string;
     autoProgress: boolean;
     logLevel: LogLevel;
+    uninitializedGetLogLevel: LogLevel;
     selfReportSessionTime: boolean;
     renderCommonCommitFields: boolean;
     autoCompleteLessonStatus: boolean;
@@ -84,6 +87,7 @@ export type InternalSettings = {
     xhrResponseHandler: (xhr: XMLHttpRequest) => ResultObject;
     requestHandler: (commitObject: unknown, metadata?: CommitMetadata) => unknown;
     terminateCommitParam?: string | undefined;
+    terminationCommitContentType: string;
     terminateCommitPayloadField?: string | undefined;
     includeCommitSequence?: boolean | undefined;
     onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;

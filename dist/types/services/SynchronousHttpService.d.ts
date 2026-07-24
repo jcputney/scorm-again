@@ -8,6 +8,7 @@ export declare class SynchronousHttpService implements IHttpService {
     constructor(settings: InternalSettings, error_codes: ErrorCode);
     processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate: boolean | undefined, _apiLog: (functionName: string, message: any, messageLevel: number, CMIElement?: string) => void, _processListeners: (functionName: string, CMIElement?: string, value?: any) => void, metadata?: CommitMetadata, _onRequestComplete?: () => void): ResultObject;
     private _handleImmediateRequest;
+    private _warnIfBeaconContentTypeUnsafe;
     private _performSyncXHR;
     private _prepareRequestBody;
     updateSettings(settings: InternalSettings): void;
