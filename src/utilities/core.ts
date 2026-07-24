@@ -17,6 +17,26 @@ type Designation = {
  */
 export type StringKeyMap = Record<string, unknown>;
 
+const CORS_SAFELISTED_CONTENT_TYPES = [
+  "text/plain",
+  "application/x-www-form-urlencoded",
+  "multipart/form-data",
+];
+
+export function isCorsSafelistedContentType(contentType: string): boolean {
+  const essence = ((contentType || "").split(";")[0] ?? "").trim().toLowerCase();
+  return CORS_SAFELISTED_CONTENT_TYPES.includes(essence);
+}
+
+export function isCrossOriginUrl(url: string): boolean {
+  if (typeof location === "undefined" || !location || !location.origin) return false;
+  try {
+    return new URL(url, location.href).origin !== location.origin;
+  } catch {
+    return false;
+  }
+}
+
 const designations: Designation = {
   D: SECONDS_PER_DAY,
   H: SECONDS_PER_HOUR,

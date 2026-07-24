@@ -2,6 +2,7 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { AsynchronousHttpService } from "../../src/services/AsynchronousHttpService";
+import { LogLevelEnum } from "../../src/constants/enums";
 import { global_constants } from "../../src";
 import { InternalSettings } from "../../src/types/api_types";
 
@@ -29,6 +30,7 @@ describe("AsynchronousHttpService", () => {
     settings = {
       fetchMode: "cors",
       commitRequestDataType: "application/json",
+      terminationCommitContentType: "text/plain;charset=UTF-8",
       xhrHeaders: {},
       xhrWithCredentials: false,
       requestHandler: (params) => params,
@@ -165,6 +167,56 @@ describe("AsynchronousHttpService", () => {
       expect(fetchStub).not.toHaveBeenCalled();
       expect(sendBeaconStub).toHaveBeenCalledOnce();
       expect(sendBeaconStub).toHaveBeenCalledWith(url, expect.any(Blob));
+    });
+
+    it("should use the configured termination commit Content-Type for object params", async () => {
+      const url = "/api";
+      const params = { data: "test" };
+      settings.terminationCommitContentType = "application/json";
+      httpService.updateSettings(settings);
+
+      await (httpService as any).performBeacon(url, params);
+
+      expect(sendBeaconStub).toHaveBeenCalledOnce();
+      const blobArg = sendBeaconStub.mock.calls[0][1] as Blob;
+      expect(blobArg.type).toBe("application/json");
+    });
+
+    it("should warn about a non-safelisted Content-Type for a cross-origin beacon", async () => {
+      const onLogMessage = vi.fn();
+      vi.stubGlobal("location", {
+        origin: "https://sco.example.com",
+        href: "https://sco.example.com/",
+      });
+      settings.terminationCommitContentType = "application/json;charset=UTF-8";
+      settings.onLogMessage = onLogMessage;
+      httpService.updateSettings(settings);
+
+      await (httpService as any).performBeacon("https://lms.other.com/commit", { data: "test" });
+
+      expect(onLogMessage).toHaveBeenCalledWith(
+        LogLevelEnum.WARN,
+        expect.stringContaining("non-CORS-safelisted Content-Type"),
+      );
+    });
+
+    it("should not warn for same-origin or CORS-safelisted beacons", async () => {
+      const onLogMessage = vi.fn();
+      vi.stubGlobal("location", {
+        origin: "https://sco.example.com",
+        href: "https://sco.example.com/",
+      });
+      settings.terminationCommitContentType = "application/json;charset=UTF-8";
+      settings.onLogMessage = onLogMessage;
+      httpService.updateSettings(settings);
+
+      await (httpService as any).performBeacon("https://sco.example.com/commit", { data: "test" });
+
+      settings.terminationCommitContentType = "text/plain;charset=UTF-8";
+      httpService.updateSettings(settings);
+      await (httpService as any).performBeacon("https://lms.other.com/commit", { data: "test" });
+
+      expect(onLogMessage).not.toHaveBeenCalled();
     });
 
     it("should handle array params with sendBeacon", async () => {

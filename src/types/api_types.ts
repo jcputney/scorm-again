@@ -52,6 +52,16 @@ export type Settings = {
   requestHandler?: ((commitObject: unknown, metadata?: CommitMetadata) => unknown) | undefined;
   /** Query-string parameter added to terminate-time commit URLs when configured. */
   terminateCommitParam?: string | undefined;
+  /**
+   * Content-Type used for the sendBeacon() termination commit.
+   * Defaults to "text/plain;charset=UTF-8", which is CORS-safelisted and avoids a preflight
+   * the Beacon API cannot perform. Set to e.g. "application/json;charset=UTF-8" for LMS servers
+   * that reject text/plain with HTTP 415. NOTE: a non-safelisted value on a cross-origin commit
+   * URL will be silently dropped by the browser (sendBeacon cannot preflight); a warning is logged
+   * in that case. For cross-origin JSON or custom auth headers on terminate, use fetch instead via
+   * useAsynchronousCommits + asyncModeBeaconBehavior:"never".
+   */
+  terminationCommitContentType?: string | undefined;
   /** Payload field added to terminate-time commits when configured. */
   terminateCommitPayloadField?: string | undefined;
   /** Whether commit payloads include a monotonic commitSequence value. */
@@ -126,6 +136,7 @@ export type InternalSettings = {
   requestHandler: (commitObject: unknown, metadata?: CommitMetadata) => unknown;
   /** Query-string parameter added to terminate-time commit URLs when configured. */
   terminateCommitParam?: string | undefined;
+  terminationCommitContentType: string;
   /** Payload field added to terminate-time commits when configured. */
   terminateCommitPayloadField?: string | undefined;
   /** Whether commit payloads include a monotonic commitSequence value. */

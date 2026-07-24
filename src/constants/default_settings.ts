@@ -14,6 +14,7 @@ export const DefaultSettings: InternalSettings = {
   lmsCommitUrl: false,
   dataCommitFormat: "json",
   commitRequestDataType: "application/json;charset=UTF-8",
+  terminationCommitContentType: "text/plain;charset=UTF-8",
   autoProgress: false,
   logLevel: LogLevelEnum.ERROR,
   selfReportSessionTime: false,

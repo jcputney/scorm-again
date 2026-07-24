@@ -3,6 +3,7 @@ import { SynchronousHttpService } from "../../src/services/SynchronousHttpServic
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { scorm12_errors } from "../../src/constants/error_codes";
 import { global_constants } from "../../src/constants/api_constants";
+import { LogLevelEnum } from "../../src/constants/enums";
 
 describe("SynchronousHttpService", () => {
   let service: SynchronousHttpService;
@@ -135,8 +136,89 @@ describe("SynchronousHttpService", () => {
       );
 
       expect(mockBeacon).toHaveBeenCalled();
+      const blobArg = mockBeacon.mock.calls[0][1] as Blob;
+      expect(blobArg.type.toLowerCase()).toBe("text/plain;charset=utf-8");
       expect(result.result).toBe("true");
       expect(result.errorCode).toBe(0);
+    });
+
+    it("should use the configured termination commit Content-Type", () => {
+      const mockBeacon = vi.fn().mockReturnValue(true);
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
+      service.updateSettings({
+        ...DefaultSettings,
+        terminationCommitContentType: "application/json;charset=UTF-8",
+      });
+
+      service.processHttpRequest("/commit", { cmi: {} }, true, mockApiLog, mockProcessListeners);
+
+      expect(mockBeacon).toHaveBeenCalledOnce();
+      const blobArg = mockBeacon.mock.calls[0][1] as Blob;
+      expect(blobArg.type.toLowerCase()).toBe("application/json;charset=utf-8");
+    });
+
+    it("should warn about a non-safelisted Content-Type for a cross-origin beacon", () => {
+      const mockBeacon = vi.fn().mockReturnValue(true);
+      const onLogMessage = vi.fn();
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
+      vi.stubGlobal("location", {
+        origin: "https://sco.example.com",
+        href: "https://sco.example.com/",
+      });
+      service.updateSettings({
+        ...DefaultSettings,
+        terminationCommitContentType: "application/json;charset=UTF-8",
+        onLogMessage,
+      });
+
+      service.processHttpRequest(
+        "https://lms.other.com/commit",
+        { cmi: {} },
+        true,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(onLogMessage).toHaveBeenCalledWith(
+        LogLevelEnum.WARN,
+        expect.stringContaining("non-CORS-safelisted Content-Type"),
+      );
+    });
+
+    it("should not warn for same-origin or CORS-safelisted beacons", () => {
+      const mockBeacon = vi.fn().mockReturnValue(true);
+      const onLogMessage = vi.fn();
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
+      vi.stubGlobal("location", {
+        origin: "https://sco.example.com",
+        href: "https://sco.example.com/",
+      });
+      service.updateSettings({
+        ...DefaultSettings,
+        terminationCommitContentType: "application/json;charset=UTF-8",
+        onLogMessage,
+      });
+
+      service.processHttpRequest(
+        "https://sco.example.com/commit",
+        { cmi: {} },
+        true,
+        mockApiLog,
+        mockProcessListeners,
+      );
+      service.updateSettings({
+        ...DefaultSettings,
+        onLogMessage,
+      });
+      service.processHttpRequest(
+        "https://lms.other.com/commit",
+        { cmi: {} },
+        true,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(onLogMessage).not.toHaveBeenCalled();
     });
 
     it("should handle sendBeacon failure", () => {
@@ -345,7 +427,7 @@ describe("SynchronousHttpService", () => {
       expect(mockBeacon).toHaveBeenCalled();
       const blobArg = mockBeacon.mock.calls[0][1];
       expect(blobArg).toBeInstanceOf(Blob);
-      // Verify the blob contains the joined params (case-insensitive check)
+      // Beacon Content-Type defaults to text/plain for all payload types (terminationCommitContentType)
       expect(blobArg.type.toLowerCase()).toBe("text/plain;charset=utf-8");
     });
 
