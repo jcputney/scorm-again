@@ -1,8 +1,9 @@
 import { CommitMetadata, CommitObject, InternalSettings, ResultObject } from "../types/api_types";
 import { global_constants } from "../constants/api_constants";
+import { LogLevelEnum } from "../constants/enums";
 import { IHttpService } from "../interfaces/services";
 import { ErrorCode } from "../constants/error_codes";
-import { StringKeyMap } from "../utilities";
+import { isCorsSafelistedContentType, isCrossOriginUrl, StringKeyMap } from "../utilities";
 
 /**
  * Service for handling synchronous HTTP communication with the LMS
@@ -87,20 +88,28 @@ export class SynchronousHttpService implements IHttpService {
         : this.settings.requestHandler(params, metadata);
     const requestPayload = (handledPayload ?? params) as CommitObject | StringKeyMap | Array<any>;
     const { body } = this._prepareRequestBody(requestPayload);
+    const beaconContentType = this.settings.terminationCommitContentType;
+    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
 
-    // Use text/plain for sendBeacon to avoid CORS preflight issues.
-    // application/json triggers CORS preflight which sendBeacon can't handle.
-    // The server can still parse the body as JSON.
+    // See terminationCommitContentType for the configurable Beacon Content-Type.
     // @spec W3C Beacon - sendBeacon for reliable unload data transmission
-    const beaconSuccess = navigator.sendBeacon(
-      url,
-      new Blob([body], { type: "text/plain;charset=UTF-8" }),
-    );
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
 
     return {
       result: beaconSuccess ? "true" : "false",
       errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391,
     };
+  }
+
+  private _warnIfBeaconContentTypeUnsafe(url: string, contentType: string): void {
+    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+      this.settings.onLogMessage?.(
+        LogLevelEnum.WARN,
+        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" ` +
+          `may be silently dropped by the browser (Beacon cannot preflight). Use fetch ` +
+          `(useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`,
+      );
+    }
   }
 
   /**

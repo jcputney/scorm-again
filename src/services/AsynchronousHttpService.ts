@@ -3,7 +3,7 @@ import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
 import { IHttpService } from "../interfaces/services";
 import { ErrorCode } from "../constants/error_codes";
-import { StringKeyMap } from "../utilities";
+import { isCorsSafelistedContentType, isCrossOriginUrl, StringKeyMap } from "../utilities";
 
 /**
  * Service for handling asynchronous HTTP communication with the LMS
@@ -194,9 +194,12 @@ export class AsynchronousHttpService implements IHttpService {
    */
   private async performBeacon(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
     const { body, contentType } = this._prepareRequestBody(params);
+    const beaconContentType =
+      params instanceof Array ? contentType : this.settings.terminationCommitContentType;
+    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
 
     // Send the beacon request
-    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
 
     // Create a mock Response object since sendBeacon doesn't return a Response
     return Promise.resolve({
@@ -212,6 +215,17 @@ export class AsynchronousHttpService implements IHttpService {
           errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391,
         }),
     } as Response);
+  }
+
+  private _warnIfBeaconContentTypeUnsafe(url: string, contentType: string): void {
+    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+      this.settings.onLogMessage?.(
+        LogLevelEnum.WARN,
+        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" ` +
+          `may be silently dropped by the browser (Beacon cannot preflight). Use fetch ` +
+          `(useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`,
+      );
+    }
   }
 
   /**

@@ -29,6 +29,7 @@ describe("AsynchronousHttpService", () => {
     settings = {
       fetchMode: "cors",
       commitRequestDataType: "application/json",
+      terminationCommitContentType: "text/plain;charset=UTF-8",
       xhrHeaders: {},
       xhrWithCredentials: false,
       requestHandler: (params) => params,
@@ -165,6 +166,19 @@ describe("AsynchronousHttpService", () => {
       expect(fetchStub).not.toHaveBeenCalled();
       expect(sendBeaconStub).toHaveBeenCalledOnce();
       expect(sendBeaconStub).toHaveBeenCalledWith(url, expect.any(Blob));
+    });
+
+    it("should use the configured termination commit Content-Type for object params", async () => {
+      const url = "/api";
+      const params = { data: "test" };
+      settings.terminationCommitContentType = "application/json";
+      httpService.updateSettings(settings);
+
+      await (httpService as any).performBeacon(url, params);
+
+      expect(sendBeaconStub).toHaveBeenCalledOnce();
+      const blobArg = sendBeaconStub.mock.calls[0][1] as Blob;
+      expect(blobArg.type).toBe("application/json");
     });
 
     it("should handle array params with sendBeacon", async () => {
