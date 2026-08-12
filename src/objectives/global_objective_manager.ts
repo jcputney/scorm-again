@@ -21,6 +21,7 @@ export type CommonSetCMIValueFn = (
  */
 export interface GlobalObjectiveContext {
   getSettings: () => Settings;
+  hostDeclaredGlobalObjectiveIds: string[];
   cmi: CMI;
   sequencing: Sequencing | null;
   sequencingService: SequencingService | null;
@@ -41,9 +42,14 @@ export interface GlobalObjectiveContext {
 export class GlobalObjectiveManager {
   private _globalObjectives: CMIObjectivesObject[] = [];
   private context: GlobalObjectiveContext;
+  private readonly hostDeclaredGlobalObjectiveIds: Set<string>;
 
   constructor(context: GlobalObjectiveContext) {
     this.context = context;
+    // Capture the host extension boundary before sequencing map keys are merged into settings.
+    // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - mapped global
+    // objectives initialize their local activity objective, not an additional RTE row.
+    this.hostDeclaredGlobalObjectiveIds = new Set(context.hostDeclaredGlobalObjectiveIds);
   }
 
   /**
@@ -72,6 +78,19 @@ export class GlobalObjectiveManager {
    */
   updateSequencingService(service: SequencingService | null): void {
     this.context.sequencingService = service;
+  }
+
+  /**
+   * Return whether the host explicitly exposed an objective as a directly writable extension row.
+   *
+   * Manifest map targets are internal sequencing state. A same-named local cmi.objectives row must
+   * still write only through that activity objective's mapInfo.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - local run-time objectives
+   *   access global objective state through objective maps
+   */
+  isHostDeclaredGlobalObjectiveId(objectiveId: string): boolean {
+    return this.hostDeclaredGlobalObjectiveIds.has(objectiveId);
   }
 
   /**
@@ -123,10 +142,21 @@ export class GlobalObjectiveManager {
       return;
     }
 
+    const hasCurrentSequencingActivity = Boolean(this.context.sequencing?.getCurrentActivity());
+
     // Restore each global objective to cmi.objectives
     for (let i = 0; i < this._globalObjectives.length; i++) {
       const globalObj = this._globalObjectives[i];
       if (!globalObj || !globalObj.id) {
+        continue;
+      }
+
+      // A host may explicitly expose a direct global-objective row as an extension. Manifest
+      // mapInfo targets are synchronized through the delivered activity's local objectives and
+      // must not be appended as extra cmi.objectives rows for every SCO.
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - the RTE view is
+      // initialized from the current activity's declared objectives and their read maps.
+      if (hasCurrentSequencingActivity && !this.hostDeclaredGlobalObjectiveIds.has(globalObj.id)) {
         continue;
       }
 
@@ -562,6 +592,43 @@ export class GlobalObjectiveManager {
   }
 
   /**
+   * Merge an LMS-provided global-objective snapshot into the manifest-created objective map.
+   * Existing map entries retain their mapInfo permissions while persisted tracking values replace
+   * the corresponding defaults.
+   *
+   * @param {Record<string, GlobalObjectiveMapEntry>} snapshot - Persisted global objective state
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - mapped global objective state is available to read maps
+   */
+  restoreGlobalObjectiveSnapshot(snapshot: Record<string, GlobalObjectiveMapEntry>): void {
+    if (!snapshot || typeof snapshot !== "object") {
+      return;
+    }
+
+    const process = this.context.sequencingService?.getOverallSequencingProcess() ?? null;
+    if (process) {
+      for (const [objectiveId, objectiveData] of Object.entries(snapshot)) {
+        if (!objectiveId || !objectiveData || typeof objectiveData !== "object") {
+          continue;
+        }
+        process.updateGlobalObjective(objectiveId, {
+          ...objectiveData,
+          id: objectiveData.id ?? objectiveId,
+        });
+      }
+
+      // The initial sequencing request evaluates preconditions against activity-local
+      // objective state. Apply restored global values to their read-mapped activity
+      // objectives before Start/Resume All can run.
+      // @spec SCORM 2004 4th Ed. SN 3.10.3 and NB.2.1 - persisted global
+      //   objective values are available to mapped sequencing rules on launch.
+      process.synchronizeGlobalObjectives();
+    }
+
+    this._globalObjectives = this.buildCMIObjectivesFromMap(snapshot);
+  }
+
+  /**
    * Parses the given value into a finite number if possible, otherwise returns null.
    *
    * @param {any} value - The input value to be parsed into a number.
@@ -608,12 +675,15 @@ export class GlobalObjectiveManager {
 
     const primaryObjective = currentActivity.primaryObjective;
 
-    // Update primary objective satisfied status based on cmi.success_status
-    if (successStatus !== SuccessStatus.UNKNOWN) {
+    const satisfiedByMeasure = primaryObjective.satisfiedByMeasure === true;
+
+    // @spec SCORM 2004 4th Ed. SN 4.2.1 Tracking Model - Objective Progress
+    // Status and Objective Measure Status are independent. A direct success
+    // status does not make the normalized measure known, and a measure-controlled
+    // objective ignores direct success status.
+    if (!satisfiedByMeasure && successStatus !== SuccessStatus.UNKNOWN) {
       primaryObjective.satisfiedStatus = successStatus === SuccessStatus.PASSED;
       primaryObjective.satisfiedStatusKnown = true;
-      primaryObjective.measureStatus = true;
-      currentActivity.objectiveMeasureStatus = true;
       currentActivity.objectiveSatisfiedStatus = successStatus === SuccessStatus.PASSED;
       currentActivity.objectiveSatisfiedStatusKnown = true;
     }
@@ -623,10 +693,26 @@ export class GlobalObjectiveManager {
       primaryObjective.completionStatus = completionStatus;
     }
 
-    // Update normalized measure if score is provided
-    if (scoreObject?.scaled !== undefined && scoreObject.scaled !== null) {
-      primaryObjective.normalizedMeasure = scoreObject.scaled;
+    // Update normalized measure if score is provided.
+    if (
+      scoreObject?.scaled !== undefined &&
+      scoreObject.scaled !== null &&
+      Number.isFinite(scoreObject.scaled)
+    ) {
+      const normalizedMeasure = scoreObject.scaled;
+      primaryObjective.normalizedMeasure = normalizedMeasure;
       primaryObjective.measureStatus = true;
+
+      if (satisfiedByMeasure) {
+        // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - objective
+        // satisfaction is derived from a known measure; when omitted, the
+        // minimum normalized measure defaults to 1.0.
+        const satisfied = normalizedMeasure >= (primaryObjective.minNormalizedMeasure ?? 1.0);
+        primaryObjective.satisfiedStatus = satisfied;
+        primaryObjective.satisfiedStatusKnown = true;
+        currentActivity.objectiveSatisfiedStatus = satisfied;
+        currentActivity.objectiveSatisfiedStatusKnown = true;
+      }
     }
 
     // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw score is

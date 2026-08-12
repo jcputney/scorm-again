@@ -20,7 +20,7 @@ export class DeliveryRequest {
   constructor(
     valid: boolean = false,
     targetActivity: Activity | null = null,
-    exception: string | null = null
+    exception: string | null = null,
   ) {
     this.valid = valid;
     this.targetActivity = targetActivity;
@@ -89,7 +89,7 @@ export class DeliveryHandler {
     globalObjectiveMap: Map<string, any>,
     adlNav: ADLNav | null = null,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
-    options?: DeliveryHandlerOptions
+    options?: DeliveryHandlerOptions,
   ) {
     this.activityTree = activityTree;
     this.rollupProcess = rollupProcess;
@@ -97,9 +97,7 @@ export class DeliveryHandler {
     this.adlNav = adlNav;
     this.eventCallback = eventCallback;
     this.now = options?.now || (() => new Date());
-    this.defaultHideLmsUi = options?.defaultHideLmsUi
-      ? [...options.defaultHideLmsUi]
-      : [];
+    this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
     this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources
       ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource }))
       : [];
@@ -226,6 +224,10 @@ export class DeliveryHandler {
       // Step 1: Check if we're resuming before clearing suspended state
       // Capture suspended state of delivered activity BEFORE clearSuspendedActivitySubprocess
       const isResuming = activity.isSuspended;
+      // @spec SCORM 2004 4th Ed. RTE 4.2.8 and SN DB.2: integrations must know
+      // whether to restore the delivered SCO's suspended local RTE data after DB.2.1
+      // clears the sequencing suspension flag.
+      activity.deliveryWasResumed = isResuming;
 
       // Step 2: Clear Suspended Activity Subprocess (DB.2.1) if needed
       // Clear suspended state whether we're resuming the suspended activity
@@ -248,8 +250,25 @@ export class DeliveryHandler {
             // Resuming: clear suspended flag but don't increment attempt
             pathActivity.isSuspended = false;
           } else {
-            // New attempt: increment attempt count
+            // New attempt: increment the cumulative count, then initialize only
+            // the Objective and Attempt Progress Information scoped to this attempt.
             pathActivity.incrementAttemptCount();
+            pathActivity.initializeTrackingForNewAttempt();
+            pathActivity.objectiveInfoAvailableInCurrentParentAttempt = true;
+            pathActivity.progressInfoAvailableInCurrentParentAttempt = true;
+
+            // The default useCurrentAttempt* controls make tracking from child attempts outside
+            // this new parent attempt unavailable to rollup. Preserve the child's tracking data:
+            // its own precondition rules still evaluate that data until the child starts again.
+            // @spec SCORM 2004 SN 4th Ed. SM.1 and TM.2
+            for (const child of pathActivity.children) {
+              if (pathActivity.sequencingControls.useCurrentAttemptObjectiveInfo) {
+                child.objectiveInfoAvailableInCurrentParentAttempt = false;
+              }
+              if (pathActivity.sequencingControls.useCurrentAttemptProgressInfo) {
+                child.progressInfoAvailableInCurrentParentAttempt = false;
+              }
+            }
           }
           pathActivity.isActive = true;
 
@@ -258,7 +277,7 @@ export class DeliveryHandler {
           // This occurs after activity.isActive is set and attempt count is incremented
           SelectionRandomization.applySelectionAndRandomization(
             pathActivity,
-            pathActivity.attemptCount <= 1
+            pathActivity.attemptCount <= 1,
           );
         }
       }
@@ -399,9 +418,7 @@ export class DeliveryHandler {
       current = current.parent;
     }
 
-    return DeliveryHandler.HIDE_LMS_UI_ORDER.filter((directive) =>
-      seen.has(directive)
-    );
+    return DeliveryHandler.HIDE_LMS_UI_ORDER.filter((directive) => seen.has(directive));
   }
 
   /**
@@ -410,9 +427,7 @@ export class DeliveryHandler {
    * @param {Activity | null} activity - The activity
    * @return {AuxiliaryResource[]} - Merged auxiliary resources
    */
-  public getEffectiveAuxiliaryResources(
-    activity: Activity | null
-  ): AuxiliaryResource[] {
+  public getEffectiveAuxiliaryResources(activity: Activity | null): AuxiliaryResource[] {
     const merged = new Map<string, AuxiliaryResource>();
 
     for (const resource of this.defaultAuxiliaryResources) {
@@ -464,10 +479,7 @@ export class DeliveryHandler {
    * @param {boolean} includeActivity - Whether to include the target in the path
    * @return {Activity[]} - Array of activities from root to target
    */
-  public getActivityPath(
-    activity: Activity,
-    includeActivity: boolean = true
-  ): Activity[] {
+  public getActivityPath(activity: Activity, includeActivity: boolean = true): Activity[] {
     const path: Activity[] = [];
     let current: Activity | null = activity;
 

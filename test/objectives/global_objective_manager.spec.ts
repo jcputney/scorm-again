@@ -274,6 +274,45 @@ describe("GlobalObjectiveManager", () => {
 
       expect(mockContext.commonSetCMIValue).toHaveBeenCalledTimes(1); // Only id
     });
+
+    it("should restore only host-declared global rows during active sequencing", () => {
+      const settings = { globalObjectiveIds: ["host-global"] } as Settings;
+      mockContext = createMockGlobalObjectiveContext({
+        getSettings: vi.fn().mockReturnValue(settings),
+        hostDeclaredGlobalObjectiveIds: ["host-global"],
+        sequencing: {
+          getCurrentActivity: vi.fn().mockReturnValue({ id: "sco-2" }),
+        } as unknown as Sequencing,
+      });
+      manager = new GlobalObjectiveManager(mockContext);
+      manager.globalObjectives = [
+        {
+          id: "mapped-global",
+          score: { scaled: "0.7", raw: "", min: "", max: "" },
+        } as CMIObjectivesObject,
+        {
+          id: "host-global",
+          score: { scaled: "0.8", raw: "", min: "", max: "" },
+        } as CMIObjectivesObject,
+      ];
+
+      // Mimic sequencing initialization adding map targets to the mutable runtime settings.
+      settings.globalObjectiveIds = ["host-global", "mapped-global"];
+      manager.restoreGlobalObjectivesToCMI();
+
+      expect(mockContext.commonSetCMIValue).toHaveBeenCalledWith(
+        "RestoreGlobalObjective",
+        true,
+        "cmi.objectives.0.id",
+        "host-global",
+      );
+      expect(mockContext.commonSetCMIValue).not.toHaveBeenCalledWith(
+        "RestoreGlobalObjective",
+        true,
+        expect.any(String),
+        "mapped-global",
+      );
+    });
   });
 
   describe("updateGlobalObjectiveFromCMI", () => {
@@ -849,6 +888,40 @@ describe("GlobalObjectiveManager", () => {
     });
   });
 
+  describe("restoreGlobalObjectiveSnapshot", () => {
+    it("merges persisted scores into the sequencing map and RTE objective cache", () => {
+      const mockProcess = createMockOverallProcess();
+      mockContext.sequencingService = {
+        getOverallSequencingProcess: vi.fn().mockReturnValue(mockProcess),
+      } as unknown as SequencingService;
+      const snapshot = {
+        "gObj-SX11": {
+          id: "gObj-SX11",
+          rawScore: "7",
+          rawScoreKnown: true,
+          minScore: "1",
+          minScoreKnown: true,
+          maxScore: "3.3333",
+          maxScoreKnown: true,
+          progressMeasure: 0.011,
+          progressMeasureKnown: true,
+        },
+      };
+
+      manager.restoreGlobalObjectiveSnapshot(snapshot);
+
+      expect(mockProcess.updateGlobalObjective).toHaveBeenCalledWith(
+        "gObj-SX11",
+        snapshot["gObj-SX11"],
+      );
+      expect(manager.globalObjectives).toHaveLength(1);
+      expect(manager.globalObjectives[0]?.score.raw).toBe("7");
+      expect(manager.globalObjectives[0]?.score.min).toBe("1");
+      expect(manager.globalObjectives[0]?.score.max).toBe("3.3333");
+      expect(manager.globalObjectives[0]?.progress_measure).toBe("0.011");
+    });
+  });
+
   describe("parseObjectiveNumber", () => {
     it("should return null for null/undefined", () => {
       expect(manager.parseObjectiveNumber(null)).toBeNull();
@@ -924,9 +997,80 @@ describe("GlobalObjectiveManager", () => {
 
       expect(primaryObjective.satisfiedStatus).toBe(true);
       expect(primaryObjective.satisfiedStatusKnown).toBe(true);
-      expect(primaryObjective.measureStatus).toBe(true);
-      expect(activity.objectiveMeasureStatus).toBe(true);
+      // @spec SCORM 2004 4th Ed. SN 4.2.1 Tracking Model - a known
+      // satisfaction status does not make the normalized measure known.
+      expect(primaryObjective.measureStatus).toBe(false);
+      expect(activity.objectiveMeasureStatus).toBe(false);
       expect(activity.objectiveSatisfiedStatus).toBe(true);
+      expect(activity.objectiveSatisfiedStatusKnown).toBe(true);
+    });
+
+    it("should ignore direct success for a measure-controlled objective without a score", () => {
+      const primaryObjective = {
+        satisfiedStatus: false,
+        satisfiedStatusKnown: false,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.75,
+        measureStatus: false,
+        completionStatus: CompletionStatus.UNKNOWN,
+      };
+      const activity = {
+        primaryObjective,
+        objectiveMeasureStatus: false,
+        objectiveSatisfiedStatus: false,
+        objectiveSatisfiedStatusKnown: false,
+      };
+      mockContext.sequencing = {
+        getCurrentActivity: vi.fn().mockReturnValue(activity),
+      } as unknown as Sequencing;
+
+      manager.syncCmiToSequencingActivity(CompletionStatus.UNKNOWN, SuccessStatus.PASSED);
+
+      // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description -
+      // satisfiedByMeasure objectives remain unknown until a measure is known.
+      expect(primaryObjective.satisfiedStatusKnown).toBe(false);
+      expect(primaryObjective.measureStatus).toBe(false);
+      expect(activity.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(activity.objectiveMeasureStatus).toBe(false);
+    });
+
+    it("should derive satisfaction for a measure-controlled objective from its score", () => {
+      const primaryObjective = {
+        satisfiedStatus: true,
+        satisfiedStatusKnown: false,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.75,
+        measureStatus: false,
+        normalizedMeasure: 0,
+        completionStatus: CompletionStatus.UNKNOWN,
+      };
+      const activity = {
+        primaryObjective,
+        objectiveMeasureStatus: false,
+        objectiveNormalizedMeasure: 0,
+        objectiveSatisfiedStatus: true,
+        objectiveSatisfiedStatusKnown: false,
+      };
+      mockContext.sequencing = {
+        getCurrentActivity: vi.fn().mockReturnValue(activity),
+      } as unknown as Sequencing;
+
+      manager.syncCmiToSequencingActivity(CompletionStatus.UNKNOWN, SuccessStatus.PASSED, {
+        scaled: 0.5,
+      });
+
+      // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - a known
+      // measure controls satisfaction independently of direct success status.
+      expect(primaryObjective.normalizedMeasure).toBe(0.5);
+      expect(primaryObjective.measureStatus).toBe(true);
+      expect(primaryObjective.satisfiedStatus).toBe(false);
+      expect(primaryObjective.satisfiedStatusKnown).toBe(true);
+      // @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - the manager
+      // updates the primary objective view; end-attempt transfer owns the
+      // activity-level measure used for rollup.
+      expect(activity.objectiveNormalizedMeasure).toBe(0);
+      expect(activity.objectiveMeasureStatus).toBe(false);
+      expect(activity.objectiveSatisfiedStatus).toBe(false);
       expect(activity.objectiveSatisfiedStatusKnown).toBe(true);
     });
 

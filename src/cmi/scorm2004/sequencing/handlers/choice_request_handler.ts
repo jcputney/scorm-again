@@ -3,6 +3,7 @@ import { ActivityTree } from "../activity_tree";
 import { ActivityTreeQueries } from "../utils/activity_tree_queries";
 import { ChoiceConstraintValidator } from "../validators/choice_constraint_validator";
 import { FlowTraversalService } from "../traversal/flow_traversal_service";
+import { RuleActionType } from "../sequencing_rules";
 import {
   SequencingResult,
   DeliveryRequestType,
@@ -78,15 +79,27 @@ export class ChoiceRequestHandler {
       );
     }
 
-    // Form the activity path from target to common ancestor
-    const activityPath = this.buildActivityPath(targetActivity, commonAncestor);
-
-    // Evaluate each activity in the path
-    for (const pathActivity of activityPath) {
-      if (!this.traversalService.checkActivityProcess(pathActivity)) {
-        // Sequencing ends with no delivery
+    // @spec SCORM 2004 SN 4th Ed. SB.2.9 steps 3-4: the root-to-target path
+    // is checked only for Hide from Choice rules. Skip rules apply to flow,
+    // not to a learner explicitly choosing a descendant activity.
+    for (const pathActivity of this.treeQueries.getPathToRoot(targetActivity)) {
+      const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
+        (rule) =>
+          rule.action === RuleActionType.HIDE_FROM_CHOICE &&
+          rule.evaluate(pathActivity) === true
+      );
+      if (hiddenByRule) {
+        result.exception = "SB.2.9-4";
         return result;
       }
+    }
+
+    // The root-to-target visibility pass does not apply general preconditions to
+    // ancestors, but the explicitly selected activity must itself be deliverable.
+    // @spec SCORM 2004 SN 4th Ed. SB.2.9 choice traversal cases
+    if (!this.traversalService.checkActivityProcess(targetActivity)) {
+      result.exception = "SB.2.9-5";
+      return result;
     }
 
     // If target is not a leaf, use choice flow to find a deliverable leaf
@@ -176,27 +189,6 @@ export class ChoiceRequestHandler {
     }
 
     return availableActivities;
-  }
-
-  /**
-   * Build the activity path from target to common ancestor
-   * @param {Activity} targetActivity - Target activity
-   * @param {Activity | null} commonAncestor - Common ancestor
-   * @return {Activity[]} - Path of activities
-   */
-  private buildActivityPath(
-    targetActivity: Activity,
-    commonAncestor: Activity | null
-  ): Activity[] {
-    const activityPath: Activity[] = [];
-    let activity: Activity | null = targetActivity;
-
-    while (activity && activity !== commonAncestor) {
-      activityPath.unshift(activity);
-      activity = activity.parent;
-    }
-
-    return activityPath;
   }
 
   /**

@@ -155,6 +155,16 @@ export class CMISession extends BaseCMI {
   }
 
   /**
+   * Add the completed learner session to the cumulative total.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.24 / 4.2.28 - session_time is
+   *   accumulated into the LMS-maintained total_time after Terminate.
+   */
+  accumulateSessionTime(start_time: number | undefined): void {
+    this._total_time = this.getCurrentTotalTime(start_time);
+  }
+
+  /**
    * Reset the session properties
    *
    * When resetting for a new SCO delivery, entry is set to "ab-initio" per SCORM 2004 spec:

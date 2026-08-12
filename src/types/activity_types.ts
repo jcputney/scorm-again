@@ -26,6 +26,9 @@ export interface IActivity {
   /** Whether the activity is in a suspended state */
   readonly isSuspended: boolean;
 
+  /** Whether the current delivery resumed a suspended activity attempt */
+  readonly deliveryWasResumed: boolean;
+
   /** Whether the activity has been completed */
   readonly isCompleted: boolean;
 

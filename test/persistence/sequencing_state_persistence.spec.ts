@@ -328,6 +328,40 @@ describe("SequencingStatePersistence", () => {
         }),
       );
     });
+
+    it("should share equivalent concurrent loads without suppressing later loads", async () => {
+      let resolveLoad: ((value: string) => void) | undefined;
+      const loadFn = vi.fn().mockImplementation(
+        () =>
+          new Promise<string>((resolve) => {
+            resolveLoad = resolve;
+          }),
+      );
+      const settings = createMockSettings({
+        compress: false,
+        saveState: vi.fn(),
+        loadState: loadFn,
+      });
+      mockContext.getSettings = vi.fn().mockReturnValue(settings);
+
+      const first = persistence.loadSequencingState();
+      const second = persistence.loadSequencingState({
+        learnerId: "test-learner",
+        courseId: "test-course",
+        attemptNumber: 1,
+        version: "1.0",
+      });
+
+      // @spec SCORM 2004 4th Ed. SN 4.2 Tracking Model Persistence -
+      // concurrent requests for one snapshot deserialize it exactly once.
+      expect(loadFn).toHaveBeenCalledTimes(1);
+      resolveLoad?.(JSON.stringify({ version: "1.0" }));
+      await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
+
+      loadFn.mockResolvedValueOnce(JSON.stringify({ version: "1.0" }));
+      await expect(persistence.loadSequencingState()).resolves.toBe(true);
+      expect(loadFn).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("serializeSequencingState", () => {

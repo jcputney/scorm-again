@@ -420,7 +420,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
   });
 
   describe("Edge cases", () => {
-    it("should handle root activity choice (should return NB.2.1-11)", () => {
+    it("should reject choosing the active tree root", () => {
       activityTree.currentActivity = activity1_1;
       activity1_1.isActive = true;
 
@@ -430,8 +430,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
         root.id
       );
 
-      // Navigation Request Process returns NB.2.1-11 for invalid choice targets
-      expect(result.exception).toBe("NB.2.1-11");
+      expect(result.exception).toBe("SB.2.9-3");
     });
 
     it("should handle all siblings hidden", () => {

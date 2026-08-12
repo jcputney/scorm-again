@@ -229,6 +229,8 @@ export type CommitObject = {
   completionStatus: CompletionStatus;
   totalTimeSeconds: number;
   runtimeData: StringKeyMap;
+  /** SCORM 2004 sequencing global-objective state for LMS persistence. */
+  globalObjectives?: Record<string, GlobalObjectiveMapEntry>;
   score?: ScoreObject;
   commitId?: string;
   courseId?: string;
@@ -315,6 +317,8 @@ export type SequencingStatePersistence = {
 export type SequencingStatePersistenceConfig = {
   /** LMS callback interface */
   persistence: SequencingStatePersistence;
+  /** Auto-load state after Initialize (default: true). Disable when the LMS preloads state. */
+  autoLoadOnInitialize?: boolean;
   /** When to auto-save state (default: 'commit') */
   autoSaveOn?: "commit" | "setValue" | "navigate" | "never";
   /** Compress state data (default: true) */

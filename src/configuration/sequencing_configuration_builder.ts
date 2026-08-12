@@ -231,20 +231,47 @@ export class SequencingConfigurationBuilder {
    *         cloned settings for immutability and validity.
    */
   sanitizeSequencingCollections(
-    collections?: Record<string, SequencingCollectionSettings>,
+    collections?: Record<string, SequencingCollectionSettings> | SequencingCollectionSettings[],
   ): Record<string, SequencingCollectionSettings> {
     if (!collections) {
       return {};
     }
 
     const sanitized: Record<string, SequencingCollectionSettings> = {};
-    for (const [id, collection] of Object.entries(collections)) {
+    // @spec SCORM 2004 SN 3.3.2 Sequencing Collection - accept the serialized
+    // collection form ({ id, ...definition }) as well as the keyed host form.
+    const entries: Array<[string, SequencingCollectionSettings]> = Array.isArray(collections)
+      ? collections.map((collection) => [collection.id ?? "", collection])
+      : Object.entries(collections);
+
+    for (const [id, collection] of entries) {
       const trimmedId = id.trim();
       if (!trimmedId) {
         continue;
       }
 
       const sanitizedCollection: SequencingCollectionSettings = {};
+
+      const cloneObjective = (objective: typeof collection.primaryObjective) => {
+        if (!objective) {
+          return undefined;
+        }
+        const cloned = { ...objective };
+        if (objective.mapInfo) {
+          cloned.mapInfo = objective.mapInfo.map((mapping) => ({ ...mapping }));
+        }
+        return cloned;
+      };
+
+      const primaryObjective = cloneObjective(collection.primaryObjective);
+      if (primaryObjective) {
+        sanitizedCollection.primaryObjective = primaryObjective;
+      }
+      if (collection.objectives) {
+        sanitizedCollection.objectives = collection.objectives
+          .map((objective) => cloneObjective(objective))
+          .filter((objective) => objective !== undefined);
+      }
 
       if (collection.sequencingControls) {
         sanitizedCollection.sequencingControls = { ...collection.sequencingControls };
@@ -386,6 +413,7 @@ export class SequencingConfigurationBuilder {
     activity: Activity,
     collection: SequencingCollectionSettings,
     selectionStates: SelectionRandomizationStateSettings[],
+    inlineSequencingRules: boolean = false,
   ): void {
     if (!collection) {
       return;
@@ -398,7 +426,9 @@ export class SequencingConfigurationBuilder {
       );
     }
 
-    if (collection.sequencingRules) {
+    // @spec SCORM 2004 SN 2.1.2: inline top-level Sequencing Information takes
+    // precedence over the same top-level element in a referenced collection.
+    if (collection.sequencingRules && !inlineSequencingRules) {
       this.applySequencingRulesSettings(activity.sequencingRules, collection.sequencingRules);
     }
 

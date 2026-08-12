@@ -985,6 +985,10 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         child1.attemptCompletionAmountStatus = true;
         child1.attemptCompletionAmount = 0.75;
         child1.progressWeight = 1.0;
+        child2.attemptCompletionAmountStatus = true;
+        child2.attemptCompletionAmount = 0.75;
+        child3.attemptCompletionAmountStatus = true;
+        child3.attemptCompletionAmount = 0.75;
 
         rollupProcess.overallRollupProcess(child1);
 
@@ -1202,13 +1206,15 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         child2.attemptCompletionAmount = 0.5;
         child2.progressWeight = 1.0;
 
-        child3.attemptCompletionAmountStatus = false; // Not contributing
+        child3.attemptCompletionAmountStatus = false;
 
         rollupProcess.overallRollupProcess(child1);
 
-        // (1.0*2 + 0.5*1) / (2+1) = 2.5 / 3 = 0.833...
+        // @spec SCORM 2004 4th Ed. SN RB.1.1.b - every tracked child's
+        // progress weight is in the denominator; an unknown amount adds no numerator.
+        // (1.0*2 + 0.5*1 + 0*1) / (2+1+1) = 0.625.
         expect(parent.attemptCompletionAmountStatus).toBe(true);
-        expect(parent.attemptCompletionAmount).toBeCloseTo(0.833, 2);
+        expect(parent.attemptCompletionAmount).toBeCloseTo(0.625, 3);
       });
     });
   });
@@ -1440,6 +1446,148 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         expect(obj2.normalizedMeasure).toBe(0.9);
       });
 
+      it("should roll up a sibling cluster after read-mapped primary objectives change", () => {
+        const rootAct = new Activity("root", "Root");
+        const sourceAct = new Activity("source", "Source");
+        const targetCluster = new Activity("target-cluster", "Target Cluster");
+        const target1 = new Activity("target-1", "Target 1");
+        const target2 = new Activity("target-2", "Target 2");
+
+        rootAct.addChild(sourceAct);
+        rootAct.addChild(targetCluster);
+        targetCluster.addChild(target1);
+        targetCluster.addChild(target2);
+
+        const sourceObjective = new ActivityObjective("source-objective", {
+          mapInfo: [{
+            targetObjectiveID: "shared-objective",
+            writeSatisfiedStatus: true,
+          }],
+        });
+        sourceObjective.satisfiedStatus = true;
+        sourceObjective.satisfiedStatusKnown = true;
+        sourceAct.addObjective(sourceObjective);
+
+        for (const target of [target1, target2]) {
+          target.primaryObjective = new ActivityObjective(`${target.id}-primary`, {
+            isPrimary: true,
+            mapInfo: [{
+              targetObjectiveID: "shared-objective",
+              readSatisfiedStatus: true,
+              writeSatisfiedStatus: false,
+            }],
+          });
+        }
+
+        const completionRule = new RollupRule(
+          RollupActionType.COMPLETED,
+          RollupConsiderationType.ALL,
+        );
+        completionRule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+        targetCluster.rollupRules.addRule(completionRule);
+
+        // @spec SCORM 2004 4th Ed. SN 3.10.3 and RB.1.5 - the OB-15 sibling
+        // cluster must consume read-mapped satisfaction before its rollup rule is evaluated.
+        rollupProcess.processGlobalObjectiveMapping(rootAct, globalObjectives);
+
+        expect(target1.objectiveSatisfiedStatusKnown).toBe(true);
+        expect(target2.objectiveSatisfiedStatusKnown).toBe(true);
+        expect(targetCluster.completionStatus).toBe(CompletionStatus.COMPLETED);
+      });
+
+      it("preserves a cluster's read-mapped primary measure during descendant rollup", () => {
+        const rootAct = new Activity("root", "Root");
+        const mappedCluster = new Activity("mapped-cluster", "Mapped Cluster");
+        const mappedChild = new Activity("mapped-child", "Mapped Child");
+        rootAct.addChild(mappedCluster);
+        mappedCluster.addChild(mappedChild);
+
+        mappedCluster.primaryObjective = new ActivityObjective("cluster-primary", {
+          isPrimary: true,
+          satisfiedByMeasure: true,
+          minNormalizedMeasure: 0.6,
+          mapInfo: [{
+            targetObjectiveID: "cluster-global",
+            readSatisfiedStatus: false,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+            writeNormalizedMeasure: false,
+          }],
+        });
+        mappedChild.primaryObjective = new ActivityObjective("child-primary", {
+          isPrimary: true,
+          mapInfo: [{
+            targetObjectiveID: "child-global",
+            readNormalizedMeasure: true,
+            writeNormalizedMeasure: false,
+          }],
+        });
+        globalObjectives.set("cluster-global", {
+          id: "cluster-global",
+          satisfiedStatus: false,
+          satisfiedStatusKnown: false,
+          normalizedMeasure: 0.75,
+          normalizedMeasureKnown: true,
+        });
+        globalObjectives.set("child-global", {
+          id: "child-global",
+          satisfiedStatus: false,
+          satisfiedStatusKnown: false,
+          normalizedMeasure: 0,
+          normalizedMeasureKnown: true,
+        });
+
+        rollupProcess.processGlobalObjectiveMapping(rootAct, globalObjectives);
+
+        // @spec SCORM 2004 4th Ed. TR OB-03c / SN 3.10.3 and RB.1.1 - a
+        // cluster's read-mapped primary measure remains authoritative when a
+        // descendant's mapped state also triggers ancestor rollup.
+        expect(mappedCluster.objectiveNormalizedMeasure).toBe(0.75);
+        expect(mappedCluster.objectiveMeasureStatus).toBe(true);
+        expect(mappedCluster.objectiveSatisfiedStatus).toBe(true);
+        expect(mappedCluster.objectiveSatisfiedStatusKnown).toBe(true);
+      });
+
+      it("should not roll up an untracked read-mapped activity", () => {
+        const rootAct = new Activity("root", "Root");
+        const sourceAct = new Activity("source", "Source");
+        const untrackedTarget = new Activity("untracked-target", "Untracked Target");
+        rootAct.addChild(sourceAct);
+        rootAct.addChild(untrackedTarget);
+
+        const sourceObjective = new ActivityObjective("source-primary", {
+          isPrimary: true,
+          mapInfo: [{
+            targetObjectiveID: "shared-measure",
+            writeNormalizedMeasure: true,
+          }],
+        });
+        sourceAct.primaryObjective = sourceObjective;
+        sourceObjective.normalizedMeasure = 0.4;
+        sourceObjective.measureStatus = true;
+        sourceObjective.applyToActivity(sourceAct);
+
+        const targetObjective = new ActivityObjective("target-primary", {
+          isPrimary: true,
+          mapInfo: [{
+            targetObjectiveID: "shared-measure",
+            readNormalizedMeasure: true,
+            writeNormalizedMeasure: false,
+          }],
+        });
+        untrackedTarget.primaryObjective = targetObjective;
+        untrackedTarget.sequencingControls.tracked = false;
+
+        // @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - OB-10d requires an
+        // untracked SCO to read mapped state without triggering ancestor rollup.
+        rollupProcess.processGlobalObjectiveMapping(rootAct, globalObjectives);
+
+        expect(targetObjective.normalizedMeasure).toBe(0.4);
+        expect(targetObjective.measureStatus).toBe(true);
+        expect(rootAct.objectiveMeasureStatus).toBe(false);
+        expect(rootAct.completionStatus).toBe(CompletionStatus.UNKNOWN);
+      });
+
       it("should derive satisfaction from measure when satisfiedByMeasure is true", () => {
         const activity = new Activity("activity1", "Activity 1");
         activity.scaledPassingScore = 0.7;
@@ -1497,13 +1645,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         expect(primaryObj.satisfiedStatus).toBe(true);
       });
 
-      it("should use default mapInfo when none specified", () => {
+      it("should keep an objective local when no mapInfo is specified", () => {
         const activity = new Activity("activity1", "Activity 1");
 
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
           isPrimary: false
-          // No mapInfo specified - should use defaults
+          // No mapInfo specified
         });
         objective.satisfiedStatus = true;
         objective.measureStatus = true;
@@ -1512,8 +1660,9 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
-        // Should create entry with default write behavior
-        expect(globalObjectives.has("obj1")).toBe(true);
+        // @spec SCORM 2004 4th Ed. SN 3.10.3 - only an explicit objective
+        // map creates a relationship with global objective state.
+        expect(globalObjectives.has("obj1")).toBe(false);
       });
 
       it("should fire events during global objective processing", () => {

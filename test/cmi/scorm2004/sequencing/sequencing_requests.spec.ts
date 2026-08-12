@@ -318,7 +318,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.targetActivity).toBe(lesson2_1); // First child
     });
 
-    it("should check activities in path", () => {
+    it("should not apply a cluster attempt limit as a target precondition", () => {
       // Add limit to module
       module2.attemptLimit = 1;
       module2.attemptCount = 1;
@@ -328,8 +328,10 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
         "lesson2_1"
       );
 
-      // Should fail activity check
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      // @spec SCORM 2004 4th Ed. SN SB.2.9 steps 3-4 - choice path
+      // traversal checks Hide from Choice; general preconditions apply to the target.
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity).toBe(lesson2_1);
     });
 
     it("should terminate descendants from common ancestor", () => {

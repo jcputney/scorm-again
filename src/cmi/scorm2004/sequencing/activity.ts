@@ -68,7 +68,9 @@ export interface ActivityObjectiveScoreState {
 
 export interface ActivityObjectiveReadState extends ActivityObjectiveScoreState {
   satisfiedStatus?: boolean;
+  satisfiedStatusKnown?: boolean;
   normalizedMeasure?: number;
+  normalizedMeasureKnown?: boolean;
   progressMeasure?: number;
   completionStatus?: CompletionStatus;
 }
@@ -482,6 +484,35 @@ export class ActivityObjective {
   }
 
   /**
+   * Record a content-written unknown satisfied status for objective-map transfer.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - Objective Progress
+   *   Status is independent from Objective Measure Status, and a mapped unknown
+   *   satisfaction value replaces a previously known value.
+   */
+  public initializeUnknownSatisfiedStatusFromCMI(): void {
+    this._satisfiedStatus = false;
+    this._satisfiedStatusKnown = false;
+    this._progressStatus = false;
+    this._satisfiedStatusDirty = true;
+  }
+
+  /**
+   * Record a content-written unknown completion status for objective-map transfer.
+   *
+   * A fresh attempt's local objective is already unknown, so the normal setter
+   * cannot distinguish that default from content explicitly clearing a known
+   * read-mapped value exposed through the RTE.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - an explicit
+   *   objective completion status of unknown replaces mapped global state.
+   */
+  public initializeUnknownCompletionStatusFromCMI(): void {
+    this._completionStatus = CompletionStatus.UNKNOWN;
+    this._completionStatusDirty = true;
+  }
+
+  /**
    * Initialize raw/min/max objective score values from RTE data transfer.
    *
    * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective score transfer
@@ -514,10 +545,25 @@ export class ActivityObjective {
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps are access-only
    */
   public applyReadMappedState(state: ActivityObjectiveReadState): void {
+    if (state.satisfiedStatusKnown !== undefined) {
+      this._satisfiedStatusKnown = state.satisfiedStatusKnown;
+      this._progressStatus = state.satisfiedStatusKnown;
+      if (!state.satisfiedStatusKnown) {
+        this._satisfiedStatus = false;
+      }
+    }
+
     if (state.satisfiedStatus !== undefined) {
       this._satisfiedStatus = state.satisfiedStatus;
       this._satisfiedStatusKnown = true;
       this._progressStatus = true;
+    }
+
+    if (state.normalizedMeasureKnown !== undefined) {
+      this._measureStatus = state.normalizedMeasureKnown;
+      if (!state.normalizedMeasureKnown) {
+        this._normalizedMeasure = 0;
+      }
     }
 
     if (state.normalizedMeasure !== undefined) {
@@ -634,10 +680,14 @@ export class Activity extends BaseCMI {
   private _isVisible: boolean = true;
   private _isActive: boolean = false;
   private _isSuspended: boolean = false;
+  // Transient delivery context. This is deliberately excluded from persisted activity state.
+  private _deliveryWasResumed: boolean = false;
   private _isCompleted: boolean = false;
   private _completionStatus: CompletionStatus = CompletionStatus.UNKNOWN;
   private _successStatus: SuccessStatus = SuccessStatus.UNKNOWN;
   private _attemptCount: number = 0;
+  private _objectiveInfoAvailableInCurrentParentAttempt: boolean = true;
+  private _progressInfoAvailableInCurrentParentAttempt: boolean = true;
   private _attemptCompletionAmount: number = 0;
   private _attemptAbsoluteDuration: string = "PT0H0M0S";
   private _attemptExperiencedDuration: string = "PT0H0M0S";
@@ -749,10 +799,13 @@ export class Activity extends BaseCMI {
     this._initialized = false;
     this._isActive = false;
     this._isSuspended = false;
+    this._deliveryWasResumed = false;
     this._isCompleted = false;
     this._completionStatus = CompletionStatus.UNKNOWN;
     this._successStatus = SuccessStatus.UNKNOWN;
     this._attemptCount = 0;
+    this._objectiveInfoAvailableInCurrentParentAttempt = true;
+    this._progressInfoAvailableInCurrentParentAttempt = true;
     this._attemptCompletionAmount = 0;
     this._attemptAbsoluteDuration = "PT0H0M0S";
     this._attemptExperiencedDuration = "PT0H0M0S";
@@ -968,6 +1021,15 @@ export class Activity extends BaseCMI {
     this._isSuspended = isSuspended;
   }
 
+  /** Whether the current delivery resumed this activity's suspended attempt. */
+  get deliveryWasResumed(): boolean {
+    return this._deliveryWasResumed;
+  }
+
+  set deliveryWasResumed(deliveryWasResumed: boolean) {
+    this._deliveryWasResumed = deliveryWasResumed;
+  }
+
   /**
    * Getter for isCompleted
    * @return {boolean}
@@ -1041,6 +1103,32 @@ export class Activity extends BaseCMI {
   }
 
   /**
+   * Whether this activity's objective tracking belongs to its parent's current attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo
+   */
+  get objectiveInfoAvailableInCurrentParentAttempt(): boolean {
+    return this._objectiveInfoAvailableInCurrentParentAttempt;
+  }
+
+  set objectiveInfoAvailableInCurrentParentAttempt(value: boolean) {
+    this._objectiveInfoAvailableInCurrentParentAttempt = value;
+  }
+
+  /**
+   * Whether this activity's progress tracking belongs to its parent's current attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptProgressInfo
+   */
+  get progressInfoAvailableInCurrentParentAttempt(): boolean {
+    return this._progressInfoAvailableInCurrentParentAttempt;
+  }
+
+  set progressInfoAvailableInCurrentParentAttempt(value: boolean) {
+    this._progressInfoAvailableInCurrentParentAttempt = value;
+  }
+
+  /**
    * Getter for attemptCompletionAmount
    * @return {number}
    */
@@ -1070,6 +1158,64 @@ export class Activity extends BaseCMI {
     ) {
       this._processedChildren = null;
     }
+  }
+
+  /**
+   * Initialize the objective progress information for a new activity attempt.
+   * Activity progress information, such as the cumulative attempt count, is retained.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 step 5.1.1.2.2
+   * @spec SCORM 2004 SN 4th Ed. TM.1.1
+   */
+  initializeObjectiveProgressForNewAttempt(): void {
+    this._objectiveSatisfiedStatus = false;
+    this._objectiveSatisfiedStatusKnown = false;
+    this._objectiveMeasureStatus = false;
+    this._objectiveNormalizedMeasure = 0;
+    this._successStatus = SuccessStatus.UNKNOWN;
+
+    this._primaryObjective?.resetState();
+    for (const objective of this._objectives) {
+      objective.resetState();
+    }
+
+    this.clearAllObjectiveDirty();
+  }
+
+  /**
+   * Initialize the attempt progress information for a new activity attempt.
+   * Definition-model controls and cumulative activity duration remain unchanged.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 step 5.1.1.2.2
+   * @spec SCORM 2004 SN 4th Ed. TM.1.2.2
+   */
+  initializeAttemptProgressForNewAttempt(): void {
+    this._isCompleted = false;
+    this._completionStatus = CompletionStatus.UNKNOWN;
+    this._attemptCompletionAmount = 0;
+    this._attemptCompletionAmountStatus = false;
+    this._attemptProgressStatus = false;
+    this._progressMeasure = 0;
+    this._progressMeasureStatus = false;
+    this._attemptAbsoluteDurationValue = "PT0H0M0S";
+    this._attemptExperiencedDurationValue = "PT0H0M0S";
+    this._attemptStartTimestampUtc = null;
+    this._attemptAbsoluteStartTime = "";
+    this._location = "";
+    this._activityAttemptActive = false;
+    this._wasSkipped = false;
+    this._wasAutoCompleted = false;
+    this._wasAutoSatisfied = false;
+  }
+
+  /**
+   * Initialize all tracking information scoped to a new activity attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 step 5.1.1.2.2
+   */
+  initializeTrackingForNewAttempt(): void {
+    this.initializeObjectiveProgressForNewAttempt();
+    this.initializeAttemptProgressForNewAttempt();
   }
 
   /**
@@ -2077,6 +2223,15 @@ export class Activity extends BaseCMI {
   /**
    * Restore objective state from a sequencing persistence snapshot.
    *
+   * Restored values are cleared of their write-map dirty flags. The snapshot is state that was
+   * already written out, and it is persisted alongside the global objective map that those same
+   * writes produced, so re-flagging it as locally modified is wrong: the write pass of
+   * processGlobalObjectiveMapping walks every activity in the tree, and dirty restored values from
+   * an earlier attempt would be written back over the global objectives just restored from the same
+   * snapshot, silently rolling shared objectives back a generation.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - write mapInfo transfers only local objective data the
+   *   content has modified during the current attempt
    * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - persisted objective state restores sequencing state
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - persisted score-map state restores objective score fields
    */
@@ -2104,6 +2259,7 @@ export class Activity extends BaseCMI {
           state.progressStatus,
         );
         this.applyObjectiveScoreSnapshot(primary.objective, state);
+        primary.objective.clearAllDirty();
       }
     }
 
@@ -2123,6 +2279,7 @@ export class Activity extends BaseCMI {
           state.minNormalizedMeasure !== undefined
             ? state.minNormalizedMeasure
             : objective.minNormalizedMeasure;
+        objective.clearAllDirty();
       }
     }
   }
@@ -2282,6 +2439,10 @@ export class Activity extends BaseCMI {
       completionStatus: this._completionStatus,
       successStatus: this._successStatus,
       attemptCount: this._attemptCount,
+      objectiveInfoAvailableInCurrentParentAttempt:
+        this._objectiveInfoAvailableInCurrentParentAttempt,
+      progressInfoAvailableInCurrentParentAttempt:
+        this._progressInfoAvailableInCurrentParentAttempt,
       attemptCompletionAmount: this._attemptCompletionAmount,
       attemptAbsoluteDuration: this._attemptAbsoluteDuration,
       attemptExperiencedDuration: this._attemptExperiencedDuration,
@@ -2369,6 +2530,12 @@ export class Activity extends BaseCMI {
     this._completionStatus = state.completionStatus ?? this._completionStatus;
     this._successStatus = state.successStatus ?? this._successStatus;
     this._attemptCount = state.attemptCount ?? this._attemptCount;
+    this._objectiveInfoAvailableInCurrentParentAttempt =
+      state.objectiveInfoAvailableInCurrentParentAttempt ??
+      this._objectiveInfoAvailableInCurrentParentAttempt;
+    this._progressInfoAvailableInCurrentParentAttempt =
+      state.progressInfoAvailableInCurrentParentAttempt ??
+      this._progressInfoAvailableInCurrentParentAttempt;
     this._attemptCompletionAmount = state.attemptCompletionAmount ?? this._attemptCompletionAmount;
     this._attemptAbsoluteDuration = state.attemptAbsoluteDuration ?? this._attemptAbsoluteDuration;
     this._attemptExperiencedDuration =
@@ -2506,6 +2673,10 @@ export class Activity extends BaseCMI {
       completionStatus: this._completionStatus,
       successStatus: this._successStatus,
       attemptCount: this._attemptCount,
+      objectiveInfoAvailableInCurrentParentAttempt:
+        this._objectiveInfoAvailableInCurrentParentAttempt,
+      progressInfoAvailableInCurrentParentAttempt:
+        this._progressInfoAvailableInCurrentParentAttempt,
       attemptCompletionAmount: this._attemptCompletionAmount,
       attemptAbsoluteDuration: this._attemptAbsoluteDuration,
       attemptExperiencedDuration: this._attemptExperiencedDuration,

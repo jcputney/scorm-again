@@ -5,6 +5,8 @@ import {
   DeliveryRequest,
   NavigationRequestType,
   OverallSequencingProcess,
+  type PreparedNavigationRequest,
+  type SequencingState,
 } from "../cmi/scorm2004/sequencing/overall_sequencing_process";
 import {
   DeliveryRequestType,
@@ -17,7 +19,7 @@ import { CMI } from "../cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "../cmi/scorm2004/objectives";
 import { ADL } from "../cmi/scorm2004/adl";
 import { global_constants } from "../constants/api_constants";
-import { CompletionStatus } from "../constants/enums";
+import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import { evaluateCompletionStatusFromThreshold } from "../cmi/scorm2004/completion_status_evaluation";
 import { RuleCondition } from "../cmi/scorm2004/sequencing/sequencing_rules";
 import {
@@ -39,6 +41,13 @@ export interface SequencingConfiguration {
   now?: () => Date;
   getAttemptElapsedSeconds?: (activity: Activity) => number;
   getActivityElapsedSeconds?: (activity: Activity) => number;
+  wasCMIElementSetByContent?: (element: string) => boolean;
+}
+
+export interface PreparedSequencingNavigation {
+  request: string;
+  operation: PreparedNavigationRequest;
+  rollbackState: SequencingState;
 }
 
 /**
@@ -79,7 +88,7 @@ export class SequencingService {
 
     // Default configuration
     this.configuration = {
-      autoRollupOnCMIChange: true,
+      autoRollupOnCMIChange: false,
       autoProgressOnCompletion: false,
       validateNavigationRequests: true,
       enableEventSystem: true,
@@ -264,9 +273,23 @@ export class SequencingService {
     targetActivityId?: string,
     exitType?: string,
   ): boolean {
+    const prepared = this.prepareNavigationRequest(request, targetActivityId, exitType);
+    return prepared ? this.completeNavigationRequest(prepared) : false;
+  }
+
+  /**
+   * Run the navigation and termination phases without unloading or delivering a SCO.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.1-1.3
+   */
+  public prepareNavigationRequest(
+    request: string,
+    targetActivityId?: string,
+    exitType?: string,
+  ): PreparedSequencingNavigation | null {
     if (!this.isInitialized || !this.overallSequencingProcess) {
       this.log("warn", `Navigation request '${request}' ignored - sequencing not initialized`);
-      return false;
+      return null;
     }
 
     try {
@@ -282,58 +305,92 @@ export class SequencingService {
       const navRequestType = this.parseNavigationRequest(request);
       if (navRequestType === null) {
         this.log("warn", `Invalid navigation request: ${request}`);
-        return false;
+        return null;
       }
 
-      // Process the navigation request through Overall Sequencing Process
-      const deliveryRequest: DeliveryRequest =
-        this.overallSequencingProcess.processNavigationRequest(
-          navRequestType,
-          targetActivityId || null,
-          exitType,
-        );
+      const rollbackState = this.overallSequencingProcess.getSequencingState();
+      const operation = this.overallSequencingProcess.prepareNavigationRequest(
+        navRequestType,
+        targetActivityId || null,
+        exitType,
+      );
 
-      const sequencingResult: SequencingResult = {
-        deliveryRequest: deliveryRequest.valid
-          ? DeliveryRequestType.DELIVER
-          : DeliveryRequestType.DO_NOT_DELIVER,
-        targetActivity: deliveryRequest.targetActivity,
-        exception: deliveryRequest.exception || null,
-        endSequencingSession: false,
-      };
-
-      // Store the result
-      this.lastSequencingResult = sequencingResult;
-
-      // Handle the delivery request
-      if (deliveryRequest.valid && deliveryRequest.targetActivity) {
-        // Process delivery through activity delivery service
-        this.activityDeliveryService.processSequencingResult(sequencingResult);
-
-        // Update navigation validity for the new current activity
-        // This ensures Continue/Previous buttons are correctly enabled/disabled
-        this.overallSequencingProcess.updateNavigationValidity();
-
-        this.log(
-          "info",
-          `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`,
-        );
-        return true;
-      } else {
-        // No delivery requested or invalid
-        if (deliveryRequest.exception) {
-          this.log("warn", `Navigation request '${request}' failed: ${deliveryRequest.exception}`);
-          this.fireEvent("onSequencingError", deliveryRequest.exception, "navigation");
-        } else {
-          this.log("info", `Navigation request '${request}' completed with no activity delivery`);
-        }
-        return deliveryRequest.valid;
-      }
+      return { request, operation, rollbackState };
     } catch (error) {
-      const errorMsg = `Error processing navigation request '${request}': ${error}`;
+      const errorMsg = `Error preparing navigation request '${request}': ${error}`;
+      this.log("error", errorMsg);
+      this.fireEvent("onSequencingError", errorMsg, "navigation");
+      return null;
+    }
+  }
+
+  /**
+   * Run sequencing and delivery for a previously prepared navigation request.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.4-1.5
+   */
+  public completeNavigationRequest(prepared: PreparedSequencingNavigation): boolean {
+    if (!this.overallSequencingProcess) {
+      return false;
+    }
+
+    try {
+      const deliveryRequest = this.overallSequencingProcess.completeNavigationRequest(
+        prepared.operation,
+      );
+      return this.handleNavigationDeliveryRequest(prepared.request, deliveryRequest);
+    } catch (error) {
+      const errorMsg = `Error completing navigation request '${prepared.request}': ${error}`;
       this.log("error", errorMsg);
       this.fireEvent("onSequencingError", errorMsg, "navigation");
       return false;
+    }
+  }
+
+  /** Restore the tracking state when the runtime termination commit fails. */
+  public cancelPreparedNavigation(prepared: PreparedSequencingNavigation): void {
+    this.overallSequencingProcess?.restoreSequencingState(prepared.rollbackState);
+  }
+
+  private handleNavigationDeliveryRequest(
+    request: string,
+    deliveryRequest: DeliveryRequest,
+  ): boolean {
+    const sequencingResult: SequencingResult = {
+      deliveryRequest: deliveryRequest.valid
+        ? DeliveryRequestType.DELIVER
+        : DeliveryRequestType.DO_NOT_DELIVER,
+      targetActivity: deliveryRequest.targetActivity,
+      exception: deliveryRequest.exception || null,
+      endSequencingSession: false,
+    };
+
+    // Store the result
+    this.lastSequencingResult = sequencingResult;
+
+    // Handle the delivery request
+    if (deliveryRequest.valid && deliveryRequest.targetActivity) {
+      // Process delivery through activity delivery service
+      this.activityDeliveryService.processSequencingResult(sequencingResult);
+
+      // Update navigation validity for the new current activity
+      // This ensures Continue/Previous buttons are correctly enabled/disabled
+      this.overallSequencingProcess?.updateNavigationValidity();
+
+      this.log(
+        "info",
+        `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`,
+      );
+      return true;
+    } else {
+      // No delivery requested or invalid
+      if (deliveryRequest.exception) {
+        this.log("warn", `Navigation request '${request}' failed: ${deliveryRequest.exception}`);
+        this.fireEvent("onSequencingError", deliveryRequest.exception, "navigation");
+      } else {
+        this.log("info", `Navigation request '${request}' completed with no activity delivery`);
+      }
+      return deliveryRequest.valid;
     }
   }
 
@@ -584,8 +641,10 @@ export class SequencingService {
       activity.attemptProgressStatus = true;
     }
 
-    // Update success status
-    if (this.cmi.success_status !== "unknown") {
+    const satisfiedByMeasure = activity.primaryObjective?.satisfiedByMeasure === true;
+
+    // Update success status. A measure-controlled objective ignores direct success status.
+    if (!satisfiedByMeasure && this.cmi.success_status !== "unknown") {
       activity.successStatus = this.cmi.success_status as "passed" | "failed" | "unknown";
       activity.objectiveSatisfiedStatus = this.cmi.success_status === "passed";
       // Mark that content has set objective satisfaction status. Objective
@@ -603,10 +662,18 @@ export class SequencingService {
       if (!isNaN(scaledScore)) {
         activity.objectiveNormalizedMeasure = scaledScore;
         activity.objectiveMeasureStatus = true;
-        // Mark that content has set objective measure (which affects satisfaction)
-        if (activity.primaryObjective) {
-          activity.primaryObjective.progressStatus = true;
+        if (satisfiedByMeasure) {
+          // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - the
+          // default minimum normalized measure is 1.0 when none is declared.
+          const threshold = activity.primaryObjective?.minNormalizedMeasure ?? 1.0;
+          activity.objectiveSatisfiedStatus = scaledScore >= threshold;
+          activity.objectiveSatisfiedStatusKnown = true;
+          activity.successStatus =
+            scaledScore >= threshold ? SuccessStatus.PASSED : SuccessStatus.FAILED;
         }
+        // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - Objective
+        // Measure Status and Objective Progress Status are independent unless
+        // satisfaction is explicitly determined by measure.
       }
     }
 
@@ -639,6 +706,15 @@ export class SequencingService {
     const cmiData: any = {
       completion_status: this.cmi.completion_status,
       success_status: this.cmi.success_status,
+      // @spec SCORM 2004 4th Ed. SN 3.13.3 - auto-satisfaction applies only
+      // when content did not communicate primary-objective success information.
+      success_status_was_set:
+        this.configuration.wasCMIElementSetByContent?.("cmi.success_status") === true,
+      // @spec SCORM 2004 4th Ed. TR OB-03b / SN UP.4 - a SCO-provided
+      // primary score is objective information for the End Attempt process.
+      score_was_set: ["scaled", "raw", "min", "max"].some(
+        (field) => this.configuration.wasCMIElementSetByContent?.(`cmi.score.${field}`) === true,
+      ),
       progress_measure: this.cmi.progress_measure,
       score: {
         scaled: this.cmi.score?.scaled || "",
@@ -651,13 +727,31 @@ export class SequencingService {
 
     // Transfer all CMI objectives
     if (this.cmi.objectives && this.cmi.objectives.childArray) {
-      for (const baseCmiObj of this.cmi.objectives.childArray) {
+      for (const [objectiveIndex, baseCmiObj] of this.cmi.objectives.childArray.entries()) {
         const cmiObjective = baseCmiObj as CMIObjectivesObject;
         if (cmiObjective.id) {
           cmiData.objectives.push({
             id: cmiObjective.id,
             success_status: cmiObjective.success_status,
+            // @spec SCORM 2004 4th Ed. RTE 4.2.17 - distinguish launch-time
+            // unknown from a SCO explicitly replacing objective satisfaction with unknown.
+            success_status_was_set:
+              this.configuration.wasCMIElementSetByContent?.(
+                `cmi.objectives.${objectiveIndex}.success_status`,
+              ) === true,
+            score_was_set: ["scaled", "raw", "min", "max"].some(
+              (field) =>
+                this.configuration.wasCMIElementSetByContent?.(
+                  `cmi.objectives.${objectiveIndex}.score.${field}`,
+                ) === true,
+            ),
             completion_status: cmiObjective.completion_status,
+            // @spec SCORM 2004 4th Ed. RTE 4.2.17 - distinguish launch-time
+            // initialization from a SCO's explicit objective status write.
+            completion_status_was_set:
+              this.configuration.wasCMIElementSetByContent?.(
+                `cmi.objectives.${objectiveIndex}.completion_status`,
+              ) === true,
             progress_measure: cmiObjective.progress_measure,
             score: {
               scaled: cmiObjective.score?.scaled || "",
@@ -892,7 +986,11 @@ export class SequencingService {
     try {
       switch (eventType) {
         case "onActivityDelivery":
-          this.fireEvent("onActivityDelivery", data);
+          // DeliveryHandler reports the selection while OP.1 is still running. Host-facing
+          // delivery is emitted later by ActivityDeliveryService, after it unloads the prior SCO.
+          // @spec SCORM 2004 4th Ed. SN DB.2 - the content delivery environment unloads the
+          //   current activity before delivering the selected activity, with one delivery event.
+          this.fireDebugEvent("Sequencing process selected activity for delivery", data);
           break;
         case "onLimitConditionCheck":
           this.fireLimitConditionCheck(data.activity, data.result);

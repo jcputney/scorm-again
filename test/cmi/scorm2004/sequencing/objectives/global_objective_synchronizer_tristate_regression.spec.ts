@@ -11,7 +11,7 @@ import {
   RuleConditionType,
   SequencingRule,
 } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import { CompletionStatus } from "../../../../../src/constants/enums";
+import { CompletionStatus, SuccessStatus } from "../../../../../src/constants/enums";
 
 describe("GlobalObjectiveSynchronizer tri-state regression", () => {
   it("propagates satisfied status knowledge to read-mapped objectives before rule evaluation", () => {
@@ -136,6 +136,59 @@ describe("GlobalObjectiveSynchronizer tri-state regression", () => {
     expect(objective.satisfiedStatus).toBe(true);
     expect(objective.satisfiedStatusKnown).toBe(true);
     expect(objective.progressStatus).toBe(true);
+  });
+
+  it("replaces stale local satisfaction with an unknown read-mapped global status", () => {
+    const activity = new Activity("activity_5", "Activity 5");
+    const objective = new ActivityObjective("PRIMARYOBJ", {
+      isPrimary: true,
+      mapInfo: [
+        {
+          targetObjectiveID: "gObj-OB03-1",
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: false,
+        },
+      ],
+    });
+    activity.primaryObjective = objective;
+    objective.satisfiedStatus = true;
+    objective.satisfiedStatusKnown = true;
+    objective.progressStatus = true;
+    objective.applyToActivity(activity);
+    activity.successStatus = SuccessStatus.PASSED;
+
+    const globalObjectives = new Map<string, GlobalObjective>([
+      [
+        "gObj-OB03-1",
+        {
+          id: "gObj-OB03-1",
+          satisfiedStatus: false,
+          satisfiedStatusKnown: false,
+          normalizedMeasure: 0,
+          normalizedMeasureKnown: false,
+          rawScore: "",
+          rawScoreKnown: false,
+          minScore: "",
+          minScoreKnown: false,
+          maxScore: "",
+          maxScoreKnown: false,
+          progressMeasure: 0,
+          progressMeasureKnown: false,
+          completionStatus: CompletionStatus.UNKNOWN,
+          completionStatusKnown: false,
+          satisfiedByMeasure: false,
+          minNormalizedMeasure: null,
+        },
+      ],
+    ]);
+
+    new GlobalObjectiveSynchronizer().syncGlobalObjectivesReadPhase(activity, globalObjectives);
+
+    expect(objective.satisfiedStatusKnown).toBe(false);
+    expect(objective.progressStatus).toBe(false);
+    expect(activity.objectiveSatisfiedStatusKnown).toBe(false);
+    expect(activity.successStatus).toBe(SuccessStatus.PASSED);
+    expect(new RuleCondition(RuleConditionType.SATISFIED).evaluate(activity)).toBe("unknown");
   });
 
   it("writes a known false satisfied status even when objective measure is unknown", () => {

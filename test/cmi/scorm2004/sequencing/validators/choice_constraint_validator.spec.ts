@@ -91,6 +91,18 @@ describe("ChoiceConstraintValidator", () => {
         expect(result.valid).toBe(false);
         expect(result.exception).toBe("SB.2.9-5");
       });
+
+      it("allows a nested target when only a higher ancestor disables choice", () => {
+        // @spec SCORM 2004 SN 4th Ed. SB.2.9: choice control governs the
+        // immediate child set, not all descendants.
+        root.sequencingControls.choice = false;
+        chapter1.sequencingControls.choice = true;
+
+        const result = validator.validateChoice(null, lesson1);
+
+        expect(result.valid).toBe(true);
+        expect(result.exception).toBeNull();
+      });
     });
 
     describe("availability", () => {

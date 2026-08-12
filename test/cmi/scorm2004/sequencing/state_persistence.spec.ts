@@ -144,17 +144,40 @@ describe("State Persistence (Multi-Session Support)", () => {
       expect(lesson1State.objectiveMeasureStatus).toBe(true);
     });
 
+    it("should preserve unknown objective satisfaction across a state restore", () => {
+      // @spec SCORM 2004 4th Ed. SN TM.1: the objective progress status is
+      // distinct from the objective satisfied status value.
+      overallProcess.processNavigationRequest(NavigationRequestType.START);
+      lesson2.successStatus = "unknown";
+      lesson2.objectiveSatisfiedStatusKnown = false;
+
+      const state = overallProcess.getSequencingState();
+      expect(state.activityStates["lesson2"].objectiveSatisfiedStatus).toBe(false);
+      expect(state.activityStates["lesson2"].objectiveSatisfiedStatusKnown).toBe(false);
+
+      lesson2.objectiveSatisfiedStatus = true;
+      expect(overallProcess.restoreSequencingState(state)).toBe(true);
+
+      expect(lesson2.objectiveSatisfiedStatus).toBe(false);
+      expect(lesson2.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(lesson2.successStatus).toBe("unknown");
+    });
+
     it("should capture progress measure", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.START);
 
       lesson1.progressMeasure = 0.5;
       lesson1.progressMeasureStatus = true;
+      lesson1.attemptCompletionAmount = 0.5;
+      lesson1.attemptCompletionAmountStatus = true;
 
       const state = overallProcess.getSequencingState();
       const lesson1State = state.activityStates["lesson1"];
 
       expect(lesson1State.progressMeasure).toBe(0.5);
       expect(lesson1State.progressMeasureStatus).toBe(true);
+      expect(lesson1State.attemptCompletionAmount).toBe(0.5);
+      expect(lesson1State.attemptCompletionAmountStatus).toBe(true);
     });
 
     it("should capture duration tracking", () => {
@@ -271,6 +294,8 @@ describe("State Persistence (Multi-Session Support)", () => {
       lesson1.completionStatus = "completed";
       lesson1.successStatus = "passed";
       lesson1.attemptCount = 3;
+      lesson1.attemptCompletionAmount = 0.75;
+      lesson1.attemptCompletionAmountStatus = true;
       // Also set objective status to match success status
       lesson1.objectiveSatisfiedStatus = true;
 
@@ -304,6 +329,8 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Success status may be derived from objective status during rollup
       expect(["passed", "failed"]).toContain(newLesson1.successStatus);
       expect(newLesson1.attemptCount).toBe(3);
+      expect(newLesson1.attemptCompletionAmount).toBe(0.75);
+      expect(newLesson1.attemptCompletionAmountStatus).toBe(true);
     });
 
     it("should restore suspended activity", () => {

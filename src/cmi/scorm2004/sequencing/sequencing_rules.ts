@@ -56,6 +56,15 @@ export enum RuleActionType {
 
 export type RuleConditionEvaluation = boolean | "unknown";
 
+const OBJECTIVE_TRACKING_CONDITIONS = new Set<RuleConditionType>([
+  RuleConditionType.SATISFIED,
+  RuleConditionType.OBJECTIVE_SATISFIED,
+  RuleConditionType.OBJECTIVE_STATUS_KNOWN,
+  RuleConditionType.OBJECTIVE_MEASURE_KNOWN,
+  RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
+  RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
+]);
+
 export function kleeneNot(value: RuleConditionEvaluation): RuleConditionEvaluation {
   if (value === "unknown") {
     return "unknown";
@@ -102,17 +111,11 @@ export function combineRuleConditionResults(
     return false;
   }
 
-  if (
-    conditionCombination === "all" ||
-    conditionCombination === RuleConditionOperator.AND
-  ) {
+  if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
     return kleeneAnd(values);
   }
 
-  if (
-    conditionCombination === "any" ||
-    conditionCombination === RuleConditionOperator.OR
-  ) {
+  if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
     return kleeneOr(values);
   }
 
@@ -130,9 +133,7 @@ export class RuleCondition extends BaseCMI {
   // Optional, overridable provider for current time (LMS may set via SequencingService)
   private static _now: () => Date = () => new Date();
   // Optional, overridable hook for getting elapsed seconds
-  private static _getElapsedSecondsHook:
-    | ((activity: Activity) => number)
-    | undefined = undefined;
+  private static _getElapsedSecondsHook: ((activity: Activity) => number) | undefined = undefined;
 
   /**
    * Constructor for RuleCondition
@@ -254,121 +255,140 @@ export class RuleCondition extends BaseCMI {
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
 
-    switch (this._condition) {
-      case RuleConditionType.SATISFIED:
-      case RuleConditionType.OBJECTIVE_SATISFIED:
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
-        } else if (referencedObjective) {
-          result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus
-            ? referencedObjective.satisfiedStatus === true
-            : "unknown";
-        } else if (activity.objectiveSatisfiedStatusKnown) {
-          result = activity.objectiveSatisfiedStatus === true;
-        } else if (activity.successStatus !== SuccessStatus.UNKNOWN) {
-          result = activity.successStatus === SuccessStatus.PASSED;
-        } else {
-          result = "unknown";
-        }
-        break;
-      case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
-        // noinspection PointlessBooleanExpressionJS
-        result = hasReferencedObjective && !referencedObjective
-          ? false
-          : referencedObjective
-          ? !!referencedObjective.satisfiedStatusKnown
-          : !!activity.objectiveSatisfiedStatusKnown;
-        break;
-      case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
-        // noinspection PointlessBooleanExpressionJS
-        result = hasReferencedObjective && !referencedObjective
-          ? false
-          : referencedObjective
-          ? !!referencedObjective.measureStatus
-          : !!activity.objectiveMeasureStatus;
-        break;
-      case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
+    // @spec SCORM 2004 SN: objective tracking information for an activity with
+    // deliveryControls.tracked=false is unavailable to its sequencing rules.
+    // The SM.1 useCurrentAttempt* flags govern whether child tracking participates in
+    // parent rollup; they do not hide an activity's own mapped/preserved tracking from
+    // that activity's UP.2.1 precondition evaluation.
+    // @spec SCORM 2004 4th Ed. TR OB-03b steps 6-7 and SN UP.2.1/SB.2.2
+    if (
+      (activity.sequencingControls?.tracked === false &&
+        OBJECTIVE_TRACKING_CONDITIONS.has(this._condition))
+    ) {
+      result = "unknown";
+    } else
+      switch (this._condition) {
+        case RuleConditionType.SATISFIED:
+        case RuleConditionType.OBJECTIVE_SATISFIED:
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+          } else if (referencedObjective) {
+            result =
+              referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus
+                ? referencedObjective.satisfiedStatus === true
+                : "unknown";
+          } else if (activity.objectiveSatisfiedStatusKnown) {
+            result = activity.objectiveSatisfiedStatus === true;
+          } else if (
+            !activity.primaryObjective &&
+            activity.successStatus !== SuccessStatus.UNKNOWN
+          ) {
+            result = activity.successStatus === SuccessStatus.PASSED;
+          } else {
+            result = "unknown";
+          }
+          break;
+        case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
+          // noinspection PointlessBooleanExpressionJS
+          result =
+            hasReferencedObjective && !referencedObjective
+              ? false
+              : referencedObjective
+                ? !!referencedObjective.satisfiedStatusKnown
+                : !!activity.objectiveSatisfiedStatusKnown;
+          break;
+        case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
+          // noinspection PointlessBooleanExpressionJS
+          result =
+            hasReferencedObjective && !referencedObjective
+              ? false
+              : referencedObjective
+                ? !!referencedObjective.measureStatus
+                : !!activity.objectiveMeasureStatus;
+          break;
+        case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+            break;
+          }
+          const greaterThanValue = this._parameters.get("threshold") || 0;
+          const measureStatus = referencedObjective
+            ? referencedObjective.measureStatus
+            : activity.objectiveMeasureStatus;
+          const measureValue = referencedObjective
+            ? referencedObjective.normalizedMeasure
+            : activity.objectiveNormalizedMeasure;
+          result = measureStatus ? measureValue > greaterThanValue : "unknown";
           break;
         }
-        const greaterThanValue = this._parameters.get("threshold") || 0;
-        const measureStatus = referencedObjective
-          ? referencedObjective.measureStatus
-          : activity.objectiveMeasureStatus;
-        const measureValue = referencedObjective
-          ? referencedObjective.normalizedMeasure
-          : activity.objectiveNormalizedMeasure;
-        result = measureStatus ? measureValue > greaterThanValue : "unknown";
-        break;
-      }
-      case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
+        case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+            break;
+          }
+          const lessThanValue = this._parameters.get("threshold") || 0;
+          const measureStatus = referencedObjective
+            ? referencedObjective.measureStatus
+            : activity.objectiveMeasureStatus;
+          const measureValue = referencedObjective
+            ? referencedObjective.normalizedMeasure
+            : activity.objectiveNormalizedMeasure;
+          result = measureStatus ? measureValue < lessThanValue : "unknown";
           break;
         }
-        const lessThanValue = this._parameters.get("threshold") || 0;
-        const measureStatus = referencedObjective
-          ? referencedObjective.measureStatus
-          : activity.objectiveMeasureStatus;
-        const measureValue = referencedObjective
-          ? referencedObjective.normalizedMeasure
-          : activity.objectiveNormalizedMeasure;
-        result = measureStatus ? measureValue < lessThanValue : "unknown";
-        break;
+        case RuleConditionType.COMPLETED:
+        case RuleConditionType.ACTIVITY_COMPLETED:
+          // SCORM 2004 4th Edition: When referencedObjective is specified,
+          // check the objective's completion status instead of the activity's
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+          } else if (referencedObjective) {
+            result =
+              referencedObjective.completionStatus === CompletionStatus.UNKNOWN
+                ? "unknown"
+                : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+          } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
+            result = "unknown";
+          } else {
+            result = activity.completionStatus === CompletionStatus.COMPLETED;
+          }
+          break;
+        case RuleConditionType.PROGRESS_KNOWN:
+        case RuleConditionType.ACTIVITY_PROGRESS_KNOWN:
+          // SCORM 2004 4th Edition: When referencedObjective is specified,
+          // check the objective's completion status instead of the activity's
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+          } else if (referencedObjective) {
+            result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
+          } else {
+            result = activity.completionStatus !== "unknown";
+          }
+          break;
+        case RuleConditionType.ATTEMPTED:
+          result = activity.attemptCount > 0;
+          break;
+        case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED:
+          // Use activity's hasAttemptLimitExceeded() which properly checks
+          // if the activity has an attempt limit set
+          result = activity.hasAttemptLimitExceeded();
+          break;
+        case RuleConditionType.TIME_LIMIT_EXCEEDED:
+          result = this.evaluateTimeLimitExceeded(activity);
+          break;
+        case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
+          result = this.evaluateOutsideAvailableTimeRange(activity);
+          break;
+        case RuleConditionType.ALWAYS:
+          result = true;
+          break;
+        case RuleConditionType.NEVER:
+          result = false;
+          break;
+        default:
+          result = false;
+          break;
       }
-      case RuleConditionType.COMPLETED:
-      case RuleConditionType.ACTIVITY_COMPLETED:
-        // SCORM 2004 4th Edition: When referencedObjective is specified,
-        // check the objective's completion status instead of the activity's
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
-        } else if (referencedObjective) {
-          result = referencedObjective.completionStatus === CompletionStatus.UNKNOWN
-            ? "unknown"
-            : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
-        } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
-          result = "unknown";
-        } else {
-          result = activity.completionStatus === CompletionStatus.COMPLETED;
-        }
-        break;
-      case RuleConditionType.PROGRESS_KNOWN:
-      case RuleConditionType.ACTIVITY_PROGRESS_KNOWN:
-        // SCORM 2004 4th Edition: When referencedObjective is specified,
-        // check the objective's completion status instead of the activity's
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
-        } else if (referencedObjective) {
-          result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
-        } else {
-          result = activity.completionStatus !== "unknown";
-        }
-        break;
-      case RuleConditionType.ATTEMPTED:
-        result = activity.attemptCount > 0;
-        break;
-      case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED:
-        // Use activity's hasAttemptLimitExceeded() which properly checks
-        // if the activity has an attempt limit set
-        result = activity.hasAttemptLimitExceeded();
-        break;
-      case RuleConditionType.TIME_LIMIT_EXCEEDED:
-        result = this.evaluateTimeLimitExceeded(activity);
-        break;
-      case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
-        result = this.evaluateOutsideAvailableTimeRange(activity);
-        break;
-      case RuleConditionType.ALWAYS:
-        result = true;
-        break;
-      case RuleConditionType.NEVER:
-        result = false;
-        break;
-      default:
-        result = false;
-        break;
-    }
 
     if (this._operator === RuleConditionOperator.NOT) {
       result = kleeneNot(result);
@@ -411,11 +431,7 @@ export class RuleCondition extends BaseCMI {
     if (RuleCondition._getElapsedSecondsHook) {
       try {
         const hookResult = RuleCondition._getElapsedSecondsHook(activity);
-        if (
-          typeof hookResult === "number" &&
-          !Number.isNaN(hookResult) &&
-          hookResult >= 0
-        ) {
+        if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
           elapsedSeconds = hookResult;
         }
       } catch {
@@ -427,7 +443,7 @@ export class RuleCondition extends BaseCMI {
     if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
       const attemptDurationSeconds = getDurationAsSeconds(
         activity.attemptExperiencedDuration,
-        scorm2004_regex.CMITimespan
+        scorm2004_regex.CMITimespan,
       );
       if (attemptDurationSeconds > 0) {
         elapsedSeconds = attemptDurationSeconds;

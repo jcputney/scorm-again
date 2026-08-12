@@ -34,6 +34,7 @@ import {
   ActivitySettings,
   CommitObject,
   CommitTrigger,
+  GlobalObjectiveMapEntry,
   ResultObject,
   RollupRulesSettings,
   SequencingCollectionSettings,
@@ -118,6 +119,8 @@ class Scorm2004API extends BaseAPI {
   private _version: string = "1.0";
   private readonly _sequencing: Sequencing;
   private _sequencingService: SequencingService | null = null;
+  private _restoringFromJSON = false;
+  private readonly _runtimeSetCMIElements = new Set<string>();
   private _extractedScoItemIds: string[] = [];
   private _sequencingCollections: Record<string, SequencingCollectionSettings> = {};
 
@@ -189,6 +192,7 @@ class Scorm2004API extends BaseAPI {
     // Initialize global objective manager context - use getter to always get current settings
     const globalObjectiveContext: GlobalObjectiveContext = {
       getSettings: () => this.settings,
+      hostDeclaredGlobalObjectiveIds: [...(settingsCopy?.globalObjectiveIds ?? [])],
       cmi: this.cmi,
       sequencing: this._sequencing,
       sequencingService: this._sequencingService,
@@ -246,6 +250,7 @@ class Scorm2004API extends BaseAPI {
    */
   reset(settings?: Settings) {
     this.commonReset(settings);
+    this._runtimeSetCMIElements.clear();
 
     this.cmi?.reset();
     this.applyCurrentActivityLaunchData();
@@ -398,6 +403,13 @@ class Scorm2004API extends BaseAPI {
         activityObjective,
         mapInfo,
         globalObjective,
+        // @spec SCORM 2004 4th Ed. SN 3.10.3: read and write mapInfo flags are
+        // independent; delivery initializes the local objective from the global value.
+        {
+          restrictToFreshWrites: false,
+          allowSatisfiedStatus: true,
+          allowNormalizedMeasure: true,
+        },
       );
       this.applyObjectiveReadStateToCMI(objectiveIndex, readState);
     }
@@ -579,6 +591,17 @@ class Scorm2004API extends BaseAPI {
   }
 
   /**
+   * Restore LMS-persisted global objective values before SCO initialization.
+   *
+   * @param {Record<string, GlobalObjectiveMapEntry>} snapshot - Persisted objective map values
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read-mapped objectives use shared global state
+   */
+  restoreGlobalObjectiveSnapshot(snapshot: Record<string, GlobalObjectiveMapEntry>): void {
+    this._globalObjectiveManager.restoreGlobalObjectiveSnapshot(snapshot);
+  }
+
+  /**
    * Compress state data (delegates to persistence class)
    * @param {string} data - Data to compress
    * @return {string} Compressed data
@@ -642,7 +665,14 @@ class Scorm2004API extends BaseAPI {
       this._globalObjectiveManager.restoreGlobalObjectivesToCMI();
     }
 
-    if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence) {
+    if (
+      result === global_constants.SCORM_TRUE &&
+      this.settings.sequencingStatePersistence &&
+      this.settings.sequencingStatePersistence.autoLoadOnInitialize !== false
+    ) {
+      // @spec SCORM 2004 4th Ed. SN 4.2 Tracking Model Persistence - an LMS that must
+      // restore tracking before choosing the first delivery can preload it explicitly and
+      // suppress this compatibility auto-load. Initialize remains synchronous per the RTE API.
       this.loadSequencingState().catch(() => {
         this.apiLog("lmsInitialize", "Failed to auto-load sequencing state", LogLevelEnum.WARN);
       });
@@ -667,47 +697,74 @@ class Scorm2004API extends BaseAPI {
     const exitType = this.cmi?.getExitValueInternal() || "";
     const wasAlreadyTerminated = this.isTerminated();
     const deliveryInProgress = this._sequencingService?.isDeliveryInProgress() ?? false;
+    let normalizedRequest = pendingNavRequest;
+    let normalizedTarget = "";
+    const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
+
+    if (pendingNavRequest !== "_none_") {
+      const matches = pendingNavRequest.match(choiceJumpRegex);
+      if (matches) {
+        if (matches.groups?.choice_target) {
+          normalizedTarget = matches.groups?.choice_target;
+          normalizedRequest = "choice";
+        } else if (matches.groups?.jump_target) {
+          normalizedTarget = matches.groups?.jump_target;
+          normalizedRequest = "jump";
+        }
+      }
+    }
+
+    let requestToProcess: string | null = null;
+    let targetForProcessing: string | undefined;
+    if (normalizedRequest !== "_none_") {
+      requestToProcess = normalizedRequest;
+      targetForProcessing = normalizedTarget || undefined;
+    } else if (this._sequencing.getCurrentActivity()) {
+      requestToProcess = "exit";
+    }
+
+    // Run termination tracking and objective-map writes before serializing the
+    // termination commit, but defer sequencing/delivery until the commit payload
+    // has been captured. Delivery listeners may synchronously reset CMI for the
+    // next SCO.
+    // @spec SCORM 2004 4th Ed. SN OP.1 and SM.7 - termination and objective map
+    //   writes precede sequencing/delivery and are persisted at the session boundary.
+    const preparedNavigation =
+      !wasAlreadyTerminated && !deliveryInProgress && requestToProcess && this._sequencingService
+        ? this._sequencingService.prepareNavigationRequest(
+            requestToProcess,
+            targetForProcessing,
+            exitType,
+          )
+        : null;
 
     const result = this.terminate("Terminate", true);
+
+    if (result !== global_constants.SCORM_TRUE && preparedNavigation && this._sequencingService) {
+      this._sequencingService.cancelPreparedNavigation(preparedNavigation);
+    }
+
+    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated) {
+      // terminate() has already serialized the completed session. Preserve
+      // that same total before sequencing delivery resets SCO-local CMI data.
+      // @spec SCORM 2004 4th Ed. RTE 4.2.24 / 4.2.28
+      this.cmi.accumulateSessionTime();
+    }
 
     if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
       let navigationHandled = false;
       let processedSequencingRequest: string | null = null;
-      let normalizedRequest = pendingNavRequest;
-      let normalizedTarget = "";
-      const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
-
-      if (pendingNavRequest !== "_none_") {
-        const matches = pendingNavRequest.match(choiceJumpRegex);
-        if (matches) {
-          if (matches.groups?.choice_target) {
-            normalizedTarget = matches.groups?.choice_target;
-            normalizedRequest = "choice";
-          } else if (matches.groups?.jump_target) {
-            normalizedTarget = matches.groups?.jump_target;
-            normalizedRequest = "jump";
-          }
-        }
-      }
 
       if (this._sequencingService) {
         try {
-          let requestToProcess: string | null = null;
-          let targetForProcessing: string | undefined;
-
-          if (normalizedRequest !== "_none_") {
-            requestToProcess = normalizedRequest;
-            targetForProcessing = normalizedTarget || undefined;
-          } else if (this._sequencing.getCurrentActivity()) {
-            requestToProcess = "exit";
-          }
-
           if (requestToProcess) {
-            navigationHandled = this._sequencingService.processNavigationRequest(
-              requestToProcess,
-              targetForProcessing,
-              exitType,
-            );
+            navigationHandled = preparedNavigation
+              ? this._sequencingService.completeNavigationRequest(preparedNavigation)
+              : this._sequencingService.processNavigationRequest(
+                  requestToProcess,
+                  targetForProcessing,
+                  exitType,
+                );
             processedSequencingRequest = requestToProcess;
           }
         } catch (error) {
@@ -834,6 +891,12 @@ class Scorm2004API extends BaseAPI {
 
     const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
 
+    if (result === global_constants.SCORM_TRUE) {
+      // @spec SCORM 2004 4th Ed. RTE 3.1.4.4 / 4.2.17 - remember writes
+      // made by the SCO during this attempt, excluding LMS launch seeding.
+      this._runtimeSetCMIElements.add(CMIElement);
+    }
+
     if (result === global_constants.SCORM_TRUE && this._sequencingService) {
       try {
         this._sequencingService.triggerRollupOnCMIChange(CMIElement, oldValue, value);
@@ -927,6 +990,28 @@ class Scorm2004API extends BaseAPI {
    * @param {any} value
    * @return {string}
    */
+  /**
+   * Restore a previously stored CMI data model without republishing it to global objectives.
+   *
+   * loadFromJSON replays stored values through setCMIValue, which is the same entry point content
+   * uses. That makes an LMS-side restore indistinguishable from a fresh SetValue, so restoring an
+   * attempt whose cmi.objectives happens to name a global objective id would push those stored
+   * values back into the sequencing global objective map — overwriting whatever later attempts
+   * wrote and rolling shared objectives back to the moment this attempt was saved. Restored data is
+   * a replay of writes that already happened, so it must not trigger the write path again.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective writes originate from objective mapInfo,
+   *   not from re-loading persisted run-time data
+   */
+  override loadFromJSON(json: StringKeyMap, CMIElement: string = ""): void {
+    this._restoringFromJSON = true;
+    try {
+      super.loadFromJSON(json, CMIElement);
+    } finally {
+      this._restoringFromJSON = false;
+    }
+  }
+
   override setCMIValue(CMIElement: string, value: any): string {
     if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       const parts = CMIElement.split(".");
@@ -943,7 +1028,17 @@ class Scorm2004API extends BaseAPI {
         objective_id = objective ? objective.id : undefined;
       }
 
-      const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
+      // Suppress the publish only while replaying stored data into an API that also restores
+      // sequencing state. There the sequencing global objective map has already been loaded and is
+      // the fresher of the two, so republishing would overwrite it. Without sequencing state
+      // persistence there is no fresher map to protect, and this remains the only path that seeds
+      // global objectives from a restored cmi.objectives entry.
+      const suppressGlobalPublish =
+        this._restoringFromJSON && Boolean(this.settings.sequencingStatePersistence);
+      const is_global =
+        !suppressGlobalPublish &&
+        objective_id &&
+        this._globalObjectiveManager.isHostDeclaredGlobalObjectiveId(objective_id);
 
       if (is_global && this.currentActivityAllowsGlobalObjectiveWrites()) {
         const { index: global_index } =
@@ -1198,24 +1293,10 @@ class Scorm2004API extends BaseAPI {
     }
 
     const commitObject = this.getCommitObject(terminateCommit);
-    const scoreObject = this.cmi?.score?.getScoreObject() || {};
-    let completionStatusEnum = CompletionStatus.UNKNOWN;
-    if (this.cmi.completion_status === "completed") {
-      completionStatusEnum = CompletionStatus.COMPLETED;
-    } else if (this.cmi.completion_status === "incomplete") {
-      completionStatusEnum = CompletionStatus.INCOMPLETE;
-    }
-    let successStatusEnum = SuccessStatus.UNKNOWN;
-    if (this.cmi.success_status === "passed") {
-      successStatusEnum = SuccessStatus.PASSED;
-    } else if (this.cmi.success_status === "failed") {
-      successStatusEnum = SuccessStatus.FAILED;
-    }
-    this._globalObjectiveManager.syncCmiToSequencingActivity(
-      completionStatusEnum,
-      successStatusEnum,
-      scoreObject,
-    );
+    // RTE Commit persists the SCO data model but does not end the activity attempt. Sequencing
+    // tracking and objective maps are updated only by the End Attempt Process prepared before a
+    // successful Terminate; abandon therefore leaves the reported attempt data unrecorded.
+    // @spec SCORM 2004 4th Ed. SN TB.2.3 / UP.4 and TR SX-04a / SX-04b
     if (typeof this.settings.lmsCommitUrl === "string") {
       const result = this.processHttpRequest(
         this.settings.lmsCommitUrl,
@@ -1374,11 +1455,12 @@ class Scorm2004API extends BaseAPI {
   private initializeSequencingService(settings?: Settings): void {
     try {
       const sequencingConfig: SequencingConfiguration = {
-        autoRollupOnCMIChange: settings?.sequencing?.autoRollupOnCMIChange ?? true,
+        autoRollupOnCMIChange: settings?.sequencing?.autoRollupOnCMIChange ?? false,
         autoProgressOnCompletion: settings?.sequencing?.autoProgressOnCompletion ?? false,
         validateNavigationRequests: settings?.sequencing?.validateNavigationRequests ?? true,
         enableEventSystem: settings?.sequencing?.enableEventSystem ?? true,
         logLevel: settings?.sequencing?.logLevel ?? "info",
+        wasCMIElementSetByContent: (element) => this._runtimeSetCMIElements.has(element),
       };
 
       this._sequencingService = new SequencingService(

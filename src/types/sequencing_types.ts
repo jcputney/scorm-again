@@ -92,6 +92,7 @@ export type ActivitySettings = {
   selectionRandomizationState?: SelectionRandomizationStateSettings;
   hideLmsUi?: HideLmsUiItem[];
   sequencingCollectionRefs?: string | string[];
+  sequencingIdRef?: string | string[];
   auxiliaryResources?: AuxiliaryResourceSettings[];
 };
 
@@ -194,6 +195,9 @@ export type SelectionRandomizationStateSettings = {
 };
 
 export type SequencingCollectionSettings = {
+  id?: string;
+  primaryObjective?: ObjectiveSettings;
+  objectives?: ObjectiveSettings[];
   sequencingControls?: SequencingControlsSettings;
   sequencingRules?: SequencingRulesSettings;
   rollupRules?: RollupRulesSettings;
@@ -239,7 +243,7 @@ export type SequencingSettings = {
   rollupRules?: RollupRulesSettings;
   hideLmsUi?: HideLmsUiItem[];
   auxiliaryResources?: AuxiliaryResourceSettings[];
-  collections?: Record<string, SequencingCollectionSettings>;
+  collections?: Record<string, SequencingCollectionSettings> | SequencingCollectionSettings[];
 
   // Runtime sequencing configuration
   autoRollupOnCMIChange?: boolean;

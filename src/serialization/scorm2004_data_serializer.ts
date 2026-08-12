@@ -155,15 +155,15 @@ export class Scorm2004DataSerializer {
       }
     }
 
-    // Update sequencing activity state based on CMI runtime data
-    // This ensures that cmi.success_status updates the primary objective,
-    // which then triggers mapInfo global objective writes during rollup
     if (this.globalObjectiveManager) {
-      this.globalObjectiveManager.syncCmiToSequencingActivity(
-        completionStatus,
-        successStatus,
-        scoreObject,
-      );
+      // Global objective map values are LMS tracking data. Include the synchronized snapshot in
+      // every structured commit so objectivesGlobalToSystem can persist them across course
+      // registrations instead of limiting them to the current in-memory sequencing session.
+      // A normal RTE Commit does not end the activity attempt, so it must not publish current SCO
+      // values into sequencing tracking data. The End Attempt Process performs that transfer.
+      // @spec SCORM 2004 4th Ed. SN TB.2.3 / UP.4 and TR SX-04a / SX-04b
+      // @spec SCORM 2004 4th Ed. SN 3.10.3 - Objective Map Resolution
+      commitObject.globalObjectives = this.globalObjectiveManager.captureGlobalObjectiveSnapshot();
     }
 
     return commitObject;

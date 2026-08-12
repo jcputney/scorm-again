@@ -341,7 +341,7 @@ describe("RollupRuleEvaluator", () => {
     });
 
     describe("with ANY consideration", () => {
-      it("should return true when at least one condition is met", () => {
+      it("should require all conditions for one child's match", () => {
         const condition1 = createMockCondition(() => false);
         const condition2 = createMockCondition(() => true);
 
@@ -355,7 +355,9 @@ describe("RollupRuleEvaluator", () => {
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
-        expect(result).toBe(true);
+        // @spec SCORM 2004 4th Ed. SN RB.1.4.1 - childActivitySet ANY
+        // counts matching children; it does not OR one child's conditions.
+        expect(result).toBe(false);
       });
 
       it("should return false when no conditions are met", () => {
@@ -377,7 +379,7 @@ describe("RollupRuleEvaluator", () => {
     });
 
     describe("with NONE consideration", () => {
-      it("should return true when no conditions are met", () => {
+      it("should leave NONE counting to the rule-level child set", () => {
         const condition1 = createMockCondition(() => false);
         const condition2 = createMockCondition(() => false);
 
@@ -391,7 +393,8 @@ describe("RollupRuleEvaluator", () => {
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
-        expect(result).toBe(true);
+        // Neither condition matches, so this child is not a matching child.
+        expect(result).toBe(false);
       });
 
       it("should return false when any condition is met", () => {
@@ -451,7 +454,7 @@ describe("RollupRuleEvaluator", () => {
     });
 
     describe("with unknown consideration type", () => {
-      it("should return false for unknown consideration type", () => {
+      it("should evaluate the child's conditions independently of consideration", () => {
         const condition1 = createMockCondition(() => true);
 
         const rule: RollupRule = {
@@ -464,7 +467,7 @@ describe("RollupRuleEvaluator", () => {
         };
 
         const result = evaluator.evaluateRollupConditionsSubprocess(child1, rule);
-        expect(result).toBe(false);
+        expect(result).toBe(true);
       });
     });
   });

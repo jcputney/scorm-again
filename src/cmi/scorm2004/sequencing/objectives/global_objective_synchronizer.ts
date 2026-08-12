@@ -43,6 +43,18 @@ export interface GlobalObjective {
   updateAttemptData?: boolean;
 }
 
+/** Objective-map fields written by a terminating activity, grouped by target objective. */
+export interface GlobalObjectiveWriteTargets {
+  satisfiedStatus: Set<string>;
+  normalizedMeasure: Set<string>;
+}
+
+interface GlobalObjectiveReadOptions {
+  restrictToFreshWrites: boolean;
+  allowSatisfiedStatus: boolean;
+  allowNormalizedMeasure: boolean;
+}
+
 /**
  * Local objective state for synchronization
  */
@@ -105,7 +117,7 @@ export class GlobalObjectiveSynchronizer {
   public processGlobalObjectiveMapping(
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
-  ): void {
+  ): Activity[] {
     try {
       this.eventCallback?.("global_objective_processing_started", {
         activityId: activity.id,
@@ -124,19 +136,25 @@ export class GlobalObjectiveSynchronizer {
 
       // Pass 2: READ - All activities read from global objectives into local state
       // Now reads can see all writes from all activities
+      const changedActivities: Activity[] = [];
       for (const act of allActivities) {
-        this.syncGlobalObjectivesReadPhase(act, globalObjectives);
+        if (this.syncGlobalObjectivesReadPhase(act, globalObjectives)) {
+          changedActivities.push(act);
+        }
       }
 
       this.eventCallback?.("global_objective_processing_completed", {
         activityId: activity.id,
         processedObjectives: globalObjectives.size,
+        changedActivityCount: changedActivities.length,
       });
+      return changedActivities;
     } catch (error) {
       this.eventCallback?.("global_objective_processing_error", {
         activityId: activity.id,
         error: error instanceof Error ? error.message : String(error),
       });
+      return [];
     }
   }
 
@@ -166,18 +184,22 @@ export class GlobalObjectiveSynchronizer {
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
   ): void {
-    if (!this.canWriteGlobalObjectives(activity)) {
+    // Objective maps write when an attempt terminates. An active cluster may
+    // already contain intermediate rollup state, but it is not yet a source
+    // for its mapped global objective.
+    // @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+    if (activity.isActive || !this.canWriteGlobalObjectives(activity)) {
       return;
     }
 
     const objectives = activity.getAllObjectives();
 
     for (const objective of objectives) {
-      const mapInfos =
-        objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
       const dirtyFieldsToClear = new Set<ActivityObjectiveDirtyProperty>();
 
-      for (const mapInfo of mapInfos) {
+      // @spec SCORM 2004 4th Ed. SN 3.10.3: objectives without mapInfo are local
+      // and must not create or overwrite global objective state.
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         const globalObjective = this.ensureGlobalObjectiveEntry(
           globalObjectives,
@@ -211,20 +233,20 @@ export class GlobalObjectiveSynchronizer {
           // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - Objective
           // Satisfied By Measure derives satisfaction only for objectives that declare it.
           if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
-            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+            const threshold = objective.minNormalizedMeasure ?? 1.0;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
             dirtyFieldsToClear.add("satisfiedStatus");
           }
         }
 
-        if (
-          mapInfo.writeCompletionStatus &&
-          objective.completionStatus !== CompletionStatus.UNKNOWN &&
-          objective.isDirty("completionStatus")
-        ) {
+        if (mapInfo.writeCompletionStatus && objective.isDirty("completionStatus")) {
+          // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - a local
+          // completion-status change is written through its map. Unknown clears
+          // the global status knowledge; default unknown is not dirty and does not write.
           globalObjective.completionStatus = objective.completionStatus;
-          globalObjective.completionStatusKnown = true;
+          globalObjective.completionStatusKnown =
+            objective.completionStatus !== CompletionStatus.UNKNOWN;
           dirtyFieldsToClear.add("completionStatus");
         }
 
@@ -274,6 +296,65 @@ export class GlobalObjectiveSynchronizer {
   }
 
   /**
+   * Transfer the terminating activity's final local objective state to its
+   * write-mapped globals. Unknown local state clears the corresponding global
+   * status instead of leaving a value from the prior attempt visible.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
+   * @spec SCORM 2004 SN 4th Ed. TM.1.1 Objective Progress Information
+   */
+  public syncTerminatedActivityWritePhase(
+    activity: Activity,
+    globalObjectives: Map<string, GlobalObjective>,
+  ): GlobalObjectiveWriteTargets {
+    const writeTargets: GlobalObjectiveWriteTargets = {
+      satisfiedStatus: new Set<string>(),
+      normalizedMeasure: new Set<string>(),
+    };
+
+    if (!this.canWriteGlobalObjectives(activity)) {
+      return writeTargets;
+    }
+
+    for (const objective of activity.getAllObjectives()) {
+      for (const mapInfo of objective.mapInfo) {
+        const targetId = mapInfo.targetObjectiveID || objective.id;
+        const globalObjective = this.ensureGlobalObjectiveEntry(
+          globalObjectives,
+          targetId,
+          objective,
+        );
+
+        if (mapInfo.writeSatisfiedStatus) {
+          writeTargets.satisfiedStatus.add(targetId);
+          if (this.hasKnownSatisfiedStatus(objective)) {
+            globalObjective.satisfiedStatus = objective.satisfiedStatus;
+            globalObjective.satisfiedStatusKnown = true;
+          } else {
+            globalObjective.satisfiedStatus = false;
+            globalObjective.satisfiedStatusKnown = false;
+          }
+          objective.clearDirty("satisfiedStatus");
+        }
+
+        if (mapInfo.writeNormalizedMeasure) {
+          writeTargets.normalizedMeasure.add(targetId);
+          if (objective.measureStatus) {
+            globalObjective.normalizedMeasure = objective.normalizedMeasure;
+            globalObjective.normalizedMeasureKnown = true;
+          } else {
+            globalObjective.normalizedMeasure = 0;
+            globalObjective.normalizedMeasureKnown = false;
+          }
+          objective.clearDirty("normalizedMeasure");
+        }
+      }
+    }
+
+    return writeTargets;
+  }
+
+  /**
    * Read phase: Read FROM global objectives into local state
    *
    * @param activity - The activity to process
@@ -285,15 +366,47 @@ export class GlobalObjectiveSynchronizer {
   public syncGlobalObjectivesReadPhase(
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
-  ): void {
+  ): boolean {
+    return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives);
+  }
+
+  /**
+   * Read only objective fields freshly written by a terminating descendant.
+   *
+   * Active write-mapped objectives normally suppress reads so a new attempt cannot revive its
+   * predecessor's state. A descendant write is different: active ancestors need that new state
+   * before their own post-condition rules are evaluated.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+   */
+  public syncFreshlyWrittenGlobalObjectivesReadPhase(
+    activity: Activity,
+    globalObjectives: Map<string, GlobalObjective>,
+    writeTargets: GlobalObjectiveWriteTargets,
+  ): boolean {
+    return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, writeTargets);
+  }
+
+  private syncGlobalObjectivesReadPhaseInternal(
+    activity: Activity,
+    globalObjectives: Map<string, GlobalObjective>,
+    writeTargets?: GlobalObjectiveWriteTargets,
+  ): boolean {
+    const beforeStatus = activity.captureRollupStatus();
+    const beforeObjectiveSatisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
     const objectives = activity.getAllObjectives();
 
     for (const objective of objectives) {
-      const mapInfos =
-        objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
-
-      for (const mapInfo of mapInfos) {
+      // @spec SCORM 2004 4th Ed. SN 3.10.3: only explicitly mapped objectives
+      // participate in the global read phase.
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
+        const freshlyWroteSatisfiedStatus = writeTargets?.satisfiedStatus.has(targetId) ?? false;
+        const freshlyWroteNormalizedMeasure =
+          writeTargets?.normalizedMeasure.has(targetId) ?? false;
+        if (writeTargets && !freshlyWroteSatisfiedStatus && !freshlyWroteNormalizedMeasure) {
+          continue;
+        }
         const globalObjective = globalObjectives.get(targetId);
 
         if (!globalObjective) continue;
@@ -305,6 +418,13 @@ export class GlobalObjectiveSynchronizer {
           objective,
           mapInfo,
           globalObjective,
+          writeTargets
+            ? {
+                restrictToFreshWrites: true,
+                allowSatisfiedStatus: freshlyWroteSatisfiedStatus,
+                allowNormalizedMeasure: freshlyWroteNormalizedMeasure,
+              }
+            : undefined,
         );
         this.applyGlobalObjectiveReadState(objective, readState);
 
@@ -322,6 +442,13 @@ export class GlobalObjectiveSynchronizer {
         });
       }
     }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 and RB.1.5 - a read-mapped primary
+    // objective changes the activity state that participates in ancestor rollup.
+    return (
+      !Activity.compareRollupStatus(beforeStatus, activity.captureRollupStatus()) ||
+      beforeObjectiveSatisfiedStatusKnown !== activity.objectiveSatisfiedStatusKnown
+    );
   }
 
   /**
@@ -338,10 +465,9 @@ export class GlobalObjectiveSynchronizer {
     const objectives = activity.getAllObjectives();
 
     for (const objective of objectives) {
-      const mapInfos =
-        objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
-
-      for (const mapInfo of mapInfos) {
+      // @spec SCORM 2004 4th Ed. SN 3.10.3: combined synchronization follows
+      // the same explicit-map boundary as the two-pass implementation.
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         const globalObjective = this.ensureGlobalObjectiveEntry(
           globalObjectives,
@@ -404,7 +530,7 @@ export class GlobalObjectiveSynchronizer {
           // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - Objective
           // Satisfied By Measure derives satisfaction only for objectives that declare it.
           if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
-            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+            const threshold = objective.minNormalizedMeasure ?? 1.0;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
           }
@@ -479,55 +605,92 @@ export class GlobalObjectiveSynchronizer {
     objective: ActivityObjective,
     mapInfo: ObjectiveMapInfo,
     globalObjective: GlobalObjective,
+    options?: GlobalObjectiveReadOptions,
   ): ActivityObjectiveReadState {
     const readState: ActivityObjectiveReadState = {};
 
+    // A write-mapped objective in an active attempt is the source of the next
+    // global value. Reading that same field back would revive the prior
+    // attempt's state and overwrite the freshly initialized local attempt.
+    // @spec SCORM 2004 SN 4th Ed. DB.2 and SM.7
+    const suppressSatisfiedRead =
+      activity.isActive && mapInfo.writeSatisfiedStatus && !options?.allowSatisfiedStatus;
+    const suppressMeasureRead =
+      activity.isActive && mapInfo.writeNormalizedMeasure && !options?.allowNormalizedMeasure;
+
     // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Objective
-    // Satisfied Status applies only when the global satisfied status is known.
-    if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-      readState.satisfiedStatus = globalObjective.satisfiedStatus;
+    // Satisfied Status exposes the mapped global status, including unknown.
+    if (
+      mapInfo.readSatisfiedStatus &&
+      (!options?.restrictToFreshWrites || options.allowSatisfiedStatus) &&
+      !suppressSatisfiedRead &&
+      !objective.satisfiedByMeasure
+    ) {
+      readState.satisfiedStatusKnown = globalObjective.satisfiedStatusKnown;
+      if (globalObjective.satisfiedStatusKnown) {
+        readState.satisfiedStatus = globalObjective.satisfiedStatus;
+      }
     }
 
     // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Normalized
-    // Measure does not require Read Objective Satisfied Status.
-    if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-      readState.normalizedMeasure = globalObjective.normalizedMeasure;
+    // Measure exposes the mapped global measure, including unknown, and does
+    // not require Read Objective Satisfied Status.
+    if (
+      mapInfo.readNormalizedMeasure &&
+      (!options?.restrictToFreshWrites || options.allowNormalizedMeasure) &&
+      !suppressMeasureRead
+    ) {
+      readState.normalizedMeasureKnown = globalObjective.normalizedMeasureKnown;
+      if (globalObjective.normalizedMeasureKnown) {
+        readState.normalizedMeasure = globalObjective.normalizedMeasure;
+      }
 
       // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - local
       // satisfiedByMeasure derives a local satisfied status from the read measure.
       if (objective.satisfiedByMeasure) {
-        const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-        readState.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+        readState.satisfiedStatusKnown = globalObjective.normalizedMeasureKnown;
+        if (globalObjective.normalizedMeasureKnown) {
+          const threshold = objective.minNormalizedMeasure ?? 1.0;
+          readState.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+        }
       }
     }
 
     // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Completion
     // Status applies only when the mapped global completion status is known.
-    if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
+    if (
+      !options?.restrictToFreshWrites &&
+      mapInfo.readCompletionStatus &&
+      globalObjective.completionStatusKnown
+    ) {
       readState.completionStatus = globalObjective.completionStatus as CompletionStatus;
     }
 
     // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Progress
     // Measure applies only when the mapped global progress measure is known.
-    if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
+    if (
+      !options?.restrictToFreshWrites &&
+      mapInfo.readProgressMeasure &&
+      globalObjective.progressMeasureKnown
+    ) {
       readState.progressMeasure = globalObjective.progressMeasure;
     }
 
     // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Raw Score
     // applies only when the mapped global raw score is known.
-    if (mapInfo.readRawScore && globalObjective.rawScoreKnown) {
+    if (!options?.restrictToFreshWrites && mapInfo.readRawScore && globalObjective.rawScoreKnown) {
       readState.rawScore = globalObjective.rawScore;
     }
 
     // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Min Score
     // applies only when the mapped global min score is known.
-    if (mapInfo.readMinScore && globalObjective.minScoreKnown) {
+    if (!options?.restrictToFreshWrites && mapInfo.readMinScore && globalObjective.minScoreKnown) {
       readState.minScore = globalObjective.minScore;
     }
 
     // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Max Score
     // applies only when the mapped global max score is known.
-    if (mapInfo.readMaxScore && globalObjective.maxScoreKnown) {
+    if (!options?.restrictToFreshWrites && mapInfo.readMaxScore && globalObjective.maxScoreKnown) {
       readState.maxScore = globalObjective.maxScore;
     }
 
@@ -634,6 +797,13 @@ export class GlobalObjectiveSynchronizer {
    * Measure Status is independent measure knowledge.
    */
   private hasKnownSatisfiedStatus(objective: ActivityObjective): boolean {
+    if (objective.satisfiedByMeasure) {
+      // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description / 3.10.3
+      // Objective Map - a measure-controlled objective has a known satisfied
+      // status only when its normalized measure is known. End-attempt defaults
+      // must not publish satisfaction in place of a missing measure.
+      return objective.measureStatus;
+    }
     return objective.progressStatus || objective.satisfiedStatusKnown;
   }
 

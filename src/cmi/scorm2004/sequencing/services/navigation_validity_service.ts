@@ -495,13 +495,13 @@ export class NavigationValidityService {
       }
     }
 
-    // Path to root validation for choice control
-    let activity: Activity | null = targetActivity;
-    while (activity) {
-      if (activity.parent && !activity.parent.sequencingControls.choice) {
-        return { valid: false, exception: "NB.2.1-11" };
-      }
-      activity = activity.parent;
+    // @spec SCORM 2004 SN 4th Ed. NB.2.1: choice control applies to the
+    // target's immediate parent; higher ancestors govern their own child sets.
+    if (
+      targetActivity.parent &&
+      !targetActivity.parent.sequencingControls.choice
+    ) {
+      return { valid: false, exception: "NB.2.1-11" };
     }
 
     return { valid: true, exception: null };
@@ -737,6 +737,13 @@ export class NavigationValidityService {
     currentActivity: Activity,
     targetActivity: Activity
   ): { valid: boolean; exception: string | null } {
+    // @spec SCORM 2004 SN 4th Ed. NB.2.1: the target of a choice request may be the
+    // common ancestor itself. Its parent's choice control governs that request; the
+    // target's own choice control only governs choices among its children.
+    if (targetActivity === ancestor) {
+      return { valid: true, exception: null };
+    }
+
     // Enforce forwardOnly and mandatory activity constraints at ancestor level
     const children = ancestor.children;
     if (!children || children.length === 0) {

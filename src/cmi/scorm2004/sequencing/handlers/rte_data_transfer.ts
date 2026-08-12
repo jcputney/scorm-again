@@ -8,6 +8,8 @@ import { evaluateCompletionStatusFromThreshold } from "../../completion_status_e
 export interface CMIDataForTransfer {
   completion_status?: string;
   success_status?: string;
+  success_status_was_set?: boolean;
+  score_was_set?: boolean;
   score?: {
     scaled?: string;
     raw?: string;
@@ -18,7 +20,10 @@ export interface CMIDataForTransfer {
   objectives?: Array<{
     id: string;
     success_status?: string;
+    success_status_was_set?: boolean;
+    score_was_set?: boolean;
     completion_status?: string;
+    completion_status_was_set?: boolean;
     score?: {
       scaled?: string;
       raw?: string;
@@ -67,13 +72,6 @@ export interface RteDataTransferContext {
   fireEvent: (eventType: string, data?: RteTransferEventData) => void;
 }
 
-/** Valid completion status values per SCORM 2004 specification */
-const VALID_COMPLETION_STATUSES: readonly string[] = [
-  CompletionStatus.COMPLETED,
-  CompletionStatus.INCOMPLETE,
-  CompletionStatus.UNKNOWN,
-];
-
 /** Valid success status values per SCORM 2004 specification */
 const VALID_SUCCESS_STATUSES: readonly string[] = [
   SuccessStatus.PASSED,
@@ -82,11 +80,20 @@ const VALID_SUCCESS_STATUSES: readonly string[] = [
 ];
 
 /**
- * Validates and returns a CompletionStatus value, or null if invalid
+ * Converts an RTE completion status into sequencing's completion state.
+ *
+ * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - a known RTE status other
+ * than completed represents a known-false sequencing completion status.
  */
 function validateCompletionStatus(value: string | undefined): CompletionStatus | null {
-  if (value && VALID_COMPLETION_STATUSES.includes(value)) {
-    return value as CompletionStatus;
+  if (value === CompletionStatus.COMPLETED) {
+    return CompletionStatus.COMPLETED;
+  }
+  if (value === CompletionStatus.INCOMPLETE || value === "not attempted") {
+    return CompletionStatus.INCOMPLETE;
+  }
+  if (value === CompletionStatus.UNKNOWN) {
+    return CompletionStatus.UNKNOWN;
   }
   return null;
 }
@@ -206,10 +213,15 @@ export class RteDataTransferService {
     let successStatus = false;
     let hasNormalizedMeasure = false;
     let normalizedScore = 0;
+    const satisfiedByMeasure = activity.primaryObjective?.satisfiedByMeasure === true;
 
     // Transfer success status
     const validatedSuccessStatus = validateSuccessStatus(cmiData.success_status);
-    if (validatedSuccessStatus && validatedSuccessStatus !== SuccessStatus.UNKNOWN) {
+    if (
+      !satisfiedByMeasure &&
+      validatedSuccessStatus &&
+      validatedSuccessStatus !== SuccessStatus.UNKNOWN
+    ) {
       successStatus = validatedSuccessStatus === SuccessStatus.PASSED;
       hasSuccessStatus = true;
       activity.objectiveSatisfiedStatus = successStatus;
@@ -230,6 +242,17 @@ export class RteDataTransferService {
         activity.objectiveNormalizedMeasure = normalizedScore;
         activity.objectiveMeasureStatus = true;
       }
+    }
+
+    if (satisfiedByMeasure && hasNormalizedMeasure) {
+      // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - when
+      // satisfiedByMeasure is true, satisfaction is derived from a known measure;
+      // the default minimum normalized measure is 1.0.
+      successStatus = normalizedScore >= (activity.primaryObjective?.minNormalizedMeasure ?? 1.0);
+      hasSuccessStatus = true;
+      activity.objectiveSatisfiedStatus = successStatus;
+      activity.objectiveSatisfiedStatusKnown = true;
+      activity.successStatus = successStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
     }
 
     // Use initializeFromCMI to ensure dirty flags are set for primary objective
@@ -285,26 +308,64 @@ export class RteDataTransferService {
 
       // Track whether we need to initialize from CMI
       let hasSuccessStatus = false;
+      let hasExplicitUnknownSuccessStatus = false;
       let successStatus = false;
       let hasNormalizedMeasure = false;
       let normalizedScore = 0;
       let hasCompletionStatus = false;
       let hasProgressMeasure = false;
 
-      // Transfer success status (only if changed during runtime)
+      const topLevelSuccessStatus = validateSuccessStatus(cmiData.success_status);
+      const topLevelPrimarySuccessWasSet =
+        cmiData.success_status_was_set === true ||
+        (cmiData.success_status_was_set === undefined &&
+          topLevelSuccessStatus !== null &&
+          topLevelSuccessStatus !== SuccessStatus.UNKNOWN);
+
+      // Transfer success status. Read-mapped values remain valid write-map
+      // sources even when the SCO leaves them untouched. The one conflicting
+      // case is a seeded primary objective row after content explicitly writes
+      // the top-level primary status; the content write is authoritative.
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3
       const validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
-      if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
+      if (
+        !activityObjective.satisfiedByMeasure &&
+        validatedObjSuccessStatus &&
+        validatedObjSuccessStatus !== SuccessStatus.UNKNOWN &&
+        (cmiObjective.success_status_was_set !== false ||
+          !isPrimaryObjective ||
+          !topLevelPrimarySuccessWasSet)
+      ) {
         successStatus = validatedObjSuccessStatus === SuccessStatus.PASSED;
         hasSuccessStatus = true;
         activityObjective.progressStatus = true;
+      } else if (
+        !activityObjective.satisfiedByMeasure &&
+        validatedObjSuccessStatus === SuccessStatus.UNKNOWN &&
+        cmiObjective.success_status_was_set === true
+      ) {
+        // An untouched launch default must not clear mapped state, but a SCO's
+        // explicit unknown replaces the prior known satisfaction value.
+        // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3
+        activityObjective.initializeUnknownSatisfiedStatusFromCMI();
+        hasExplicitUnknownSuccessStatus = true;
       }
 
       // Transfer completion status
       const validatedObjCompletionStatus = validateCompletionStatus(cmiObjective.completion_status);
-      if (
-        validatedObjCompletionStatus &&
-        validatedObjCompletionStatus !== CompletionStatus.UNKNOWN
-      ) {
+      if (validatedObjCompletionStatus === CompletionStatus.UNKNOWN) {
+        if (cmiObjective.completion_status_was_set === true) {
+          // A fresh local attempt starts unknown even when its RTE view was
+          // initialized from a known global. Preserve the semantic write so it
+          // clears that mapped global rather than disappearing as a no-op.
+          // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3
+          activityObjective.initializeUnknownCompletionStatusFromCMI();
+          hasCompletionStatus = true;
+        }
+      } else if (validatedObjCompletionStatus !== null) {
+        // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - an objective
+        // completion status changed to unknown removes a previously known local
+        // status; an untouched default unknown does not create a mapped write.
         activityObjective.completionStatus = validatedObjCompletionStatus;
         hasCompletionStatus = true;
       }
@@ -320,6 +381,14 @@ export class RteDataTransferService {
           normalizedScore = normalized;
           hasNormalizedMeasure = true;
         }
+      }
+
+      if (activityObjective.satisfiedByMeasure && hasNormalizedMeasure) {
+        // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - objective
+        // satisfaction is derived only from a known normalized measure.
+        successStatus = normalizedScore >= (activityObjective.minNormalizedMeasure ?? 1.0);
+        hasSuccessStatus = true;
+        activityObjective.progressStatus = true;
       }
 
       // If we have either success status or normalized measure from CMI, use initializeFromCMI
@@ -349,7 +418,11 @@ export class RteDataTransferService {
 
       if (
         isPrimaryObjective &&
-        (hasSuccessStatus || hasNormalizedMeasure || hasCompletionStatus || hasProgressMeasure)
+        (hasSuccessStatus ||
+          hasExplicitUnknownSuccessStatus ||
+          hasNormalizedMeasure ||
+          hasCompletionStatus ||
+          hasProgressMeasure)
       ) {
         // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - a SCO may set
         // the delivered primary objective through cmi.objectives.n; those
@@ -357,12 +430,15 @@ export class RteDataTransferService {
         // UP.4 End Attempt auto-satisfaction or mapped global writes run.
         activityObjective.applyToActivity(activity);
 
-        if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
-          activity.successStatus = validatedObjSuccessStatus;
+        if (hasSuccessStatus) {
+          activity.successStatus = successStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+        } else if (hasExplicitUnknownSuccessStatus) {
+          activity.successStatus = SuccessStatus.UNKNOWN;
         }
 
         if (hasCompletionStatus) {
-          activity.attemptProgressStatus = true;
+          activity.attemptProgressStatus =
+            activityObjective.completionStatus !== CompletionStatus.UNKNOWN;
         }
 
         if (hasProgressMeasure) {

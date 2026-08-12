@@ -440,6 +440,18 @@ describe("SequencingService", () => {
       expect(deliveredActivity).toBeDefined();
     });
 
+    it("should not emit host delivery from the low-level activity selection signal", () => {
+      const delivered: Activity[] = [];
+      sequencingService.setEventListeners({
+        onActivityDelivery: (activity) => delivered.push(activity as Activity),
+      });
+      const selected = sequencing.activityTree.root!.children[0];
+
+      (sequencingService as any).handleSequencingProcessEvent("onActivityDelivery", selected);
+
+      expect(delivered).toEqual([]);
+    });
+
     it("should fire activity unload event", () => {
       let unloadedActivity: Activity | null = null;
 
@@ -519,7 +531,7 @@ describe("SequencingService", () => {
 
   describe("debug and logging", () => {
     it("should fire debug events", () => {
-      let debugEvents: any[] = [];
+      const debugEvents: any[] = [];
 
       sequencingService.setEventListeners({
         onSequencingDebug: (event, data) => {

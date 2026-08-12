@@ -134,6 +134,7 @@ describe("RETRY Attempt Count Single-Increment Fix", () => {
 
     // On resume, attempt count should NOT be incremented
     expect(activity.attemptCount).toBe(1);
+    expect(activity.deliveryWasResumed).toBe(true);
   });
 
   it("should increment attempt count on new delivery", () => {
@@ -146,5 +147,6 @@ describe("RETRY Attempt Count Single-Increment Fix", () => {
 
     // New delivery should increment attempt count
     expect(activity.attemptCount).toBe(1);
+    expect(activity.deliveryWasResumed).toBe(false);
   });
 });

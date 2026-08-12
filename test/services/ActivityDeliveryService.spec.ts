@@ -185,6 +185,31 @@ describe("ActivityDeliveryService", () => {
       expect(callbacks.onDeliverActivity).toHaveBeenCalledWith(activity);
       expect(activityDeliveryService.getCurrentDeliveredActivity()).toBe(activity);
     });
+
+    it("should unload and redeliver a later attempt of the same activity", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      const result: SequencingResult = {
+        exception: null,
+        deliveryRequest: DeliveryRequestType.DELIVER,
+        targetActivity: activity,
+      };
+
+      activity.incrementAttemptCount();
+      activityDeliveryService.processSequencingResult(result);
+      vi.mocked(callbacks.onDeliverActivity!).mockClear();
+      vi.mocked(callbacks.onUnloadActivity!).mockClear();
+
+      // DB.2 has already initialized the next attempt before this service
+      // publishes the matching unload/delivery notifications.
+      activity.incrementAttemptCount();
+      activityDeliveryService.processSequencingResult(result);
+
+      expect(callbacks.onUnloadActivity).toHaveBeenCalledOnce();
+      expect(callbacks.onUnloadActivity).toHaveBeenCalledWith(activity);
+      expect(callbacks.onDeliverActivity).toHaveBeenCalledOnce();
+      expect(callbacks.onDeliverActivity).toHaveBeenCalledWith(activity);
+      expect(activity.isActive).toBe(true);
+    });
   });
 
   describe("getCurrentDeliveredActivity", () => {

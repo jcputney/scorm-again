@@ -25,6 +25,7 @@ export class ActivityDeliveryService {
   private loggingService: ILoggingService;
   private callbacks: ActivityDeliveryCallbacks;
   private currentDeliveredActivity: Activity | null = null;
+  private currentDeliveredAttemptCount: number | null = null;
   private pendingDelivery: Activity | null = null;
 
   constructor(
@@ -66,9 +67,13 @@ export class ActivityDeliveryService {
    * @param {Activity} activity - The activity to deliver
    */
   private deliverActivity(activity: Activity): void {
-    // Skip delivery if the same activity is already delivered
-    // This prevents duplicate callbacks when sequencing fires for an already-loaded activity
-    if (this.currentDeliveredActivity === activity) {
+    // The delivery environment can legitimately start a later attempt of the same
+    // activity. Suppress only duplicate notifications for the current attempt.
+    // @spec SCORM 2004 4th Ed. SN DB.2: every new activity attempt is delivered.
+    if (
+      this.currentDeliveredActivity === activity &&
+      this.currentDeliveredAttemptCount === activity.attemptCount
+    ) {
       this.loggingService.info(`Skipping delivery - activity already delivered: ${activity.id}`);
       return;
     }
@@ -92,6 +97,7 @@ export class ActivityDeliveryService {
 
     // Update current delivered activity
     this.currentDeliveredActivity = activity;
+    this.currentDeliveredAttemptCount = activity.attemptCount;
     this.pendingDelivery = null;
 
     // Mark activity as active
@@ -148,6 +154,7 @@ export class ActivityDeliveryService {
       this.unloadActivity(this.currentDeliveredActivity);
     }
     this.currentDeliveredActivity = null;
+    this.currentDeliveredAttemptCount = null;
     this.pendingDelivery = null;
   }
 }

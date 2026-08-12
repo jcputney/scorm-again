@@ -641,7 +641,7 @@ describe("Global Objective Mapping Tests", () => {
       expect(globalObj.progressMeasureKnown).toBe(true);
     });
 
-    it("should create default map info when none is provided", () => {
+    it("should keep an objective local when no map info is provided", () => {
       const activity = new Activity("activity1");
       const objective = new ActivityObjective("obj1", {
         isPrimary: true
@@ -655,10 +655,9 @@ describe("Global Objective Mapping Tests", () => {
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
 
-      // Should create entry with objective's own ID as target
-      expect(globalObjectives.has("obj1")).toBe(true);
-      const globalObj = globalObjectives.get("obj1");
-      expect(globalObj.normalizedMeasure).toBeCloseTo(0.8);
+      // @spec SCORM 2004 4th Ed. SN 3.10.3 - objectives participate in
+      // global state only through explicit objective maps.
+      expect(globalObjectives.has("obj1")).toBe(false);
     });
 
     it("should handle multiple map infos for single objective", () => {

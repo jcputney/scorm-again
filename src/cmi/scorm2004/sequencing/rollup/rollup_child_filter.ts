@@ -43,6 +43,14 @@ export class RollupChildFilter {
       return false;
     }
 
+    // Current-attempt controls affect whether the parent may use a child's data for rollup; they
+    // do not erase the child's tracking state, which remains available to the child's own rules.
+    // @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo and
+    // useCurrentAttemptProgressInfo
+    if (rollupType === "measure" && child.objectiveInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
+
     let included = false;
 
     // RB.1.4.2 Step 2: Check for objective rollup (satisfied/notSatisfied)
@@ -207,6 +215,10 @@ export class RollupChildFilter {
    * @returns True if child is considered satisfied
    */
   public isChildSatisfiedForRollup(child: Activity): boolean {
+    if (child.objectiveInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
+
     if (child.objectiveSatisfiedStatus === true) {
       return true;
     }
@@ -234,6 +246,10 @@ export class RollupChildFilter {
    * @returns True if child is considered completed
    */
   public isChildCompletedForRollup(child: Activity): boolean {
+    if (child.progressInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
+
     if (child.completionStatus === "completed" || child.isCompleted) {
       return true;
     }

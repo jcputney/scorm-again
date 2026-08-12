@@ -1,19 +1,25 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
 import {
   RandomizationTiming,
   SelectionTiming,
-  SequencingControls
+  SequencingControls,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
-import { SequencingRules } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule,
+  SequencingRules,
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Overall Sequencing Process (OP.1)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -58,7 +64,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       activityTree,
       sequencingProcess,
       rollupProcess,
-      adlNav
+      adlNav,
     );
   });
 
@@ -140,6 +146,81 @@ describe("Overall Sequencing Process (OP.1)", () => {
         expect(result.valid).toBe(false);
         expect(result.exception).toBe("NB.2.1-5");
       });
+
+      it("should publish an exited cluster objective before checking its next sibling", () => {
+        const localTree = new ActivityTree();
+        const localRoot = new Activity("local-root", "Local Root");
+        const writerCluster = new Activity("writer-cluster", "Writer Cluster");
+        const writerLeaf = new Activity("writer-leaf", "Writer Leaf");
+        const readerLeaf = new Activity("reader-leaf", "Reader Leaf");
+        const finalLeaf = new Activity("final-leaf", "Final Leaf");
+
+        localRoot.addChild(writerCluster);
+        localRoot.addChild(readerLeaf);
+        localRoot.addChild(finalLeaf);
+        writerCluster.addChild(writerLeaf);
+        localRoot.sequencingControls.flow = true;
+        writerCluster.sequencingControls.flow = true;
+
+        writerCluster.objectiveMeasureStatus = true;
+        writerCluster.objectiveNormalizedMeasure = 1;
+        writerCluster.objectiveSatisfiedStatus = true;
+        writerCluster.objectiveSatisfiedStatusKnown = true;
+        writerCluster.primaryObjective = new ActivityObjective("writer-objective", {
+          isPrimary: true,
+          satisfiedByMeasure: true,
+          minNormalizedMeasure: 0.6,
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-objective",
+              readSatisfiedStatus: false,
+              writeSatisfiedStatus: true,
+              readNormalizedMeasure: true,
+              writeNormalizedMeasure: true,
+            },
+          ],
+        });
+
+        readerLeaf.primaryObjective = new ActivityObjective("reader-objective", {
+          isPrimary: true,
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-objective",
+              readSatisfiedStatus: true,
+              writeSatisfiedStatus: false,
+              readNormalizedMeasure: true,
+              writeNormalizedMeasure: false,
+            },
+          ],
+        });
+        const skipSatisfied = new SequencingRule(RuleActionType.SKIP);
+        skipSatisfied.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+        readerLeaf.sequencingRules.addPreConditionRule(skipSatisfied);
+
+        localTree.root = localRoot;
+        localTree.currentActivity = writerLeaf;
+        writerLeaf.isActive = false;
+
+        const localProcess = new OverallSequencingProcess(
+          localTree,
+          new SequencingProcess(localTree),
+          new RollupProcess(),
+          new ADLNav(),
+        );
+
+        const result = localProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+
+        expect(result.valid).toBe(true);
+        expect(result.targetActivity).toBe(finalLeaf);
+        expect(writerCluster.isActive).toBe(false);
+        expect(readerLeaf.objectiveSatisfiedStatus).toBe(true);
+        expect(localProcess.getGlobalObjectiveMap().get("shared-objective")).toMatchObject({
+          satisfiedStatus: true,
+          satisfiedStatusKnown: true,
+          normalizedMeasure: 1,
+          normalizedMeasureKnown: true,
+        });
+      });
     });
 
     describe("PREVIOUS navigation", () => {
@@ -176,7 +257,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(true);
@@ -193,7 +274,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should fail CHOICE if target doesn't exist", () => {
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "nonexistent"
+          "nonexistent",
         );
 
         expect(result.valid).toBe(false);
@@ -206,11 +287,66 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(false);
         expect(result.exception).toBe("NB.2.1-11");
+      });
+
+      it("should allow choosing the current activity's ancestor cluster", () => {
+        // @spec SCORM 2004 SN 4th Ed. NB.2.1: a cluster's choice control governs
+        // its children, not a choice request targeting the cluster itself.
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+        child1.isActive = true;
+        root.isActive = true;
+        root.sequencingControls.choice = true;
+        child1.sequencingControls.choice = false;
+
+        const result = overallProcess.processNavigationRequest(
+          NavigationRequestType.CHOICE,
+          "module1",
+        );
+
+        expect(result.valid).toBe(true);
+        expect(result.targetActivity).toBe(grandchild1);
+      });
+
+      it("should allow a nested target when only a higher ancestor disables choice", () => {
+        // @spec SCORM 2004 SN 4th Ed. NB.2.1: choice control governs an
+        // activity's immediate children, not every activity below it.
+        activityTree.currentActivity = grandchild1;
+        root.sequencingControls.choice = false;
+        child1.sequencingControls.choice = true;
+
+        const result = overallProcess.processNavigationRequest(
+          NavigationRequestType.CHOICE,
+          "lesson2",
+        );
+
+        expect(result.valid).toBe(true);
+        expect(result.targetActivity).toBe(grandchild2);
+      });
+
+      it("should ignore an ancestor skip rule for an explicitly chosen descendant", () => {
+        // @spec SCORM 2004 SN 4th Ed. SB.2.9 steps 3-4: Choice checks the
+        // target path for Hide from Choice rules, not general flow skip rules.
+        const skipRule = new SequencingRule(RuleActionType.SKIP);
+        skipRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+        child1.sequencingRules.preConditionRules.push(skipRule);
+        child1.objectiveSatisfiedStatus = true;
+        child1.objectiveSatisfiedStatusKnown = true;
+        activityTree.currentActivity = child2;
+        child2.isActive = false;
+
+        const result = overallProcess.processNavigationRequest(
+          NavigationRequestType.CHOICE,
+          "lesson2",
+        );
+
+        expect(result.valid).toBe(true);
+        expect(result.targetActivity).toBe(grandchild2);
       });
     });
 
@@ -307,7 +443,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       root.sequencingControls.choice = true;
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       expect(result.valid).toBe(true);
@@ -375,13 +511,13 @@ describe("Overall Sequencing Process (OP.1)", () => {
         customTree,
         new SequencingRules(),
         new SequencingControls(),
-        new ADLNav()
+        new ADLNav(),
       );
       const customOverall = new OverallSequencingProcess(
         customTree,
         customSequencingProcess,
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       customTree.suspendedActivity = childVisible;
@@ -443,27 +579,27 @@ describe("Overall Sequencing Process (OP.1)", () => {
         customTree,
         new SequencingRules(),
         new SequencingControls(),
-        new ADLNav()
+        new ADLNav(),
       );
       const customOverall = new OverallSequencingProcess(
         customTree,
         customSequencingProcess,
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       customTree.currentActivity = null;
 
       const hiddenChoice = customOverall.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "childHidden"
+        "childHidden",
       );
       expect(hiddenChoice.valid).toBe(false);
       expect(hiddenChoice.exception).toBe("NB.2.1-11");
 
       const visibleChoice = customOverall.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "childVisible"
+        "childVisible",
       );
       expect(visibleChoice.valid).toBe(true);
       expect(visibleChoice.targetActivity).toBe(childVisible);
@@ -499,7 +635,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             events.push(data);
           }
         },
-        { defaultHideLmsUi: ["exit"] }
+        { defaultHideLmsUi: ["exit"] },
       );
 
       const result = process.processNavigationRequest(NavigationRequestType.START);
@@ -598,7 +734,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           deepTree,
           new SequencingProcess(deepTree),
           rollupProcess,
-          adlNav
+          adlNav,
         );
 
         // Act: Suspend all
@@ -780,7 +916,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "module2"
+          "module2",
         );
 
         // Assert: clearSuspendedActivitySubprocess should have cleared all flags
@@ -804,7 +940,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "logout" // cmi.exit value
+        "logout", // cmi.exit value
       );
 
       // Should end session completely like EXIT_ALL
@@ -820,7 +956,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "logout"
+        "logout",
       );
 
       // Session should end - all activities should be terminated
@@ -839,7 +975,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "normal"
+        "normal",
       );
 
       // Should perform normal exit (not exit all)
@@ -849,7 +985,10 @@ describe("Overall Sequencing Process (OP.1)", () => {
       expect(grandchild1.isActive).toBe(false);
     });
 
-    it("should handle suspend exit type", () => {
+    /**
+     * @spec SCORM 2004 4th Ed. RTE 4.2.8 cmi.exit
+     */
+    it("should preserve a locally suspended activity attempt", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
 
@@ -857,12 +996,13 @@ describe("Overall Sequencing Process (OP.1)", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "suspend"
+        "suspend",
       );
 
-      // Should perform normal exit
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
+      expect(grandchild1.isSuspended).toBe(true);
+      expect(activityTree.suspendedActivity).toBeNull();
     });
 
     it("should handle time-out exit type", () => {
@@ -873,7 +1013,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "time-out"
+        "time-out",
       );
 
       // Should perform normal exit
@@ -886,11 +1026,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       grandchild1.isActive = true;
 
       // Process with empty/undefined exit type
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.EXIT,
-        null,
-        ""
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT, null, "");
 
       // Should perform normal exit
       expect(result.valid).toBe(true);
@@ -1054,7 +1190,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           deepTree,
           new SequencingProcess(deepTree),
           rollupProcess,
-          adlNav
+          adlNav,
         );
 
         const result = deepProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
@@ -1077,7 +1213,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "module1"  // This is child1, which has children
+          "module1", // This is child1, which has children
         );
 
         // Sequencing will find a child to deliver instead of the cluster
@@ -1094,7 +1230,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson1"  // This is grandchild1, a leaf
+          "lesson1", // This is grandchild1, a leaf
         );
 
         expect(result.valid).toBe(true);
@@ -1112,7 +1248,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           orphanTree,
           new SequencingProcess(orphanTree),
           rollupProcess,
-          adlNav
+          adlNav,
         );
 
         // This should fail in navigation validation before reaching delivery
@@ -1137,7 +1273,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onSequencingSessionEnd") {
               events.push(data);
             }
-          }
+          },
         );
 
         const result = trackingProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
@@ -1161,7 +1297,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onSequencingSessionEnd") {
               events.push(data);
             }
-          }
+          },
         );
 
         const result = trackingProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
@@ -1218,7 +1354,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(true);
@@ -1238,7 +1374,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.JUMP,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(true);
@@ -1248,9 +1384,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should fail JUMP without target activity ID", () => {
         activityTree.currentActivity = grandchild1;
 
-        const result = overallProcess.processNavigationRequest(
-          NavigationRequestType.JUMP
-        );
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.JUMP);
 
         expect(result.valid).toBe(false);
         expect(result.exception).toBe("NB.2.1-12");
@@ -1261,7 +1395,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.JUMP,
-          "lesson1"
+          "lesson1",
         );
 
         // JUMP doesn't require current activity
@@ -1273,7 +1407,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.JUMP,
-          "nonexistent"
+          "nonexistent",
         );
 
         expect(result.valid).toBe(false);
@@ -1324,7 +1458,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(true);
@@ -1343,7 +1477,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // Try to choose an activity outside child1's subtree
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "module2"
+          "module2",
         );
 
         expect(result.valid).toBe(false);
@@ -1360,7 +1494,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // Choose within child1's subtree
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(true);
@@ -1375,7 +1509,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "module2"
+          "module2",
         );
 
         expect(result.valid).toBe(true);
@@ -1428,7 +1562,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(false);
@@ -1443,7 +1577,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(false);
@@ -1464,7 +1598,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // Use internal method via navigation that triggers unknown termination
         // This tests the default case in terminationRequestProcess
         const result = overallProcess.processNavigationRequest(
-          "unknown_nav" as NavigationRequestType
+          "unknown_nav" as NavigationRequestType,
         );
 
         expect(result.valid).toBe(false);
@@ -1497,7 +1631,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           customTree,
           new SequencingProcess(customTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const result = customProcess.processNavigationRequest(NavigationRequestType.EXIT);
@@ -1560,7 +1694,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onMultiLevelExitAction") {
               events.push(data);
             }
-          }
+          },
         );
 
         activityTree.currentActivity = grandchild1;
@@ -1653,7 +1787,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           completion_status: "completed",
           success_status: "passed",
           score: { scaled: "0.85" },
-          progress_measure: "1.0"
+          progress_measure: "1.0",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1662,7 +1796,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         // Start and deliver activity
@@ -1680,7 +1814,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should transfer success status from CMI", () => {
         const cmiData = {
           completion_status: "completed",
-          success_status: "passed"
+          success_status: "passed",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1689,7 +1823,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1704,9 +1838,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle CMI data with objectives", () => {
         const cmiData = {
           completion_status: "completed",
-          objectives: [
-            { id: "obj1", success_status: "passed", score: { scaled: "0.9" } }
-          ]
+          objectives: [{ id: "obj1", success_status: "passed", score: { scaled: "0.9" } }],
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1715,7 +1847,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1741,7 +1873,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => null as any }
+          { getCMIData: () => null as any },
         );
 
         const result = processWithNullCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1753,7 +1885,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should use scaled score when available", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { scaled: "0.75", raw: "80", min: "0", max: "100" }
+          score: { scaled: "0.75", raw: "80", min: "0", max: "100" },
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1762,7 +1894,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1778,7 +1910,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should calculate normalized score from raw/min/max when scaled missing", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { raw: "80", min: "0", max: "100" }
+          score: { raw: "80", min: "0", max: "100" },
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1787,7 +1919,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1803,7 +1935,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should clamp normalized score to [-1, 1] range", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { raw: "150", min: "0", max: "100" } // raw > max
+          score: { raw: "150", min: "0", max: "100" }, // raw > max
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1812,7 +1944,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1828,7 +1960,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should return null for invalid score data", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { raw: "invalid" }
+          score: { raw: "invalid" },
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1837,7 +1969,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1848,7 +1980,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle score with only min/max (no raw)", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { min: "0", max: "100" }
+          score: { min: "0", max: "100" },
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1857,7 +1989,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1870,7 +2002,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should transfer progress measure", () => {
         const cmiData = {
           completion_status: "incomplete",
-          progress_measure: "0.5"
+          progress_measure: "0.5",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1879,7 +2011,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1895,7 +2027,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle invalid progress measure", () => {
         const cmiData = {
           completion_status: "incomplete",
-          progress_measure: "invalid"
+          progress_measure: "invalid",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1904,7 +2036,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1915,7 +2047,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle empty progress measure", () => {
         const cmiData = {
           completion_status: "incomplete",
-          progress_measure: ""
+          progress_measure: "",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1924,7 +2056,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1935,7 +2067,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
     describe("Unknown status handling", () => {
       it("should not transfer unknown completion status", () => {
         const cmiData = {
-          completion_status: "unknown"
+          completion_status: "unknown",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1944,7 +2076,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1955,7 +2087,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should not transfer unknown success status", () => {
         const cmiData = {
           completion_status: "completed",
-          success_status: "unknown"
+          success_status: "unknown",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -1964,7 +2096,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -1976,7 +2108,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should fire onRteDataTransfer event", () => {
         const events: any[] = [];
         const cmiData = {
-          completion_status: "completed"
+          completion_status: "completed",
         };
 
         const processWithEvents = new OverallSequencingProcess(
@@ -1989,7 +2121,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
               events.push(data);
             }
           },
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -2069,7 +2201,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onAutoCompletion") {
               events.push(data);
             }
-          }
+          },
         );
 
         const result = processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -2136,7 +2268,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onAutoSatisfaction") {
               events.push(data);
             }
-          }
+          },
         );
 
         const result = processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -2184,6 +2316,110 @@ describe("Overall Sequencing Process (OP.1)", () => {
     });
 
     describe("Rollup integration", () => {
+      /**
+       * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+       */
+      it("applies a descendant objective write to its active ancestor", () => {
+        const ancestorObjective = new ActivityObjective("ancestor-objective", {
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-objective",
+              readSatisfiedStatus: true,
+              writeSatisfiedStatus: true,
+            },
+          ],
+        });
+        ancestorObjective.satisfiedStatus = true;
+        ancestorObjective.satisfiedStatusKnown = true;
+        child1.addObjective(ancestorObjective);
+
+        const writerObjective = new ActivityObjective("writer-objective", {
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-objective",
+              readSatisfiedStatus: false,
+              writeSatisfiedStatus: true,
+            },
+          ],
+        });
+        writerObjective.satisfiedStatusKnown = true;
+        grandchild1.addObjective(writerObjective);
+
+        root.isActive = true;
+        child1.isActive = true;
+        grandchild1.isActive = true;
+        activityTree.currentActivity = grandchild1;
+
+        overallProcess.endAttemptProcess(grandchild1);
+
+        expect(ancestorObjective.satisfiedStatus).toBe(false);
+        expect(ancestorObjective.satisfiedStatusKnown).toBe(true);
+        expect(overallProcess.getGlobalObjectiveMap().get("shared-objective")).toMatchObject({
+          satisfiedStatus: false,
+          satisfiedStatusKnown: true,
+        });
+      });
+
+      it("keeps a fresh descendant write on a read-mapped primary after ancestor rollup", () => {
+        const ancestorObjective = new ActivityObjective("ancestor-primary", {
+          isPrimary: true,
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-primary",
+              readSatisfiedStatus: true,
+              writeSatisfiedStatus: false,
+            },
+          ],
+        });
+        child1.primaryObjective = ancestorObjective;
+
+        const writerObjective = new ActivityObjective("writer-primary", {
+          isPrimary: true,
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-primary",
+              readSatisfiedStatus: false,
+              writeSatisfiedStatus: true,
+            },
+          ],
+        });
+        grandchild1.primaryObjective = writerObjective;
+
+        overallProcess = new OverallSequencingProcess(
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav,
+          null,
+          {
+            getCMIData: () => ({
+              completion_status: "unknown",
+              success_status: "passed",
+              success_status_was_set: true,
+            }),
+          },
+        );
+
+        root.isActive = true;
+        child1.isActive = true;
+        grandchild1.isActive = true;
+        activityTree.currentActivity = grandchild1;
+
+        overallProcess.endAttemptProcess(grandchild1);
+
+        // @spec SCORM 2004 4th Ed. TR OB-16c / SN SM.7 - a descendant's
+        // termination write is visible to the active ancestor's mapped primary
+        // objective when its exit and post-condition rules are evaluated.
+        expect(overallProcess.getGlobalObjectiveMap().get("shared-primary")).toMatchObject({
+          satisfiedStatus: true,
+          satisfiedStatusKnown: true,
+        });
+        expect(ancestorObjective.satisfiedStatus).toBe(true);
+        expect(ancestorObjective.satisfiedStatusKnown).toBe(true);
+        expect(child1.objectiveSatisfiedStatus).toBe(true);
+        expect(child1.objectiveSatisfiedStatusKnown).toBe(true);
+      });
+
       it("should trigger rollup after endAttemptProcess", () => {
         const events: any[] = [];
         const processWithEvents = new OverallSequencingProcess(
@@ -2193,7 +2429,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           adlNav,
           (eventType) => {
             events.push(eventType);
-          }
+          },
         );
 
         const result = processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -2239,7 +2475,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           customTree,
           new SequencingProcess(customTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const result = customProcess.processNavigationRequest(NavigationRequestType.START);
@@ -2260,7 +2496,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         const result = processWithValidation.processNavigationRequest(NavigationRequestType.START);
@@ -2274,10 +2510,12 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: false }
+          { enhancedDeliveryValidation: false },
         );
 
-        const result = processWithoutValidation.processNavigationRequest(NavigationRequestType.START);
+        const result = processWithoutValidation.processNavigationRequest(
+          NavigationRequestType.START,
+        );
         expect(result.valid).toBe(true);
       });
     });
@@ -2291,7 +2529,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // The sequencing process will find a leaf to deliver
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "module1"
+          "module1",
         );
 
         // Should succeed but deliver to a leaf descendant, not the cluster
@@ -2310,7 +2548,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           emptyTree,
           new SequencingProcess(emptyTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const result = emptyProcess.processNavigationRequest(NavigationRequestType.START);
@@ -2347,7 +2585,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         // Artificially create inconsistent state
@@ -2358,7 +2596,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // This might detect inconsistency
         const result = processWithValidation.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
         // Result depends on validation strictness
       });
@@ -2414,6 +2652,68 @@ describe("Overall Sequencing Process (OP.1)", () => {
     });
 
     describe("Attempt tracking setup", () => {
+      it("initializes attempt-scoped tracking while retaining cumulative activity data", () => {
+        root.attemptCount = 4;
+        root.activityExperiencedDurationValue = "PT1H0M0S";
+        root.completionStatus = "completed";
+        root.objectiveSatisfiedStatus = true;
+        root.objectiveMeasureStatus = true;
+        root.objectiveNormalizedMeasure = 0.9;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
+
+        expect(result.valid).toBe(true);
+        expect(root.attemptCount).toBe(5);
+        expect(root.activityExperiencedDurationValue).toBe("PT1H0M0S");
+        expect(root.completionStatus).toBe("unknown");
+        expect(root.objectiveSatisfiedStatusKnown).toBe(false);
+        expect(root.objectiveMeasureStatus).toBe(false);
+      });
+
+      /**
+       * @spec SCORM 2004 SN 4th Ed. SM.1, TM.2, and DB.2 step 5.1.1.2.2
+       */
+      it("preserves child tracking while excluding it from the new parent attempt", () => {
+        child2.attemptCount = 2;
+        child2.completionStatus = "completed";
+        child2.attemptProgressStatus = true;
+        child2.objectiveSatisfiedStatus = true;
+        child2.objectiveMeasureStatus = true;
+        child2.objectiveNormalizedMeasure = 0.8;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
+
+        expect(result.valid).toBe(true);
+        expect(child2.attemptCount).toBe(2);
+        expect(child2.completionStatus).toBe("completed");
+        expect(child2.attemptProgressStatus).toBe(true);
+        expect(child2.objectiveSatisfiedStatusKnown).toBe(true);
+        expect(child2.objectiveMeasureStatus).toBe(true);
+        expect(child2.objectiveInfoAvailableInCurrentParentAttempt).toBe(false);
+        expect(child2.progressInfoAvailableInCurrentParentAttempt).toBe(false);
+      });
+
+      /**
+       * @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttempt controls
+       */
+      it("retains child tracking when current-attempt controls are disabled", () => {
+        root.sequencingControls.useCurrentAttemptObjectiveInfo = false;
+        root.sequencingControls.useCurrentAttemptProgressInfo = false;
+        child2.completionStatus = "completed";
+        child2.attemptProgressStatus = true;
+        child2.objectiveSatisfiedStatus = true;
+        child2.objectiveMeasureStatus = true;
+        child2.objectiveNormalizedMeasure = 0.8;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
+
+        expect(result.valid).toBe(true);
+        expect(child2.completionStatus).toBe("completed");
+        expect(child2.attemptProgressStatus).toBe(true);
+        expect(child2.objectiveSatisfiedStatusKnown).toBe(true);
+        expect(child2.objectiveMeasureStatus).toBe(true);
+      });
+
       it("should set attempt start time", () => {
         const fixedDate = new Date("2024-01-15T10:30:00Z");
         const processWithClock = new OverallSequencingProcess(
@@ -2422,7 +2722,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { now: () => fixedDate }
+          { now: () => fixedDate },
         );
 
         const result = processWithClock.processNavigationRequest(NavigationRequestType.START);
@@ -2527,7 +2827,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onActivityDelivery") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -2631,7 +2931,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           newTree,
           new SequencingProcess(newTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const restored = newProcess.restoreSequencingState(originalState);
@@ -2657,7 +2957,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle restore errors gracefully", () => {
         const badState = {
           version: "1.0",
-          activityStates: "invalid" // Not an object
+          activityStates: "invalid", // Not an object
         };
 
         // Should not throw
@@ -2688,7 +2988,9 @@ describe("Overall Sequencing Process (OP.1)", () => {
         const state = overallProcess.getSequencingState();
 
         expect(state.activityStates[child1.id].selectionRandomizationState).toBeDefined();
-        expect(state.activityStates[child1.id].selectionRandomizationState.childOrder).toBeDefined();
+        expect(
+          state.activityStates[child1.id].selectionRandomizationState.childOrder,
+        ).toBeDefined();
       });
 
       it("should serialize objective state snapshot", () => {
@@ -2748,7 +3050,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { defaultHideLmsUi: ["continue", "previous"] }
+          { defaultHideLmsUi: ["continue", "previous"] },
         );
 
         processWithDefaults.processNavigationRequest(NavigationRequestType.START);
@@ -2779,7 +3081,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           activityTree,
           sequencingProcess,
           rollupProcess,
-          adlNav
+          adlNav,
         );
 
         newProcess.restoreSequencingState(state);
@@ -2818,7 +3120,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           emptyTree,
           new SequencingProcess(emptyTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const state = emptyProcess.getSuspensionState();
@@ -2837,7 +3139,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onSuspensionStateCaptured") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -2876,7 +3178,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onSuspensionStateRestoreError") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.restoreSuspensionState(null);
@@ -2896,7 +3198,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onSuspensionStateRestored") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -2909,7 +3211,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should throw on restore error", () => {
         const badState = {
           globalObjectives: { obj1: { id: "obj1" } },
-          activityTree: { invalid: true }
+          activityTree: { invalid: true },
         };
 
         // May throw depending on implementation
@@ -2945,7 +3247,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onGlobalObjectiveMapInitialized") {
               events.push(data);
             }
-          }
+          },
         );
 
         // Constructor fires initialization
@@ -2955,21 +3257,40 @@ describe("Overall Sequencing Process (OP.1)", () => {
     });
 
     describe("collectGlobalObjectives", () => {
-      it("should collect objectives from activity tree", () => {
+      it("should not promote local objectives to global objectives", () => {
         const map = overallProcess.getGlobalObjectiveMap();
 
-        // Should have collected objectives (default objectives for activities without explicit ones)
-        expect(map.size).toBeGreaterThan(0);
+        // @spec SCORM 2004 4th Ed. SN 3.10.3: a local objective without
+        // mapInfo has no global objective relationship.
+        expect(map.size).toBe(0);
       });
 
-      it("should create default objective for activities without objectives", () => {
-        const map = overallProcess.getGlobalObjectiveMap();
+      it("should collect explicitly mapped objectives from the activity tree", () => {
+        const objective = new ActivityObjective("local-objective");
+        objective.mapInfo = [
+          {
+            targetObjectiveID: "shared-objective",
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: false,
+            writeNormalizedMeasure: false,
+            readCompletionStatus: false,
+            writeCompletionStatus: false,
+            readProgressMeasure: false,
+            writeProgressMeasure: false,
+            updateAttemptData: false,
+          },
+        ];
+        grandchild1.addObjective(objective);
 
-        // Check for default objective pattern
-        const hasDefaultObjective = Array.from(map.keys()).some(key =>
-          key.includes("_default_objective")
+        const mappedProcess = new OverallSequencingProcess(
+          activityTree,
+          new SequencingProcess(activityTree),
+          new RollupProcess(),
+          new ADLNav(),
         );
-        expect(hasDefaultObjective).toBe(true);
+
+        expect(mappedProcess.getGlobalObjectiveMap().has("shared-objective")).toBe(true);
       });
     });
 
@@ -2977,7 +3298,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should update existing objective", () => {
         overallProcess.updateGlobalObjective("test_obj", {
           satisfiedStatus: true,
-          normalizedMeasure: 0.8
+          normalizedMeasure: 0.8,
         });
 
         const map = overallProcess.getGlobalObjectiveMap();
@@ -2990,7 +3311,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
       it("should create new objective if not exists", () => {
         overallProcess.updateGlobalObjective("new_obj", {
-          satisfiedStatus: false
+          satisfiedStatus: false,
         });
 
         const map = overallProcess.getGlobalObjectiveMap();
@@ -3008,7 +3329,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onGlobalObjectiveUpdated") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.updateGlobalObjective("test_obj", { satisfiedStatus: true });
@@ -3034,7 +3355,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           emptyTree,
           new SequencingProcess(emptyTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         // Should not throw
@@ -3058,7 +3379,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should restore from snapshot", () => {
         const snapshot = {
           obj1: { id: "obj1", satisfiedStatus: true },
-          obj2: { id: "obj2", satisfiedStatus: false }
+          obj2: { id: "obj2", satisfiedStatus: false },
         };
 
         overallProcess.restoreGlobalObjectiveMapSnapshot(snapshot);
@@ -3073,7 +3394,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         overallProcess.updateGlobalObjective("existing_obj", { satisfiedStatus: true });
 
         const snapshot = {
-          new_obj: { id: "new_obj", satisfiedStatus: false }
+          new_obj: { id: "new_obj", satisfiedStatus: false },
         };
 
         overallProcess.restoreGlobalObjectiveMapSnapshot(snapshot);
@@ -3138,7 +3459,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onNavigationValidityUpdate") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -3160,7 +3481,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           activityTree,
           sequencingProcess,
           rollupProcess,
-          null // No ADL nav
+          null, // No ADL nav
         );
 
         processWithoutNav.processNavigationRequest(NavigationRequestType.START);
@@ -3374,7 +3695,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onLimitConditionCheck") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -3390,7 +3711,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // Validation happens during choice
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson1"
+          "lesson1",
         );
         expect(result.valid).toBe(false);
       });
@@ -3400,7 +3721,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson1"
+          "lesson1",
         );
         expect(result.valid).toBe(false);
       });
@@ -3416,7 +3737,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson1"
+          "lesson1",
         );
 
         expect(result.valid).toBe(false);
@@ -3431,7 +3752,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(false);
@@ -3449,7 +3770,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // Choice within active branch should work
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(true);
@@ -3504,7 +3825,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         const result = processWithValidation.processNavigationRequest(NavigationRequestType.START);
@@ -3520,7 +3841,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         const result = processWithValidation.processNavigationRequest(NavigationRequestType.START);
@@ -3536,7 +3857,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         const result = processWithValidation.processNavigationRequest(NavigationRequestType.START);
@@ -3555,7 +3876,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         const result = processWithValidation.processNavigationRequest(NavigationRequestType.START);
@@ -3571,7 +3892,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         const result = processWithValidation.processNavigationRequest(NavigationRequestType.START);
@@ -3587,7 +3908,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { enhancedDeliveryValidation: true }
+          { enhancedDeliveryValidation: true },
         );
 
         const result = processWithValidation.processNavigationRequest(NavigationRequestType.START);
@@ -3717,7 +4038,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           adlNav,
           () => {
             throw new Error("Callback error");
-          }
+          },
         );
 
         // Should not throw despite callback error
@@ -3732,7 +4053,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           activityTree,
           sequencingProcess,
           rollupProcess,
-          null
+          null,
         );
 
         const result = processWithoutNav.processNavigationRequest(NavigationRequestType.START);
@@ -3748,7 +4069,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           singleTree,
           new SequencingProcess(singleTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const result = singleProcess.processNavigationRequest(NavigationRequestType.START);
@@ -3768,7 +4089,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { defaultHideLmsUi: ["exit"] }
+          { defaultHideLmsUi: ["exit"] },
         );
 
         const events: any[] = [];
@@ -3782,7 +4103,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
               events.push(data);
             }
           },
-          { defaultHideLmsUi: ["exit"] }
+          { defaultHideLmsUi: ["exit"] },
         );
 
         processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -3803,9 +4124,9 @@ describe("Overall Sequencing Process (OP.1)", () => {
           null,
           {
             defaultAuxiliaryResources: [
-              { resourceId: "help", purpose: "Help system", href: "/help" }
-            ]
-          }
+              { resourceId: "help", purpose: "Help system", href: "/help" },
+            ],
+          },
         );
 
         const result = processWithAux.processNavigationRequest(NavigationRequestType.START);
@@ -3821,7 +4142,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { is4thEdition: true }
+          { is4thEdition: true },
         );
 
         const result = process4th.processNavigationRequest(NavigationRequestType.START);
@@ -3838,7 +4159,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { now: () => fixedTime }
+          { now: () => fixedTime },
         );
 
         const result = processWithClock.processNavigationRequest(NavigationRequestType.START);
@@ -3865,7 +4186,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
       it("should handle logout exit type as EXIT_ALL", () => {
         const cmiData = {
-          exit: "logout"
+          exit: "logout",
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -3874,7 +4195,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -3975,7 +4296,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           emptyTree,
           new SequencingProcess(emptyTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const result = emptyProcess.processNavigationRequest(NavigationRequestType.START);
@@ -4063,7 +4384,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson1"
+          "lesson1",
         );
 
         // CHOICE without current activity may work (initial choice)
@@ -4088,7 +4409,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         const result = overallProcess.processNavigationRequest(
           NavigationRequestType.CHOICE,
-          "lesson2"
+          "lesson2",
         );
 
         expect(result.valid).toBe(false);
@@ -4132,7 +4453,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onGlobalObjectiveUpdateError") {
               events.push(data);
             }
-          }
+          },
         );
 
         // This should work normally
@@ -4153,7 +4474,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
             if (eventType === "onSuspensionStateRestoreError") {
               events.push(data);
             }
-          }
+          },
         );
 
         processWithEvents.restoreSuspensionState(null);
@@ -4166,7 +4487,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         const badState = {
           activityTree: "invalid",
           globalObjectives: null,
-          currentActivityId: 12345 // Invalid type
+          currentActivityId: 12345, // Invalid type
         };
 
         // May or may not throw depending on implementation
@@ -4221,7 +4542,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           emptyTree,
           new SequencingProcess(emptyTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const predictions = emptyProcess.getNavigationLookAhead();
@@ -4261,7 +4582,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         // Add a non-existent activity to state
         state.activityStates["nonexistent_id"] = {
-          completionStatus: "completed"
+          completionStatus: "completed",
         };
 
         // Should not throw
@@ -4279,7 +4600,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should serialize and restore global objective map", () => {
         overallProcess.updateGlobalObjective("custom_obj", {
           satisfiedStatus: true,
-          normalizedMeasure: 0.9
+          normalizedMeasure: 0.9,
         });
 
         const state = overallProcess.getSequencingState();
@@ -4290,7 +4611,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           activityTree,
           sequencingProcess,
           rollupProcess,
-          adlNav
+          adlNav,
         );
 
         newProcess.restoreSequencingState(state);
@@ -4304,7 +4625,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle CMI data with negative score", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { scaled: "-0.5" }
+          score: { scaled: "-0.5" },
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -4313,7 +4634,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -4329,7 +4650,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle CMI data with max score less than min", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { raw: "50", min: "100", max: "0" }
+          score: { raw: "50", min: "100", max: "0" },
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -4338,7 +4659,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -4349,7 +4670,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
       it("should handle CMI data with NaN values", () => {
         const cmiData = {
           completion_status: "completed",
-          score: { scaled: "NaN" }
+          score: { scaled: "NaN" },
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -4358,7 +4679,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -4371,8 +4692,8 @@ describe("Overall Sequencing Process (OP.1)", () => {
           objectives: [
             { id: "obj1", success_status: "passed", score: { scaled: "0.8" } },
             { id: "obj2", success_status: "failed", score: { scaled: "0.3" } },
-            { id: "obj3", success_status: "unknown" }
-          ]
+            { id: "obj3", success_status: "unknown" },
+          ],
         };
 
         const processWithCMI = new OverallSequencingProcess(
@@ -4381,7 +4702,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { getCMIData: () => cmiData }
+          { getCMIData: () => cmiData },
         );
 
         const result = processWithCMI.processNavigationRequest(NavigationRequestType.START);
@@ -4409,7 +4730,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           deepTree,
           new SequencingProcess(deepTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const result = deepProcess.processNavigationRequest(NavigationRequestType.START);
@@ -4434,7 +4755,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           wideTree,
           new SequencingProcess(wideTree),
           new RollupProcess(),
-          new ADLNav()
+          new ADLNav(),
         );
 
         const result = wideProcess.processNavigationRequest(NavigationRequestType.START);
@@ -4475,7 +4796,9 @@ describe("Overall Sequencing Process (OP.1)", () => {
         activityTree.currentActivity = null;
 
         // Resume
-        const resumeResult = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
+        const resumeResult = overallProcess.processNavigationRequest(
+          NavigationRequestType.RESUME_ALL,
+        );
         expect(resumeResult.valid).toBe(true);
 
         // Suspend again
@@ -4484,7 +4807,9 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         // Clear and resume again
         activityTree.currentActivity = null;
-        const secondResume = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
+        const secondResume = overallProcess.processNavigationRequest(
+          NavigationRequestType.RESUME_ALL,
+        );
         expect(secondResume.valid).toBe(true);
       });
     });
@@ -4499,7 +4824,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           adlNav,
           (eventType) => {
             events.push(eventType);
-          }
+          },
         );
 
         const result = processWithEvents.processNavigationRequest(NavigationRequestType.START);
@@ -4603,7 +4928,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
     describe("Auxiliary Resources", () => {
       it("should handle activity with auxiliary resources", () => {
         grandchild1.auxiliaryResources = [
-          { resourceId: "help", purpose: "Help", href: "/help.html" }
+          { resourceId: "help", purpose: "Help", href: "/help.html" },
         ];
 
         const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
@@ -4619,13 +4944,13 @@ describe("Overall Sequencing Process (OP.1)", () => {
           null,
           {
             defaultAuxiliaryResources: [
-              { resourceId: "glossary", purpose: "Glossary", href: "/glossary.html" }
-            ]
-          }
+              { resourceId: "glossary", purpose: "Glossary", href: "/glossary.html" },
+            ],
+          },
         );
 
         grandchild1.auxiliaryResources = [
-          { resourceId: "help", purpose: "Help", href: "/help.html" }
+          { resourceId: "help", purpose: "Help", href: "/help.html" },
         ];
 
         const result = processWithAux.processNavigationRequest(NavigationRequestType.START);
@@ -4638,7 +4963,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         grandchild1.learnerPrefs = {
           audio_level: "0.8",
           language: "en-US",
-          delivery_speed: "1.0"
+          delivery_speed: "1.0",
         };
 
         const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
@@ -4708,7 +5033,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
           rollupProcess,
           adlNav,
           null,
-          { now: () => fixedTime }
+          { now: () => fixedTime },
         );
 
         const result = processWithClock.processNavigationRequest(NavigationRequestType.START);
@@ -4746,10 +5071,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         // Choice back to first
         activityTree.currentActivity!.isActive = false;
-        result = overallProcess.processNavigationRequest(
-          NavigationRequestType.CHOICE,
-          "lesson1"
-        );
+        result = overallProcess.processNavigationRequest(NavigationRequestType.CHOICE, "lesson1");
         expect(result.valid).toBe(true);
         expect(result.targetActivity?.id).toBe("lesson1");
       });
@@ -4763,10 +5085,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         // Jump to different branch
         activityTree.currentActivity!.isActive = true;
-        result = overallProcess.processNavigationRequest(
-          NavigationRequestType.JUMP,
-          "module2"
-        );
+        result = overallProcess.processNavigationRequest(NavigationRequestType.JUMP, "module2");
         expect(result.valid).toBe(true);
         expect(result.targetActivity?.id).toBe("module2");
       });

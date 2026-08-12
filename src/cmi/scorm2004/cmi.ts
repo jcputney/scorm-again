@@ -92,14 +92,14 @@ export class CMI extends BaseRootCMI {
 
   /**
    * Called when API is moving to another SCO
-   * 
+   *
    * Resets SCO-specific CMI data while preserving global objectives.
-   * 
+   *
    * The objectives.reset(false) call resets individual objective objects
    * but maintains the array structure. Global objectives stored in
    * Scorm2004API._globalObjectives are preserved separately and are not
    * affected by this reset.
-   * 
+   *
    * This aligns with SCORM 2004 Sequencing and Navigation (SN) Book:
    * - Content Delivery Environment Process (DB.2) requires reset between SCOs
    * - Global objectives (via mapInfo) must persist across SCO transitions
@@ -491,6 +491,15 @@ export class CMI extends BaseRootCMI {
    */
   getCurrentTotalTime(): string {
     return this.session.getCurrentTotalTime(this.start_time);
+  }
+
+  /**
+   * Preserve the completed session in total_time before a sequenced SCO reset.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.24 / 4.2.28
+   */
+  accumulateSessionTime(): void {
+    this.session.accumulateSessionTime(this.start_time);
   }
 
   /**

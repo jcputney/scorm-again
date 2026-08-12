@@ -14,11 +14,12 @@ import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/seque
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   CMIDataForTransfer,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { CompletionStatus } from "../../../../src/constants/enums";
+import { RteDataTransferService } from "../../../../src/cmi/scorm2004/sequencing/handlers/rte_data_transfer";
 
 describe("RTE Data Transfer", () => {
   let activityTree: ActivityTree;
@@ -46,7 +47,7 @@ describe("RTE Data Transfer", () => {
     const primaryObjective = new ActivityObjective("primary_obj", {
       isPrimary: true,
       satisfiedByMeasure: true,
-      minNormalizedMeasure: 0.7
+      minNormalizedMeasure: 0.7,
     });
     leafActivity.primaryObjective = primaryObjective;
 
@@ -59,7 +60,7 @@ describe("RTE Data Transfer", () => {
     sequencingProcess = new SequencingProcess(
       activityTree,
       rootActivity.sequencingRules,
-      rootActivity.sequencingControls
+      rootActivity.sequencingControls,
     );
   });
 
@@ -67,7 +68,7 @@ describe("RTE Data Transfer", () => {
     it("should transfer completion status from CMI to activity", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "completed",
-        success_status: "unknown"
+        success_status: "unknown",
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -77,24 +78,22 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       // Trigger data transfer via endAttemptProcess (internal method tested via navigation)
-      const navResult = overallSequencingProcess.processNavigationRequest(
-        "exit" as any,
-        null
-      );
+      const navResult = overallSequencingProcess.processNavigationRequest("exit" as any, null);
 
       expect(leafActivity.completionStatus).toBe(CompletionStatus.COMPLETED);
       expect(leafActivity.attemptProgressStatus).toBe(true);
     });
 
     it("should transfer success status from CMI to activity", () => {
+      leafActivity.primaryObjective!.satisfiedByMeasure = false;
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
-        success_status: "passed"
+        success_status: "passed",
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -104,8 +103,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -116,13 +115,49 @@ describe("RTE Data Transfer", () => {
       expect(leafActivity.primaryObjective?.progressStatus).toBe(true);
     });
 
+    it("should derive measure-controlled satisfaction using the default threshold", () => {
+      leafActivity.primaryObjective!.minNormalizedMeasure = null;
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+
+      // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - direct
+      // success is ignored and the default minimum normalized measure is 1.0.
+      transfer.transferPrimaryObjective(leafActivity, {
+        completion_status: "unknown",
+        success_status: "passed",
+        score: { scaled: "0.85" },
+      });
+
+      expect(leafActivity.primaryObjective?.satisfiedStatus).toBe(false);
+      expect(leafActivity.primaryObjective?.satisfiedStatusKnown).toBe(true);
+      expect(leafActivity.successStatus).toBe("failed");
+    });
+
+    it("should leave measure-controlled satisfaction unknown without a measure", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+
+      transfer.transferPrimaryObjective(leafActivity, {
+        completion_status: "unknown",
+        success_status: "passed",
+      });
+
+      expect(leafActivity.primaryObjective?.satisfiedStatusKnown).toBe(false);
+      expect(leafActivity.primaryObjective?.progressStatus).toBe(false);
+      expect(leafActivity.successStatus).toBe("unknown");
+    });
+
     it("should transfer scaled score from CMI to activity", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
         score: {
-          scaled: "0.85"
-        }
+          scaled: "0.85",
+        },
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -132,8 +167,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -148,7 +183,7 @@ describe("RTE Data Transfer", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
-        progress_measure: "0.75"
+        progress_measure: "0.75",
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -158,8 +193,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -187,15 +222,15 @@ describe("RTE Data Transfer", () => {
             id: "obj1",
             success_status: "passed",
             completion_status: "completed",
-            score: { scaled: "0.9" }
+            score: { scaled: "0.9" },
           },
           {
             id: "obj2",
             success_status: "failed",
             completion_status: "incomplete",
-            score: { scaled: "0.4" }
-          }
-        ]
+            score: { scaled: "0.4" },
+          },
+        ],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -205,8 +240,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -237,9 +272,9 @@ describe("RTE Data Transfer", () => {
         objectives: [
           {
             id: "non_existent",
-            success_status: "passed"
-          }
-        ]
+            success_status: "passed",
+          },
+        ],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -249,8 +284,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       // Should not throw error
@@ -260,6 +295,7 @@ describe("RTE Data Transfer", () => {
     });
 
     it("should transfer matching primary objective data via objectives array", () => {
+      leafActivity.primaryObjective!.satisfiedByMeasure = false;
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
@@ -303,6 +339,285 @@ describe("RTE Data Transfer", () => {
       expect(leafActivity.primaryObjective?.progressMeasure).toBe(0.5);
       expect(leafActivity.successStatus).toBe("failed");
     });
+
+    it("should transfer not attempted as known incomplete sequencing state", () => {
+      const cmiData: CMIDataForTransfer = {
+        completion_status: "unknown",
+        success_status: "unknown",
+        objectives: [
+          {
+            id: "primary_obj",
+            completion_status: "not attempted",
+          },
+        ],
+      };
+
+      overallSequencingProcess = new OverallSequencingProcess(
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData,
+        },
+      );
+
+      overallSequencingProcess.processNavigationRequest("exit" as any, null);
+
+      // @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - "not attempted"
+      // is known false in sequencing's completion model, so UP.4 must not
+      // auto-complete the activity after content reports that status.
+      expect(leafActivity.primaryObjective?.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+      expect(leafActivity.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+      expect(leafActivity.attemptProgressStatus).toBe(true);
+      expect(leafActivity.wasAutoCompleted).toBe(false);
+    });
+
+    it("should clear a previously known objective completion status", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+      const primaryObjective = leafActivity.primaryObjective!;
+
+      primaryObjective.applyReadMappedState({
+        completionStatus: CompletionStatus.INCOMPLETE,
+      });
+      primaryObjective.applyToActivity(leafActivity);
+      leafActivity.attemptProgressStatus = true;
+
+      transfer.transferNonPrimaryObjectives(leafActivity, {
+        completion_status: "unknown",
+        success_status: "unknown",
+        objectives: [
+          {
+            id: "primary_obj",
+            completion_status: "unknown",
+            completion_status_was_set: true,
+          },
+        ],
+      });
+
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - a SCO can
+      // replace a read-mapped known completion status with unknown.
+      expect(primaryObjective.completionStatus).toBe(CompletionStatus.UNKNOWN);
+      expect(primaryObjective.isDirty("completionStatus")).toBe(true);
+      expect(leafActivity.completionStatus).toBe(CompletionStatus.UNKNOWN);
+      expect(leafActivity.attemptProgressStatus).toBe(false);
+    });
+
+    it("should clear a previously known objective satisfaction status", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+      const primaryObjective = leafActivity.primaryObjective!;
+      primaryObjective.satisfiedByMeasure = false;
+
+      primaryObjective.applyReadMappedState({
+        satisfiedStatus: true,
+        normalizedMeasure: 0.6,
+      });
+      primaryObjective.applyToActivity(leafActivity);
+
+      transfer.transferNonPrimaryObjectives(leafActivity, {
+        completion_status: "unknown",
+        success_status: "unknown",
+        objectives: [
+          {
+            id: "primary_obj",
+            success_status: "unknown",
+            success_status_was_set: true,
+            score: {
+              scaled: "0.8",
+            },
+          },
+        ],
+      });
+
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - a SCO can
+      // replace a read-mapped known satisfied status with unknown without
+      // clearing an independently supplied objective measure.
+      expect(primaryObjective.satisfiedStatusKnown).toBe(false);
+      expect(primaryObjective.progressStatus).toBe(false);
+      expect(primaryObjective.isDirty("satisfiedStatus")).toBe(true);
+      expect(primaryObjective.normalizedMeasure).toBe(0.8);
+      expect(primaryObjective.measureStatus).toBe(true);
+      expect(leafActivity.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(leafActivity.successStatus).toBe("unknown");
+    });
+
+    it("should not let a launch-seeded primary objective override top-level content status", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+      leafActivity.primaryObjective!.satisfiedByMeasure = false;
+      const cmiData: CMIDataForTransfer = {
+        completion_status: "unknown",
+        success_status: "failed",
+        objectives: [
+          {
+            id: "primary_obj",
+            success_status: "passed",
+            success_status_was_set: false,
+          },
+        ],
+      };
+
+      transfer.transferPrimaryObjective(leafActivity, cmiData);
+      transfer.transferNonPrimaryObjectives(leafActivity, cmiData);
+
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 - initialization of a primary
+      // cmi.objectives row is not a SCO write and cannot override a later
+      // top-level cmi.success_status write during RTE-to-SN transfer.
+      expect(leafActivity.primaryObjective?.satisfiedStatus).toBe(false);
+      expect(leafActivity.primaryObjective?.satisfiedStatusKnown).toBe(true);
+      expect(leafActivity.primaryObjective?.progressStatus).toBe(true);
+      expect(leafActivity.successStatus).toBe("failed");
+    });
+
+    it("should retain a launch-seeded primary status when content leaves both views untouched", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+      leafActivity.primaryObjective!.satisfiedByMeasure = false;
+      const cmiData: CMIDataForTransfer = {
+        completion_status: "unknown",
+        success_status: "unknown",
+        success_status_was_set: false,
+        objectives: [
+          {
+            id: "primary_obj",
+            success_status: "failed",
+            success_status_was_set: false,
+          },
+        ],
+      };
+
+      transfer.transferPrimaryObjective(leafActivity, cmiData);
+      transfer.transferNonPrimaryObjectives(leafActivity, cmiData);
+
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - a value
+      // initialized through a read map remains the activity objective value
+      // written at End Attempt unless content replaces the primary RTE view.
+      expect(leafActivity.primaryObjective?.satisfiedStatus).toBe(false);
+      expect(leafActivity.primaryObjective?.satisfiedStatusKnown).toBe(true);
+      expect(leafActivity.primaryObjective?.progressStatus).toBe(true);
+      expect(leafActivity.successStatus).toBe("failed");
+    });
+
+    it("should retain a launch-seeded non-primary status for write mapping", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+      const objective = new ActivityObjective("mapped_obj", {
+        isPrimary: false,
+        satisfiedByMeasure: false,
+      });
+      leafActivity.addObjective(objective);
+
+      transfer.transferNonPrimaryObjectives(leafActivity, {
+        completion_status: "unknown",
+        success_status: "unknown",
+        objectives: [
+          {
+            id: "mapped_obj",
+            success_status: "passed",
+            success_status_was_set: false,
+          },
+        ],
+      });
+
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - read and write
+      // mappings may be combined, so an unchanged read-mapped value remains
+      // available to the objective's write maps at End Attempt.
+      expect(objective.satisfiedStatus).toBe(true);
+      expect(objective.satisfiedStatusKnown).toBe(true);
+      expect(objective.progressStatus).toBe(true);
+    });
+
+    it("should not auto-satisfy after content explicitly reports unknown", () => {
+      leafActivity.primaryObjective!.satisfiedByMeasure = false;
+      leafActivity.sequencingControls.objectiveSetByContent = false;
+      const cmiData: CMIDataForTransfer = {
+        completion_status: "unknown",
+        success_status: "unknown",
+        objectives: [
+          {
+            id: "primary_obj",
+            success_status: "unknown",
+            success_status_was_set: true,
+            score: {
+              scaled: "-0.4",
+            },
+          },
+        ],
+      };
+
+      overallSequencingProcess = new OverallSequencingProcess(
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData,
+        },
+      );
+
+      overallSequencingProcess.processNavigationRequest("exit" as any, null);
+
+      // @spec SCORM 2004 4th Ed. SN 3.13.3 / RTE 4.2.17 - the default
+      // objectiveSetByContent=false auto-satisfies only when the SCO does not
+      // communicate success information; an explicit unknown is communication.
+      expect(leafActivity.primaryObjective?.satisfiedStatusKnown).toBe(false);
+      expect(leafActivity.primaryObjective?.progressStatus).toBe(false);
+      expect(leafActivity.primaryObjective?.measureStatus).toBe(true);
+      expect(leafActivity.primaryObjective?.normalizedMeasure).toBe(-0.4);
+      expect(leafActivity.successStatus).toBe("unknown");
+      expect(leafActivity.wasAutoSatisfied).toBe(false);
+    });
+
+    it("should auto-satisfy when content reports a measure without success information", () => {
+      leafActivity.primaryObjective!.satisfiedByMeasure = false;
+      leafActivity.sequencingControls.objectiveSetByContent = false;
+      const cmiData: CMIDataForTransfer = {
+        completion_status: "unknown",
+        success_status: "unknown",
+        score_was_set: true,
+        score: {
+          scaled: "-0.25",
+        },
+      };
+
+      overallSequencingProcess = new OverallSequencingProcess(
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        null,
+        null,
+        {
+          getCMIData: () => cmiData,
+        },
+      );
+
+      overallSequencingProcess.processNavigationRequest("exit" as any, null);
+
+      // @spec SCORM 2004 4th Ed. TR OB-04 and SN UP.4 - a score provides
+      // objective measure information, not objective satisfaction information.
+      // With objectiveSetByContent=false, the sequencer supplies the missing
+      // satisfied status while preserving the content-provided measure.
+      expect(leafActivity.primaryObjective?.progressStatus).toBe(true);
+      expect(leafActivity.primaryObjective?.satisfiedStatus).toBe(true);
+      expect(leafActivity.primaryObjective?.measureStatus).toBe(true);
+      expect(leafActivity.primaryObjective?.normalizedMeasure).toBe(-0.25);
+      expect(leafActivity.successStatus).toBe("passed");
+      expect(leafActivity.wasAutoSatisfied).toBe(true);
+    });
   });
 
   describe("Score Normalization (ScaleRawScore)", () => {
@@ -314,8 +629,8 @@ describe("RTE Data Transfer", () => {
           scaled: "0.85",
           raw: "50",
           min: "0",
-          max: "100"
-        }
+          max: "100",
+        },
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -325,8 +640,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -342,8 +657,8 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "75",
           min: "0",
-          max: "100"
-        }
+          max: "100",
+        },
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -353,8 +668,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -371,8 +686,8 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "50",
           min: "20",
-          max: "80"
-        }
+          max: "80",
+        },
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -382,8 +697,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -399,8 +714,8 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "150",
           min: "0",
-          max: "100"
-        }
+          max: "100",
+        },
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -410,8 +725,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -427,8 +742,8 @@ describe("RTE Data Transfer", () => {
         score: {
           raw: "50",
           min: "50",
-          max: "50"
-        }
+          max: "50",
+        },
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -438,8 +753,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -461,10 +776,10 @@ describe("RTE Data Transfer", () => {
             score: {
               raw: "80",
               min: "0",
-              max: "100"
-            }
-          }
-        ]
+              max: "100",
+            },
+          },
+        ],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -474,8 +789,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -502,9 +817,9 @@ describe("RTE Data Transfer", () => {
         objectives: [
           {
             id: "global_obj",
-            success_status: "unknown" // Unchanged/unknown should not overwrite
-          }
-        ]
+            success_status: "unknown", // Unchanged/unknown should not overwrite
+          },
+        ],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -514,8 +829,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -533,7 +848,7 @@ describe("RTE Data Transfer", () => {
 
       const cmiData: CMIDataForTransfer = {
         completion_status: "incomplete", // Content set incomplete
-        success_status: "unknown"
+        success_status: "unknown",
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -543,8 +858,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -560,7 +875,7 @@ describe("RTE Data Transfer", () => {
 
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown", // Content didn't set
-        success_status: "unknown"
+        success_status: "unknown",
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -570,8 +885,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -592,7 +907,7 @@ describe("RTE Data Transfer", () => {
         null,
         {
           // No getCMIData callback provided
-        }
+        },
       );
 
       // Should not throw error
@@ -607,7 +922,7 @@ describe("RTE Data Transfer", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
-        score: {} // Empty score
+        score: {}, // Empty score
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -617,8 +932,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       expect(() => {
@@ -630,7 +945,7 @@ describe("RTE Data Transfer", () => {
       const cmiData: CMIDataForTransfer = {
         completion_status: "unknown",
         success_status: "unknown",
-        objectives: []
+        objectives: [],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -640,8 +955,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       expect(() => {
@@ -656,9 +971,9 @@ describe("RTE Data Transfer", () => {
         objectives: [
           {
             id: "", // Missing ID
-            success_status: "passed"
-          }
-        ]
+            success_status: "passed",
+          },
+        ],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -668,8 +983,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       expect(() => {
@@ -685,9 +1000,9 @@ describe("RTE Data Transfer", () => {
           scaled: "not-a-number",
           raw: "invalid",
           min: "bad",
-          max: "worse"
+          max: "worse",
         },
-        progress_measure: "NaN"
+        progress_measure: "NaN",
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
@@ -697,8 +1012,8 @@ describe("RTE Data Transfer", () => {
         null,
         null,
         {
-          getCMIData: () => cmiData
-        }
+          getCMIData: () => cmiData,
+        },
       );
 
       expect(() => {
