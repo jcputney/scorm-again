@@ -52,27 +52,23 @@ The `sequencing` object can contain the following properties:
   sequencing.
 - `rollupRules`: Configures the rollup rules, which define how the status of parent activities is
   determined based on the status of their children.
- - `eventListeners`: Optional sequencing event listeners (e.g., `onActivityDelivery`, `onRollupComplete`, `onNavigationValidityUpdate`).
- - `now`: Optional function `() => Date` to provide a custom clock for time-based decisions (begin/end windows, attempt start).
- - `getAttemptElapsedSeconds`: Optional function `(activity) => number` that returns precise elapsed seconds for the current attempt; used by `timeLimitExceeded` conditions.
- - `getActivityElapsedSeconds`: Optional function `(activity) => number` for activity-level elapsed time (reserved for future use).
+- `collections`: Reusable manifest sequencing collections, supplied as a keyed record or an array whose entries have `id`.
+- `hideLmsUi` and `auxiliaryResources`: Package-level delivery UI data.
+- `autoRollupOnCMIChange`: Compatibility behavior for immediate rollup. Leave `false` for SCORM-conforming end-attempt transfer.
+- `eventListeners`: Sequencing lifecycle callbacks such as `onActivityDelivery`, `onRollupComplete`, and `onNavigationValidityUpdate`.
 
 ### Configuration Hooks
 
-You can supply runtime hooks under `sequencing` to control time behavior and receive validity updates:
+You can supply event listeners under `sequencing` to receive delivery and navigation-validity updates:
 
 ```javascript
 const api = new Scorm2004API({
   sequencing: {
     activityTree: {/* ... */},
 
-    // Time providers (optional)
-    now: () => new Date(),
-    getAttemptElapsedSeconds: (activity) => lmsTimer.getElapsedSeconds(activity.id),
-
-    // Listen for computed validity snapshot for UI
     eventListeners: {
-      onNavigationValidityUpdate: (validity) => updateNavUI(validity)
+      onActivityDelivery: (activity) => launchSco(activity.id),
+      onNavigationValidityUpdate: (validity) => updateNavUI(validity),
     }
   }
 });
@@ -128,14 +124,13 @@ Each activity can also have the following properties:
 - `isActive`: Whether the activity is currently active
 - `isSuspended`: Whether the activity is suspended
 - `attemptAbsoluteDurationLimit`: Maximum time allowed for an attempt (ISO 8601 duration)
-- `attemptExperiencedDurationLimit`: Maximum experienced time allowed (ISO 8601 duration)
 - `activityAbsoluteDurationLimit`: Maximum time allowed for the activity (ISO 8601 duration)
-- `activityExperiencedDurationLimit`: Maximum experienced time for the activity (ISO 8601 duration)
 - `beginTimeLimit`: Time window start for availability (ISO 8601 datetime)
 - `endTimeLimit`: Time window end for availability (ISO 8601 datetime)
 - `sequencingControls`: Activity-specific sequencing controls (overrides global controls)
 - `sequencingRules`: Activity-specific sequencing rules
-- `objectives`: Learning objectives with satisfaction and measure tracking
+- `primaryObjective`, `objectives`: Learning objectives with satisfaction, measure, and map tracking
+- `sequencingCollectionRefs`, `sequencingIdRef`: One or more reusable sequencing collection IDs
 
 ### Sequencing Rules
 
@@ -205,10 +200,10 @@ sequencing: {
     preventActivation: false,              // Prevent activation of descendant activities
     constrainChoice: false,                // Constrain choice navigation
     randomizationTiming: 'never',          // When to randomize: 'never', 'once', 'onEachNewAttempt'
-    selectCount: 0,                        // Number of children to select (0 = all)
+    selectCount: null,                     // Number of children to select (null = all)
     reorderChildren: false,                // Allow reordering of child activities
     selectionTiming: 'never',              // When to select: 'never', 'once', 'onEachNewAttempt'
-    trackedObjectives: true,               // Track objectives
+    tracked: true,                         // Track activity attempt data
     completionSetByContent: false,         // Completion status set by content
     objectiveSetByContent: false           // Objective status set by content
   }
@@ -242,9 +237,9 @@ sequencing: {
                },
             ],
          },
-      ];
-   }
-}
+      ],
+   },
+};
 ```
 
 Each rule has an `action`, a `consideration` (which can be `all`, `any`, `none`, `atLeastCount`, or
@@ -397,14 +392,19 @@ Example usage:
 ```javascript
 // Simple navigation
 api.SetValue("adl.nav.request", "continue");
+api.Terminate("");
 
 // Choice navigation with target
 api.SetValue("adl.nav.request", "{target=lesson3}choice");
+api.Terminate("");
 
 // Check navigation validity
 const canContinue = api.GetValue("adl.nav.request_valid.continue");
 const canChooseLesson3 = api.GetValue("adl.nav.request_valid.choice.{target=lesson3}");
 ```
+
+`Commit()` checkpoints SCO runtime data but does not end the activity attempt or process the
+navigation request. Content-driven sequencing runs when the SCO calls `Terminate()`.
 
 ## Implementation Details
 
@@ -526,13 +526,14 @@ Parse `<imsss:rollupRules>` elements:
 
 2. **API Initialization**: When launching a SCO, the LMS must:
    - Retrieve the stored sequencing configuration
+   - Restore persisted global objectives and sequencing state before exposing the API
    - Pass it to the Scorm2004API constructor via the `sequencing` setting
    - Optionally provide the list of valid SCO IDs via `scoItemIds`
 
 3. **Runtime Navigation**: During execution:
-   - The API handles all navigation requests through `adl.nav.request`
-   - The LMS may listen for navigation events via the event system
-   - The LMS should launch the appropriate SCO based on navigation results
+   - The SCO sets `adl.nav.request` and calls `Terminate()`
+   - The API ends the attempt, commits, processes sequencing, and emits `onActivityDelivery`
+   - The LMS launches the delivered activity and resets SCO-local runtime data for the new SCO
 
 ### Example LMS Integration
 
@@ -543,9 +544,18 @@ const sequencingData = parseManifest(imsmanifestXML);
 // 2. Initialize API with sequencing configuration
 const api = new Scorm2004API({
   lmsCommitUrl: 'https://lms.example.com/api/commit',
+  renderCommonCommitFields: true,
   
   // Provide the extracted sequencing configuration
-  sequencing: sequencingData,
+  sequencing: {
+    ...sequencingData,
+    autoRollupOnCMIChange: false,
+    eventListeners: {
+      onActivityDelivery: (activity) => launchSco(activity.id),
+      onActivityUnload: (activity) => unloadSco(activity.id),
+      onNavigationValidityUpdate: (validity) => updateNavUI(validity),
+    },
+  },
   
   // Optional: provide list of valid SCO IDs for validation
   scoItemIds: extractScoIds(sequencingData),
@@ -555,38 +565,11 @@ const api = new Scorm2004API({
     return lmsDatabase.validateScoId(scoId);
   }
 });
-
-// 3. Listen for navigation events
-api.on('SequenceNext', () => {
-  const nextActivity = api.adl.sequencing.getCurrentActivity();
-  if (nextActivity) {
-    launchSco(nextActivity.id);
-  }
-});
-
-api.on('SequencePrevious', () => {
-  const prevActivity = api.adl.sequencing.getCurrentActivity();
-  if (prevActivity) {
-    launchSco(prevActivity.id);
-  }
-});
-
-api.on('SequenceChoice', (targetId) => {
-  launchSco(targetId);
-});
-
-api.on('SequenceExit', () => {
-  closeScoWindow();
-});
-
-api.on('SequenceExitAll', () => {
-  endLearningSession();
-});
 ```
 
 ### Endpoints Required
 
-The LMS does not need any special endpoints for sequencing beyond the standard `lmsCommitUrl` for data persistence. However, the LMS may want to:
+The normal `lmsCommitUrl` persists SCO runtime data and, with structured commits, the global-objective snapshot. An LMS that persists complete sequencing state also supplies the `sequencingStatePersistence` callbacks, typically backed by registration-scoped load/save/delete endpoints.
 
 1. **Track Navigation Events**: Store navigation history for reporting
 2. **Validate SCO Access**: Ensure learners can only access SCOs according to sequencing rules
@@ -600,7 +583,8 @@ SCORM 2004 introduces the concept of **global objectives** - objectives that are
 
 1. **Identifying Global Objectives**: 
    - Global objectives are defined in the manifest with `<imsss:mapInfo>` elements
-   - The API setting `globalObjectiveIds` should list all global objective IDs
+   - Map targets are discovered from `primaryObjective` and `objectives` in the activity tree
+   - `globalObjectiveIds` is only for host-defined rows exposed directly to CMI outside manifest maps
    - When a SCO sets data for a global objective, it affects all SCOs that reference it
 
 2. **Storage Requirements**:
@@ -624,18 +608,20 @@ SCORM 2004 introduces the concept of **global objectives** - objectives that are
      "courseId": "COURSE-001",
      "globalObjectives": {
        "global-obj-1": {
-         "success_status": "passed",
-         "score": { "scaled": 0.85 }
+         "satisfiedStatus": true,
+         "satisfiedStatusKnown": true,
+         "normalizedMeasure": 0.85,
+         "normalizedMeasureKnown": true
        }
      }
    }
    ```
 
 3. **Implementation in scorm-again**:
-   - The API tracks global objectives in a separate `_globalObjectives` array internally
-   - When setting objective data, it checks if the objective ID is in `globalObjectiveIds`
-   - If it's a global objective, the data is also stored in the internal global objectives array
-   - Currently, global objectives are not automatically included in the commit data - the LMS must extract them from the regular objectives array based on the `globalObjectiveIds` list
+   - The sequencing engine resolves manifest objective maps from the activity tree
+   - End Attempt transfers SCO runtime data to activity tracking and writes eligible objective maps
+   - With `renderCommonCommitFields: true`, every SCORM 2004 structured commit includes a top-level `globalObjectives` snapshot
+   - Restore that snapshot with `restoreGlobalObjectiveSnapshot()` before initial delivery
 
 #### Suspend Data and Location
 
@@ -666,7 +652,7 @@ When the API sends commit data to the LMS, sequenced courses require special han
 
 #### 1. What Data is Sent
 
-The scorm-again API sends a `CommitObject` that includes:
+With `renderCommonCommitFields: true`, scorm-again sends a structured `CommitObject` that includes:
 
 ```typescript
 {
@@ -674,9 +660,11 @@ The scorm-again API sends a `CommitObject` that includes:
   successStatus: SuccessStatus;      // Enumerated success status
   completionStatus: CompletionStatus; // Enumerated completion status
   totalTimeSeconds: number;          // Total time in seconds
-  runtimeData: {                     // All CMI and ADL data
-    cmi: { /* all CMI data */ },
-    adl: { /* all ADL data */ }
+  runtimeData: {                     // SCO-local CMI data
+    cmi: { /* all CMI data */ }
+  };
+  globalObjectives: {                // Registration-scoped sequencing snapshot
+    [objectiveId: string]: GlobalObjectiveMapEntry
   };
   score?: ScoreObject;               // Optional score data
   
@@ -686,20 +674,19 @@ The scorm-again API sends a `CommitObject` that includes:
   learnerId?: string;
   learnerName?: string;
   sessionId?: string;
-  attemptNumber?: number;
+  activityId?: string;
 }
 ```
 
-**Important**: The API currently does NOT send additional sequencing-specific data like:
+The commit object does not contain the complete activity tracking tree. Persist that through
+`sequencingStatePersistence` or explicit `saveSequencingState()` calls. The sequencing snapshot includes:
 - Current activity ID
 - Activity states (suspended, attempted, etc.)
 - Sequencing request results
 - Navigation history
 
-The LMS must track this information separately based on:
-- Navigation events fired by the API
-- The `adl.nav.request` value in the commit data
-- The `cmi.exit` value (suspend, normal, etc.)
+`adl.nav.request` is processed inside the API at `Terminate()` and is not a separate structured
+commit field.
 
 #### 2. Global Objectives Handling
 
@@ -713,117 +700,90 @@ Example LMS implementation:
 ```javascript
 async function handleScormCommit(commitData) {
   // 1. Save SCO-specific data
-  await saveScoData(commitData.scoId, commitData.cmi);
+  await saveScoData(commitData.scoId, commitData.runtimeData.cmi);
   
-  // 2. Extract and save global objectives
-  // Note: Global objectives are in the regular objectives array
-  // The LMS must identify them using the globalObjectiveIds list
-  const globalObjectiveIds = getGlobalObjectiveIds(courseId);
-  
-  if (commitData.cmi.objectives) {
-    for (const [index, objective] of Object.entries(commitData.cmi.objectives)) {
-      if (globalObjectiveIds.includes(objective.id)) {
-        await saveGlobalObjective(courseId, objective.id, objective);
-      }
-    }
-  }
+  // 2. Store the synchronized global-objective snapshot as one registration value
+  await saveGlobalObjectives(courseId, commitData.globalObjectives ?? {});
   
   // 3. Update sequencing state
   await updateSequencingState(courseId, commitData.scoId, {
-    attemptCount: commitData.attemptNumber,
-    isSuspended: commitData.cmi.exit === "suspend",
-    completionStatus: commitData.cmi.completion_status,
-    successStatus: commitData.cmi.success_status
+    attemptCount: commitData.attempt,
+    isSuspended: commitData.runtimeData.cmi.exit === "suspend",
+    completionStatus: commitData.runtimeData.cmi.completion_status,
+    successStatus: commitData.runtimeData.cmi.success_status
   });
 }
 
-// When launching a SCO, load both local and global data
-async function initializeSco(scoId) {
-  const localData = await loadScoData(scoId);
-  const globalObjectives = await loadGlobalObjectives(courseId);
-  
-  // Merge global objectives into the local data
-  if (globalObjectives) {
-    localData.objectives = localData.objectives || {};
-    for (const globalObj of globalObjectives) {
-      // Find or create objective slot
-      const index = findOrCreateObjectiveIndex(localData.objectives, globalObj.id);
-      localData.objectives[index] = globalObj;
-    }
-  }
-  
-  return localData;
-}
+// Before the first delivery, restore shared objectives directly into the API.
+api.restoreGlobalObjectiveSnapshot(await loadGlobalObjectives(courseId));
 ```
 
 #### 3. Sequencing State Persistence
 
-The LMS should maintain:
-- Current activity ID
-- Suspended activity IDs
-- Activity attempt counts
-- Navigation request history
-- Time tracking per activity
+Provide a `sequencingStatePersistence` adapter to store the engine snapshot. For deterministic
+resume, set `autoLoadOnInitialize: false`, await `loadSequencingState(metadata)`, restore the last
+commit's global-objective snapshot, and only then expose the API and start delivery:
+
+```javascript
+const api = new Scorm2004API({
+  ...settings,
+  sequencingStatePersistence: {
+    persistence,
+    autoLoadOnInitialize: false,
+    autoSaveOn: "commit",
+  },
+});
+
+api.restoreGlobalObjectiveSnapshot(persistedGlobalObjectives);
+await api.loadSequencingState({ learnerId, courseId, attemptNumber });
+window.API_1484_11 = api;
+```
+
+`autoSaveOn` defaults to `"commit"` and includes termination commits. Use `"navigate"` to save
+post-navigation state, or `"never"` when the LMS controls every save explicitly.
 
 ### API Reset Between SCOs
 
 #### When to Reset the API
 
-The SCORM 2004 specification requires that each SCO gets a fresh API instance. When navigating between SCOs in a sequenced course:
+Each SCO needs a fresh SCORM communication session and SCO-local CMI model. A sequenced player may
+keep one API instance and call `reset()` between delivered SCOs:
 
 1. **Terminate the current SCO**: Call `Terminate()` which will commit any pending data
 2. **Reset the API**: Call `api.reset()` to clear the current state
-3. **Preserve global state**: The LMS must preserve:
-   - Global objectives
-   - Sequencing state (current activity, suspended activities)
-   - Learner information
-   - Course-level attempt data
-4. **Initialize for the new SCO**: Load the new SCO's data including any global objectives
+3. **Keep shared state**: `reset()` preserves the sequencing tree, tracking state, and global objectives
+4. **Initialize the new SCO**: Load the new SCO's local runtime data, then let it call `Initialize()`
 
 #### What Gets Reset
 
 When `api.reset()` is called:
-- ✅ All CMI data is cleared
-- ✅ All ADL data is cleared
-- ✅ The sequencing engine state is reset
-- ✅ Event listeners are preserved (unless explicitly cleared)
-- ❌ Global objectives are currently cleared (this is a limitation - the LMS must reload them)
+- SCO-local CMI and ADL data are cleared
+- The API returns to the pre-initialize state for the next SCO
+- Sequencing tracking and global objectives are preserved
+- Sequencing callbacks configured through `sequencing.eventListeners` remain installed
 
 #### Recommended Implementation
 
 ```javascript
-// 1. Handle navigation event
-api.on('SequenceNext', async (eventName, CMIElement, targetScoId) => {
-  // 2. Get current state before reset
-  const currentGlobalObjectives = extractGlobalObjectives(api);
-  const sequencingState = {
-    currentActivity: targetScoId,
-    suspendedActivities: getSuspendedActivities()
-  };
-  
-  // 3. Reset the API
-  api.reset();
-  
-  // 4. Reload configuration with preserved state
-  const scoData = await loadScoData(targetScoId);
-  const globalData = await loadGlobalObjectives(courseId);
-  
-  // 5. Initialize the new SCO with merged data
-  api.loadFromJSON({
-    cmi: {
-      ...scoData,
-      objectives: mergeObjectives(scoData.objectives, globalData)
+let hasDeliveredSco = false;
+
+const eventListeners = {
+  onActivityDelivery: async (activity) => {
+    if (hasDeliveredSco) {
+      // The prior SCO has terminated before subsequent delivery events.
+      api.reset();
     }
-  });
-  
-  // 6. Launch the new SCO
-  launchSco(targetScoId);
-});
+    api.loadFromJSON(await loadScoData(activity.id));
+    hasDeliveredSco = true;
+    launchSco(activity.id);
+  },
+};
 ```
 
 #### Alternative Approach: Multiple API Instances
 
-Some LMS implementations maintain separate API instances for each SCO:
+Some LMS implementations maintain separate API instances for each SCO, but they must explicitly
+share persisted sequencing state and global-objective snapshots between instances:
 
 ```javascript
 // Create a new API instance for each SCO
@@ -833,14 +793,15 @@ function getApiForSco(scoId) {
   if (!apis[scoId]) {
     apis[scoId] = new Scorm2004API({
       // ... settings ...
-      globalObjectiveIds: globalObjectiveIds
+      sequencing,
+      renderCommonCommitFields: true,
     });
   }
   return apis[scoId];
 }
 ```
 
-This approach avoids the reset issue but requires more memory and careful state synchronization.
+The single-instance `reset()` flow is usually simpler for a sequenced player.
 
 ### Important Notes
 
@@ -848,17 +809,14 @@ This approach avoids the reset issue but requires more memory and careful state 
 - The API handles all sequencing logic internally based on the SCORM 2004 specification
 - The LMS is responsible for actually launching/switching SCOs based on navigation events
 - All navigation validation is handled by the API through `adl.nav.request_valid`
-- Global objectives require special handling and must be shared across SCOs
-- The LMS must track sequencing state separately from CMI data
+- Persist and restore the structured commit's `globalObjectives` snapshot across SCOs
+- Persist the activity tracking tree through `sequencingStatePersistence`
 - The API should be reset between SCO launches to ensure clean state
 
 ## Recent Enhancements (Sequencing)
 
-- Runtime time providers:
-  - `now?: () => Date` supplies a custom clock for all time-based decisions (begin/end windows, attempt start).
-  - `getAttemptElapsedSeconds?: (activity) => number` lets the LMS provide precise elapsed seconds for the current attempt; used by `timeLimitExceeded` conditions.
 - Per-target request validity:
-  - The library computes per-target maps for `choice` and `jump` and emits `onNavigationValidityUpdate` with `{ continue, previous, choice, jump }`.
+  - The library computes per-target maps for `choice` and `jump` and emits `onNavigationValidityUpdate` with `{ continue, previous, choice, jump, hideLmsUi, auxiliaryResources }`.
   - It attempts to set `adl.nav.request_valid.choice`/`jump` maps when writable; prefer the event payload for UI updates.
 - New sequencing control:
   - `stopForwardTraversal` is honored when set (e.g., via a post-condition rule) to halt forward traversal through a cluster.

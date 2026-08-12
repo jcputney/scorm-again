@@ -822,6 +822,8 @@ When `cmi.scaled_passing_score` is set (from manifest `<imsss:minNormalizedMeasu
 ```javascript
 const api = new Scorm2004API({
   lmsCommitUrl: "/api/scorm/2004/commit",
+  renderCommonCommitFields: true,
+  selfReportSessionTime: true,
   autocommit: true,
   autocommitSeconds: 60
 });
@@ -943,7 +945,6 @@ function parseItems(items) {
 
     // Time limits
     attemptAbsoluteDurationLimit: item.attemptAbsoluteDurationLimit,
-    attemptExperiencedDurationLimit: item.attemptExperiencedDurationLimit,
     beginTimeLimit: item.beginTimeLimit,
     endTimeLimit: item.endTimeLimit,
 
@@ -966,11 +967,8 @@ const api = new Scorm2004API({
   sequencing: {
     activityTree: activityTree,
 
-    // Optional: provide time functions
-    now: () => new Date(),
-    getAttemptElapsedSeconds: (activity) => {
-      return getElapsedSecondsForActivity(activity.id);
-    },
+    // SCORM transfers SCO runtime data when the attempt ends.
+    autoRollupOnCMIChange: false,
 
     // Event listeners for LMS coordination
     eventListeners: {
@@ -1005,8 +1003,9 @@ const api = new Scorm2004API({
     return database.validateScoId(scoId);
   },
 
-  // Global objectives that persist across SCOs
-  globalObjectiveIds: extractGlobalObjectiveIds(activityTree)
+  // Only add host-defined direct-global CMI rows here. Manifest mapInfo targets
+  // are discovered from activityTree objectives.
+  globalObjectiveIds: hostDefinedGlobalObjectiveIds,
 });
 ```
 
@@ -1028,47 +1027,17 @@ Global objectives require special handling:
 // When handling commit data
 async function handleSequencedCommit(commitData, registration) {
   const cmi = commitData.runtimeData?.cmi;
-  const globalObjectiveIds = registration.globalObjectiveIds;
 
   // Save SCO-specific data
   await saveScoAttemptState(commitData.scoId, cmi);
 
-  // Extract and save global objectives separately
-  if (cmi.objectives) {
-    for (const [index, obj] of Object.entries(cmi.objectives)) {
-      if (globalObjectiveIds.includes(obj.id)) {
-        await saveGlobalObjective(registration.attemptId, obj);
-      }
-    }
-  }
+  // Persist the synchronized registration-scoped snapshot as one value.
+  await saveGlobalObjectives(registration.attemptId, commitData.globalObjectives ?? {});
 }
 
-// When launching a SCO, merge global objectives
-async function prepareObjectivesForLaunch(scoId, attemptId, globalObjectiveIds) {
-  const localObjectives = await getScoObjectives(scoId, attemptId);
-  const globalObjectives = await getGlobalObjectives(attemptId);
-
-  // Merge global objectives into local array based on mapInfo
-  const merged = { ...localObjectives };
-  let nextIndex = Object.keys(merged).length;
-
-  for (const globalObj of globalObjectives) {
-    // Check if this SCO references this global objective
-    if (scoReferencesGlobalObjective(scoId, globalObj.id)) {
-      // Find or create slot
-      const existingIndex = Object.entries(merged)
-        .find(([_, obj]) => obj.id === globalObj.id)?.[0];
-
-      if (existingIndex !== undefined) {
-        merged[existingIndex] = { ...merged[existingIndex], ...globalObj };
-      } else {
-        merged[nextIndex++] = globalObj;
-      }
-    }
-  }
-
-  return merged;
-}
+// Restore the snapshot before initial delivery. The engine seeds each SCO's local
+// objective view from its read maps.
+api.restoreGlobalObjectiveSnapshot(await getGlobalObjectives(registration.attemptId));
 ```
 
 #### Sequencing State Persistence
@@ -1110,69 +1079,50 @@ const api = new Scorm2004API({
       }
     },
 
+    autoLoadOnInitialize: false, // LMS explicitly awaits the preload below
     autoSaveOn: 'commit',  // Save on every commit
     compress: true,         // Compress state data
     maxStateSize: 50000     // Max 50KB
   }
 });
+
+api.restoreGlobalObjectiveSnapshot(persistedGlobalObjectives);
+await api.loadSequencingState({ learnerId, courseId, attemptNumber });
+window.API_1484_11 = api;
 ```
 
 #### Handling Activity Transitions
 
 ```javascript
-// Listen for sequencing events
-api.on('SequenceNext', () => {
-  // Library handles this internally if sequencing is configured
-  // The onActivityDelivery callback will be invoked
-});
+let hasDeliveredSco = false;
 
-api.on('SequenceChoice', (eventName, element, targetId) => {
-  // Content requested specific activity
-  console.log(`Choice navigation to: ${targetId}`);
-});
-
-api.on('SequenceExit', () => {
-  // Exit current activity
-});
-
-api.on('SequenceExitAll', () => {
-  // Exit entire course
-  showCourseExitScreen();
-});
-
-// When transitioning between activities:
+// Configure this as sequencing.eventListeners.onActivityDelivery.
 async function onActivityDelivery(activity) {
-  // 1. Get previous state for this activity
+  // 1. Load this SCO's local runtime state.
   const previousState = await getScoAttemptState(
     registration.currentAttemptId,
     activity.id
   );
 
-  // 2. Get global objectives
-  const globalObjectives = await prepareObjectivesForLaunch(
-    activity.id,
-    registration.currentAttemptId,
-    registration.globalObjectiveIds
-  );
+  // 2. Reset only after the prior SCO has terminated. reset() preserves
+  // sequencing tracking and global objectives.
+  if (hasDeliveredSco) {
+    api.reset();
+  }
 
-  // 3. Reset API for new activity
-  api.reset({
-    // Preserve sequencing settings
-    sequencing: api.settings.sequencing
-  });
-
-  // 4. Load new activity data
+  // 3. Load SCO-local data; mapped objectives are seeded by the engine.
   api.loadFromJSON({
     cmi: {
       learner_id: learner.id,
       learner_name: learner.displayName,
       entry: previousState?.suspendData ? "resume" : "ab-initio",
       // ... other CMI data from previousState
-      objectives: globalObjectives
     }
   });
 
-  // 5. Launch content
+  // 4. Launch content. The SCO calls Initialize(), then later sets
+  // adl.nav.request and calls Terminate() to transition.
+  hasDeliveredSco = true;
   contentFrame.src = activity.launchUrl;
 }
 ```
@@ -1187,7 +1137,7 @@ async function onActivityDelivery(activity) {
 
 **Method:** POST
 
-**Content-Type:** Depends on `commitRequestDataType` setting (default: `application/json`)
+**Content-Type:** Depends on `commitRequestDataType` setting (default: `application/json;charset=UTF-8`)
 
 **Body Format:** Depends on `dataCommitFormat` setting:
 
@@ -1232,11 +1182,12 @@ async function onActivityDelivery(activity) {
           "result": "correct"
         }
       }
-    },
-    "adl": {
-      "nav": {
-        "request": "continue"
-      }
+    }
+  },
+  "globalObjectives": {
+    "course-objective": {
+      "satisfiedStatus": true,
+      "satisfiedStatusKnown": true
     }
   },
   "courseId": "course-123",
@@ -1285,7 +1236,8 @@ cmi.completion_status=completed&cmi.success_status=passed&cmi.score.scaled=0.85
 
 ### Termination Commits
 
-On `Terminate()` / `LMSFinish()`, the library uses `navigator.sendBeacon()` for reliability. This is a fire-and-forget request that doesn't wait for response.
+In synchronous mode, `Terminate()` / `LMSFinish()` uses `navigator.sendBeacon()` for reliability.
+Asynchronous mode follows `asyncModeBeaconBehavior` and defaults to fetch.
 
 **Important:** Ensure your endpoint can handle beacon requests (no response expected, small payload).
 
@@ -1620,14 +1572,15 @@ All of the above, plus:
 - [ ] Configure `sequencing.activityTree`
 - [ ] Configure `sequencing.eventListeners`
 - [ ] Set `scoItemIds` or `scoItemIdValidator`
-- [ ] Set `globalObjectiveIds`
+- [ ] Set `globalObjectiveIds` only for host-defined direct-global CMI rows
+- [ ] Set `renderCommonCommitFields: true` to persist global objectives from commits
 - [ ] Configure `sequencingStatePersistence` if needed
 
 **Runtime Handling:**
 - [ ] Handle `onActivityDelivery` callback
 - [ ] Handle `onNavigationValidityUpdate` for UI
-- [ ] Merge global objectives on SCO launch
-- [ ] Extract global objectives on commit
+- [ ] Restore `globalObjectives` before initial delivery
+- [ ] Persist the structured commit's `globalObjectives` snapshot
 - [ ] Reset API between activity transitions
 - [ ] Preserve sequencing state across sessions
 
@@ -1643,9 +1596,9 @@ This section documents all configuration settings available when creating API in
 |---------|------|---------|-------------|
 | `lmsCommitUrl` | `string \| false` | `false` | URL for commit endpoint. Set to `false` to disable HTTP commits. |
 | `autocommit` | `boolean` | `false` | Enable periodic auto-commit to LMS. |
-| `autocommitSeconds` | `number` | `60` | Interval in seconds between auto-commits. |
+| `autocommitSeconds` | `number` | `10` | Interval in seconds between auto-commits. |
 | `dataCommitFormat` | `string` | `"json"` | Format for commit data: `"json"`, `"flattened"`, or `"params"`. |
-| `commitRequestDataType` | `string` | `"application/json"` | Content-Type header for commit requests. |
+| `commitRequestDataType` | `string` | `"application/json;charset=UTF-8"` | Content-Type header for commit requests. |
 | `sendFullCommit` | `boolean` | `true` | Send full CMI data on every commit vs. only changed values. |
 
 ### HTTP Settings
@@ -1657,7 +1610,7 @@ This section documents all configuration settings available when creating API in
 | `xhrHeaders` | `object` | `{}` | Custom headers to include in commit requests. |
 | `xhrWithCredentials` | `boolean` | `false` | Include credentials (cookies) in cross-origin requests. |
 | `fetchMode` | `string` | `"cors"` | Fetch mode for async requests: `"cors"`, `"no-cors"`, `"same-origin"`, `"navigate"`. |
-| `useBeaconInsteadOfFetch` | `string` | `"on-terminate"` | When to use sendBeacon: `"always"`, `"on-terminate"`, `"never"`. |
+| `asyncModeBeaconBehavior` | `string` | `"never"` | In async mode, when to use sendBeacon: `"always"`, `"on-terminate"`, or `"never"`. |
 | `httpService` | `IHttpService \| null` | `null` | Custom HTTP service implementation. |
 
 ### Response Handlers
@@ -1679,8 +1632,8 @@ This section documents all configuration settings available when creating API in
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `mastery_override` | `boolean` | `true` | When mastery_score is set, auto-set lesson_status to "passed"/"failed" based on score. |
-| `autoCompleteLessonStatus` | `boolean` | `true` | Auto-set lesson_status to "completed" on LMSFinish if no status was set by content. |
+| `mastery_override` | `boolean` | `false` | When mastery_score is set, auto-set lesson_status to "passed"/"failed" based on score. |
+| `autoCompleteLessonStatus` | `boolean` | `false` | Auto-set lesson_status to "completed" on LMSFinish if no status was set by content. |
 | `globalStudentPreferences` | `boolean` | `false` | Share student_preference values across SCOs within a session (for multi-SCO). |
 
 ### SCORM 2004 Specific Settings
@@ -1688,14 +1641,14 @@ This section documents all configuration settings available when creating API in
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `score_overrides_status` | `boolean` | `false` | Allow score to override success_status even when status is already set. |
-| `completion_status_on_failed` | `string` | `undefined` | Set completion_status to this value (`"completed"` or `"incomplete"`) when success_status is "failed". |
+| `completion_status_on_failed` | `string` | `"completed"` | Set completion_status to this value (`"completed"` or `"incomplete"`) when success_status is "failed". |
 | `autoProgress` | `boolean` | `false` | Auto-progress through activities on completion (requires sequencing). |
 
 ### Time Settings
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `selfReportSessionTime` | `boolean` | `false` | Allow content to set session_time directly instead of library calculating it. |
+| `selfReportSessionTime` | `boolean` | `false` | Measure elapsed time from `Initialize()` instead of relying on SCO-reported `session_time`. |
 | `alwaysSendTotalTime` | `boolean` | `false` | Always include total_time in commits, even if unchanged. |
 
 ### Error Handling
@@ -1708,7 +1661,7 @@ This section documents all configuration settings available when creating API in
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `renderCommonCommitFields` | `boolean` | `true` | Include `successStatus`, `completionStatus`, `totalTimeSeconds`, `score` at top level of commit. |
+| `renderCommonCommitFields` | `boolean` | `false` | Emit the structured commit object; SCORM 2004 commits then include `globalObjectives`. |
 | `autoPopulateCommitMetadata` | `boolean` | `false` | Include `courseId`, `scoId`, `learnerId`, `learnerName` in commit object. |
 | `courseId` | `string` | `undefined` | Course identifier for commit metadata. |
 | `scoId` | `string` | `undefined` | SCO identifier for commit metadata. |
@@ -1717,9 +1670,9 @@ This section documents all configuration settings available when creating API in
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `scoItemIds` | `string[]` | `undefined` | Valid SCO item IDs for navigation validation. |
-| `scoItemIdValidator` | `function \| false` | `undefined` | Custom validator: `(scoItemId: string) => boolean`. Set to `false` to disable. |
-| `globalObjectiveIds` | `string[]` | `undefined` | IDs of objectives shared across SCOs. |
+| `scoItemIds` | `string[]` | `[]` | Valid SCO item IDs for navigation validation. |
+| `scoItemIdValidator` | `function \| false` | `false` | Custom validator: `(scoItemId: string) => boolean`. Set to `false` to disable. |
+| `globalObjectiveIds` | `string[]` | `[]` | Host-defined global CMI rows; manifest map targets come from the activity tree. |
 
 ### Sequencing Settings (SCORM 2004)
 
@@ -1735,7 +1688,7 @@ This section documents all configuration settings available when creating API in
 | `enableOfflineSupport` | `boolean` | `false` | Enable offline data storage and sync. |
 | `syncOnInitialize` | `boolean` | `true` | Attempt to sync offline data on Initialize. |
 | `syncOnTerminate` | `boolean` | `true` | Attempt to sync offline data on Terminate. |
-| `maxSyncAttempts` | `number` | `3` | Maximum retry attempts for sync operations. |
+| `maxSyncAttempts` | `number` | `5` | Maximum retry attempts for sync operations. |
 
 ---
 
@@ -1749,7 +1702,7 @@ The sequencing engine emits events for LMS coordination. Configure listeners via
 |-------|-------------------|-------------|
 | `onNavigationRequest` | `(request: string, target?: string) => void` | Navigation request received from content (continue, previous, choice, etc.) |
 | `onNavigationRequestProcessing` | `(data: {request, targetActivityId}) => void` | Navigation request is being processed |
-| `onNavigationValidityUpdate` | `(data: {currentActivity, validRequests}) => void` | Valid navigation options changed (for UI updates) |
+| `onNavigationValidityUpdate` | `(data: {continue, previous, choice, jump, hideLmsUi, auxiliaryResources}) => void` | Valid navigation options and effective delivery UI data changed |
 
 ### Activity Lifecycle Events
 
@@ -1800,7 +1753,7 @@ The sequencing engine emits events for LMS coordination. Configure listeners via
 
 | Event | Callback Signature | Description |
 |-------|-------------------|-------------|
-| `onLimitConditionCheck` | `(data: {activity, limitType, exceeded}) => void` | Limit condition checked |
+| `onLimitConditionCheck` | `(activity: Activity, result: boolean) => void` | Limit condition checked |
 
 ### Error and Debug Events
 
@@ -1809,7 +1762,7 @@ The sequencing engine emits events for LMS coordination. Configure listeners via
 | `onSequencingError` | `(error: string, context?: string) => void` | Sequencing error occurred |
 | `onSuspendError` | `(data: {activity, error}) => void` | Error during suspend operation |
 | `onStateInconsistency` | `(data: {activity, issue}) => void` | State inconsistency detected |
-| `onSequencingDebug` | `(data: {message, context?}) => void` | Debug information (when logLevel is debug) |
+| `onSequencingDebug` | `(event: string, data?: any) => void` | Debug information (when logLevel is debug) |
 
 ### Event Configuration Example
 
@@ -1826,8 +1779,8 @@ const api = new Scorm2004API({
 
       // Update navigation UI
       onNavigationValidityUpdate: (data) => {
-        setNavEnabled('continue', data.validRequests.includes('continue'));
-        setNavEnabled('previous', data.validRequests.includes('previous'));
+        setNavEnabled('continue', data.continue);
+        setNavEnabled('previous', data.previous);
       },
 
       // Track completion
@@ -1847,8 +1800,8 @@ const api = new Scorm2004API({
       },
 
       // Debug during development
-      onSequencingDebug: (data) => {
-        console.debug('[Sequencing]', data.message, data.context);
+      onSequencingDebug: (event, data) => {
+        console.debug('[Sequencing]', event, data);
       }
     }
   }
@@ -2023,6 +1976,8 @@ The commit object sent to your endpoint contains these fields:
 | `completionStatus` | `string` | `"completed"`, `"incomplete"`, `"not attempted"`, or `"unknown"` |
 | `totalTimeSeconds` | `number` | Accumulated time across all sessions |
 | `score` | `object` | Optional score object with `raw`, `min`, `max`, `scaled` |
+| `runtimeData` | `object` | SCO-local CMI data |
+| `globalObjectives` | `object` | SCORM 2004 sequencing global-objective snapshot |
 
 ### Metadata Fields (when `autoPopulateCommitMetadata: true`)
 
@@ -2032,10 +1987,8 @@ The commit object sent to your endpoint contains these fields:
 | `scoId` | `string` | SCO identifier |
 | `learnerId` | `string` | Learner identifier |
 | `learnerName` | `string` | Learner display name |
-| `sessionId` | `string` | Session identifier |
 | `activityId` | `string` | Activity identifier (sequenced courses) |
-| `attempt` | `number` | Attempt number |
-| `commitId` | `string` | Unique commit identifier |
+| `commitSequence` | `number` | Monotonic sequence when `includeCommitSequence: true` |
 
 ### Runtime Data
 
@@ -2146,7 +2099,8 @@ cmi.completion_status=completed&cmi.success_status=passed&cmi.score.scaled=0.85
 
 ### Beacon Behavior
 
-On `Terminate()` / `LMSFinish()`, the library uses `navigator.sendBeacon()` by default (configurable via `useBeaconInsteadOfFetch`):
+Synchronous mode (the default) uses `navigator.sendBeacon()` for termination commits. Asynchronous
+mode follows `asyncModeBeaconBehavior`; its default, `"never"`, uses `fetch()`:
 
 - **Fire-and-forget**: No response is received or expected
 - **Survives page unload**: Ensures data is sent even if user closes browser
@@ -2154,14 +2108,16 @@ On `Terminate()` / `LMSFinish()`, the library uses `navigator.sendBeacon()` by d
 - **Server considerations**: Your endpoint should handle these requests idempotently
 
 ```javascript
-// To always use fetch (and block on Terminate):
+// To use fetch for termination commits:
 new Scorm2004API({
-  useBeaconInsteadOfFetch: "never"
+  useAsynchronousCommits: true,
+  asyncModeBeaconBehavior: "never"
 });
 
 // To always use beacon (fire-and-forget for all commits):
 new Scorm2004API({
-  useBeaconInsteadOfFetch: "always"
+  useAsynchronousCommits: true,
+  asyncModeBeaconBehavior: "always"
 });
 ```
 
@@ -2172,6 +2128,8 @@ new Scorm2004API({
 ### adl.nav.request
 
 Used by content to request navigation:
+
+The SCO sets the request and then calls `Terminate()`. `Commit()` does not execute the request.
 
 | Value | Description |
 |-------|-------------|
@@ -2184,7 +2142,7 @@ Used by content to request navigation:
 | `"abandonAll"` | Abandon all activities |
 | `"suspendAll"` | Suspend all activities |
 | `"_none_"` | No navigation request |
-| `"jump"` | Jump navigation (SCORM 2004 4th edition) |
+| `"{target=<id>}jump"` | Jump navigation (SCORM 2004 4th edition) |
 
 ### adl.nav.request_valid
 

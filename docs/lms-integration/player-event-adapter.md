@@ -110,7 +110,6 @@ When using the sequencing engine, wire the adapter's handlers to sequencing even
 ```javascript
 const api = new Scorm2004API({
   sequencing: {
-    enabled: true,
     activityTree: manifest.activities,
     eventListeners: {
       onNavigationValidityUpdate: (data) => adapter.handleNavigationValidityUpdate(data),
