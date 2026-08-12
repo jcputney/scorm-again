@@ -810,6 +810,13 @@ class Scorm2004API extends BaseAPI {
       this.adl.nav.request = "_none_";
     }
 
+    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated) {
+      const autoSaveOn = this.settings.sequencingStatePersistence?.autoSaveOn ?? "commit";
+      if (this.settings.sequencingStatePersistence && ["commit", "navigate"].includes(autoSaveOn)) {
+        this.autoSaveSequencingState("lmsFinish");
+      }
+    }
+
     return result;
   }
 
@@ -941,17 +948,22 @@ class Scorm2004API extends BaseAPI {
 
     if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "Commit");
+      if (
+        this.settings.sequencingStatePersistence &&
+        (this.settings.sequencingStatePersistence.autoSaveOn ?? "commit") === "commit"
+      ) {
+        this.autoSaveSequencingState("lmsCommit");
+      }
       return global_constants.SCORM_TRUE;
     } else {
       const result = this.commit("Commit", true);
 
       if (
         result === global_constants.SCORM_TRUE &&
-        this.settings.sequencingStatePersistence?.autoSaveOn === "commit"
+        this.settings.sequencingStatePersistence &&
+        (this.settings.sequencingStatePersistence.autoSaveOn ?? "commit") === "commit"
       ) {
-        this.saveSequencingState().catch(() => {
-          this.apiLog("lmsCommit", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
-        });
+        this.autoSaveSequencingState("lmsCommit");
       }
 
       return result;
@@ -1582,9 +1594,25 @@ class Scorm2004API extends BaseAPI {
    */
   public processNavigationRequest(request: string, targetActivityId?: string): boolean {
     if (this._sequencingService) {
-      return this._sequencingService.processNavigationRequest(request, targetActivityId);
+      const result = this._sequencingService.processNavigationRequest(request, targetActivityId);
+      if (result && this.settings.sequencingStatePersistence?.autoSaveOn === "navigate") {
+        this.autoSaveSequencingState("processNavigationRequest");
+      }
+      return result;
     }
     return false;
+  }
+
+  private autoSaveSequencingState(source: string): void {
+    this.saveSequencingState()
+      .then((saved) => {
+        if (!saved) {
+          this.apiLog(source, "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+        }
+      })
+      .catch(() => {
+        this.apiLog(source, "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+      });
   }
 
   /**

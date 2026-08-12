@@ -145,7 +145,7 @@ export type RuleConditionSettings = {
  */
 export type SequencingRuleSettings = {
   action: RuleActionType;
-  conditionCombination?: RuleConditionOperator;
+  conditionCombination?: RuleConditionOperator | "all" | "any";
   conditions: RuleConditionSettings[];
 };
 
@@ -254,6 +254,16 @@ export type SequencingSettings = {
   eventListeners?: SequencingEventListeners;
 };
 
+/** Navigation availability emitted after delivery and sequencing state changes. */
+export type NavigationValidityUpdate = {
+  continue: boolean;
+  previous: boolean;
+  choice: Record<string, "true" | "false">;
+  jump: Record<string, "true" | "false">;
+  hideLmsUi: HideLmsUiItem[];
+  auxiliaryResources: AuxiliaryResource[];
+};
+
 /**
  * Interface for sequencing event listeners.
  * Uses IActivity interface to provide type safety without circular dependencies.
@@ -294,10 +304,7 @@ export interface SequencingEventListeners {
   onSuspendError?: (data: { activity: string; error: string }) => void;
   onActivitySuspended?: (data: { activity: string }) => void;
   onDeliveryRequestProcessing?: (data: { request: string; target: string | null }) => void;
-  onNavigationValidityUpdate?: (data: {
-    currentActivity: string | null;
-    validRequests: string[];
-  }) => void;
+  onNavigationValidityUpdate?: (data: NavigationValidityUpdate) => void;
   onLimitConditionCheck?: (activity: IActivity, result: boolean) => void;
   onStateInconsistency?: (data: { activity: string; issue: string }) => void;
   onGlobalObjectiveMapInitialized?: (data: { count: number }) => void;

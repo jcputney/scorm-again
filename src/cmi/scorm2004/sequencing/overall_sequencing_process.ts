@@ -242,6 +242,9 @@ export class OverallSequencingProcess {
     this.navigationValidityService.setGetEffectiveHideLmsUiCallback((activity) =>
       this.deliveryHandler.getEffectiveHideLmsUi(activity),
     );
+    this.navigationValidityService.setGetEffectiveAuxiliaryResourcesCallback((activity) =>
+      this.deliveryHandler.getEffectiveAuxiliaryResources(activity),
+    );
 
     // Set up state manager callbacks
     this.stateManager.setGetEffectiveHideLmsUiCallback((activity) =>

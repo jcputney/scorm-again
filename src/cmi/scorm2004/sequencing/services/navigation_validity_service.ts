@@ -4,7 +4,11 @@ import { SequencingProcess, SequencingRequestType } from "../sequencing_process"
 import { RuleActionType } from "../sequencing_rules";
 import { ADLNav } from "../../adl";
 import { NavigationLookAhead, NavigationPredictions } from "../navigation_look_ahead";
-import { HideLmsUiItem } from "../../../../types/sequencing_types";
+import {
+  AuxiliaryResource,
+  HideLmsUiItem,
+  NavigationValidityUpdate,
+} from "../../../../types/sequencing_types";
 
 /**
  * Enum for navigation request types
@@ -73,6 +77,9 @@ export class NavigationValidityService {
   private getEffectiveHideLmsUiCallback:
     | ((activity: Activity | null) => HideLmsUiItem[])
     | null = null;
+  private getEffectiveAuxiliaryResourcesCallback:
+    | ((activity: Activity | null) => AuxiliaryResource[])
+    | null = null;
 
   constructor(
     activityTree: ActivityTree,
@@ -94,6 +101,13 @@ export class NavigationValidityService {
     callback: (activity: Activity | null) => HideLmsUiItem[]
   ): void {
     this.getEffectiveHideLmsUiCallback = callback;
+  }
+
+  /** Set callback used to resolve inherited auxiliary resources for the current activity. */
+  public setGetEffectiveAuxiliaryResourcesCallback(
+    callback: (activity: Activity | null) => AuxiliaryResource[],
+  ): void {
+    this.getEffectiveAuxiliaryResourcesCallback = callback;
   }
 
   /**
@@ -936,8 +950,8 @@ export class NavigationValidityService {
 
     // Compute per-target choice/jump validity and emit an event snapshot
     const allActivities = this.activityTree.getAllActivities();
-    const choiceMap: { [key: string]: string } = {};
-    const jumpMap: { [key: string]: string } = {};
+    const choiceMap: Record<string, "true" | "false"> = {};
+    const jumpMap: Record<string, "true" | "false"> = {};
     for (const act of allActivities) {
       const choiceRes = this.validateRequest(
         NavigationRequestType.CHOICE,
@@ -963,15 +977,20 @@ export class NavigationValidityService {
     const hideLmsUi = this.getEffectiveHideLmsUiCallback
       ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity)
       : [];
+    const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback
+      ? this.getEffectiveAuxiliaryResourcesCallback(this.activityTree.currentActivity)
+      : [];
 
     // Notify listeners so LMS can update UI regardless of read-only state
-    this.fireEvent("onNavigationValidityUpdate", {
+    const update: NavigationValidityUpdate = {
       continue: continueValid,
       previous: previousValid,
       choice: choiceMap,
       jump: jumpMap,
       hideLmsUi,
-    });
+      auxiliaryResources,
+    };
+    this.fireEvent("onNavigationValidityUpdate", update);
   }
 
   /**

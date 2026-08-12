@@ -4115,22 +4115,32 @@ describe("Overall Sequencing Process (OP.1)", () => {
     });
 
     describe("Auxiliary resources", () => {
-      it("should handle default auxiliary resources", () => {
+      it("should include effective auxiliary resources in navigation updates", () => {
+        root.auxiliaryResources = [{ resourceId: "notes", purpose: "notes" }];
+        grandchild1.auxiliaryResources = [{ resourceId: "job-aid", purpose: "job-aid" }];
+        const events: any[] = [];
         const processWithAux = new OverallSequencingProcess(
           activityTree,
           sequencingProcess,
           rollupProcess,
           adlNav,
-          null,
+          (eventType, data) => {
+            if (eventType === "onNavigationValidityUpdate") {
+              events.push(data);
+            }
+          },
           {
-            defaultAuxiliaryResources: [
-              { resourceId: "help", purpose: "Help system", href: "/help" },
-            ],
+            defaultAuxiliaryResources: [{ resourceId: "help", purpose: "help" }],
           },
         );
 
         const result = processWithAux.processNavigationRequest(NavigationRequestType.START);
         expect(result.valid).toBe(true);
+        expect(events.at(-1).auxiliaryResources).toEqual([
+          { resourceId: "help", purpose: "help" },
+          { resourceId: "notes", purpose: "notes" },
+          { resourceId: "job-aid", purpose: "job-aid" },
+        ]);
       });
     });
 

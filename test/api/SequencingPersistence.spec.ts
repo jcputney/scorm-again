@@ -14,6 +14,66 @@ const metadata: SequencingStateMetadata = {
 };
 
 describe("SCORM 2004 sequencing persistence", () => {
+  it("defaults to auto-saving sequencing state on Commit", async () => {
+    const saveState = vi.fn().mockResolvedValue(true);
+    const api = new Scorm2004API({
+      sequencing: {
+        activityTree: {
+          id: "root",
+          children: [{ id: "sco1" }],
+        },
+      },
+      sequencingStatePersistence: {
+        persistence: {
+          saveState,
+          loadState: vi.fn().mockResolvedValue(null),
+        },
+        autoLoadOnInitialize: false,
+        compress: false,
+      },
+    });
+
+    expect(api.Initialize("")).toBe("true");
+    expect(api.Commit("")).toBe("true");
+    await vi.waitFor(() => expect(saveState).toHaveBeenCalledOnce());
+  });
+
+  it("auto-saves the post-navigation state when content terminates", async () => {
+    const saveState = vi.fn().mockResolvedValue(true);
+    const delivered: string[] = [];
+    const api = new Scorm2004API({
+      sequencing: {
+        activityTree: {
+          id: "root",
+          sequencingControls: { flow: true },
+          children: [{ id: "sco1" }, { id: "sco2" }],
+        },
+        eventListeners: {
+          onActivityDelivery: (activity) => delivered.push(activity.id),
+        },
+      },
+      sequencingStatePersistence: {
+        persistence: {
+          saveState,
+          loadState: vi.fn().mockResolvedValue(null),
+        },
+        autoLoadOnInitialize: false,
+        autoSaveOn: "navigate",
+        compress: false,
+      },
+    });
+
+    expect(api.Initialize("")).toBe("true");
+    expect(delivered.at(-1)).toBe("sco1");
+    expect(api.SetValue("adl.nav.request", "continue")).toBe("true");
+    expect(api.Terminate("")).toBe("true");
+    await vi.waitFor(() => expect(saveState).toHaveBeenCalledOnce());
+
+    const [stateData] = saveState.mock.calls[0];
+    expect(JSON.parse(stateData).currentActivityId).toBe("sco2");
+    expect(delivered.at(-1)).toBe("sco2");
+  });
+
   it("allows an LMS to suppress the Initialize-time state load after preloading", async () => {
     const loadState = vi.fn().mockResolvedValue(null);
     const api = new Scorm2004API({
