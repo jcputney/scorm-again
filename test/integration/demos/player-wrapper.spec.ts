@@ -374,8 +374,9 @@ test.describe("SCORM 2004 Sequenced Demo", () => {
     await frame.locator(".btn-pass").waitFor({ state: "visible" });
     await frame.locator(".btn-pass").click();
 
-    // Wait for rollup to complete
-    await page.waitForTimeout(500);
+    // End the second child attempt so its runtime status transfers into rollup.
+    await page.locator("#btn-next").click();
+    await waitForScoLoad(page);
 
     // Module 1 parent should show completed/passed status after both children complete
     const module1Icon = page.locator("[data-activity-id=\"module1\"] .menu-item-icon");
