@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 import {
-  clickSequencingButton,
+  requestContentNavigation,
   completeAssessmentSCO,
   completeContentSCO,
   getNavigationValidity,
   getWrapperConfigs,
   initializeSequencedModule,
+  terminateCurrentAttempt,
   waitForModuleFrame,
   waitForScoContent,
 } from "./helpers/scorm2004-helpers";
@@ -350,7 +351,7 @@ wrappers.forEach((wrapper) => {
     };
 
     const continueToNextSco = async (page: any, contentKey: string) => {
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
       await waitForScoContent(page, contentKey);
     };
 
@@ -641,6 +642,7 @@ wrappers.forEach((wrapper) => {
       // Verify navigation validity for assessment (may be true, false, or unknown depending on sequencing state)
       const assessmentAccess = await getNavigationValidity(page, "choice", ASSESSMENT_ACTIVITY.id);
       expect(["true", "false", "unknown"]).toContain(assessmentAccess);
+      await terminateCurrentAttempt(page);
 
       // Verify all content activities are satisfied
       const contentStatus = await page.evaluate(() => {
@@ -740,7 +742,7 @@ wrappers.forEach((wrapper) => {
       expect(["true", "unknown"]).toContain(previousNav);
 
       // Use the sequencing controls to move back and verify the first SCO loads again
-      await clickSequencingButton(page, "previous");
+      await requestContentNavigation(page, "previous");
       await waitForScoContent(page, CONTENT_ACTIVITIES[0].key);
     });
 
@@ -795,6 +797,7 @@ wrappers.forEach((wrapper) => {
       await startAssessment(page);
 
       const { score, successStatus } = await completeAssessmentSCO(page, true);
+      await terminateCurrentAttempt(page);
 
       // Assessment should have a passing score and success status
       expect(score).toBeGreaterThanOrEqual(70);
@@ -880,6 +883,7 @@ wrappers.forEach((wrapper) => {
       await startAssessment(page);
 
       const { score, successStatus } = await completeAssessmentSCO(page, true);
+      await terminateCurrentAttempt(page);
 
       expect(score).toBeGreaterThanOrEqual(70);
       expect(successStatus).toBe("passed");
@@ -917,6 +921,7 @@ wrappers.forEach((wrapper) => {
       await startAssessment(page);
 
       const { score, successStatus } = await completeAssessmentSCO(page, false);
+      await terminateCurrentAttempt(page);
 
       expect(score).toBeLessThan(70);
       expect(successStatus).toBe("failed");

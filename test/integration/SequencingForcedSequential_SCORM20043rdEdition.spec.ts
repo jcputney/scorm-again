@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   advanceScoPages,
-  clickSequencingButton,
+  requestContentNavigation,
   completeAssessmentSCO,
   completeContentSCO,
   getCmiValue,
@@ -401,8 +401,8 @@ wrappers.forEach((wrapper) => {
       // Complete the current SCO through learner interactions
       await completeContentSCO(page);
 
-      // Request navigation via LMS-provided UI
-      await clickSequencingButton(page, "continue");
+      // Request navigation through the SCO runtime contract.
+      await requestContentNavigation(page, "continue");
 
       await page.waitForFunction(() => {
         const frame = document.getElementById("moduleFrame") as HTMLIFrameElement | null;
@@ -422,7 +422,7 @@ wrappers.forEach((wrapper) => {
       await completeContentSCO(page);
 
       // Navigate forward to second SCO
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
       await page.waitForFunction(() => {
         const frame = document.getElementById("moduleFrame") as HTMLIFrameElement | null;
         return frame?.src.includes("etiquette");
@@ -432,8 +432,8 @@ wrappers.forEach((wrapper) => {
       const previousValidBefore = await getNavigationValidity(page, "previous");
       expect(["true", "unknown"]).toContain(previousValidBefore);
 
-      // Navigate backward via LMS-provided UI
-      await clickSequencingButton(page, "previous");
+      // Navigate backward through the SCO runtime contract.
+      await requestContentNavigation(page, "previous");
 
       // Wait for navigation to complete - should return to first SCO (playing)
       await page.waitForFunction(
@@ -468,7 +468,7 @@ wrappers.forEach((wrapper) => {
       const successStatus = await getCmiValue(page, "cmi.objectives.0.success_status");
       expect(["passed", "completed"]).toContain(successStatus);
 
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
       await waitForScoContent(page, "etiquette");
 
       // Global persistence after transitioning to the next SCO: etiquette_item's
@@ -552,7 +552,7 @@ wrappers.forEach((wrapper) => {
         api.lmsCommit();
       });
 
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
       await waitForScoContent(page, "etiquette");
 
       // After reset for new SCO, entry should be "ab-initio"
@@ -1033,10 +1033,9 @@ wrappers.forEach((wrapper) => {
         });
 
         if (i < scoSequence.length - 1) {
-          // Navigate forward via the actual sequencing button (rather than only
-          // setting adl.nav.request) so the SCO transition actually happens, then
-          // wait for the next SCO to load before its entry 0 is checked.
-          await clickSequencingButton(page, "continue");
+          // End the current attempt with a continue request, then wait for the next
+          // SCO to load before its entry 0 is checked.
+          await requestContentNavigation(page, "continue");
           await waitForScoContent(page, contentKeys[scoSequence[i + 1]]);
         }
       }
