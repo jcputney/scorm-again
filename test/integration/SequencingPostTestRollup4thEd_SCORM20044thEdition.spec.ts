@@ -6,6 +6,7 @@ import {
   getCmiValue,
   getGlobalObjectiveStatus,
   getWrapperConfigs,
+  terminateCurrentAttempt,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
@@ -549,6 +550,7 @@ wrappers.forEach((wrapper) => {
       // Verify completion status was set
       const completionStatus = await getCmiValue(page, "cmi.completion_status");
       expect(completionStatus).toBe("completed");
+      await terminateCurrentAttempt(page);
 
       // Optionally verify the global objective map agrees
       const globalStatus = await getGlobalObjectiveStatus(

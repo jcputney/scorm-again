@@ -152,6 +152,23 @@ describe("Auto-Completion and Auto-Satisfaction Logic", () => {
   });
 
   describe("Auto-Satisfaction Logic", () => {
+    it("should auto-satisfy attempt state without a declared primary objective", () => {
+      // @spec SCORM 2004 4th Ed. SN UP.4: an activity's attempt objective state
+      // is auto-satisfied even when the manifest declares no primary objective.
+      leafActivity.primaryObjective = null;
+      leafActivity.sequencingControls.objectiveSetByContent = false;
+      leafActivity.isActive = true;
+      leafActivity.objectiveSatisfiedStatusKnown = false;
+
+      const endAttemptProcess = (overallSequencingProcess as any).endAttemptProcess;
+      endAttemptProcess.call(overallSequencingProcess, leafActivity);
+
+      expect(leafActivity.objectiveSatisfiedStatus).toBe(true);
+      expect(leafActivity.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(leafActivity.successStatus).toBe("passed");
+      expect(leafActivity.wasAutoSatisfied).toBe(true);
+    });
+
     it("should auto-satisfy when objectiveSetByContent=false and content doesn't set status", () => {
       // Setup
       leafActivity.sequencingControls.objectiveSetByContent = false;
@@ -330,8 +347,9 @@ describe("Auto-Completion and Auto-Satisfaction Logic", () => {
         endAttemptProcess.call(overallSequencingProcess, leafActivity);
       }).not.toThrow();
 
-      // Verify: No auto-satisfaction since there's no objective
-      expect(leafActivity.wasAutoSatisfied).toBe(false);
+      // The activity-level attempt objective is still auto-satisfied.
+      expect(leafActivity.wasAutoSatisfied).toBe(true);
+      expect(leafActivity.objectiveSatisfiedStatus).toBe(true);
     });
 
     it("should handle inactive activity gracefully", () => {

@@ -38,6 +38,82 @@ function prepareNextVisit(api: Scorm2004API): void {
 }
 
 describe("SCORM 2004 tri-state sequencing rule conditions", () => {
+  it("does not skip an untracked OB-06 cluster based on mapped objective state", () => {
+    const skipWhenAllKnown = {
+      action: "skip",
+      conditionCombination: "all",
+      conditions: [{ condition: "objectiveStatusKnown" }, { condition: "objectiveMeasureKnown" }],
+    };
+    const skipWhenAnyKnown = {
+      action: "skip",
+      conditionCombination: "any",
+      conditions: [{ condition: "objectiveStatusKnown" }, { condition: "objectiveMeasureKnown" }],
+    };
+    const api = createApi({
+      id: "OB-06",
+      title: "OB-06",
+      sequencingControls: {
+        choice: false,
+        flow: true,
+      },
+      children: [
+        {
+          id: "activity_1",
+          title: "Writer",
+          primaryObjective: {
+            objectiveID: "PRIMARYOBJ",
+            mapInfo: [
+              {
+                targetObjectiveID: "gObj-OB06",
+                writeSatisfiedStatus: true,
+                writeNormalizedMeasure: true,
+              },
+            ],
+          },
+        },
+        {
+          id: "activity_2",
+          title: "Untracked cluster",
+          sequencingControls: {
+            choice: false,
+            flow: true,
+            tracked: false,
+          },
+          sequencingRules: {
+            preConditionRules: [skipWhenAllKnown, skipWhenAnyKnown],
+          },
+          primaryObjective: {
+            objectiveID: "PRIMARYOBJ",
+            mapInfo: [{ targetObjectiveID: "gObj-OB06" }],
+          },
+          children: [
+            {
+              id: "activity_3",
+              title: "Expected child",
+            },
+          ],
+        },
+        {
+          id: "activity_4",
+          title: "Fallback",
+        },
+      ],
+    });
+
+    start(api);
+    expect(currentActivityId(api)).toBe("activity_1");
+
+    // @spec SCORM 2004 OB-06: mapped objective state cannot make tracking
+    // conditions known on a cluster whose delivery control disables tracking.
+    expect(
+      continueFromCurrentActivity(api, [
+        ["cmi.success_status", "passed"],
+        ["cmi.score.scaled", "0.5"],
+        ["cmi.exit", "normal"],
+      ]),
+    ).toBe("activity_3");
+  });
+
   it("does not skip a fresh activity for not(completed) when completion status is unknown", () => {
     const api = createApi({
       id: "SX-07a",

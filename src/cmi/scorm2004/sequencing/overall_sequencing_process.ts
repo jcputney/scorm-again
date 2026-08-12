@@ -1,6 +1,10 @@
 import { Activity } from "./activity";
 import { ActivityTree } from "./activity_tree";
-import { DeliveryRequestType, SequencingProcess, SequencingRequestType } from "./sequencing_process";
+import {
+  DeliveryRequestType,
+  SequencingProcess,
+  SequencingRequestType,
+} from "./sequencing_process";
 import { RollupProcess } from "./rollup_process";
 import { ADLNav } from "../adl";
 import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
@@ -56,6 +60,17 @@ export interface OverallSequencingProcessOptions {
 }
 
 /**
+ * Navigation state after NB.2.1 and TB.2.3 have run, but before SB.2.12 may
+ * unload the current SCO and deliver another one.
+ */
+export interface PreparedNavigationRequest {
+  navigationRequest: NavigationRequestType;
+  navResult: NavigationRequestResult;
+  deliveryRequest: DeliveryRequest | null;
+  sessionEndReason: "exit_all" | "abandon_all" | null;
+}
+
+/**
  * Overall Sequencing Process
  *
  * Coordinates the overall execution of the SCORM 2004 sequencing loop.
@@ -97,7 +112,7 @@ export class OverallSequencingProcess {
     rollupProcess: RollupProcess,
     adlNav: ADLNav | null = null,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
-    options?: OverallSequencingProcessOptions
+    options?: OverallSequencingProcessOptions,
   ) {
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
@@ -120,12 +135,13 @@ export class OverallSequencingProcess {
     this.deliveryValidator = new DeliveryValidator(
       activityTree,
       eventCallback,
-      deliveryValidatorOptions
+      deliveryValidatorOptions,
     );
 
     // Initialize termination handler
     // Build options object conditionally to satisfy exactOptionalPropertyTypes
-    const terminationOptions: { getCMIData?: () => CMIDataForTransfer; is4thEdition?: boolean } = {};
+    const terminationOptions: { getCMIData?: () => CMIDataForTransfer; is4thEdition?: boolean } =
+      {};
     if (options?.getCMIData) {
       terminationOptions.getCMIData = options.getCMIData;
     }
@@ -138,7 +154,7 @@ export class OverallSequencingProcess {
       rollupProcess,
       this.globalObjectiveService.getMap(),
       eventCallback,
-      terminationOptions
+      terminationOptions,
     );
 
     // Initialize delivery handler
@@ -163,7 +179,7 @@ export class OverallSequencingProcess {
       this.globalObjectiveService.getMap(),
       adlNav,
       eventCallback,
-      deliveryOptions
+      deliveryOptions,
     );
 
     // Initialize navigation validity service
@@ -171,7 +187,7 @@ export class OverallSequencingProcess {
       activityTree,
       sequencingProcess,
       adlNav,
-      eventCallback
+      eventCallback,
     );
 
     // Initialize state manager
@@ -180,7 +196,7 @@ export class OverallSequencingProcess {
       this.globalObjectiveService,
       rollupProcess,
       adlNav,
-      eventCallback
+      eventCallback,
     );
 
     // Use the shared navigation look-ahead from NavigationValidityService
@@ -199,10 +215,13 @@ export class OverallSequencingProcess {
     this.terminationHandler.setInvalidateCacheCallback(() => {
       this.navigationLookAhead.invalidateCache();
     });
+    this.sequencingProcess?.setEndAttemptCallback((activity) => {
+      this.terminationHandler.endAttempt(activity);
+    });
 
     // Set up delivery handler callbacks
     this.deliveryHandler.setCheckActivityCallback((activity) =>
-      this.deliveryValidator.checkActivity(activity)
+      this.deliveryValidator.checkActivity(activity),
     );
     this.deliveryHandler.setInvalidateCacheCallback(() => {
       this.navigationLookAhead.invalidateCache();
@@ -216,24 +235,27 @@ export class OverallSequencingProcess {
 
     // Set up delivery validator callbacks
     this.deliveryValidator.setContentDeliveredGetter(() =>
-      this.deliveryHandler.hasContentBeenDelivered()
+      this.deliveryHandler.hasContentBeenDelivered(),
     );
 
     // Set up navigation validity service callbacks
     this.navigationValidityService.setGetEffectiveHideLmsUiCallback((activity) =>
-      this.deliveryHandler.getEffectiveHideLmsUi(activity)
+      this.deliveryHandler.getEffectiveHideLmsUi(activity),
+    );
+    this.navigationValidityService.setGetEffectiveAuxiliaryResourcesCallback((activity) =>
+      this.deliveryHandler.getEffectiveAuxiliaryResources(activity),
     );
 
     // Set up state manager callbacks
     this.stateManager.setGetEffectiveHideLmsUiCallback((activity) =>
-      this.deliveryHandler.getEffectiveHideLmsUi(activity)
+      this.deliveryHandler.getEffectiveHideLmsUi(activity),
     );
     this.stateManager.setGetEffectiveAuxiliaryResourcesCallback((activity) =>
-      this.deliveryHandler.getEffectiveAuxiliaryResources(activity)
+      this.deliveryHandler.getEffectiveAuxiliaryResources(activity),
     );
     this.stateManager.setContentDeliveredAccessors(
       () => this.deliveryHandler.hasContentBeenDelivered(),
-      (value) => this.deliveryHandler.setContentDelivered(value)
+      (value) => this.deliveryHandler.setContentDelivered(value),
     );
   }
 
@@ -249,16 +271,38 @@ export class OverallSequencingProcess {
   public processNavigationRequest(
     navigationRequest: NavigationRequestType,
     targetActivityId: string | null = null,
-    exitType?: string
+    exitType?: string,
   ): DeliveryRequest {
+    return this.completeNavigationRequest(
+      this.prepareNavigationRequest(navigationRequest, targetActivityId, exitType),
+    );
+  }
+
+  /**
+   * Run navigation validation and termination without starting the sequencing
+   * request that may unload or deliver content.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.1-1.3 - termination precedes
+   *   sequencing and delivery.
+   */
+  public prepareNavigationRequest(
+    navigationRequest: NavigationRequestType,
+    targetActivityId: string | null = null,
+    exitType?: string,
+  ): PreparedNavigationRequest {
     // Step 1: Navigation Request Process (NB.2.1)
     const navResult = this.navigationValidityService.validateRequest(
       navigationRequest,
-      targetActivityId
+      targetActivityId,
     );
 
     if (!navResult.valid) {
-      return new DeliveryRequest(false, null, navResult.exception);
+      return {
+        navigationRequest,
+        navResult,
+        deliveryRequest: new DeliveryRequest(false, null, navResult.exception),
+        sessionEndReason: null,
+      };
     }
 
     // Step 2: Termination Request Process (TB.2.3) if needed
@@ -267,95 +311,121 @@ export class OverallSequencingProcess {
       const termResult = this.terminationHandler.processTerminationRequest(
         navResult.terminationRequest,
         hadSequencingRequest,
-        exitType
+        exitType,
       );
 
       if (!termResult.valid) {
-        return new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1");
+        return {
+          navigationRequest,
+          navResult,
+          deliveryRequest: new DeliveryRequest(
+            false,
+            null,
+            termResult.exception || "TB.2.3-1",
+          ),
+          sessionEndReason: null,
+        };
       }
 
       // Per TB.2.3 Step 3.6/4.5: Post-condition sequencing request overrides navigation request
       if (termResult.sequencingRequest !== null) {
-        if (
-          hadSequencingRequest ||
-          termResult.sequencingRequest !== SequencingRequestType.EXIT
-        ) {
+        if (hadSequencingRequest || termResult.sequencingRequest !== SequencingRequestType.EXIT) {
           navResult.sequencingRequest = termResult.sequencingRequest;
         }
       }
 
       // If this is a termination-only request (no sequencing request), return success
       if (!navResult.sequencingRequest) {
-        // For EXIT_ALL and ABANDON_ALL, fire session end event
-        if (
-          navResult.terminationRequest === SequencingRequestType.EXIT_ALL ||
-          navResult.terminationRequest === SequencingRequestType.ABANDON_ALL
-        ) {
-          this.fireEvent("onSequencingSessionEnd", {
-            reason:
-              navResult.terminationRequest === SequencingRequestType.EXIT_ALL
-                ? "exit_all"
-                : "abandon_all",
-            navigationRequest: navigationRequest,
-          });
-        }
-        return new DeliveryRequest(true, null);
+        const sessionEndReason =
+          navResult.terminationRequest === SequencingRequestType.EXIT_ALL
+            ? "exit_all"
+            : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL
+              ? "abandon_all"
+              : null;
+        return {
+          navigationRequest,
+          navResult,
+          deliveryRequest: null,
+          sessionEndReason,
+        };
       }
     }
 
+    return {
+      navigationRequest,
+      navResult,
+      deliveryRequest: null,
+      sessionEndReason: null,
+    };
+  }
+
+  /**
+   * Finish a prepared navigation request with sequencing and delivery.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.4-1.5 - sequencing and delivery
+   *   follow successful termination processing.
+   */
+  public completeNavigationRequest(prepared: PreparedNavigationRequest): DeliveryRequest {
+    const { navigationRequest, navResult } = prepared;
+
+    if (prepared.deliveryRequest) {
+      return prepared.deliveryRequest;
+    }
+
+    if (!navResult.sequencingRequest) {
+      if (prepared.sessionEndReason) {
+        this.fireEvent("onSequencingSessionEnd", {
+          reason: prepared.sessionEndReason,
+          navigationRequest,
+        });
+      }
+      return new DeliveryRequest(true, null);
+    }
+
     // Step 3: Sequencing Request Process (SB.2.12)
-    if (navResult.sequencingRequest) {
-      const seqResult = this.sequencingProcess.sequencingRequestProcess(
-        navResult.sequencingRequest,
-        navResult.targetActivityId
+    const seqResult = this.sequencingProcess.sequencingRequestProcess(
+      navResult.sequencingRequest,
+      navResult.targetActivityId,
+    );
+
+    // OP.1 step 1.4.3: Check if sequencing session should end
+    if (seqResult.endSequencingSession) {
+      this.fireEvent("onSequencingSessionEnd", {
+        reason: "end_of_content",
+        exception: seqResult.exception,
+        navigationRequest: navigationRequest,
+      });
+
+      // Return delivery request indicating session end
+      return new DeliveryRequest(false, null, seqResult.exception || "SESSION_ENDED");
+    }
+
+    if (seqResult.exception) {
+      return new DeliveryRequest(false, null, seqResult.exception);
+    }
+
+    if (seqResult.deliveryRequest === DeliveryRequestType.DELIVER && seqResult.targetActivity) {
+      // INTEGRATION: Validate rollup state consistency before delivery
+      if (this.activityTree.root) {
+        const isConsistent = this.rollupProcess.validateRollupStateConsistency(
+          this.activityTree.root,
+        );
+        if (!isConsistent) {
+          this.fireEvent("onSequencingDebug", {
+            message: "Rollup state inconsistency detected before delivery",
+            activityId: this.activityTree.root.id,
+          });
+        }
+      }
+
+      // INTEGRATION: Process global objective mapping before delivery
+      this.rollupProcess.processGlobalObjectiveMapping(
+        seqResult.targetActivity,
+        this.globalObjectiveService.getMap(),
       );
 
-      // OP.1 step 1.4.3: Check if sequencing session should end
-      if (seqResult.endSequencingSession) {
-        this.fireEvent("onSequencingSessionEnd", {
-          reason: "end_of_content",
-          exception: seqResult.exception,
-          navigationRequest: navigationRequest,
-        });
-
-        // Return delivery request indicating session end
-        return new DeliveryRequest(
-          false,
-          null,
-          seqResult.exception || "SESSION_ENDED"
-        );
-      }
-
-      if (seqResult.exception) {
-        return new DeliveryRequest(false, null, seqResult.exception);
-      }
-
-      if (
-        seqResult.deliveryRequest === DeliveryRequestType.DELIVER &&
-        seqResult.targetActivity
-      ) {
-        // INTEGRATION: Validate rollup state consistency before delivery
-        if (this.activityTree.root) {
-          const isConsistent = this.rollupProcess.validateRollupStateConsistency(
-            this.activityTree.root
-          );
-          if (!isConsistent) {
-            this.fireEvent("onSequencingDebug", {
-              message: "Rollup state inconsistency detected before delivery",
-              activityId: this.activityTree.root.id,
-            });
-          }
-        }
-
-        // INTEGRATION: Process global objective mapping before delivery
-        this.rollupProcess.processGlobalObjectiveMapping(
-          seqResult.targetActivity,
-          this.globalObjectiveService.getMap()
-        );
-
-        // Step 4: Delivery Request Process (DB.1.1)
-        return this.processDelivery(seqResult.targetActivity);
-      }
+      // Step 4: Delivery Request Process (DB.1.1)
+      return this.processDelivery(seqResult.targetActivity);
     }
 
     return new DeliveryRequest(false, null, "OP.1-1");
@@ -379,14 +449,12 @@ export class OverallSequencingProcess {
         return new DeliveryRequest(false, null, resourceCheck.exception);
       }
 
-      const concurrentCheck =
-        this.deliveryValidator.validateConcurrentDelivery(targetActivity);
+      const concurrentCheck = this.deliveryValidator.validateConcurrentDelivery(targetActivity);
       if (!concurrentCheck.allowed) {
         return new DeliveryRequest(false, null, concurrentCheck.exception);
       }
 
-      const dependencyCheck =
-        this.deliveryValidator.validateDependencies(targetActivity);
+      const dependencyCheck = this.deliveryValidator.validateDependencies(targetActivity);
       if (!dependencyCheck.satisfied) {
         return new DeliveryRequest(false, null, dependencyCheck.exception);
       }
@@ -453,10 +521,7 @@ export class OverallSequencingProcess {
    * Synchronize global objectives from activity states
    */
   public synchronizeGlobalObjectives(): void {
-    this.globalObjectiveService.synchronize(
-      this.activityTree.root,
-      this.rollupProcess
-    );
+    this.globalObjectiveService.synchronize(this.activityTree.root, this.rollupProcess);
   }
 
   /**
@@ -609,9 +674,7 @@ export class OverallSequencingProcess {
    * @param {Activity | null} activity - The activity
    * @return {AuxiliaryResource[]} - Merged auxiliary resources
    */
-  public getEffectiveAuxiliaryResources(
-    activity: Activity | null
-  ): AuxiliaryResource[] {
+  public getEffectiveAuxiliaryResources(activity: Activity | null): AuxiliaryResource[] {
     return this.deliveryHandler.getEffectiveAuxiliaryResources(activity);
   }
 
@@ -639,12 +702,12 @@ export class OverallSequencingProcess {
   public terminationRequestProcess(
     request: SequencingRequestType,
     hasSequencingRequest: boolean,
-    exitType?: string
+    exitType?: string,
   ): TerminationResult {
     return this.terminationHandler.processTerminationRequest(
       request,
       hasSequencingRequest,
-      exitType
+      exitType,
     );
   }
 
@@ -677,12 +740,9 @@ export class OverallSequencingProcess {
    */
   public handleExitTermination(
     currentActivity: Activity,
-    hasSequencingRequest: boolean
+    hasSequencingRequest: boolean,
   ): TerminationResult {
-    return this.terminationHandler.handleExitTermination(
-      currentActivity,
-      hasSequencingRequest
-    );
+    return this.terminationHandler.handleExitTermination(currentActivity, hasSequencingRequest);
   }
 
   /**

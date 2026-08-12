@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -11,7 +11,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { getExceptionDescription } from "../../../../src/constants/sequencing_exceptions";
 
@@ -58,11 +58,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
 
-    overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
-    );
+    overallProcess = new OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess);
   });
 
   describe("EXIT termination", () => {
@@ -274,8 +270,9 @@ describe("Termination Request Process (TB.2.3)", () => {
   describe("Integration with Post-Condition Rules (TB.2.2)", () => {
     beforeEach(() => {
       // Add post-condition rules
-      const postRule = grandchild1.sequencingRules.postConditionRules[0] =
-        new SequencingRule(RuleActionType.CONTINUE);
+      const postRule = (grandchild1.sequencingRules.postConditionRules[0] = new SequencingRule(
+        RuleActionType.CONTINUE,
+      ));
       postRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
     });
 
@@ -294,6 +291,28 @@ describe("Termination Request Process (TB.2.3)", () => {
       } else {
         expect(result.valid).toBe(true);
       }
+    });
+
+    /**
+     * @spec SCORM 2004 4th Ed. SN TB.2.2/TB.2.3
+     */
+    it("should restart at the first deliverable activity for retryAll", () => {
+      const retryAllRule = new SequencingRule(RuleActionType.RETRY_ALL);
+      retryAllRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      grandchild1.sequencingRules.postConditionRules.length = 0;
+      grandchild1.sequencingRules.addPostConditionRule(retryAllRule);
+
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+      child1.isActive = true;
+      root.isActive = true;
+
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+
+      expect(result.valid).toBe(true);
+      expect(result.exception).toBeNull();
+      expect(result.targetActivity).toBe(grandchild1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
   });
 
@@ -373,8 +392,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
     it("should apply exit rules recursively during descendant termination", () => {
       // Set up exit rule on grandchild that exits parent
-      const exitRule = grandchild1.sequencingRules.exitConditionRules[0] =
-        new SequencingRule(RuleActionType.EXIT_PARENT);
+      const exitRule = (grandchild1.sequencingRules.exitConditionRules[0] = new SequencingRule(
+        RuleActionType.EXIT_PARENT,
+      ));
       exitRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
 
       activityTree.currentActivity = child1;
@@ -435,7 +455,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       // Now choose a different activity
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.valid).toBe(true);
@@ -466,7 +486,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const flatOverallProcess = new OverallSequencingProcess(
         flatTree,
         flatSequencingProcess,
-        flatRollupProcess
+        flatRollupProcess,
       );
 
       flatTree.currentActivity = activity1;
@@ -475,7 +495,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const exitResult = flatOverallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "normal"
+        "normal",
       );
 
       expect(exitResult.valid).toBe(true);
@@ -483,7 +503,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(flatTree.currentActivity).toBe(activity1);
 
       const continueResult = flatOverallProcess.processNavigationRequest(
-        NavigationRequestType.CONTINUE
+        NavigationRequestType.CONTINUE,
       );
 
       expect(continueResult.valid).toBe(true);
@@ -500,7 +520,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "logout"
+        "logout",
       );
 
       expect(result.valid).toBe(true);
@@ -520,7 +540,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "normal"
+        "normal",
       );
 
       expect(result.valid).toBe(true);
@@ -529,22 +549,24 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(activityTree.currentActivity).toBe(grandchild1);
     });
 
-    it("should handle suspend exit type (note: exitType is informational)", () => {
+    /**
+     * @spec SCORM 2004 4th Ed. RTE 4.2.8 cmi.exit
+     */
+    it("should preserve the local activity attempt for a suspend exit type", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
 
       // Process EXIT request with suspend exit type
-      // Note: cmi.exit="suspend" is informational; actual suspension requires SUSPEND_ALL request
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.EXIT,
         null,
-        "suspend"
+        "suspend",
       );
 
       expect(result.valid).toBe(true);
-      // EXIT with exitType="suspend" still performs normal exit
-      // To actually suspend, use SUSPEND_ALL navigation request
       expect(grandchild1.isActive).toBe(false);
+      expect(grandchild1.isSuspended).toBe(true);
+      expect(activityTree.suspendedActivity).toBeNull();
       expect(activityTree.currentActivity).toBe(grandchild1);
     });
 
@@ -553,11 +575,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       grandchild1.isActive = true;
 
       // Process EXIT request with empty exit type
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.EXIT,
-        null,
-        ""
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT, null, "");
 
       expect(result.valid).toBe(true);
       // Empty exit should behave like normal exit
@@ -569,8 +587,9 @@ describe("Termination Request Process (TB.2.3)", () => {
   describe("Post-Condition Return Value", () => {
     it("should return and use CONTINUE sequencing request from post-condition", () => {
       // Set up activity with post-condition CONTINUE rule
-      const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-        new SequencingRule(RuleActionType.CONTINUE);
+      const continueRule = (grandchild1.sequencingRules.postConditionRules[0] = new SequencingRule(
+        RuleActionType.CONTINUE,
+      ));
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;
@@ -594,8 +613,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
     it("should use navigation request when no post-condition triggers", () => {
       // Set up activity with post-condition CONTINUE rule that won't trigger
-      const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-        new SequencingRule(RuleActionType.CONTINUE);
+      const continueRule = (grandchild1.sequencingRules.postConditionRules[0] = new SequencingRule(
+        RuleActionType.CONTINUE,
+      ));
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;

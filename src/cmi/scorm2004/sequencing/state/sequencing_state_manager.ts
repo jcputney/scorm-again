@@ -17,12 +17,18 @@ export interface ActivityStateData {
   completionStatus: string;
   successStatus: string;
   attemptCount: number;
+  objectiveInfoAvailableInCurrentParentAttempt?: boolean;
+  progressInfoAvailableInCurrentParentAttempt?: boolean;
   attemptCompletionAmount: number;
+  /** @spec SN Book RB.1.1.b - completion measure rollup depends on whether the persisted measure is known. */
+  attemptCompletionAmountStatus: boolean;
   attemptAbsoluteDuration: string;
   attemptExperiencedDuration: string;
   activityAbsoluteDuration: string;
   activityExperiencedDuration: string;
   objectiveSatisfiedStatus: boolean;
+  /** @spec SCORM 2004 4th Ed. SN TM.1: unknown objective progress must survive session restore. */
+  objectiveSatisfiedStatusKnown: boolean;
   objectiveMeasureStatus: boolean;
   objectiveNormalizedMeasure: number;
   progressMeasure: number | null;
@@ -107,12 +113,10 @@ export class SequencingStateManager {
   private rollupProcess: RollupProcess;
   private adlNav: ADLNav | null;
   private eventCallback: ((eventType: string, data?: any) => void) | null;
-  private getEffectiveHideLmsUiCallback:
-    | ((activity: Activity | null) => HideLmsUiItem[])
-    | null = null;
+  private getEffectiveHideLmsUiCallback: ((activity: Activity | null) => HideLmsUiItem[]) | null =
+    null;
   private getEffectiveAuxiliaryResourcesCallback:
-    | ((activity: Activity | null) => AuxiliaryResource[])
-    | null = null;
+    ((activity: Activity | null) => AuxiliaryResource[]) | null = null;
   private contentDeliveredGetter: (() => boolean) | null = null;
   private contentDeliveredSetter: ((value: boolean) => void) | null = null;
 
@@ -121,7 +125,7 @@ export class SequencingStateManager {
     globalObjectiveService: GlobalObjectiveService,
     rollupProcess: RollupProcess,
     adlNav: ADLNav | null = null,
-    eventCallback: ((eventType: string, data?: any) => void) | null = null
+    eventCallback: ((eventType: string, data?: any) => void) | null = null,
   ) {
     this.activityTree = activityTree;
     this.globalObjectiveService = globalObjectiveService;
@@ -134,7 +138,7 @@ export class SequencingStateManager {
    * Set callback to get effective hideLmsUi
    */
   public setGetEffectiveHideLmsUiCallback(
-    callback: (activity: Activity | null) => HideLmsUiItem[]
+    callback: (activity: Activity | null) => HideLmsUiItem[],
   ): void {
     this.getEffectiveHideLmsUiCallback = callback;
   }
@@ -143,7 +147,7 @@ export class SequencingStateManager {
    * Set callback to get effective auxiliary resources
    */
   public setGetEffectiveAuxiliaryResourcesCallback(
-    callback: (activity: Activity | null) => AuxiliaryResource[]
+    callback: (activity: Activity | null) => AuxiliaryResource[],
   ): void {
     this.getEffectiveAuxiliaryResourcesCallback = callback;
   }
@@ -153,7 +157,7 @@ export class SequencingStateManager {
    */
   public setContentDeliveredAccessors(
     getter: () => boolean,
-    setter: (value: boolean) => void
+    setter: (value: boolean) => void,
   ): void {
     this.contentDeliveredGetter = getter;
     this.contentDeliveredSetter = setter;
@@ -168,9 +172,7 @@ export class SequencingStateManager {
     return {
       version: "1.0",
       timestamp: new Date().toISOString(),
-      contentDelivered: this.contentDeliveredGetter
-        ? this.contentDeliveredGetter()
-        : false,
+      contentDelivered: this.contentDeliveredGetter ? this.contentDeliveredGetter() : false,
       currentActivity: this.activityTree.currentActivity?.id || null,
       suspendedActivity: this.activityTree.suspendedActivity?.id || null,
       activityStates: this.serializeActivities(),
@@ -232,10 +234,7 @@ export class SequencingStateManager {
 
       // Re-run global objective synchronization to ensure map and activities align after restore
       if (this.activityTree.root) {
-        this.globalObjectiveService.synchronize(
-          this.activityTree.root,
-          this.rollupProcess
-        );
+        this.globalObjectiveService.synchronize(this.activityTree.root, this.rollupProcess);
       }
 
       console.debug("Sequencing state restored successfully");
@@ -264,12 +263,18 @@ export class SequencingStateManager {
         completionStatus: activity.completionStatus,
         successStatus: activity.successStatus,
         attemptCount: activity.attemptCount,
+        objectiveInfoAvailableInCurrentParentAttempt:
+          activity.objectiveInfoAvailableInCurrentParentAttempt,
+        progressInfoAvailableInCurrentParentAttempt:
+          activity.progressInfoAvailableInCurrentParentAttempt,
         attemptCompletionAmount: activity.attemptCompletionAmount,
+        attemptCompletionAmountStatus: activity.attemptCompletionAmountStatus,
         attemptAbsoluteDuration: activity.attemptAbsoluteDuration,
         attemptExperiencedDuration: activity.attemptExperiencedDuration,
         activityAbsoluteDuration: activity.activityAbsoluteDuration,
         activityExperiencedDuration: activity.activityExperiencedDuration,
         objectiveSatisfiedStatus: activity.objectiveSatisfiedStatus,
+        objectiveSatisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
         objectiveMeasureStatus: activity.objectiveMeasureStatus,
         objectiveNormalizedMeasure: activity.objectiveNormalizedMeasure,
         progressMeasure: activity.progressMeasure,
@@ -319,18 +324,25 @@ export class SequencingStateManager {
         activity.isSuspended = state.isSuspended || false;
         activity.isCompleted = state.isCompleted || false;
         activity.completionStatus = state.completionStatus || "unknown";
-        activity.successStatus = state.successStatus || "unknown";
         activity.attemptCount = state.attemptCount || 0;
+        activity.objectiveInfoAvailableInCurrentParentAttempt =
+          state.objectiveInfoAvailableInCurrentParentAttempt ?? true;
+        activity.progressInfoAvailableInCurrentParentAttempt =
+          state.progressInfoAvailableInCurrentParentAttempt ?? true;
         activity.attemptCompletionAmount = state.attemptCompletionAmount || 0;
-        activity.attemptAbsoluteDuration =
-          state.attemptAbsoluteDuration || "PT0H0M0S";
-        activity.attemptExperiencedDuration =
-          state.attemptExperiencedDuration || "PT0H0M0S";
-        activity.activityAbsoluteDuration =
-          state.activityAbsoluteDuration || "PT0H0M0S";
-        activity.activityExperiencedDuration =
-          state.activityExperiencedDuration || "PT0H0M0S";
+        activity.attemptCompletionAmountStatus = state.attemptCompletionAmountStatus ?? false;
+        activity.attemptAbsoluteDuration = state.attemptAbsoluteDuration || "PT0H0M0S";
+        activity.attemptExperiencedDuration = state.attemptExperiencedDuration || "PT0H0M0S";
+        activity.activityAbsoluteDuration = state.activityAbsoluteDuration || "PT0H0M0S";
+        activity.activityExperiencedDuration = state.activityExperiencedDuration || "PT0H0M0S";
         activity.objectiveSatisfiedStatus = state.objectiveSatisfiedStatus || false;
+        // @spec SCORM 2004 4th Ed. SN TM.1: restoring a false value must not
+        // promote an unknown objective progress status to known-not-satisfied.
+        activity.objectiveSatisfiedStatusKnown =
+          state.objectiveSatisfiedStatusKnown ?? state.successStatus !== "unknown";
+        // The objective setter derives success as a side effect; serialized
+        // success is authoritative when restoring tracking state.
+        activity.successStatus = state.successStatus || "unknown";
         activity.objectiveMeasureStatus = state.objectiveMeasureStatus || false;
         activity.objectiveNormalizedMeasure = state.objectiveNormalizedMeasure || 0;
         activity.progressMeasure = state.progressMeasure ?? 0;
@@ -357,8 +369,7 @@ export class SequencingStateManager {
         const sequencingControls = activity.sequencingControls;
 
         if (selectionState.selectionCountStatus !== undefined) {
-          sequencingControls.selectionCountStatus =
-            selectionState.selectionCountStatus;
+          sequencingControls.selectionCountStatus = selectionState.selectionCountStatus;
         }
 
         if (selectionState.reorderChildren !== undefined) {
@@ -392,9 +403,7 @@ export class SequencingStateManager {
           }
         }
 
-        activity.setProcessedChildren(
-          activity.children.filter((child) => child.isAvailable)
-        );
+        activity.setProcessedChildren(activity.children.filter((child) => child.isAvailable));
       } else {
         activity.resetProcessedChildren();
       }
@@ -420,9 +429,7 @@ export class SequencingStateManager {
       : [];
 
     const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback
-      ? this.getEffectiveAuxiliaryResourcesCallback(
-          this.activityTree.currentActivity
-        )
+      ? this.getEffectiveAuxiliaryResourcesCallback(this.activityTree.currentActivity)
       : [];
 
     return {
@@ -482,9 +489,7 @@ export class SequencingStateManager {
    */
   public getSuspensionState(): SuspensionState {
     const state: SuspensionState = {
-      activityTree: this.activityTree.root
-        ? this.activityTree.root.getSuspensionState()
-        : null,
+      activityTree: this.activityTree.root ? this.activityTree.root.getSuspensionState() : null,
       currentActivityId: this.activityTree.currentActivity?.id || null,
       suspendedActivityId: this.activityTree.suspendedActivity?.id || null,
       globalObjectives: this.globalObjectiveService.getSnapshot(),
@@ -529,18 +534,14 @@ export class SequencingStateManager {
 
       // Restore current and suspended activity references
       if (state.currentActivityId) {
-        const currentActivity = this.activityTree.getActivity(
-          state.currentActivityId
-        );
+        const currentActivity = this.activityTree.getActivity(state.currentActivityId);
         if (currentActivity) {
           this.activityTree.currentActivity = currentActivity;
         }
       }
 
       if (state.suspendedActivityId) {
-        const suspendedActivity = this.activityTree.getActivity(
-          state.suspendedActivityId
-        );
+        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivityId);
         if (suspendedActivity) {
           this.activityTree.suspendedActivity = suspendedActivity;
         }

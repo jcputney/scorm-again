@@ -136,6 +136,26 @@ describe("GlobalObjectiveSynchronizer", () => {
   });
 
   describe("syncGlobalObjectivesWritePhase", () => {
+    /**
+     * @spec SCORM 2004 SN 4th Ed. SM.7 write maps transfer on attempt termination
+     */
+    it("does not publish intermediate state from an active attempt", () => {
+      const objective = new ActivityObjective("obj1");
+      objective.satisfiedStatus = true;
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: true,
+        },
+      ];
+      child1.isActive = true;
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      synchronizer.syncGlobalObjectivesWritePhase(child1, globalObjectives);
+
+      expect(globalObjectives.has("global-obj-1")).toBe(false);
+    });
+
     it("should write satisfied status to global objective when dirty", () => {
       const objective = new ActivityObjective("obj1");
       // Setting a different value first, then the test value, triggers dirty flag
@@ -168,12 +188,48 @@ describe("GlobalObjectiveSynchronizer", () => {
       expect(globalObjectives.get("global-obj-1")?.satisfiedStatusKnown).toBe(true);
     });
 
+    it("should not write satisfaction for a measure-controlled objective with no measure", () => {
+      const objective = new ActivityObjective("obj1", {
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0,
+      });
+      objective.satisfiedStatus = true;
+      objective.satisfiedStatusKnown = true;
+      objective.progressStatus = true;
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: true,
+          readSatisfiedStatus: false,
+          writeNormalizedMeasure: true,
+          readNormalizedMeasure: false,
+          writeCompletionStatus: false,
+          readCompletionStatus: false,
+          writeProgressMeasure: false,
+          readProgressMeasure: false,
+          updateAttemptData: false,
+        },
+      ];
+
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description / 3.10.3
+      // Objective Map - satisfiedByMeasure status remains unknown until its
+      // normalized measure is known, including after local end-attempt defaults.
+      synchronizer.syncGlobalObjectivesWritePhase(child1, globalObjectives);
+
+      expect(objective.measureStatus).toBe(false);
+      expect(globalObjectives.get("global-obj-1")?.satisfiedStatusKnown).toBe(false);
+      expect(globalObjectives.get("global-obj-1")?.normalizedMeasureKnown).toBe(false);
+    });
+
     it("should write normalized measure and derive satisfaction when writeSatisfiedStatus is true", () => {
       const objective = new ActivityObjective("obj1");
       objective.normalizedMeasure = 0; // Default value
       objective.normalizedMeasure = 0.85; // Change triggers dirty flag
       objective.measureStatus = true;
       objective.satisfiedByMeasure = true;
+      objective.minNormalizedMeasure = 0.7;
       objective.mapInfo = [
         {
           targetObjectiveID: "global-obj-1",
@@ -227,6 +283,76 @@ describe("GlobalObjectiveSynchronizer", () => {
       const globalObj = globalObjectives.get("global-obj-1");
       expect(globalObj?.completionStatus).toBe(CompletionStatus.COMPLETED);
       expect(globalObj?.completionStatusKnown).toBe(true);
+    });
+
+    it("should clear a known global completion status when local status becomes unknown", () => {
+      const objective = new ActivityObjective("obj1");
+      objective.applyReadMappedState({ completionStatus: CompletionStatus.INCOMPLETE });
+      objective.completionStatus = CompletionStatus.UNKNOWN;
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: false,
+          readSatisfiedStatus: false,
+          writeNormalizedMeasure: false,
+          readNormalizedMeasure: false,
+          writeCompletionStatus: true,
+          readCompletionStatus: false,
+          writeProgressMeasure: false,
+          readProgressMeasure: false,
+          updateAttemptData: false,
+        },
+      ];
+      globalObjectives.set(
+        "global-obj-1",
+        createGlobalObjective({
+          completionStatus: CompletionStatus.INCOMPLETE,
+          completionStatusKnown: true,
+        }),
+      );
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      synchronizer.syncGlobalObjectivesWritePhase(child1, globalObjectives);
+
+      // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - a dirty
+      // unknown completion status clears knowledge in the mapped global objective.
+      const globalObj = globalObjectives.get("global-obj-1");
+      expect(globalObj?.completionStatus).toBe(CompletionStatus.UNKNOWN);
+      expect(globalObj?.completionStatusKnown).toBe(false);
+      expect(objective.isDirty("completionStatus")).toBe(false);
+    });
+
+    it("should not clear a known global completion status from default unknown", () => {
+      const objective = new ActivityObjective("obj1");
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: false,
+          readSatisfiedStatus: false,
+          writeNormalizedMeasure: false,
+          readNormalizedMeasure: false,
+          writeCompletionStatus: true,
+          readCompletionStatus: false,
+          writeProgressMeasure: false,
+          readProgressMeasure: false,
+          updateAttemptData: false,
+        },
+      ];
+      globalObjectives.set(
+        "global-obj-1",
+        createGlobalObjective({
+          completionStatus: CompletionStatus.INCOMPLETE,
+          completionStatusKnown: true,
+        }),
+      );
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      synchronizer.syncGlobalObjectivesWritePhase(child1, globalObjectives);
+
+      expect(globalObjectives.get("global-obj-1")?.completionStatus).toBe(
+        CompletionStatus.INCOMPLETE,
+      );
+      expect(globalObjectives.get("global-obj-1")?.completionStatusKnown).toBe(true);
     });
 
     it("should write progress measure to global objective when dirty", () => {
@@ -316,7 +442,7 @@ describe("GlobalObjectiveSynchronizer", () => {
       expect(blockedGlobalObj?.maxScoreKnown).toBe(false);
     });
 
-    it("should use default mapInfo when no mapInfo is specified", () => {
+    it("should keep an objective local when no mapInfo is specified", () => {
       const objective = new ActivityObjective("obj1");
       objective.satisfiedStatus = false; // Default
       objective.satisfiedStatus = true; // Change triggers dirty
@@ -327,8 +453,85 @@ describe("GlobalObjectiveSynchronizer", () => {
 
       synchronizer.syncGlobalObjectivesWritePhase(child1, globalObjectives);
 
-      // Default mapInfo uses the objective id as target
-      expect(globalObjectives.has("obj1")).toBe(true);
+      // @spec SCORM 2004 4th Ed. SN 3.10.3: no objective map means no
+      // global objective relationship.
+      expect(globalObjectives.has("obj1")).toBe(false);
+    });
+  });
+
+  describe("syncTerminatedActivityWritePhase", () => {
+    /**
+     * @spec SCORM 2004 SN 4th Ed. SM.7 and TM.1.1
+     */
+    it("clears prior global state when the terminating attempt has unknown state", () => {
+      const objective = new ActivityObjective("obj1", {
+        satisfiedByMeasure: true,
+      });
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: true,
+          writeNormalizedMeasure: true,
+        },
+      ];
+      globalObjectives.set(
+        "global-obj-1",
+        createGlobalObjective({
+          satisfiedStatus: true,
+          satisfiedStatusKnown: true,
+          normalizedMeasure: 1,
+          normalizedMeasureKnown: true,
+        }),
+      );
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      const writeTargets = synchronizer.syncTerminatedActivityWritePhase(child1, globalObjectives);
+
+      expect(globalObjectives.get("global-obj-1")?.satisfiedStatusKnown).toBe(false);
+      expect(globalObjectives.get("global-obj-1")?.normalizedMeasureKnown).toBe(false);
+      expect(writeTargets.satisfiedStatus).toEqual(new Set(["global-obj-1"]));
+      expect(writeTargets.normalizedMeasure).toEqual(new Set(["global-obj-1"]));
+    });
+
+    /**
+     * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+     */
+    it("reads only freshly written fields into an active write-mapped ancestor", () => {
+      const objective = new ActivityObjective("ancestor-objective");
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "shared-objective",
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: true,
+          writeNormalizedMeasure: true,
+        },
+      ];
+      objective.satisfiedStatus = true;
+      objective.satisfiedStatusKnown = true;
+      objective.normalizedMeasure = 0.25;
+      objective.measureStatus = true;
+      child1.isActive = true;
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+      globalObjectives.set(
+        "shared-objective",
+        createGlobalObjective({
+          id: "shared-objective",
+          satisfiedStatus: false,
+          satisfiedStatusKnown: true,
+          normalizedMeasure: 0.9,
+          normalizedMeasureKnown: true,
+        }),
+      );
+
+      synchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(child1, globalObjectives, {
+        satisfiedStatus: new Set(["shared-objective"]),
+        normalizedMeasure: new Set(),
+      });
+
+      expect(objective.satisfiedStatus).toBe(false);
+      expect(objective.satisfiedStatusKnown).toBe(true);
+      expect(objective.normalizedMeasure).toBe(0.25);
     });
   });
 
@@ -393,6 +596,7 @@ describe("GlobalObjectiveSynchronizer", () => {
 
       const objective = new ActivityObjective("obj1");
       objective.satisfiedByMeasure = true;
+      objective.minNormalizedMeasure = 0.8;
       objective.mapInfo = [
         {
           targetObjectiveID: "global-obj-1",
@@ -414,6 +618,52 @@ describe("GlobalObjectiveSynchronizer", () => {
 
       expect(objective.normalizedMeasure).toBe(0.9);
       expect(objective.satisfiedStatus).toBe(true);
+    });
+
+    /**
+     * @spec SCORM 2004 SN 4th Ed. DB.2 and SM.7
+     */
+    it("does not restore a prior global value into an active write source", () => {
+      const globalObj: GlobalObjective = {
+        id: "global-obj-1",
+        satisfiedStatus: true,
+        satisfiedStatusKnown: true,
+        normalizedMeasure: 1,
+        normalizedMeasureKnown: true,
+        progressMeasure: 0,
+        progressMeasureKnown: false,
+        completionStatus: CompletionStatus.UNKNOWN,
+        completionStatusKnown: false,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.6,
+      };
+      globalObjectives.set("global-obj-1", globalObj);
+
+      const objective = new ActivityObjective("obj1", {
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.6,
+      });
+      objective.mapInfo = [
+        {
+          targetObjectiveID: "global-obj-1",
+          writeSatisfiedStatus: true,
+          readSatisfiedStatus: false,
+          writeNormalizedMeasure: true,
+          readNormalizedMeasure: true,
+          writeCompletionStatus: false,
+          readCompletionStatus: false,
+          writeProgressMeasure: false,
+          readProgressMeasure: false,
+          updateAttemptData: false,
+        },
+      ];
+      child1.isActive = true;
+      vi.spyOn(child1, "getAllObjectives").mockReturnValue([objective]);
+
+      synchronizer.syncGlobalObjectivesReadPhase(child1, globalObjectives);
+
+      expect(objective.measureStatus).toBe(false);
+      expect(objective.satisfiedStatusKnown).toBe(false);
     });
 
     it("should read progress measure from global objective", () => {
@@ -612,7 +862,7 @@ describe("GlobalObjectiveSynchronizer", () => {
   });
 
   describe("synchronizeGlobalObjectives", () => {
-    it("should perform combined read/write synchronization", () => {
+    it("should not synchronize an objective without mapInfo", () => {
       const objective = new ActivityObjective("obj1");
       objective.satisfiedStatus = true;
       objective.measureStatus = true;
@@ -622,8 +872,10 @@ describe("GlobalObjectiveSynchronizer", () => {
 
       synchronizer.synchronizeGlobalObjectives(child1, globalObjectives);
 
-      expect(globalObjectives.has("obj1")).toBe(true);
-      expect(eventCallback).toHaveBeenCalledWith("objective_synchronized", expect.any(Object));
+      // @spec SCORM 2004 4th Ed. SN 3.10.3: local objectives do not become
+      // global objectives without an explicit objective map.
+      expect(globalObjectives.has("obj1")).toBe(false);
+      expect(eventCallback).not.toHaveBeenCalledWith("objective_synchronized", expect.any(Object));
     });
   });
 
@@ -680,6 +932,7 @@ describe("GlobalObjectiveSynchronizer", () => {
     it("should read and write with satisfiedByMeasure", () => {
       const objective = new ActivityObjective("obj1");
       objective.satisfiedByMeasure = true;
+      objective.minNormalizedMeasure = 0.7;
       objective.measureStatus = true;
 
       const mapInfo = {

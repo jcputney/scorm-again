@@ -1203,8 +1203,9 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const sequencingService = scorm2004API["_sequencingService"];
       expect(sequencingService).toBeDefined();
 
-      // Spy on processNavigationRequest to verify exitType is passed
-      const processNavSpy = vi.spyOn(sequencingService!, "processNavigationRequest");
+      // Terminate now prepares tracking/navigation before serializing the
+      // commit, then completes delivery after the commit snapshot is captured.
+      const prepareNavSpy = vi.spyOn(sequencingService!, "prepareNavigationRequest");
 
       // Set exit value to logout
       scorm2004API.lmsSetValue("cmi.exit", "logout");
@@ -1212,14 +1213,10 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Terminate the session
       scorm2004API.lmsFinish("");
 
-      // Verify processNavigationRequest was called with the logout exit type
-      expect(processNavSpy).toHaveBeenCalled();
-      const calls = processNavSpy.mock.calls;
-      // Debug: log all calls to see what parameters are being passed
-      // calls.forEach((call, idx) => {
-      //   console.log(`Call ${idx}:`, call[0], call[1], call[2]);
-      // });
-      // Check if any call has "logout" as the third parameter (exitType)
+      // @spec SCORM 2004 4th Ed. SN OP.1 - exit type reaches the
+      // termination/navigation preparation phase before delivery.
+      expect(prepareNavSpy).toHaveBeenCalled();
+      const calls = prepareNavSpy.mock.calls;
       const hasLogoutExitType = calls.some((call) => call[2] === "logout");
       expect(hasLogoutExitType).toBe(true);
     });
@@ -1246,12 +1243,12 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsSetValue("cmi.exit", "suspend");
 
       const sequencingService = scorm2004API["_sequencingService"];
-      const processNavSpy = vi.spyOn(sequencingService!, "processNavigationRequest");
+      const prepareNavSpy = vi.spyOn(sequencingService!, "prepareNavigationRequest");
 
       scorm2004API.lmsFinish("");
 
-      expect(processNavSpy).toHaveBeenCalled();
-      const calls = processNavSpy.mock.calls;
+      expect(prepareNavSpy).toHaveBeenCalled();
+      const calls = prepareNavSpy.mock.calls;
       const hasSuspendExitType = calls.some((call) => call[2] === "suspend");
       expect(hasSuspendExitType).toBe(true);
     });
@@ -1276,12 +1273,12 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Don't set cmi.exit (default is empty string)
       const sequencingService = scorm2004API["_sequencingService"];
-      const processNavSpy = vi.spyOn(sequencingService!, "processNavigationRequest");
+      const prepareNavSpy = vi.spyOn(sequencingService!, "prepareNavigationRequest");
 
       scorm2004API.lmsFinish("");
 
-      expect(processNavSpy).toHaveBeenCalled();
-      const calls = processNavSpy.mock.calls;
+      expect(prepareNavSpy).toHaveBeenCalled();
+      const calls = prepareNavSpy.mock.calls;
       // Should be called with empty string as exitType
       const hasEmptyExitType = calls.some((call) => call[2] === "");
       expect(hasEmptyExitType).toBe(true);

@@ -146,6 +146,14 @@ export class TerminationHandler {
       return this.handleExitAll(currentActivity);
     }
 
+    // cmi.exit="suspend" preserves this SCO's attempt data for its next delivery. This is local
+    // activity suspension, not a Suspend All request, so do not set the tree's suspendedActivity.
+    // Mark it before UP.4 so auto-completion and auto-satisfaction do not replace content state.
+    // @spec SCORM 2004 4th Ed. RTE 4.2.8 cmi.exit and SN UP.4 End Attempt Process
+    if (exitType === "suspend" && request === SequencingRequestType.EXIT) {
+      currentActivity.isSuspended = true;
+    }
+
     // Handle different termination types
     switch (request) {
       case SequencingRequestType.EXIT:
@@ -253,7 +261,21 @@ export class TerminationHandler {
         this.fireEvent("onPostConditionExitAll", {
           activity: (this.activityTree.currentActivity || currentActivity).id,
         });
-        return this.handleExitAll(this.activityTree.root!);
+        const exitAllResult = this.handleExitAll(this.activityTree.root!);
+
+        // @spec SCORM 2004 4th Ed. SN TB.2.2/TB.2.3: retryAll is
+        // represented by a Retry sequencing request paired with Exit All.
+        // Preserve that compound request after Exit All clears the current
+        // activity so sequencing restarts from the root instead of applying
+        // the current-activity-only Retry process.
+        if (postConditionResult.sequencingRequest === SequencingRequestType.RETRY) {
+          return {
+            ...exitAllResult,
+            sequencingRequest: SequencingRequestType.RETRY_ALL,
+          };
+        }
+
+        return exitAllResult;
       }
 
       // TB.2.3 step 3.3.4: If returns EXIT_PARENT, move up and continue loop
@@ -824,9 +846,16 @@ export class TerminationHandler {
       return;
     }
 
-    // Transfer RTE data to activity state BEFORE auto-completion logic
-    // This ensures that CMI data set by content is properly transferred to activity objectives
-    this._rteDataTransferService.transferRteData(activity);
+    // Only a delivered leaf has RTE data. Cluster attempts end from sequencing
+    // traversal and must retain their rolled-up tracking state instead of
+    // consuming the last child's CMI values.
+    // @spec SCORM 2004 SN 4th Ed. UP.4 End Attempt Process
+    const contentCommunicatedObjectiveStatus =
+      activity.children.length === 0 && this.contentCommunicatedObjectiveStatus(activity);
+
+    if (activity.children.length === 0) {
+      this._rteDataTransferService.transferRteData(activity);
+    }
 
     // Set activity as inactive
     activity.isActive = false;
@@ -867,27 +896,37 @@ export class TerminationHandler {
           if (!activity.sequencingControls.objectiveSetByContent) {
             // [UP.4]1.1.1.2.1. Get the primary objective
             const primaryObjective = activity.primaryObjective;
+            const objectiveProgressStatus = primaryObjective
+              ? primaryObjective.progressStatus
+              : activity.objectiveSatisfiedStatusKnown;
 
-            if (primaryObjective) {
-              // [UP.4]1.1.1.2.1.1.1. If the Objective Progress Status for the objective is False Then
-              // (Did the content inform the sequencer of the activity's rolled-up objective status?)
-              if (!primaryObjective.progressStatus) {
+            // [UP.4]1.1.1.2.1.1.1. If the Objective Progress Status for the objective is False Then
+            // (Did the content inform the sequencer of the activity's rolled-up objective status?)
+            // An explicit unknown is still communicated information. The LMS
+            // only supplies the automatic satisfied default for a SCO that did
+            // not communicate primary-objective success at all.
+            // @spec SCORM 2004 4th Ed. SN 3.13.3 / RTE 4.2.17
+            if (!objectiveProgressStatus && !contentCommunicatedObjectiveStatus) {
+              if (primaryObjective) {
                 // [UP.4]1.1.1.2.1.1.1.1. Set the Objective Progress Status for the objective to True
                 primaryObjective.progressStatus = true;
 
                 // [UP.4]1.1.1.2.1.1.1.2. Set the Objective Satisfied Status for the objective to True
                 primaryObjective.satisfiedStatus = true;
-                activity.objectiveSatisfiedStatus = true;
-                activity.successStatus = "passed";
-
-                // Track that this was automatic
-                activity.wasAutoSatisfied = true;
-
-                this.fireEvent("onAutoSatisfaction", {
-                  activityId: activity.id,
-                  timestamp: new Date().toISOString(),
-                });
               }
+
+              // @spec SCORM 2004 4th Ed. SN UP.4: attempt objective state exists
+              // even when the activity has no explicitly declared primaryObjective.
+              activity.objectiveSatisfiedStatus = true;
+              activity.successStatus = "passed";
+
+              // Track that this was automatic
+              activity.wasAutoSatisfied = true;
+
+              this.fireEvent("onAutoSatisfaction", {
+                activityId: activity.id,
+                timestamp: new Date().toISOString(),
+              });
             }
           }
         }
@@ -910,6 +949,29 @@ export class TerminationHandler {
       activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
     }
 
+    // A write map transfers the terminating attempt's final status, including
+    // unknown status, before other activities read the shared objective.
+    const writeTargets = this.rollupProcess.syncTerminatedActivityObjectives(
+      activity,
+      this.globalObjectiveMap,
+    );
+
+    // A terminating descendant's map writes are visible to active ancestors before their
+    // post-condition rules run. Limit the read to the fields written above so an active writer
+    // cannot revive unrelated state from its previous attempt.
+    // @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+    let activeAncestor = activity.parent;
+    while (activeAncestor) {
+      if (activeAncestor.isActive) {
+        this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
+          activeAncestor,
+          this.globalObjectiveMap,
+          writeTargets,
+        );
+      }
+      activeAncestor = activeAncestor.parent;
+    }
+
     // Sync global objectives then trigger rollup
     // This reads FROM global objectives INTO activities before rollup,
     // so rollup can use global objective state when calculating activity status
@@ -920,10 +982,25 @@ export class TerminationHandler {
     // Rollup calculates satisfaction and completion based on children and global state
     this.rollupProcess.overallRollupProcess(activity);
 
-    // IMPORTANT: We do NOT sync again after rollup because that would overwrite
-    // the rollup results by reading from stale global objectives.
-    // Global objectives will be updated on the NEXT activity's access when it
-    // reads the parent's status via global objective mapping.
+    // Rollup can recalculate an active cluster's primary objective from its
+    // children. Reapply only the fields written by this terminating descendant
+    // so the cluster's mapped primary reflects the fresh global value when its
+    // exit and post-condition rules run.
+    // @spec SCORM 2004 4th Ed. TR OB-16c / SN SM.7 Objective Map write timing
+    activeAncestor = activity.parent;
+    while (activeAncestor) {
+      if (activeAncestor.isActive) {
+        this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
+          activeAncestor,
+          this.globalObjectiveMap,
+          writeTargets,
+        );
+      }
+      activeAncestor = activeAncestor.parent;
+    }
+
+    // Do not run another tree-wide sync here: unrelated global values may be
+    // stale. Only the fresh write targets above are authoritative after rollup.
 
     // Invalidate navigation predictions after rollup
     if (this.invalidateCacheCallback) {
@@ -939,6 +1016,30 @@ export class TerminationHandler {
     // (Randomization at specification-required process points)
     // This occurs after rollup processing completes
     SelectionRandomization.applySelectionAndRandomization(activity, false);
+  }
+
+  /**
+   * Return whether the delivered SCO wrote success information for its rolled-up objective.
+   */
+  private contentCommunicatedObjectiveStatus(activity: Activity): boolean {
+    const cmiData = this.getCMIData?.();
+    if (!cmiData) {
+      return false;
+    }
+
+    if (cmiData.success_status_was_set === true) {
+      return true;
+    }
+
+    const primaryObjectiveId = activity.primaryObjective?.id;
+    return Boolean(
+      primaryObjectiveId &&
+        cmiData.objectives?.some(
+          (objective) =>
+            objective.id === primaryObjectiveId &&
+            objective.success_status_was_set === true,
+        ),
+    );
   }
 
   /**

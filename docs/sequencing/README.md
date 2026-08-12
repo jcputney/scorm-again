@@ -6,7 +6,7 @@ This guide documents everything an LMS must do to run SCORM 2004 sequencing with
 
 - **Environment**: Browser capable of running the bundled `dist/scorm2004.min.js` (or the ESM build).
 - **Hosting**: Serve the API bundle before launching SCO content. Expose it globally as `window.API_1484_11`.
-- **Lifecycle**: LMS must call `Initialize()` when the SCO loads and `Terminate()` when the SCO exits. Sequence processing, navigation, rollup, and persistence hooks run inside those calls.
+- **Lifecycle**: The SCO calls `Initialize()` after launch and `Terminate()` when its attempt ends. The LMS must create and preload the API before exposing it, then react to delivery events. Sequence processing, navigation, rollup, and persistence hooks run inside the API calls.
 - **Node version (tooling)**: `npm run build:types` and tests require Node ≥ 20. Client browsers see prebuilt bundles, no transpilation needed.
 
 ```html
@@ -23,7 +23,8 @@ The LMS supplies the manifest-equivalent sequencing tree at API construction tim
 
 ```ts
 const settings = {
-  globalObjectiveIds: ["GLOBAL_PRIMARY"],
+  // Required if the LMS persists the globalObjectives commit snapshot.
+  renderCommonCommitFields: true,
   sequencing: {
     hideLmsUi: ["exitAll", "abandonAll"],
     auxiliaryResources: [
@@ -105,7 +106,8 @@ const settings = {
         },
       ],
     },
-    autoRollupOnCMIChange: true,
+    // SCORM transfers RTE data to sequencing when the attempt ends.
+    autoRollupOnCMIChange: false,
     enableEventSystem: true,
     validateNavigationRequests: true,
     logLevel: "info",
@@ -127,11 +129,13 @@ const settings = {
 | `selectionRandomizationState` | Persisted selection/randomization data for deterministic resumes. |
 | `hideLmsUi[]` | Additional LMS navigation hints. |
 | `auxiliaryResources[]` | Array of `{ resourceId, purpose }` entries for job aids, help, etc. |
-| `sequencingCollectionRefs` | One or many collection IDs to reuse shared settings. |
+| `sequencingCollectionRefs`, `sequencingIdRef` | One or many collection IDs to reuse shared settings. `sequencingIdRef` is the manifest-oriented alias. |
 
 ### 2.2 Collections
 
-Collections let you define reusable sequencing bundles. A collection may contain controls, rules, rollup considerations, selection state, hide directives, and auxiliary resources. Activities reference collections via `sequencingCollectionRefs`; scorm-again merges collection data with per-activity settings (collection values apply first, activity overrides last).
+Collections let you define reusable sequencing bundles. A collection may contain objectives, controls, rules, rollup considerations, selection state, hide directives, and auxiliary resources. Supply collections as either a record keyed by ID or an array whose entries include `id`. Activities reference collections via `sequencingCollectionRefs` or `sequencingIdRef`; scorm-again merges collection data with per-activity settings (collection values apply first, activity overrides last).
+
+Objective targets declared by an activity's `mapInfo` are discovered from the activity tree. Do not also put those IDs in `globalObjectiveIds`. That setting is reserved for host-defined global rows that are exposed directly to CMI independently of manifest objective maps.
 
 ### 2.3 Auxiliary Resources
 
@@ -152,8 +156,8 @@ Sequencing emits events when LMS shells register listeners via `API.setSequencin
 - `onNavigationValidityUpdate(validity)` – update navigation UI and auxiliary resources. Payload:
   ```ts
   {
-    continue: "true" | "false",
-    previous: "true" | "false",
+    continue: boolean,
+    previous: boolean,
     choice: Record<string, "true" | "false">,
     jump: Record<string, "true" | "false">,
     hideLmsUi: HideLmsUiItem[],
@@ -182,7 +186,8 @@ In wrappers (`test/integration/wrappers/*.html`) you can see the reference imple
 
 ## 4. Navigation Handling
 
-- Use ADL navigation values to trigger sequencing transitions: set `adl.nav.request` and call `Commit()`. Example: `API.SetValue("adl.nav.request", "_continue"); API.Commit("");`.
+- For a content-driven transition, the SCO sets `adl.nav.request` and then calls `Terminate()`: `API.SetValue("adl.nav.request", "continue"); API.Terminate("");`. The API ends the attempt, captures the termination commit, processes sequencing, and emits the next delivery in that order.
+- `Commit()` is only a runtime-data checkpoint. It neither ends the current attempt nor executes `adl.nav.request`; content may commit before terminating, but it must still call `Terminate()` to transition.
 - Honor `adl.nav.request_valid.*` (available in both the CMI tree and the event payload) to disable or grey-out illegal actions.
 - For direct LMS actions (no ADL value) you can call `API.processNavigationRequest(type, targetId?)`. Returns `true` on success.
 - Choice/jump requests require target IDs: `API.processNavigationRequest("choice", "moduleB")`.
@@ -234,9 +239,25 @@ Recommended REST endpoints (adjust to your stack):
 | `GET` | `/api/scorm/state?learner=...&course=...` | — | Load last saved state. Return `null` if none. |
 | `DELETE` | `/api/scorm/state?learner=...&course=...` | — | Forget stored state (e.g., new attempt). |
 
-Call `API.saveSequencingState(metadata)` during LMS checkpoints (e.g., commit, suspend). Call `API.loadSequencingState(metadata)` immediately after `Initialize()` when you resume a learner.
+Call `API.saveSequencingState(metadata)` during LMS checkpoints (e.g., commit, suspend). By default, a successful `Initialize()` starts an asynchronous compatibility load. An LMS that selects initial delivery itself should instead disable that load and restore state before it starts or resumes sequencing:
 
-Use `metadata: { learnerId, courseId, attemptId? }` to scope storage.
+```ts
+const API = new Scorm2004API({
+  ...settings,
+  sequencingStatePersistence: {
+    persistence,
+    autoLoadOnInitialize: false,
+  },
+});
+
+API.restoreGlobalObjectiveSnapshot(persistedGlobalObjectives);
+await API.loadSequencingState(metadata);
+window.API_1484_11 = API;
+```
+
+SCORM API `Initialize()` remains synchronous. `autoLoadOnInitialize: false` prevents a later compatibility load from racing the host's explicit restore. When `renderCommonCommitFields: true`, SCORM 2004 commit objects also include a `globalObjectives` snapshot so the LMS can persist registration-scoped objective state separately from SCO-local `runtimeData`.
+
+Use `metadata: { learnerId, courseId, attemptNumber? }` to scope storage. `autoSaveOn` defaults to `"commit"` and includes both explicit `Commit()` calls and the termination commit. Use `"navigate"` to save after successful direct or content-driven navigation, `"setValue"` to checkpoint sequencing-related runtime writes, or `"never"` for fully explicit persistence.
 
 ## 7. Cross-Frame / Cross-Domain Deployments
 
@@ -277,8 +298,9 @@ The cross-frame wrapper in the repo demonstrates the pattern: it registers seque
 
 - [ ] Serve `scorm2004.min.js` (or ESM) and instantiate `Scorm2004API` with complete sequencing configuration.
 - [ ] Register sequencing event listeners; update navigation controls and auxiliary resource panel on each event.
-- [ ] Forward user navigation actions via `adl.nav.request` + `Commit` or `processNavigationRequest`.
+- [ ] Let content-driven navigation run through `adl.nav.request` + `Terminate`; use `processNavigationRequest` only for direct LMS actions.
 - [ ] Implement persistence endpoints and wire `saveSequencingState` / `loadSequencingState` / `clearSequencingState`.
+- [ ] Enable `renderCommonCommitFields`, persist `globalObjectives` from commit payloads, and restore them before initial delivery.
 - [ ] Render auxiliary resources (default + per-activity) in learner UI.
 - [ ] Handle cross-frame communication if content runs in another domain.
 - [ ] Provide LMS logging for `onSequencingError`, `onSequencingDebug` as desired.

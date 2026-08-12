@@ -460,19 +460,27 @@ class Scorm2004SimplePlayer {
         break;
 
       case 'adl.nav.request':
-        this.handleNavRequest(value);
+        // The request is not actionable until the SCO ends its attempt.
+        this.pendingNavRequest = value;
         break;
+    }
+  }
+
+  handleTerminate() {
+    if (this.pendingNavRequest) {
+      this.handleNavRequest(this.pendingNavRequest);
+      this.pendingNavRequest = null;
     }
   }
 
   handleNavRequest(request) {
     switch (request) {
       case 'continue':
-      case '_next_':
+      case '_continue':
         this.launchNext();
         break;
       case 'previous':
-      case '_previous_':
+      case '_previous':
         this.launchPrevious();
         break;
       case 'exit':
@@ -544,9 +552,10 @@ class Scorm2004SequencedPlayer {
   initApi() {
     this.api = new Scorm2004API({
       autocommit: true,
+      renderCommonCommitFields: true,
       sequencing: {
-        enabled: true,
         activityTree: COURSE_MANIFEST.activities,
+        autoRollupOnCMIChange: false,
         eventListeners: {
           onActivityDelivery: (activity) => this.handleActivityDelivery(activity),
           onNavigationValidityUpdate: (data) => this.handleNavValidityUpdate(data),
@@ -575,13 +584,10 @@ class Scorm2004SequencedPlayer {
   }
 
   handleNavValidityUpdate(data) {
-    this.validRequests = data.validRequests || [];
-
-    const canContinue = this.validRequests.includes('continue');
-    const canPrevious = this.validRequests.includes('previous');
-
-    document.getElementById('btn-next').disabled = !canContinue;
-    document.getElementById('btn-prev').disabled = !canPrevious;
+    document.getElementById('btn-next').disabled = !data.continue;
+    document.getElementById('btn-prev').disabled = !data.previous;
+    this.choiceTargets = Object.keys(data.choice)
+      .filter((id) => data.choice[id] === 'true');
   }
 
   handleRollupComplete(activity) {
@@ -787,7 +793,7 @@ const recalculateProgress = () => {
 | Event | Parameters | UI Update |
 |-------|------------|-----------|
 | `onActivityDelivery` | `activity` | Load SCO, highlight in menu |
-| `onNavigationValidityUpdate` | `{ validRequests }` | Enable/disable nav buttons |
+| `onNavigationValidityUpdate` | `{ continue, previous, choice, jump, hideLmsUi, auxiliaryResources }` | Enable/disable nav buttons and update delivery UI |
 | `onRollupComplete` | `activity` | Update menu status, progress |
 | `onSequencingSessionEnd` | `{ reason }` | Show completion screen |
 

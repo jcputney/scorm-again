@@ -4,7 +4,11 @@ import { SequencingProcess, SequencingRequestType } from "../sequencing_process"
 import { RuleActionType } from "../sequencing_rules";
 import { ADLNav } from "../../adl";
 import { NavigationLookAhead, NavigationPredictions } from "../navigation_look_ahead";
-import { HideLmsUiItem } from "../../../../types/sequencing_types";
+import {
+  AuxiliaryResource,
+  HideLmsUiItem,
+  NavigationValidityUpdate,
+} from "../../../../types/sequencing_types";
 
 /**
  * Enum for navigation request types
@@ -73,6 +77,9 @@ export class NavigationValidityService {
   private getEffectiveHideLmsUiCallback:
     | ((activity: Activity | null) => HideLmsUiItem[])
     | null = null;
+  private getEffectiveAuxiliaryResourcesCallback:
+    | ((activity: Activity | null) => AuxiliaryResource[])
+    | null = null;
 
   constructor(
     activityTree: ActivityTree,
@@ -94,6 +101,13 @@ export class NavigationValidityService {
     callback: (activity: Activity | null) => HideLmsUiItem[]
   ): void {
     this.getEffectiveHideLmsUiCallback = callback;
+  }
+
+  /** Set callback used to resolve inherited auxiliary resources for the current activity. */
+  public setGetEffectiveAuxiliaryResourcesCallback(
+    callback: (activity: Activity | null) => AuxiliaryResource[],
+  ): void {
+    this.getEffectiveAuxiliaryResourcesCallback = callback;
   }
 
   /**
@@ -495,13 +509,13 @@ export class NavigationValidityService {
       }
     }
 
-    // Path to root validation for choice control
-    let activity: Activity | null = targetActivity;
-    while (activity) {
-      if (activity.parent && !activity.parent.sequencingControls.choice) {
-        return { valid: false, exception: "NB.2.1-11" };
-      }
-      activity = activity.parent;
+    // @spec SCORM 2004 SN 4th Ed. NB.2.1: choice control applies to the
+    // target's immediate parent; higher ancestors govern their own child sets.
+    if (
+      targetActivity.parent &&
+      !targetActivity.parent.sequencingControls.choice
+    ) {
+      return { valid: false, exception: "NB.2.1-11" };
     }
 
     return { valid: true, exception: null };
@@ -737,6 +751,13 @@ export class NavigationValidityService {
     currentActivity: Activity,
     targetActivity: Activity
   ): { valid: boolean; exception: string | null } {
+    // @spec SCORM 2004 SN 4th Ed. NB.2.1: the target of a choice request may be the
+    // common ancestor itself. Its parent's choice control governs that request; the
+    // target's own choice control only governs choices among its children.
+    if (targetActivity === ancestor) {
+      return { valid: true, exception: null };
+    }
+
     // Enforce forwardOnly and mandatory activity constraints at ancestor level
     const children = ancestor.children;
     if (!children || children.length === 0) {
@@ -929,8 +950,8 @@ export class NavigationValidityService {
 
     // Compute per-target choice/jump validity and emit an event snapshot
     const allActivities = this.activityTree.getAllActivities();
-    const choiceMap: { [key: string]: string } = {};
-    const jumpMap: { [key: string]: string } = {};
+    const choiceMap: Record<string, "true" | "false"> = {};
+    const jumpMap: Record<string, "true" | "false"> = {};
     for (const act of allActivities) {
       const choiceRes = this.validateRequest(
         NavigationRequestType.CHOICE,
@@ -956,15 +977,20 @@ export class NavigationValidityService {
     const hideLmsUi = this.getEffectiveHideLmsUiCallback
       ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity)
       : [];
+    const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback
+      ? this.getEffectiveAuxiliaryResourcesCallback(this.activityTree.currentActivity)
+      : [];
 
     // Notify listeners so LMS can update UI regardless of read-only state
-    this.fireEvent("onNavigationValidityUpdate", {
+    const update: NavigationValidityUpdate = {
       continue: continueValid,
       previous: previousValid,
       choice: choiceMap,
       jump: jumpMap,
       hideLmsUi,
-    });
+      auxiliaryResources,
+    };
+    this.fireEvent("onNavigationValidityUpdate", update);
   }
 
   /**

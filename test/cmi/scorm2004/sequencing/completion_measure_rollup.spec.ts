@@ -302,7 +302,7 @@ describe("4th Edition Completion Measure Rollup Process", () => {
       expect(parent.attemptCompletionAmountStatus).toBe(true);
     });
 
-    it("should skip children without attemptCompletionAmountStatus", () => {
+    it("should retain unknown children's weights in the denominator", () => {
       const parent = new Activity("parent", "Parent");
       parent.sequencingControls.rollupProgressCompletion = true;
 
@@ -321,8 +321,55 @@ describe("4th Edition Completion Measure Rollup Process", () => {
 
       rollupProcess.overallRollupProcess(child1);
 
-      // Only child2 contributes: 0.8*1.0 / 1.0 = 0.8
-      expect(parent.attemptCompletionAmount).toBe(0.8);
+      // @spec SCORM 2004 4th Ed. SN RB.1.1.b: child1 contributes no amount,
+      // but its progress weight remains in the denominator.
+      // (0.0*1.0 + 0.8*1.0) / (1.0 + 1.0) = 0.4
+      expect(parent.attemptCompletionAmount).toBe(0.4);
+      expect(parent.attemptCompletionAmountStatus).toBe(true);
+    });
+
+    it("should include all tracked weights when only one of three measures is known", () => {
+      const parent = new Activity("parent", "Parent");
+      parent.sequencingControls.rollupProgressCompletion = true;
+
+      const child1 = new Activity("child1", "Child 1");
+      child1.attemptCompletionAmount = 0.95;
+      child1.attemptCompletionAmountStatus = true;
+
+      const child2 = new Activity("child2", "Child 2");
+
+      const child3 = new Activity("child3", "Child 3");
+      child3.progressWeight = 0.25;
+
+      parent.addChild(child1);
+      parent.addChild(child2);
+      parent.addChild(child3);
+
+      rollupProcess.overallRollupProcess(child1);
+
+      expect(parent.attemptCompletionAmount).toBeCloseTo(0.95 / 2.25, 10);
+      expect(parent.attemptCompletionAmountStatus).toBe(true);
+    });
+
+    it("should exclude untracked children from the completion measure", () => {
+      const parent = new Activity("parent", "Parent");
+      parent.sequencingControls.rollupProgressCompletion = true;
+
+      const trackedChild = new Activity("tracked", "Tracked Child");
+      trackedChild.attemptCompletionAmount = 0.2;
+      trackedChild.attemptCompletionAmountStatus = true;
+
+      const untrackedChild = new Activity("untracked", "Untracked Child");
+      untrackedChild.attemptCompletionAmount = 1;
+      untrackedChild.attemptCompletionAmountStatus = true;
+      untrackedChild.sequencingControls.tracked = false;
+
+      parent.addChild(trackedChild);
+      parent.addChild(untrackedChild);
+
+      rollupProcess.overallRollupProcess(trackedChild);
+
+      expect(parent.attemptCompletionAmount).toBe(0.2);
       expect(parent.attemptCompletionAmountStatus).toBe(true);
     });
 

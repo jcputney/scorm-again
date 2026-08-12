@@ -31,10 +31,10 @@ window.API_1484_11 = new Scorm2004API(settings);
 | Setting | Default | Type | Description |
 |---------|---------|------|-------------|
 | `autocommit` | `false` | boolean | Determines whether the API schedules an autocommit to the LMS after setting a value. |
-| `autocommitSeconds` | `60` | number | Number of seconds to wait before autocommiting. Timer is restarted if another value is set. |
+| `autocommitSeconds` | `10` | number | Number of seconds to wait before autocommitting. Timer is restarted if another value is set. |
 | `sendFullCommit` | `true` | boolean | Determines whether the API sends the full CMI object as part of the commit, or if it only sends the fields that actually contain values. |
-| `renderCommonCommitFields` | `false` | boolean | Determines whether the API should render the common fields in the commit object. Common fields are `successStatus`, `completionStatus`, `totalTimeSeconds`, `score`, and `runtimeData`. The `runtimeData` field contains the rendered CMI object. This allows for easier processing on the LMS. |
-| `selfReportSessionTime` | `false` | boolean | Should the API override the default `session_time` reported by the module? Useful when modules don't properly report time. |
+| `renderCommonCommitFields` | `false` | boolean | Emits a structured commit object with summary fields and `runtimeData`. SCORM 2004 structured commits also include the sequencing `globalObjectives` snapshot. |
+| `selfReportSessionTime` | `false` | boolean | Measures elapsed time from `Initialize()` and uses it instead of relying on SCO-reported `session_time`. |
 | `alwaysSendTotalTime` | `false` | boolean | Should the API always send `total_time` when committing to the LMS. |
 
 ### HTTP/Network Settings
@@ -46,12 +46,13 @@ window.API_1484_11 = new Scorm2004API(settings);
 | `useAsynchronousCommits` | `false` | boolean | Use async HTTP requests (legacy behavior). **Not SCORM compliant.** May cause data loss. Only use for specific legacy use cases. |
 | `commitRequestDataType` | `'application/json;charset=UTF-8'` | string | This setting is provided in case your LMS expects a different content type or character set. |
 | `fetchMode` | `'cors'` | string | The fetch mode to use when sending requests to the LMS. Options: `'cors'`, `'no-cors'`, `'same-origin'`, `'navigate'`. |
-| `useBeaconInsteadOfFetch` | `'never'` | string | Controls when to use the Beacon API instead of fetch for HTTP requests. Options: `'always'`, `'on-terminate'`, `'never'`. `'always'` uses Beacon for all requests, `'on-terminate'` uses Beacon only for final commit during page unload, `'never'` always uses fetch. |
+| `asyncModeBeaconBehavior` | `'never'` | string | In asynchronous mode, controls when to use Beacon instead of fetch: `'always'`, `'on-terminate'`, or `'never'`. Synchronous mode always uses Beacon for termination commits. |
 | `xhrWithCredentials` | `false` | boolean | Sets the withCredentials flag on the request to the LMS. |
 | `xhrHeaders` | `{}` | object | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send. |
 | `httpService` | `null` | IHttpService \| null | Advanced: Inject custom HTTP service implementation. Overrides `useAsynchronousCommits`. |
 | `terminateCommitParam` | `undefined` | string | When set, the terminate-time commit's URL gets `?<name>=true` appended (or `&<name>=true` if `lmsCommitUrl` already has a query string), letting the server distinguish the final commit from heartbeat commits. Applies to normal terminate commits, sendBeacon terminate commits, and offline replays of a terminate commit. |
 | `terminateCommitPayloadField` | `undefined` | string | When set, the terminate-time commit's payload gets `<name>: true` added (object formats) or `<name>=true` appended (`params` format). Independent of `terminateCommitParam`; either or both may be used. |
+| `terminationCommitContentType` | `'text/plain;charset=UTF-8'` | string | Content type for Beacon termination commits. Use asynchronous fetch with `asyncModeBeaconBehavior: 'never'` for cross-origin JSON or custom authorization headers. |
 | `includeCommitSequence` | `false` | boolean | When enabled, every commit payload includes a `commitSequence` field with a monotonically increasing number assigned when the commit is captured. Offline-replayed commits keep their original sequence, so servers can reject stale, out-of-order commits. |
 
 ### Data Format Settings
@@ -84,8 +85,9 @@ window.API_1484_11 = new Scorm2004API(settings);
 | `autoProgress` | `false` | boolean | In case Sequencing is being used, you can tell the API to automatically throw the `SequenceNext` event. |
 | `scoItemIds` | `[]` | string[] | A list of valid SCO IDs to be used for choice/jump sequence validation. If a `sequencing` configuration is provided with an activity tree, this list will be automatically populated with all activity IDs from the tree. |
 | `scoItemIdValidator` | `false` | false \| function | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity. |
-| `globalObjectiveIds` | `[]` | string[] | A list of objective IDs that are considered "global" and should be shared across SCOs. **Global objectives must be stored separately by the LMS and synchronized across all SCOs in the package.** The LMS extracts these from `<imsss:mapInfo>` elements in the manifest. |
+| `globalObjectiveIds` | `[]` | string[] | Host-defined objective IDs exposed directly as global CMI rows. Manifest `<imsss:mapInfo>` targets are discovered from the activity tree and should not be duplicated here. |
 | `sequencing` | `null` | SequencingSettings \| null | Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. **This data must be extracted by the LMS from the package's imsmanifest.xml file.** See the [Sequencing Configuration documentation](../advanced/sequencing.md) for details on the required format and LMS integration requirements. |
+| `sequencingStatePersistence` | `undefined` | SequencingStatePersistenceConfig | Callbacks and options for activity tracking state. Set `autoLoadOnInitialize: false` when the LMS explicitly awaits a preload before initial delivery. |
 
 ### Offline Support Settings
 
@@ -158,7 +160,10 @@ const api = new Scorm12API({
 const api = new Scorm2004API({
   lmsCommitUrl: 'https://your-lms.com/api/scorm/commit',
   autoProgress: true,
+  selfReportSessionTime: true,
+  renderCommonCommitFields: true,
   sequencing: {
+    autoRollupOnCMIChange: false,
     activityTree: {
       id: 'root',
       title: 'Course',

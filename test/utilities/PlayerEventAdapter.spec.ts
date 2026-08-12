@@ -307,6 +307,25 @@ describe("PlayerEventAdapter", () => {
     });
 
     describe("handleNavigationValidityUpdate", () => {
+      it("should translate the sequencing runtime event shape", () => {
+        adapter.handleNavigationValidityUpdate({
+          continue: true,
+          previous: false,
+          choice: { sco1: "true", sco2: "false" },
+          jump: { sco2: "true" },
+          hideLmsUi: ["previous"],
+          auxiliaryResources: [{ resourceId: "help", purpose: "help" }],
+        });
+
+        expect(callbacks.onNavigationStateChange).toHaveBeenCalledWith({
+          canPrevious: false,
+          canNext: true,
+          canExit: true,
+          choices: ["sco1"],
+          validRequests: ["continue", "choice {target=sco1}", "jump {target=sco2}"],
+        });
+      });
+
       it("should emit navigation state with valid requests", () => {
         adapter.handleNavigationValidityUpdate({
           validRequests: ["previous", "continue", "exit"],

@@ -7,7 +7,7 @@ import {
   RuleConditionOperator,
   RuleConditionType,
   SequencingRule,
-  SequencingRules
+  SequencingRules,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../src/constants/enums";
@@ -28,7 +28,7 @@ describe("SequencingRules", () => {
         const condition = new RuleCondition(
           RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
           RuleConditionOperator.NOT,
-          parameters
+          parameters,
         );
         expect(condition.condition).toBe(RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN);
         expect(condition.operator).toBe(RuleConditionOperator.NOT);
@@ -68,7 +68,7 @@ describe("SequencingRules", () => {
         const condition = new RuleCondition(
           RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
           null,
-          parameters
+          parameters,
         );
         const activity = new Activity();
 
@@ -98,6 +98,34 @@ describe("SequencingRules", () => {
         expect(condition.evaluate(activity)).toBe(false);
       });
 
+      /**
+       * @spec SCORM 2004 4th Ed. TR OB-03b steps 6-7 and SN UP.2.1/SB.2.2
+       */
+      it("should expose mapped tracking to preconditions before the parent attempt starts", () => {
+        const root = new Activity("root");
+        const parent = new Activity("parent");
+        const child = new Activity("child");
+        root.addChild(parent);
+        parent.addChild(child);
+        child.objectiveSatisfiedStatus = true;
+        child.completionStatus = "completed";
+
+        const satisfied = new RuleCondition(RuleConditionType.SATISFIED);
+        const completed = new RuleCondition(RuleConditionType.COMPLETED);
+
+        parent.objectiveInfoAvailableInCurrentParentAttempt = false;
+        parent.progressInfoAvailableInCurrentParentAttempt = false;
+        expect(satisfied.evaluate(child)).toBe(true);
+        expect(completed.evaluate(child)).toBe(true);
+
+        parent.objectiveInfoAvailableInCurrentParentAttempt = true;
+        parent.progressInfoAvailableInCurrentParentAttempt = true;
+        child.objectiveInfoAvailableInCurrentParentAttempt = false;
+        child.progressInfoAvailableInCurrentParentAttempt = false;
+        expect(satisfied.evaluate(child)).toBe(true);
+        expect(completed.evaluate(child)).toBe(true);
+      });
+
       it("should evaluate ALWAYS condition", () => {
         const condition = new RuleCondition(RuleConditionType.ALWAYS);
         const activity = new Activity();
@@ -112,14 +140,14 @@ describe("SequencingRules", () => {
         const condition = new RuleCondition(
           RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
           RuleConditionOperator.NOT,
-          parameters
+          parameters,
         );
 
         const result = condition.toJSON() as any;
 
         expect(result).toHaveProperty(
           "condition",
-          RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN
+          RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         );
         expect(result).toHaveProperty("operator", RuleConditionOperator.NOT);
         expect(result).toHaveProperty("parameters");

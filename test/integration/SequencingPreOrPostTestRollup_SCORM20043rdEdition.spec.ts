@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   advanceScoPages,
-  clickSequencingButton,
+  requestContentNavigation,
   completeAssessmentSCO,
   completeContentSCO,
   getGlobalObjectiveStatus,
@@ -376,16 +376,11 @@ wrappers.forEach((wrapper) => {
         const { key } = CONTENT_ACTIVITIES[i];
         await waitForScoContent(page, key);
         await completeContentSCO(page);
+        await requestContentNavigation(page, "continue");
         if (i < CONTENT_ACTIVITIES.length - 1) {
-          await clickSequencingButton(page, "continue");
+          await waitForScoContent(page, CONTENT_ACTIVITIES[i + 1].key);
         }
       }
-      // Commit data and allow rollup to process
-      await page.evaluate(() => {
-        const api = (window as any).API_1484_11;
-        api.lmsCommit();
-      });
-      await page.waitForTimeout(500);
     };
     // Compose universal API tests
     scormCommonApiTests(wrapper, moduleConfig);
@@ -449,7 +444,7 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await startPretest(page);
       await completeAssessmentSCO(page, true);
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
 
       const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
       expect(["false", "unknown"]).toContain(pretestValidity);
@@ -492,7 +487,7 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await startPretest(page);
       await completeAssessmentSCO(page, true);
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
 
       const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
       const posttestValidity = await getNavigationValidity(page, "choice", POSTTEST_ACTIVITY.id);
@@ -543,7 +538,7 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await startPretest(page);
       await completeAssessmentSCO(page, true);
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
 
       const rootStatus = await page.evaluate(() => {
         const api = (window as any).API_1484_11;
@@ -721,7 +716,7 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await startPretest(page);
       await completeAssessmentSCO(page, true);
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
 
       // Query from global objective map in sequencing state
       const assessmentObjective = await getGlobalObjectiveStatus(
@@ -764,9 +759,7 @@ wrappers.forEach((wrapper) => {
 
       await startPosttest(page);
       await completeAssessmentSCO(page, true);
-      // Note: After completing the final activity (posttest), "continue" is correctly disabled
-      // because there's no next activity. We just need to verify the objective is satisfied.
-      await page.waitForTimeout(500); // Allow rollup to process
+      await requestContentNavigation(page, "exit");
 
       // Query from global objective map in sequencing state
       const assessmentObjective = await getGlobalObjectiveStatus(
@@ -794,7 +787,7 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await startPretest(page);
       await completeAssessmentSCO(page, false);
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
 
       const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
       expect(["false", "unknown"]).toContain(pretestValidity);
@@ -924,7 +917,7 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await startPretest(page);
       await completeAssessmentSCO(page, true);
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
 
       const dummyStatus = await page.evaluate(() => {
         const api = (window as any).API_1484_11;
@@ -971,7 +964,7 @@ wrappers.forEach((wrapper) => {
       await startPretest(page);
 
       const { score, successStatus, completionStatus } = await completeAssessmentSCO(page, true);
-      await clickSequencingButton(page, "continue");
+      await requestContentNavigation(page, "continue");
 
       // Verify the module set the score
       expect(score).toBeGreaterThanOrEqual(70); // Should pass

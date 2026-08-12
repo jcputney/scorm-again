@@ -667,47 +667,6 @@ export async function completeContentSCO(
 ): Promise<void> {
   const moduleFrame = await waitForModuleFrame(page);
   await navigateThroughContentSCO(page, moduleFrame);
-
-  // navigateThroughContentSCO already waits for completion status to be set
-
-  // Wait for the sequencing service to process the status update and enable Continue button
-  // Firefox needs extra time for the sequencing to update navigation validity
-  // This is needed because:
-  // 1. Module sets cmi.success_status = "passed" and commits
-  // 2. Sequencing service must process this and update navigation validity
-  // 3. Wrapper's onNavigationValidityUpdate callback must be triggered
-  // 4. Continue button must be enabled
-  // In Firefox, steps 2-4 can take longer than in Chromium
-  const continueButton = page.locator("button[data-directive=\"continue\"]");
-  const buttonExists = await continueButton.isVisible().catch(() => false);
-
-  // Detect browser type for Firefox-specific timeouts
-  const browserName = page.context().browser()?.browserType().name() || "chromium";
-  const isFirefox = browserName === "firefox";
-
-  if (buttonExists) {
-    // Wait for Continue button to become enabled (up to 20 seconds for Firefox)
-    const maxWait = isFirefox ? 20000 : 10000;
-    const startTime = Date.now();
-    let isEnabled = await continueButton.isEnabled().catch(() => false);
-
-    while (!isEnabled && (Date.now() - startTime) < maxWait) {
-      await page.waitForTimeout(200);
-      isEnabled = await continueButton.isEnabled().catch(() => false);
-    }
-
-    // If button still not enabled, give the sequencing a nudge by triggering a commit
-    if (!isEnabled) {
-      await page.evaluate(() => {
-        const api = (window as any).API_1484_11;
-        if (api?.lmsCommit) {
-          api.lmsCommit();
-        }
-      });
-      const commitWait = isFirefox ? 1000 : 500;
-      await page.waitForTimeout(commitWait);
-    }
-  }
 }
 
 /**
@@ -1938,6 +1897,44 @@ export async function clickSequencingButton(page: Page, directive: string): Prom
     }
     throw error;
   }
+}
+
+export async function requestContentNavigation(page: Page, directive: string): Promise<void> {
+  const result = await page.evaluate((requestedDirective) => {
+    const api = (window as any).API_1484_11;
+    const requestMap: Record<string, string> = {
+      continue: "_continue",
+      previous: "_previous",
+      exit: "_exit",
+      exitAll: "_exitAll",
+      abandon: "_abandon",
+      abandonAll: "_abandonAll",
+      suspendAll: "_suspendAll"
+    };
+    const request = requestMap[requestedDirective];
+    if (!api || !request) {
+      return { setResult: "false", terminateResult: "false" };
+    }
+    const setResult = api.SetValue("adl.nav.request", request);
+    const terminateResult = setResult === "true" ? api.Terminate("") : "false";
+    return { setResult, terminateResult };
+  }, directive);
+
+  expect(result.setResult).toBe("true");
+  expect(result.terminateResult).toBe("true");
+  const isFirefox = page.context().browser()?.browserType().name() === "firefox";
+  await page.waitForTimeout(isFirefox ? 1000 : 500);
+}
+
+export async function terminateCurrentAttempt(page: Page): Promise<void> {
+  const result = await page.evaluate(() => {
+    const api = (window as any).API_1484_11;
+    return api?.Terminate?.("") ?? "false";
+  });
+
+  expect(result).toBe("true");
+  const isFirefox = page.context().browser()?.browserType().name() === "firefox";
+  await page.waitForTimeout(isFirefox ? 1000 : 500);
 }
 
 export async function waitForScoContent(page: Page, contentKey: string): Promise<void> {

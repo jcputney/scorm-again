@@ -107,42 +107,56 @@ export class RollupCondition extends BaseCMI {
    * @return {boolean} - True if the condition is met, false otherwise
    */
   evaluate(activity: Activity): boolean {
+    // Current-attempt controls make prior tracking data unknown to the parent without removing the
+    // child from the rollup rule's population.
+    // @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo and
+    // useCurrentAttemptProgressInfo
+    const objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
+    const progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
+
     switch (this._condition) {
       case RollupConditionType.SATISFIED:
         // Per SCORM 2004 SN Book RB.1.4.1, the "satisfied" condition checks the
         // objective satisfaction status from the activity's tracked objective.
         // This is populated via global objective mapping (readSatisfiedStatus).
         // Also check successStatus for backward compatibility with leaf activities.
-        return activity.objectiveSatisfiedStatus === true ||
-               activity.successStatus === SuccessStatus.PASSED;
+        return (
+          objectiveInfoAvailable &&
+          (activity.objectiveSatisfiedStatus === true ||
+            activity.successStatus === SuccessStatus.PASSED)
+        );
       case RollupConditionType.OBJECTIVE_STATUS_KNOWN:
         // Per SCORM 2004 SN Book RB.1.4.1, objectiveStatusKnown checks if
         // the objective's satisfaction status has been explicitly determined
-        return activity.objectiveSatisfiedStatusKnown;
+        return objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
       case RollupConditionType.OBJECTIVE_MEASURE_KNOWN:
         // Per SCORM 2004 SN Book RB.1.4.1, objectiveMeasureKnown checks if
         // the objective has a valid measure value
-        return activity.objectiveMeasureStatus;
+        return objectiveInfoAvailable && activity.objectiveMeasureStatus;
       case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
         return (
-          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue
+          objectiveInfoAvailable &&
+          activity.objectiveMeasureStatus &&
+          activity.objectiveNormalizedMeasure > greaterThanValue
         );
       }
       case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
         const lessThanValue = this._parameters.get("threshold") || 0;
         return (
-          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue
+          objectiveInfoAvailable &&
+          activity.objectiveMeasureStatus &&
+          activity.objectiveNormalizedMeasure < lessThanValue
         );
       }
       case RollupConditionType.COMPLETED:
-        return activity.isCompleted;
+        return progressInfoAvailable && activity.isCompleted;
       case RollupConditionType.PROGRESS_KNOWN:
-        return activity.completionStatus !== CompletionStatus.UNKNOWN;
+        return progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
       case RollupConditionType.ATTEMPTED:
-        return activity.attemptCount > 0;
+        return progressInfoAvailable && activity.attemptCount > 0;
       case RollupConditionType.NOT_ATTEMPTED:
-        return activity.attemptCount === 0;
+        return !progressInfoAvailable || activity.attemptCount === 0;
       case RollupConditionType.ALWAYS:
         return true;
       default:

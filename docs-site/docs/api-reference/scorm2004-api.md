@@ -415,6 +415,7 @@ const isValid = window.API_1484_11.GetValue(
 
 if (isValid === "true") {
   window.API_1484_11.SetValue("adl.nav.request", "{target=lesson_2}choice");
+  window.API_1484_11.Terminate("");
 }
 ```
 
@@ -743,6 +744,7 @@ console.log(api.adl.nav.request);
 
 // Set navigation request
 api.SetValue("adl.nav.request", "continue");
+api.Terminate("");
 ```
 
 **Structure:**
@@ -819,7 +821,9 @@ SCORM 2004 supports global objectives that persist across SCO transitions and ca
 
 ```javascript
 const api = new Scorm2004API({
-  globalObjectiveIds: ['course_objective_1', 'module_1_objective'],
+  renderCommonCommitFields: true,
+  // Only host-defined rows exposed directly to CMI belong here.
+  globalObjectiveIds: ['host_defined_objective'],
   sequencing: {
     // ... sequencing configuration with mapInfo
   }
@@ -828,7 +832,10 @@ const api = new Scorm2004API({
 
 **LMS Integration:**
 
-Global objectives must be stored separately by the LMS and synchronized across all SCOs in the package. The LMS extracts objective mappings from `<imsss:mapInfo>` elements in the manifest.
+The activity tree's objective `mapInfo` entries define manifest global-objective mappings; do not
+duplicate their target IDs in `globalObjectiveIds`. Structured commits include the synchronized
+`globalObjectives` snapshot. Persist it per registration and restore it with
+`restoreGlobalObjectiveSnapshot()` before initial delivery.
 
 **See Also:**
 - [Sequencing Configuration](/docs/advanced/sequencing)

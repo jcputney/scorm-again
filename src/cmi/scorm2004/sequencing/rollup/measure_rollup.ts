@@ -109,9 +109,12 @@ export class MeasureRollupProcessor {
       return;
     }
 
-    const contributingChildren = children.filter((child) => {
-      return child.attemptCompletionAmountStatus;
-    });
+    const trackedChildren = children.filter((child) => child.sequencingControls.tracked);
+    const contributingChildren = trackedChildren.filter(
+      (child) =>
+        child.progressInfoAvailableInCurrentParentAttempt !== false &&
+        child.attemptCompletionAmountStatus,
+    );
 
     if (contributingChildren.length === 0) {
       activity.attemptCompletionAmountStatus = false;
@@ -121,8 +124,16 @@ export class MeasureRollupProcessor {
     let totalWeightedMeasure = 0;
     let totalWeight = 0;
 
-    for (const child of contributingChildren) {
-      totalWeightedMeasure += child.attemptCompletionAmount * child.progressWeight;
+    // @spec SCORM 2004 4th Ed. SN RB.1.1.b: every tracked child's Progress
+    // Weight participates in the denominator. A child whose Attempt Completion
+    // Amount Status is false contributes no amount to the numerator.
+    for (const child of trackedChildren) {
+      if (
+        child.progressInfoAvailableInCurrentParentAttempt !== false &&
+        child.attemptCompletionAmountStatus
+      ) {
+        totalWeightedMeasure += child.attemptCompletionAmount * child.progressWeight;
+      }
       totalWeight += child.progressWeight;
     }
 

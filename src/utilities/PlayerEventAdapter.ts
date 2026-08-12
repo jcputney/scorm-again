@@ -20,6 +20,7 @@
 
 import Scorm12API from "../Scorm12API";
 import Scorm2004API from "../Scorm2004API";
+import { NavigationValidityUpdate } from "../types/sequencing_types";
 
 // =============================================================================
 // Types
@@ -37,6 +38,10 @@ export interface NavigationState {
   /** Raw valid requests from sequencing engine */
   validRequests: string[];
 }
+
+type LegacyNavigationValidityUpdate = {
+  validRequests: string[];
+};
 
 export interface ScoStatus {
   /** Completion status (SCORM 2004) or derived from lesson_status (SCORM 1.2) */
@@ -217,20 +222,40 @@ export class PlayerEventAdapter {
   /**
    * Call this from sequencing.eventListeners.onNavigationValidityUpdate
    */
-  handleNavigationValidityUpdate(data: { validRequests: string[] }): void {
-    const validRequests = data.validRequests || [];
+  handleNavigationValidityUpdate(
+    data: NavigationValidityUpdate | LegacyNavigationValidityUpdate,
+  ): void {
+    const isLegacyUpdate = "validRequests" in data;
+    const validRequests = isLegacyUpdate
+      ? data.validRequests || []
+      : [
+          ...(data.previous ? ["previous"] : []),
+          ...(data.continue ? ["continue"] : []),
+          ...Object.entries(data.choice)
+            .filter(([, valid]) => valid === "true")
+            .map(([target]) => `choice {target=${target}}`),
+          ...Object.entries(data.jump)
+            .filter(([, valid]) => valid === "true")
+            .map(([target]) => `jump {target=${target}}`),
+        ];
 
     const state: NavigationState = {
-      canPrevious: validRequests.includes("previous"),
-      canNext: validRequests.includes("continue"),
-      canExit: validRequests.includes("exit") || validRequests.includes("exitAll"),
-      choices: validRequests
-        .filter((r) => r.includes("choice"))
-        .map((r) => {
-          const match = r.match(/\{target=([^}]+)\}/);
-          return match ? match[1] : "";
-        })
-        .filter((id): id is string => Boolean(id)),
+      canPrevious: isLegacyUpdate ? validRequests.includes("previous") : data.previous,
+      canNext: isLegacyUpdate ? validRequests.includes("continue") : data.continue,
+      canExit: isLegacyUpdate
+        ? validRequests.includes("exit") || validRequests.includes("exitAll")
+        : true,
+      choices: isLegacyUpdate
+        ? validRequests
+            .filter((r) => r.includes("choice"))
+            .map((r) => {
+              const match = r.match(/\{target=([^}]+)\}/);
+              return match ? match[1] : "";
+            })
+            .filter((id): id is string => Boolean(id))
+        : Object.entries(data.choice)
+            .filter(([, valid]) => valid === "true")
+            .map(([target]) => target),
       validRequests,
     };
 

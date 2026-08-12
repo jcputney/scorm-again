@@ -207,6 +207,7 @@ export interface MockOverallProcess {
   getGlobalObjectiveMap: ReturnType<typeof vi.fn>;
   getGlobalObjectiveMapSnapshot: ReturnType<typeof vi.fn>;
   updateGlobalObjective: ReturnType<typeof vi.fn>;
+  synchronizeGlobalObjectives: ReturnType<typeof vi.fn>;
 }
 
 /**
@@ -228,6 +229,7 @@ export function createMockOverallProcess(
       .fn()
       .mockReturnValue(options.globalObjectiveMapSnapshot ?? {}),
     updateGlobalObjective: vi.fn(),
+    synchronizeGlobalObjectives: vi.fn(),
   } satisfies MockOverallProcess;
 }
 
@@ -320,6 +322,7 @@ export function createMockGlobalObjectiveContext(
 ): GlobalObjectiveContext {
   return {
     getSettings: vi.fn().mockReturnValue({ globalObjectiveIds: [] }),
+    hostDeclaredGlobalObjectiveIds: [],
     cmi: {
       objectives: {
         findObjectiveById: vi.fn().mockReturnValue(null),

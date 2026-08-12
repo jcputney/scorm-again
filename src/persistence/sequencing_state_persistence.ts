@@ -36,6 +36,7 @@ export interface PersistenceContext {
 export class SequencingStatePersistence {
   private context: PersistenceContext;
   private globalObjectiveManager: GlobalObjectiveManager;
+  private readonly inFlightLoads = new Map<string, Promise<boolean>>();
 
   constructor(context: PersistenceContext, globalObjectiveManager: GlobalObjectiveManager) {
     this.context = context;
@@ -108,7 +109,7 @@ export class SequencingStatePersistence {
    * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
    * @return {Promise<boolean>} Promise resolving to success status
    */
-  async loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
+  loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
     const settings = this.context.getSettings();
     if (!settings.sequencingStatePersistence) {
       this.context.apiLog(
@@ -116,57 +117,81 @@ export class SequencingStatePersistence {
         "No persistence configuration provided",
         LogLevelEnum.WARN,
       );
-      return false;
+      return Promise.resolve(false);
+    }
+    const config = settings.sequencingStatePersistence;
+
+    const fullMetadata: SequencingStateMetadata = {
+      learnerId: this.context.learnerId || "unknown",
+      courseId: settings.courseId || "unknown",
+      attemptNumber: 1,
+      version: config.stateVersion || "1.0",
+      ...metadata,
+    };
+    const loadKey = JSON.stringify({
+      learnerId: fullMetadata.learnerId,
+      courseId: fullMetadata.courseId,
+      attemptNumber: fullMetadata.attemptNumber,
+      version: fullMetadata.version,
+    });
+    const existingLoad = this.inFlightLoads.get(loadKey);
+    if (existingLoad) {
+      // @spec SCORM 2004 4th Ed. SN 4.2 Tracking Model Persistence - one
+      // persisted snapshot must be applied atomically. Equivalent concurrent
+      // loads share the same operation so a late stale load cannot overwrite
+      // runtime tracking changes made after an earlier load completed.
+      return existingLoad;
     }
 
-    try {
-      const fullMetadata: SequencingStateMetadata = {
-        learnerId: this.context.learnerId || "unknown",
-        courseId: settings.courseId || "unknown",
-        attemptNumber: 1,
-        version: settings.sequencingStatePersistence.stateVersion || "1.0",
-        ...metadata,
-      };
+    const loadOperation = (async (): Promise<boolean> => {
+      try {
+        const stateData = await config.persistence.loadState(fullMetadata);
 
-      const config = settings.sequencingStatePersistence;
-      const stateData = await config.persistence.loadState(fullMetadata);
+        if (!stateData) {
+          if (config.debugPersistence) {
+            this.context.apiLog(
+              "loadSequencingState",
+              "No sequencing state found to load",
+              LogLevelEnum.INFO,
+            );
+          }
+          return false;
+        }
 
-      if (!stateData) {
+        // Decompress if needed
+        let dataToLoad = stateData;
+        if (config.compress !== false) {
+          dataToLoad = this.decompressStateData(stateData);
+        }
+
+        const success = this.deserializeSequencingState(dataToLoad);
+
         if (config.debugPersistence) {
           this.context.apiLog(
             "loadSequencingState",
-            "No sequencing state found to load",
-            LogLevelEnum.INFO,
+            `State load ${success ? "succeeded" : "failed"}: size=${stateData.length}`,
+            success ? LogLevelEnum.INFO : LogLevelEnum.WARN,
           );
         }
-        return false;
-      }
 
-      // Decompress if needed
-      let dataToLoad = stateData;
-      if (config.compress !== false) {
-        dataToLoad = this.decompressStateData(stateData);
-      }
-
-      const success = this.deserializeSequencingState(dataToLoad);
-
-      if (config.debugPersistence) {
+        return success;
+      } catch (error) {
         this.context.apiLog(
           "loadSequencingState",
-          `State load ${success ? "succeeded" : "failed"}: size=${stateData.length}`,
-          success ? LogLevelEnum.INFO : LogLevelEnum.WARN,
+          `Error loading sequencing state: ${error instanceof Error ? error.message : String(error)}`,
+          LogLevelEnum.ERROR,
         );
+        return false;
       }
+    })();
 
-      return success;
-    } catch (error) {
-      this.context.apiLog(
-        "loadSequencingState",
-        `Error loading sequencing state: ${error instanceof Error ? error.message : String(error)}`,
-        LogLevelEnum.ERROR,
-      );
-      return false;
-    }
+    this.inFlightLoads.set(loadKey, loadOperation);
+    void loadOperation.finally(() => {
+      if (this.inFlightLoads.get(loadKey) === loadOperation) {
+        this.inFlightLoads.delete(loadKey);
+      }
+    });
+    return loadOperation;
   }
 
   /**
@@ -253,28 +278,46 @@ export class SequencingStatePersistence {
         }
       }
 
-      // Restore global objectives
+      // Restore global objectives.
+      //
+      // The sequencing global objective map wins wherever the two persisted representations
+      // disagree. It is the store that mapInfo write maps update, so it always reflects the most
+      // recent attempt. The _globalObjectives CMI array is only refreshed when content writes a
+      // global objective id directly through SetValue, so for a package that shares objectives via
+      // mapInfo it lags a generation behind. Applying the array on top would push those stale values
+      // back into the map through updateGlobalObjectiveFromCMI below, silently undoing every write
+      // the previous attempt made. The array still contributes any id the map does not hold.
       const restoredObjectives = new Map<string, CMIObjectivesObject>();
-
-      if (Array.isArray(state.globalObjectives)) {
-        for (const objData of state.globalObjectives) {
-          const objective = this.globalObjectiveManager.buildCMIObjectiveFromJSON(objData);
-          if (objective.id) {
-            restoredObjectives.set(objective.id, objective);
-          }
-        }
-      }
 
       if (state.globalObjectiveMap && typeof state.globalObjectiveMap === "object") {
         const objectivesFromMap = this.globalObjectiveManager.buildCMIObjectivesFromMap(
           state.globalObjectiveMap,
         );
         for (const objective of objectivesFromMap) {
+          if (objective.id) {
+            restoredObjectives.set(objective.id, objective);
+          }
+        }
+      }
+
+      if (Array.isArray(state.globalObjectives)) {
+        for (const objData of state.globalObjectives) {
+          const objective = this.globalObjectiveManager.buildCMIObjectiveFromJSON(objData);
           if (!objective.id) {
             continue;
           }
-          if (!restoredObjectives.has(objective.id)) {
+
+          const fromMap = restoredObjectives.get(objective.id);
+          if (!fromMap) {
             restoredObjectives.set(objective.id, objective);
+            continue;
+          }
+
+          // The map entry wins on every field it models, but it does not model description: the
+          // global objective map only carries sequencing state. Carry that one field across so
+          // preferring the map does not blank out a description the array still holds.
+          if (!fromMap.description && objective.description) {
+            fromMap.description = objective.description;
           }
         }
       }

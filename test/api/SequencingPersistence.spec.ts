@@ -14,6 +14,94 @@ const metadata: SequencingStateMetadata = {
 };
 
 describe("SCORM 2004 sequencing persistence", () => {
+  it("defaults to auto-saving sequencing state on Commit", async () => {
+    const saveState = vi.fn().mockResolvedValue(true);
+    const api = new Scorm2004API({
+      sequencing: {
+        activityTree: {
+          id: "root",
+          children: [{ id: "sco1" }],
+        },
+      },
+      sequencingStatePersistence: {
+        persistence: {
+          saveState,
+          loadState: vi.fn().mockResolvedValue(null),
+        },
+        autoLoadOnInitialize: false,
+        compress: false,
+      },
+    });
+
+    expect(api.Initialize("")).toBe("true");
+    expect(api.Commit("")).toBe("true");
+    await vi.waitFor(() => expect(saveState).toHaveBeenCalledOnce());
+  });
+
+  it("auto-saves the post-navigation state when content terminates", async () => {
+    const saveState = vi.fn().mockResolvedValue(true);
+    const delivered: string[] = [];
+    const api = new Scorm2004API({
+      sequencing: {
+        activityTree: {
+          id: "root",
+          sequencingControls: { flow: true },
+          children: [{ id: "sco1" }, { id: "sco2" }],
+        },
+        eventListeners: {
+          onActivityDelivery: (activity) => delivered.push(activity.id),
+        },
+      },
+      sequencingStatePersistence: {
+        persistence: {
+          saveState,
+          loadState: vi.fn().mockResolvedValue(null),
+        },
+        autoLoadOnInitialize: false,
+        autoSaveOn: "navigate",
+        compress: false,
+      },
+    });
+
+    expect(api.Initialize("")).toBe("true");
+    expect(delivered.at(-1)).toBe("sco1");
+    expect(api.SetValue("adl.nav.request", "continue")).toBe("true");
+    expect(api.Terminate("")).toBe("true");
+    await vi.waitFor(() => expect(saveState).toHaveBeenCalledOnce());
+
+    const [stateData] = saveState.mock.calls[0];
+    expect(JSON.parse(stateData).currentActivityId).toBe("sco2");
+    expect(delivered.at(-1)).toBe("sco2");
+  });
+
+  it("allows an LMS to suppress the Initialize-time state load after preloading", async () => {
+    const loadState = vi.fn().mockResolvedValue(null);
+    const api = new Scorm2004API({
+      sequencing: {
+        activityTree: {
+          id: "root",
+          children: [{ id: "sco1" }],
+        },
+      },
+      sequencingStatePersistence: {
+        persistence: {
+          saveState: vi.fn().mockResolvedValue(true),
+          loadState,
+        },
+        autoLoadOnInitialize: false,
+        compress: false,
+      },
+    });
+
+    // @spec SCORM 2004 4th Ed. SN 4.2 Tracking Model Persistence - a host-controlled
+    // preload must be the only snapshot applied before the first delivery.
+    await expect(api.loadSequencingState(metadata)).resolves.toBe(false);
+    expect(api.Initialize("")).toBe("true");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(loadState).toHaveBeenCalledTimes(1);
+  });
+
   it("persists and restores global objective map state", async () => {
     const inMemoryState: { value: string | null } = { value: null };
     const persistence = {
@@ -100,6 +188,66 @@ describe("SCORM 2004 sequencing persistence", () => {
     expect(globalEntry).toBeDefined();
     expect(globalEntry?.normalizedMeasure).toBeCloseTo(0.82, 5);
     expect(globalEntry?.satisfiedStatus).toBe(true);
+  });
+
+  it("restores a host-declared direct global row for a different delivered activity", async () => {
+    const inMemoryState: { value: string | null } = { value: null };
+    const persistence = {
+      saveState: async (stateData: string) => {
+        inMemoryState.value = stateData;
+        return true;
+      },
+      loadState: async () => inMemoryState.value,
+      clearState: async () => {
+        inMemoryState.value = null;
+        return true;
+      },
+    };
+    const settings: Settings = {
+      globalObjectiveIds: ["HOST_GLOBAL"],
+      sequencing: {
+        activityTree: {
+          id: "root",
+          title: "Root",
+          children: [
+            {
+              id: "sco1",
+              title: "SCO 1",
+              primaryObjective: { objectiveID: "SCO1_PRIMARY" },
+            },
+            {
+              id: "sco2",
+              title: "SCO 2",
+              primaryObjective: { objectiveID: "SCO2_PRIMARY" },
+            },
+          ],
+        },
+      },
+      sequencingStatePersistence: {
+        persistence,
+        autoSaveOn: "never",
+        compress: false,
+      },
+    };
+
+    const api = new Scorm2004API(settings);
+    expect(api.Initialize("")).toBe("true");
+    expect(api.GetValue("cmi.objectives.0.id")).toBe("SCO1_PRIMARY");
+    expect(api.SetValue("cmi.objectives.1.id", "HOST_GLOBAL")).toBe("true");
+    expect(api.SetValue("cmi.objectives.1.score.scaled", "0.82")).toBe("true");
+    expect(await api.saveSequencingState(metadata)).toBe(true);
+
+    const api2 = new Scorm2004API(settings);
+    expect(await api2.loadSequencingState(metadata)).toBe(true);
+    expect(api2.processNavigationRequest("choice", "sco2")).toBe(true);
+    expect(api2.Initialize("")).toBe("true");
+
+    // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - only the delivered
+    // activity's local objective plus the host's explicit direct-global extension are exposed.
+    expect(api2.GetValue("cmi.objectives._count")).toBe("2");
+    expect(api2.GetValue("cmi.objectives.0.id")).toBe("SCO2_PRIMARY");
+    expect(api2.GetValue("cmi.objectives.1.id")).toBe("HOST_GLOBAL");
+    expect(api2.GetValue("cmi.objectives.1.score.scaled")).toBe("0.82");
   });
 
   it("persists auxiliary resource metadata", async () => {

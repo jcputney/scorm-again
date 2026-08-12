@@ -14,12 +14,12 @@ import {
   FlowRequestHandler,
   ChoiceRequestHandler,
   ExitRequestHandler,
-  RetryRequestHandler
+  RetryRequestHandler,
 } from "./handlers";
 import {
   SequencingRequestType,
   DeliveryRequestType,
-  SequencingResult
+  SequencingResult,
 } from "./rules/sequencing_request_types";
 
 // Re-export types for backward compatibility
@@ -69,6 +69,7 @@ export class SequencingProcess {
   private constraintValidator: ChoiceConstraintValidator;
   private ruleEngine: RuleEvaluationEngine;
   private traversalService: FlowTraversalService;
+  private endAttemptCallback: ((activity: Activity) => void) | null = null;
 
   // Request handlers
   private flowHandler: FlowRequestHandler;
@@ -93,17 +94,18 @@ export class SequencingProcess {
     // Update the rule engine with the new time function
     this.ruleEngine = new RuleEvaluationEngine({
       now: fn,
-      getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook
+      getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook,
     });
     // Recreate traversal service with updated rule engine
     this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
+    this.applyTraversalCallbacks();
     // Update handlers that depend on traversal service
     this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
     this.choiceHandler = new ChoiceRequestHandler(
       this.activityTree,
       this.constraintValidator,
       this.traversalService,
-      this.treeQueries
+      this.treeQueries,
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
@@ -124,17 +126,18 @@ export class SequencingProcess {
     // Update the rule engine
     this.ruleEngine = new RuleEvaluationEngine({
       now: this._now,
-      getAttemptElapsedSecondsHook: fn
+      getAttemptElapsedSecondsHook: fn,
     });
     // Recreate traversal service with updated rule engine
     this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
+    this.applyTraversalCallbacks();
     // Update handlers that depend on traversal service
     this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
     this.choiceHandler = new ChoiceRequestHandler(
       this.activityTree,
       this.constraintValidator,
       this.traversalService,
-      this.treeQueries
+      this.treeQueries,
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
@@ -144,7 +147,7 @@ export class SequencingProcess {
     _sequencingRules?: SequencingRules | null,
     _sequencingControls?: SequencingControls | null,
     _adlNav: ADLNav | null = null,
-    options?: SequencingProcessOptions
+    options?: SequencingProcessOptions,
   ) {
     this.activityTree = activityTree;
 
@@ -156,7 +159,7 @@ export class SequencingProcess {
     this.treeQueries = new ActivityTreeQueries(activityTree);
     this.ruleEngine = new RuleEvaluationEngine({
       now: this._now,
-      getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook
+      getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook,
     });
     this.constraintValidator = new ChoiceConstraintValidator(activityTree, this.treeQueries);
     this.traversalService = new FlowTraversalService(activityTree, this.ruleEngine);
@@ -167,7 +170,7 @@ export class SequencingProcess {
       activityTree,
       this.constraintValidator,
       this.traversalService,
-      this.treeQueries
+      this.treeQueries,
     );
     this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
     this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
@@ -182,7 +185,7 @@ export class SequencingProcess {
    */
   public sequencingRequestProcess(
     request: SequencingRequestType,
-    targetActivityId: string | null = null
+    targetActivityId: string | null = null,
   ): SequencingResult {
     const currentActivity = this.activityTree.currentActivity;
 
@@ -289,7 +292,7 @@ export class SequencingProcess {
   public validateNavigationRequest(
     request: SequencingRequestType,
     targetActivityId: string | null = null,
-    currentActivity: Activity | null = null
+    currentActivity: Activity | null = null,
   ): { valid: boolean; exception: string | null } {
     // Basic request type validation
     const validRequestTypes = Object.values(SequencingRequestType);
@@ -307,19 +310,18 @@ export class SequencingProcess {
         if (currentActivity.isActive) {
           return {
             valid: false,
-            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-1" : "SB.2.8-1"
+            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-1" : "SB.2.8-1",
           };
         }
         if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
           return {
             valid: false,
-            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-2" : "SB.2.8-2"
+            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-2" : "SB.2.8-2",
           };
         }
         if (request === SequencingRequestType.PREVIOUS) {
-          const forwardOnlyViolation = this.constraintValidator.checkForwardOnlyViolation(
-            currentActivity
-          );
+          const forwardOnlyViolation =
+            this.constraintValidator.checkForwardOnlyViolation(currentActivity);
           if (!forwardOnlyViolation.valid) {
             return forwardOnlyViolation;
           }
@@ -338,7 +340,7 @@ export class SequencingProcess {
         const choiceValidation = this.constraintValidator.validateChoice(
           currentActivity,
           targetActivity,
-          { checkAvailability: true }
+          { checkAvailability: true },
         );
         if (!choiceValidation.valid) {
           return choiceValidation;
@@ -349,7 +351,7 @@ export class SequencingProcess {
         // Check for hiddenFromChoice precondition rule
         const preConditionResult = this.ruleEngine.checkSequencingRules(
           targetActivity,
-          targetActivity.sequencingRules.preConditionRules
+          targetActivity.sequencingRules.preConditionRules,
         );
         if (preConditionResult === RuleActionType.HIDE_FROM_CHOICE) {
           return { valid: false, exception: "SB.2.9-4" };
@@ -398,5 +400,20 @@ export class SequencingProcess {
 
   public getTraversalService(): FlowTraversalService {
     return this.traversalService;
+  }
+
+  /**
+   * Connect flow traversal to the utility end-attempt process owned by the
+   * overall sequencing coordinator.
+   */
+  public setEndAttemptCallback(callback: (activity: Activity) => void): void {
+    this.endAttemptCallback = callback;
+    this.applyTraversalCallbacks();
+  }
+
+  private applyTraversalCallbacks(): void {
+    if (this.endAttemptCallback) {
+      this.traversalService.setEndAttemptCallback(this.endAttemptCallback);
+    }
   }
 }

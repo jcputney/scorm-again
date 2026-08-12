@@ -9,6 +9,7 @@ import { CrossClusterProcessor } from "./rollup/cross_cluster_processor";
 import {
   GlobalObjectiveSynchronizer,
   GlobalObjective,
+  GlobalObjectiveWriteTargets,
 } from "./objectives/global_objective_synchronizer";
 import { RollupStateValidator } from "./validation/rollup_state_validator";
 
@@ -122,10 +123,7 @@ export class RollupProcess {
 
             // Process cross-cluster dependencies if dealing with multiple clusters
             if (clusters.length > 1) {
-              this.crossClusterProcessor.processCrossClusterDependencies(
-                currentActivity,
-                clusters,
-              );
+              this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
             }
           }
 
@@ -195,7 +193,80 @@ export class RollupProcess {
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
   ): void {
-    this.globalObjectiveSynchronizer.processGlobalObjectiveMapping(activity, globalObjectives);
+    const changedActivities = this.globalObjectiveSynchronizer.processGlobalObjectiveMapping(
+      activity,
+      globalObjectives,
+    );
+    const rolledUpParents = new Set<Activity>();
+
+    const activityDepth = (candidate: Activity): number => {
+      let depth = 0;
+      let parent = candidate.parent;
+      while (parent) {
+        depth += 1;
+        parent = parent.parent;
+      }
+      return depth;
+    };
+
+    // Descendant propagation can roll up through an activity whose own primary
+    // objective was populated by a read map. Process deepest-first, then refresh
+    // each directly mapped activity before propagating it so that mapped state
+    // remains authoritative over the intermediate descendant aggregate.
+    // @spec SCORM 2004 4th Ed. TR OB-03c / SN 3.10.3 and RB.1.1
+    changedActivities.sort((left, right) => activityDepth(right) - activityDepth(left));
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 and RB.1.5 - read-mapped primary
+    // objective state participates in rollup before sequencing rules use the result.
+    for (const changedActivity of changedActivities) {
+      // @spec SCORM 2004 4th Ed. SN 3.13.1 Tracked - an untracked activity
+      // exposes read-mapped state to its SCO but does not participate in rollup.
+      if (!changedActivity.sequencingControls.tracked) {
+        continue;
+      }
+      this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(
+        changedActivity,
+        globalObjectives,
+      );
+      const parent = changedActivity.parent;
+      if (parent && !rolledUpParents.has(parent)) {
+        this.overallRollupProcess(changedActivity);
+        rolledUpParents.add(parent);
+      }
+    }
+  }
+
+  /**
+   * Write the final objective status for one terminating activity before the
+   * tree-wide read phase runs.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+   */
+  public syncTerminatedActivityObjectives(
+    activity: Activity,
+    globalObjectives: Map<string, GlobalObjective>,
+  ): GlobalObjectiveWriteTargets {
+    return this.globalObjectiveSynchronizer.syncTerminatedActivityWritePhase(
+      activity,
+      globalObjectives,
+    );
+  }
+
+  /**
+   * Apply a terminating descendant's fresh objective writes to an active ancestor.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+   */
+  public syncFreshlyWrittenObjectivesToActiveAncestor(
+    activity: Activity,
+    globalObjectives: Map<string, GlobalObjective>,
+    writeTargets: GlobalObjectiveWriteTargets,
+  ): void {
+    this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(
+      activity,
+      globalObjectives,
+      writeTargets,
+    );
   }
 
   /**

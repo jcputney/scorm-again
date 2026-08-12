@@ -231,7 +231,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       expect(result.targetActivity?.id).toBe("lesson3");
     });
 
-    it("should block choice across modules when choice is disabled at root", () => {
+    it("should use the target's immediate parent choice control", () => {
       root.sequencingControls.choice = false;
       activityTree.currentActivity = lesson1;
       lesson1.isActive = false;
@@ -241,7 +241,11 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
         "lesson3"
       );
 
-      expect(result.exception).toBe("SB.2.9-5");
+      // @spec SCORM 2004 4th Ed. SN SB.2.9 - module2 controls choice
+      // among its children; the root's control governs only root children.
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity).toBe(lesson3);
     });
 
     it("should validate entire path to target for choice", () => {

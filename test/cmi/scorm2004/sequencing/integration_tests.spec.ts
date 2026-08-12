@@ -47,10 +47,12 @@ describe("SCORM 2004 Sequencing Integration", () => {
     );
   });
 
-  test("should initialize global objective map", () => {
+  test("should initialize an empty global objective map without explicit maps", () => {
     const globalObjectiveMap = overallSequencingProcess.getGlobalObjectiveMap();
     expect(globalObjectiveMap).toBeDefined();
-    expect(globalObjectiveMap.size).toBeGreaterThan(0);
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 - local activity tracking does not
+    // implicitly create global objectives.
+    expect(globalObjectiveMap.size).toBe(0);
   });
 
   test("should validate rollup state consistency", () => {

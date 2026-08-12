@@ -278,14 +278,14 @@ const api = new Scorm2004API({
 | `onSuspendError` | Suspend operation failed | `{ activity, error }` |
 | `onActivitySuspended` | Activity suspended | `{ activity: string }` |
 | `onDeliveryRequestProcessing` | Processing delivery | `{ request, target }` |
-| `onNavigationValidityUpdate` | Navigation validity changed | `{ currentActivity, validRequests[] }` |
-| `onLimitConditionCheck` | Limit condition checked | `{ activity, limitType, exceeded }` |
+| `onNavigationValidityUpdate` | Navigation validity changed | `{ continue, previous, choice, jump, hideLmsUi, auxiliaryResources }` |
+| `onLimitConditionCheck` | Limit condition checked | `activity, result: boolean` |
 | `onStateInconsistency` | State inconsistency detected | `{ activity, issue }` |
 | `onGlobalObjectiveMapInitialized` | Global objectives initialized | `{ count: number }` |
 | `onGlobalObjectiveMapError` | Global objective error | `{ error: string }` |
 | `onGlobalObjectiveUpdated` | Global objective updated | `{ objectiveId, field, value }` |
 | `onGlobalObjectiveUpdateError` | Global objective update failed | `{ objectiveId, error }` |
-| `onSequencingDebug` | Debug information | `{ message, context? }` |
+| `onSequencingDebug` | Debug information | `event: string, data?: any` |
 
 ### Detailed Sequencing Event Examples
 
@@ -312,14 +312,14 @@ Fires when available navigation options change. Use to update navigation UI.
 
 ```javascript
 onNavigationValidityUpdate: function(data) {
-  // data.currentActivity: Current activity ID or null
-  // data.validRequests: Array of valid navigation requests
-  //   e.g., ["continue", "previous", "choice", "exit"]
+  // data.continue / data.previous: booleans
+  // data.choice / data.jump: target ID -> "true" or "false"
+  // data.hideLmsUi / data.auxiliaryResources: effective UI data
 
   updateNavButtons({
-    nextEnabled: data.validRequests.includes("continue"),
-    prevEnabled: data.validRequests.includes("previous"),
-    exitEnabled: data.validRequests.includes("exit")
+    nextEnabled: data.continue,
+    prevEnabled: data.previous,
+    choiceTargets: Object.keys(data.choice).filter(id => data.choice[id] === "true")
   });
 }
 ```

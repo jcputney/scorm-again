@@ -51,8 +51,32 @@ export class ActivityTreeBuilder {
 
     const selectionStates: SelectionRandomizationStateSettings[] = [];
     const collectionRefs = this.sequencingConfigBuilder.normalizeCollectionRefs(
-      activitySettings.sequencingCollectionRefs,
+      activitySettings.sequencingCollectionRefs ?? activitySettings.sequencingIdRef,
     );
+    const objectiveSettings = new Map<string, ObjectiveSettings>();
+    let primaryObjectiveId: string | null = null;
+
+    const mergeObjectiveSettings = (
+      incoming: ObjectiveSettings | undefined,
+      isPrimary: boolean,
+    ): void => {
+      const objectiveId =
+        incoming?.objectiveID ??
+        (incoming as (ObjectiveSettings & { id?: string }) | undefined)?.id;
+      if (!incoming || !objectiveId) {
+        return;
+      }
+      const existing = objectiveSettings.get(objectiveId);
+      objectiveSettings.set(objectiveId, {
+        ...existing,
+        ...incoming,
+        objectiveID: objectiveId,
+        mapInfo: [...(existing?.mapInfo ?? []), ...(incoming.mapInfo ?? [])],
+      });
+      if (isPrimary) {
+        primaryObjectiveId = objectiveId;
+      }
+    };
 
     for (const ref of collectionRefs) {
       const collection = this.sequencingCollections[ref];
@@ -61,7 +85,14 @@ export class ActivityTreeBuilder {
           activity,
           collection,
           selectionStates,
+          activitySettings.sequencingRules !== undefined,
         );
+        // @spec SCORM 2004 SN 3.3.2 / 3.10.3 - a referenced sequencing
+        // collection contributes its objective definitions and mapInfo to the activity.
+        mergeObjectiveSettings(collection.primaryObjective, true);
+        for (const objective of collection.objectives ?? []) {
+          mergeObjectiveSettings(objective, objective.isPrimary === true);
+        }
       }
     }
 
@@ -106,26 +137,27 @@ export class ActivityTreeBuilder {
       activity.endTimeLimit = activitySettings.endTimeLimit;
     }
 
-    if (activitySettings.primaryObjective) {
-      const primaryObjective = this.createActivityObjectiveFromSettings(
-        activitySettings.primaryObjective,
-        true,
-      );
-      activity.primaryObjective = primaryObjective;
-      if (primaryObjective.minNormalizedMeasure !== null) {
-        activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
+    // Inline objective settings are applied last, while collection and inline
+    // mapInfo entries for the same local objective remain additive.
+    mergeObjectiveSettings(activitySettings.primaryObjective, true);
+    for (const objective of activitySettings.objectives ?? []) {
+      mergeObjectiveSettings(objective, objective.isPrimary === true);
+    }
+
+    if (primaryObjectiveId) {
+      const primarySettings = objectiveSettings.get(primaryObjectiveId);
+      if (primarySettings) {
+        const primaryObjective = this.createActivityObjectiveFromSettings(primarySettings, true);
+        activity.primaryObjective = primaryObjective;
+        if (primaryObjective.minNormalizedMeasure !== null) {
+          activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
+        }
       }
     }
 
-    if (activitySettings.objectives) {
-      for (const objectiveSettings of activitySettings.objectives) {
-        const isPrimary = objectiveSettings.isPrimary === true;
-        const objective = this.createActivityObjectiveFromSettings(objectiveSettings, isPrimary);
-        if (isPrimary) {
-          activity.primaryObjective = objective;
-        } else {
-          activity.addObjective(objective);
-        }
+    for (const [objectiveId, settings] of objectiveSettings) {
+      if (objectiveId !== primaryObjectiveId) {
+        activity.addObjective(this.createActivityObjectiveFromSettings(settings, false));
       }
     }
 

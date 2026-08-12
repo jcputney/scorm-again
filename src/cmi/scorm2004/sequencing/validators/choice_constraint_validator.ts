@@ -100,16 +100,20 @@ export class ChoiceConstraintValidator {
    * @return {ConstraintValidationResult} - Validation result
    */
   public validatePathToRoot(targetActivity: Activity): ConstraintValidationResult {
+    // @spec SCORM 2004 SN 4th Ed. SB.2.9: the target's immediate parent
+    // controls choice among that parent's children.
+    if (
+      targetActivity.parent &&
+      !targetActivity.parent.sequencingControls.choice
+    ) {
+      return { valid: false, exception: "SB.2.9-5" };
+    }
+
     let activity: Activity | null = targetActivity;
     while (activity) {
       // Check if activity is hidden from choice
       if (activity.isHiddenFromChoice) {
         return { valid: false, exception: "SB.2.9-4" };
-      }
-
-      // Check if parent allows choice
-      if (activity.parent && !activity.parent.sequencingControls.choice) {
-        return { valid: false, exception: "SB.2.9-5" };
       }
 
       // Check preventActivation constraint at parent level

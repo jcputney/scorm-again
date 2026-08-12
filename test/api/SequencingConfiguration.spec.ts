@@ -315,6 +315,70 @@ describe("Sequencing Configuration", () => {
       expect(cluster.getAvailableChildren().map((child: any) => child.id)).toEqual(["leaf1"]);
     });
 
+    it("should merge serialized collection objective maps into an inline primary objective", () => {
+      const api = new Scorm2004API({
+        sequencing: {
+          collections: [
+            {
+              id: "seqCol-OB06-1",
+              objectives: [
+                {
+                  objectiveID: "PRIMARYOBJ",
+                  mapInfo: [
+                    {
+                      targetObjectiveID: "gObj-OB06",
+                      writeCompletionStatus: true,
+                      writeProgressMeasure: true,
+                      writeRawScore: true,
+                      writeMinScore: true,
+                      writeMaxScore: true,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          activityTree: {
+            id: "activity_1",
+            sequencingIdRef: "seqCol-OB06-1",
+            primaryObjective: {
+              objectiveID: "PRIMARYOBJ",
+              mapInfo: [
+                {
+                  targetObjectiveID: "gObj-OB06",
+                  writeSatisfiedStatus: true,
+                  writeNormalizedMeasure: true,
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const primary = (api as any)._sequencing.activityTree.root.primaryObjective;
+
+      // @spec SCORM 2004 OB-06: a sequencing collection's ADL objective maps
+      // augment the same local objective declared inline on the activity.
+      expect(primary.mapInfo).toHaveLength(2);
+      expect(primary.mapInfo).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            targetObjectiveID: "gObj-OB06",
+            writeSatisfiedStatus: true,
+            writeNormalizedMeasure: true,
+          }),
+          expect.objectContaining({
+            targetObjectiveID: "gObj-OB06",
+            writeCompletionStatus: true,
+            writeProgressMeasure: true,
+            writeRawScore: true,
+            writeMinScore: true,
+            writeMaxScore: true,
+          }),
+        ]),
+      );
+    });
+
     it("should allow multiple activities to reuse the same collections", () => {
       const api = new Scorm2004API({
         sequencing: {
@@ -380,6 +444,50 @@ describe("Sequencing Configuration", () => {
         false,
       );
       expect(availableCluster2.map((child: any) => child.id)).toEqual([]);
+    });
+
+    it("should let inline sequencing rules replace referenced collection rules", () => {
+      const api = new Scorm2004API({
+        sequencing: {
+          collections: {
+            inverseSkip: {
+              sequencingRules: {
+                preConditionRules: [
+                  {
+                    action: RuleActionType.SKIP,
+                    conditions: [
+                      {
+                        condition: RuleConditionType.SATISFIED,
+                        operator: RuleConditionOperator.NOT,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          activityTree: {
+            id: "activity",
+            title: "Activity",
+            sequencingIdRef: "inverseSkip",
+            sequencingRules: {
+              preConditionRules: [
+                {
+                  action: RuleActionType.SKIP,
+                  conditions: [{ condition: RuleConditionType.SATISFIED }],
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const rules = (api as any)._sequencing.activityTree.root.sequencingRules;
+
+      // @spec SCORM 2004 SN 2.1.2: an inline top-level element replaces the
+      // same top-level element from referenced Sequencing Information.
+      expect(rules.preConditionRules).toHaveLength(1);
+      expect(rules.preConditionRules[0].conditions[0].operator).toBeNull();
     });
   });
 

@@ -1849,7 +1849,7 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("syncCmiToSequencingActivity", () => {
-    it("should set satisfiedStatusKnown when success_status is set", () => {
+    it("should set satisfiedStatusKnown immediately when change rollup is enabled", () => {
       const api = new Scorm2004API();
       api.configureSequencing({
         activityTree: {
@@ -1857,6 +1857,7 @@ describe("SCORM 2004 API Tests", () => {
           primaryObjective: { id: "obj1" },
         },
       });
+      api.updateSequencingConfiguration({ autoRollupOnCMIChange: true });
       api.lmsInitialize();
       api.lmsSetValue("cmi.success_status", "passed");
 
@@ -1865,6 +1866,65 @@ describe("SCORM 2004 API Tests", () => {
       const currentActivity = state?.currentActivity;
       expect(currentActivity?.primaryObjective?.satisfiedStatusKnown).toBe(true);
       expect(currentActivity?.objectiveSatisfiedStatusKnown).toBe(true);
+    });
+
+    it("should not retain runtime success from an abandoned attempt", () => {
+      const settings: Settings = {
+        sequencing: {
+          autoRollupOnCMIChange: false,
+          activityTree: {
+            id: "root",
+            sequencingControls: { flow: true },
+            children: [
+              {
+                id: "activity1",
+                primaryObjective: { id: "primary" },
+                sequencingRules: {
+                  preConditionRules: [
+                    {
+                      action: "skip",
+                      conditionCombination: "all",
+                      conditions: [{ condition: "satisfied" }],
+                    },
+                  ],
+                },
+              },
+              { id: "activity2" },
+            ],
+          },
+        },
+      };
+      const scorm2004API = api(settings);
+
+      expect(scorm2004API.lmsInitialize()).toBe("true");
+      expect(scorm2004API.getSequencingState().currentActivity?.id).toBe("activity1");
+      expect(scorm2004API.lmsSetValue("cmi.success_status", "passed")).toBe("true");
+
+      // A normal commit persists RTE data, but End Attempt is the boundary that
+      // transfers that data into sequencing tracking state.
+      // @spec SCORM 2004 4th Ed. SN TB.2.3 / TR SX-04a and SX-04b
+      scorm2004API.renderCommitObject(false, true);
+      expect(scorm2004API.lmsCommit()).toBe("true");
+      expect(scorm2004API.lmsSetValue("adl.nav.request", "abandonAll")).toBe("true");
+      expect(scorm2004API.lmsFinish()).toBe("true");
+
+      const abandonedActivity = scorm2004API.getSequencingState().rootActivity?.children[0];
+      expect(abandonedActivity?.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(abandonedActivity?.primaryObjective?.satisfiedStatusKnown).toBe(false);
+
+      const snapshot = scorm2004API
+        .getSequencingService()
+        ?.getOverallSequencingProcess()
+        ?.getSequencingState();
+      const relaunchedAPI = api(settings);
+      expect(
+        relaunchedAPI
+          .getSequencingService()
+          ?.getOverallSequencingProcess()
+          ?.restoreSequencingState(snapshot!),
+      ).toBe(true);
+      expect(relaunchedAPI.lmsInitialize()).toBe("true");
+      expect(relaunchedAPI.getSequencingState().currentActivity?.id).toBe("activity1");
     });
   });
 });

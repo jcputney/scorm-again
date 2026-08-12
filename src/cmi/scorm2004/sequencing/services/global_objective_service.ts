@@ -62,66 +62,11 @@ export class GlobalObjectiveService {
   private collectObjectives(activity: Activity): void {
     const objectives = activity.getAllObjectives();
 
-    if (objectives.length === 0) {
-      const defaultId = `${activity.id}_default_objective`;
-      if (!this.globalObjectiveMap.has(defaultId)) {
-        this.globalObjectiveMap.set(defaultId, {
-          id: defaultId,
-          satisfiedStatus: activity.objectiveSatisfiedStatus,
-          satisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
-          normalizedMeasure: activity.objectiveNormalizedMeasure,
-          normalizedMeasureKnown: activity.objectiveMeasureStatus,
-          rawScore: "",
-          rawScoreKnown: false,
-          minScore: "",
-          minScoreKnown: false,
-          maxScore: "",
-          maxScoreKnown: false,
-          progressMeasure: activity.progressMeasure,
-          progressMeasureKnown: activity.progressMeasureStatus,
-          completionStatus: activity.completionStatus,
-          completionStatusKnown: activity.completionStatus !== CompletionStatus.UNKNOWN,
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: true,
-          writeNormalizedMeasure: true,
-          readCompletionStatus: true,
-          writeCompletionStatus: true,
-          readProgressMeasure: true,
-          writeProgressMeasure: true,
-          readRawScore: false,
-          writeRawScore: false,
-          readMinScore: false,
-          writeMinScore: false,
-          readMaxScore: false,
-          writeMaxScore: false,
-          satisfiedByMeasure: activity.scaledPassingScore !== null,
-          minNormalizedMeasure: activity.scaledPassingScore,
-          updateAttemptData: true,
-        });
-      }
-    }
-
     for (const objective of objectives) {
-      const mapInfos =
-        objective.mapInfo.length > 0
-          ? objective.mapInfo
-          : [
-              {
-                targetObjectiveID: objective.id,
-                readSatisfiedStatus: true,
-                writeSatisfiedStatus: true,
-                readNormalizedMeasure: true,
-                writeNormalizedMeasure: true,
-                readProgressMeasure: true,
-                writeProgressMeasure: true,
-                readCompletionStatus: true,
-                writeCompletionStatus: true,
-                updateAttemptData: objective.isPrimary,
-              },
-            ];
-
-      for (const mapInfo of mapInfos) {
+      // @spec SCORM 2004 4th Ed. SN 3.10.3: only an explicit objective map creates
+      // a global objective relationship. Local and synthesized default objectives
+      // remain local when they have no mapInfo.
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         if (!this.globalObjectiveMap.has(targetId)) {
           this.globalObjectiveMap.set(targetId, {

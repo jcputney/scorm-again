@@ -158,10 +158,13 @@ From commit endpoint, extract and store:
 ├── cmi.comments_from_learner.*  → Learner comments array
 └── cmi.learner_preference.*     → Preferences
 
-For sequenced courses, also extract:
-├── adl.nav.request              → Navigation request (see below)
-└── Global objectives            → Objectives with mapInfo targeting globals
+For sequenced courses using renderCommonCommitFields: true, also extract:
+└── globalObjectives             → Registration-scoped sequencing objective snapshot
 ```
+
+`adl.nav.request` is processed by scorm-again when the SCO calls `Terminate()`; it is not a
+separate field in the structured commit object. A normal `Commit()` checkpoints runtime data but
+does not end the activity attempt or execute the navigation request.
 
 ### ADL Navigation Requests
 
@@ -287,18 +290,18 @@ interface CommitObject {
   // Full runtime data tree
   runtimeData: {
     cmi: { /* all CMI data */ };
-    adl?: { /* SCORM 2004 ADL data */ };
   };
+
+  // SCORM 2004 sequencing state (when renderCommonCommitFields: true)
+  globalObjectives?: Record<string, GlobalObjectiveMapEntry>;
 
   // Optional metadata (when autoPopulateCommitMetadata: true)
   courseId?: string;
   scoId?: string;
   learnerId?: string;
   learnerName?: string;
-  sessionId?: string;
   activityId?: string;
-  attempt?: number;
-  commitId?: string;
+  commitSequence?: number; // when includeCommitSequence: true
 }
 ```
 
@@ -390,22 +393,27 @@ new Scorm2004API({
   // Behavior
   score_overrides_status: false,       // Allow score to override status
   autoProgress: false,                 // Auto-progress on completion
+  selfReportSessionTime: true,         // Measure time in the API instead of trusting SCO data
 
   // Beacon behavior
-  useBeaconInsteadOfFetch: "on-terminate",  // "always" | "on-terminate" | "never"
+  useAsynchronousCommits: true,
+  asyncModeBeaconBehavior: "on-terminate", // "always" | "on-terminate" | "never"
 
   // Commit metadata
+  renderCommonCommitFields: true,      // Includes globalObjectives for sequenced courses
   autoPopulateCommitMetadata: true,
   courseId: "course-123",
   scoId: "sco-456",
 
   // Navigation validation
   scoItemIds: ["sco1", "sco2"],        // Valid navigation targets
-  globalObjectiveIds: ["global-obj"],  // Shared objectives
+  // Optional host-defined global rows. Manifest mapInfo targets come from the tree.
+  globalObjectiveIds: ["host-global-obj"],
 
   // Sequencing (for sequenced courses)
   sequencing: {
     activityTree: {...},
+    autoRollupOnCMIChange: false,       // Transfer SCO data when the attempt ends
     eventListeners: {
       onActivityDelivery: (activity) => launchContent(activity),
       onNavigationValidityUpdate: (data) => updateNavUI(data),
@@ -438,10 +446,9 @@ new Scorm2004API({
 ### Beacon Requests
 
 On `Terminate()`/`LMSFinish()`:
-- Uses `navigator.sendBeacon()` by default
-- **Fire-and-forget**: No response expected
-- **Survives page close**: Ensures data is sent
-- Make endpoint idempotent (may receive duplicates)
+- Synchronous mode (the default) uses `navigator.sendBeacon()` for the termination commit
+- Asynchronous mode follows `asyncModeBeaconBehavior`; its default, `"never"`, uses `fetch()`
+- Beacon delivery is fire-and-forget and survives page close; make the endpoint idempotent
 
 ---
 
@@ -468,7 +475,7 @@ On `Terminate()`/`LMSFinish()`:
 | `xhrHeaders` | `object` | `{}` | Custom headers for XHR requests |
 | `xhrWithCredentials` | `boolean` | `false` | Include cookies in cross-origin requests |
 | `fetchMode` | `string` | `"cors"` | Fetch mode: `"cors"`, `"no-cors"`, `"same-origin"`, `"navigate"` |
-| `useBeaconInsteadOfFetch` | `string` | `"never"` | Use sendBeacon: `"always"`, `"on-terminate"`, `"never"` |
+| `asyncModeBeaconBehavior` | `string` | `"never"` | In asynchronous mode, use sendBeacon: `"always"`, `"on-terminate"`, or `"never"` |
 | `useAsynchronousCommits` | `boolean` | `false` | Use async HTTP (not SCORM-compliant) |
 | `throttleCommits` | `boolean` | `false` | Throttle rapid commits (only with async) |
 | `httpService` | `IHttpService \| null` | `null` | Custom HTTP service implementation |
@@ -490,7 +497,7 @@ On `Terminate()`/`LMSFinish()`:
 | `score_overrides_status` | `boolean` | `false` | Score determines pass/fail automatically |
 | `completion_status_on_failed` | `string` | `"completed"` | Completion status when failed: `"completed"` or `"incomplete"` |
 | `autoCompleteLessonStatus` | `boolean` | `false` | Auto-complete lesson_status on finish |
-| `selfReportSessionTime` | `boolean` | `false` | Allow content to set session_time directly |
+| `selfReportSessionTime` | `boolean` | `false` | Measure elapsed time from `Initialize()` and use it instead of relying on SCO-reported `session_time` |
 | `alwaysSendTotalTime` | `boolean` | `false` | Always include total_time in commits |
 
 ### Offline Support Settings
@@ -510,15 +517,15 @@ On `Terminate()`/`LMSFinish()`:
 | `scoId` | `string` | `""` | SCO identifier for multi-SCO courses |
 | `scoItemIds` | `string[]` | `[]` | Valid SCO item IDs for navigation validation |
 | `scoItemIdValidator` | `function \| false` | `false` | Custom SCO ID validator, or `false` to disable |
-| `globalObjectiveIds` | `string[]` | `[]` | Global objective IDs shared across SCOs |
+| `globalObjectiveIds` | `string[]` | `[]` | Host-defined global rows; manifest mapInfo targets come from the activity tree |
 | `globalStudentPreferences` | `boolean` | `false` | Share learner preferences across SCOs |
 
 ### Commit Metadata Settings
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `renderCommonCommitFields` | `boolean` | `false` | Add summary fields to commit (successStatus, completionStatus, etc.) |
-| `autoPopulateCommitMetadata` | `boolean` | `false` | Add courseId, scoId, learnerId, sessionId, commitId to commits |
+| `renderCommonCommitFields` | `boolean` | `false` | Emit the structured commit object; SCORM 2004 commits then include `globalObjectives` |
+| `autoPopulateCommitMetadata` | `boolean` | `false` | Add courseId, scoId, learnerId, learnerName, and activityId to structured commits |
 
 ### Sequencing Settings (SCORM 2004)
 
@@ -536,6 +543,7 @@ On `Terminate()`/`LMSFinish()`:
     loadState: async (metadata) => { /* load from DB */ return stateString; },
     clearState: async (metadata) => { /* delete from DB */ return true; }
   },
+  autoLoadOnInitialize: true, // Set false when the LMS explicitly awaits a preload
   autoSaveOn: "commit",    // "commit" | "setValue" | "navigate" | "never"
   compress: true,          // Compress state data
   maxStateSize: 51200,     // Max 50KB
@@ -543,6 +551,12 @@ On `Terminate()`/`LMSFinish()`:
   debugPersistence: false  // Log persistence operations
 }
 ```
+
+For deterministic initial delivery, set `autoLoadOnInitialize: false`, call and await
+`loadSequencingState(metadata)`, and restore the last structured commit's `globalObjectives` with
+`restoreGlobalObjectiveSnapshot(snapshot)` before starting or resuming sequencing. `autoSaveOn`
+defaults to `"commit"` and includes termination commits; `"navigate"` saves the post-navigation
+state after either direct LMS navigation or content-driven `Terminate()` navigation.
 
 ---
 

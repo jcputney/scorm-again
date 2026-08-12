@@ -82,6 +82,8 @@ class Scorm2004SequencedPlayer {
     this.manifest = COURSE_MANIFEST;
     this.currentActivityId = null;
     this.choiceValidity = {};
+    this.canContinue = false;
+    this.canPrevious = false;
 
     this.dom = {
       title: $('#course-title'),
@@ -207,6 +209,9 @@ class Scorm2004SequencedPlayer {
   handleActivityDelivery(activity) {
     log.info(`Activity delivery: ${activity.id}`);
 
+    if (this.currentActivityId && this.currentActivityId !== activity.id) {
+      this.api.reset();
+    }
     this.currentActivityId = activity.id;
     this.dom.loading.hidden = false;
 
@@ -223,6 +228,8 @@ class Scorm2004SequencedPlayer {
 
     // Update menu highlight
     this.highlightCurrentActivity(activity.id);
+    this.updateAllMenuStatuses();
+    this.updateProgress();
   }
 
   handleNavValidityUpdate(data) {
@@ -231,6 +238,8 @@ class Scorm2004SequencedPlayer {
     // Event format: {continue: boolean, previous: boolean, choice: {activityId: boolean}, jump: {...}}
     const canContinue = data.continue === true;
     const canPrevious = data.previous === true;
+    this.canContinue = canContinue;
+    this.canPrevious = canPrevious;
 
     this.dom.btnNext.disabled = !canContinue;
     this.dom.btnNext.dataset.valid = canContinue;
@@ -306,13 +315,13 @@ class Scorm2004SequencedPlayer {
 
   setupUiListeners() {
     this.dom.btnNext.addEventListener('click', () => {
-      if (this.validRequests.includes('continue')) {
+      if (this.canContinue) {
         this.api.processNavigationRequest('continue');
       }
     });
 
     this.dom.btnPrev.addEventListener('click', () => {
-      if (this.validRequests.includes('previous')) {
+      if (this.canPrevious) {
         this.api.processNavigationRequest('previous');
       }
     });

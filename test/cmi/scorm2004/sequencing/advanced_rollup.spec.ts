@@ -332,10 +332,9 @@ describe("Advanced Rollup Configuration Tests", () => {
 
       rollupProcess.overallRollupProcess(children[0]);
 
-      // Rule doesn't match (no children satisfied the condition)
-      // With all UNKNOWN and no rules matching, result varies by implementation
-      // The key is the rule didn't apply
-      expect(parent.objectiveSatisfiedStatus).not.toBeUndefined();
+      // @spec SCORM 2004 4th Ed. TR RU-02a / RU-02b and SN RB.1.4:
+      // childActivitySet="any" requires at least one matching child.
+      expect(parent.objectiveSatisfiedStatus).toBe(false);
     });
 
     it("should succeed with multiple satisfied children", () => {

@@ -31,6 +31,22 @@ describe("RollupChildFilter", () => {
 
         expect(filter.checkChildForRollupSubprocess(child, "objective")).toBe(true);
       });
+
+      /**
+       * @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo and
+       * useCurrentAttemptProgressInfo
+       */
+      it("should mask unavailable tracking without removing it from rule counts", () => {
+        const child = createMockActivity({ tracked: true });
+        child.objectiveInfoAvailableInCurrentParentAttempt = false;
+        child.progressInfoAvailableInCurrentParentAttempt = false;
+
+        expect(filter.checkChildForRollupSubprocess(child, "objective")).toBe(true);
+        expect(filter.checkChildForRollupSubprocess(child, "measure")).toBe(false);
+        expect(filter.checkChildForRollupSubprocess(child, "progress")).toBe(true);
+        expect(filter.isChildSatisfiedForRollup(child)).toBe(false);
+        expect(filter.isChildCompletedForRollup(child)).toBe(false);
+      });
     });
 
     describe("objective/measure rollup", () => {

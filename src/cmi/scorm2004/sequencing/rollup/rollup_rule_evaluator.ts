@@ -85,19 +85,27 @@ export class RollupRuleEvaluator {
       }
     }
 
-    // Apply minimum count/percent logic OR consideration type
-    if (rule.consideration === RollupConsiderationType.ALL) {
-      // For ALL consideration, all contributing children must satisfy
-      return contributingChildren > 0 && satisfiedCount === contributingChildren;
-    } else if (rule.minimumCount !== null) {
-      return satisfiedCount >= rule.minimumCount;
-    } else if (rule.minimumPercent !== null) {
-      const percent = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
-      return percent >= rule.minimumPercent;
+    // Apply childActivitySet independently from the atLeast thresholds. RollupRule initializes
+    // those numeric fields to zero, so treating their presence as the discriminator makes "any"
+    // and "none" rules vacuously true even when no child matches.
+    // @spec SCORM 2004 4th Ed. SN RB.1.4 and TR RU-02a / RU-02b
+    switch (rule.consideration) {
+      case RollupConsiderationType.ALL:
+        return contributingChildren > 0 && satisfiedCount === contributingChildren;
+      case RollupConsiderationType.ANY:
+        return satisfiedCount > 0;
+      case RollupConsiderationType.NONE:
+        return contributingChildren > 0 && satisfiedCount === 0;
+      case RollupConsiderationType.AT_LEAST_COUNT:
+        return satisfiedCount >= rule.minimumCount;
+      case RollupConsiderationType.AT_LEAST_PERCENT: {
+        const percent =
+          contributingChildren > 0 ? (satisfiedCount / contributingChildren) * 100 : 0;
+        return contributingChildren > 0 && percent >= rule.minimumPercent;
+      }
+      default:
+        return false;
     }
-
-    // Default: all contributing children must satisfy
-    return contributingChildren > 0 && satisfiedCount === contributingChildren;
   }
 
   /**
@@ -115,30 +123,10 @@ export class RollupRuleEvaluator {
       return true;
     }
 
-    // Evaluate based on the rule's consideration type
-    switch (rule.consideration) {
-      case RollupConsiderationType.ALL:
-        // All conditions must be met
-        return rule.conditions.every((condition) => condition.evaluate(child));
-
-      case RollupConsiderationType.ANY:
-        // At least one condition must be met
-        return rule.conditions.some((condition) => condition.evaluate(child));
-
-      case RollupConsiderationType.NONE:
-        // No conditions should be met
-        return !rule.conditions.some((condition) => condition.evaluate(child));
-
-      case RollupConsiderationType.AT_LEAST_COUNT:
-      case RollupConsiderationType.AT_LEAST_PERCENT:
-        // These are handled at the rule level, not condition level
-        // For individual condition evaluation, treat as ALL
-        return rule.conditions.every((condition) => condition.evaluate(child));
-
-      default:
-        // Unknown consideration type, default to false
-        return false;
-    }
+    // Rollup conditions default to an "all" combination. childActivitySet controls how matching
+    // children are counted; it does not change how this individual child's conditions combine.
+    // @spec SCORM 2004 4th Ed. SN RB.1.4.1
+    return rule.conditions.every((condition) => condition.evaluate(child));
   }
 
   /**
