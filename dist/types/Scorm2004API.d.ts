@@ -4,13 +4,15 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import { CMI } from "./cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
-import { CommitObject, CommitTrigger, ResultObject, SequencingStateMetadata, Settings } from "./types";
+import { CommitObject, CommitTrigger, GlobalObjectiveMapEntry, ResultObject, SequencingStateMetadata, Settings } from "./types";
 import { IHttpService } from "./interfaces";
 import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
 declare class Scorm2004API extends BaseAPI {
     private _version;
     private readonly _sequencing;
     private _sequencingService;
+    private _restoringFromJSON;
+    private readonly _runtimeSetCMIElements;
     private _extractedScoItemIds;
     private _sequencingCollections;
     private _responseValidator;
@@ -46,6 +48,7 @@ declare class Scorm2004API extends BaseAPI {
     get globalObjectives(): CMIObjectivesObject[];
     set _globalObjectives(objectives: CMIObjectivesObject[]);
     get _globalObjectives(): CMIObjectivesObject[];
+    restoreGlobalObjectiveSnapshot(snapshot: Record<string, GlobalObjectiveMapEntry>): void;
     compressStateData(data: string): string;
     decompressStateData(data: string): string;
     lmsInitialize(parameter?: string): string;
@@ -56,6 +59,7 @@ declare class Scorm2004API extends BaseAPI {
     lmsGetLastError(): string;
     lmsGetErrorString(CMIErrorCode: string | number): string;
     lmsGetDiagnostic(CMIErrorCode: string | number): string;
+    loadFromJSON(json: StringKeyMap, CMIElement?: string): void;
     setCMIValue(CMIElement: string, value: any): string;
     private currentActivityAllowsGlobalObjectiveWrites;
     getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null;
@@ -80,6 +84,7 @@ declare class Scorm2004API extends BaseAPI {
     updateSequencingConfiguration(config: SequencingConfiguration): void;
     getSequencingState(): any;
     processNavigationRequest(request: string, targetActivityId?: string): boolean;
+    private autoSaveSequencingState;
     resetSequencingState(): void;
     getActivityTrackingData(activityId: string): {
         completionStatus: string;

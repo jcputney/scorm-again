@@ -6,7 +6,7 @@ import { ObjectiveRollupProcessor } from "./rollup/objective_rollup";
 import { ProgressRollupProcessor } from "./rollup/progress_rollup";
 import { DurationRollupProcessor } from "./rollup/duration_rollup";
 import { CrossClusterProcessor } from "./rollup/cross_cluster_processor";
-import { GlobalObjectiveSynchronizer, GlobalObjective } from "./objectives/global_objective_synchronizer";
+import { GlobalObjectiveSynchronizer, GlobalObjective, GlobalObjectiveWriteTargets } from "./objectives/global_objective_synchronizer";
 import { RollupStateValidator } from "./validation/rollup_state_validator";
 export type EventCallback = (eventType: string, data?: unknown) => void;
 export declare class RollupProcess {
@@ -24,6 +24,8 @@ export declare class RollupProcess {
     overallRollupProcess(activity: Activity): Activity[];
     validateRollupStateConsistency(rootActivity: Activity): boolean;
     processGlobalObjectiveMapping(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
+    syncTerminatedActivityObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): GlobalObjectiveWriteTargets;
+    syncFreshlyWrittenObjectivesToActiveAncestor(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): void;
     calculateComplexWeightedMeasure(activity: Activity, children: Activity[], options?: MeasureRollupOptions): number;
     processCrossClusterDependencies(activity: Activity, clusters: Activity[]): void;
     getChildFilter(): RollupChildFilter;

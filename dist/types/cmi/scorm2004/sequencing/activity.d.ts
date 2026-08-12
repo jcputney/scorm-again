@@ -54,7 +54,9 @@ export interface ActivityObjectiveScoreState {
 }
 export interface ActivityObjectiveReadState extends ActivityObjectiveScoreState {
     satisfiedStatus?: boolean;
+    satisfiedStatusKnown?: boolean;
     normalizedMeasure?: number;
+    normalizedMeasureKnown?: boolean;
     progressMeasure?: number;
     completionStatus?: CompletionStatus;
 }
@@ -146,6 +148,8 @@ export declare class ActivityObjective {
     clearDirty(property: ActivityObjectiveDirtyProperty): void;
     clearAllDirty(): void;
     initializeFromCMI(satisfiedStatus: boolean, normalizedMeasure: number, measureStatus: boolean): void;
+    initializeUnknownSatisfiedStatusFromCMI(): void;
+    initializeUnknownCompletionStatusFromCMI(): void;
     initializeScoreFromCMI(score: ActivityObjectiveScoreState): void;
     applyReadMappedState(state: ActivityObjectiveReadState): void;
     resetState(): void;
@@ -160,10 +164,13 @@ export declare class Activity extends BaseCMI {
     private _isVisible;
     private _isActive;
     private _isSuspended;
+    private _deliveryWasResumed;
     private _isCompleted;
     private _completionStatus;
     private _successStatus;
     private _attemptCount;
+    private _objectiveInfoAvailableInCurrentParentAttempt;
+    private _progressInfoAvailableInCurrentParentAttempt;
     private _attemptCompletionAmount;
     private _attemptAbsoluteDuration;
     private _attemptExperiencedDuration;
@@ -243,6 +250,8 @@ export declare class Activity extends BaseCMI {
     set isActive(isActive: boolean);
     get isSuspended(): boolean;
     set isSuspended(isSuspended: boolean);
+    get deliveryWasResumed(): boolean;
+    set deliveryWasResumed(deliveryWasResumed: boolean);
     get isCompleted(): boolean;
     set isCompleted(isCompleted: boolean);
     get completionStatus(): CompletionStatus;
@@ -251,9 +260,16 @@ export declare class Activity extends BaseCMI {
     set successStatus(successStatus: SuccessStatus);
     get attemptCount(): number;
     set attemptCount(value: number);
+    get objectiveInfoAvailableInCurrentParentAttempt(): boolean;
+    set objectiveInfoAvailableInCurrentParentAttempt(value: boolean);
+    get progressInfoAvailableInCurrentParentAttempt(): boolean;
+    set progressInfoAvailableInCurrentParentAttempt(value: boolean);
     get attemptCompletionAmount(): number;
     set attemptCompletionAmount(value: number);
     incrementAttemptCount(): void;
+    initializeObjectiveProgressForNewAttempt(): void;
+    initializeAttemptProgressForNewAttempt(): void;
+    initializeTrackingForNewAttempt(): void;
     get objectiveSatisfiedStatus(): boolean;
     set objectiveSatisfiedStatus(objectiveSatisfiedStatus: boolean);
     get objectiveSatisfiedStatusKnown(): boolean;

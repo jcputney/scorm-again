@@ -135,6 +135,7 @@ export type CommitObject = {
     completionStatus: CompletionStatus;
     totalTimeSeconds: number;
     runtimeData: StringKeyMap;
+    globalObjectives?: Record<string, GlobalObjectiveMapEntry>;
     score?: ScoreObject;
     commitId?: string;
     courseId?: string;
@@ -167,6 +168,7 @@ export type SequencingStatePersistence = {
 };
 export type SequencingStatePersistenceConfig = {
     persistence: SequencingStatePersistence;
+    autoLoadOnInitialize?: boolean;
     autoSaveOn?: "commit" | "setValue" | "navigate" | "never";
     compress?: boolean;
     maxStateSize?: number;

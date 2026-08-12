@@ -22,6 +22,7 @@ export declare class SequencingProcess {
     private constraintValidator;
     private ruleEngine;
     private traversalService;
+    private endAttemptCallback;
     private flowHandler;
     private choiceHandler;
     private exitHandler;
@@ -45,5 +46,7 @@ export declare class SequencingProcess {
     getConstraintValidator(): ChoiceConstraintValidator;
     getRuleEngine(): RuleEvaluationEngine;
     getTraversalService(): FlowTraversalService;
+    setEndAttemptCallback(callback: (activity: Activity) => void): void;
+    private applyTraversalCallbacks;
 }
 //# sourceMappingURL=sequencing_process.d.ts.map

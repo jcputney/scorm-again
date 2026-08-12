@@ -20,6 +20,12 @@ export interface OverallSequencingProcessOptions {
     getCMIData?: () => CMIDataForTransfer;
     is4thEdition?: boolean;
 }
+export interface PreparedNavigationRequest {
+    navigationRequest: NavigationRequestType;
+    navResult: NavigationRequestResult;
+    deliveryRequest: DeliveryRequest | null;
+    sessionEndReason: "exit_all" | "abandon_all" | null;
+}
 export declare class OverallSequencingProcess {
     private activityTree;
     private sequencingProcess;
@@ -38,6 +44,8 @@ export declare class OverallSequencingProcess {
     constructor(activityTree: ActivityTree, sequencingProcess: SequencingProcess, rollupProcess: RollupProcess, adlNav?: ADLNav | null, eventCallback?: ((eventType: string, data?: any) => void) | null, options?: OverallSequencingProcessOptions);
     private setupCallbacks;
     processNavigationRequest(navigationRequest: NavigationRequestType, targetActivityId?: string | null, exitType?: string): DeliveryRequest;
+    prepareNavigationRequest(navigationRequest: NavigationRequestType, targetActivityId?: string | null, exitType?: string): PreparedNavigationRequest;
+    completeNavigationRequest(prepared: PreparedNavigationRequest): DeliveryRequest;
     private processDelivery;
     hasContentBeenDelivered(): boolean;
     isDeliveryInProgress(): boolean;

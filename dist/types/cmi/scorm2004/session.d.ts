@@ -15,6 +15,7 @@ export declare class CMISession extends BaseCMI {
     get total_time(): string;
     set total_time(total_time: string);
     getCurrentTotalTime(start_time: number | undefined): string;
+    accumulateSessionTime(start_time: number | undefined): void;
     reset(): void;
 }
 //# sourceMappingURL=session.d.ts.map

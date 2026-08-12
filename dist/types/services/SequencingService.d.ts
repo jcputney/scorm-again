@@ -1,6 +1,6 @@
 import { Activity } from "../cmi/scorm2004/sequencing/activity";
 import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing";
-import { OverallSequencingProcess } from "../cmi/scorm2004/sequencing/overall_sequencing_process";
+import { OverallSequencingProcess, type PreparedNavigationRequest, type SequencingState } from "../cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingResult } from "../cmi/scorm2004/sequencing/sequencing_process";
 import { IEventService, ILoggingService } from "../interfaces/services";
 import { CMI } from "../cmi/scorm2004/cmi";
@@ -15,6 +15,12 @@ export interface SequencingConfiguration {
     now?: () => Date;
     getAttemptElapsedSeconds?: (activity: Activity) => number;
     getActivityElapsedSeconds?: (activity: Activity) => number;
+    wasCMIElementSetByContent?: (element: string) => boolean;
+}
+export interface PreparedSequencingNavigation {
+    request: string;
+    operation: PreparedNavigationRequest;
+    rollbackState: SequencingState;
 }
 export declare class SequencingService {
     private sequencing;
@@ -37,6 +43,10 @@ export declare class SequencingService {
     initialize(): string;
     terminate(): string;
     processNavigationRequest(request: string, targetActivityId?: string, exitType?: string): boolean;
+    prepareNavigationRequest(request: string, targetActivityId?: string, exitType?: string): PreparedSequencingNavigation | null;
+    completeNavigationRequest(prepared: PreparedSequencingNavigation): boolean;
+    cancelPreparedNavigation(prepared: PreparedSequencingNavigation): void;
+    private handleNavigationDeliveryRequest;
     triggerRollupOnCMIChange(cmiElement: string, oldValue: any, newValue: any): void;
     setEventListeners(listeners: SequencingEventListeners): void;
     updateConfiguration(config: Partial<SequencingConfiguration>): void;

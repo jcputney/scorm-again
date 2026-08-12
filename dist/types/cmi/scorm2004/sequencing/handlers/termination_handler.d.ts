@@ -48,6 +48,7 @@ export declare class TerminationHandler {
     private exitActionRulesSubprocess;
     clearSuspendedActivity(): void;
     endAttempt(activity: Activity): void;
+    private contentCommunicatedObjectiveStatus;
     private fireEvent;
 }
 //# sourceMappingURL=termination_handler.d.ts.map

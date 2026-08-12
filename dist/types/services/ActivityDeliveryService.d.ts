@@ -12,6 +12,7 @@ export declare class ActivityDeliveryService {
     private loggingService;
     private callbacks;
     private currentDeliveredActivity;
+    private currentDeliveredAttemptCount;
     private pendingDelivery;
     constructor(eventService: IEventService, loggingService: ILoggingService, callbacks?: ActivityDeliveryCallbacks);
     processSequencingResult(result: SequencingResult): void;

@@ -1998,6 +1998,14 @@ this.Scorm12API = (function () {
   var __publicField$i = function __publicField(obj, key, value) {
       return __defNormalProp$i(obj, (typeof key === "undefined" ? "undefined" : _type_of$j(key)) !== "symbol" ? key + "" : key, value);
   };
+  var OBJECTIVE_TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
+      "satisfied" /* SATISFIED */ ,
+      "objectiveSatisfied" /* OBJECTIVE_SATISFIED */ ,
+      "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ ,
+      "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */ ,
+      "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ ,
+      "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ 
+  ]);
   function kleeneNot(value) {
       if (value === "unknown") {
           return "unknown";
@@ -2112,10 +2120,13 @@ this.Scorm12API = (function () {
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
      */ key: "evaluate",
               value: function evaluate(activity) {
+                  var _activity_sequencingControls;
                   var result;
                   var hasReferencedObjective = this._referencedObjective !== null;
                   var referencedObjective = this.resolveReferencedObjective(activity);
-                  switch(this._condition){
+                  if (((_activity_sequencingControls = activity.sequencingControls) === null || _activity_sequencingControls === void 0 ? void 0 : _activity_sequencingControls.tracked) === false && OBJECTIVE_TRACKING_CONDITIONS.has(this._condition)) {
+                      result = "unknown";
+                  } else switch(this._condition){
                       case "satisfied" /* SATISFIED */ :
                       case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */ :
                           if (hasReferencedObjective && !referencedObjective) {
@@ -2124,7 +2135,7 @@ this.Scorm12API = (function () {
                               result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus ? referencedObjective.satisfiedStatus === true : "unknown";
                           } else if (activity.objectiveSatisfiedStatusKnown) {
                               result = activity.objectiveSatisfiedStatus === true;
-                          } else if (activity.successStatus !== SuccessStatus.UNKNOWN) {
+                          } else if (!activity.primaryObjective && activity.successStatus !== SuccessStatus.UNKNOWN) {
                               result = activity.successStatus === SuccessStatus.PASSED;
                           } else {
                               result = "unknown";
@@ -5314,6 +5325,7 @@ this.Scorm12API = (function () {
                   this._deliveryInProgress = true;
                   try {
                       var isResuming = activity.isSuspended;
+                      activity.deliveryWasResumed = isResuming;
                       if (this.activityTree.suspendedActivity) {
                           if (this.clearSuspendedActivityCallback) {
                               this.clearSuspendedActivityCallback();
@@ -5329,6 +5341,34 @@ this.Scorm12API = (function () {
                                       pathActivity.isSuspended = false;
                                   } else {
                                       pathActivity.incrementAttemptCount();
+                                      pathActivity.initializeTrackingForNewAttempt();
+                                      pathActivity.objectiveInfoAvailableInCurrentParentAttempt = true;
+                                      pathActivity.progressInfoAvailableInCurrentParentAttempt = true;
+                                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                                      try {
+                                          for(var _iterator1 = pathActivity.children[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                                              var child = _step1.value;
+                                              if (pathActivity.sequencingControls.useCurrentAttemptObjectiveInfo) {
+                                                  child.objectiveInfoAvailableInCurrentParentAttempt = false;
+                                              }
+                                              if (pathActivity.sequencingControls.useCurrentAttemptProgressInfo) {
+                                                  child.progressInfoAvailableInCurrentParentAttempt = false;
+                                              }
+                                          }
+                                      } catch (err) {
+                                          _didIteratorError1 = true;
+                                          _iteratorError1 = err;
+                                      } finally{
+                                          try {
+                                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                                  _iterator1.return();
+                                              }
+                                          } finally{
+                                              if (_didIteratorError1) {
+                                                  throw _iteratorError1;
+                                              }
+                                          }
+                                      }
                                   }
                                   pathActivity.isActive = true;
                                   SelectionRandomization.applySelectionAndRandomization(pathActivity, pathActivity.attemptCount <= 1);

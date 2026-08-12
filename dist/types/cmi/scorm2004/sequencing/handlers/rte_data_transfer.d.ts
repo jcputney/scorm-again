@@ -2,6 +2,8 @@ import { Activity } from "../activity";
 export interface CMIDataForTransfer {
     completion_status?: string;
     success_status?: string;
+    success_status_was_set?: boolean;
+    score_was_set?: boolean;
     score?: {
         scaled?: string;
         raw?: string;
@@ -12,7 +14,10 @@ export interface CMIDataForTransfer {
     objectives?: Array<{
         id: string;
         success_status?: string;
+        success_status_was_set?: boolean;
+        score_was_set?: boolean;
         completion_status?: string;
+        completion_status_was_set?: boolean;
         score?: {
             scaled?: string;
             raw?: string;

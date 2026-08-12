@@ -15,6 +15,7 @@ export interface PersistenceContext {
 export declare class SequencingStatePersistence {
     private context;
     private globalObjectiveManager;
+    private readonly inFlightLoads;
     constructor(context: PersistenceContext, globalObjectiveManager: GlobalObjectiveManager);
     saveSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean>;
     loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean>;

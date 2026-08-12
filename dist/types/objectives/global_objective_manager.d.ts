@@ -8,6 +8,7 @@ import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing";
 export type CommonSetCMIValueFn = (methodName: string, throwError: boolean, CMIElement: string, value: any) => string;
 export interface GlobalObjectiveContext {
     getSettings: () => Settings;
+    hostDeclaredGlobalObjectiveIds: string[];
     cmi: CMI;
     sequencing: Sequencing | null;
     sequencingService: SequencingService | null;
@@ -16,10 +17,12 @@ export interface GlobalObjectiveContext {
 export declare class GlobalObjectiveManager {
     private _globalObjectives;
     private context;
+    private readonly hostDeclaredGlobalObjectiveIds;
     constructor(context: GlobalObjectiveContext);
     get globalObjectives(): CMIObjectivesObject[];
     set globalObjectives(objectives: CMIObjectivesObject[]);
     updateSequencingService(service: SequencingService | null): void;
+    isHostDeclaredGlobalObjectiveId(objectiveId: string): boolean;
     syncGlobalObjectiveIdsFromSequencing(): void;
     restoreGlobalObjectivesToCMI(): void;
     updateGlobalObjectiveFromCMI(objectiveId: string, objective: CMIObjectivesObject): void;
@@ -27,6 +30,7 @@ export declare class GlobalObjectiveManager {
     buildCMIObjectivesFromMap(snapshot: Record<string, GlobalObjectiveMapEntry>): CMIObjectivesObject[];
     buildCMIObjectiveFromJSON(data: any): CMIObjectivesObject;
     captureGlobalObjectiveSnapshot(overallProcess?: OverallSequencingProcess | null): Record<string, GlobalObjectiveMapEntry>;
+    restoreGlobalObjectiveSnapshot(snapshot: Record<string, GlobalObjectiveMapEntry>): void;
     parseObjectiveNumber(value: any): number | null;
     syncCmiToSequencingActivity(completionStatus: CompletionStatus, successStatus: SuccessStatus, scoreObject?: ScoreObject): void;
     findOrCreateGlobalObjective(objectiveId: string): {

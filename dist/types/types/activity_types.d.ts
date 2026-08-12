@@ -5,6 +5,7 @@ export interface IActivity {
     readonly isVisible: boolean;
     readonly isActive: boolean;
     readonly isSuspended: boolean;
+    readonly deliveryWasResumed: boolean;
     readonly isCompleted: boolean;
     readonly completionStatus: CompletionStatus;
     readonly successStatus: SuccessStatus;

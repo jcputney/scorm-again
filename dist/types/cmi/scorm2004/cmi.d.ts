@@ -63,6 +63,7 @@ export declare class CMI extends BaseRootCMI {
     get total_time(): string;
     set total_time(total_time: string);
     getCurrentTotalTime(): string;
+    accumulateSessionTime(): void;
     toJSON(): {
         comments_from_learner: CMICommentsFromLearner;
         comments_from_lms: CMICommentsFromLMS;

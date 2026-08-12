@@ -55,6 +55,7 @@ export type ActivitySettings = {
     selectionRandomizationState?: SelectionRandomizationStateSettings;
     hideLmsUi?: HideLmsUiItem[];
     sequencingCollectionRefs?: string | string[];
+    sequencingIdRef?: string | string[];
     auxiliaryResources?: AuxiliaryResourceSettings[];
 };
 export type ObjectiveMapInfoSettings = {
@@ -91,7 +92,7 @@ export type RuleConditionSettings = {
 };
 export type SequencingRuleSettings = {
     action: RuleActionType;
-    conditionCombination?: RuleConditionOperator;
+    conditionCombination?: RuleConditionOperator | "all" | "any";
     conditions: RuleConditionSettings[];
 };
 export type SequencingRulesSettings = {
@@ -131,6 +132,9 @@ export type SelectionRandomizationStateSettings = {
     reorderChildren?: boolean;
 };
 export type SequencingCollectionSettings = {
+    id?: string;
+    primaryObjective?: ObjectiveSettings;
+    objectives?: ObjectiveSettings[];
     sequencingControls?: SequencingControlsSettings;
     sequencingRules?: SequencingRulesSettings;
     rollupRules?: RollupRulesSettings;
@@ -160,13 +164,21 @@ export type SequencingSettings = {
     rollupRules?: RollupRulesSettings;
     hideLmsUi?: HideLmsUiItem[];
     auxiliaryResources?: AuxiliaryResourceSettings[];
-    collections?: Record<string, SequencingCollectionSettings>;
+    collections?: Record<string, SequencingCollectionSettings> | SequencingCollectionSettings[];
     autoRollupOnCMIChange?: boolean;
     autoProgressOnCompletion?: boolean;
     validateNavigationRequests?: boolean;
     enableEventSystem?: boolean;
     logLevel?: "debug" | "info" | "warn" | "error";
     eventListeners?: SequencingEventListeners;
+};
+export type NavigationValidityUpdate = {
+    continue: boolean;
+    previous: boolean;
+    choice: Record<string, "true" | "false">;
+    jump: Record<string, "true" | "false">;
+    hideLmsUi: HideLmsUiItem[];
+    auxiliaryResources: AuxiliaryResource[];
 };
 export interface SequencingEventListeners {
     onSequencingStart?: (activity: IActivity) => void;
@@ -226,10 +238,7 @@ export interface SequencingEventListeners {
         request: string;
         target: string | null;
     }) => void;
-    onNavigationValidityUpdate?: (data: {
-        currentActivity: string | null;
-        validRequests: string[];
-    }) => void;
+    onNavigationValidityUpdate?: (data: NavigationValidityUpdate) => void;
     onLimitConditionCheck?: (activity: IActivity, result: boolean) => void;
     onStateInconsistency?: (data: {
         activity: string;

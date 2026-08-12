@@ -1589,6 +1589,14 @@ var RuleActionType = /* @__PURE__ */ ((RuleActionType2) => {
   RuleActionType2["EXIT"] = "exit";
   return RuleActionType2;
 })(RuleActionType || {});
+const OBJECTIVE_TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
+  "satisfied" /* SATISFIED */,
+  "objectiveSatisfied" /* OBJECTIVE_SATISFIED */,
+  "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */,
+  "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */,
+  "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */,
+  "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */
+]);
 function kleeneNot(value) {
   if (value === "unknown") {
     return "unknown";
@@ -1742,93 +1750,96 @@ class RuleCondition extends BaseCMI {
     let result;
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
-    switch (this._condition) {
-      case "satisfied" /* SATISFIED */:
-      case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */:
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
-        } else if (referencedObjective) {
-          result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus ? referencedObjective.satisfiedStatus === true : "unknown";
-        } else if (activity.objectiveSatisfiedStatusKnown) {
-          result = activity.objectiveSatisfiedStatus === true;
-        } else if (activity.successStatus !== SuccessStatus.UNKNOWN) {
-          result = activity.successStatus === SuccessStatus.PASSED;
-        } else {
-          result = "unknown";
-        }
-        break;
-      case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
-        result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.satisfiedStatusKnown : !!activity.objectiveSatisfiedStatusKnown;
-        break;
-      case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
-        result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
-        break;
-      case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
+    if (activity.sequencingControls?.tracked === false && OBJECTIVE_TRACKING_CONDITIONS.has(this._condition)) {
+      result = "unknown";
+    } else
+      switch (this._condition) {
+        case "satisfied" /* SATISFIED */:
+        case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */:
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+          } else if (referencedObjective) {
+            result = referencedObjective.satisfiedStatusKnown || referencedObjective.progressStatus ? referencedObjective.satisfiedStatus === true : "unknown";
+          } else if (activity.objectiveSatisfiedStatusKnown) {
+            result = activity.objectiveSatisfiedStatus === true;
+          } else if (!activity.primaryObjective && activity.successStatus !== SuccessStatus.UNKNOWN) {
+            result = activity.successStatus === SuccessStatus.PASSED;
+          } else {
+            result = "unknown";
+          }
+          break;
+        case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
+          result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.satisfiedStatusKnown : !!activity.objectiveSatisfiedStatusKnown;
+          break;
+        case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
+          result = hasReferencedObjective && !referencedObjective ? false : referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+          break;
+        case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+            break;
+          }
+          const greaterThanValue = this._parameters.get("threshold") || 0;
+          const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
+          const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
+          result = measureStatus ? measureValue > greaterThanValue : "unknown";
           break;
         }
-        const greaterThanValue = this._parameters.get("threshold") || 0;
-        const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
-        const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-        result = measureStatus ? measureValue > greaterThanValue : "unknown";
-        break;
-      }
-      case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
+        case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+            break;
+          }
+          const lessThanValue = this._parameters.get("threshold") || 0;
+          const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
+          const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
+          result = measureStatus ? measureValue < lessThanValue : "unknown";
           break;
         }
-        const lessThanValue = this._parameters.get("threshold") || 0;
-        const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
-        const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-        result = measureStatus ? measureValue < lessThanValue : "unknown";
-        break;
+        case "completed" /* COMPLETED */:
+        case "activityCompleted" /* ACTIVITY_COMPLETED */:
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+          } else if (referencedObjective) {
+            result = referencedObjective.completionStatus === CompletionStatus.UNKNOWN ? "unknown" : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+          } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
+            result = "unknown";
+          } else {
+            result = activity.completionStatus === CompletionStatus.COMPLETED;
+          }
+          break;
+        case "progressKnown" /* PROGRESS_KNOWN */:
+        case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */:
+          if (hasReferencedObjective && !referencedObjective) {
+            result = false;
+          } else if (referencedObjective) {
+            result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
+          } else {
+            result = activity.completionStatus !== "unknown";
+          }
+          break;
+        case "attempted" /* ATTEMPTED */:
+          result = activity.attemptCount > 0;
+          break;
+        case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
+          result = activity.hasAttemptLimitExceeded();
+          break;
+        case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
+          result = this.evaluateTimeLimitExceeded(activity);
+          break;
+        case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
+          result = this.evaluateOutsideAvailableTimeRange(activity);
+          break;
+        case "always" /* ALWAYS */:
+          result = true;
+          break;
+        case "never" /* NEVER */:
+          result = false;
+          break;
+        default:
+          result = false;
+          break;
       }
-      case "completed" /* COMPLETED */:
-      case "activityCompleted" /* ACTIVITY_COMPLETED */:
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
-        } else if (referencedObjective) {
-          result = referencedObjective.completionStatus === CompletionStatus.UNKNOWN ? "unknown" : referencedObjective.completionStatus === CompletionStatus.COMPLETED;
-        } else if (activity.completionStatus === CompletionStatus.UNKNOWN) {
-          result = "unknown";
-        } else {
-          result = activity.completionStatus === CompletionStatus.COMPLETED;
-        }
-        break;
-      case "progressKnown" /* PROGRESS_KNOWN */:
-      case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */:
-        if (hasReferencedObjective && !referencedObjective) {
-          result = false;
-        } else if (referencedObjective) {
-          result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
-        } else {
-          result = activity.completionStatus !== "unknown";
-        }
-        break;
-      case "attempted" /* ATTEMPTED */:
-        result = activity.attemptCount > 0;
-        break;
-      case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
-        result = activity.hasAttemptLimitExceeded();
-        break;
-      case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
-        result = this.evaluateTimeLimitExceeded(activity);
-        break;
-      case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
-        result = this.evaluateOutsideAvailableTimeRange(activity);
-        break;
-      case "always" /* ALWAYS */:
-        result = true;
-        break;
-      case "never" /* NEVER */:
-        result = false;
-        break;
-      default:
-        result = false;
-        break;
-    }
     if (this._operator === "not" /* NOT */) {
       result = kleeneNot(result);
     }
@@ -2440,13 +2451,13 @@ class ChoiceConstraintValidator {
    * @return {ConstraintValidationResult} - Validation result
    */
   validatePathToRoot(targetActivity) {
+    if (targetActivity.parent && !targetActivity.parent.sequencingControls.choice) {
+      return { valid: false, exception: "SB.2.9-5" };
+    }
     let activity = targetActivity;
     while (activity) {
       if (activity.isHiddenFromChoice) {
         return { valid: false, exception: "SB.2.9-4" };
-      }
-      if (activity.parent && !activity.parent.sequencingControls.choice) {
-        return { valid: false, exception: "SB.2.9-5" };
       }
       if (activity.parent && activity.parent.sequencingControls.preventActivation) {
         if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
@@ -3742,6 +3753,13 @@ class FlowTraversalService {
   }
   activityTree;
   ruleEngine;
+  endAttemptCallback = null;
+  /**
+   * Set the callback used when forward flow exits an active cluster attempt.
+   */
+  setEndAttemptCallback(callback) {
+    this.endAttemptCallback = callback;
+  }
   /**
    * Flow Subprocess (SB.2.3)
    * Traverses the activity tree in the specified direction to find a deliverable activity
@@ -3750,6 +3768,7 @@ class FlowTraversalService {
    * @return {FlowSubprocessResult} - Result containing the deliverable activity
    * @spec SN Book: SB.2.3 (Flow Subprocess) - preserves the SB.2.1 effective traversal direction for SB.2.2.
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates candidates using the effective direction returned by SB.2.1.
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - skipped candidates keep children bypassed when SB.2.3 resumes traversal.
    */
   flowSubprocess(fromActivity, direction) {
     let candidateActivity = fromActivity;
@@ -3789,14 +3808,15 @@ class FlowTraversalService {
         traversalResult.activity,
         effectiveDirection === FlowSubprocessMode.FORWARD,
         true,
-        effectiveDirection
+        effectiveDirection,
+        forwardOnlyCluster
       );
       if (deliverable) {
         return new FlowSubprocessResult(deliverable, true, null, false);
       }
       candidateActivity = traversalResult.activity;
       currentDirection = effectiveDirection;
-      firstIteration = false;
+      firstIteration = traversalResult.activity.wasSkipped;
     }
     return new FlowSubprocessResult(null, false, null, false);
   }
@@ -3809,12 +3829,13 @@ class FlowTraversalService {
    * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {FlowTreeTraversalResult} - The next activity and flags
    * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - cluster descent is delegated to SB.2.1 with Consider Children true.
    */
   flowTreeTraversalSubprocess(fromActivity, direction, skipChildren = false, forwardTraversalBoundary = null) {
     if (direction === FlowSubprocessMode.FORWARD) {
       return this.traverseForward(fromActivity, skipChildren, forwardTraversalBoundary);
     } else {
-      return this.traverseBackward(fromActivity);
+      return this.traverseBackward(fromActivity, skipChildren);
     }
   }
   /**
@@ -3846,11 +3867,13 @@ class FlowTraversalService {
     while (current) {
       const nextSibling = this.activityTree.getNextSibling(current);
       if (nextSibling) {
+        this.endActiveClusterAttempt(current);
         return { activity: nextSibling, endSequencingSession: false };
       }
       if (forwardTraversalBoundary && (current === forwardTraversalBoundary || current.parent === forwardTraversalBoundary)) {
         return { activity: null, endSequencingSession: false };
       }
+      this.endActiveClusterAttempt(current);
       current = current.parent;
     }
     if (this.activityTree.root) {
@@ -3859,14 +3882,47 @@ class FlowTraversalService {
     return { activity: null, endSequencingSession: true };
   }
   /**
+   * End a cluster attempt as soon as flow leaves its subtree. This must happen
+   * before the next sibling's preconditions are evaluated so its read-mapped
+   * objectives see the terminating cluster's final write-map values.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SB.2.1 Flow Tree Traversal Subprocess
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
+   */
+  endActiveClusterAttempt(activity) {
+    if (activity.parent && activity.children.length > 0 && activity.isActive && this.endAttemptCallback) {
+      this.endAttemptCallback(activity);
+    }
+  }
+  /**
    * Traverse backward in the activity tree
    * @param {Activity} fromActivity - Starting activity
+   * @param {boolean} skipChildren - Whether to skip children
    * @return {FlowTreeTraversalResult}
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal with Consider Children true enters the last available child.
    * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal into a forwardOnly cluster selects the first available child and reverses traversal direction to Forward.
    */
-  traverseBackward(fromActivity) {
+  traverseBackward(fromActivity, skipChildren) {
     if (fromActivity.parent && fromActivity.parent.sequencingControls.forwardOnly) {
       return { activity: null, endSequencingSession: false, exception: "SB.2.1-4" };
+    }
+    if (!skipChildren) {
+      this.ensureSelectionAndRandomization(fromActivity);
+      const children = fromActivity.getAvailableChildren();
+      if (children.length > 0) {
+        if (fromActivity.sequencingControls.forwardOnly) {
+          return {
+            activity: children[0] || null,
+            endSequencingSession: false,
+            direction: FlowSubprocessMode.FORWARD,
+            forwardOnlyCluster: fromActivity
+          };
+        }
+        return {
+          activity: children[children.length - 1] || null,
+          endSequencingSession: false
+        };
+      }
     }
     const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
     if (previousSibling) {
@@ -3891,35 +3947,22 @@ class FlowTraversalService {
    * Get the activity entered by backward traversal.
    * @param {Activity} activity - The activity
    * @return {FlowTreeTraversalResult} - The entered activity and effective direction
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - backward traversal selects the previous sibling candidate before SB.2.2 evaluates cluster traversal rules.
    * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - entering a forwardOnly cluster while moving Backward uses the first available child and changes direction to Forward.
    */
   getBackwardTraversalEntry(activity) {
-    let enteredActivity = activity;
-    let iterations = 0;
-    const maxIterations = 1e4;
-    while (true) {
-      if (++iterations > maxIterations) {
-        throw new Error("Infinite loop detected while getting backward traversal entry");
-      }
-      this.ensureSelectionAndRandomization(enteredActivity);
-      const children = enteredActivity.getAvailableChildren();
-      if (children.length === 0) {
-        break;
-      }
-      if (enteredActivity.sequencingControls.forwardOnly) {
-        return {
-          activity: children[0] || null,
-          endSequencingSession: false,
-          direction: FlowSubprocessMode.FORWARD,
-          forwardOnlyCluster: enteredActivity
-        };
-      }
-      const lastChild = children[children.length - 1];
-      if (!lastChild) break;
-      enteredActivity = lastChild;
+    this.ensureSelectionAndRandomization(activity);
+    const children = activity.getAvailableChildren();
+    if (children.length > 0 && activity.sequencingControls.forwardOnly) {
+      return {
+        activity: children[0] || null,
+        endSequencingSession: false,
+        direction: FlowSubprocessMode.FORWARD,
+        forwardOnlyCluster: activity
+      };
     }
     return {
-      activity: enteredActivity,
+      activity,
       endSequencingSession: false
     };
   }
@@ -3947,9 +3990,12 @@ class FlowTraversalService {
    * @param {boolean} _direction - Direction (unused but part of spec)
    * @param {boolean} considerChildren - Whether to consider children
    * @param {FlowSubprocessMode} mode - The flow mode
+   * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {Activity | null} - The deliverable activity or null
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - checks the Skipped rule set before considering children.
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - clusters enter children through SB.2.1 using the active traversal direction.
    */
-  flowActivityTraversalSubprocess(activity, _direction, considerChildren, mode) {
+  flowActivityTraversalSubprocess(activity, _direction, considerChildren, mode, forwardTraversalBoundary = null) {
     const parent = activity.parent;
     if (parent && !parent.sequencingControls.flow) {
       return null;
@@ -3957,23 +4003,11 @@ class FlowTraversalService {
     if (!activity.isAvailable) {
       return null;
     }
+    if (this.checkSkippedRuleSet(activity)) {
+      return this.continueFlowActivityTraversal(activity, mode, true, forwardTraversalBoundary);
+    }
     if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
       return null;
-    }
-    if (considerChildren) {
-      this.ensureSelectionAndRandomization(activity);
-      const availableChildren = activity.getAvailableChildren();
-      for (const child of availableChildren) {
-        const deliverable = this.flowActivityTraversalSubprocess(
-          child,
-          mode === FlowSubprocessMode.FORWARD,
-          true,
-          mode
-        );
-        if (deliverable) {
-          return deliverable;
-        }
-      }
     }
     if (activity.children.length === 0) {
       if (this.checkActivityProcess(activity)) {
@@ -3981,7 +4015,69 @@ class FlowTraversalService {
       }
       return null;
     }
+    if (considerChildren) {
+      return this.continueFlowActivityTraversal(activity, mode, false, forwardTraversalBoundary);
+    }
     return null;
+  }
+  /**
+   * Continue SB.2.2 evaluation from the next SB.2.1 flow candidate.
+   * @param {Activity} fromActivity - The activity to flow from
+   * @param {FlowSubprocessMode} mode - The flow mode
+   * @param {boolean} skipChildren - Whether SB.2.1 should skip children of the start activity
+   * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
+   * @return {Activity | null} - The deliverable activity or null
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - recursively evaluates successive SB.2.1 candidates when a candidate cannot be delivered.
+   */
+  continueFlowActivityTraversal(fromActivity, mode, skipChildren, forwardTraversalBoundary) {
+    let currentActivity = fromActivity;
+    let currentMode = mode;
+    let currentSkipChildren = skipChildren;
+    let currentBoundary = forwardTraversalBoundary;
+    let iterations = 0;
+    const maxIterations = 1e4;
+    while (true) {
+      if (++iterations > maxIterations) {
+        throw new Error("Infinite loop detected in flow activity traversal");
+      }
+      const traversalResult = this.flowTreeTraversalSubprocess(
+        currentActivity,
+        currentMode,
+        currentSkipChildren,
+        currentBoundary
+      );
+      if (!traversalResult.activity) {
+        return null;
+      }
+      currentMode = traversalResult.direction || currentMode;
+      currentBoundary = traversalResult.forwardOnlyCluster || currentBoundary;
+      const deliverable = this.flowActivityTraversalSubprocess(
+        traversalResult.activity,
+        currentMode === FlowSubprocessMode.FORWARD,
+        true,
+        currentMode,
+        currentBoundary
+      );
+      if (deliverable) {
+        return deliverable;
+      }
+      currentActivity = traversalResult.activity;
+      currentSkipChildren = true;
+    }
+  }
+  /**
+   * Check whether the Skipped pre-condition rule set applies to an activity.
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True when the Skipped rule set applies
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates only the Skipped sequencing rule set before cluster descent.
+   */
+  checkSkippedRuleSet(activity) {
+    const skippedRules = activity.sequencingRules.preConditionRules.filter(
+      (rule) => rule.action === RuleActionType.SKIP
+    );
+    const wasSkipped = this.ruleEngine.checkSequencingRules(activity, skippedRules) === RuleActionType.SKIP;
+    activity.wasSkipped = wasSkipped;
+    return wasSkipped;
   }
   /**
    * Check Activity Process (SB.2.3)
@@ -4046,6 +4142,7 @@ class FlowTraversalService {
    * Used for START and RETRY_ALL requests
    * @param {Activity} cluster - The cluster activity
    * @return {Activity | null} - The first deliverable activity
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - START/RETRY_ALL cluster search remains bounded to the starting cluster while evaluating SB.2.2 candidates.
    */
   findFirstDeliverableActivity(cluster) {
     if (cluster.children.length === 0) {
@@ -4061,7 +4158,8 @@ class FlowTraversalService {
         child,
         true,
         true,
-        FlowSubprocessMode.FORWARD
+        FlowSubprocessMode.FORWARD,
+        cluster
       );
       if (deliverable) {
         return deliverable;
@@ -4257,11 +4355,18 @@ class ChoiceRequestHandler {
         commonAncestor || this.activityTree.root
       );
     }
-    const activityPath = this.buildActivityPath(targetActivity, commonAncestor);
-    for (const pathActivity of activityPath) {
-      if (!this.traversalService.checkActivityProcess(pathActivity)) {
+    for (const pathActivity of this.treeQueries.getPathToRoot(targetActivity)) {
+      const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
+        (rule) => rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(pathActivity) === true
+      );
+      if (hiddenByRule) {
+        result.exception = "SB.2.9-4";
         return result;
       }
+    }
+    if (!this.traversalService.checkActivityProcess(targetActivity)) {
+      result.exception = "SB.2.9-5";
+      return result;
     }
     let deliveryTarget = targetActivity;
     if (targetActivity.children.length > 0) {
@@ -4326,21 +4431,6 @@ class ChoiceRequestHandler {
       }
     }
     return availableActivities;
-  }
-  /**
-   * Build the activity path from target to common ancestor
-   * @param {Activity} targetActivity - Target activity
-   * @param {Activity | null} commonAncestor - Common ancestor
-   * @return {Activity[]} - Path of activities
-   */
-  buildActivityPath(targetActivity, commonAncestor) {
-    const activityPath = [];
-    let activity = targetActivity;
-    while (activity && activity !== commonAncestor) {
-      activityPath.unshift(activity);
-      activity = activity.parent;
-    }
-    return activityPath;
   }
   /**
    * Choice Flow Subprocess (SB.2.9.1)
@@ -4635,6 +4725,7 @@ class SequencingProcess {
   constraintValidator;
   ruleEngine;
   traversalService;
+  endAttemptCallback = null;
   // Request handlers
   flowHandler;
   choiceHandler;
@@ -4656,6 +4747,7 @@ class SequencingProcess {
       getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook
     });
     this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
+    this.applyTraversalCallbacks();
     this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
     this.choiceHandler = new ChoiceRequestHandler(
       this.activityTree,
@@ -4680,6 +4772,7 @@ class SequencingProcess {
       getAttemptElapsedSecondsHook: fn
     });
     this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
+    this.applyTraversalCallbacks();
     this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
     this.choiceHandler = new ChoiceRequestHandler(
       this.activityTree,
@@ -4827,9 +4920,7 @@ class SequencingProcess {
           };
         }
         if (request === SequencingRequestType.PREVIOUS) {
-          const forwardOnlyViolation = this.constraintValidator.checkForwardOnlyViolation(
-            currentActivity
-          );
+          const forwardOnlyViolation = this.constraintValidator.checkForwardOnlyViolation(currentActivity);
           if (!forwardOnlyViolation.valid) {
             return forwardOnlyViolation;
           }
@@ -4897,6 +4988,19 @@ class SequencingProcess {
   getTraversalService() {
     return this.traversalService;
   }
+  /**
+   * Connect flow traversal to the utility end-attempt process owned by the
+   * overall sequencing coordinator.
+   */
+  setEndAttemptCallback(callback) {
+    this.endAttemptCallback = callback;
+    this.applyTraversalCallbacks();
+  }
+  applyTraversalCallbacks() {
+    if (this.endAttemptCallback) {
+      this.traversalService.setEndAttemptCallback(this.endAttemptCallback);
+    }
+  }
 }
 
 class ActivityDeliveryService {
@@ -4904,6 +5008,7 @@ class ActivityDeliveryService {
   loggingService;
   callbacks;
   currentDeliveredActivity = null;
+  currentDeliveredAttemptCount = null;
   pendingDelivery = null;
   constructor(eventService, loggingService, callbacks = {}) {
     this.eventService = eventService;
@@ -4932,7 +5037,7 @@ class ActivityDeliveryService {
    * @param {Activity} activity - The activity to deliver
    */
   deliverActivity(activity) {
-    if (this.currentDeliveredActivity === activity) {
+    if (this.currentDeliveredActivity === activity && this.currentDeliveredAttemptCount === activity.attemptCount) {
       this.loggingService.info(`Skipping delivery - activity already delivered: ${activity.id}`);
       return;
     }
@@ -4944,6 +5049,7 @@ class ActivityDeliveryService {
     this.eventService.processListeners("ActivityDelivery", activity.id, activity);
     this.callbacks.onDeliverActivity?.(activity);
     this.currentDeliveredActivity = activity;
+    this.currentDeliveredAttemptCount = activity.attemptCount;
     this.pendingDelivery = null;
     activity.isActive = true;
   }
@@ -4986,6 +5092,7 @@ class ActivityDeliveryService {
       this.unloadActivity(this.currentDeliveredActivity);
     }
     this.currentDeliveredActivity = null;
+    this.currentDeliveredAttemptCount = null;
     this.pendingDelivery = null;
   }
 }
@@ -6615,29 +6722,31 @@ class RollupCondition extends BaseCMI {
    * @return {boolean} - True if the condition is met, false otherwise
    */
   evaluate(activity) {
+    const objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
+    const progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
     switch (this._condition) {
       case "satisfied" /* SATISFIED */:
-        return activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED;
+        return objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
-        return activity.objectiveSatisfiedStatusKnown;
+        return objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
       case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
-        return activity.objectiveMeasureStatus;
+        return objectiveInfoAvailable && activity.objectiveMeasureStatus;
       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        return objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
       }
       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        return objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
       }
       case "completed" /* COMPLETED */:
-        return activity.isCompleted;
+        return progressInfoAvailable && activity.isCompleted;
       case "progressKnown" /* PROGRESS_KNOWN */:
-        return activity.completionStatus !== CompletionStatus.UNKNOWN;
+        return progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
       case "attempted" /* ATTEMPTED */:
-        return activity.attemptCount > 0;
+        return progressInfoAvailable && activity.attemptCount > 0;
       case "notAttempted" /* NOT_ATTEMPTED */:
-        return activity.attemptCount === 0;
+        return !progressInfoAvailable || activity.attemptCount === 0;
       case "always" /* ALWAYS */:
         return true;
       default:
@@ -7346,6 +7455,33 @@ class ActivityObjective {
     this._measureStatus = measureStatus;
   }
   /**
+   * Record a content-written unknown satisfied status for objective-map transfer.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - Objective Progress
+   *   Status is independent from Objective Measure Status, and a mapped unknown
+   *   satisfaction value replaces a previously known value.
+   */
+  initializeUnknownSatisfiedStatusFromCMI() {
+    this._satisfiedStatus = false;
+    this._satisfiedStatusKnown = false;
+    this._progressStatus = false;
+    this._satisfiedStatusDirty = true;
+  }
+  /**
+   * Record a content-written unknown completion status for objective-map transfer.
+   *
+   * A fresh attempt's local objective is already unknown, so the normal setter
+   * cannot distinguish that default from content explicitly clearing a known
+   * read-mapped value exposed through the RTE.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - an explicit
+   *   objective completion status of unknown replaces mapped global state.
+   */
+  initializeUnknownCompletionStatusFromCMI() {
+    this._completionStatus = CompletionStatus.UNKNOWN;
+    this._completionStatusDirty = true;
+  }
+  /**
    * Initialize raw/min/max objective score values from RTE data transfer.
    *
    * @spec SCORM 2004 4th Ed. RTE-to-SN Data Transfer - objective score transfer
@@ -7375,10 +7511,23 @@ class ActivityObjective {
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score read maps are access-only
    */
   applyReadMappedState(state) {
+    if (state.satisfiedStatusKnown !== void 0) {
+      this._satisfiedStatusKnown = state.satisfiedStatusKnown;
+      this._progressStatus = state.satisfiedStatusKnown;
+      if (!state.satisfiedStatusKnown) {
+        this._satisfiedStatus = false;
+      }
+    }
     if (state.satisfiedStatus !== void 0) {
       this._satisfiedStatus = state.satisfiedStatus;
       this._satisfiedStatusKnown = true;
       this._progressStatus = true;
+    }
+    if (state.normalizedMeasureKnown !== void 0) {
+      this._measureStatus = state.normalizedMeasureKnown;
+      if (!state.normalizedMeasureKnown) {
+        this._normalizedMeasure = 0;
+      }
     }
     if (state.normalizedMeasure !== void 0) {
       this._normalizedMeasure = state.normalizedMeasure;
@@ -7481,10 +7630,14 @@ class Activity extends BaseCMI {
   _isVisible = true;
   _isActive = false;
   _isSuspended = false;
+  // Transient delivery context. This is deliberately excluded from persisted activity state.
+  _deliveryWasResumed = false;
   _isCompleted = false;
   _completionStatus = CompletionStatus.UNKNOWN;
   _successStatus = SuccessStatus.UNKNOWN;
   _attemptCount = 0;
+  _objectiveInfoAvailableInCurrentParentAttempt = true;
+  _progressInfoAvailableInCurrentParentAttempt = true;
   _attemptCompletionAmount = 0;
   _attemptAbsoluteDuration = "PT0H0M0S";
   _attemptExperiencedDuration = "PT0H0M0S";
@@ -7589,10 +7742,13 @@ class Activity extends BaseCMI {
     this._initialized = false;
     this._isActive = false;
     this._isSuspended = false;
+    this._deliveryWasResumed = false;
     this._isCompleted = false;
     this._completionStatus = CompletionStatus.UNKNOWN;
     this._successStatus = SuccessStatus.UNKNOWN;
     this._attemptCount = 0;
+    this._objectiveInfoAvailableInCurrentParentAttempt = true;
+    this._progressInfoAvailableInCurrentParentAttempt = true;
     this._attemptCompletionAmount = 0;
     this._attemptAbsoluteDuration = "PT0H0M0S";
     this._attemptExperiencedDuration = "PT0H0M0S";
@@ -7780,6 +7936,13 @@ class Activity extends BaseCMI {
   set isSuspended(isSuspended) {
     this._isSuspended = isSuspended;
   }
+  /** Whether the current delivery resumed this activity's suspended attempt. */
+  get deliveryWasResumed() {
+    return this._deliveryWasResumed;
+  }
+  set deliveryWasResumed(deliveryWasResumed) {
+    this._deliveryWasResumed = deliveryWasResumed;
+  }
   /**
    * Getter for isCompleted
    * @return {boolean}
@@ -7844,6 +8007,28 @@ class Activity extends BaseCMI {
     this._attemptCount = value;
   }
   /**
+   * Whether this activity's objective tracking belongs to its parent's current attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo
+   */
+  get objectiveInfoAvailableInCurrentParentAttempt() {
+    return this._objectiveInfoAvailableInCurrentParentAttempt;
+  }
+  set objectiveInfoAvailableInCurrentParentAttempt(value) {
+    this._objectiveInfoAvailableInCurrentParentAttempt = value;
+  }
+  /**
+   * Whether this activity's progress tracking belongs to its parent's current attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptProgressInfo
+   */
+  get progressInfoAvailableInCurrentParentAttempt() {
+    return this._progressInfoAvailableInCurrentParentAttempt;
+  }
+  set progressInfoAvailableInCurrentParentAttempt(value) {
+    this._progressInfoAvailableInCurrentParentAttempt = value;
+  }
+  /**
    * Getter for attemptCompletionAmount
    * @return {number}
    */
@@ -7867,6 +8052,59 @@ class Activity extends BaseCMI {
     if (controls.selectionTiming === "onEachNewAttempt" || controls.randomizationTiming === "onEachNewAttempt") {
       this._processedChildren = null;
     }
+  }
+  /**
+   * Initialize the objective progress information for a new activity attempt.
+   * Activity progress information, such as the cumulative attempt count, is retained.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 step 5.1.1.2.2
+   * @spec SCORM 2004 SN 4th Ed. TM.1.1
+   */
+  initializeObjectiveProgressForNewAttempt() {
+    this._objectiveSatisfiedStatus = false;
+    this._objectiveSatisfiedStatusKnown = false;
+    this._objectiveMeasureStatus = false;
+    this._objectiveNormalizedMeasure = 0;
+    this._successStatus = SuccessStatus.UNKNOWN;
+    this._primaryObjective?.resetState();
+    for (const objective of this._objectives) {
+      objective.resetState();
+    }
+    this.clearAllObjectiveDirty();
+  }
+  /**
+   * Initialize the attempt progress information for a new activity attempt.
+   * Definition-model controls and cumulative activity duration remain unchanged.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 step 5.1.1.2.2
+   * @spec SCORM 2004 SN 4th Ed. TM.1.2.2
+   */
+  initializeAttemptProgressForNewAttempt() {
+    this._isCompleted = false;
+    this._completionStatus = CompletionStatus.UNKNOWN;
+    this._attemptCompletionAmount = 0;
+    this._attemptCompletionAmountStatus = false;
+    this._attemptProgressStatus = false;
+    this._progressMeasure = 0;
+    this._progressMeasureStatus = false;
+    this._attemptAbsoluteDurationValue = "PT0H0M0S";
+    this._attemptExperiencedDurationValue = "PT0H0M0S";
+    this._attemptStartTimestampUtc = null;
+    this._attemptAbsoluteStartTime = "";
+    this._location = "";
+    this._activityAttemptActive = false;
+    this._wasSkipped = false;
+    this._wasAutoCompleted = false;
+    this._wasAutoSatisfied = false;
+  }
+  /**
+   * Initialize all tracking information scoped to a new activity attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 step 5.1.1.2.2
+   */
+  initializeTrackingForNewAttempt() {
+    this.initializeObjectiveProgressForNewAttempt();
+    this.initializeAttemptProgressForNewAttempt();
   }
   /**
    * Getter for objectiveSatisfiedStatus
@@ -8733,6 +8971,15 @@ class Activity extends BaseCMI {
   /**
    * Restore objective state from a sequencing persistence snapshot.
    *
+   * Restored values are cleared of their write-map dirty flags. The snapshot is state that was
+   * already written out, and it is persisted alongside the global objective map that those same
+   * writes produced, so re-flagging it as locally modified is wrong: the write pass of
+   * processGlobalObjectiveMapping walks every activity in the tree, and dirty restored values from
+   * an earlier attempt would be written back over the global objectives just restored from the same
+   * snapshot, silently rolling shared objectives back a generation.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - write mapInfo transfers only local objective data the
+   *   content has modified during the current attempt
    * @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - persisted objective state restores sequencing state
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - persisted score-map state restores objective score fields
    */
@@ -8753,6 +9000,7 @@ class Activity extends BaseCMI {
           state.progressStatus
         );
         this.applyObjectiveScoreSnapshot(primary.objective, state);
+        primary.objective.clearAllDirty();
       }
     }
     for (const state of snapshot.objectives) {
@@ -8768,6 +9016,7 @@ class Activity extends BaseCMI {
         this.applyObjectiveScoreSnapshot(objective, state);
         objective.satisfiedByMeasure = state.satisfiedByMeasure ?? objective.satisfiedByMeasure;
         objective.minNormalizedMeasure = state.minNormalizedMeasure !== void 0 ? state.minNormalizedMeasure : objective.minNormalizedMeasure;
+        objective.clearAllDirty();
       }
     }
   }
@@ -8901,6 +9150,8 @@ class Activity extends BaseCMI {
       completionStatus: this._completionStatus,
       successStatus: this._successStatus,
       attemptCount: this._attemptCount,
+      objectiveInfoAvailableInCurrentParentAttempt: this._objectiveInfoAvailableInCurrentParentAttempt,
+      progressInfoAvailableInCurrentParentAttempt: this._progressInfoAvailableInCurrentParentAttempt,
       attemptCompletionAmount: this._attemptCompletionAmount,
       attemptAbsoluteDuration: this._attemptAbsoluteDuration,
       attemptExperiencedDuration: this._attemptExperiencedDuration,
@@ -8983,6 +9234,8 @@ class Activity extends BaseCMI {
     this._completionStatus = state.completionStatus ?? this._completionStatus;
     this._successStatus = state.successStatus ?? this._successStatus;
     this._attemptCount = state.attemptCount ?? this._attemptCount;
+    this._objectiveInfoAvailableInCurrentParentAttempt = state.objectiveInfoAvailableInCurrentParentAttempt ?? this._objectiveInfoAvailableInCurrentParentAttempt;
+    this._progressInfoAvailableInCurrentParentAttempt = state.progressInfoAvailableInCurrentParentAttempt ?? this._progressInfoAvailableInCurrentParentAttempt;
     this._attemptCompletionAmount = state.attemptCompletionAmount ?? this._attemptCompletionAmount;
     this._attemptAbsoluteDuration = state.attemptAbsoluteDuration ?? this._attemptAbsoluteDuration;
     this._attemptExperiencedDuration = state.attemptExperiencedDuration ?? this._attemptExperiencedDuration;
@@ -9079,6 +9332,8 @@ class Activity extends BaseCMI {
       completionStatus: this._completionStatus,
       successStatus: this._successStatus,
       attemptCount: this._attemptCount,
+      objectiveInfoAvailableInCurrentParentAttempt: this._objectiveInfoAvailableInCurrentParentAttempt,
+      progressInfoAvailableInCurrentParentAttempt: this._progressInfoAvailableInCurrentParentAttempt,
       attemptCompletionAmount: this._attemptCompletionAmount,
       attemptAbsoluteDuration: this._attemptAbsoluteDuration,
       attemptExperiencedDuration: this._attemptExperiencedDuration,
@@ -9189,6 +9444,9 @@ class RollupChildFilter {
     if (child.sequencingControls.tracked === false) {
       return false;
     }
+    if (rollupType === "measure" && child.objectiveInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
     let included = false;
     if (rollupType === "measure" || rollupType === "objective") {
       if (!child.sequencingControls.rollupObjectiveSatisfied) {
@@ -9277,6 +9535,9 @@ class RollupChildFilter {
    * @returns True if child is considered satisfied
    */
   isChildSatisfiedForRollup(child) {
+    if (child.objectiveInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
     if (child.objectiveSatisfiedStatus === true) {
       return true;
     }
@@ -9299,6 +9560,9 @@ class RollupChildFilter {
    * @returns True if child is considered completed
    */
   isChildCompletedForRollup(child) {
+    if (child.progressInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
     if (child.completionStatus === "completed" || child.isCompleted) {
       return true;
     }
@@ -9378,15 +9642,22 @@ class RollupRuleEvaluator {
         }
       }
     }
-    if (rule.consideration === RollupConsiderationType.ALL) {
-      return contributingChildren > 0 && satisfiedCount === contributingChildren;
-    } else if (rule.minimumCount !== null) {
-      return satisfiedCount >= rule.minimumCount;
-    } else if (rule.minimumPercent !== null) {
-      const percent = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
-      return percent >= rule.minimumPercent;
+    switch (rule.consideration) {
+      case RollupConsiderationType.ALL:
+        return contributingChildren > 0 && satisfiedCount === contributingChildren;
+      case RollupConsiderationType.ANY:
+        return satisfiedCount > 0;
+      case RollupConsiderationType.NONE:
+        return contributingChildren > 0 && satisfiedCount === 0;
+      case RollupConsiderationType.AT_LEAST_COUNT:
+        return satisfiedCount >= rule.minimumCount;
+      case RollupConsiderationType.AT_LEAST_PERCENT: {
+        const percent = contributingChildren > 0 ? satisfiedCount / contributingChildren * 100 : 0;
+        return contributingChildren > 0 && percent >= rule.minimumPercent;
+      }
+      default:
+        return false;
     }
-    return contributingChildren > 0 && satisfiedCount === contributingChildren;
   }
   /**
    * Evaluate Rollup Conditions Subprocess
@@ -9401,19 +9672,7 @@ class RollupRuleEvaluator {
     if (rule.conditions.length === 0) {
       return true;
     }
-    switch (rule.consideration) {
-      case RollupConsiderationType.ALL:
-        return rule.conditions.every((condition) => condition.evaluate(child));
-      case RollupConsiderationType.ANY:
-        return rule.conditions.some((condition) => condition.evaluate(child));
-      case RollupConsiderationType.NONE:
-        return !rule.conditions.some((condition) => condition.evaluate(child));
-      case RollupConsiderationType.AT_LEAST_COUNT:
-      case RollupConsiderationType.AT_LEAST_PERCENT:
-        return rule.conditions.every((condition) => condition.evaluate(child));
-      default:
-        return false;
-    }
+    return rule.conditions.every((condition) => condition.evaluate(child));
   }
   /**
    * Evaluate rules for a specific action type
@@ -9507,17 +9766,20 @@ class MeasureRollupProcessor {
     if (children.length === 0) {
       return;
     }
-    const contributingChildren = children.filter((child) => {
-      return child.attemptCompletionAmountStatus;
-    });
+    const trackedChildren = children.filter((child) => child.sequencingControls.tracked);
+    const contributingChildren = trackedChildren.filter(
+      (child) => child.progressInfoAvailableInCurrentParentAttempt !== false && child.attemptCompletionAmountStatus
+    );
     if (contributingChildren.length === 0) {
       activity.attemptCompletionAmountStatus = false;
       return;
     }
     let totalWeightedMeasure = 0;
     let totalWeight = 0;
-    for (const child of contributingChildren) {
-      totalWeightedMeasure += child.attemptCompletionAmount * child.progressWeight;
+    for (const child of trackedChildren) {
+      if (child.progressInfoAvailableInCurrentParentAttempt !== false && child.attemptCompletionAmountStatus) {
+        totalWeightedMeasure += child.attemptCompletionAmount * child.progressWeight;
+      }
       totalWeight += child.progressWeight;
     }
     if (totalWeight > 0) {
@@ -10148,18 +10410,24 @@ class GlobalObjectiveSynchronizer {
       for (const act of allActivities) {
         this.syncGlobalObjectivesWritePhase(act, globalObjectives);
       }
+      const changedActivities = [];
       for (const act of allActivities) {
-        this.syncGlobalObjectivesReadPhase(act, globalObjectives);
+        if (this.syncGlobalObjectivesReadPhase(act, globalObjectives)) {
+          changedActivities.push(act);
+        }
       }
       this.eventCallback?.("global_objective_processing_completed", {
         activityId: activity.id,
-        processedObjectives: globalObjectives.size
+        processedObjectives: globalObjectives.size,
+        changedActivityCount: changedActivities.length
       });
+      return changedActivities;
     } catch (error) {
       this.eventCallback?.("global_objective_processing_error", {
         activityId: activity.id,
         error: error instanceof Error ? error.message : String(error)
       });
+      return [];
     }
   }
   /**
@@ -10184,14 +10452,13 @@ class GlobalObjectiveSynchronizer {
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score write maps
    */
   syncGlobalObjectivesWritePhase(activity, globalObjectives) {
-    if (!this.canWriteGlobalObjectives(activity)) {
+    if (activity.isActive || !this.canWriteGlobalObjectives(activity)) {
       return;
     }
     const objectives = activity.getAllObjectives();
     for (const objective of objectives) {
-      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
       const dirtyFieldsToClear = /* @__PURE__ */ new Set();
-      for (const mapInfo of mapInfos) {
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         const globalObjective = this.ensureGlobalObjectiveEntry(
           globalObjectives,
@@ -10208,15 +10475,15 @@ class GlobalObjectiveSynchronizer {
           globalObjective.normalizedMeasureKnown = true;
           dirtyFieldsToClear.add("normalizedMeasure");
           if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
-            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+            const threshold = objective.minNormalizedMeasure ?? 1;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
             dirtyFieldsToClear.add("satisfiedStatus");
           }
         }
-        if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN && objective.isDirty("completionStatus")) {
+        if (mapInfo.writeCompletionStatus && objective.isDirty("completionStatus")) {
           globalObjective.completionStatus = objective.completionStatus;
-          globalObjective.completionStatusKnown = true;
+          globalObjective.completionStatusKnown = objective.completionStatus !== CompletionStatus.UNKNOWN;
           dirtyFieldsToClear.add("completionStatus");
         }
         if (mapInfo.writeRawScore && objective.rawScoreKnown && objective.isDirty("rawScore")) {
@@ -10249,6 +10516,56 @@ class GlobalObjectiveSynchronizer {
     }
   }
   /**
+   * Transfer the terminating activity's final local objective state to its
+   * write-mapped globals. Unknown local state clears the corresponding global
+   * status instead of leaving a value from the prior attempt visible.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
+   * @spec SCORM 2004 SN 4th Ed. TM.1.1 Objective Progress Information
+   */
+  syncTerminatedActivityWritePhase(activity, globalObjectives) {
+    const writeTargets = {
+      satisfiedStatus: /* @__PURE__ */ new Set(),
+      normalizedMeasure: /* @__PURE__ */ new Set()
+    };
+    if (!this.canWriteGlobalObjectives(activity)) {
+      return writeTargets;
+    }
+    for (const objective of activity.getAllObjectives()) {
+      for (const mapInfo of objective.mapInfo) {
+        const targetId = mapInfo.targetObjectiveID || objective.id;
+        const globalObjective = this.ensureGlobalObjectiveEntry(
+          globalObjectives,
+          targetId,
+          objective
+        );
+        if (mapInfo.writeSatisfiedStatus) {
+          writeTargets.satisfiedStatus.add(targetId);
+          if (this.hasKnownSatisfiedStatus(objective)) {
+            globalObjective.satisfiedStatus = objective.satisfiedStatus;
+            globalObjective.satisfiedStatusKnown = true;
+          } else {
+            globalObjective.satisfiedStatus = false;
+            globalObjective.satisfiedStatusKnown = false;
+          }
+          objective.clearDirty("satisfiedStatus");
+        }
+        if (mapInfo.writeNormalizedMeasure) {
+          writeTargets.normalizedMeasure.add(targetId);
+          if (objective.measureStatus) {
+            globalObjective.normalizedMeasure = objective.normalizedMeasure;
+            globalObjective.normalizedMeasureKnown = true;
+          } else {
+            globalObjective.normalizedMeasure = 0;
+            globalObjective.normalizedMeasureKnown = false;
+          }
+          objective.clearDirty("normalizedMeasure");
+        }
+      }
+    }
+    return writeTargets;
+  }
+  /**
    * Read phase: Read FROM global objectives into local state
    *
    * @param activity - The activity to process
@@ -10258,11 +10575,32 @@ class GlobalObjectiveSynchronizer {
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps
    */
   syncGlobalObjectivesReadPhase(activity, globalObjectives) {
+    return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives);
+  }
+  /**
+   * Read only objective fields freshly written by a terminating descendant.
+   *
+   * Active write-mapped objectives normally suppress reads so a new attempt cannot revive its
+   * predecessor's state. A descendant write is different: active ancestors need that new state
+   * before their own post-condition rules are evaluated.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+   */
+  syncFreshlyWrittenGlobalObjectivesReadPhase(activity, globalObjectives, writeTargets) {
+    return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, writeTargets);
+  }
+  syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, writeTargets) {
+    const beforeStatus = activity.captureRollupStatus();
+    const beforeObjectiveSatisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
     const objectives = activity.getAllObjectives();
     for (const objective of objectives) {
-      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
-      for (const mapInfo of mapInfos) {
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
+        const freshlyWroteSatisfiedStatus = writeTargets?.satisfiedStatus.has(targetId) ?? false;
+        const freshlyWroteNormalizedMeasure = writeTargets?.normalizedMeasure.has(targetId) ?? false;
+        if (writeTargets && !freshlyWroteSatisfiedStatus && !freshlyWroteNormalizedMeasure) {
+          continue;
+        }
         const globalObjective = globalObjectives.get(targetId);
         if (!globalObjective) continue;
         const isPrimary = objective.isPrimary;
@@ -10270,7 +10608,12 @@ class GlobalObjectiveSynchronizer {
           activity,
           objective,
           mapInfo,
-          globalObjective
+          globalObjective,
+          writeTargets ? {
+            restrictToFreshWrites: true,
+            allowSatisfiedStatus: freshlyWroteSatisfiedStatus,
+            allowNormalizedMeasure: freshlyWroteNormalizedMeasure
+          } : void 0
         );
         this.applyGlobalObjectiveReadState(objective, readState);
         if (isPrimary) {
@@ -10284,6 +10627,7 @@ class GlobalObjectiveSynchronizer {
         });
       }
     }
+    return !Activity.compareRollupStatus(beforeStatus, activity.captureRollupStatus()) || beforeObjectiveSatisfiedStatusKnown !== activity.objectiveSatisfiedStatusKnown;
   }
   /**
    * Synchronize global objectives with activity-specific objectives
@@ -10295,8 +10639,7 @@ class GlobalObjectiveSynchronizer {
   synchronizeGlobalObjectives(activity, globalObjectives) {
     const objectives = activity.getAllObjectives();
     for (const objective of objectives) {
-      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
-      for (const mapInfo of mapInfos) {
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         const globalObjective = this.ensureGlobalObjectiveEntry(
           globalObjectives,
@@ -10342,7 +10685,7 @@ class GlobalObjectiveSynchronizer {
           globalObjective.normalizedMeasure = objective.normalizedMeasure;
           globalObjective.normalizedMeasureKnown = true;
           if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
-            const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+            const threshold = objective.minNormalizedMeasure ?? 1;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
           }
@@ -10393,31 +10736,42 @@ class GlobalObjectiveSynchronizer {
    * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to mapped global objective fields
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps are independent fields
    */
-  static getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective) {
+  static getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective, options) {
     const readState = {};
-    if (mapInfo.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-      readState.satisfiedStatus = globalObjective.satisfiedStatus;
-    }
-    if (mapInfo.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-      readState.normalizedMeasure = globalObjective.normalizedMeasure;
-      if (objective.satisfiedByMeasure) {
-        const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
-        readState.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+    const suppressSatisfiedRead = activity.isActive && mapInfo.writeSatisfiedStatus && !options?.allowSatisfiedStatus;
+    const suppressMeasureRead = activity.isActive && mapInfo.writeNormalizedMeasure && !options?.allowNormalizedMeasure;
+    if (mapInfo.readSatisfiedStatus && (!options?.restrictToFreshWrites || options.allowSatisfiedStatus) && !suppressSatisfiedRead && !objective.satisfiedByMeasure) {
+      readState.satisfiedStatusKnown = globalObjective.satisfiedStatusKnown;
+      if (globalObjective.satisfiedStatusKnown) {
+        readState.satisfiedStatus = globalObjective.satisfiedStatus;
       }
     }
-    if (mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
+    if (mapInfo.readNormalizedMeasure && (!options?.restrictToFreshWrites || options.allowNormalizedMeasure) && !suppressMeasureRead) {
+      readState.normalizedMeasureKnown = globalObjective.normalizedMeasureKnown;
+      if (globalObjective.normalizedMeasureKnown) {
+        readState.normalizedMeasure = globalObjective.normalizedMeasure;
+      }
+      if (objective.satisfiedByMeasure) {
+        readState.satisfiedStatusKnown = globalObjective.normalizedMeasureKnown;
+        if (globalObjective.normalizedMeasureKnown) {
+          const threshold = objective.minNormalizedMeasure ?? 1;
+          readState.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
+        }
+      }
+    }
+    if (!options?.restrictToFreshWrites && mapInfo.readCompletionStatus && globalObjective.completionStatusKnown) {
       readState.completionStatus = globalObjective.completionStatus;
     }
-    if (mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
+    if (!options?.restrictToFreshWrites && mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
       readState.progressMeasure = globalObjective.progressMeasure;
     }
-    if (mapInfo.readRawScore && globalObjective.rawScoreKnown) {
+    if (!options?.restrictToFreshWrites && mapInfo.readRawScore && globalObjective.rawScoreKnown) {
       readState.rawScore = globalObjective.rawScore;
     }
-    if (mapInfo.readMinScore && globalObjective.minScoreKnown) {
+    if (!options?.restrictToFreshWrites && mapInfo.readMinScore && globalObjective.minScoreKnown) {
       readState.minScore = globalObjective.minScore;
     }
-    if (mapInfo.readMaxScore && globalObjective.maxScoreKnown) {
+    if (!options?.restrictToFreshWrites && mapInfo.readMaxScore && globalObjective.maxScoreKnown) {
       readState.maxScore = globalObjective.maxScore;
     }
     return readState;
@@ -10508,6 +10862,9 @@ class GlobalObjectiveSynchronizer {
    * Measure Status is independent measure knowledge.
    */
   hasKnownSatisfiedStatus(objective) {
+    if (objective.satisfiedByMeasure) {
+      return objective.measureStatus;
+    }
     return objective.progressStatus || objective.satisfiedStatusKnown;
   }
   /**
@@ -10823,10 +11180,7 @@ class RollupProcess {
             const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
             this.measureProcessor.completionMeasureRollupProcess(currentActivity);
             if (clusters.length > 1) {
-              this.crossClusterProcessor.processCrossClusterDependencies(
-                currentActivity,
-                clusters
-              );
+              this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
             }
           }
           if (currentActivity.sequencingControls.rollupObjectiveSatisfied) {
@@ -10875,7 +11229,59 @@ class RollupProcess {
    * @param globalObjectives - Global objective map
    */
   processGlobalObjectiveMapping(activity, globalObjectives) {
-    this.globalObjectiveSynchronizer.processGlobalObjectiveMapping(activity, globalObjectives);
+    const changedActivities = this.globalObjectiveSynchronizer.processGlobalObjectiveMapping(
+      activity,
+      globalObjectives
+    );
+    const rolledUpParents = /* @__PURE__ */ new Set();
+    const activityDepth = (candidate) => {
+      let depth = 0;
+      let parent = candidate.parent;
+      while (parent) {
+        depth += 1;
+        parent = parent.parent;
+      }
+      return depth;
+    };
+    changedActivities.sort((left, right) => activityDepth(right) - activityDepth(left));
+    for (const changedActivity of changedActivities) {
+      if (!changedActivity.sequencingControls.tracked) {
+        continue;
+      }
+      this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(
+        changedActivity,
+        globalObjectives
+      );
+      const parent = changedActivity.parent;
+      if (parent && !rolledUpParents.has(parent)) {
+        this.overallRollupProcess(changedActivity);
+        rolledUpParents.add(parent);
+      }
+    }
+  }
+  /**
+   * Write the final objective status for one terminating activity before the
+   * tree-wide read phase runs.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+   */
+  syncTerminatedActivityObjectives(activity, globalObjectives) {
+    return this.globalObjectiveSynchronizer.syncTerminatedActivityWritePhase(
+      activity,
+      globalObjectives
+    );
+  }
+  /**
+   * Apply a terminating descendant's fresh objective writes to an active ancestor.
+   *
+   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+   */
+  syncFreshlyWrittenObjectivesToActiveAncestor(activity, globalObjectives, writeTargets) {
+    this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(
+      activity,
+      globalObjectives,
+      writeTargets
+    );
   }
   /**
    * Calculate complex weighted measure for an activity
@@ -10976,19 +11382,20 @@ function evaluateCompletionStatusFromThreshold({
   return storedCompletionStatus || CompletionStatus.UNKNOWN;
 }
 
-const VALID_COMPLETION_STATUSES = [
-  CompletionStatus.COMPLETED,
-  CompletionStatus.INCOMPLETE,
-  CompletionStatus.UNKNOWN
-];
 const VALID_SUCCESS_STATUSES = [
   SuccessStatus.PASSED,
   SuccessStatus.FAILED,
   SuccessStatus.UNKNOWN
 ];
 function validateCompletionStatus(value) {
-  if (value && VALID_COMPLETION_STATUSES.includes(value)) {
-    return value;
+  if (value === CompletionStatus.COMPLETED) {
+    return CompletionStatus.COMPLETED;
+  }
+  if (value === CompletionStatus.INCOMPLETE || value === "not attempted") {
+    return CompletionStatus.INCOMPLETE;
+  }
+  if (value === CompletionStatus.UNKNOWN) {
+    return CompletionStatus.UNKNOWN;
   }
   return null;
 }
@@ -11070,8 +11477,9 @@ class RteDataTransferService {
     let successStatus = false;
     let hasNormalizedMeasure = false;
     let normalizedScore = 0;
+    const satisfiedByMeasure = activity.primaryObjective?.satisfiedByMeasure === true;
     const validatedSuccessStatus = validateSuccessStatus(cmiData.success_status);
-    if (validatedSuccessStatus && validatedSuccessStatus !== SuccessStatus.UNKNOWN) {
+    if (!satisfiedByMeasure && validatedSuccessStatus && validatedSuccessStatus !== SuccessStatus.UNKNOWN) {
       successStatus = validatedSuccessStatus === SuccessStatus.PASSED;
       hasSuccessStatus = true;
       activity.objectiveSatisfiedStatus = successStatus;
@@ -11087,6 +11495,13 @@ class RteDataTransferService {
         activity.objectiveNormalizedMeasure = normalizedScore;
         activity.objectiveMeasureStatus = true;
       }
+    }
+    if (satisfiedByMeasure && hasNormalizedMeasure) {
+      successStatus = normalizedScore >= (activity.primaryObjective?.minNormalizedMeasure ?? 1);
+      hasSuccessStatus = true;
+      activity.objectiveSatisfiedStatus = successStatus;
+      activity.objectiveSatisfiedStatusKnown = true;
+      activity.successStatus = successStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
     }
     if (activity.primaryObjective && (hasSuccessStatus || hasNormalizedMeasure)) {
       const finalStatus = hasSuccessStatus ? successStatus : activity.primaryObjective.satisfiedStatus;
@@ -11126,19 +11541,30 @@ class RteDataTransferService {
       const activityObjective = activityObjectiveMatch.objective;
       const isPrimaryObjective = activityObjectiveMatch.isPrimary;
       let hasSuccessStatus = false;
+      let hasExplicitUnknownSuccessStatus = false;
       let successStatus = false;
       let hasNormalizedMeasure = false;
       let normalizedScore = 0;
       let hasCompletionStatus = false;
       let hasProgressMeasure = false;
+      const topLevelSuccessStatus = validateSuccessStatus(cmiData.success_status);
+      const topLevelPrimarySuccessWasSet = cmiData.success_status_was_set === true || cmiData.success_status_was_set === void 0 && topLevelSuccessStatus !== null && topLevelSuccessStatus !== SuccessStatus.UNKNOWN;
       const validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
-      if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
+      if (!activityObjective.satisfiedByMeasure && validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN && (cmiObjective.success_status_was_set !== false || !isPrimaryObjective || !topLevelPrimarySuccessWasSet)) {
         successStatus = validatedObjSuccessStatus === SuccessStatus.PASSED;
         hasSuccessStatus = true;
         activityObjective.progressStatus = true;
+      } else if (!activityObjective.satisfiedByMeasure && validatedObjSuccessStatus === SuccessStatus.UNKNOWN && cmiObjective.success_status_was_set === true) {
+        activityObjective.initializeUnknownSatisfiedStatusFromCMI();
+        hasExplicitUnknownSuccessStatus = true;
       }
       const validatedObjCompletionStatus = validateCompletionStatus(cmiObjective.completion_status);
-      if (validatedObjCompletionStatus && validatedObjCompletionStatus !== CompletionStatus.UNKNOWN) {
+      if (validatedObjCompletionStatus === CompletionStatus.UNKNOWN) {
+        if (cmiObjective.completion_status_was_set === true) {
+          activityObjective.initializeUnknownCompletionStatusFromCMI();
+          hasCompletionStatus = true;
+        }
+      } else if (validatedObjCompletionStatus !== null) {
         activityObjective.completionStatus = validatedObjCompletionStatus;
         hasCompletionStatus = true;
       }
@@ -11149,6 +11575,11 @@ class RteDataTransferService {
           normalizedScore = normalized;
           hasNormalizedMeasure = true;
         }
+      }
+      if (activityObjective.satisfiedByMeasure && hasNormalizedMeasure) {
+        successStatus = normalizedScore >= (activityObjective.minNormalizedMeasure ?? 1);
+        hasSuccessStatus = true;
+        activityObjective.progressStatus = true;
       }
       if (hasSuccessStatus || hasNormalizedMeasure) {
         const finalStatus = hasSuccessStatus ? successStatus : activityObjective.satisfiedStatus;
@@ -11167,13 +11598,15 @@ class RteDataTransferService {
           hasProgressMeasure = true;
         }
       }
-      if (isPrimaryObjective && (hasSuccessStatus || hasNormalizedMeasure || hasCompletionStatus || hasProgressMeasure)) {
+      if (isPrimaryObjective && (hasSuccessStatus || hasExplicitUnknownSuccessStatus || hasNormalizedMeasure || hasCompletionStatus || hasProgressMeasure)) {
         activityObjective.applyToActivity(activity);
-        if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
-          activity.successStatus = validatedObjSuccessStatus;
+        if (hasSuccessStatus) {
+          activity.successStatus = successStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+        } else if (hasExplicitUnknownSuccessStatus) {
+          activity.successStatus = SuccessStatus.UNKNOWN;
         }
         if (hasCompletionStatus) {
-          activity.attemptProgressStatus = true;
+          activity.attemptProgressStatus = activityObjective.completionStatus !== CompletionStatus.UNKNOWN;
         }
         if (hasProgressMeasure) {
           activity.attemptCompletionAmount = activityObjective.progressMeasure;
@@ -11298,6 +11731,9 @@ class TerminationHandler {
       });
       return this.handleExitAll(currentActivity);
     }
+    if (exitType === "suspend" && request === SequencingRequestType.EXIT) {
+      currentActivity.isSuspended = true;
+    }
     switch (request) {
       case SequencingRequestType.EXIT:
         return this.handleExit(currentActivity, hasSequencingRequest);
@@ -11372,7 +11808,14 @@ class TerminationHandler {
         this.fireEvent("onPostConditionExitAll", {
           activity: (this.activityTree.currentActivity || currentActivity).id
         });
-        return this.handleExitAll(this.activityTree.root);
+        const exitAllResult = this.handleExitAll(this.activityTree.root);
+        if (postConditionResult.sequencingRequest === SequencingRequestType.RETRY) {
+          return {
+            ...exitAllResult,
+            sequencingRequest: SequencingRequestType.RETRY_ALL
+          };
+        }
+        return exitAllResult;
       }
       if (postConditionResult.terminationRequest === SequencingRequestType.EXIT_PARENT) {
         const current = this.activityTree.currentActivity || currentActivity;
@@ -11788,7 +12231,10 @@ class TerminationHandler {
     if (!activity.isActive) {
       return;
     }
-    this._rteDataTransferService.transferRteData(activity);
+    const contentCommunicatedObjectiveStatus = activity.children.length === 0 && this.contentCommunicatedObjectiveStatus(activity);
+    if (activity.children.length === 0) {
+      this._rteDataTransferService.transferRteData(activity);
+    }
     activity.isActive = false;
     activity.activityAttemptActive = false;
     if (activity.children.length === 0) {
@@ -11807,18 +12253,19 @@ class TerminationHandler {
           }
           if (!activity.sequencingControls.objectiveSetByContent) {
             const primaryObjective = activity.primaryObjective;
-            if (primaryObjective) {
-              if (!primaryObjective.progressStatus) {
+            const objectiveProgressStatus = primaryObjective ? primaryObjective.progressStatus : activity.objectiveSatisfiedStatusKnown;
+            if (!objectiveProgressStatus && !contentCommunicatedObjectiveStatus) {
+              if (primaryObjective) {
                 primaryObjective.progressStatus = true;
                 primaryObjective.satisfiedStatus = true;
-                activity.objectiveSatisfiedStatus = true;
-                activity.successStatus = "passed";
-                activity.wasAutoSatisfied = true;
-                this.fireEvent("onAutoSatisfaction", {
-                  activityId: activity.id,
-                  timestamp: (/* @__PURE__ */ new Date()).toISOString()
-                });
               }
+              activity.objectiveSatisfiedStatus = true;
+              activity.successStatus = "passed";
+              activity.wasAutoSatisfied = true;
+              this.fireEvent("onAutoSatisfaction", {
+                activityId: activity.id,
+                timestamp: (/* @__PURE__ */ new Date()).toISOString()
+              });
             }
           }
         }
@@ -11833,9 +12280,35 @@ class TerminationHandler {
     if (activity.successStatus === "unknown" && activity.objectiveSatisfiedStatus) {
       activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
     }
+    const writeTargets = this.rollupProcess.syncTerminatedActivityObjectives(
+      activity,
+      this.globalObjectiveMap
+    );
+    let activeAncestor = activity.parent;
+    while (activeAncestor) {
+      if (activeAncestor.isActive) {
+        this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
+          activeAncestor,
+          this.globalObjectiveMap,
+          writeTargets
+        );
+      }
+      activeAncestor = activeAncestor.parent;
+    }
     const mappingRoot = this.activityTree.root || activity;
     this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
     this.rollupProcess.overallRollupProcess(activity);
+    activeAncestor = activity.parent;
+    while (activeAncestor) {
+      if (activeAncestor.isActive) {
+        this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
+          activeAncestor,
+          this.globalObjectiveMap,
+          writeTargets
+        );
+      }
+      activeAncestor = activeAncestor.parent;
+    }
     if (this.invalidateCacheCallback) {
       this.invalidateCacheCallback();
     }
@@ -11843,6 +12316,24 @@ class TerminationHandler {
       this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
     }
     SelectionRandomization.applySelectionAndRandomization(activity, false);
+  }
+  /**
+   * Return whether the delivered SCO wrote success information for its rolled-up objective.
+   */
+  contentCommunicatedObjectiveStatus(activity) {
+    const cmiData = this.getCMIData?.();
+    if (!cmiData) {
+      return false;
+    }
+    if (cmiData.success_status_was_set === true) {
+      return true;
+    }
+    const primaryObjectiveId = activity.primaryObjective?.id;
+    return Boolean(
+      primaryObjectiveId && cmiData.objectives?.some(
+        (objective) => objective.id === primaryObjectiveId && objective.success_status_was_set === true
+      )
+    );
   }
   /**
    * Fire a sequencing event
@@ -11983,6 +12474,7 @@ class DeliveryHandler {
     this._deliveryInProgress = true;
     try {
       const isResuming = activity.isSuspended;
+      activity.deliveryWasResumed = isResuming;
       if (this.activityTree.suspendedActivity) {
         if (this.clearSuspendedActivityCallback) {
           this.clearSuspendedActivityCallback();
@@ -11995,6 +12487,17 @@ class DeliveryHandler {
             pathActivity.isSuspended = false;
           } else {
             pathActivity.incrementAttemptCount();
+            pathActivity.initializeTrackingForNewAttempt();
+            pathActivity.objectiveInfoAvailableInCurrentParentAttempt = true;
+            pathActivity.progressInfoAvailableInCurrentParentAttempt = true;
+            for (const child of pathActivity.children) {
+              if (pathActivity.sequencingControls.useCurrentAttemptObjectiveInfo) {
+                child.objectiveInfoAvailableInCurrentParentAttempt = false;
+              }
+              if (pathActivity.sequencingControls.useCurrentAttemptProgressInfo) {
+                child.progressInfoAvailableInCurrentParentAttempt = false;
+              }
+            }
           }
           pathActivity.isActive = true;
           SelectionRandomization.applySelectionAndRandomization(
@@ -12095,9 +12598,7 @@ class DeliveryHandler {
       }
       current = current.parent;
     }
-    return DeliveryHandler.HIDE_LMS_UI_ORDER.filter(
-      (directive) => seen.has(directive)
-    );
+    return DeliveryHandler.HIDE_LMS_UI_ORDER.filter((directive) => seen.has(directive));
   }
   /**
    * Get effective auxiliary resources for an activity
@@ -12555,6 +13056,7 @@ class NavigationValidityService {
   eventCallback;
   navigationLookAhead;
   getEffectiveHideLmsUiCallback = null;
+  getEffectiveAuxiliaryResourcesCallback = null;
   constructor(activityTree, sequencingProcess, adlNav = null, eventCallback = null) {
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
@@ -12567,6 +13069,10 @@ class NavigationValidityService {
    */
   setGetEffectiveHideLmsUiCallback(callback) {
     this.getEffectiveHideLmsUiCallback = callback;
+  }
+  /** Set callback used to resolve inherited auxiliary resources for the current activity. */
+  setGetEffectiveAuxiliaryResourcesCallback(callback) {
+    this.getEffectiveAuxiliaryResourcesCallback = callback;
   }
   /**
    * Get the navigation look-ahead instance
@@ -12863,12 +13369,8 @@ class NavigationValidityService {
         return choiceSetValidation;
       }
     }
-    let activity = targetActivity;
-    while (activity) {
-      if (activity.parent && !activity.parent.sequencingControls.choice) {
-        return { valid: false, exception: "NB.2.1-11" };
-      }
-      activity = activity.parent;
+    if (targetActivity.parent && !targetActivity.parent.sequencingControls.choice) {
+      return { valid: false, exception: "NB.2.1-11" };
     }
     return { valid: true, exception: null };
   }
@@ -13029,6 +13531,9 @@ class NavigationValidityService {
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
   validateAncestors(ancestor, currentActivity, targetActivity) {
+    if (targetActivity === ancestor) {
+      return { valid: true, exception: null };
+    }
     const children = ancestor.children;
     if (!children || children.length === 0) {
       return { valid: true, exception: null };
@@ -13171,13 +13676,16 @@ class NavigationValidityService {
     } catch (e) {
     }
     const hideLmsUi = this.getEffectiveHideLmsUiCallback ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity) : [];
-    this.fireEvent("onNavigationValidityUpdate", {
+    const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback ? this.getEffectiveAuxiliaryResourcesCallback(this.activityTree.currentActivity) : [];
+    const update = {
       continue: continueValid,
       previous: previousValid,
       choice: choiceMap,
       jump: jumpMap,
-      hideLmsUi
-    });
+      hideLmsUi,
+      auxiliaryResources
+    };
+    this.fireEvent("onNavigationValidityUpdate", update);
   }
   /**
    * Get navigation look-ahead predictions
@@ -13277,61 +13785,8 @@ class GlobalObjectiveService {
    */
   collectObjectives(activity) {
     const objectives = activity.getAllObjectives();
-    if (objectives.length === 0) {
-      const defaultId = `${activity.id}_default_objective`;
-      if (!this.globalObjectiveMap.has(defaultId)) {
-        this.globalObjectiveMap.set(defaultId, {
-          id: defaultId,
-          satisfiedStatus: activity.objectiveSatisfiedStatus,
-          satisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
-          normalizedMeasure: activity.objectiveNormalizedMeasure,
-          normalizedMeasureKnown: activity.objectiveMeasureStatus,
-          rawScore: "",
-          rawScoreKnown: false,
-          minScore: "",
-          minScoreKnown: false,
-          maxScore: "",
-          maxScoreKnown: false,
-          progressMeasure: activity.progressMeasure,
-          progressMeasureKnown: activity.progressMeasureStatus,
-          completionStatus: activity.completionStatus,
-          completionStatusKnown: activity.completionStatus !== CompletionStatus.UNKNOWN,
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: true,
-          writeNormalizedMeasure: true,
-          readCompletionStatus: true,
-          writeCompletionStatus: true,
-          readProgressMeasure: true,
-          writeProgressMeasure: true,
-          readRawScore: false,
-          writeRawScore: false,
-          readMinScore: false,
-          writeMinScore: false,
-          readMaxScore: false,
-          writeMaxScore: false,
-          satisfiedByMeasure: activity.scaledPassingScore !== null,
-          minNormalizedMeasure: activity.scaledPassingScore,
-          updateAttemptData: true
-        });
-      }
-    }
     for (const objective of objectives) {
-      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [
-        {
-          targetObjectiveID: objective.id,
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: true,
-          writeNormalizedMeasure: true,
-          readProgressMeasure: true,
-          writeProgressMeasure: true,
-          readCompletionStatus: true,
-          writeCompletionStatus: true,
-          updateAttemptData: objective.isPrimary
-        }
-      ];
-      for (const mapInfo of mapInfos) {
+      for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         if (!this.globalObjectiveMap.has(targetId)) {
           this.globalObjectiveMap.set(targetId, {
@@ -13613,10 +14068,7 @@ class SequencingStateManager {
         this.restoreNavigationState(state.navigationState);
       }
       if (this.activityTree.root) {
-        this.globalObjectiveService.synchronize(
-          this.activityTree.root,
-          this.rollupProcess
-        );
+        this.globalObjectiveService.synchronize(this.activityTree.root, this.rollupProcess);
       }
       console.debug("Sequencing state restored successfully");
       return true;
@@ -13642,12 +14094,16 @@ class SequencingStateManager {
         completionStatus: activity.completionStatus,
         successStatus: activity.successStatus,
         attemptCount: activity.attemptCount,
+        objectiveInfoAvailableInCurrentParentAttempt: activity.objectiveInfoAvailableInCurrentParentAttempt,
+        progressInfoAvailableInCurrentParentAttempt: activity.progressInfoAvailableInCurrentParentAttempt,
         attemptCompletionAmount: activity.attemptCompletionAmount,
+        attemptCompletionAmountStatus: activity.attemptCompletionAmountStatus,
         attemptAbsoluteDuration: activity.attemptAbsoluteDuration,
         attemptExperiencedDuration: activity.attemptExperiencedDuration,
         activityAbsoluteDuration: activity.activityAbsoluteDuration,
         activityExperiencedDuration: activity.activityExperiencedDuration,
         objectiveSatisfiedStatus: activity.objectiveSatisfiedStatus,
+        objectiveSatisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
         objectiveMeasureStatus: activity.objectiveMeasureStatus,
         objectiveNormalizedMeasure: activity.objectiveNormalizedMeasure,
         progressMeasure: activity.progressMeasure,
@@ -13688,14 +14144,18 @@ class SequencingStateManager {
         activity.isSuspended = state.isSuspended || false;
         activity.isCompleted = state.isCompleted || false;
         activity.completionStatus = state.completionStatus || "unknown";
-        activity.successStatus = state.successStatus || "unknown";
         activity.attemptCount = state.attemptCount || 0;
+        activity.objectiveInfoAvailableInCurrentParentAttempt = state.objectiveInfoAvailableInCurrentParentAttempt ?? true;
+        activity.progressInfoAvailableInCurrentParentAttempt = state.progressInfoAvailableInCurrentParentAttempt ?? true;
         activity.attemptCompletionAmount = state.attemptCompletionAmount || 0;
+        activity.attemptCompletionAmountStatus = state.attemptCompletionAmountStatus ?? false;
         activity.attemptAbsoluteDuration = state.attemptAbsoluteDuration || "PT0H0M0S";
         activity.attemptExperiencedDuration = state.attemptExperiencedDuration || "PT0H0M0S";
         activity.activityAbsoluteDuration = state.activityAbsoluteDuration || "PT0H0M0S";
         activity.activityExperiencedDuration = state.activityExperiencedDuration || "PT0H0M0S";
         activity.objectiveSatisfiedStatus = state.objectiveSatisfiedStatus || false;
+        activity.objectiveSatisfiedStatusKnown = state.objectiveSatisfiedStatusKnown ?? state.successStatus !== "unknown";
+        activity.successStatus = state.successStatus || "unknown";
         activity.objectiveMeasureStatus = state.objectiveMeasureStatus || false;
         activity.objectiveNormalizedMeasure = state.objectiveNormalizedMeasure || 0;
         activity.progressMeasure = state.progressMeasure ?? 0;
@@ -13742,9 +14202,7 @@ class SequencingStateManager {
             }
           }
         }
-        activity.setProcessedChildren(
-          activity.children.filter((child) => child.isAvailable)
-        );
+        activity.setProcessedChildren(activity.children.filter((child) => child.isAvailable));
       } else {
         activity.resetProcessedChildren();
       }
@@ -13763,9 +14221,7 @@ class SequencingStateManager {
       return null;
     }
     const hideLmsUi = this.getEffectiveHideLmsUiCallback ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity) : [];
-    const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback ? this.getEffectiveAuxiliaryResourcesCallback(
-      this.activityTree.currentActivity
-    ) : [];
+    const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback ? this.getEffectiveAuxiliaryResourcesCallback(this.activityTree.currentActivity) : [];
     return {
       request: this.adlNav.request || "_none_",
       requestValid: {
@@ -13851,17 +14307,13 @@ class SequencingStateManager {
         this.activityTree.root.restoreSuspensionState(state.activityTree);
       }
       if (state.currentActivityId) {
-        const currentActivity = this.activityTree.getActivity(
-          state.currentActivityId
-        );
+        const currentActivity = this.activityTree.getActivity(state.currentActivityId);
         if (currentActivity) {
           this.activityTree.currentActivity = currentActivity;
         }
       }
       if (state.suspendedActivityId) {
-        const suspendedActivity = this.activityTree.getActivity(
-          state.suspendedActivityId
-        );
+        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivityId);
         if (suspendedActivity) {
           this.activityTree.suspendedActivity = suspendedActivity;
         }
@@ -14571,6 +15023,9 @@ class OverallSequencingProcess {
     this.terminationHandler.setInvalidateCacheCallback(() => {
       this.navigationLookAhead.invalidateCache();
     });
+    this.sequencingProcess?.setEndAttemptCallback((activity) => {
+      this.terminationHandler.endAttempt(activity);
+    });
     this.deliveryHandler.setCheckActivityCallback(
       (activity) => this.deliveryValidator.checkActivity(activity)
     );
@@ -14588,6 +15043,9 @@ class OverallSequencingProcess {
     );
     this.navigationValidityService.setGetEffectiveHideLmsUiCallback(
       (activity) => this.deliveryHandler.getEffectiveHideLmsUi(activity)
+    );
+    this.navigationValidityService.setGetEffectiveAuxiliaryResourcesCallback(
+      (activity) => this.deliveryHandler.getEffectiveAuxiliaryResources(activity)
     );
     this.stateManager.setGetEffectiveHideLmsUiCallback(
       (activity) => this.deliveryHandler.getEffectiveHideLmsUi(activity)
@@ -14610,12 +15068,29 @@ class OverallSequencingProcess {
    * @return {DeliveryRequest} - The delivery request result
    */
   processNavigationRequest(navigationRequest, targetActivityId = null, exitType) {
+    return this.completeNavigationRequest(
+      this.prepareNavigationRequest(navigationRequest, targetActivityId, exitType)
+    );
+  }
+  /**
+   * Run navigation validation and termination without starting the sequencing
+   * request that may unload or deliver content.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.1-1.3 - termination precedes
+   *   sequencing and delivery.
+   */
+  prepareNavigationRequest(navigationRequest, targetActivityId = null, exitType) {
     const navResult = this.navigationValidityService.validateRequest(
       navigationRequest,
       targetActivityId
     );
     if (!navResult.valid) {
-      return new DeliveryRequest(false, null, navResult.exception);
+      return {
+        navigationRequest,
+        navResult,
+        deliveryRequest: new DeliveryRequest(false, null, navResult.exception),
+        sessionEndReason: null
+      };
     }
     if (navResult.terminationRequest) {
       const hadSequencingRequest = !!navResult.sequencingRequest;
@@ -14625,7 +15100,16 @@ class OverallSequencingProcess {
         exitType
       );
       if (!termResult.valid) {
-        return new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1");
+        return {
+          navigationRequest,
+          navResult,
+          deliveryRequest: new DeliveryRequest(
+            false,
+            null,
+            termResult.exception || "TB.2.3-1"
+          ),
+          sessionEndReason: null
+        };
       }
       if (termResult.sequencingRequest !== null) {
         if (hadSequencingRequest || termResult.sequencingRequest !== SequencingRequestType.EXIT) {
@@ -14633,53 +15117,74 @@ class OverallSequencingProcess {
         }
       }
       if (!navResult.sequencingRequest) {
-        if (navResult.terminationRequest === SequencingRequestType.EXIT_ALL || navResult.terminationRequest === SequencingRequestType.ABANDON_ALL) {
-          this.fireEvent("onSequencingSessionEnd", {
-            reason: navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : "abandon_all",
-            navigationRequest
-          });
-        }
-        return new DeliveryRequest(true, null);
+        const sessionEndReason = navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL ? "abandon_all" : null;
+        return {
+          navigationRequest,
+          navResult,
+          deliveryRequest: null,
+          sessionEndReason
+        };
       }
     }
-    if (navResult.sequencingRequest) {
-      const seqResult = this.sequencingProcess.sequencingRequestProcess(
-        navResult.sequencingRequest,
-        navResult.targetActivityId
-      );
-      if (seqResult.endSequencingSession) {
+    return {
+      navigationRequest,
+      navResult,
+      deliveryRequest: null,
+      sessionEndReason: null
+    };
+  }
+  /**
+   * Finish a prepared navigation request with sequencing and delivery.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.4-1.5 - sequencing and delivery
+   *   follow successful termination processing.
+   */
+  completeNavigationRequest(prepared) {
+    const { navigationRequest, navResult } = prepared;
+    if (prepared.deliveryRequest) {
+      return prepared.deliveryRequest;
+    }
+    if (!navResult.sequencingRequest) {
+      if (prepared.sessionEndReason) {
         this.fireEvent("onSequencingSessionEnd", {
-          reason: "end_of_content",
-          exception: seqResult.exception,
+          reason: prepared.sessionEndReason,
           navigationRequest
         });
-        return new DeliveryRequest(
-          false,
-          null,
-          seqResult.exception || "SESSION_ENDED"
+      }
+      return new DeliveryRequest(true, null);
+    }
+    const seqResult = this.sequencingProcess.sequencingRequestProcess(
+      navResult.sequencingRequest,
+      navResult.targetActivityId
+    );
+    if (seqResult.endSequencingSession) {
+      this.fireEvent("onSequencingSessionEnd", {
+        reason: "end_of_content",
+        exception: seqResult.exception,
+        navigationRequest
+      });
+      return new DeliveryRequest(false, null, seqResult.exception || "SESSION_ENDED");
+    }
+    if (seqResult.exception) {
+      return new DeliveryRequest(false, null, seqResult.exception);
+    }
+    if (seqResult.deliveryRequest === DeliveryRequestType.DELIVER && seqResult.targetActivity) {
+      if (this.activityTree.root) {
+        const isConsistent = this.rollupProcess.validateRollupStateConsistency(
+          this.activityTree.root
         );
-      }
-      if (seqResult.exception) {
-        return new DeliveryRequest(false, null, seqResult.exception);
-      }
-      if (seqResult.deliveryRequest === DeliveryRequestType.DELIVER && seqResult.targetActivity) {
-        if (this.activityTree.root) {
-          const isConsistent = this.rollupProcess.validateRollupStateConsistency(
-            this.activityTree.root
-          );
-          if (!isConsistent) {
-            this.fireEvent("onSequencingDebug", {
-              message: "Rollup state inconsistency detected before delivery",
-              activityId: this.activityTree.root.id
-            });
-          }
+        if (!isConsistent) {
+          this.fireEvent("onSequencingDebug", {
+            message: "Rollup state inconsistency detected before delivery",
+            activityId: this.activityTree.root.id
+          });
         }
-        this.rollupProcess.processGlobalObjectiveMapping(
-          seqResult.targetActivity,
-          this.globalObjectiveService.getMap()
-        );
-        return this.processDelivery(seqResult.targetActivity);
       }
+      this.rollupProcess.processGlobalObjectiveMapping(
+        seqResult.targetActivity,
+        this.globalObjectiveService.getMap()
+      );
+      return this.processDelivery(seqResult.targetActivity);
     }
     return new DeliveryRequest(false, null, "OP.1-1");
   }
@@ -14753,10 +15258,7 @@ class OverallSequencingProcess {
    * Synchronize global objectives from activity states
    */
   synchronizeGlobalObjectives() {
-    this.globalObjectiveService.synchronize(
-      this.activityTree.root,
-      this.rollupProcess
-    );
+    this.globalObjectiveService.synchronize(this.activityTree.root, this.rollupProcess);
   }
   /**
    * Get the global objective map
@@ -14944,10 +15446,7 @@ class OverallSequencingProcess {
    * @return {TerminationResult} - The termination result
    */
   handleExitTermination(currentActivity, hasSequencingRequest) {
-    return this.terminationHandler.handleExitTermination(
-      currentActivity,
-      hasSequencingRequest
-    );
+    return this.terminationHandler.handleExitTermination(currentActivity, hasSequencingRequest);
   }
   /**
    * Fire a sequencing event
@@ -14988,7 +15487,7 @@ class SequencingService {
     this.eventService = eventService;
     this.loggingService = loggingService;
     this.configuration = {
-      autoRollupOnCMIChange: true,
+      autoRollupOnCMIChange: false,
       autoProgressOnCompletion: false,
       validateNavigationRequests: true,
       enableEventSystem: true,
@@ -15119,9 +15618,18 @@ class SequencingService {
    * @param {string} exitType - Optional cmi.exit value (logout, normal, suspend, time-out, or empty)
    */
   processNavigationRequest(request, targetActivityId, exitType) {
+    const prepared = this.prepareNavigationRequest(request, targetActivityId, exitType);
+    return prepared ? this.completeNavigationRequest(prepared) : false;
+  }
+  /**
+   * Run the navigation and termination phases without unloading or delivering a SCO.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.1-1.3
+   */
+  prepareNavigationRequest(request, targetActivityId, exitType) {
     if (!this.isInitialized || !this.overallSequencingProcess) {
       this.log("warn", `Navigation request '${request}' ignored - sequencing not initialized`);
-      return false;
+      return null;
     }
     try {
       this.log(
@@ -15132,42 +15640,71 @@ class SequencingService {
       const navRequestType = this.parseNavigationRequest(request);
       if (navRequestType === null) {
         this.log("warn", `Invalid navigation request: ${request}`);
-        return false;
+        return null;
       }
-      const deliveryRequest = this.overallSequencingProcess.processNavigationRequest(
+      const rollbackState = this.overallSequencingProcess.getSequencingState();
+      const operation = this.overallSequencingProcess.prepareNavigationRequest(
         navRequestType,
         targetActivityId || null,
         exitType
       );
-      const sequencingResult = {
-        deliveryRequest: deliveryRequest.valid ? DeliveryRequestType.DELIVER : DeliveryRequestType.DO_NOT_DELIVER,
-        targetActivity: deliveryRequest.targetActivity,
-        exception: deliveryRequest.exception || null,
-        endSequencingSession: false
-      };
-      this.lastSequencingResult = sequencingResult;
-      if (deliveryRequest.valid && deliveryRequest.targetActivity) {
-        this.activityDeliveryService.processSequencingResult(sequencingResult);
-        this.overallSequencingProcess.updateNavigationValidity();
-        this.log(
-          "info",
-          `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`
-        );
-        return true;
-      } else {
-        if (deliveryRequest.exception) {
-          this.log("warn", `Navigation request '${request}' failed: ${deliveryRequest.exception}`);
-          this.fireEvent("onSequencingError", deliveryRequest.exception, "navigation");
-        } else {
-          this.log("info", `Navigation request '${request}' completed with no activity delivery`);
-        }
-        return deliveryRequest.valid;
-      }
+      return { request, operation, rollbackState };
     } catch (error) {
-      const errorMsg = `Error processing navigation request '${request}': ${error}`;
+      const errorMsg = `Error preparing navigation request '${request}': ${error}`;
+      this.log("error", errorMsg);
+      this.fireEvent("onSequencingError", errorMsg, "navigation");
+      return null;
+    }
+  }
+  /**
+   * Run sequencing and delivery for a previously prepared navigation request.
+   *
+   * @spec SCORM 2004 4th Ed. SN OP.1 steps 1.4-1.5
+   */
+  completeNavigationRequest(prepared) {
+    if (!this.overallSequencingProcess) {
+      return false;
+    }
+    try {
+      const deliveryRequest = this.overallSequencingProcess.completeNavigationRequest(
+        prepared.operation
+      );
+      return this.handleNavigationDeliveryRequest(prepared.request, deliveryRequest);
+    } catch (error) {
+      const errorMsg = `Error completing navigation request '${prepared.request}': ${error}`;
       this.log("error", errorMsg);
       this.fireEvent("onSequencingError", errorMsg, "navigation");
       return false;
+    }
+  }
+  /** Restore the tracking state when the runtime termination commit fails. */
+  cancelPreparedNavigation(prepared) {
+    this.overallSequencingProcess?.restoreSequencingState(prepared.rollbackState);
+  }
+  handleNavigationDeliveryRequest(request, deliveryRequest) {
+    const sequencingResult = {
+      deliveryRequest: deliveryRequest.valid ? DeliveryRequestType.DELIVER : DeliveryRequestType.DO_NOT_DELIVER,
+      targetActivity: deliveryRequest.targetActivity,
+      exception: deliveryRequest.exception || null,
+      endSequencingSession: false
+    };
+    this.lastSequencingResult = sequencingResult;
+    if (deliveryRequest.valid && deliveryRequest.targetActivity) {
+      this.activityDeliveryService.processSequencingResult(sequencingResult);
+      this.overallSequencingProcess?.updateNavigationValidity();
+      this.log(
+        "info",
+        `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`
+      );
+      return true;
+    } else {
+      if (deliveryRequest.exception) {
+        this.log("warn", `Navigation request '${request}' failed: ${deliveryRequest.exception}`);
+        this.fireEvent("onSequencingError", deliveryRequest.exception, "navigation");
+      } else {
+        this.log("info", `Navigation request '${request}' completed with no activity delivery`);
+      }
+      return deliveryRequest.valid;
     }
   }
   /**
@@ -15359,7 +15896,8 @@ class SequencingService {
       activity.completionStatus = this.cmi.completion_status;
       activity.attemptProgressStatus = true;
     }
-    if (this.cmi.success_status !== "unknown") {
+    const satisfiedByMeasure = activity.primaryObjective?.satisfiedByMeasure === true;
+    if (!satisfiedByMeasure && this.cmi.success_status !== "unknown") {
       activity.successStatus = this.cmi.success_status;
       activity.objectiveSatisfiedStatus = this.cmi.success_status === "passed";
       if (activity.primaryObjective) {
@@ -15371,8 +15909,11 @@ class SequencingService {
       if (!isNaN(scaledScore)) {
         activity.objectiveNormalizedMeasure = scaledScore;
         activity.objectiveMeasureStatus = true;
-        if (activity.primaryObjective) {
-          activity.primaryObjective.progressStatus = true;
+        if (satisfiedByMeasure) {
+          const threshold = activity.primaryObjective?.minNormalizedMeasure ?? 1;
+          activity.objectiveSatisfiedStatus = scaledScore >= threshold;
+          activity.objectiveSatisfiedStatusKnown = true;
+          activity.successStatus = scaledScore >= threshold ? SuccessStatus.PASSED : SuccessStatus.FAILED;
         }
       }
     }
@@ -15400,6 +15941,14 @@ class SequencingService {
     const cmiData = {
       completion_status: this.cmi.completion_status,
       success_status: this.cmi.success_status,
+      // @spec SCORM 2004 4th Ed. SN 3.13.3 - auto-satisfaction applies only
+      // when content did not communicate primary-objective success information.
+      success_status_was_set: this.configuration.wasCMIElementSetByContent?.("cmi.success_status") === true,
+      // @spec SCORM 2004 4th Ed. TR OB-03b / SN UP.4 - a SCO-provided
+      // primary score is objective information for the End Attempt process.
+      score_was_set: ["scaled", "raw", "min", "max"].some(
+        (field) => this.configuration.wasCMIElementSetByContent?.(`cmi.score.${field}`) === true
+      ),
       progress_measure: this.cmi.progress_measure,
       score: {
         scaled: this.cmi.score?.scaled || "",
@@ -15410,13 +15959,28 @@ class SequencingService {
       objectives: []
     };
     if (this.cmi.objectives && this.cmi.objectives.childArray) {
-      for (const baseCmiObj of this.cmi.objectives.childArray) {
+      for (const [objectiveIndex, baseCmiObj] of this.cmi.objectives.childArray.entries()) {
         const cmiObjective = baseCmiObj;
         if (cmiObjective.id) {
           cmiData.objectives.push({
             id: cmiObjective.id,
             success_status: cmiObjective.success_status,
+            // @spec SCORM 2004 4th Ed. RTE 4.2.17 - distinguish launch-time
+            // unknown from a SCO explicitly replacing objective satisfaction with unknown.
+            success_status_was_set: this.configuration.wasCMIElementSetByContent?.(
+              `cmi.objectives.${objectiveIndex}.success_status`
+            ) === true,
+            score_was_set: ["scaled", "raw", "min", "max"].some(
+              (field) => this.configuration.wasCMIElementSetByContent?.(
+                `cmi.objectives.${objectiveIndex}.score.${field}`
+              ) === true
+            ),
             completion_status: cmiObjective.completion_status,
+            // @spec SCORM 2004 4th Ed. RTE 4.2.17 - distinguish launch-time
+            // initialization from a SCO's explicit objective status write.
+            completion_status_was_set: this.configuration.wasCMIElementSetByContent?.(
+              `cmi.objectives.${objectiveIndex}.completion_status`
+            ) === true,
             progress_measure: cmiObjective.progress_measure,
             score: {
               scaled: cmiObjective.score?.scaled || "",
@@ -15616,7 +16180,7 @@ class SequencingService {
     try {
       switch (eventType) {
         case "onActivityDelivery":
-          this.fireEvent("onActivityDelivery", data);
+          this.fireDebugEvent("Sequencing process selected activity for delivery", data);
           break;
         case "onLimitConditionCheck":
           this.fireLimitConditionCheck(data.activity, data.result);
@@ -19188,6 +19752,15 @@ class CMISession extends BaseCMI {
     return addTwoDurations(this._total_time, sessionTime, scorm2004_regex.CMITimespan);
   }
   /**
+   * Add the completed learner session to the cumulative total.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.24 / 4.2.28 - session_time is
+   *   accumulated into the LMS-maintained total_time after Terminate.
+   */
+  accumulateSessionTime(start_time) {
+    this._total_time = this.getCurrentTotalTime(start_time);
+  }
+  /**
    * Reset the session properties
    *
    * When resetting for a new SCO delivery, entry is set to "ab-initio" per SCORM 2004 spec:
@@ -19562,14 +20135,14 @@ class CMI extends BaseRootCMI {
   }
   /**
    * Called when API is moving to another SCO
-   * 
+   *
    * Resets SCO-specific CMI data while preserving global objectives.
-   * 
+   *
    * The objectives.reset(false) call resets individual objective objects
    * but maintains the array structure. Global objectives stored in
    * Scorm2004API._globalObjectives are preserved separately and are not
    * affected by this reset.
-   * 
+   *
    * This aligns with SCORM 2004 Sequencing and Navigation (SN) Book:
    * - Content Delivery Environment Process (DB.2) requires reset between SCOs
    * - Global objectives (via mapInfo) must persist across SCO transitions
@@ -19912,6 +20485,14 @@ class CMI extends BaseRootCMI {
    */
   getCurrentTotalTime() {
     return this.session.getCurrentTotalTime(this.start_time);
+  }
+  /**
+   * Preserve the completed session in total_time before a sequenced SCO reset.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.24 / 4.2.28
+   */
+  accumulateSessionTime() {
+    this.session.accumulateSessionTime(this.start_time);
   }
   /**
    * toJSON for cmi
@@ -21764,12 +22345,30 @@ class SequencingConfigurationBuilder {
       return {};
     }
     const sanitized = {};
-    for (const [id, collection] of Object.entries(collections)) {
+    const entries = Array.isArray(collections) ? collections.map((collection) => [collection.id ?? "", collection]) : Object.entries(collections);
+    for (const [id, collection] of entries) {
       const trimmedId = id.trim();
       if (!trimmedId) {
         continue;
       }
       const sanitizedCollection = {};
+      const cloneObjective = (objective) => {
+        if (!objective) {
+          return void 0;
+        }
+        const cloned = { ...objective };
+        if (objective.mapInfo) {
+          cloned.mapInfo = objective.mapInfo.map((mapping) => ({ ...mapping }));
+        }
+        return cloned;
+      };
+      const primaryObjective = cloneObjective(collection.primaryObjective);
+      if (primaryObjective) {
+        sanitizedCollection.primaryObjective = primaryObjective;
+      }
+      if (collection.objectives) {
+        sanitizedCollection.objectives = collection.objectives.map((objective) => cloneObjective(objective)).filter((objective) => objective !== void 0);
+      }
       if (collection.sequencingControls) {
         sanitizedCollection.sequencingControls = { ...collection.sequencingControls };
       }
@@ -21890,7 +22489,7 @@ class SequencingConfigurationBuilder {
    * @param {SelectionRandomizationStateSettings[]} selectionStates - The list of selection randomization state objects, which may be modified during this process.
    * @return {void} This method does not return a value.
    */
-  applySequencingCollection(activity, collection, selectionStates) {
+  applySequencingCollection(activity, collection, selectionStates, inlineSequencingRules = false) {
     if (!collection) {
       return;
     }
@@ -21900,7 +22499,7 @@ class SequencingConfigurationBuilder {
         collection.sequencingControls
       );
     }
-    if (collection.sequencingRules) {
+    if (collection.sequencingRules && !inlineSequencingRules) {
       this.applySequencingRulesSettings(activity.sequencingRules, collection.sequencingRules);
     }
     if (collection.rollupRules) {
@@ -22115,16 +22714,39 @@ class ActivityTreeBuilder {
     const activity = new Activity(activitySettings.id, activitySettings.title);
     const selectionStates = [];
     const collectionRefs = this.sequencingConfigBuilder.normalizeCollectionRefs(
-      activitySettings.sequencingCollectionRefs
+      activitySettings.sequencingCollectionRefs ?? activitySettings.sequencingIdRef
     );
+    const objectiveSettings = /* @__PURE__ */ new Map();
+    let primaryObjectiveId = null;
+    const mergeObjectiveSettings = (incoming, isPrimary) => {
+      const objectiveId = incoming?.objectiveID ?? incoming?.id;
+      if (!incoming || !objectiveId) {
+        return;
+      }
+      const existing = objectiveSettings.get(objectiveId);
+      objectiveSettings.set(objectiveId, {
+        ...existing,
+        ...incoming,
+        objectiveID: objectiveId,
+        mapInfo: [...existing?.mapInfo ?? [], ...incoming.mapInfo ?? []]
+      });
+      if (isPrimary) {
+        primaryObjectiveId = objectiveId;
+      }
+    };
     for (const ref of collectionRefs) {
       const collection = this.sequencingCollections[ref];
       if (collection) {
         this.sequencingConfigBuilder.applySequencingCollection(
           activity,
           collection,
-          selectionStates
+          selectionStates,
+          activitySettings.sequencingRules !== void 0
         );
+        mergeObjectiveSettings(collection.primaryObjective, true);
+        for (const objective of collection.objectives ?? []) {
+          mergeObjectiveSettings(objective, objective.isPrimary === true);
+        }
       }
     }
     if (activitySettings.isVisible !== void 0) {
@@ -22166,25 +22788,23 @@ class ActivityTreeBuilder {
     if (activitySettings.endTimeLimit !== void 0) {
       activity.endTimeLimit = activitySettings.endTimeLimit;
     }
-    if (activitySettings.primaryObjective) {
-      const primaryObjective = this.createActivityObjectiveFromSettings(
-        activitySettings.primaryObjective,
-        true
-      );
-      activity.primaryObjective = primaryObjective;
-      if (primaryObjective.minNormalizedMeasure !== null) {
-        activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
+    mergeObjectiveSettings(activitySettings.primaryObjective, true);
+    for (const objective of activitySettings.objectives ?? []) {
+      mergeObjectiveSettings(objective, objective.isPrimary === true);
+    }
+    if (primaryObjectiveId) {
+      const primarySettings = objectiveSettings.get(primaryObjectiveId);
+      if (primarySettings) {
+        const primaryObjective = this.createActivityObjectiveFromSettings(primarySettings, true);
+        activity.primaryObjective = primaryObjective;
+        if (primaryObjective.minNormalizedMeasure !== null) {
+          activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
+        }
       }
     }
-    if (activitySettings.objectives) {
-      for (const objectiveSettings of activitySettings.objectives) {
-        const isPrimary = objectiveSettings.isPrimary === true;
-        const objective = this.createActivityObjectiveFromSettings(objectiveSettings, isPrimary);
-        if (isPrimary) {
-          activity.primaryObjective = objective;
-        } else {
-          activity.addObjective(objective);
-        }
+    for (const [objectiveId, settings] of objectiveSettings) {
+      if (objectiveId !== primaryObjectiveId) {
+        activity.addObjective(this.createActivityObjectiveFromSettings(settings, false));
       }
     }
     if (activitySettings.sequencingControls) {
@@ -22317,8 +22937,10 @@ class ActivityTreeBuilder {
 class GlobalObjectiveManager {
   _globalObjectives = [];
   context;
+  hostDeclaredGlobalObjectiveIds;
   constructor(context) {
     this.context = context;
+    this.hostDeclaredGlobalObjectiveIds = new Set(context.hostDeclaredGlobalObjectiveIds);
   }
   /**
    * Get global objectives array
@@ -22344,6 +22966,18 @@ class GlobalObjectiveManager {
    */
   updateSequencingService(service) {
     this.context.sequencingService = service;
+  }
+  /**
+   * Return whether the host explicitly exposed an objective as a directly writable extension row.
+   *
+   * Manifest map targets are internal sequencing state. A same-named local cmi.objectives row must
+   * still write only through that activity objective's mapInfo.
+   *
+   * @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - local run-time objectives
+   *   access global objective state through objective maps
+   */
+  isHostDeclaredGlobalObjectiveId(objectiveId) {
+    return this.hostDeclaredGlobalObjectiveIds.has(objectiveId);
   }
   /**
    * Syncs global objective IDs from the sequencing service's globalObjectiveMap
@@ -22384,9 +23018,13 @@ class GlobalObjectiveManager {
     if (this._globalObjectives.length === 0) {
       return;
     }
+    const hasCurrentSequencingActivity = Boolean(this.context.sequencing?.getCurrentActivity());
     for (let i = 0; i < this._globalObjectives.length; i++) {
       const globalObj = this._globalObjectives[i];
       if (!globalObj || !globalObj.id) {
+        continue;
+      }
+      if (hasCurrentSequencingActivity && !this.hostDeclaredGlobalObjectiveIds.has(globalObj.id)) {
         continue;
       }
       const existingObjective = this.context.cmi.objectives.findObjectiveById(globalObj.id);
@@ -22732,6 +23370,34 @@ class GlobalObjectiveManager {
     return snapshot;
   }
   /**
+   * Merge an LMS-provided global-objective snapshot into the manifest-created objective map.
+   * Existing map entries retain their mapInfo permissions while persisted tracking values replace
+   * the corresponding defaults.
+   *
+   * @param {Record<string, GlobalObjectiveMapEntry>} snapshot - Persisted global objective state
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - mapped global objective state is available to read maps
+   */
+  restoreGlobalObjectiveSnapshot(snapshot) {
+    if (!snapshot || typeof snapshot !== "object") {
+      return;
+    }
+    const process = this.context.sequencingService?.getOverallSequencingProcess() ?? null;
+    if (process) {
+      for (const [objectiveId, objectiveData] of Object.entries(snapshot)) {
+        if (!objectiveId || !objectiveData || typeof objectiveData !== "object") {
+          continue;
+        }
+        process.updateGlobalObjective(objectiveId, {
+          ...objectiveData,
+          id: objectiveData.id ?? objectiveId
+        });
+      }
+      process.synchronizeGlobalObjectives();
+    }
+    this._globalObjectives = this.buildCMIObjectivesFromMap(snapshot);
+  }
+  /**
    * Parses the given value into a finite number if possible, otherwise returns null.
    *
    * @param {any} value - The input value to be parsed into a number.
@@ -22768,20 +23434,27 @@ class GlobalObjectiveManager {
       return;
     }
     const primaryObjective = currentActivity.primaryObjective;
-    if (successStatus !== SuccessStatus.UNKNOWN) {
+    const satisfiedByMeasure = primaryObjective.satisfiedByMeasure === true;
+    if (!satisfiedByMeasure && successStatus !== SuccessStatus.UNKNOWN) {
       primaryObjective.satisfiedStatus = successStatus === SuccessStatus.PASSED;
       primaryObjective.satisfiedStatusKnown = true;
-      primaryObjective.measureStatus = true;
-      currentActivity.objectiveMeasureStatus = true;
       currentActivity.objectiveSatisfiedStatus = successStatus === SuccessStatus.PASSED;
       currentActivity.objectiveSatisfiedStatusKnown = true;
     }
     if (completionStatus !== CompletionStatus.UNKNOWN) {
       primaryObjective.completionStatus = completionStatus;
     }
-    if (scoreObject?.scaled !== void 0 && scoreObject.scaled !== null) {
-      primaryObjective.normalizedMeasure = scoreObject.scaled;
+    if (scoreObject?.scaled !== void 0 && scoreObject.scaled !== null && Number.isFinite(scoreObject.scaled)) {
+      const normalizedMeasure = scoreObject.scaled;
+      primaryObjective.normalizedMeasure = normalizedMeasure;
       primaryObjective.measureStatus = true;
+      if (satisfiedByMeasure) {
+        const satisfied = normalizedMeasure >= (primaryObjective.minNormalizedMeasure ?? 1);
+        primaryObjective.satisfiedStatus = satisfied;
+        primaryObjective.satisfiedStatusKnown = true;
+        currentActivity.objectiveSatisfiedStatus = satisfied;
+        currentActivity.objectiveSatisfiedStatusKnown = true;
+      }
     }
     if (scoreObject?.raw !== void 0 && scoreObject.raw !== null) {
       primaryObjective.rawScore = String(scoreObject.raw);
@@ -22813,6 +23486,7 @@ class GlobalObjectiveManager {
 class SequencingStatePersistence {
   context;
   globalObjectiveManager;
+  inFlightLoads = /* @__PURE__ */ new Map();
   constructor(context, globalObjectiveManager) {
     this.context = context;
     this.globalObjectiveManager = globalObjectiveManager;
@@ -22873,7 +23547,7 @@ class SequencingStatePersistence {
    * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
    * @return {Promise<boolean>} Promise resolving to success status
    */
-  async loadSequencingState(metadata) {
+  loadSequencingState(metadata) {
     const settings = this.context.getSettings();
     if (!settings.sequencingStatePersistence) {
       this.context.apiLog(
@@ -22881,49 +23555,68 @@ class SequencingStatePersistence {
         "No persistence configuration provided",
         LogLevelEnum.WARN
       );
-      return false;
+      return Promise.resolve(false);
     }
-    try {
-      const fullMetadata = {
-        learnerId: this.context.learnerId || "unknown",
-        courseId: settings.courseId || "unknown",
-        attemptNumber: 1,
-        version: settings.sequencingStatePersistence.stateVersion || "1.0",
-        ...metadata
-      };
-      const config = settings.sequencingStatePersistence;
-      const stateData = await config.persistence.loadState(fullMetadata);
-      if (!stateData) {
+    const config = settings.sequencingStatePersistence;
+    const fullMetadata = {
+      learnerId: this.context.learnerId || "unknown",
+      courseId: settings.courseId || "unknown",
+      attemptNumber: 1,
+      version: config.stateVersion || "1.0",
+      ...metadata
+    };
+    const loadKey = JSON.stringify({
+      learnerId: fullMetadata.learnerId,
+      courseId: fullMetadata.courseId,
+      attemptNumber: fullMetadata.attemptNumber,
+      version: fullMetadata.version
+    });
+    const existingLoad = this.inFlightLoads.get(loadKey);
+    if (existingLoad) {
+      return existingLoad;
+    }
+    const loadOperation = (async () => {
+      try {
+        const stateData = await config.persistence.loadState(fullMetadata);
+        if (!stateData) {
+          if (config.debugPersistence) {
+            this.context.apiLog(
+              "loadSequencingState",
+              "No sequencing state found to load",
+              LogLevelEnum.INFO
+            );
+          }
+          return false;
+        }
+        let dataToLoad = stateData;
+        if (config.compress !== false) {
+          dataToLoad = this.decompressStateData(stateData);
+        }
+        const success = this.deserializeSequencingState(dataToLoad);
         if (config.debugPersistence) {
           this.context.apiLog(
             "loadSequencingState",
-            "No sequencing state found to load",
-            LogLevelEnum.INFO
+            `State load ${success ? "succeeded" : "failed"}: size=${stateData.length}`,
+            success ? LogLevelEnum.INFO : LogLevelEnum.WARN
           );
         }
-        return false;
-      }
-      let dataToLoad = stateData;
-      if (config.compress !== false) {
-        dataToLoad = this.decompressStateData(stateData);
-      }
-      const success = this.deserializeSequencingState(dataToLoad);
-      if (config.debugPersistence) {
+        return success;
+      } catch (error) {
         this.context.apiLog(
           "loadSequencingState",
-          `State load ${success ? "succeeded" : "failed"}: size=${stateData.length}`,
-          success ? LogLevelEnum.INFO : LogLevelEnum.WARN
+          `Error loading sequencing state: ${error instanceof Error ? error.message : String(error)}`,
+          LogLevelEnum.ERROR
         );
+        return false;
       }
-      return success;
-    } catch (error) {
-      this.context.apiLog(
-        "loadSequencingState",
-        `Error loading sequencing state: ${error instanceof Error ? error.message : String(error)}`,
-        LogLevelEnum.ERROR
-      );
-      return false;
-    }
+    })();
+    this.inFlightLoads.set(loadKey, loadOperation);
+    void loadOperation.finally(() => {
+      if (this.inFlightLoads.get(loadKey) === loadOperation) {
+        this.inFlightLoads.delete(loadKey);
+      }
+    });
+    return loadOperation;
   }
   /**
    * Serialize current sequencing state to JSON string
@@ -22992,24 +23685,29 @@ class SequencingStatePersistence {
         }
       }
       const restoredObjectives = /* @__PURE__ */ new Map();
-      if (Array.isArray(state.globalObjectives)) {
-        for (const objData of state.globalObjectives) {
-          const objective = this.globalObjectiveManager.buildCMIObjectiveFromJSON(objData);
-          if (objective.id) {
-            restoredObjectives.set(objective.id, objective);
-          }
-        }
-      }
       if (state.globalObjectiveMap && typeof state.globalObjectiveMap === "object") {
         const objectivesFromMap = this.globalObjectiveManager.buildCMIObjectivesFromMap(
           state.globalObjectiveMap
         );
         for (const objective of objectivesFromMap) {
+          if (objective.id) {
+            restoredObjectives.set(objective.id, objective);
+          }
+        }
+      }
+      if (Array.isArray(state.globalObjectives)) {
+        for (const objData of state.globalObjectives) {
+          const objective = this.globalObjectiveManager.buildCMIObjectiveFromJSON(objData);
           if (!objective.id) {
             continue;
           }
-          if (!restoredObjectives.has(objective.id)) {
+          const fromMap = restoredObjectives.get(objective.id);
+          if (!fromMap) {
             restoredObjectives.set(objective.id, objective);
+            continue;
+          }
+          if (!fromMap.description && objective.description) {
+            fromMap.description = objective.description;
           }
         }
       }
@@ -23167,11 +23865,7 @@ class Scorm2004DataSerializer {
       }
     }
     if (this.globalObjectiveManager) {
-      this.globalObjectiveManager.syncCmiToSequencingActivity(
-        completionStatus,
-        successStatus,
-        scoreObject
-      );
+      commitObject.globalObjectives = this.globalObjectiveManager.captureGlobalObjectiveSnapshot();
     }
     return commitObject;
   }
@@ -23242,6 +23936,8 @@ class Scorm2004API extends BaseAPI {
   _version = "1.0";
   _sequencing;
   _sequencingService = null;
+  _restoringFromJSON = false;
+  _runtimeSetCMIElements = /* @__PURE__ */ new Set();
   _extractedScoItemIds = [];
   _sequencingCollections = {};
   // Extracted class instances
@@ -23291,6 +23987,7 @@ class Scorm2004API extends BaseAPI {
     this._cmiHandler = new Scorm2004CMIHandler(cmiHandlerContext, this._responseValidator);
     const globalObjectiveContext = {
       getSettings: () => this.settings,
+      hostDeclaredGlobalObjectiveIds: [...settingsCopy?.globalObjectiveIds ?? []],
       cmi: this.cmi,
       sequencing: this._sequencing,
       sequencingService: this._sequencingService,
@@ -23337,6 +24034,7 @@ class Scorm2004API extends BaseAPI {
    */
   reset(settings) {
     this.commonReset(settings);
+    this._runtimeSetCMIElements.clear();
     this.cmi?.reset();
     this.applyCurrentActivityLaunchData();
     this.adl?.reset();
@@ -23456,7 +24154,14 @@ class Scorm2004API extends BaseAPI {
         currentActivity,
         activityObjective,
         mapInfo,
-        globalObjective
+        globalObjective,
+        // @spec SCORM 2004 4th Ed. SN 3.10.3: read and write mapInfo flags are
+        // independent; delivery initializes the local objective from the global value.
+        {
+          restrictToFreshWrites: false,
+          allowSatisfiedStatus: true,
+          allowNormalizedMeasure: true
+        }
       );
       this.applyObjectiveReadStateToCMI(objectiveIndex, readState);
     }
@@ -23600,6 +24305,16 @@ class Scorm2004API extends BaseAPI {
     return this._globalObjectiveManager.globalObjectives;
   }
   /**
+   * Restore LMS-persisted global objective values before SCO initialization.
+   *
+   * @param {Record<string, GlobalObjectiveMapEntry>} snapshot - Persisted objective map values
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - read-mapped objectives use shared global state
+   */
+  restoreGlobalObjectiveSnapshot(snapshot) {
+    this._globalObjectiveManager.restoreGlobalObjectiveSnapshot(snapshot);
+  }
+  /**
    * Compress state data (delegates to persistence class)
    * @param {string} data - Data to compress
    * @return {string} Compressed data
@@ -23655,7 +24370,7 @@ class Scorm2004API extends BaseAPI {
     if (result === global_constants.SCORM_TRUE) {
       this._globalObjectiveManager.restoreGlobalObjectivesToCMI();
     }
-    if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence) {
+    if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence && this.settings.sequencingStatePersistence.autoLoadOnInitialize !== false) {
       this.loadSequencingState().catch(() => {
         this.apiLog("lmsInitialize", "Failed to auto-load sequencing state", LogLevelEnum.WARN);
       });
@@ -23677,37 +24392,48 @@ class Scorm2004API extends BaseAPI {
     const exitType = this.cmi?.getExitValueInternal() || "";
     const wasAlreadyTerminated = this.isTerminated();
     const deliveryInProgress = this._sequencingService?.isDeliveryInProgress() ?? false;
+    let normalizedRequest = pendingNavRequest;
+    let normalizedTarget = "";
+    const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
+    if (pendingNavRequest !== "_none_") {
+      const matches = pendingNavRequest.match(choiceJumpRegex);
+      if (matches) {
+        if (matches.groups?.choice_target) {
+          normalizedTarget = matches.groups?.choice_target;
+          normalizedRequest = "choice";
+        } else if (matches.groups?.jump_target) {
+          normalizedTarget = matches.groups?.jump_target;
+          normalizedRequest = "jump";
+        }
+      }
+    }
+    let requestToProcess = null;
+    let targetForProcessing;
+    if (normalizedRequest !== "_none_") {
+      requestToProcess = normalizedRequest;
+      targetForProcessing = normalizedTarget || void 0;
+    } else if (this._sequencing.getCurrentActivity()) {
+      requestToProcess = "exit";
+    }
+    const preparedNavigation = !wasAlreadyTerminated && !deliveryInProgress && requestToProcess && this._sequencingService ? this._sequencingService.prepareNavigationRequest(
+      requestToProcess,
+      targetForProcessing,
+      exitType
+    ) : null;
     const result = this.terminate("Terminate", true);
+    if (result !== global_constants.SCORM_TRUE && preparedNavigation && this._sequencingService) {
+      this._sequencingService.cancelPreparedNavigation(preparedNavigation);
+    }
+    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated) {
+      this.cmi.accumulateSessionTime();
+    }
     if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
       let navigationHandled = false;
       let processedSequencingRequest = null;
-      let normalizedRequest = pendingNavRequest;
-      let normalizedTarget = "";
-      const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
-      if (pendingNavRequest !== "_none_") {
-        const matches = pendingNavRequest.match(choiceJumpRegex);
-        if (matches) {
-          if (matches.groups?.choice_target) {
-            normalizedTarget = matches.groups?.choice_target;
-            normalizedRequest = "choice";
-          } else if (matches.groups?.jump_target) {
-            normalizedTarget = matches.groups?.jump_target;
-            normalizedRequest = "jump";
-          }
-        }
-      }
       if (this._sequencingService) {
         try {
-          let requestToProcess = null;
-          let targetForProcessing;
-          if (normalizedRequest !== "_none_") {
-            requestToProcess = normalizedRequest;
-            targetForProcessing = normalizedTarget || void 0;
-          } else if (this._sequencing.getCurrentActivity()) {
-            requestToProcess = "exit";
-          }
           if (requestToProcess) {
-            navigationHandled = this._sequencingService.processNavigationRequest(
+            navigationHandled = preparedNavigation ? this._sequencingService.completeNavigationRequest(preparedNavigation) : this._sequencingService.processNavigationRequest(
               requestToProcess,
               targetForProcessing,
               exitType
@@ -23747,6 +24473,12 @@ class Scorm2004API extends BaseAPI {
         this._sequencingService.terminate();
       }
       this.adl.nav.request = "_none_";
+    }
+    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated) {
+      const autoSaveOn = this.settings.sequencingStatePersistence?.autoSaveOn ?? "commit";
+      if (this.settings.sequencingStatePersistence && ["commit", "navigate"].includes(autoSaveOn)) {
+        this.autoSaveSequencingState("lmsFinish");
+      }
     }
     return result;
   }
@@ -23815,6 +24547,9 @@ class Scorm2004API extends BaseAPI {
   lmsSetValue(CMIElement, value) {
     const oldValue = this._peekCMIValue(CMIElement);
     const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
+    if (result === global_constants.SCORM_TRUE) {
+      this._runtimeSetCMIElements.add(CMIElement);
+    }
     if (result === global_constants.SCORM_TRUE && this._sequencingService) {
       try {
         this._sequencingService.triggerRollupOnCMIChange(CMIElement, oldValue, value);
@@ -23851,13 +24586,14 @@ class Scorm2004API extends BaseAPI {
     }
     if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "Commit");
+      if (this.settings.sequencingStatePersistence && (this.settings.sequencingStatePersistence.autoSaveOn ?? "commit") === "commit") {
+        this.autoSaveSequencingState("lmsCommit");
+      }
       return global_constants.SCORM_TRUE;
     } else {
       const result = this.commit("Commit", true);
-      if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence?.autoSaveOn === "commit") {
-        this.saveSequencingState().catch(() => {
-          this.apiLog("lmsCommit", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
-        });
+      if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence && (this.settings.sequencingStatePersistence.autoSaveOn ?? "commit") === "commit") {
+        this.autoSaveSequencingState("lmsCommit");
       }
       return result;
     }
@@ -23891,6 +24627,27 @@ class Scorm2004API extends BaseAPI {
    * @param {any} value
    * @return {string}
    */
+  /**
+   * Restore a previously stored CMI data model without republishing it to global objectives.
+   *
+   * loadFromJSON replays stored values through setCMIValue, which is the same entry point content
+   * uses. That makes an LMS-side restore indistinguishable from a fresh SetValue, so restoring an
+   * attempt whose cmi.objectives happens to name a global objective id would push those stored
+   * values back into the sequencing global objective map — overwriting whatever later attempts
+   * wrote and rolling shared objectives back to the moment this attempt was saved. Restored data is
+   * a replay of writes that already happened, so it must not trigger the write path again.
+   *
+   * @spec SCORM 2004 4th Ed. SN 3.10.3 - global objective writes originate from objective mapInfo,
+   *   not from re-loading persisted run-time data
+   */
+  loadFromJSON(json, CMIElement = "") {
+    this._restoringFromJSON = true;
+    try {
+      super.loadFromJSON(json, CMIElement);
+    } finally {
+      this._restoringFromJSON = false;
+    }
+  }
   setCMIValue(CMIElement, value) {
     if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       const parts = CMIElement.split(".");
@@ -23904,7 +24661,8 @@ class Scorm2004API extends BaseAPI {
         const objective = this.cmi.objectives.findObjectiveByIndex(index);
         objective_id = objective ? objective.id : void 0;
       }
-      const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
+      const suppressGlobalPublish = this._restoringFromJSON && Boolean(this.settings.sequencingStatePersistence);
+      const is_global = !suppressGlobalPublish && objective_id && this._globalObjectiveManager.isHostDeclaredGlobalObjectiveId(objective_id);
       if (is_global && this.currentActivityAllowsGlobalObjectiveWrites()) {
         const { index: global_index } = this._globalObjectiveManager.findOrCreateGlobalObjective(objective_id);
         const global_element = CMIElement.replace(
@@ -24113,24 +24871,6 @@ class Scorm2004API extends BaseAPI {
       navRequest = true;
     }
     const commitObject = this.getCommitObject(terminateCommit);
-    const scoreObject = this.cmi?.score?.getScoreObject() || {};
-    let completionStatusEnum = CompletionStatus.UNKNOWN;
-    if (this.cmi.completion_status === "completed") {
-      completionStatusEnum = CompletionStatus.COMPLETED;
-    } else if (this.cmi.completion_status === "incomplete") {
-      completionStatusEnum = CompletionStatus.INCOMPLETE;
-    }
-    let successStatusEnum = SuccessStatus.UNKNOWN;
-    if (this.cmi.success_status === "passed") {
-      successStatusEnum = SuccessStatus.PASSED;
-    } else if (this.cmi.success_status === "failed") {
-      successStatusEnum = SuccessStatus.FAILED;
-    }
-    this._globalObjectiveManager.syncCmiToSequencingActivity(
-      completionStatusEnum,
-      successStatusEnum,
-      scoreObject
-    );
     if (typeof this.settings.lmsCommitUrl === "string") {
       const result = this.processHttpRequest(
         this.settings.lmsCommitUrl,
@@ -24260,11 +25000,12 @@ class Scorm2004API extends BaseAPI {
   initializeSequencingService(settings) {
     try {
       const sequencingConfig = {
-        autoRollupOnCMIChange: settings?.sequencing?.autoRollupOnCMIChange ?? true,
+        autoRollupOnCMIChange: settings?.sequencing?.autoRollupOnCMIChange ?? false,
         autoProgressOnCompletion: settings?.sequencing?.autoProgressOnCompletion ?? false,
         validateNavigationRequests: settings?.sequencing?.validateNavigationRequests ?? true,
         enableEventSystem: settings?.sequencing?.enableEventSystem ?? true,
-        logLevel: settings?.sequencing?.logLevel ?? "info"
+        logLevel: settings?.sequencing?.logLevel ?? "info",
+        wasCMIElementSetByContent: (element) => this._runtimeSetCMIElements.has(element)
       };
       this._sequencingService = new SequencingService(
         this._sequencing,
@@ -24367,9 +25108,22 @@ class Scorm2004API extends BaseAPI {
    */
   processNavigationRequest(request, targetActivityId) {
     if (this._sequencingService) {
-      return this._sequencingService.processNavigationRequest(request, targetActivityId);
+      const result = this._sequencingService.processNavigationRequest(request, targetActivityId);
+      if (result && this.settings.sequencingStatePersistence?.autoSaveOn === "navigate") {
+        this.autoSaveSequencingState("processNavigationRequest");
+      }
+      return result;
     }
     return false;
+  }
+  autoSaveSequencingState(source) {
+    this.saveSequencingState().then((saved) => {
+      if (!saved) {
+        this.apiLog(source, "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+      }
+    }).catch(() => {
+      this.apiLog(source, "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+    });
   }
   /**
    * Reset sequencing state explicitly

@@ -1,5 +1,6 @@
 import Scorm12API from "../Scorm12API";
 import Scorm2004API from "../Scorm2004API";
+import { NavigationValidityUpdate } from "../types/sequencing_types";
 export interface NavigationState {
     canPrevious: boolean;
     canNext: boolean;
@@ -7,6 +8,9 @@ export interface NavigationState {
     choices: string[];
     validRequests: string[];
 }
+type LegacyNavigationValidityUpdate = {
+    validRequests: string[];
+};
 export interface ScoStatus {
     completion: "not attempted" | "incomplete" | "completed" | "unknown";
     success: "passed" | "failed" | "unknown";
@@ -60,9 +64,7 @@ export declare class PlayerEventAdapter {
     private setupEventListeners;
     private setupScorm12Listeners;
     private setupScorm2004Listeners;
-    handleNavigationValidityUpdate(data: {
-        validRequests: string[];
-    }): void;
+    handleNavigationValidityUpdate(data: NavigationValidityUpdate | LegacyNavigationValidityUpdate): void;
     handleActivityDelivery(activity: {
         id: string;
         title?: string;

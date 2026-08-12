@@ -3,7 +3,7 @@ import { ActivityTree } from "../activity_tree";
 import { SequencingProcess, SequencingRequestType } from "../sequencing_process";
 import { ADLNav } from "../../adl";
 import { NavigationLookAhead, NavigationPredictions } from "../navigation_look_ahead";
-import { HideLmsUiItem } from "../../../../types/sequencing_types";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../../types/sequencing_types";
 export declare enum NavigationRequestType {
     START = "start",
     RESUME_ALL = "resumeAll",
@@ -33,8 +33,10 @@ export declare class NavigationValidityService {
     private eventCallback;
     private navigationLookAhead;
     private getEffectiveHideLmsUiCallback;
+    private getEffectiveAuxiliaryResourcesCallback;
     constructor(activityTree: ActivityTree, sequencingProcess: SequencingProcess, adlNav?: ADLNav | null, eventCallback?: ((eventType: string, data?: any) => void) | null);
     setGetEffectiveHideLmsUiCallback(callback: (activity: Activity | null) => HideLmsUiItem[]): void;
+    setGetEffectiveAuxiliaryResourcesCallback(callback: (activity: Activity | null) => AuxiliaryResource[]): void;
     getNavigationLookAhead(): NavigationLookAhead;
     validateRequest(request: NavigationRequestType, targetActivityId?: string | null): NavigationRequestResult;
     private validateStartRequest;

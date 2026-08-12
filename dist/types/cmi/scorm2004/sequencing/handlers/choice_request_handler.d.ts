@@ -13,7 +13,6 @@ export declare class ChoiceRequestHandler {
     handleChoice(targetActivityId: string, currentActivity: Activity | null): SequencingResult;
     handleJump(targetActivityId: string): SequencingResult;
     getAvailableChoices(): Activity[];
-    private buildActivityPath;
     private choiceFlowSubprocess;
     private choiceFlowTreeTraversal;
     private enhancedChoiceTraversal;

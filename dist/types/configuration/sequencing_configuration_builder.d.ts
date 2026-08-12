@@ -9,9 +9,9 @@ export declare class SequencingConfigurationBuilder {
     createSequencingRule(ruleSettings: SequencingRuleSettings): SequencingRule;
     applyRollupRulesSettings(target: RollupRules, settings: RollupRulesSettings): void;
     createRollupRule(ruleSettings: RollupRuleSettings): RollupRule;
-    sanitizeSequencingCollections(collections?: Record<string, SequencingCollectionSettings>): Record<string, SequencingCollectionSettings>;
+    sanitizeSequencingCollections(collections?: Record<string, SequencingCollectionSettings> | SequencingCollectionSettings[]): Record<string, SequencingCollectionSettings>;
     normalizeCollectionRefs(refs?: string | string[]): string[];
-    applySequencingCollection(activity: Activity, collection: SequencingCollectionSettings, selectionStates: SelectionRandomizationStateSettings[]): void;
+    applySequencingCollection(activity: Activity, collection: SequencingCollectionSettings, selectionStates: SelectionRandomizationStateSettings[], inlineSequencingRules?: boolean): void;
     sanitizeHideLmsUi(items: HideLmsUiItem[] | undefined): HideLmsUiItem[];
     mergeHideLmsUi(current: HideLmsUiItem[], additional?: HideLmsUiItem[]): HideLmsUiItem[];
     sanitizeAuxiliaryResources(resources?: AuxiliaryResourceSettings[]): AuxiliaryResource[];

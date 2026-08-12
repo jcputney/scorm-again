@@ -13,12 +13,16 @@ export interface ActivityStateData {
     completionStatus: string;
     successStatus: string;
     attemptCount: number;
+    objectiveInfoAvailableInCurrentParentAttempt?: boolean;
+    progressInfoAvailableInCurrentParentAttempt?: boolean;
     attemptCompletionAmount: number;
+    attemptCompletionAmountStatus: boolean;
     attemptAbsoluteDuration: string;
     attemptExperiencedDuration: string;
     activityAbsoluteDuration: string;
     activityExperiencedDuration: string;
     objectiveSatisfiedStatus: boolean;
+    objectiveSatisfiedStatusKnown: boolean;
     objectiveMeasureStatus: boolean;
     objectiveNormalizedMeasure: number;
     progressMeasure: number | null;

@@ -12,14 +12,19 @@ export interface FlowTreeTraversalResult {
 export declare class FlowTraversalService {
     private activityTree;
     private ruleEngine;
+    private endAttemptCallback;
     constructor(activityTree: ActivityTree, ruleEngine: RuleEvaluationEngine);
+    setEndAttemptCallback(callback: (activity: Activity) => void): void;
     flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): FlowSubprocessResult;
     flowTreeTraversalSubprocess(fromActivity: Activity, direction: FlowSubprocessMode, skipChildren?: boolean, forwardTraversalBoundary?: Activity | null): FlowTreeTraversalResult;
     private traverseForward;
+    private endActiveClusterAttempt;
     private traverseBackward;
     private getBackwardTraversalEntry;
     private isDescendantOfOrSelf;
-    flowActivityTraversalSubprocess(activity: Activity, _direction: boolean, considerChildren: boolean, mode: FlowSubprocessMode): Activity | null;
+    flowActivityTraversalSubprocess(activity: Activity, _direction: boolean, considerChildren: boolean, mode: FlowSubprocessMode, forwardTraversalBoundary?: Activity | null): Activity | null;
+    private continueFlowActivityTraversal;
+    private checkSkippedRuleSet;
     checkActivityProcess(activity: Activity): boolean;
     ensureSelectionAndRandomization(activity: Activity): void;
     private isActivityLastOverall;
