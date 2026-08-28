@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as https from "https";
 import * as child_process from "child_process";
-import extract from "extract-zip";
+import AdmZip from "adm-zip";
 import { fileURLToPath } from "url";
 import { createMockLmsServer, MockLmsServer } from "./mock-lms-server.js";
 
@@ -81,7 +81,7 @@ async function extractModules(): Promise<void> {
   console.log("Extracting test modules...");
 
   try {
-    await extract(MODULES_ZIP, { dir: MODULES_DIR });
+    new AdmZip(MODULES_ZIP).extractAllTo(MODULES_DIR, true);
     console.log("Extraction completed");
 
     // Extract any nested zip files (golf examples are in separate zip files)
@@ -95,7 +95,7 @@ async function extractModules(): Promise<void> {
           fs.mkdirSync(extractDir, { recursive: true });
         }
 
-        await extract(zipPath, { dir: extractDir });
+        new AdmZip(zipPath).extractAllTo(extractDir, true);
         console.log(`Extracted ${file}`);
       }
     }
