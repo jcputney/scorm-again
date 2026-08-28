@@ -15,7 +15,6 @@
       "src/types"
     ],
     "types": [
-      "extract-zip",
       "node"
     ],
     "skipLibCheck": true,
