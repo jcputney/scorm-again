@@ -55,34 +55,31 @@ export class ChoiceConstraintValidator {
       return { valid: false, exception: "SB.2.9-2" };
     }
 
-    // Step 2: Cannot choose the root activity
-    if (targetActivity === this.activityTree.root) {
-      return { valid: false, exception: "SB.2.9-3" };
-    }
-
-    // Step 3: Path to root validation - check hidden from choice and choice control
+    // Step 2: Path to root validation - check hidden from choice and choice control.
+    // The root is a valid Choice target; SB.2.9 flows from a chosen cluster to
+    // its first deliverable descendant.
     const pathValidation = this.validatePathToRoot(targetActivity);
     if (!pathValidation.valid) {
       return pathValidation;
     }
 
-    // Step 4: Check availability if requested
+    // Step 3: Check availability if requested
     if (options.checkAvailability && !targetActivity.isAvailable) {
       return { valid: false, exception: "SB.2.9-7" };
     }
 
-    // Step 5: If no current activity, basic validation is sufficient
+    // Step 4: If no current activity, basic validation is sufficient
     if (!currentActivity) {
       return { valid: true, exception: null };
     }
 
-    // Step 6: Check choiceExit constraints at all ancestor levels
+    // Step 5: Check choiceExit constraints at all ancestor levels
     const choiceExitValidation = this.validateChoiceExit(currentActivity, targetActivity);
     if (!choiceExitValidation.valid) {
       return choiceExitValidation;
     }
 
-    // Step 7: Validate constraints at all ancestor levels
+    // Step 6: Validate constraints at all ancestor levels
     const ancestorValidation = this.validateAncestorConstraints(
       currentActivity,
       targetActivity

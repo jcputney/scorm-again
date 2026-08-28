@@ -261,14 +261,15 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.exception).toBe("SB.2.9-1");
     });
 
-    it("should fail if choosing root (SB.2.9-3)", () => {
+    it("should flow from the root when the learner chooses the root activity", () => {
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "root"
       );
 
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.9-3");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity).toBe(lesson1_1);
+      expect(result.exception).toBeNull();
     });
 
     it("should fail if activity hidden from choice (SB.2.9-4)", () => {

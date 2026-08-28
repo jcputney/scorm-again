@@ -166,11 +166,6 @@ export class ChoiceRequestHandler {
     const availableActivities: Activity[] = [];
 
     for (const activity of allActivities) {
-      // Skip root activity
-      if (activity === this.activityTree.root) {
-        continue;
-      }
-
       // Skip if hidden, unavailable, or invisible
       if (activity.isHiddenFromChoice || !activity.isAvailable || !activity.isVisible) {
         continue;

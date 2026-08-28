@@ -163,7 +163,7 @@ export class TerminationHandler {
         return this.handleExitAll(currentActivity);
 
       case SequencingRequestType.ABANDON:
-        return this.handleAbandon(currentActivity, hasSequencingRequest);
+        return this.handleAbandon(currentActivity);
 
       case SequencingRequestType.ABANDON_ALL:
         return this.handleAbandonAll(currentActivity);
@@ -370,20 +370,11 @@ export class TerminationHandler {
   /**
    * Handle ABANDON termination (TB.2.3 step 6)
    * @param {Activity} currentActivity - The current activity
-   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
    * @return {TerminationResult} - The termination result
    */
-  private handleAbandon(
-    currentActivity: Activity,
-    hasSequencingRequest: boolean,
-  ): TerminationResult {
+  private handleAbandon(currentActivity: Activity): TerminationResult {
     // TB.2.3 step 6.1: Set activity as not active (no attempt end)
     currentActivity.isActive = false;
-
-    // TB.2.3 step 6.2: Move to parent if no sequencing follows
-    if (!hasSequencingRequest) {
-      this.activityTree.currentActivity = currentActivity.parent;
-    }
 
     return {
       terminationRequest: SequencingRequestType.ABANDON,

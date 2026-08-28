@@ -55,10 +55,10 @@ describe("ChoiceConstraintValidator", () => {
         expect(result.exception).toBe("SB.2.9-2");
       });
 
-      it("should return invalid when target is root", () => {
+      it("should allow the root activity as a choice target", () => {
         const result = validator.validateChoice(null, root);
-        expect(result.valid).toBe(false);
-        expect(result.exception).toBe("SB.2.9-3");
+        expect(result.valid).toBe(true);
+        expect(result.exception).toBeNull();
       });
 
       it("should return valid for leaf activity with no current activity", () => {

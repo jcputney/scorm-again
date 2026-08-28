@@ -212,14 +212,13 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
     });
 
     it("should not affect other exception scenarios", () => {
-      // Test that choosing the root still returns the correct exception
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "root"
       );
 
-      expect(result.exception).toBe("SB.2.9-3"); // Cannot choose root
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     });
 
     it("should not affect choice control validation", () => {
@@ -248,7 +247,6 @@ describe("Early Availability Check in Choice Sequencing Request Process", () => 
       // Not other choice-related exceptions
       expect(result.exception).not.toBe("SB.2.9-1"); // Target does not exist
       expect(result.exception).not.toBe("SB.2.9-2"); // Target not in tree
-      expect(result.exception).not.toBe("SB.2.9-3"); // Cannot choose root
       expect(result.exception).not.toBe("SB.2.9-4"); // Hidden from choice
       expect(result.exception).not.toBe("SB.2.9-5"); // Choice control not allowed
       expect(result.exception).not.toBe("SB.2.9-6"); // Current activity not terminated

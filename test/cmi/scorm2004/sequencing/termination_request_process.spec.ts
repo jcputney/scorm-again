@@ -139,14 +139,14 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(grandchild1.completionStatus).toBe("incomplete"); // Should not change
     });
 
-    it("should set parent as current after ABANDON", () => {
+    it("should retain the inactive current activity after ABANDON", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 
       expect(result.valid).toBe(true);
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
   });
 
@@ -865,7 +865,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(grandchild1.objectiveSatisfiedStatus).toBe(false);
     });
 
-    it("should abandon and set parent as current even when parent has no flow", () => {
+    it("should retain current after abandon even when parent has no flow", () => {
       child1.sequencingControls.flow = false; // Disable flow
 
       activityTree.currentActivity = grandchild1;
@@ -874,7 +874,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 
       expect(result.valid).toBe(true);
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
       // Parent flow status doesn't affect abandon
     });
   });
@@ -1038,15 +1038,14 @@ describe("Termination Request Process (TB.2.3)", () => {
       }
     });
 
-    it("should move to parent when ABANDON has no sequencing request following", () => {
+    it("should retain current when ABANDON has no sequencing request following", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 
       expect(result.valid).toBe(true);
-      // ABANDON without following sequencing should move to parent
-      expect(activityTree.currentActivity).toBe(child1);
+      expect(activityTree.currentActivity).toBe(grandchild1);
     });
   });
 });

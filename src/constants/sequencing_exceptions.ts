@@ -80,7 +80,6 @@ export const PreviousExceptions = {
 export const ChoiceExceptions = {
   "SB.2.9-1": "Target activity does not exist",
   "SB.2.9-2": "Target activity not in tree",
-  "SB.2.9-3": "Cannot choose root activity",
   "SB.2.9-4": "Activity hidden from choice",
   "SB.2.9-5": "Choice control is not allowed",
   "SB.2.9-6": "Current activity not terminated",

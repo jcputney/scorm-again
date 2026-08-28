@@ -390,14 +390,16 @@ describe("Navigation Request Process (NB.2.1)", () => {
         expect(grandchild1.completionStatus).toBe(originalCompletionStatus);
       });
 
-      it("should set parent as current activity after ABANDON", () => {
+      it("should retain the inactive current activity after ABANDON", () => {
         activityTree.currentActivity = grandchild1;
         grandchild1.isActive = true;
 
         const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 
         expect(result.valid).toBe(true);
-        expect(activityTree.currentActivity).toBe(child1);
+        expect(activityTree.currentActivity).toBe(grandchild1);
+        expect(grandchild1.isActive).toBe(false);
+        expect(child1.isActive).toBe(true);
       });
 
       it("should NOT trigger rollup after ABANDON", () => {
@@ -582,8 +584,8 @@ describe("Navigation Request Process (NB.2.1)", () => {
         const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 
         expect(result.valid).toBe(true);
-        // Should move to parent without evaluating post-conditions
-        expect(activityTree.currentActivity).toBe(child1);
+        // The current activity pointer remains on the abandoned, inactive activity.
+        expect(activityTree.currentActivity).toBe(grandchild1);
       });
     });
   });

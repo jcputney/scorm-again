@@ -136,7 +136,6 @@ describe("Sequencing Exceptions Constants", () => {
     it("should define all SB.2.9 exception codes", () => {
       expect(ChoiceExceptions["SB.2.9-1"]).toBe("Target activity does not exist");
       expect(ChoiceExceptions["SB.2.9-2"]).toBe("Target activity not in tree");
-      expect(ChoiceExceptions["SB.2.9-3"]).toBe("Cannot choose root activity");
       expect(ChoiceExceptions["SB.2.9-4"]).toBe("Activity hidden from choice");
       expect(ChoiceExceptions["SB.2.9-5"]).toBe("Choice control is not allowed");
       expect(ChoiceExceptions["SB.2.9-6"]).toBe("Current activity not terminated");

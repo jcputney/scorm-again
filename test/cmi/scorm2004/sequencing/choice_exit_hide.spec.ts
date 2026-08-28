@@ -420,17 +420,16 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
   });
 
   describe("Edge cases", () => {
-    it("should reject choosing the active tree root", () => {
+    it("should allow choosing the active tree root", () => {
       activityTree.currentActivity = activity1_1;
       activity1_1.isActive = true;
 
-      // Root should not be choosable
       const result = overall.processNavigationRequest(
         NavigationRequestType.CHOICE,
         root.id
       );
 
-      expect(result.exception).toBe("SB.2.9-3");
+      expect(result.exception).toBeNull();
     });
 
     it("should handle all siblings hidden", () => {
@@ -509,7 +508,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       expect(result.targetActivity).toBe(activity1_1);
     });
 
-    it("should return empty array from getAvailableChoices when nothing is available", () => {
+    it("should still return the root when no descendant is available", () => {
       // Hide everything
       activity1_1.isHiddenFromChoice = true;
       activity1_2.isHiddenFromChoice = true;
@@ -526,7 +525,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
 
       const availableChoices = sequencingProcess.getAvailableChoices();
 
-      expect(availableChoices.length).toBe(0);
+      expect(availableChoices.map(activity => activity.id)).toEqual([root.id]);
     });
 
     it("should handle no current activity when getting available choices", () => {

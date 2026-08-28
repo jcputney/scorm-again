@@ -449,7 +449,7 @@ describe("Navigation Validity - Complex Activity States", () => {
         "root",
         null
       );
-      expect(validation1.exception).toBe("SB.2.9-3");
+      expect(validation1.exception).toBeNull();
 
       a.isHiddenFromChoice = true;
       const validation2 = sequencingProcess.validateNavigationRequest(

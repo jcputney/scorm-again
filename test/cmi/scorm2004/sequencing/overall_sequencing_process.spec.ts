@@ -1751,14 +1751,14 @@ describe("Overall Sequencing Process (OP.1)", () => {
         expect(grandchild1.attemptCount).toBe(initialAttemptCount);
       });
 
-      it("should move to parent after ABANDON when no sequencing follows", () => {
+      it("should retain current after ABANDON when no sequencing follows", () => {
         activityTree.currentActivity = grandchild1;
         grandchild1.isActive = true;
 
         const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
 
         expect(result.valid).toBe(true);
-        expect(activityTree.currentActivity).toBe(child1);
+        expect(activityTree.currentActivity).toBe(grandchild1);
       });
     });
 

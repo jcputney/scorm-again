@@ -154,13 +154,14 @@ describe("SequencingProcess", () => {
   });
 
   describe("choice sequencing", () => {
-    it("should reject choice of root activity", () => {
+    it("should allow choice of root activity", () => {
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "root"
       );
 
-      expect(result.exception).toBe("SB.2.9-3");
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     });
 
     it("should reject choice of non-existent activity", () => {
@@ -1295,7 +1296,7 @@ describe("SequencingProcess", () => {
   });
 
   describe("getAvailableChoices", () => {
-    it("should return empty array when no activities exist", () => {
+    it("should return the root when the tree has no descendants", () => {
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       tree.root = root;
@@ -1309,8 +1310,7 @@ describe("SequencingProcess", () => {
 
       const choices = process.getAvailableChoices();
 
-      // Root is excluded from choices
-      expect(choices.length).toBe(0);
+      expect(choices.map(a => a.id)).toEqual(["root"]);
     });
 
     it("should return all available leaf activities", () => {
@@ -1337,7 +1337,8 @@ describe("SequencingProcess", () => {
 
       const choices = process.getAvailableChoices();
 
-      expect(choices.length).toBe(3);
+      expect(choices.length).toBe(4);
+      expect(choices.map(a => a.id)).toContain("root");
       expect(choices.map(a => a.id)).toContain("child1");
       expect(choices.map(a => a.id)).toContain("child2");
       expect(choices.map(a => a.id)).toContain("child3");
@@ -1366,8 +1367,7 @@ describe("SequencingProcess", () => {
 
       const choices = process.getAvailableChoices();
 
-      expect(choices.length).toBe(1);
-      expect(choices[0].id).toBe("child2");
+      expect(choices.map(a => a.id)).toEqual(["root", "child2"]);
     });
 
     it("should exclude unavailable activities", () => {
@@ -1393,8 +1393,7 @@ describe("SequencingProcess", () => {
 
       const choices = process.getAvailableChoices();
 
-      expect(choices.length).toBe(1);
-      expect(choices[0].id).toBe("child2");
+      expect(choices.map(a => a.id)).toEqual(["root", "child2"]);
     });
 
     it("should exclude invisible activities", () => {
@@ -1420,8 +1419,7 @@ describe("SequencingProcess", () => {
 
       const choices = process.getAvailableChoices();
 
-      expect(choices.length).toBe(1);
-      expect(choices[0].id).toBe("child2");
+      expect(choices.map(a => a.id)).toEqual(["root", "child2"]);
     });
 
     it("should exclude activities when parent has choice=false", () => {
@@ -1629,7 +1627,7 @@ describe("SequencingProcess", () => {
       expect(choices.map(a => a.id)).toContain("leaf");
     });
 
-    it("should exclude root activity from choices", () => {
+    it("should include root activity in choices", () => {
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const child1 = new Activity("child1", "Child 1");
@@ -1648,7 +1646,7 @@ describe("SequencingProcess", () => {
 
       const choices = process.getAvailableChoices();
 
-      expect(choices.map(a => a.id)).not.toContain("root");
+      expect(choices.map(a => a.id)).toContain("root");
     });
 
     it("should work when there is no current activity", () => {
@@ -1674,8 +1672,9 @@ describe("SequencingProcess", () => {
 
       const choices = process.getAvailableChoices();
 
-      // All available children should be chooseable
-      expect(choices.length).toBe(2);
+      // The root and all available children should be chooseable.
+      expect(choices.length).toBe(3);
+      expect(choices.map(a => a.id)).toContain("root");
       expect(choices.map(a => a.id)).toContain("child1");
       expect(choices.map(a => a.id)).toContain("child2");
     });
