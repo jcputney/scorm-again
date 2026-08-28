@@ -402,8 +402,8 @@ jobs:
         # intentionally skipped: those are runtime static assets, not needed to
         # validate that the Docusaurus build compiles.
         run: |
-          mkdir -p docs-site/static/demo/modules
-          cp -r dist docs-site/static/demo/
+          mkdir -p docs-site/public/demo/modules
+          cp -r dist docs-site/public/demo/
 
       - name: Build documentation site
         run: |

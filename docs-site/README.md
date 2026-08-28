@@ -1,41 +1,34 @@
 # Website
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This site is built with [VitePress](https://vitepress.dev/).
 
-## Installation
-
-```bash
-yarn
-```
-
-## Local Development
+## Install
 
 ```bash
-yarn start
+npm ci
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+## Local development
+
+```bash
+npm run dev
+```
+
+Starts a dev server with hot reload at http://localhost:5173/scorm-again/.
 
 ## Build
 
 ```bash
-yarn build
+npm run build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+Writes the static site to `.vitepress/dist`. Preview it with `npm run preview`.
 
-## Deployment
+## Layout
 
-Using SSH:
-
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+- `docs/` — documentation pages, served under `/scorm-again/docs/`
+- `index.md` — the landing page
+- `demo.md` — the interactive demo index
+- `public/` — static assets copied to the site root, including the `demo/`
+  harness pages. CI drops the built library into `public/demo/dist/`.
+- `.vitepress/config.ts` — nav, sidebar, search, and theme configuration
