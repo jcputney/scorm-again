@@ -2117,7 +2117,6 @@
   var ChoiceExceptions = {
       "SB.2.9-1": "Target activity does not exist",
       "SB.2.9-2": "Target activity not in tree",
-      "SB.2.9-3": "Cannot choose root activity",
       "SB.2.9-4": "Activity hidden from choice",
       "SB.2.9-5": "Choice control is not allowed",
       "SB.2.9-6": "Current activity not terminated",
@@ -3995,12 +3994,6 @@
                       return {
                           valid: false,
                           exception: "SB.2.9-2"
-                      };
-                  }
-                  if (targetActivity === this.activityTree.root) {
-                      return {
-                          valid: false,
-                          exception: "SB.2.9-3"
                       };
                   }
                   var pathValidation = this.validatePathToRoot(targetActivity);
@@ -6576,9 +6569,6 @@
                   try {
                       for(var _iterator = allActivities[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var activity = _step.value;
-                          if (activity === this.activityTree.root) {
-                              continue;
-                          }
                           if (activity.isHiddenFromChoice || !activity.isAvailable || !activity.isVisible) {
                               continue;
                           }
@@ -17038,7 +17028,7 @@
                       case SequencingRequestType.EXIT_ALL:
                           return this.handleExitAll(currentActivity);
                       case SequencingRequestType.ABANDON:
-                          return this.handleAbandon(currentActivity, hasSequencingRequest);
+                          return this.handleAbandon(currentActivity);
                       case SequencingRequestType.ABANDON_ALL:
                           return this.handleAbandonAll(currentActivity);
                       case SequencingRequestType.SUSPEND_ALL:
@@ -17182,14 +17172,10 @@
               /**
      * Handle ABANDON termination (TB.2.3 step 6)
      * @param {Activity} currentActivity - The current activity
-     * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
      * @return {TerminationResult} - The termination result
      */ key: "handleAbandon",
-              value: function handleAbandon(currentActivity, hasSequencingRequest) {
+              value: function handleAbandon(currentActivity) {
                   currentActivity.isActive = false;
-                  if (!hasSequencingRequest) {
-                      this.activityTree.currentActivity = currentActivity.parent;
-                  }
                   return {
                       terminationRequest: SequencingRequestType.ABANDON,
                       sequencingRequest: null,

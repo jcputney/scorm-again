@@ -2419,9 +2419,6 @@ class ChoiceConstraintValidator {
     if (!this.treeQueries.isInTree(targetActivity)) {
       return { valid: false, exception: "SB.2.9-2" };
     }
-    if (targetActivity === this.activityTree.root) {
-      return { valid: false, exception: "SB.2.9-3" };
-    }
     const pathValidation = this.validatePathToRoot(targetActivity);
     if (!pathValidation.valid) {
       return pathValidation;
@@ -4416,9 +4413,6 @@ class ChoiceRequestHandler {
     const currentActivity = this.activityTree.currentActivity;
     const availableActivities = [];
     for (const activity of allActivities) {
-      if (activity === this.activityTree.root) {
-        continue;
-      }
       if (activity.isHiddenFromChoice || !activity.isAvailable || !activity.isVisible) {
         continue;
       }
@@ -11740,7 +11734,7 @@ class TerminationHandler {
       case SequencingRequestType.EXIT_ALL:
         return this.handleExitAll(currentActivity);
       case SequencingRequestType.ABANDON:
-        return this.handleAbandon(currentActivity, hasSequencingRequest);
+        return this.handleAbandon(currentActivity);
       case SequencingRequestType.ABANDON_ALL:
         return this.handleAbandonAll(currentActivity);
       case SequencingRequestType.SUSPEND_ALL:
@@ -11879,14 +11873,10 @@ class TerminationHandler {
   /**
    * Handle ABANDON termination (TB.2.3 step 6)
    * @param {Activity} currentActivity - The current activity
-   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
    * @return {TerminationResult} - The termination result
    */
-  handleAbandon(currentActivity, hasSequencingRequest) {
+  handleAbandon(currentActivity) {
     currentActivity.isActive = false;
-    if (!hasSequencingRequest) {
-      this.activityTree.currentActivity = currentActivity.parent;
-    }
     return {
       terminationRequest: SequencingRequestType.ABANDON,
       sequencingRequest: null,

@@ -47,7 +47,6 @@ export declare const PreviousExceptions: {
 export declare const ChoiceExceptions: {
     "SB.2.9-1": string;
     "SB.2.9-2": string;
-    "SB.2.9-3": string;
     "SB.2.9-4": string;
     "SB.2.9-5": string;
     "SB.2.9-6": string;
@@ -113,7 +112,6 @@ export declare const SequencingExceptions: {
     "SB.2.4-3": string;
     "SB.2.9-1": string;
     "SB.2.9-2": string;
-    "SB.2.9-3": string;
     "SB.2.9-4": string;
     "SB.2.9-5": string;
     "SB.2.9-6": string;
