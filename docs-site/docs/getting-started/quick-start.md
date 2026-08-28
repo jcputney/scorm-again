@@ -202,7 +202,7 @@ window.API_1484_11.loadFromFlattenedJSON(flattenedData);
 
 ## API Discovery Pattern
 
-:::important
+::: warning IMPORTANT
 SCORM content expects to find the API on the `window` object. This is part of the SCORM specification's API Discovery Algorithm.
 :::
 

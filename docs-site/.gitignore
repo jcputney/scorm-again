@@ -1,12 +1,13 @@
 # Dependencies
 /node_modules
 
-# Production
-/build
+# VitePress build output and cache
+/.vitepress/dist
+/.vitepress/cache
 
-# Generated files
-.docusaurus
-.cache-loader
+# Demo harness assets staged by CI (see .github/workflows/pages.yml)
+/public/demo/dist/
+/public/demo/modules/
 
 # Misc
 .DS_Store

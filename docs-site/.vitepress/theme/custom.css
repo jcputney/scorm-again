@@ -1,0 +1,84 @@
+/**
+ * Brand palette, carried over from the Docusaurus (Infima) theme.
+ *
+ * Light mode kept #2563eb and dark mode kept #60a5fa, so the site reads the
+ * same as before. VitePress derives most of its UI from the three brand
+ * steps plus the soft tint.
+ */
+:root {
+  --vp-c-brand-1: #1d4ed8;
+  --vp-c-brand-2: #2563eb;
+  --vp-c-brand-3: #3b82f6;
+  --vp-c-brand-soft: rgba(37, 99, 235, 0.14);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #2563eb, #60a5fa);
+  --vp-home-hero-image-background-image: linear-gradient(
+    120deg,
+    rgba(37, 99, 235, 0.2),
+    rgba(96, 165, 250, 0.2)
+  );
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  --vp-c-brand-1: #93c5fd;
+  --vp-c-brand-2: #60a5fa;
+  --vp-c-brand-3: #3b82f6;
+  --vp-c-brand-soft: rgba(96, 165, 250, 0.16);
+
+  --vp-home-hero-name-background: linear-gradient(120deg, #60a5fa, #bfdbfe);
+}
+
+/* The homepage hero uses the wordmark logo rather than a stacked
+   title, matching the previous Docusaurus landing page. */
+.VPHero .image-src {
+  max-height: 240px;
+  filter: none;
+}
+
+/* Demo cards on /demo. */
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0 3rem;
+}
+
+.demo-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background-color: var(--vp-c-bg-soft);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.demo-card:hover {
+  border-color: var(--vp-c-brand-2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark .demo-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.32);
+}
+
+.demo-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.demo-card p {
+  flex: 1;
+  margin: 0 0 1.25rem;
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: var(--vp-c-text-2);
+}
+
+.demo-card .demo-launch {
+  align-self: flex-start;
+  font-weight: 500;
+}

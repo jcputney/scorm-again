@@ -39,7 +39,7 @@ For quick prototyping or simple integrations, you can include scorm-again direct
 <script src="https://cdn.jsdelivr.net/npm/scorm-again@latest/dist/scorm2004.min.js"></script>
 ```
 
-:::tip
+::: tip
 For production, specify an exact version instead of `@latest` to ensure stability:
 ```html
 <script src="https://cdn.jsdelivr.net/npm/scorm-again@3.0.0/dist/scorm2004.min.js"></script>

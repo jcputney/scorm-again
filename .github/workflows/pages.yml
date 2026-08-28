@@ -40,9 +40,9 @@ jobs:
 
       - name: Download test modules
         run: |
-          mkdir -p docs-site/static/demo/modules
-          curl -L -o docs-site/static/demo/modules/AllGolfExamples.zip https://cdn.noverant.com/AllGolfExamples.zip
-          cd docs-site/static/demo/modules
+          mkdir -p docs-site/public/demo/modules
+          curl -L -o docs-site/public/demo/modules/AllGolfExamples.zip https://cdn.noverant.com/AllGolfExamples.zip
+          cd docs-site/public/demo/modules
           unzip -q AllGolfExamples.zip
           # Extract nested zip files
           for zipfile in *.zip; do
@@ -54,7 +54,7 @@ jobs:
           done
 
       - name: Copy dist to demo
-        run: cp -r dist docs-site/static/demo/
+        run: cp -r dist docs-site/public/demo/
 
       - name: Build documentation site
         run: |
@@ -68,7 +68,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: docs-site/build
+          path: docs-site/.vitepress/dist
 
   deploy:
     environment:
