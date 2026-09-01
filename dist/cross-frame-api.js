@@ -76,6 +76,7 @@ this.CrossFrameAPI = (function () {
       DEPENDENCY_NOT_ESTABLISHED: 101
   };
   _object_spread_props(_object_spread({}, global_errors), {
+      TERMINATION_BEFORE_INIT: 301,
       RETRIEVE_BEFORE_INIT: 301,
       STORE_BEFORE_INIT: 301,
       COMMIT_BEFORE_INIT: 301,

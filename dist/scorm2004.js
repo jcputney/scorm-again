@@ -1080,6 +1080,7 @@ this.Scorm2004API = (function () {
       DEPENDENCY_NOT_ESTABLISHED: 101
   };
   var scorm12_errors = _object_spread_props$8(_object_spread$h({}, global_errors), {
+      TERMINATION_BEFORE_INIT: 301,
       RETRIEVE_BEFORE_INIT: 301,
       STORE_BEFORE_INIT: 301,
       COMMIT_BEFORE_INIT: 301,
@@ -8144,6 +8145,7 @@ this.Scorm2004API = (function () {
                   var structure = CMIElement.split(".");
                   var refObject = this.context.getDataModel();
                   var attribute = null;
+                  var foundFirstIndex = false;
                   var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
                   var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
                   var invalidErrorCode = this.getUndefinedDataModelErrorCode();
@@ -8167,12 +8169,13 @@ this.Scorm2004API = (function () {
                           break;
                       }
                       if (_instanceof$f(refObject, CMIArray)) {
-                          var arrayResult = this.handleGetArrayAccess(refObject, structure, idx, CMIElement, uninitializedErrorMessage);
+                          var arrayResult = this.handleGetArrayAccess(refObject, structure, idx, CMIElement, scorm2004, foundFirstIndex, uninitializedErrorMessage);
                           if (arrayResult.error) {
                               return "";
                           }
                           refObject = arrayResult.refObject;
                           idx = arrayResult.idx;
+                          foundFirstIndex = arrayResult.foundFirstIndex;
                       }
                   }
                   if (refObject === null || refObject === void 0) {
@@ -8291,7 +8294,7 @@ this.Scorm2004API = (function () {
                           };
                       } else {
                           if (index > refObject.childArray.length) {
-                              var errorCode = scorm2004 ? getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE") : getErrorCode(this.context.errorCodes, "INVALID_SET_VALUE") || getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE");
+                              var errorCode = scorm2004 ? getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE") : getErrorCode(this.context.errorCodes, "ARGUMENT_ERROR");
                               this.context.throwSCORMError(CMIElement, errorCode, "Cannot set array element at index ".concat(index, ". Array indices must be sequential. Current array length is ").concat(refObject.childArray.length, ", expected index ").concat(refObject.childArray.length, "."));
                               return {
                                   refObject: refObject,
@@ -8386,21 +8389,46 @@ this.Scorm2004API = (function () {
               /**
      * Handles array access during get operations
      */ key: "handleGetArrayAccess",
-              value: function handleGetArrayAccess(refObject, structure, idx, CMIElement, uninitializedErrorMessage) {
+              value: function handleGetArrayAccess(refObject, structure, idx, CMIElement, scorm2004, foundFirstIndex, uninitializedErrorMessage) {
                   var index = parseInt(structure[idx + 1] || "", 10);
                   if (!isNaN(index)) {
                       var item = refObject.childArray[index];
-                      if (item) {
+                      if (index < refObject.childArray.length && item) {
                           return {
                               refObject: item,
                               idx: idx + 1,
+                              foundFirstIndex: true,
                               error: false
                           };
-                      } else {
+                      } else if (scorm2004) {
                           this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "VALUE_NOT_INITIALIZED"), uninitializedErrorMessage);
                           return {
                               refObject: refObject,
                               idx: idx,
+                              foundFirstIndex: foundFirstIndex,
+                              error: true
+                          };
+                      } else {
+                          var collectionPath = structure.slice(0, idx + 1).join(".");
+                          var interactionSubcollectionCount = collectionPath === "cmi.interactions" && index === refObject.childArray.length && /^cmi\.interactions\.\d+\.(objectives|correct_responses)\._count$/.test(CMIElement);
+                          if (interactionSubcollectionCount) {
+                              var child = this.context.getChildElement(CMIElement, "", foundFirstIndex);
+                              if (child) {
+                                  if (refObject.initialized) child.initialize();
+                                  return {
+                                      refObject: child,
+                                      idx: idx + 1,
+                                      foundFirstIndex: true,
+                                      error: false
+                                  };
+                              }
+                          }
+                          var interactionCollection = collectionPath === "cmi.interactions" || /^cmi\.interactions\.\d+\.(objectives|correct_responses)$/.test(collectionPath);
+                          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, interactionCollection ? "WRITE_ONLY_ELEMENT" : "ARGUMENT_ERROR"));
+                          return {
+                              refObject: refObject,
+                              idx: idx,
+                              foundFirstIndex: foundFirstIndex,
                               error: true
                           };
                       }
@@ -8408,6 +8436,7 @@ this.Scorm2004API = (function () {
                   return {
                       refObject: refObject,
                       idx: idx,
+                      foundFirstIndex: foundFirstIndex,
                       error: false
                   };
               }
@@ -23737,6 +23766,9 @@ this.Scorm2004API = (function () {
      * @return {boolean} - True if validation passes, throws an error otherwise
      */ key: "validateScorm12Language",
               value: function validateScorm12Language(CMIElement, value) {
+                  if (value === "") {
+                      return true;
+                  }
                   return check12ValidFormat(CMIElement, value, scorm12_regex.CMIString256);
               }
           },
@@ -24277,7 +24309,7 @@ this.Scorm2004API = (function () {
                       var _this__error_codes_TERMINATION_BEFORE_INIT;
                       var errorCode = (_this__error_codes_TERMINATION_BEFORE_INIT = this._error_codes.TERMINATION_BEFORE_INIT) !== null && _this__error_codes_TERMINATION_BEFORE_INIT !== void 0 ? _this__error_codes_TERMINATION_BEFORE_INIT : 0;
                       this.throwSCORMError("api", errorCode);
-                      if (errorCode === 112) returnValue = global_constants.SCORM_FALSE;
+                      returnValue = global_constants.SCORM_FALSE;
                   } else if (checkTerminated && this.isTerminated()) {
                       var _this__error_codes_MULTIPLE_TERMINATION;
                       var errorCode1 = (_this__error_codes_MULTIPLE_TERMINATION = this._error_codes.MULTIPLE_TERMINATION) !== null && _this__error_codes_MULTIPLE_TERMINATION !== void 0 ? _this__error_codes_MULTIPLE_TERMINATION : 0;
@@ -24408,7 +24440,7 @@ this.Scorm2004API = (function () {
                       var _this__error_codes_COMMIT_BEFORE_INIT;
                       var errorCode = (_this__error_codes_COMMIT_BEFORE_INIT = this._error_codes.COMMIT_BEFORE_INIT) !== null && _this__error_codes_COMMIT_BEFORE_INIT !== void 0 ? _this__error_codes_COMMIT_BEFORE_INIT : 0;
                       this.throwSCORMError("api", errorCode);
-                      if (errorCode === 142) returnValue = global_constants.SCORM_FALSE;
+                      returnValue = global_constants.SCORM_FALSE;
                   } else if (checkTerminated && this.isTerminated()) {
                       var _this__error_codes_COMMIT_AFTER_TERM;
                       var errorCode1 = (_this__error_codes_COMMIT_AFTER_TERM = this._error_codes.COMMIT_AFTER_TERM) !== null && _this__error_codes_COMMIT_AFTER_TERM !== void 0 ? _this__error_codes_COMMIT_AFTER_TERM : 0;

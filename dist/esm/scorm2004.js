@@ -5429,6 +5429,7 @@ class CMIValueAccessService {
     const structure = CMIElement.split(".");
     let refObject = this.context.getDataModel();
     let attribute = null;
+    let foundFirstIndex = false;
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = this.getUndefinedDataModelErrorCode();
@@ -5465,6 +5466,8 @@ class CMIValueAccessService {
           structure,
           idx,
           CMIElement,
+          scorm2004,
+          foundFirstIndex,
           uninitializedErrorMessage
         );
         if (arrayResult.error) {
@@ -5472,6 +5475,7 @@ class CMIValueAccessService {
         }
         refObject = arrayResult.refObject;
         idx = arrayResult.idx;
+        foundFirstIndex = arrayResult.foundFirstIndex;
       }
     }
     if (refObject === null || refObject === void 0) {
@@ -5591,7 +5595,7 @@ class CMIValueAccessService {
         };
       } else {
         if (index > refObject.childArray.length) {
-          const errorCode = scorm2004 ? getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE") : getErrorCode(this.context.errorCodes, "INVALID_SET_VALUE") || getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE");
+          const errorCode = scorm2004 ? getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE") : getErrorCode(this.context.errorCodes, "ARGUMENT_ERROR");
           this.context.throwSCORMError(
             CMIElement,
             errorCode,
@@ -5672,26 +5676,66 @@ class CMIValueAccessService {
   /**
    * Handles array access during get operations
    */
-  handleGetArrayAccess(refObject, structure, idx, CMIElement, uninitializedErrorMessage) {
+  handleGetArrayAccess(refObject, structure, idx, CMIElement, scorm2004, foundFirstIndex, uninitializedErrorMessage) {
     const index = parseInt(structure[idx + 1] || "", 10);
     if (!isNaN(index)) {
       const item = refObject.childArray[index];
-      if (item) {
+      if (index < refObject.childArray.length && item) {
         return {
           refObject: item,
           idx: idx + 1,
+          foundFirstIndex: true,
           error: false
         };
-      } else {
+      } else if (scorm2004) {
         this.context.throwSCORMError(
           CMIElement,
           getErrorCode(this.context.errorCodes, "VALUE_NOT_INITIALIZED"),
           uninitializedErrorMessage
         );
-        return { refObject, idx, error: true };
+        return {
+          refObject,
+          idx,
+          foundFirstIndex,
+          error: true
+        };
+      } else {
+        const collectionPath = structure.slice(0, idx + 1).join(".");
+        const interactionSubcollectionCount = collectionPath === "cmi.interactions" && index === refObject.childArray.length && /^cmi\.interactions\.\d+\.(objectives|correct_responses)\._count$/.test(CMIElement);
+        if (interactionSubcollectionCount) {
+          const child = this.context.getChildElement(CMIElement, "", foundFirstIndex);
+          if (child) {
+            if (refObject.initialized) child.initialize();
+            return {
+              refObject: child,
+              idx: idx + 1,
+              foundFirstIndex: true,
+              error: false
+            };
+          }
+        }
+        const interactionCollection = collectionPath === "cmi.interactions" || /^cmi\.interactions\.\d+\.(objectives|correct_responses)$/.test(collectionPath);
+        this.context.throwSCORMError(
+          CMIElement,
+          getErrorCode(
+            this.context.errorCodes,
+            interactionCollection ? "WRITE_ONLY_ELEMENT" : "ARGUMENT_ERROR"
+          )
+        );
+        return {
+          refObject,
+          idx,
+          foundFirstIndex,
+          error: true
+        };
       }
     }
-    return { refObject, idx, error: false };
+    return {
+      refObject,
+      idx,
+      foundFirstIndex,
+      error: false
+    };
   }
 }
 
@@ -16650,6 +16694,9 @@ class ValidationService {
    * @return {boolean} - True if validation passes, throws an error otherwise
    */
   validateScorm12Language(CMIElement, value) {
+    if (value === "") {
+      return true;
+    }
     return check12ValidFormat(CMIElement, value, scorm12_regex.CMIString256);
   }
   /**
@@ -17044,7 +17091,7 @@ class BaseAPI {
     if (this.isNotInitialized()) {
       const errorCode = this._error_codes.TERMINATION_BEFORE_INIT ?? 0;
       this.throwSCORMError("api", errorCode);
-      if (errorCode === 112) returnValue = global_constants.SCORM_FALSE;
+      returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
       const errorCode = this._error_codes.MULTIPLE_TERMINATION ?? 0;
       this.throwSCORMError("api", errorCode);
@@ -17181,7 +17228,7 @@ class BaseAPI {
     if (this.isNotInitialized()) {
       const errorCode = this._error_codes.COMMIT_BEFORE_INIT ?? 0;
       this.throwSCORMError("api", errorCode);
-      if (errorCode === 142) returnValue = global_constants.SCORM_FALSE;
+      returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
       const errorCode = this._error_codes.COMMIT_AFTER_TERM ?? 0;
       this.throwSCORMError("api", errorCode);
