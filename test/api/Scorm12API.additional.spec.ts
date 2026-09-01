@@ -408,6 +408,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
       // throttleCommits requires useAsynchronousCommits
       const scorm12API = api({ throttleCommits: true, useAsynchronousCommits: true });
       const scheduleCommitSpy = vi.spyOn(scorm12API, "scheduleCommit");
+      scorm12API.lmsInitialize();
 
       const result = scorm12API.lmsCommit();
 

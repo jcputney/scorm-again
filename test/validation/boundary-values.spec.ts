@@ -262,12 +262,12 @@ describe("Boundary Value Tests", () => {
         expect(api.lmsSetValue("cmi.objectives.2.id", "obj-2")).toBe("true");
       });
 
-      // Note: SCORM 1.2 returns 402 (invalid set value) for skipped indexes
-      it("Should reject skipped array indexes with error 402", () => {
+      // ADL SCORM 1.2 CTS LMSTestCourse01 sco 02.htm lines 609-660 requires 201.
+      it("Should reject skipped array indexes with error 201", () => {
         api.lmsSetValue("cmi.objectives.0.id", "obj-0");
         const result = api.lmsSetValue("cmi.objectives.2.id", "obj-2");
         expect(result).toBe("false");
-        expect(api.lmsGetLastError()).toBe("402");
+        expect(api.lmsGetLastError()).toBe("201");
       });
 
       it("Should handle high array indexes sequentially", () => {

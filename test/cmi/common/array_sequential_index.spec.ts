@@ -5,6 +5,8 @@ import { scorm12_errors, scorm2004_errors } from "../../../src/constants/error_c
 
 describe("CMIArray Sequential Index Validation", () => {
   describe("SCORM 1.2 Array Index Validation", () => {
+    // ADL SCORM 1.2 CTS LMSTestCourse01 sco 02.htm lines 609-660 and
+    // sco08.htm lines 1826-1855 require 201 for non-sequential array indices.
     let scorm12API: Scorm12API;
 
     beforeEach(() => {
@@ -30,8 +32,7 @@ describe("CMIArray Sequential Index Validation", () => {
       const result = scorm12API.lmsSetValue("cmi.objectives.2.id", "obj_2");
       expect(result).toBe("false");
       const errorCode = scorm12API.lmsGetLastError();
-      // Should be INVALID_SET_VALUE (402) or GENERAL_SET_FAILURE
-      expect(errorCode).toBe(String(scorm12_errors.INVALID_SET_VALUE));
+      expect(errorCode).toBe(String(scorm12_errors.ARGUMENT_ERROR));
     });
 
     it("should allow updating existing index 0 in objectives array", () => {
@@ -61,14 +62,14 @@ describe("CMIArray Sequential Index Validation", () => {
       const result = scorm12API.lmsSetValue("cmi.interactions.2.id", "int_2");
       expect(result).toBe("false");
       const errorCode = scorm12API.lmsGetLastError();
-      expect(errorCode).toBe(String(scorm12_errors.INVALID_SET_VALUE));
+      expect(errorCode).toBe(String(scorm12_errors.ARGUMENT_ERROR));
     });
 
     it("should fail when setting index 5 on empty interactions array", () => {
       const result = scorm12API.lmsSetValue("cmi.interactions.5.id", "int_5");
       expect(result).toBe("false");
       const errorCode = scorm12API.lmsGetLastError();
-      expect(errorCode).toBe(String(scorm12_errors.INVALID_SET_VALUE));
+      expect(errorCode).toBe(String(scorm12_errors.ARGUMENT_ERROR));
     });
 
     it("should allow sequential setting in nested interactions.objectives array", () => {
@@ -84,7 +85,7 @@ describe("CMIArray Sequential Index Validation", () => {
       const result = scorm12API.lmsSetValue("cmi.interactions.0.objectives.2.id", "obj_2");
       expect(result).toBe("false");
       const errorCode = scorm12API.lmsGetLastError();
-      expect(errorCode).toBe(String(scorm12_errors.INVALID_SET_VALUE));
+      expect(errorCode).toBe(String(scorm12_errors.ARGUMENT_ERROR));
     });
 
     it("should allow sequential setting in interactions.correct_responses array", () => {
@@ -106,7 +107,7 @@ describe("CMIArray Sequential Index Validation", () => {
       const result = scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.3.pattern", "d");
       expect(result).toBe("false");
       const errorCode = scorm12API.lmsGetLastError();
-      expect(errorCode).toBe(String(scorm12_errors.INVALID_SET_VALUE));
+      expect(errorCode).toBe(String(scorm12_errors.ARGUMENT_ERROR));
     });
   });
 
@@ -240,6 +241,7 @@ describe("CMIArray Sequential Index Validation", () => {
   });
 
   describe("Edge Cases", () => {
+    // ADL SCORM 1.2 CTS LMSTestCourse01 sco 02.htm lines 609-660 requires 201.
     let scorm12API: Scorm12API;
 
     beforeEach(() => {
@@ -252,7 +254,7 @@ describe("CMIArray Sequential Index Validation", () => {
       const result = scorm12API.lmsSetValue("cmi.objectives.100.id", "obj_100");
       expect(result).toBe("false");
       const errorCode = scorm12API.lmsGetLastError();
-      expect(errorCode).toBe(String(scorm12_errors.INVALID_SET_VALUE));
+      expect(errorCode).toBe(String(scorm12_errors.ARGUMENT_ERROR));
     });
 
     it("should allow filling gaps by adding sequential indices", () => {

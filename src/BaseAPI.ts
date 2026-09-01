@@ -796,9 +796,12 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (this.isNotInitialized()) {
       const errorCode = this._error_codes.TERMINATION_BEFORE_INIT ?? 0;
       this.throwSCORMError("api", errorCode);
-      // Per SCORM 2004 3rd Ed RTE 3.1.3.2: return "false" for error 112
-      // SCORM 1.2 (error 101) returns "true" for error conditions
-      if (errorCode === 112) returnValue = global_constants.SCORM_FALSE;
+      // Terminating before initializing always fails, under every standard we
+      // implement: SCORM 2004 3rd Ed RTE 3.1.3.2 (error 112) and SCORM 1.2 per
+      // ADL CTS sco03.htm (error 301) both require "false". Unlike the branch
+      // below for a repeated termination, no error table treats this as a
+      // successful call, so the result does not depend on the code.
+      returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
       const errorCode = this._error_codes.MULTIPLE_TERMINATION ?? 0;
       this.throwSCORMError("api", errorCode);
@@ -999,9 +1002,12 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (this.isNotInitialized()) {
       const errorCode = this._error_codes.COMMIT_BEFORE_INIT ?? 0;
       this.throwSCORMError("api", errorCode);
-      // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 142
-      // SCORM 1.2 (error 301) returns "true" for error conditions
-      if (errorCode === 142) returnValue = global_constants.SCORM_FALSE;
+      // Committing before initializing always fails, under every standard we
+      // implement: SCORM 2004 3rd Ed RTE 3.1.4.3 (error 142) and SCORM 1.2 per
+      // ADL CTS sco03.htm (error 301) both require "false". Unlike the branch
+      // below for a commit after terminate, no error table treats this as a
+      // successful call, so the result does not depend on the code.
+      returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
       const errorCode = this._error_codes.COMMIT_AFTER_TERM ?? 0;
       this.throwSCORMError("api", errorCode);

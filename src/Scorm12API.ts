@@ -157,7 +157,7 @@ class Scorm12API extends BaseAPI {
    * - Parameter must be empty string ("")
    * - Returns "true" on success, "false" on failure
    * - Commits all data to persistent storage
-   * - Sets error 101 if not initialized
+   * - Sets error 301 if not initialized
    * - Sets error 101 if already terminated
    * - Processes navigation events (continue/previous) if nav.event is set
    *
@@ -237,7 +237,7 @@ class Scorm12API extends BaseAPI {
    * - Parameter must be empty string ("")
    * - Requests persistence of all data set since last successful commit
    * - Returns "true" on success, "false" on failure
-   * - Sets error 101 if not initialized
+   * - Sets error 301 if not initialized
    * - Sets error 391 if commit failed
    * - Does not terminate the communication session
    *
@@ -249,6 +249,11 @@ class Scorm12API extends BaseAPI {
     if (parameter !== "") {
       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
       return global_constants.SCORM_FALSE;
+    }
+
+    // Preserve the required false/301 state result even when commits are throttled.
+    if (this.isNotInitialized()) {
+      return this.commit("LMSCommit", false);
     }
 
     if (this.settings.throttleCommits) {

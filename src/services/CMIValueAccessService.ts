@@ -225,6 +225,7 @@ export class CMIValueAccessService {
     const structure = CMIElement.split(".");
     let refObject: StringKeyMap = this.context.getDataModel();
     let attribute: string | null = null;
+    let foundFirstIndex = false;
 
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
@@ -271,6 +272,8 @@ export class CMIValueAccessService {
           structure,
           idx,
           CMIElement,
+          scorm2004,
+          foundFirstIndex,
           uninitializedErrorMessage,
         );
 
@@ -280,6 +283,7 @@ export class CMIValueAccessService {
 
         refObject = arrayResult.refObject;
         idx = arrayResult.idx;
+        foundFirstIndex = arrayResult.foundFirstIndex;
       }
     }
 
@@ -475,8 +479,7 @@ export class CMIValueAccessService {
         if (index > refObject.childArray.length) {
           const errorCode = scorm2004
             ? getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE")
-            : getErrorCode(this.context.errorCodes, "INVALID_SET_VALUE") ||
-              getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE");
+            : getErrorCode(this.context.errorCodes, "ARGUMENT_ERROR");
           this.context.throwSCORMError(
             CMIElement,
             errorCode,
@@ -588,29 +591,91 @@ export class CMIValueAccessService {
     structure: string[],
     idx: number,
     CMIElement: string,
+    scorm2004: boolean,
+    foundFirstIndex: boolean,
     uninitializedErrorMessage: string,
-  ): { refObject: StringKeyMap; idx: number; error: boolean } {
+  ): {
+    refObject: StringKeyMap;
+    idx: number;
+    foundFirstIndex: boolean;
+    error: boolean;
+  } {
     const index = parseInt(structure[idx + 1] || "", 10);
 
     if (!isNaN(index)) {
       const item = refObject.childArray[index];
 
-      if (item) {
+      // A readable record exists only when the requested index is within _count.
+      // Never construct a data-bearing child for an out-of-range read: constructor
+      // defaults would be indistinguishable from persisted learner data.
+      if (index < refObject.childArray.length && item) {
         return {
           refObject: item as unknown as StringKeyMap,
           idx: idx + 1,
+          foundFirstIndex: true,
           error: false,
         };
-      } else {
+      } else if (scorm2004) {
         this.context.throwSCORMError(
           CMIElement,
           getErrorCode(this.context.errorCodes, "VALUE_NOT_INITIALIZED"),
           uninitializedErrorMessage,
         );
-        return { refObject: refObject as unknown as StringKeyMap, idx, error: true };
+        return {
+          refObject: refObject as unknown as StringKeyMap,
+          idx,
+          foundFirstIndex,
+          error: true,
+        };
+      } else {
+        const collectionPath = structure.slice(0, idx + 1).join(".");
+        const interactionSubcollectionCount =
+          collectionPath === "cmi.interactions" &&
+          index === refObject.childArray.length &&
+          /^cmi\.interactions\.\d+\.(objectives|correct_responses)\._count$/.test(CMIElement);
+
+        if (interactionSubcollectionCount) {
+          // ADL sco07.htm expects an implemented interaction subcollection count
+          // to read as zero even when the interaction record does not yet exist.
+          const child = this.context.getChildElement(CMIElement, "", foundFirstIndex);
+          if (child) {
+            if (refObject.initialized) child.initialize();
+            return {
+              refObject: child as unknown as StringKeyMap,
+              idx: idx + 1,
+              foundFirstIndex: true,
+              error: false,
+            };
+          }
+        }
+
+        const interactionCollection =
+          collectionPath === "cmi.interactions" ||
+          /^cmi\.interactions\.\d+\.(objectives|correct_responses)$/.test(collectionPath);
+        // Interaction records and their nested entries are write-only (404).
+        // Readable objective records use 201, the collection argument error also
+        // used by ADL for an out-of-range SetValue.
+        this.context.throwSCORMError(
+          CMIElement,
+          getErrorCode(
+            this.context.errorCodes,
+            interactionCollection ? "WRITE_ONLY_ELEMENT" : "ARGUMENT_ERROR",
+          ),
+        );
+        return {
+          refObject: refObject as unknown as StringKeyMap,
+          idx,
+          foundFirstIndex,
+          error: true,
+        };
       }
     }
 
-    return { refObject: refObject as unknown as StringKeyMap, idx, error: false };
+    return {
+      refObject: refObject as unknown as StringKeyMap,
+      idx,
+      foundFirstIndex,
+      error: false,
+    };
   }
 }

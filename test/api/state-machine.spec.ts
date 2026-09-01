@@ -79,14 +79,16 @@ describe("State Machine Tests", () => {
 
       it("LMSCommit should fail with error 301 before initialization", () => {
         const result = api.lmsCommit();
-        expect(result).toBe("true");
+        // ADL SCORM 1.2 CTS LMSTestCourse01 sco03.htm lines 262-315.
+        expect(result).toBe("false");
         expect(api.lmsGetLastError()).toBe("301");
       });
 
-      it("LMSFinish should fail with error 101 before initialization", () => {
+      it("LMSFinish should fail with error 301 before initialization", () => {
         const result = api.lmsFinish();
-        expect(result).toBe("true");
-        expect(api.lmsGetLastError()).toBe("101"); // TERMINATION_BEFORE_INIT
+        // ADL SCORM 1.2 CTS LMSTestCourse01 sco03.htm lines 319-360.
+        expect(result).toBe("false");
+        expect(api.lmsGetLastError()).toBe("301");
       });
     });
 

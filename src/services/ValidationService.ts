@@ -67,6 +67,10 @@ export class ValidationService {
    * @return {boolean} - True if validation passes, throws an error otherwise
    */
   validateScorm12Language(CMIElement: string, value: string): boolean {
+    // ADL SCORM 1.2 CTS sco08.htm checkAllPossibleCMIString255 treats blank as valid.
+    if (value === "") {
+      return true;
+    }
     return check12ValidFormat(CMIElement, value, scorm12_regex.CMIString256);
   }
 
