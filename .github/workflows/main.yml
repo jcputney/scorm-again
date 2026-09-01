@@ -460,6 +460,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # download-artifact unpacks the fresh build *over* the dist/ that
+      # checkout just restored, so any bundle the build no longer emits (e.g.
+      # the removed AICC entry points) survives from the checkout and is never
+      # staged as a deletion. Clearing dist/ first makes the commit below
+      # reflect exactly what the build produced, nothing more.
+      - name: Clear stale dist before download
+        run: rm -rf dist
+
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
