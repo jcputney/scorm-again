@@ -367,11 +367,11 @@ describe("Error Conditions Tests", () => {
         expect(api.lmsGetLastError()).toEqual(String(scorm12_errors.INITIALIZED));
       });
 
-      it("should set TERMINATION_BEFORE_INIT (101) error when attempting to terminate before initializing", () => {
+      it("should set TERMINATION_BEFORE_INIT (301) error when attempting to terminate before initializing", () => {
         const api = scorm12Api();
 
-        // Attempt to terminate without initializing
-        expect(api.lmsFinish()).toEqual("true");
+        // ADL SCORM 1.2 CTS LMSTestCourse01 sco03.htm lines 319-360.
+        expect(api.lmsFinish()).toEqual("false");
         expect(api.lmsGetLastError()).toEqual(String(scorm12_errors.TERMINATION_BEFORE_INIT));
       });
 
@@ -409,8 +409,8 @@ describe("Error Conditions Tests", () => {
       it("should set COMMIT_BEFORE_INIT (301) error when attempting to commit before initializing", () => {
         const api = scorm12Api();
 
-        // Attempt to commit without initializing
-        expect(api.lmsCommit()).toEqual("true");
+        // ADL SCORM 1.2 CTS LMSTestCourse01 sco03.htm lines 262-315.
+        expect(api.lmsCommit()).toEqual("false");
         expect(api.lmsGetLastError()).toEqual(String(scorm12_errors.COMMIT_BEFORE_INIT));
       });
     });

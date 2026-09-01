@@ -797,8 +797,8 @@ export default abstract class BaseAPI implements IBaseAPI {
       const errorCode = this._error_codes.TERMINATION_BEFORE_INIT ?? 0;
       this.throwSCORMError("api", errorCode);
       // Per SCORM 2004 3rd Ed RTE 3.1.3.2: return "false" for error 112
-      // SCORM 1.2 (error 101) returns "true" for error conditions
-      if (errorCode === 112) returnValue = global_constants.SCORM_FALSE;
+      // SCORM 1.2 ADL CTS sco03.htm requires "false" for error 301
+      if (errorCode === 112 || errorCode === 301) returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
       const errorCode = this._error_codes.MULTIPLE_TERMINATION ?? 0;
       this.throwSCORMError("api", errorCode);
@@ -1000,8 +1000,8 @@ export default abstract class BaseAPI implements IBaseAPI {
       const errorCode = this._error_codes.COMMIT_BEFORE_INIT ?? 0;
       this.throwSCORMError("api", errorCode);
       // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 142
-      // SCORM 1.2 (error 301) returns "true" for error conditions
-      if (errorCode === 142) returnValue = global_constants.SCORM_FALSE;
+      // SCORM 1.2 ADL CTS sco03.htm requires "false" for error 301
+      if (errorCode === 142 || errorCode === 301) returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
       const errorCode = this._error_codes.COMMIT_AFTER_TERM ?? 0;
       this.throwSCORMError("api", errorCode);

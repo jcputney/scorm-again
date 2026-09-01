@@ -158,11 +158,9 @@ describe("ValidationService Property-based Tests", () => {
       );
     });
 
-    // Test that empty strings are rejected
-    it("should reject empty strings", () => {
-      expect(() => {
-        validationService.validateScorm12Language("api", "");
-      }).toThrow();
+    // ADL SCORM 1.2 CTS LMSTestCourse01 sco08.htm lines 197-209 accepts blank CMIString255.
+    it("should accept empty strings", () => {
+      expect(validationService.validateScorm12Language("api", "")).toBe(true);
     });
 
     // Test that any string longer than 256 characters fails validation

@@ -35,6 +35,7 @@ export const global_errors: ErrorCode = {
 
 export const scorm12_errors: ErrorCode = {
   ...global_errors,
+  TERMINATION_BEFORE_INIT: 301,
   RETRIEVE_BEFORE_INIT: 301,
   STORE_BEFORE_INIT: 301,
   COMMIT_BEFORE_INIT: 301,
