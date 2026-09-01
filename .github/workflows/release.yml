@@ -193,7 +193,7 @@ jobs:
       # Attest the SBOM against the same tarball, so consumers can
       # verify the SBOM corresponds to the exact npm artifact.
       - name: Attest SBOM
-        uses: actions/attest-sbom@v4
+        uses: actions/attest@v4.2.2
         with:
           subject-path: ${{ steps.pack.outputs.tarball }}
           sbom-path: 'sbom.cdx.json'
