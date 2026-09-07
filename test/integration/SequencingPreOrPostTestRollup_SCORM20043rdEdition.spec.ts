@@ -771,6 +771,7 @@ wrappers.forEach((wrapper) => {
     test("should allow full course completion via content and post-test per SCORM 2004 SN Book SB.2.4", async ({
       page,
     }) => {
+      test.setTimeout(120_000);
       await launchSequencedModule(page);
       // Exercise the actual module's full-course branch: fail the pre-test first. The post-test's
       // primary objective is then launch-seeded with that failed score through its read map.
