@@ -10,6 +10,7 @@ import { GlobalObjectiveSynchronizer, GlobalObjective, GlobalObjectiveWriteTarge
 import { RollupStateValidator } from "./validation/rollup_state_validator";
 export type EventCallback = (eventType: string, data?: unknown) => void;
 export declare class RollupProcess {
+    readonly childContributionControlsApplyToParent = true;
     private childFilter;
     private ruleEvaluator;
     private measureProcessor;
@@ -21,11 +22,11 @@ export declare class RollupProcess {
     private crossClusterProcessor;
     private eventCallback;
     constructor(eventCallback?: EventCallback);
-    overallRollupProcess(activity: Activity): Activity[];
+    overallRollupProcess(activity: Activity, globalObjectives?: Map<string, GlobalObjective>): Activity[];
     validateRollupStateConsistency(rootActivity: Activity): boolean;
     processGlobalObjectiveMapping(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
     syncTerminatedActivityObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): GlobalObjectiveWriteTargets;
-    syncFreshlyWrittenObjectivesToActiveAncestor(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): void;
+    syncFreshlyWrittenObjectivesToActiveAncestor(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): boolean;
     calculateComplexWeightedMeasure(activity: Activity, children: Activity[], options?: MeasureRollupOptions): number;
     processCrossClusterDependencies(activity: Activity, clusters: Activity[]): void;
     getChildFilter(): RollupChildFilter;

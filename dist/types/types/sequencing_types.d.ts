@@ -1,6 +1,6 @@
 import { IActivity } from "./activity_types";
 import { RuleActionType, RuleConditionOperator, RuleConditionType } from "../cmi/scorm2004/sequencing/sequencing_rules";
-import { RollupActionType, RollupConditionType, RollupConsiderationType } from "../cmi/scorm2004/sequencing/rollup_rules";
+import { RollupActionType, RollupConditionCombination, RollupConditionOperator, RollupConditionType, RollupConsiderationType } from "../cmi/scorm2004/sequencing/rollup_rules";
 import { RandomizationTiming, SelectionTiming } from "../cmi/scorm2004/sequencing/sequencing_controls";
 export declare const HIDE_LMS_UI_TOKENS: readonly ["continue", "previous", "exit", "exitAll", "abandon", "abandonAll", "suspendAll"];
 export type HideLmsUiItem = (typeof HIDE_LMS_UI_TOKENS)[number];
@@ -145,10 +145,12 @@ export type SequencingCollectionSettings = {
 };
 export type RollupConditionSettings = {
     condition: RollupConditionType;
+    operator?: RollupConditionOperator;
     parameters?: Record<string, any>;
 };
 export type RollupRuleSettings = {
     action: RollupActionType;
+    conditionCombination?: RollupConditionCombination;
     consideration?: RollupConsiderationType;
     minimumCount?: number;
     minimumPercent?: number;

@@ -21,13 +21,11 @@ export declare class NavigationLookAhead {
     private ensureCacheValid;
     private recalculateCache;
     private predictContinueInternal;
-    private hasAvailableNextActivity;
     private predictPreviousInternal;
     private hasAvailablePreviousActivity;
     private calculateAvailableChoicesFromRoot;
     private calculateAvailableChoices;
     private recursivelyCheckChoiceAvailability;
-    private isActivityPotentiallyDeliverableForward;
     private isActivityPotentiallyDeliverableBackward;
     private calculateTreeStateHash;
     private getActivityTreeStateSignature;

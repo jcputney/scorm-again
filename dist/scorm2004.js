@@ -5942,9 +5942,6 @@ this.Scorm2004API = (function () {
                   if (!activity.isAvailable) {
                       return false;
                   }
-                  if (activity.children.length === 0 && !activity.isVisible) {
-                      return false;
-                  }
                   if (this.ruleEngine.checkLimitConditions(activity)) {
                       return false;
                   }
@@ -10026,6 +10023,11 @@ this.Scorm2004API = (function () {
       RollupActionType2["INCOMPLETE"] = "incomplete";
       return RollupActionType2;
   }(RollupActionType || {});
+  var RollupConditionCombination = /* @__PURE__ */ function(RollupConditionCombination2) {
+      RollupConditionCombination2["ALL"] = "all";
+      RollupConditionCombination2["ANY"] = "any";
+      return RollupConditionCombination2;
+  }(RollupConditionCombination || {});
   var RollupConsiderationType = /* @__PURE__ */ function(RollupConsiderationType2) {
       RollupConsiderationType2["ALL"] = "all";
       RollupConsiderationType2["ANY"] = "any";
@@ -10037,7 +10039,7 @@ this.Scorm2004API = (function () {
   var RollupCondition = /*#__PURE__*/ function(BaseCMI) {
       _inherits$j(RollupCondition, BaseCMI);
       function RollupCondition() {
-          var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", parameters = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : /* @__PURE__ */ new Map();
+          var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", parameters = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : /* @__PURE__ */ new Map(), operator = arguments.length > 2 && arguments[2] !== void 0 /* NO_OP */  ? arguments[2] : "noOp";
           _class_call_check$O(this, RollupCondition);
           var _this;
           _this = _call_super$j(this, RollupCondition, [
@@ -10045,8 +10047,10 @@ this.Scorm2004API = (function () {
           ]);
           __publicField$K(_this, "_condition", "always" /* ALWAYS */ );
           __publicField$K(_this, "_parameters", /* @__PURE__ */ new Map());
+          __publicField$K(_this, "_operator", "noOp" /* NO_OP */ );
           _this._condition = condition;
           _this._parameters = parameters;
+          _this._operator = operator;
           return _this;
       }
       _create_class$O(RollupCondition, [
@@ -10089,6 +10093,21 @@ this.Scorm2004API = (function () {
               }
           },
           {
+              key: "operator",
+              get: /**
+     * Getter for the condition operator
+     * @return {RollupConditionOperator}
+     */ function get() {
+                  return this._operator;
+              },
+              set: /**
+     * Setter for the condition operator
+     * @param {RollupConditionOperator} operator
+     */ function set(operator) {
+                  this._operator = operator;
+              }
+          },
+          {
               /**
      * Evaluate the condition for an activity
      * @param {Activity} activity - The activity to evaluate the condition for
@@ -10097,36 +10116,51 @@ this.Scorm2004API = (function () {
               value: function evaluate(activity) {
                   var objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
                   var progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
+                  var result;
                   switch(this._condition){
                       case "satisfied" /* SATISFIED */ :
-                          return objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
+                          result = objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
+                          break;
                       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ :
-                          return objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
+                          result = objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
+                          break;
                       case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */ :
-                          return objectiveInfoAvailable && activity.objectiveMeasureStatus;
+                          result = objectiveInfoAvailable && activity.objectiveMeasureStatus;
+                          break;
                       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ :
                           {
                               var greaterThanValue = this._parameters.get("threshold") || 0;
-                              return objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+                              break;
                           }
                       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ :
                           {
                               var lessThanValue = this._parameters.get("threshold") || 0;
-                              return objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+                              break;
                           }
                       case "completed" /* COMPLETED */ :
-                          return progressInfoAvailable && activity.isCompleted;
+                          result = progressInfoAvailable && activity.isCompleted;
+                          break;
                       case "progressKnown" /* PROGRESS_KNOWN */ :
-                          return progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
+                          result = progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
+                          break;
                       case "attempted" /* ATTEMPTED */ :
-                          return progressInfoAvailable && activity.attemptCount > 0;
+                          result = progressInfoAvailable && activity.attemptCount > 0;
+                          break;
+                      case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */ :
+                          result = activity.hasAttemptLimitExceeded();
+                          break;
                       case "notAttempted" /* NOT_ATTEMPTED */ :
-                          return !progressInfoAvailable || activity.attemptCount === 0;
+                          result = !progressInfoAvailable || activity.attemptCount === 0;
+                          break;
                       case "always" /* ALWAYS */ :
-                          return true;
+                          result = true;
+                          break;
                       default:
-                          return false;
+                          result = false;
                   }
+                  return this._operator === "not" /* NOT */  ? !result : result;
               }
           },
           {
@@ -10138,6 +10172,7 @@ this.Scorm2004API = (function () {
                   this.jsonString = true;
                   var result = {
                       condition: this._condition,
+                      operator: this._operator,
                       parameters: Object.fromEntries(this._parameters)
                   };
                   this.jsonString = false;
@@ -10150,7 +10185,7 @@ this.Scorm2004API = (function () {
   var RollupRule = /*#__PURE__*/ function(BaseCMI) {
       _inherits$j(RollupRule, BaseCMI);
       function RollupRule() {
-          var action = arguments.length > 0 && arguments[0] !== void 0 /* SATISFIED */  ? arguments[0] : "satisfied", consideration = arguments.length > 1 && arguments[1] !== void 0 /* ALL */  ? arguments[1] : "all", minimumCount = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0, minimumPercent = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : 0;
+          var action = arguments.length > 0 && arguments[0] !== void 0 /* SATISFIED */  ? arguments[0] : "satisfied", consideration = arguments.length > 1 && arguments[1] !== void 0 /* ALL */  ? arguments[1] : "all", minimumCount = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0, minimumPercent = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : 0, conditionCombination = arguments.length > 4 && arguments[4] !== void 0 /* ANY */  ? arguments[4] : "any";
           _class_call_check$O(this, RollupRule);
           var _this;
           _this = _call_super$j(this, RollupRule, [
@@ -10161,10 +10196,12 @@ this.Scorm2004API = (function () {
           __publicField$K(_this, "_consideration", "all" /* ALL */ );
           __publicField$K(_this, "_minimumCount", 0);
           __publicField$K(_this, "_minimumPercent", 0);
+          __publicField$K(_this, "conditionCombination", "any" /* ANY */ );
           _this._action = action;
           _this._consideration = consideration;
           _this._minimumCount = minimumCount;
           _this._minimumPercent = minimumPercent;
+          _this.conditionCombination = conditionCombination;
           return _this;
       }
       _create_class$O(RollupRule, [
@@ -10289,7 +10326,12 @@ this.Scorm2004API = (function () {
                       return false;
                   }
                   var matchingChildren = children.filter(function(child) {
-                      return _this._conditions.every(function(condition) {
+                      if (_this._conditions.length === 0) {
+                          return true;
+                      }
+                      return _this.conditionCombination === "all" /* ALL */  ? _this._conditions.every(function(condition) {
+                          return condition.evaluate(child);
+                      }) : _this._conditions.some(function(condition) {
                           return condition.evaluate(child);
                       });
                   });
@@ -10324,7 +10366,8 @@ this.Scorm2004API = (function () {
                       action: this._action,
                       consideration: this._consideration,
                       minimumCount: this._minimumCount,
-                      minimumPercent: this._minimumPercent
+                      minimumPercent: this._minimumPercent,
+                      conditionCombination: this.conditionCombination
                   };
                   this.jsonString = false;
                   return result;
@@ -10493,6 +10536,10 @@ this.Scorm2004API = (function () {
      * @private
      */ key: "_objectiveRollupUsingMeasure",
               value: function _objectiveRollupUsingMeasure(activity, children) {
+                  var _activity_primaryObjective;
+                  if (!((_activity_primaryObjective = activity.primaryObjective) === null || _activity_primaryObjective === void 0 ? void 0 : _activity_primaryObjective.satisfiedByMeasure) || activity.scaledPassingScore === null) {
+                      return null;
+                  }
                   var objectiveMeasureWeight = activity.sequencingControls.objectiveMeasureWeight;
                   if (objectiveMeasureWeight <= 0) {
                       return null;
@@ -11349,8 +11396,8 @@ this.Scorm2004API = (function () {
           __publicField$J(_this, "_objectiveSatisfiedStatusKnown", false);
           __publicField$J(_this, "_objectiveMeasureStatus", false);
           __publicField$J(_this, "_objectiveNormalizedMeasure", 0);
-          __publicField$J(_this, "_scaledPassingScore", 0.7);
-          // Default passing score
+          __publicField$J(_this, "_scaledPassingScore", 1);
+          // SCORM default minimum normalized measure
           // Dirty flags for tracking which activity-level objective properties have been modified locally
           __publicField$J(_this, "_objectiveSatisfiedStatusDirty", false);
           __publicField$J(_this, "_objectiveNormalizedMeasureDirty", false);
@@ -12826,6 +12873,9 @@ this.Scorm2004API = (function () {
                       this._objectiveSatisfiedStatusDirty = true;
                   }
                   this._objectiveSatisfiedStatusKnown = objectiveProgressStatus;
+                  if (objectiveProgressStatus) {
+                      this._successStatus = satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+                  }
                   if (this._objectiveMeasureStatus !== measureStatus) {
                       this._objectiveMeasureStatus = measureStatus;
                       this._objectiveMeasureStatusDirty = true;
@@ -13809,7 +13859,9 @@ this.Scorm2004API = (function () {
                   if (rule.conditions.length === 0) {
                       return true;
                   }
-                  return rule.conditions.every(function(condition) {
+                  return rule.conditionCombination === RollupConditionCombination.ALL ? rule.conditions.every(function(condition) {
+                      return condition.evaluate(child);
+                  }) : rule.conditions.some(function(condition) {
                       return condition.evaluate(child);
                   });
               }
@@ -13913,9 +13965,6 @@ this.Scorm2004API = (function () {
      */ key: "measureRollupProcess",
               value: function measureRollupProcess(activity) {
                   var _this = this;
-                  if (!activity.sequencingControls.rollupObjectiveSatisfied) {
-                      return [];
-                  }
                   var children = activity.getAvailableChildren();
                   if (children.length === 0) {
                       return [];
@@ -14280,7 +14329,8 @@ this.Scorm2004API = (function () {
      * @returns True if satisfied, false if not, null if no measure
      */ key: "objectiveRollupUsingMeasure",
               value: function objectiveRollupUsingMeasure(activity) {
-                  if (!activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
+                  var primaryObjective = activity.primaryObjective;
+                  if (!(primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.satisfiedByMeasure) || !activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
                       return null;
                   }
                   return activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
@@ -14951,12 +15001,9 @@ this.Scorm2004API = (function () {
               value: function processClusterRollup(cluster) {
                   var depth = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 0;
                   var nestedClusters = this.measureProcessor.measureRollupProcess(cluster);
-                  if (cluster.sequencingControls.rollupObjectiveSatisfied) {
-                      this.objectiveProcessor.objectiveRollupProcess(cluster);
-                  }
-                  if (cluster.sequencingControls.rollupProgressCompletion) {
-                      this.progressProcessor.activityProgressRollupProcess(cluster);
-                  }
+                  this.measureProcessor.completionMeasureRollupProcess(cluster);
+                  this.objectiveProcessor.objectiveRollupProcess(cluster);
+                  this.progressProcessor.activityProgressRollupProcess(cluster);
                   if (nestedClusters.length > 1) {
                       this.processCrossClusterDependencies(cluster, nestedClusters, depth + 1);
                   }
@@ -15961,11 +16008,12 @@ this.Scorm2004API = (function () {
      */ key: "validateActivityRollupState",
               value: function validateActivityRollupState(activity, inconsistencies) {
                   var _this = this;
+                  var _activity_primaryObjective;
                   var activityId = activity.id;
                   if (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure === null) {
                       inconsistencies.push("Activity ".concat(activityId, ": measure status true but normalized measure is null"));
                   }
-                  if (activity.objectiveMeasureStatus && activity.scaledPassingScore !== null && activity.successStatus !== "unknown") {
+                  if (((_activity_primaryObjective = activity.primaryObjective) === null || _activity_primaryObjective === void 0 ? void 0 : _activity_primaryObjective.satisfiedByMeasure) === true && activity.objectiveMeasureStatus && activity.scaledPassingScore !== null && activity.successStatus !== "unknown") {
                       var expectedSatisfied = activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
                       if (activity.objectiveSatisfiedStatus !== expectedSatisfied) {
                           inconsistencies.push("Activity ".concat(activityId, ": satisfaction status inconsistent with measure"));
@@ -16088,6 +16136,11 @@ this.Scorm2004API = (function () {
   var RollupProcess = /*#__PURE__*/ function() {
       function RollupProcess(eventCallback) {
           _class_call_check$D(this, RollupProcess);
+          /**
+       * Capability flag for hosts that supported older rollup behavior with a compatibility layer.
+       * Rollup contribution controls belong to an activity as a child of its parent; they do not gate
+       * calculation of the activity's own rolled-up state.
+       */ __publicField$A(this, "childContributionControlsApplyToParent", true);
           __publicField$A(this, "childFilter");
           __publicField$A(this, "ruleEvaluator");
           __publicField$A(this, "measureProcessor");
@@ -16120,7 +16173,7 @@ this.Scorm2004API = (function () {
      * @param activity - The activity to start rollup from
      * @returns Array of activities that had status changes
      */ key: "overallRollupProcess",
-              value: function overallRollupProcess(activity) {
+              value: function overallRollupProcess(activity, globalObjectives) {
                   var affectedActivities = [];
                   var currentActivity = activity.parent;
                   var onlyDurationRollup = false;
@@ -16131,20 +16184,17 @@ this.Scorm2004API = (function () {
                       }
                       if (!onlyDurationRollup) {
                           var beforeStatus = currentActivity.captureRollupStatus();
-                          if (currentActivity.sequencingControls.rollupObjectiveSatisfied || currentActivity.sequencingControls.rollupProgressCompletion) {
-                              if (currentActivity.children.length > 0) {
-                                  var clusters = this.measureProcessor.measureRollupProcess(currentActivity);
-                                  this.measureProcessor.completionMeasureRollupProcess(currentActivity);
-                                  if (clusters.length > 1) {
-                                      this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
-                                  }
+                          if (currentActivity.children.length > 0) {
+                              var clusters = this.measureProcessor.measureRollupProcess(currentActivity);
+                              this.measureProcessor.completionMeasureRollupProcess(currentActivity);
+                              if (clusters.length > 1) {
+                                  this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
                               }
-                              if (currentActivity.sequencingControls.rollupObjectiveSatisfied) {
-                                  this.objectiveProcessor.objectiveRollupProcess(currentActivity);
-                              }
-                              if (currentActivity.sequencingControls.rollupProgressCompletion) {
-                                  this.progressProcessor.activityProgressRollupProcess(currentActivity);
-                              }
+                          }
+                          this.objectiveProcessor.objectiveRollupProcess(currentActivity);
+                          this.progressProcessor.activityProgressRollupProcess(currentActivity);
+                          if (globalObjectives) {
+                              this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(currentActivity, globalObjectives);
                           }
                           var afterStatus = currentActivity.captureRollupStatus();
                           if (!isFirst) {
@@ -16214,7 +16264,7 @@ this.Scorm2004API = (function () {
                           this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(changedActivity, globalObjectives);
                           var parent = changedActivity.parent;
                           if (parent && !rolledUpParents.has(parent)) {
-                              this.overallRollupProcess(changedActivity);
+                              this.overallRollupProcess(changedActivity, globalObjectives);
                               rolledUpParents.add(parent);
                           }
                       }
@@ -16252,7 +16302,7 @@ this.Scorm2004API = (function () {
      * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
      */ key: "syncFreshlyWrittenObjectivesToActiveAncestor",
               value: function syncFreshlyWrittenObjectivesToActiveAncestor(activity, globalObjectives, writeTargets) {
-                  this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(activity, globalObjectives, writeTargets);
+                  return this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(activity, globalObjectives, writeTargets);
               }
           },
           {
@@ -16588,6 +16638,7 @@ this.Scorm2004API = (function () {
                           var hasProgressMeasure = false;
                           var topLevelSuccessStatus = validateSuccessStatus(cmiData.success_status);
                           var topLevelPrimarySuccessWasSet = cmiData.success_status_was_set === true || cmiData.success_status_was_set === void 0 && topLevelSuccessStatus !== null && topLevelSuccessStatus !== SuccessStatus.UNKNOWN;
+                          var topLevelPrimaryScoreWasSet = cmiData.score_was_set === true || cmiData.score_was_set === void 0 && cmiData.score !== void 0 && this.normalizeScore(cmiData.score) !== null;
                           var validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
                           if (!activityObjective.satisfiedByMeasure && validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN && (cmiObjective.success_status_was_set !== false || !isPrimaryObjective || !topLevelPrimarySuccessWasSet)) {
                               successStatus = validatedObjSuccessStatus === SuccessStatus.PASSED;
@@ -16607,7 +16658,8 @@ this.Scorm2004API = (function () {
                               activityObjective.completionStatus = validatedObjCompletionStatus;
                               hasCompletionStatus = true;
                           }
-                          if (cmiObjective.score) {
+                          var objectiveScoreMayOverridePrimary = cmiObjective.score_was_set !== false || !isPrimaryObjective || !topLevelPrimaryScoreWasSet;
+                          if (cmiObjective.score && objectiveScoreMayOverridePrimary) {
                               activityObjective.initializeScoreFromCMI(this.getObjectiveScoreState(cmiObjective.score));
                               var normalized = this.normalizeScore(cmiObjective.score);
                               if (normalized !== null) {
@@ -17635,11 +17687,14 @@ this.Scorm2004API = (function () {
                   }
                   var mappingRoot = this.activityTree.root || activity;
                   this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
-                  this.rollupProcess.overallRollupProcess(activity);
+                  this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap);
                   activeAncestor = activity.parent;
                   while(activeAncestor){
                       if (activeAncestor.isActive) {
-                          this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(activeAncestor, this.globalObjectiveMap, writeTargets);
+                          var mappedStateChanged = this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(activeAncestor, this.globalObjectiveMap, writeTargets);
+                          if (mappedStateChanged) {
+                              this.rollupProcess.overallRollupProcess(activeAncestor, this.globalObjectiveMap);
+                          }
                       }
                       activeAncestor = activeAncestor.parent;
                   }
@@ -18466,41 +18521,7 @@ this.Scorm2004API = (function () {
                   if (!currentActivity.parent) {
                       return false;
                   }
-                  if (!currentActivity.parent.sequencingControls.flow) {
-                      return false;
-                  }
-                  return this.hasAvailableNextActivity(currentActivity);
-              }
-          },
-          {
-              /**
-     * Check if there's an available next activity in flow
-     * @param {Activity} currentActivity - Current activity
-     * @return {boolean} - True if next activity exists
-     * @private
-     */ key: "hasAvailableNextActivity",
-              value: function hasAvailableNextActivity(currentActivity) {
-                  var parent = currentActivity.parent;
-                  if (!parent) {
-                      return false;
-                  }
-                  var siblings = parent.children;
-                  var currentIndex = siblings.indexOf(currentActivity);
-                  if (currentIndex === -1) {
-                      return false;
-                  }
-                  if (currentIndex < siblings.length - 1) {
-                      for(var i = currentIndex + 1; i < siblings.length; i++){
-                          var sibling = siblings[i];
-                          if (sibling && this.isActivityPotentiallyDeliverableForward(sibling)) {
-                              return true;
-                          }
-                      }
-                  }
-                  if (parent.parent && parent.sequencingControls.flow) {
-                      return this.hasAvailableNextActivity(parent);
-                  }
-                  return false;
+                  return currentActivity.parent.sequencingControls.flow;
               }
           },
           {
@@ -18621,49 +18642,6 @@ this.Scorm2004API = (function () {
           },
           {
               /**
-     * Check if activity is potentially deliverable for forward navigation (Continue)
-     * This properly evaluates preConditionRules to determine if the activity can be delivered
-     * @param {Activity} activity - Activity to check
-     * @return {boolean} - True if potentially deliverable
-     * @private
-     */ key: "isActivityPotentiallyDeliverableForward",
-              value: function isActivityPotentiallyDeliverableForward(activity) {
-                  if (activity.isHiddenFromChoice || !activity.isAvailable) {
-                      return false;
-                  }
-                  if (activity.children.length === 0) {
-                      if (!activity.isVisible) {
-                          return false;
-                      }
-                      return this.sequencingProcess.canActivityBeDelivered(activity);
-                  }
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          if (this.isActivityPotentiallyDeliverableForward(child)) {
-                              return true;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return false;
-              }
-          },
-          {
-              /**
      * Check if activity is potentially deliverable for backward navigation (Previous)
      * This uses a simpler check that doesn't fully evaluate preConditionRules
      * since we're typically going back to a previously visited activity
@@ -18672,11 +18650,11 @@ this.Scorm2004API = (function () {
      * @private
      */ key: "isActivityPotentiallyDeliverableBackward",
               value: function isActivityPotentiallyDeliverableBackward(activity) {
-                  if (activity.isHiddenFromChoice || !activity.isAvailable) {
+                  if (!activity.isAvailable) {
                       return false;
                   }
                   if (activity.children.length === 0) {
-                      return activity.isVisible;
+                      return true;
                   }
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
@@ -21841,7 +21819,7 @@ this.Scorm2004API = (function () {
                           exception: seqResult.exception,
                           navigationRequest: navigationRequest
                       });
-                      return new DeliveryRequest(false, null, seqResult.exception || "SESSION_ENDED");
+                      return new DeliveryRequest(true, null);
                   }
                   if (seqResult.exception) {
                       return new DeliveryRequest(false, null, seqResult.exception);
@@ -31578,12 +31556,12 @@ this.Scorm2004API = (function () {
      * @return {RollupRule} - The created rollup rule
      */ key: "createRollupRule",
               value: function createRollupRule(ruleSettings) {
-                  var rule = new RollupRule(ruleSettings.action, ruleSettings.consideration, ruleSettings.minimumCount, ruleSettings.minimumPercent);
+                  var rule = new RollupRule(ruleSettings.action, ruleSettings.consideration, ruleSettings.minimumCount, ruleSettings.minimumPercent, ruleSettings.conditionCombination);
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = ruleSettings.conditions[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var conditionSettings = _step.value;
-                          var condition = new RollupCondition(conditionSettings.condition, new Map(Object.entries(conditionSettings.parameters || {})));
+                          var condition = new RollupCondition(conditionSettings.condition, new Map(Object.entries(conditionSettings.parameters || {})), conditionSettings.operator);
                           rule.addCondition(condition);
                       }
                   } catch (err) {
@@ -31713,9 +31691,15 @@ this.Scorm2004API = (function () {
                                               if (condition.parameters) {
                                                   clonedCondition.parameters = _object_spread$4({}, condition.parameters);
                                               }
+                                              if (condition.operator !== void 0) {
+                                                  clonedCondition.operator = condition.operator;
+                                              }
                                               return clonedCondition;
                                           })
                                       };
+                                      if (rule.conditionCombination !== void 0) {
+                                          clonedRule.conditionCombination = rule.conditionCombination;
+                                      }
                                       if (rule.consideration !== void 0) {
                                           clonedRule.consideration = rule.consideration;
                                       }
@@ -32443,8 +32427,8 @@ this.Scorm2004API = (function () {
                       }
                       if (threshold.minProgressMeasure !== void 0) {
                           activity.minProgressMeasure = threshold.minProgressMeasure;
-                          activity.completionThreshold = threshold.minProgressMeasure.toString();
-                      } else if (threshold.completedByMeasure) {
+                      }
+                      if (activity.completedByMeasure) {
                           activity.completionThreshold = activity.minProgressMeasure.toString();
                       }
                       if (threshold.progressWeight !== void 0) {
@@ -34024,7 +34008,7 @@ this.Scorm2004API = (function () {
      */ key: "renderCommitObject",
               value: function renderCommitObject(terminateCommit) {
                   var includeTotalTime = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false;
-                  var _this_context_cmi_score, _this_context_cmi;
+                  var _this_context_sequencingService, _this_context_cmi_score, _this_context_cmi;
                   var cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
                   var calculateTotalTime = terminateCommit || includeTotalTime;
                   var totalTimeDuration = calculateTotalTime ? this.context.cmi.getCurrentTotalTime() : "";
@@ -34045,7 +34029,32 @@ this.Scorm2004API = (function () {
                           successStatus = SuccessStatus.FAILED;
                       }
                   }
+                  var sequencingRoot = terminateCommit ? (_this_context_sequencingService = this.context.sequencingService) === null || _this_context_sequencingService === void 0 ? void 0 : _this_context_sequencingService.getSequencingState().rootActivity : null;
+                  if (sequencingRoot) {
+                      var _sequencingRoot_completionStatus, _sequencingRoot_successStatus;
+                      completionStatus = (_sequencingRoot_completionStatus = sequencingRoot.completionStatus) !== null && _sequencingRoot_completionStatus !== void 0 ? _sequencingRoot_completionStatus : CompletionStatus.UNKNOWN;
+                      successStatus = (_sequencingRoot_successStatus = sequencingRoot.successStatus) !== null && _sequencingRoot_successStatus !== void 0 ? _sequencingRoot_successStatus : SuccessStatus.UNKNOWN;
+                  }
                   var scoreObject = ((_this_context_cmi = this.context.cmi) === null || _this_context_cmi === void 0 ? void 0 : (_this_context_cmi_score = _this_context_cmi.score) === null || _this_context_cmi_score === void 0 ? void 0 : _this_context_cmi_score.getScoreObject()) || {};
+                  if (sequencingRoot) {
+                      var primaryObjective = sequencingRoot.primaryObjective;
+                      var hasCourseScore = sequencingRoot.objectiveMeasureStatus || (primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.rawScoreKnown) === true || (primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.minScoreKnown) === true || (primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.maxScoreKnown) === true;
+                      if (hasCourseScore) {
+                          scoreObject = {};
+                          if (sequencingRoot.objectiveMeasureStatus) {
+                              scoreObject.scaled = sequencingRoot.objectiveNormalizedMeasure;
+                          }
+                          if (primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.rawScoreKnown) {
+                              scoreObject.raw = Number(primaryObjective.rawScore);
+                          }
+                          if (primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.minScoreKnown) {
+                              scoreObject.min = Number(primaryObjective.minScore);
+                          }
+                          if (primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.maxScoreKnown) {
+                              scoreObject.max = Number(primaryObjective.maxScore);
+                          }
+                      }
+                  }
                   var commitObject = {
                       completionStatus: completionStatus,
                       successStatus: successStatus,
@@ -34057,7 +34066,7 @@ this.Scorm2004API = (function () {
                   }
                   var metaSettings = this.context.getSettings();
                   if (metaSettings.autoPopulateCommitMetadata) {
-                      var _this_context_sequencingService, _sequencingState_currentActivity;
+                      var _this_context_sequencingService1, _sequencingState_currentActivity;
                       if (metaSettings.courseId) {
                           commitObject.courseId = metaSettings.courseId;
                       }
@@ -34070,7 +34079,7 @@ this.Scorm2004API = (function () {
                       if (this.context.cmi.learner_name) {
                           commitObject.learnerName = this.context.cmi.learner_name;
                       }
-                      var sequencingState = (_this_context_sequencingService = this.context.sequencingService) === null || _this_context_sequencingService === void 0 ? void 0 : _this_context_sequencingService.getSequencingState();
+                      var sequencingState = (_this_context_sequencingService1 = this.context.sequencingService) === null || _this_context_sequencingService1 === void 0 ? void 0 : _this_context_sequencingService1.getSequencingState();
                       if (sequencingState === null || sequencingState === void 0 ? void 0 : (_sequencingState_currentActivity = sequencingState.currentActivity) === null || _sequencingState_currentActivity === void 0 ? void 0 : _sequencingState_currentActivity.id) {
                           commitObject.activityId = sequencingState.currentActivity.id;
                       }

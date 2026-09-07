@@ -15,8 +15,17 @@ export declare enum RollupConditionType {
     COMPLETED = "completed",
     PROGRESS_KNOWN = "progressKnown",
     ATTEMPTED = "attempted",
+    ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
     NOT_ATTEMPTED = "notAttempted",
     ALWAYS = "always"
+}
+export declare enum RollupConditionOperator {
+    NO_OP = "noOp",
+    NOT = "not"
+}
+export declare enum RollupConditionCombination {
+    ALL = "all",
+    ANY = "any"
 }
 export declare enum RollupConsiderationType {
     ALL = "all",
@@ -28,12 +37,15 @@ export declare enum RollupConsiderationType {
 export declare class RollupCondition extends BaseCMI {
     private _condition;
     private _parameters;
-    constructor(condition?: RollupConditionType, parameters?: Map<string, any>);
+    private _operator;
+    constructor(condition?: RollupConditionType, parameters?: Map<string, any>, operator?: RollupConditionOperator);
     reset(): void;
     get condition(): RollupConditionType;
     set condition(condition: RollupConditionType);
     get parameters(): Map<string, any>;
     set parameters(parameters: Map<string, any>);
+    get operator(): RollupConditionOperator;
+    set operator(operator: RollupConditionOperator);
     evaluate(activity: Activity): boolean;
     toJSON(): object;
 }
@@ -43,7 +55,8 @@ export declare class RollupRule extends BaseCMI {
     private _consideration;
     private _minimumCount;
     private _minimumPercent;
-    constructor(action?: RollupActionType, consideration?: RollupConsiderationType, minimumCount?: number, minimumPercent?: number);
+    conditionCombination?: RollupConditionCombination;
+    constructor(action?: RollupActionType, consideration?: RollupConsiderationType, minimumCount?: number, minimumPercent?: number, conditionCombination?: RollupConditionCombination);
     reset(): void;
     get conditions(): RollupCondition[];
     addCondition(condition: RollupCondition): void;

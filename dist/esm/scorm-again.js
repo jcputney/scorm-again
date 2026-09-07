@@ -4307,9 +4307,6 @@ class FlowTraversalService {
     if (!activity.isAvailable) {
       return false;
     }
-    if (activity.children.length === 0 && !activity.isVisible) {
-      return false;
-    }
     if (this.ruleEngine.checkLimitConditions(activity)) {
       return false;
     }
@@ -6920,6 +6917,11 @@ var RollupActionType = /* @__PURE__ */ ((RollupActionType2) => {
   RollupActionType2["INCOMPLETE"] = "incomplete";
   return RollupActionType2;
 })(RollupActionType || {});
+var RollupConditionCombination = /* @__PURE__ */ ((RollupConditionCombination2) => {
+  RollupConditionCombination2["ALL"] = "all";
+  RollupConditionCombination2["ANY"] = "any";
+  return RollupConditionCombination2;
+})(RollupConditionCombination || {});
 var RollupConsiderationType = /* @__PURE__ */ ((RollupConsiderationType2) => {
   RollupConsiderationType2["ALL"] = "all";
   RollupConsiderationType2["ANY"] = "any";
@@ -6931,15 +6933,18 @@ var RollupConsiderationType = /* @__PURE__ */ ((RollupConsiderationType2) => {
 class RollupCondition extends BaseCMI {
   _condition = "always" /* ALWAYS */;
   _parameters = /* @__PURE__ */ new Map();
+  _operator = "noOp" /* NO_OP */;
   /**
    * Constructor for RollupCondition
    * @param {RollupConditionType} condition - The condition type
    * @param {Map<string, any>} parameters - Additional parameters for the condition
+   * @param {RollupConditionOperator} operator - The operator applied to the condition result
    */
-  constructor(condition = "always" /* ALWAYS */, parameters = /* @__PURE__ */ new Map()) {
+  constructor(condition = "always" /* ALWAYS */, parameters = /* @__PURE__ */ new Map(), operator = "noOp" /* NO_OP */) {
     super("rollupCondition");
     this._condition = condition;
     this._parameters = parameters;
+    this._operator = operator;
   }
   /**
    * Called when the API needs to be reset
@@ -6976,6 +6981,20 @@ class RollupCondition extends BaseCMI {
     this._parameters = parameters;
   }
   /**
+   * Getter for the condition operator
+   * @return {RollupConditionOperator}
+   */
+  get operator() {
+    return this._operator;
+  }
+  /**
+   * Setter for the condition operator
+   * @param {RollupConditionOperator} operator
+   */
+  set operator(operator) {
+    this._operator = operator;
+  }
+  /**
    * Evaluate the condition for an activity
    * @param {Activity} activity - The activity to evaluate the condition for
    * @return {boolean} - True if the condition is met, false otherwise
@@ -6983,34 +7002,49 @@ class RollupCondition extends BaseCMI {
   evaluate(activity) {
     const objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
     const progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
+    let result;
     switch (this._condition) {
       case "satisfied" /* SATISFIED */:
-        return objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
+        result = objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
+        break;
       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
-        return objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
+        result = objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
+        break;
       case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
-        return objectiveInfoAvailable && activity.objectiveMeasureStatus;
+        result = objectiveInfoAvailable && activity.objectiveMeasureStatus;
+        break;
       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        return objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        break;
       }
       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        return objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        break;
       }
       case "completed" /* COMPLETED */:
-        return progressInfoAvailable && activity.isCompleted;
+        result = progressInfoAvailable && activity.isCompleted;
+        break;
       case "progressKnown" /* PROGRESS_KNOWN */:
-        return progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
+        result = progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
+        break;
       case "attempted" /* ATTEMPTED */:
-        return progressInfoAvailable && activity.attemptCount > 0;
+        result = progressInfoAvailable && activity.attemptCount > 0;
+        break;
+      case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
+        result = activity.hasAttemptLimitExceeded();
+        break;
       case "notAttempted" /* NOT_ATTEMPTED */:
-        return !progressInfoAvailable || activity.attemptCount === 0;
+        result = !progressInfoAvailable || activity.attemptCount === 0;
+        break;
       case "always" /* ALWAYS */:
-        return true;
+        result = true;
+        break;
       default:
-        return false;
+        result = false;
     }
+    return this._operator === "not" /* NOT */ ? !result : result;
   }
   /**
    * toJSON for RollupCondition
@@ -7020,6 +7054,7 @@ class RollupCondition extends BaseCMI {
     this.jsonString = true;
     const result = {
       condition: this._condition,
+      operator: this._operator,
       parameters: Object.fromEntries(this._parameters)
     };
     this.jsonString = false;
@@ -7032,19 +7067,22 @@ class RollupRule extends BaseCMI {
   _consideration = "all" /* ALL */;
   _minimumCount = 0;
   _minimumPercent = 0;
+  conditionCombination = "any" /* ANY */;
   /**
    * Constructor for RollupRule
    * @param {RollupActionType} action - The action to take when the rule conditions are met
    * @param {RollupConsiderationType} consideration - How to consider child activities
    * @param {number} minimumCount - The minimum count for AT_LEAST_COUNT consideration
    * @param {number} minimumPercent - The minimum percent for AT_LEAST_PERCENT consideration
+   * @param {RollupConditionCombination} conditionCombination - How this rule's conditions combine
    */
-  constructor(action = "satisfied" /* SATISFIED */, consideration = "all" /* ALL */, minimumCount = 0, minimumPercent = 0) {
+  constructor(action = "satisfied" /* SATISFIED */, consideration = "all" /* ALL */, minimumCount = 0, minimumPercent = 0, conditionCombination = "any" /* ANY */) {
     super("rollupRule");
     this._action = action;
     this._consideration = consideration;
     this._minimumCount = minimumCount;
     this._minimumPercent = minimumPercent;
+    this.conditionCombination = conditionCombination;
   }
   /**
    * Called when the API needs to be reset
@@ -7156,7 +7194,10 @@ class RollupRule extends BaseCMI {
       return false;
     }
     const matchingChildren = children.filter((child) => {
-      return this._conditions.every((condition) => condition.evaluate(child));
+      if (this._conditions.length === 0) {
+        return true;
+      }
+      return this.conditionCombination === "all" /* ALL */ ? this._conditions.every((condition) => condition.evaluate(child)) : this._conditions.some((condition) => condition.evaluate(child));
     });
     switch (this._consideration) {
       case "all" /* ALL */:
@@ -7186,7 +7227,8 @@ class RollupRule extends BaseCMI {
       action: this._action,
       consideration: this._consideration,
       minimumCount: this._minimumCount,
-      minimumPercent: this._minimumPercent
+      minimumPercent: this._minimumPercent,
+      conditionCombination: this.conditionCombination
     };
     this.jsonString = false;
     return result;
@@ -7319,6 +7361,9 @@ class RollupRules extends BaseCMI {
    * @private
    */
   _objectiveRollupUsingMeasure(activity, children) {
+    if (!activity.primaryObjective?.satisfiedByMeasure || activity.scaledPassingScore === null) {
+      return null;
+    }
     const objectiveMeasureWeight = activity.sequencingControls.objectiveMeasureWeight;
     if (objectiveMeasureWeight <= 0) {
       return null;
@@ -7915,8 +7960,8 @@ class Activity extends BaseCMI {
   _objectiveSatisfiedStatusKnown = false;
   _objectiveMeasureStatus = false;
   _objectiveNormalizedMeasure = 0;
-  _scaledPassingScore = 0.7;
-  // Default passing score
+  _scaledPassingScore = 1;
+  // SCORM default minimum normalized measure
   // Dirty flags for tracking which activity-level objective properties have been modified locally
   _objectiveSatisfiedStatusDirty = false;
   _objectiveNormalizedMeasureDirty = false;
@@ -9157,6 +9202,9 @@ class Activity extends BaseCMI {
       this._objectiveSatisfiedStatusDirty = true;
     }
     this._objectiveSatisfiedStatusKnown = objectiveProgressStatus;
+    if (objectiveProgressStatus) {
+      this._successStatus = satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+    }
     if (this._objectiveMeasureStatus !== measureStatus) {
       this._objectiveMeasureStatus = measureStatus;
       this._objectiveMeasureStatusDirty = true;
@@ -9931,7 +9979,7 @@ class RollupRuleEvaluator {
     if (rule.conditions.length === 0) {
       return true;
     }
-    return rule.conditions.every((condition) => condition.evaluate(child));
+    return rule.conditionCombination === RollupConditionCombination.ALL ? rule.conditions.every((condition) => condition.evaluate(child)) : rule.conditions.some((condition) => condition.evaluate(child));
   }
   /**
    * Evaluate rules for a specific action type
@@ -9979,9 +10027,6 @@ class MeasureRollupProcessor {
    * @returns Array of identified activity clusters (for cross-cluster processing)
    */
   measureRollupProcess(activity) {
-    if (!activity.sequencingControls.rollupObjectiveSatisfied) {
-      return [];
-    }
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
       return [];
@@ -10212,7 +10257,8 @@ class ObjectiveRollupProcessor {
    * @returns True if satisfied, false if not, null if no measure
    */
   objectiveRollupUsingMeasure(activity) {
-    if (!activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
+    const primaryObjective = activity.primaryObjective;
+    if (!primaryObjective?.satisfiedByMeasure || !activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
       return null;
     }
     return activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
@@ -10622,12 +10668,9 @@ class CrossClusterProcessor {
    */
   processClusterRollup(cluster, depth = 0) {
     const nestedClusters = this.measureProcessor.measureRollupProcess(cluster);
-    if (cluster.sequencingControls.rollupObjectiveSatisfied) {
-      this.objectiveProcessor.objectiveRollupProcess(cluster);
-    }
-    if (cluster.sequencingControls.rollupProgressCompletion) {
-      this.progressProcessor.activityProgressRollupProcess(cluster);
-    }
+    this.measureProcessor.completionMeasureRollupProcess(cluster);
+    this.objectiveProcessor.objectiveRollupProcess(cluster);
+    this.progressProcessor.activityProgressRollupProcess(cluster);
     if (nestedClusters.length > 1) {
       this.processCrossClusterDependencies(cluster, nestedClusters, depth + 1);
     }
@@ -11302,7 +11345,7 @@ class RollupStateValidator {
         `Activity ${activityId}: measure status true but normalized measure is null`
       );
     }
-    if (activity.objectiveMeasureStatus && activity.scaledPassingScore !== null && activity.successStatus !== "unknown") {
+    if (activity.primaryObjective?.satisfiedByMeasure === true && activity.objectiveMeasureStatus && activity.scaledPassingScore !== null && activity.successStatus !== "unknown") {
       const expectedSatisfied = activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
       if (activity.objectiveSatisfiedStatus !== expectedSatisfied) {
         inconsistencies.push(
@@ -11373,6 +11416,12 @@ class RollupStateValidator {
 }
 
 class RollupProcess {
+  /**
+   * Capability flag for hosts that supported older rollup behavior with a compatibility layer.
+   * Rollup contribution controls belong to an activity as a child of its parent; they do not gate
+   * calculation of the activity's own rolled-up state.
+   */
+  childContributionControlsApplyToParent = true;
   childFilter;
   ruleEvaluator;
   measureProcessor;
@@ -11423,7 +11472,7 @@ class RollupProcess {
    * @param activity - The activity to start rollup from
    * @returns Array of activities that had status changes
    */
-  overallRollupProcess(activity) {
+  overallRollupProcess(activity, globalObjectives) {
     const affectedActivities = [];
     let currentActivity = activity.parent;
     let onlyDurationRollup = false;
@@ -11434,20 +11483,20 @@ class RollupProcess {
       }
       if (!onlyDurationRollup) {
         const beforeStatus = currentActivity.captureRollupStatus();
-        if (currentActivity.sequencingControls.rollupObjectiveSatisfied || currentActivity.sequencingControls.rollupProgressCompletion) {
-          if (currentActivity.children.length > 0) {
-            const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
-            this.measureProcessor.completionMeasureRollupProcess(currentActivity);
-            if (clusters.length > 1) {
-              this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
-            }
+        if (currentActivity.children.length > 0) {
+          const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
+          this.measureProcessor.completionMeasureRollupProcess(currentActivity);
+          if (clusters.length > 1) {
+            this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
           }
-          if (currentActivity.sequencingControls.rollupObjectiveSatisfied) {
-            this.objectiveProcessor.objectiveRollupProcess(currentActivity);
-          }
-          if (currentActivity.sequencingControls.rollupProgressCompletion) {
-            this.progressProcessor.activityProgressRollupProcess(currentActivity);
-          }
+        }
+        this.objectiveProcessor.objectiveRollupProcess(currentActivity);
+        this.progressProcessor.activityProgressRollupProcess(currentActivity);
+        if (globalObjectives) {
+          this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(
+            currentActivity,
+            globalObjectives
+          );
         }
         const afterStatus = currentActivity.captureRollupStatus();
         if (!isFirst) {
@@ -11513,7 +11562,7 @@ class RollupProcess {
       );
       const parent = changedActivity.parent;
       if (parent && !rolledUpParents.has(parent)) {
-        this.overallRollupProcess(changedActivity);
+        this.overallRollupProcess(changedActivity, globalObjectives);
         rolledUpParents.add(parent);
       }
     }
@@ -11536,7 +11585,7 @@ class RollupProcess {
    * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
    */
   syncFreshlyWrittenObjectivesToActiveAncestor(activity, globalObjectives, writeTargets) {
-    this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(
+    return this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(
       activity,
       globalObjectives,
       writeTargets
@@ -11808,6 +11857,7 @@ class RteDataTransferService {
       let hasProgressMeasure = false;
       const topLevelSuccessStatus = validateSuccessStatus(cmiData.success_status);
       const topLevelPrimarySuccessWasSet = cmiData.success_status_was_set === true || cmiData.success_status_was_set === void 0 && topLevelSuccessStatus !== null && topLevelSuccessStatus !== SuccessStatus.UNKNOWN;
+      const topLevelPrimaryScoreWasSet = cmiData.score_was_set === true || cmiData.score_was_set === void 0 && cmiData.score !== void 0 && this.normalizeScore(cmiData.score) !== null;
       const validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
       if (!activityObjective.satisfiedByMeasure && validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN && (cmiObjective.success_status_was_set !== false || !isPrimaryObjective || !topLevelPrimarySuccessWasSet)) {
         successStatus = validatedObjSuccessStatus === SuccessStatus.PASSED;
@@ -11827,7 +11877,8 @@ class RteDataTransferService {
         activityObjective.completionStatus = validatedObjCompletionStatus;
         hasCompletionStatus = true;
       }
-      if (cmiObjective.score) {
+      const objectiveScoreMayOverridePrimary = cmiObjective.score_was_set !== false || !isPrimaryObjective || !topLevelPrimaryScoreWasSet;
+      if (cmiObjective.score && objectiveScoreMayOverridePrimary) {
         activityObjective.initializeScoreFromCMI(this.getObjectiveScoreState(cmiObjective.score));
         const normalized = this.normalizeScore(cmiObjective.score);
         if (normalized !== null) {
@@ -12552,15 +12603,18 @@ class TerminationHandler {
     }
     const mappingRoot = this.activityTree.root || activity;
     this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
-    this.rollupProcess.overallRollupProcess(activity);
+    this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap);
     activeAncestor = activity.parent;
     while (activeAncestor) {
       if (activeAncestor.isActive) {
-        this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
+        const mappedStateChanged = this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
           activeAncestor,
           this.globalObjectiveMap,
           writeTargets
         );
+        if (mappedStateChanged) {
+          this.rollupProcess.overallRollupProcess(activeAncestor, this.globalObjectiveMap);
+        }
       }
       activeAncestor = activeAncestor.parent;
     }
@@ -13050,39 +13104,7 @@ class NavigationLookAhead {
     if (!currentActivity.parent) {
       return false;
     }
-    if (!currentActivity.parent.sequencingControls.flow) {
-      return false;
-    }
-    return this.hasAvailableNextActivity(currentActivity);
-  }
-  /**
-   * Check if there's an available next activity in flow
-   * @param {Activity} currentActivity - Current activity
-   * @return {boolean} - True if next activity exists
-   * @private
-   */
-  hasAvailableNextActivity(currentActivity) {
-    const parent = currentActivity.parent;
-    if (!parent) {
-      return false;
-    }
-    const siblings = parent.children;
-    const currentIndex = siblings.indexOf(currentActivity);
-    if (currentIndex === -1) {
-      return false;
-    }
-    if (currentIndex < siblings.length - 1) {
-      for (let i = currentIndex + 1; i < siblings.length; i++) {
-        const sibling = siblings[i];
-        if (sibling && this.isActivityPotentiallyDeliverableForward(sibling)) {
-          return true;
-        }
-      }
-    }
-    if (parent.parent && parent.sequencingControls.flow) {
-      return this.hasAvailableNextActivity(parent);
-    }
-    return false;
+    return currentActivity.parent.sequencingControls.flow;
   }
   /**
    * Predict if Previous would succeed from the given activity
@@ -13178,30 +13200,6 @@ class NavigationLookAhead {
     }
   }
   /**
-   * Check if activity is potentially deliverable for forward navigation (Continue)
-   * This properly evaluates preConditionRules to determine if the activity can be delivered
-   * @param {Activity} activity - Activity to check
-   * @return {boolean} - True if potentially deliverable
-   * @private
-   */
-  isActivityPotentiallyDeliverableForward(activity) {
-    if (activity.isHiddenFromChoice || !activity.isAvailable) {
-      return false;
-    }
-    if (activity.children.length === 0) {
-      if (!activity.isVisible) {
-        return false;
-      }
-      return this.sequencingProcess.canActivityBeDelivered(activity);
-    }
-    for (const child of activity.children) {
-      if (this.isActivityPotentiallyDeliverableForward(child)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  /**
    * Check if activity is potentially deliverable for backward navigation (Previous)
    * This uses a simpler check that doesn't fully evaluate preConditionRules
    * since we're typically going back to a previously visited activity
@@ -13210,11 +13208,11 @@ class NavigationLookAhead {
    * @private
    */
   isActivityPotentiallyDeliverableBackward(activity) {
-    if (activity.isHiddenFromChoice || !activity.isAvailable) {
+    if (!activity.isAvailable) {
       return false;
     }
     if (activity.children.length === 0) {
-      return activity.isVisible;
+      return true;
     }
     for (const child of activity.children) {
       if (this.isActivityPotentiallyDeliverableBackward(child)) {
@@ -15418,7 +15416,7 @@ class OverallSequencingProcess {
         exception: seqResult.exception,
         navigationRequest
       });
-      return new DeliveryRequest(false, null, seqResult.exception || "SESSION_ENDED");
+      return new DeliveryRequest(true, null);
     }
     if (seqResult.exception) {
       return new DeliveryRequest(false, null, seqResult.exception);
@@ -24548,12 +24546,14 @@ class SequencingConfigurationBuilder {
       ruleSettings.action,
       ruleSettings.consideration,
       ruleSettings.minimumCount,
-      ruleSettings.minimumPercent
+      ruleSettings.minimumPercent,
+      ruleSettings.conditionCombination
     );
     for (const conditionSettings of ruleSettings.conditions) {
       const condition = new RollupCondition(
         conditionSettings.condition,
-        new Map(Object.entries(conditionSettings.parameters || {}))
+        new Map(Object.entries(conditionSettings.parameters || {})),
+        conditionSettings.operator
       );
       rule.addCondition(condition);
     }
@@ -24652,9 +24652,15 @@ class SequencingConfigurationBuilder {
                 if (condition.parameters) {
                   clonedCondition.parameters = { ...condition.parameters };
                 }
+                if (condition.operator !== void 0) {
+                  clonedCondition.operator = condition.operator;
+                }
                 return clonedCondition;
               })
             };
+            if (rule.conditionCombination !== void 0) {
+              clonedRule.conditionCombination = rule.conditionCombination;
+            }
             if (rule.consideration !== void 0) {
               clonedRule.consideration = rule.consideration;
             }
@@ -25073,8 +25079,8 @@ class ActivityTreeBuilder {
       }
       if (threshold.minProgressMeasure !== void 0) {
         activity.minProgressMeasure = threshold.minProgressMeasure;
-        activity.completionThreshold = threshold.minProgressMeasure.toString();
-      } else if (threshold.completedByMeasure) {
+      }
+      if (activity.completedByMeasure) {
         activity.completionThreshold = activity.minProgressMeasure.toString();
       }
       if (threshold.progressWeight !== void 0) {
@@ -26067,7 +26073,31 @@ class Scorm2004DataSerializer {
         successStatus = SuccessStatus.FAILED;
       }
     }
-    const scoreObject = this.context.cmi?.score?.getScoreObject() || {};
+    const sequencingRoot = terminateCommit ? this.context.sequencingService?.getSequencingState().rootActivity : null;
+    if (sequencingRoot) {
+      completionStatus = sequencingRoot.completionStatus ?? CompletionStatus.UNKNOWN;
+      successStatus = sequencingRoot.successStatus ?? SuccessStatus.UNKNOWN;
+    }
+    let scoreObject = this.context.cmi?.score?.getScoreObject() || {};
+    if (sequencingRoot) {
+      const primaryObjective = sequencingRoot.primaryObjective;
+      const hasCourseScore = sequencingRoot.objectiveMeasureStatus || primaryObjective?.rawScoreKnown === true || primaryObjective?.minScoreKnown === true || primaryObjective?.maxScoreKnown === true;
+      if (hasCourseScore) {
+        scoreObject = {};
+        if (sequencingRoot.objectiveMeasureStatus) {
+          scoreObject.scaled = sequencingRoot.objectiveNormalizedMeasure;
+        }
+        if (primaryObjective?.rawScoreKnown) {
+          scoreObject.raw = Number(primaryObjective.rawScore);
+        }
+        if (primaryObjective?.minScoreKnown) {
+          scoreObject.min = Number(primaryObjective.minScore);
+        }
+        if (primaryObjective?.maxScoreKnown) {
+          scoreObject.max = Number(primaryObjective.maxScore);
+        }
+      }
+    }
     const commitObject = {
       completionStatus,
       successStatus,
