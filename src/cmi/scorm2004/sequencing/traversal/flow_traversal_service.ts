@@ -476,11 +476,6 @@ export class FlowTraversalService {
       return false;
     }
 
-    // For leaf activities, check visibility
-    if (activity.children.length === 0 && !activity.isVisible) {
-      return false;
-    }
-
     // Check limit conditions
     if (this.ruleEngine.checkLimitConditions(activity)) {
       return false;

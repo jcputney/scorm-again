@@ -14,7 +14,10 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
+  Activity,
+  ActivityObjective
+} from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RollupActionType,
   RollupCondition,
@@ -1001,6 +1004,11 @@ describe("Advanced Rollup Configuration Tests", () => {
 
     it("should use measure-based rollup when scaledPassingScore is set", () => {
       // Set up measure rollup with explicit passing score
+      parent.primaryObjective = new ActivityObjective("primary", {
+        isPrimary: true,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.7
+      });
       parent.scaledPassingScore = 0.7;
 
       // No rules added - will use measure rollup then default

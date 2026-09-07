@@ -709,7 +709,7 @@ export class Activity extends BaseCMI {
   private _objectiveSatisfiedStatusKnown: boolean = false;
   private _objectiveMeasureStatus: boolean = false;
   private _objectiveNormalizedMeasure: number = 0;
-  private _scaledPassingScore: number = 0.7; // Default passing score
+  private _scaledPassingScore: number = 1.0; // SCORM default minimum normalized measure
 
   // Dirty flags for tracking which activity-level objective properties have been modified locally
   private _objectiveSatisfiedStatusDirty: boolean = false;
@@ -2140,6 +2140,9 @@ export class Activity extends BaseCMI {
       this._objectiveSatisfiedStatusDirty = true;
     }
     this._objectiveSatisfiedStatusKnown = objectiveProgressStatus;
+    if (objectiveProgressStatus) {
+      this._successStatus = satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+    }
     if (this._objectiveMeasureStatus !== measureStatus) {
       this._objectiveMeasureStatus = measureStatus;
       this._objectiveMeasureStatusDirty = true;

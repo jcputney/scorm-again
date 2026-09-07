@@ -396,8 +396,11 @@ export class OverallSequencingProcess {
         navigationRequest: navigationRequest,
       });
 
-      // Return delivery request indicating session end
-      return new DeliveryRequest(false, null, seqResult.exception || "SESSION_ENDED");
+      // Reaching the end of forward flow successfully ends the sequencing session. The
+      // lower-level flow result may retain SB.2.7-2 to describe why no next activity was
+      // identified, but that diagnostic must not turn the successful session end into a
+      // learner-visible navigation failure.
+      return new DeliveryRequest(true, null);
     }
 
     if (seqResult.exception) {

@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   RollupActionType,
   RollupCondition,
+  RollupConditionCombination,
+  RollupConditionOperator,
   RollupConditionType,
   RollupConsiderationType,
   RollupRule,
@@ -19,7 +21,24 @@ describe("RollupRules", () => {
       it("should initialize with default values", () => {
         const condition = new RollupCondition();
         expect(condition.condition).toBe(RollupConditionType.ALWAYS);
+        expect(condition.operator).toBe(RollupConditionOperator.NO_OP);
         expect(condition.parameters.size).toBe(0);
+      });
+
+      it("should apply NOT and evaluate attempt-limit conditions", () => {
+        const activity = new Activity("limited", "Limited Activity");
+        activity.attemptLimit = 2;
+        activity.attemptCount = 2;
+
+        const exceeded = new RollupCondition(RollupConditionType.ATTEMPT_LIMIT_EXCEEDED);
+        const notExceeded = new RollupCondition(
+          RollupConditionType.ATTEMPT_LIMIT_EXCEEDED,
+          new Map(),
+          RollupConditionOperator.NOT
+        );
+
+        expect(exceeded.evaluate(activity)).toBe(true);
+        expect(notExceeded.evaluate(activity)).toBe(false);
       });
 
       it("should initialize with provided values", () => {
@@ -58,6 +77,19 @@ describe("RollupRules", () => {
 
         activity.successStatus = SuccessStatus.UNKNOWN;
         expect(condition.evaluate(activity)).toBe(false);
+      });
+
+      it("should negate a known unsatisfied condition", () => {
+        const condition = new RollupCondition(
+          RollupConditionType.SATISFIED,
+          new Map(),
+          RollupConditionOperator.NOT
+        );
+        const activity = new Activity();
+        activity.objectiveSatisfiedStatus = false;
+        activity.successStatus = SuccessStatus.FAILED;
+
+        expect(condition.evaluate(activity)).toBe(true);
       });
 
       it("should evaluate OBJECTIVE_MEASURE_GREATER_THAN condition", () => {
@@ -150,6 +182,7 @@ describe("RollupRules", () => {
         expect(rule.consideration).toBe(RollupConsiderationType.ALL);
         expect(rule.minimumCount).toBe(0);
         expect(rule.minimumPercent).toBe(0);
+        expect(rule.conditionCombination).toBe(RollupConditionCombination.ANY);
         expect(rule.conditions).toEqual([]);
       });
 

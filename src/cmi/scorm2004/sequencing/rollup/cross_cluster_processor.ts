@@ -216,14 +216,13 @@ export class CrossClusterProcessor {
   public processClusterRollup(cluster: Activity, depth: number = 0): void {
     // Perform standard rollup process for the cluster
     const nestedClusters = this.measureProcessor.measureRollupProcess(cluster);
+    this.measureProcessor.completionMeasureRollupProcess(cluster);
 
-    if (cluster.sequencingControls.rollupObjectiveSatisfied) {
-      this.objectiveProcessor.objectiveRollupProcess(cluster);
-    }
-
-    if (cluster.sequencingControls.rollupProgressCompletion) {
-      this.progressProcessor.activityProgressRollupProcess(cluster);
-    }
+    // These controls determine whether the cluster contributes to its parent's rollup. They do
+    // not gate calculation of the cluster's own state; the child-filtering subprocess applies
+    // them to the appropriate children.
+    this.objectiveProcessor.objectiveRollupProcess(cluster);
+    this.progressProcessor.activityProgressRollupProcess(cluster);
 
     // Handle nested clusters with increased depth to prevent infinite recursion
     if (nestedClusters.length > 1) {

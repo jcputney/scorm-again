@@ -253,7 +253,7 @@ describe("FlowTraversalService", () => {
       expect(activity2.wasSkipped).toBe(true);
     });
 
-    it("should return null for invisible leaf activity", () => {
+    it("should deliver an invisible leaf through flow navigation", () => {
       lesson1.isVisible = false;
 
       const result = service.flowActivityTraversalSubprocess(
@@ -262,7 +262,7 @@ describe("FlowTraversalService", () => {
         true,
         FlowSubprocessMode.FORWARD,
       );
-      expect(result).toBeNull();
+      expect(result).toBe(lesson1);
     });
   });
 
@@ -308,9 +308,9 @@ describe("FlowTraversalService", () => {
       expect(service.checkActivityProcess(lesson1)).toBe(false);
     });
 
-    it("should return false for invisible leaf activity", () => {
+    it("should allow an invisible leaf through flow navigation", () => {
       lesson1.isVisible = false;
-      expect(service.checkActivityProcess(lesson1)).toBe(false);
+      expect(service.checkActivityProcess(lesson1)).toBe(true);
     });
 
     it("should return false when attempt limit exceeded", () => {

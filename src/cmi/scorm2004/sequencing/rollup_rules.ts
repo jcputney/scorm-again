@@ -26,8 +26,25 @@ export enum RollupConditionType {
   COMPLETED = "completed",
   PROGRESS_KNOWN = "progressKnown",
   ATTEMPTED = "attempted",
+  ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
   NOT_ATTEMPTED = "notAttempted",
   ALWAYS = "always",
+}
+
+/**
+ * Enum for operators applied to individual rollup conditions
+ */
+export enum RollupConditionOperator {
+  NO_OP = "noOp",
+  NOT = "not",
+}
+
+/**
+ * Enum for combining the conditions within one rollup rule
+ */
+export enum RollupConditionCombination {
+  ALL = "all",
+  ANY = "any",
 }
 
 /**
@@ -47,19 +64,23 @@ export enum RollupConsiderationType {
 export class RollupCondition extends BaseCMI {
   private _condition: RollupConditionType = RollupConditionType.ALWAYS;
   private _parameters: Map<string, any> = new Map();
+  private _operator: RollupConditionOperator = RollupConditionOperator.NO_OP;
 
   /**
    * Constructor for RollupCondition
    * @param {RollupConditionType} condition - The condition type
    * @param {Map<string, any>} parameters - Additional parameters for the condition
+   * @param {RollupConditionOperator} operator - The operator applied to the condition result
    */
   constructor(
     condition: RollupConditionType = RollupConditionType.ALWAYS,
     parameters: Map<string, any> = new Map(),
+    operator: RollupConditionOperator = RollupConditionOperator.NO_OP,
   ) {
     super("rollupCondition");
     this._condition = condition;
     this._parameters = parameters;
+    this._operator = operator;
   }
 
   /**
@@ -102,6 +123,22 @@ export class RollupCondition extends BaseCMI {
   }
 
   /**
+   * Getter for the condition operator
+   * @return {RollupConditionOperator}
+   */
+  get operator(): RollupConditionOperator {
+    return this._operator;
+  }
+
+  /**
+   * Setter for the condition operator
+   * @param {RollupConditionOperator} operator
+   */
+  set operator(operator: RollupConditionOperator) {
+    this._operator = operator;
+  }
+
+  /**
    * Evaluate the condition for an activity
    * @param {Activity} activity - The activity to evaluate the condition for
    * @return {boolean} - True if the condition is met, false otherwise
@@ -114,54 +151,72 @@ export class RollupCondition extends BaseCMI {
     const objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
     const progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
 
+    let result: boolean;
+
     switch (this._condition) {
       case RollupConditionType.SATISFIED:
         // Per SCORM 2004 SN Book RB.1.4.1, the "satisfied" condition checks the
         // objective satisfaction status from the activity's tracked objective.
         // This is populated via global objective mapping (readSatisfiedStatus).
         // Also check successStatus for backward compatibility with leaf activities.
-        return (
+        result = (
           objectiveInfoAvailable &&
           (activity.objectiveSatisfiedStatus === true ||
             activity.successStatus === SuccessStatus.PASSED)
         );
+        break;
       case RollupConditionType.OBJECTIVE_STATUS_KNOWN:
         // Per SCORM 2004 SN Book RB.1.4.1, objectiveStatusKnown checks if
         // the objective's satisfaction status has been explicitly determined
-        return objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
+        result = objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
+        break;
       case RollupConditionType.OBJECTIVE_MEASURE_KNOWN:
         // Per SCORM 2004 SN Book RB.1.4.1, objectiveMeasureKnown checks if
         // the objective has a valid measure value
-        return objectiveInfoAvailable && activity.objectiveMeasureStatus;
+        result = objectiveInfoAvailable && activity.objectiveMeasureStatus;
+        break;
       case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        return (
+        result = (
           objectiveInfoAvailable &&
           activity.objectiveMeasureStatus &&
           activity.objectiveNormalizedMeasure > greaterThanValue
         );
+        break;
       }
       case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        return (
+        result = (
           objectiveInfoAvailable &&
           activity.objectiveMeasureStatus &&
           activity.objectiveNormalizedMeasure < lessThanValue
         );
+        break;
       }
       case RollupConditionType.COMPLETED:
-        return progressInfoAvailable && activity.isCompleted;
+        result = progressInfoAvailable && activity.isCompleted;
+        break;
       case RollupConditionType.PROGRESS_KNOWN:
-        return progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
+        result =
+          progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
+        break;
       case RollupConditionType.ATTEMPTED:
-        return progressInfoAvailable && activity.attemptCount > 0;
+        result = progressInfoAvailable && activity.attemptCount > 0;
+        break;
+      case RollupConditionType.ATTEMPT_LIMIT_EXCEEDED:
+        result = activity.hasAttemptLimitExceeded();
+        break;
       case RollupConditionType.NOT_ATTEMPTED:
-        return !progressInfoAvailable || activity.attemptCount === 0;
+        result = !progressInfoAvailable || activity.attemptCount === 0;
+        break;
       case RollupConditionType.ALWAYS:
-        return true;
+        result = true;
+        break;
       default:
-        return false;
+        result = false;
     }
+
+    return this._operator === RollupConditionOperator.NOT ? !result : result;
   }
 
   /**
@@ -172,6 +227,7 @@ export class RollupCondition extends BaseCMI {
     this.jsonString = true;
     const result = {
       condition: this._condition,
+      operator: this._operator,
       parameters: Object.fromEntries(this._parameters),
     };
     this.jsonString = false;
@@ -188,6 +244,7 @@ export class RollupRule extends BaseCMI {
   private _consideration: RollupConsiderationType = RollupConsiderationType.ALL;
   private _minimumCount: number = 0;
   private _minimumPercent: number = 0;
+  public conditionCombination?: RollupConditionCombination = RollupConditionCombination.ANY;
 
   /**
    * Constructor for RollupRule
@@ -195,18 +252,21 @@ export class RollupRule extends BaseCMI {
    * @param {RollupConsiderationType} consideration - How to consider child activities
    * @param {number} minimumCount - The minimum count for AT_LEAST_COUNT consideration
    * @param {number} minimumPercent - The minimum percent for AT_LEAST_PERCENT consideration
+   * @param {RollupConditionCombination} conditionCombination - How this rule's conditions combine
    */
   constructor(
     action: RollupActionType = RollupActionType.SATISFIED,
     consideration: RollupConsiderationType = RollupConsiderationType.ALL,
     minimumCount: number = 0,
     minimumPercent: number = 0,
+    conditionCombination: RollupConditionCombination = RollupConditionCombination.ANY,
   ) {
     super("rollupRule");
     this._action = action;
     this._consideration = consideration;
     this._minimumCount = minimumCount;
     this._minimumPercent = minimumPercent;
+    this.conditionCombination = conditionCombination;
   }
 
   /**
@@ -334,7 +394,12 @@ export class RollupRule extends BaseCMI {
 
     // Filter children that meet all conditions
     const matchingChildren = children.filter((child) => {
-      return this._conditions.every((condition) => condition.evaluate(child));
+      if (this._conditions.length === 0) {
+        return true;
+      }
+      return this.conditionCombination === RollupConditionCombination.ALL
+        ? this._conditions.every((condition) => condition.evaluate(child))
+        : this._conditions.some((condition) => condition.evaluate(child));
     });
 
     // Apply consideration
@@ -368,6 +433,7 @@ export class RollupRule extends BaseCMI {
       consideration: this._consideration,
       minimumCount: this._minimumCount,
       minimumPercent: this._minimumPercent,
+      conditionCombination: this.conditionCombination,
     };
     this.jsonString = false;
     return result;
@@ -525,6 +591,10 @@ export class RollupRules extends BaseCMI {
    * @private
    */
   private _objectiveRollupUsingMeasure(activity: Activity, children: Activity[]): boolean | null {
+    if (!activity.primaryObjective?.satisfiedByMeasure || activity.scaledPassingScore === null) {
+      return null;
+    }
+
     // Check if objective measure weight is properly configured
     const objectiveMeasureWeight = activity.sequencingControls.objectiveMeasureWeight;
     if (objectiveMeasureWeight <= 0) {

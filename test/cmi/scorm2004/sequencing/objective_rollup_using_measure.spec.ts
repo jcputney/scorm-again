@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
+  Activity,
+  ActivityObjective
+} from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RollupActionType,
   RollupCondition,
@@ -19,6 +22,11 @@ describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
   beforeEach(() => {
     // Create parent activity
     parentActivity = new Activity("parent", "Parent Activity");
+    parentActivity.primaryObjective = new ActivityObjective("primary", {
+      isPrimary: true,
+      satisfiedByMeasure: true,
+      minNormalizedMeasure: 0.7
+    });
     rollupRules = new RollupRules();
 
     // Create child activities

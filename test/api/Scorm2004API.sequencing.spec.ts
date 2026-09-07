@@ -405,6 +405,42 @@ describe("SCORM 2004 API Sequencing Configuration Tests", () => {
       expect(apiInstance.lmsGetValue("cmi.completion_status")).toBe("completed");
     });
 
+    it("should not populate cmi.completion_threshold when completedByMeasure is false", () => {
+      const apiInstance = api({
+        sequencing: {
+          activityTree: {
+            id: "root",
+            title: "Root",
+            sequencingControls: {
+              flow: true,
+            },
+            children: [
+              {
+                id: "content-completed-sco",
+                title: "Content-completed SCO",
+                completionThreshold: {
+                  completedByMeasure: false,
+                  minProgressMeasure: 1,
+                  progressWeight: 0.1,
+                },
+              },
+            ],
+          },
+        },
+      });
+
+      expect(apiInstance.lmsInitialize("")).toBe("true");
+      expect(apiInstance.getSequencingState().currentActivity?.id).toBe("content-completed-sco");
+
+      apiInstance.reset();
+      expect(apiInstance.cmi.completion_threshold).toBe("");
+
+      expect(apiInstance.lmsInitialize("")).toBe("true");
+      expect(apiInstance.lmsSetValue("cmi.progress_measure", "0")).toBe("true");
+      expect(apiInstance.lmsSetValue("cmi.completion_status", "completed")).toBe("true");
+      expect(apiInstance.lmsGetValue("cmi.completion_status")).toBe("completed");
+    });
+
     it("should handle partial sequencing controls configuration", () => {
       const sequencingSettings = {
         sequencingControls: {

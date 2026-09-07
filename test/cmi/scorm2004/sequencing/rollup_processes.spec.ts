@@ -4,6 +4,7 @@ import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/seque
 import {
   RollupActionType,
   RollupCondition,
+  RollupConditionCombination,
   RollupConditionType,
   RollupConsiderationType,
   RollupRule
@@ -49,10 +50,16 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     it("should rollup from activity to root", () => {
       // Set child states
       child1.objectiveSatisfiedStatus = true;
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.9;
       child1.isCompleted = true;
       child2.objectiveSatisfiedStatus = true;
+      child2.objectiveMeasureStatus = true;
+      child2.objectiveNormalizedMeasure = 0.9;
       child2.isCompleted = true;
       child3.objectiveSatisfiedStatus = true;
+      child3.objectiveMeasureStatus = true;
+      child3.objectiveNormalizedMeasure = 0.9;
       child3.isCompleted = true;
 
       // Trigger overall rollup from child1
@@ -60,6 +67,8 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
       // Parent should be satisfied and completed
       expect(parent.objectiveSatisfiedStatus).toBe(true);
+      expect(parent.objectiveMeasureStatus).toBe(true);
+      expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.9);
       expect(parent.isCompleted).toBe(true);
 
       // Root should also be satisfied and completed
@@ -67,18 +76,28 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       expect(root.isCompleted).toBe(true);
     });
 
-    it("should stop at activity with rollup disabled", () => {
+    it("should calculate an activity's state even when it does not contribute to its parent", () => {
       parent.sequencingControls.rollupObjectiveSatisfied = false;
       parent.sequencingControls.rollupProgressCompletion = false;
 
       child1.objectiveSatisfiedStatus = true;
       child1.isCompleted = true;
+      child2.objectiveSatisfiedStatus = true;
+      child2.isCompleted = true;
+      child3.objectiveSatisfiedStatus = true;
+      child3.isCompleted = true;
 
       rollupProcess.overallRollupProcess(child1);
 
-      // Parent should not be affected
-      expect(parent.objectiveSatisfiedStatus).toBe(false);
-      expect(parent.isCompleted).toBe(false);
+      // The controls belong to parent as a child of root. They do not suppress parent's own
+      // rollup from its children.
+      expect(parent.objectiveSatisfiedStatus).toBe(true);
+      expect(parent.isCompleted).toBe(true);
+
+      // Parent is excluded from root's objective and progress rollup.
+      expect(root.objectiveSatisfiedStatus).toBe(false);
+      expect(root.objectiveMeasureStatus).toBe(false);
+      expect(root.isCompleted).toBe(false);
     });
 
     it("should handle null parent gracefully", () => {
@@ -165,7 +184,11 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
   describe("Objective Rollup Process (RB.1.2)", () => {
     describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
       it("should determine satisfaction from measure and passing score", () => {
-        parent.scaledPassingScore = 0.7;
+        parent.primaryObjective = new ActivityObjective("primary", {
+          isPrimary: true,
+          satisfiedByMeasure: true,
+          minNormalizedMeasure: 0.7,
+        });
 
         // Set up measure rollup
         child1.objectiveMeasureStatus = true;
@@ -183,7 +206,11 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       });
 
       it("should fail when measure below passing score", () => {
-        parent.scaledPassingScore = 0.8;
+        parent.primaryObjective = new ActivityObjective("primary", {
+          isPrimary: true,
+          satisfiedByMeasure: true,
+          minNormalizedMeasure: 0.8,
+        });
 
         child1.objectiveMeasureStatus = true;
         child1.objectiveNormalizedMeasure = 0.6;
@@ -197,6 +224,28 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // Measure 0.6 < passing score 0.8
         expect(parent.objectiveSatisfiedStatus).toBe(false);
         expect(parent.successStatus).toBe(SuccessStatus.FAILED);
+      });
+
+      it("should use default satisfaction when the primary objective is not satisfied by measure", () => {
+        parent.primaryObjective = new ActivityObjective("assessment_satisfied", {
+          isPrimary: true,
+          satisfiedByMeasure: false,
+          minNormalizedMeasure: 0.7,
+        });
+
+        for (const child of [child1, child2, child3]) {
+          child.objectiveSatisfiedStatus = true;
+          child.objectiveMeasureStatus = true;
+          child.objectiveNormalizedMeasure = 0.13;
+        }
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // The measure still rolls up, but satisfiedByMeasure=false means it cannot replace the
+        // children's explicit satisfied status.
+        expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.13);
+        expect(parent.objectiveSatisfiedStatus).toBe(true);
+        expect(parent.successStatus).toBe(SuccessStatus.PASSED);
       });
     });
 
@@ -425,7 +474,10 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     it("should evaluate multiple conditions with ALL consideration", () => {
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
+        RollupConsiderationType.ALL,
+        0,
+        0,
+        RollupConditionCombination.ALL
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
@@ -929,7 +981,11 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       measureParent.addChild(measureChild1);
       measureParent.addChild(measureChild2);
       measureParent.sequencingControls.rollupObjectiveSatisfied = true;
-      measureParent.scaledPassingScore = 0.7;
+      measureParent.primaryObjective = new ActivityObjective("primary", {
+        isPrimary: true,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.7,
+      });
 
       // Set weights for measure rollup
       measureChild1.sequencingControls.objectiveMeasureWeight = 1.0;
@@ -1102,7 +1158,11 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       });
 
       it("should satisfy when measure exactly equals passing score", () => {
-        parent.scaledPassingScore = 0.75;
+        parent.primaryObjective = new ActivityObjective("primary", {
+          isPrimary: true,
+          satisfiedByMeasure: true,
+          minNormalizedMeasure: 0.75,
+        });
 
         child1.objectiveMeasureStatus = true;
         child1.objectiveNormalizedMeasure = 0.75;
@@ -1548,6 +1608,49 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         expect(mappedCluster.objectiveSatisfiedStatusKnown).toBe(true);
       });
 
+      it("preserves an already-read mapped primary during a later descendant rollup", () => {
+        const rootAct = new Activity("root", "Root");
+        const mappedCluster = new Activity("mapped-cluster", "Mapped Cluster");
+        const mappedChild = new Activity("mapped-child", "Mapped Child");
+        rootAct.addChild(mappedCluster);
+        mappedCluster.addChild(mappedChild);
+
+        mappedCluster.primaryObjective = new ActivityObjective("assessment-satisfied", {
+          isPrimary: true,
+          mapInfo: [{
+            targetObjectiveID: "assessment-global",
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: false,
+          }],
+        });
+        globalObjectives.set("assessment-global", {
+          id: "assessment-global",
+          satisfiedStatus: true,
+          satisfiedStatusKnown: true,
+          normalizedMeasure: 1,
+          normalizedMeasureKnown: true,
+        });
+
+        const rootCompletionRule = new RollupRule(
+          RollupActionType.COMPLETED,
+          RollupConsiderationType.ANY,
+        );
+        rootCompletionRule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+        rootAct.rollupRules.addRule(rootCompletionRule);
+
+        // Seed the mapped cluster as a pre-test would, then perform a later rollup from an
+        // incomplete content descendant. The mapped global remains the source of satisfaction.
+        rollupProcess.processGlobalObjectiveMapping(rootAct, globalObjectives);
+        mappedChild.objectiveSatisfiedStatus = false;
+        mappedChild.completionStatus = CompletionStatus.INCOMPLETE;
+        rollupProcess.overallRollupProcess(mappedChild, globalObjectives);
+
+        expect(mappedCluster.objectiveSatisfiedStatusKnown).toBe(true);
+        expect(mappedCluster.objectiveSatisfiedStatus).toBe(true);
+        expect(mappedCluster.successStatus).toBe(SuccessStatus.PASSED);
+        expect(rootAct.completionStatus).toBe(CompletionStatus.COMPLETED);
+      });
+
       it("should not roll up an untracked read-mapped activity", () => {
         const rootAct = new Activity("root", "Root");
         const sourceAct = new Activity("source", "Source");
@@ -1708,9 +1811,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
 
     it("should detect inconsistent satisfaction with measure", () => {
+      parent.primaryObjective = new ActivityObjective("primary", {
+        isPrimary: true,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.7,
+      });
       parent.objectiveMeasureStatus = true;
       parent.objectiveNormalizedMeasure = 0.8;
-      parent.scaledPassingScore = 0.7;
       parent.objectiveSatisfiedStatus = false; // Should be true (0.8 >= 0.7)
       parent.successStatus = SuccessStatus.FAILED;
 

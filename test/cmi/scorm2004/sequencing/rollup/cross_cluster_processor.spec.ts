@@ -348,6 +348,7 @@ describe("CrossClusterProcessor", () => {
       processor.processClusterRollup(cluster);
 
       expect(mockMeasureProcessor.measureRollupProcess).toHaveBeenCalledWith(cluster);
+      expect(mockMeasureProcessor.completionMeasureRollupProcess).toHaveBeenCalledWith(cluster);
     });
 
     it("should call objective processor when rollupObjectiveSatisfied is true", () => {
@@ -363,7 +364,7 @@ describe("CrossClusterProcessor", () => {
       expect(mockObjectiveProcessor.objectiveRollupProcess).toHaveBeenCalledWith(cluster);
     });
 
-    it("should not call objective processor when rollupObjectiveSatisfied is false", () => {
+    it("should calculate objective state when the cluster does not contribute it to its parent", () => {
       const cluster = createMockActivity({
         id: "cluster",
         flow: false,
@@ -373,7 +374,7 @@ describe("CrossClusterProcessor", () => {
 
       processor.processClusterRollup(cluster);
 
-      expect(mockObjectiveProcessor.objectiveRollupProcess).not.toHaveBeenCalled();
+      expect(mockObjectiveProcessor.objectiveRollupProcess).toHaveBeenCalledWith(cluster);
     });
 
     it("should call progress processor when rollupProgressCompletion is true", () => {
@@ -389,7 +390,7 @@ describe("CrossClusterProcessor", () => {
       expect(mockProgressProcessor.activityProgressRollupProcess).toHaveBeenCalledWith(cluster);
     });
 
-    it("should not call progress processor when rollupProgressCompletion is false", () => {
+    it("should calculate progress state when the cluster does not contribute it to its parent", () => {
       const cluster = createMockActivity({
         id: "cluster",
         flow: false,
@@ -399,7 +400,7 @@ describe("CrossClusterProcessor", () => {
 
       processor.processClusterRollup(cluster);
 
-      expect(mockProgressProcessor.activityProgressRollupProcess).not.toHaveBeenCalled();
+      expect(mockProgressProcessor.activityProgressRollupProcess).toHaveBeenCalledWith(cluster);
     });
 
     it("should handle nested clusters by recursively calling processCrossClusterDependencies", () => {

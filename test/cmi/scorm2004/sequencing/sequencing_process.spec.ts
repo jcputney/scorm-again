@@ -1873,7 +1873,7 @@ describe("SequencingProcess", () => {
   });
 
   describe("additional flow traversal edge cases", () => {
-    it("should handle mixed visible/hidden siblings in flow", () => {
+    it("should deliver an invisible sibling but skip an unavailable sibling in flow", () => {
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const child1 = new Activity("child1", "Child 1");
@@ -1888,7 +1888,7 @@ describe("SequencingProcess", () => {
 
       root.sequencingControls.flow = true;
 
-      // Make middle children invisible/unavailable
+      // Visibility only affects choice presentation; availability blocks delivery.
       child2.isVisible = false;
       child3.isAvailable = false;
 
@@ -1903,11 +1903,11 @@ describe("SequencingProcess", () => {
         new ADLNav()
       );
 
-      // Should skip hidden/unavailable and go to child4
+      // Flow delivers the invisible activity before reaching the unavailable one.
       const result = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("child4");
+      expect(result.targetActivity?.id).toBe("child2");
     });
 
     it("should handle all siblings unavailable during flow", () => {

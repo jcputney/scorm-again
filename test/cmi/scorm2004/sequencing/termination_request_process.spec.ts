@@ -96,7 +96,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
       expect(result.valid).toBe(true);
-      expect(rollupSpy).toHaveBeenCalledWith(grandchild1);
+      expect(rollupSpy).toHaveBeenCalledWith(grandchild1, expect.any(Map));
     });
   });
 

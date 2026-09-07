@@ -1,5 +1,10 @@
 import { Activity } from "../activity";
-import { RollupActionType, RollupConsiderationType, RollupRule } from "../rollup_rules";
+import {
+  RollupActionType,
+  RollupConditionCombination,
+  RollupConsiderationType,
+  RollupRule,
+} from "../rollup_rules";
 import { RollupChildFilter } from "./rollup_child_filter";
 
 /**
@@ -123,10 +128,12 @@ export class RollupRuleEvaluator {
       return true;
     }
 
-    // Rollup conditions default to an "all" combination. childActivitySet controls how matching
-    // children are counted; it does not change how this individual child's conditions combine.
+    // rollupConditions defaults to "any". childActivitySet controls how matching children are
+    // counted; conditionCombination controls how one child's condition results combine.
     // @spec SCORM 2004 4th Ed. SN RB.1.4.1
-    return rule.conditions.every((condition) => condition.evaluate(child));
+    return rule.conditionCombination === RollupConditionCombination.ALL
+      ? rule.conditions.every((condition) => condition.evaluate(child))
+      : rule.conditions.some((condition) => condition.evaluate(child));
   }
 
   /**

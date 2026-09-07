@@ -200,8 +200,9 @@ export class ActivityTreeBuilder {
       }
       if (threshold.minProgressMeasure !== undefined) {
         activity.minProgressMeasure = threshold.minProgressMeasure;
-        activity.completionThreshold = threshold.minProgressMeasure.toString();
-      } else if (threshold.completedByMeasure) {
+      }
+      // A schema-default minimum is inert unless this activity derives completion from measure.
+      if (activity.completedByMeasure) {
         activity.completionThreshold = activity.minProgressMeasure.toString();
       }
       if (threshold.progressWeight !== undefined) {

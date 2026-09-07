@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
+  Activity,
+  ActivityObjective
+} from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../src/constants/enums";
 
 /**
@@ -21,6 +24,11 @@ describe("Satisfaction By Measure Edge Cases (RB.1.2.a)", () => {
 
     // Create simple parent-child structure
     parent = new Activity("parent", "Parent Activity");
+    parent.primaryObjective = new ActivityObjective("primary", {
+      isPrimary: true,
+      satisfiedByMeasure: true,
+      minNormalizedMeasure: 0.7
+    });
     child = new Activity("child", "Child Activity");
 
     parent.addChild(child);

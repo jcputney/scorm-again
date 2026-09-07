@@ -38,6 +38,13 @@ export type EventCallback = (eventType: string, data?: unknown) => void;
  * @spec SN Book: RB.1.5 (Overall Rollup Process)
  */
 export class RollupProcess {
+  /**
+   * Capability flag for hosts that supported older rollup behavior with a compatibility layer.
+   * Rollup contribution controls belong to an activity as a child of its parent; they do not gate
+   * calculation of the activity's own rolled-up state.
+   */
+  public readonly childContributionControlsApplyToParent = true;
+
   private childFilter: RollupChildFilter;
   private ruleEvaluator: RollupRuleEvaluator;
   private measureProcessor: MeasureRollupProcessor;
@@ -92,7 +99,10 @@ export class RollupProcess {
    * @param activity - The activity to start rollup from
    * @returns Array of activities that had status changes
    */
-  public overallRollupProcess(activity: Activity): Activity[] {
+  public overallRollupProcess(
+    activity: Activity,
+    globalObjectives?: Map<string, GlobalObjective>,
+  ): Activity[] {
     const affectedActivities: Activity[] = [];
     let currentActivity: Activity | null = activity.parent; // Start from parent, not the activity itself
     let onlyDurationRollup = false;
@@ -110,32 +120,40 @@ export class RollupProcess {
         // Capture status BEFORE rollup
         const beforeStatus = currentActivity.captureRollupStatus();
 
-        // Only perform rollup if the activity tracks status
-        if (
-          currentActivity.sequencingControls.rollupObjectiveSatisfied ||
-          currentActivity.sequencingControls.rollupProgressCompletion
-        ) {
-          // Step 1: Measure Rollup Process (RB.1.1)
-          if (currentActivity.children.length > 0) {
-            const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
-            // Step 1b: Completion Measure Rollup Process (RB.1.1 b)
-            this.measureProcessor.completionMeasureRollupProcess(currentActivity);
+        // Step 1: Measure Rollup Process (RB.1.1)
+        if (currentActivity.children.length > 0) {
+          const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
+          // Step 1b: Completion Measure Rollup Process (RB.1.1 b)
+          this.measureProcessor.completionMeasureRollupProcess(currentActivity);
 
-            // Process cross-cluster dependencies if dealing with multiple clusters
-            if (clusters.length > 1) {
-              this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
-            }
+          // Process cross-cluster dependencies if dealing with multiple clusters
+          if (clusters.length > 1) {
+            this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
           }
+        }
 
-          // Step 2: Objective Rollup Process (RB.1.2)
-          if (currentActivity.sequencingControls.rollupObjectiveSatisfied) {
-            this.objectiveProcessor.objectiveRollupProcess(currentActivity);
-          }
+        // The rollupObjectiveSatisfied and rollupProgressCompletion controls describe whether
+        // this activity contributes to its parent's rollup; they do not disable calculation of
+        // this activity's own rolled-up state. The child-filtering subprocess applies those
+        // controls to each contributing child (SCORM 2004 RB.1.4.2).
 
-          // Step 3: Activity Progress Rollup Process (RB.1.3)
-          if (currentActivity.sequencingControls.rollupProgressCompletion) {
-            this.progressProcessor.activityProgressRollupProcess(currentActivity);
-          }
+        // Step 2: Objective Rollup Process (RB.1.2)
+        this.objectiveProcessor.objectiveRollupProcess(currentActivity);
+
+        // Step 3: Activity Progress Rollup Process (RB.1.3)
+        this.progressProcessor.activityProgressRollupProcess(currentActivity);
+
+        // A primary objective read map is the activity's view of the shared objective. Restore
+        // that view after calculating this cluster and before its parent evaluates the cluster as
+        // a rollup child. Without this step, a later descendant rollup can replace a previously
+        // satisfied test-out objective with the descendant aggregate even though the mapped
+        // global objective remains satisfied.
+        // @spec SCORM 2004 4th Ed. SN 3.10.3 and RB.1.5
+        if (globalObjectives) {
+          this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(
+            currentActivity,
+            globalObjectives,
+          );
         }
 
         // Capture status AFTER rollup
@@ -230,7 +248,7 @@ export class RollupProcess {
       );
       const parent = changedActivity.parent;
       if (parent && !rolledUpParents.has(parent)) {
-        this.overallRollupProcess(changedActivity);
+        this.overallRollupProcess(changedActivity, globalObjectives);
         rolledUpParents.add(parent);
       }
     }
@@ -261,8 +279,8 @@ export class RollupProcess {
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
     writeTargets: GlobalObjectiveWriteTargets,
-  ): void {
-    this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(
+  ): boolean {
+    return this.globalObjectiveSynchronizer.syncFreshlyWrittenGlobalObjectivesReadPhase(
       activity,
       globalObjectives,
       writeTargets,

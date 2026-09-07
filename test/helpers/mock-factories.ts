@@ -165,7 +165,11 @@ export interface MockProcessors {
 export function createMockProcessors(options: MockProcessorOptions = {}): MockProcessors {
   const measureProcessor = {
     measureRollupProcess: vi.fn().mockReturnValue(options.measureRollupResult ?? []),
-  } satisfies Pick<MeasureRollupProcessor, "measureRollupProcess">;
+    completionMeasureRollupProcess: vi.fn(),
+  } satisfies Pick<
+    MeasureRollupProcessor,
+    "measureRollupProcess" | "completionMeasureRollupProcess"
+  >;
 
   const objectiveProcessor = {
     objectiveRollupProcess: vi.fn(),

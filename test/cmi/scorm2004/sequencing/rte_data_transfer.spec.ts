@@ -478,6 +478,56 @@ describe("RTE Data Transfer", () => {
       expect(leafActivity.successStatus).toBe("failed");
     });
 
+    it("should not let a launch-seeded primary objective override a top-level content score", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+      const primaryObjective = leafActivity.primaryObjective!;
+      primaryObjective.satisfiedByMeasure = false;
+      primaryObjective.applyReadMappedState({
+        satisfiedStatus: false,
+        normalizedMeasure: 0.13,
+      });
+      primaryObjective.applyToActivity(leafActivity);
+
+      const cmiData: CMIDataForTransfer = {
+        completion_status: "completed",
+        success_status: "passed",
+        success_status_was_set: true,
+        score_was_set: true,
+        score: {
+          raw: "100",
+          min: "0",
+          max: "100",
+          scaled: "1",
+        },
+        objectives: [
+          {
+            id: "primary_obj",
+            success_status: "failed",
+            success_status_was_set: false,
+            score_was_set: false,
+            score: {
+              scaled: "0.13",
+            },
+          },
+        ],
+      };
+
+      transfer.transferPrimaryObjective(leafActivity, cmiData);
+      transfer.transferNonPrimaryObjectives(leafActivity, cmiData);
+
+      // A primary objective row initialized from its read map is an RTE view, not a SCO write.
+      // Once content writes cmi.score, that top-level primary score is authoritative.
+      expect(primaryObjective.normalizedMeasure).toBe(1);
+      expect(primaryObjective.measureStatus).toBe(true);
+      expect(primaryObjective.rawScore).toBe("100");
+      expect(primaryObjective.satisfiedStatus).toBe(true);
+      expect(leafActivity.objectiveNormalizedMeasure).toBe(1);
+      expect(leafActivity.successStatus).toBe("passed");
+    });
+
     it("should retain a launch-seeded primary status when content leaves both views untouched", () => {
       const transfer = new RteDataTransferService({
         getCMIData: null,

@@ -164,59 +164,21 @@ export class NavigationLookAhead {
    * @private
    */
   private predictContinueInternal(currentActivity: Activity): boolean {
-    // Check basic flow control requirements
+    // NB.2.1 only requires the current activity to be in a flow-enabled
+    // cluster. Do not inspect the next activity here: ending the current
+    // attempt transfers its RTE data, writes global objectives, and can change
+    // the next activity's precondition result before flow traversal begins.
+    //
+    // The ADL Sample RTE follows the same rule and always exposes Continue for
+    // an activity in a flow cluster. Trying to predict the post-termination
+    // target from the pre-termination tree can otherwise deadlock content that
+    // relies on its final cmi.completion_status/cmi.success_status write to
+    // unlock the next SCO.
     if (!currentActivity.parent) {
       return false;
     }
 
-    // Flow must be enabled on the parent to use Continue
-    if (!currentActivity.parent.sequencingControls.flow) {
-      return false;
-    }
-
-    // Check if there's a potential next activity
-    // We can't fully simulate the flow process without side effects,
-    // so we do a simplified check
-    return this.hasAvailableNextActivity(currentActivity);
-  }
-
-  /**
-   * Check if there's an available next activity in flow
-   * @param {Activity} currentActivity - Current activity
-   * @return {boolean} - True if next activity exists
-   * @private
-   */
-  private hasAvailableNextActivity(currentActivity: Activity): boolean {
-    const parent = currentActivity.parent;
-    if (!parent) {
-      return false;
-    }
-
-    const siblings = parent.children;
-    const currentIndex = siblings.indexOf(currentActivity);
-
-    if (currentIndex === -1) {
-      return false;
-    }
-
-    // Check if there's any sibling after current
-    if (currentIndex < siblings.length - 1) {
-      // Check if there's a deliverable activity after this one
-      // Uses full preConditionRule evaluation for forward navigation
-      for (let i = currentIndex + 1; i < siblings.length; i++) {
-        const sibling = siblings[i];
-        if (sibling && this.isActivityPotentiallyDeliverableForward(sibling)) {
-          return true;
-        }
-      }
-    }
-
-    // Check if parent can be exited and has a next sibling
-    if (parent.parent && parent.sequencingControls.flow) {
-      return this.hasAvailableNextActivity(parent);
-    }
-
-    return false;
+    return currentActivity.parent.sequencingControls.flow;
   }
 
   /**
@@ -327,7 +289,7 @@ export class NavigationLookAhead {
     const validation = this.sequencingProcess.validateNavigationRequest(
       SequencingRequestType.CHOICE,
       activity.id,
-      currentActivity
+      currentActivity,
     );
 
     const isChoiceEnabled = validation.valid;
@@ -347,40 +309,6 @@ export class NavigationLookAhead {
   }
 
   /**
-   * Check if activity is potentially deliverable for forward navigation (Continue)
-   * This properly evaluates preConditionRules to determine if the activity can be delivered
-   * @param {Activity} activity - Activity to check
-   * @return {boolean} - True if potentially deliverable
-   * @private
-   */
-  private isActivityPotentiallyDeliverableForward(activity: Activity): boolean {
-    // isHiddenFromChoice blocks both choice and flow navigation
-    if (activity.isHiddenFromChoice || !activity.isAvailable) {
-      return false;
-    }
-
-    // For leaf activities, use the full check that evaluates preConditionRules
-    // isVisible only affects deliverability of leaf activities, not cluster traversal
-    if (activity.children.length === 0) {
-      if (!activity.isVisible) {
-        return false;
-      }
-      return this.sequencingProcess.canActivityBeDelivered(activity);
-    }
-
-    // For clusters, check if any child is potentially deliverable
-    // Note: Invisible clusters (isVisible=false) can still be traversed by flow navigation
-    // - they just won't appear in the TOC. This is a common pattern for grouping content.
-    for (const child of activity.children) {
-      if (this.isActivityPotentiallyDeliverableForward(child)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
    * Check if activity is potentially deliverable for backward navigation (Previous)
    * This uses a simpler check that doesn't fully evaluate preConditionRules
    * since we're typically going back to a previously visited activity
@@ -389,20 +317,19 @@ export class NavigationLookAhead {
    * @private
    */
   private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean {
-    // isHiddenFromChoice blocks both choice and flow navigation
-    if (activity.isHiddenFromChoice || !activity.isAvailable) {
+    // Visibility and hidden-from-choice only affect choice presentation. Flow
+    // navigation can still deliver the activity.
+    if (!activity.isAvailable) {
       return false;
     }
 
-    // For leaf activities, isVisible must be true to deliver
+    // For backward navigation, use a simpler check since a leaf was likely
+    // already delivered before (the learner is going back to review).
     if (activity.children.length === 0) {
-      // For backward navigation, we use a simpler check since the activity was likely
-      // already delivered before (the learner is going back to review)
-      return activity.isVisible;
+      return true;
     }
 
     // For clusters, check if any child is potentially deliverable
-    // Note: Invisible clusters can still be traversed by flow navigation
     for (const child of activity.children) {
       if (this.isActivityPotentiallyDeliverableBackward(child)) {
         return true;
