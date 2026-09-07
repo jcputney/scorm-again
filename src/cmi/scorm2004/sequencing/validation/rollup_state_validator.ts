@@ -106,6 +106,7 @@ export class RollupStateValidator {
 
     // Check satisfaction status consistency with measure (only when success status is known)
     if (
+      activity.primaryObjective?.satisfiedByMeasure === true &&
       activity.objectiveMeasureStatus &&
       activity.scaledPassingScore !== null &&
       activity.successStatus !== "unknown"

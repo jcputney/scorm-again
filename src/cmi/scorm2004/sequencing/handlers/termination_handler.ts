@@ -971,7 +971,7 @@ export class TerminationHandler {
 
     // Trigger rollup after global objective sync
     // Rollup calculates satisfaction and completion based on children and global state
-    this.rollupProcess.overallRollupProcess(activity);
+    this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap);
 
     // Rollup can recalculate an active cluster's primary objective from its
     // children. Reapply only the fields written by this terminating descendant
@@ -981,11 +981,17 @@ export class TerminationHandler {
     activeAncestor = activity.parent;
     while (activeAncestor) {
       if (activeAncestor.isActive) {
-        this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
+        const mappedStateChanged = this.rollupProcess.syncFreshlyWrittenObjectivesToActiveAncestor(
           activeAncestor,
           this.globalObjectiveMap,
           writeTargets,
         );
+        if (mappedStateChanged) {
+          // The ancestor's read-mapped primary is authoritative over its descendant aggregate.
+          // Propagate that restored state through its parents after the descendant rollup above.
+          // @spec SCORM 2004 4th Ed. SN SM.7 and RB.1.5
+          this.rollupProcess.overallRollupProcess(activeAncestor, this.globalObjectiveMap);
+        }
       }
       activeAncestor = activeAncestor.parent;
     }
@@ -1025,11 +1031,10 @@ export class TerminationHandler {
     const primaryObjectiveId = activity.primaryObjective?.id;
     return Boolean(
       primaryObjectiveId &&
-        cmiData.objectives?.some(
-          (objective) =>
-            objective.id === primaryObjectiveId &&
-            objective.success_status_was_set === true,
-        ),
+      cmiData.objectives?.some(
+        (objective) =>
+          objective.id === primaryObjectiveId && objective.success_status_was_set === true,
+      ),
     );
   }
 

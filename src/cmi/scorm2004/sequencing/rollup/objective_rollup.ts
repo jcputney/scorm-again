@@ -122,7 +122,12 @@ export class ObjectiveRollupProcessor {
    * @returns True if satisfied, false if not, null if no measure
    */
   public objectiveRollupUsingMeasure(activity: Activity): boolean | null {
-    if (!activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
+    const primaryObjective = activity.primaryObjective;
+    if (
+      !primaryObjective?.satisfiedByMeasure ||
+      !activity.objectiveMeasureStatus ||
+      activity.scaledPassingScore === null
+    ) {
       return null;
     }
 

@@ -493,22 +493,23 @@ wrappers.forEach((wrapper) => {
       expect(globalStatus?.satisfiedStatus).toBe(true);
     });
 
-    test("should prevent navigation when preConditionRule disables activity", async ({ page }) => {
+    test("should keep flow Continue valid while preConditionRule blocks direct choice", async ({
+      page,
+    }) => {
       await launchSequencedModule(page);
       await waitForModuleFrame(page);
 
       const continueButton = page.locator('button[data-directive="continue"]');
-      await expect(continueButton).toBeDisabled();
-
-      // Verify clicking a disabled button has no effect (via force click to bypass actionability)
-      await continueButton.click({ force: true });
-      await page.waitForTimeout(500);
-
-      const frameSrc = await getModuleFramePath(page);
-      expect(frameSrc).toContain("content=playing");
+      await expect(continueButton).toBeEnabled();
 
       const navResult = await getNavigationValidity(page, "continue");
-      expect(["false", "unknown"]).toContain(navResult);
+      expect(navResult).toBe("true");
+
+      // Continue is a valid request for any activity in this flow cluster. The
+      // next activity's precondition is evaluated after End Attempt transfers
+      // the current SCO's RTE status; direct choice remains locked meanwhile.
+      const choiceResult = await getNavigationValidity(page, "choice", "etuqiette_item");
+      expect(choiceResult).toBe("false");
     });
 
     /**

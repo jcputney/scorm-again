@@ -368,9 +368,11 @@ wrappers.forEach((wrapper) => {
       await waitForScoContent(page, POSTTEST_ACTIVITY.key);
     };
 
-    const completeSequentialContent = async (page: any) => {
+    const completeSequentialContent = async (page: any, alreadyAtFirstContent = false) => {
       // Navigate to first content activity - course starts on pretest by default
-      await requestChoiceNavigation(page, CONTENT_ACTIVITIES[0].id);
+      if (!alreadyAtFirstContent) {
+        await requestChoiceNavigation(page, CONTENT_ACTIVITIES[0].id);
+      }
 
       for (let i = 0; i < CONTENT_ACTIVITIES.length; i++) {
         const { key } = CONTENT_ACTIVITIES[i];
@@ -493,6 +495,19 @@ wrappers.forEach((wrapper) => {
       const posttestValidity = await getNavigationValidity(page, "choice", POSTTEST_ACTIVITY.id);
       expect(["false", "unknown"]).toContain(pretestValidity);
       expect(["false", "unknown"]).toContain(posttestValidity);
+
+      // The successful mapped assessment remains authoritative if the learner exits from the
+      // incomplete content SCO that flow delivered next. A descendant rollup must not replace the
+      // read-mapped dummy wrapper's satisfied state with the content aggregate.
+      await requestContentNavigation(page, "exit");
+      const finalRootResult = await page.evaluate(() => {
+        const rootActivity = (window as any).API_1484_11.getSequencingState()?.rootActivity;
+        return {
+          completionStatus: rootActivity?.completionStatus || null,
+          successStatus: rootActivity?.successStatus || null,
+        };
+      });
+      expect(finalRootResult).toEqual({ completionStatus: "completed", successStatus: "passed" });
     });
 
     /**
@@ -725,6 +740,15 @@ wrappers.forEach((wrapper) => {
       );
       expect(assessmentObjective?.satisfiedStatus).toBe(true);
 
+      const rootResult = await page.evaluate(() => {
+        const rootActivity = (window as any).API_1484_11.getSequencingState()?.rootActivity;
+        return {
+          completionStatus: rootActivity?.completionStatus || null,
+          successStatus: rootActivity?.successStatus || null,
+        };
+      });
+      expect(rootResult).toEqual({ completionStatus: "completed", successStatus: "passed" });
+
       const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
       const posttestValidity = await getNavigationValidity(page, "choice", POSTTEST_ACTIVITY.id);
       expect(["false", "unknown"]).toContain(pretestValidity);
@@ -748,7 +772,13 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       await launchSequencedModule(page);
-      await completeSequentialContent(page);
+      // Exercise the actual module's full-course branch: fail the pre-test first. The post-test's
+      // primary objective is then launch-seeded with that failed score through its read map.
+      await startPretest(page);
+      await completeAssessmentSCO(page, false);
+      await requestContentNavigation(page, "continue");
+      await waitForScoContent(page, CONTENT_ACTIVITIES[0].key);
+      await completeSequentialContent(page, true);
 
       // Query from global objective map in sequencing state
       const contentObjective = await getGlobalObjectiveStatus(
@@ -759,6 +789,26 @@ wrappers.forEach((wrapper) => {
 
       await startPosttest(page);
       await completeAssessmentSCO(page, true);
+
+      const posttestBeforeExit = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const primaryObjective = api.cmi.objectives.childArray.find(
+          (objective: any) => objective.id === "assessment_satisfied",
+        );
+        return {
+          score: api.cmi.score.scaled,
+          objectiveScore: primaryObjective?.score?.scaled || null,
+          writtenElements: Array.from(api._runtimeSetCMIElements || []),
+          transferData: api._sequencingService.getCMIDataForTransfer(),
+        };
+      });
+      expect(posttestBeforeExit.score).toBe("1");
+      expect(Number(posttestBeforeExit.objectiveScore)).toBeLessThan(0.7);
+      expect(posttestBeforeExit.writtenElements).toContain("cmi.score.scaled");
+      expect(posttestBeforeExit.writtenElements).not.toContain("cmi.objectives.0.score.scaled");
+      expect(posttestBeforeExit.transferData.score_was_set).toBe(true);
+      expect(posttestBeforeExit.transferData.objectives[0].score_was_set).toBe(false);
+
       await requestContentNavigation(page, "exit");
 
       // Query from global objective map in sequencing state
@@ -767,6 +817,24 @@ wrappers.forEach((wrapper) => {
         "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied",
       );
       expect(assessmentObjective?.satisfiedStatus).toBe(true);
+
+      const rootResult = await page.evaluate(() => {
+        const rootActivity = (window as any).API_1484_11.getSequencingState()?.rootActivity;
+        const dummyActivity = rootActivity?.children?.find(
+          (activity: any) => activity.id === "dummy_item",
+        );
+        return {
+          completionStatus: rootActivity?.completionStatus || null,
+          successStatus: rootActivity?.successStatus || null,
+          dummySuccessStatus: dummyActivity?.successStatus || null,
+        };
+      });
+      expect(rootResult).toEqual({
+        completionStatus: "completed",
+        successStatus: "passed",
+        dummySuccessStatus: "passed",
+      });
+      expect(assessmentObjective?.normalizedMeasure).toBe(1);
     });
 
     /**

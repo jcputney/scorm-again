@@ -122,7 +122,46 @@ export class Scorm2004DataSerializer {
       }
     }
 
-    const scoreObject: ScoreObject = this.context.cmi?.score?.getScoreObject() || {};
+    // Structured top-level fields represent the LMS course result at the session boundary. The
+    // CMI export remains the active SCO's runtime data. A sequenced course can roll up to complete
+    // while its next/current SCO is still incomplete (for example, a successful pre-test), so a
+    // terminate commit must use the root activity's tracking state.
+    const sequencingRoot = terminateCommit
+      ? this.context.sequencingService?.getSequencingState().rootActivity
+      : null;
+    if (sequencingRoot) {
+      completionStatus = sequencingRoot.completionStatus ?? CompletionStatus.UNKNOWN;
+      successStatus = sequencingRoot.successStatus ?? SuccessStatus.UNKNOWN;
+    }
+
+    let scoreObject: ScoreObject = this.context.cmi?.score?.getScoreObject() || {};
+    if (sequencingRoot) {
+      const primaryObjective = sequencingRoot.primaryObjective;
+      const hasCourseScore =
+        sequencingRoot.objectiveMeasureStatus ||
+        primaryObjective?.rawScoreKnown === true ||
+        primaryObjective?.minScoreKnown === true ||
+        primaryObjective?.maxScoreKnown === true;
+
+      if (hasCourseScore) {
+        // At a sequencing boundary the active CMI model still belongs to one SCO. Report the
+        // root activity's rolled-up measure as the course score, just as the structured statuses
+        // above report the root rather than whichever SCO happened to terminate last.
+        scoreObject = {};
+        if (sequencingRoot.objectiveMeasureStatus) {
+          scoreObject.scaled = sequencingRoot.objectiveNormalizedMeasure;
+        }
+        if (primaryObjective?.rawScoreKnown) {
+          scoreObject.raw = Number(primaryObjective.rawScore);
+        }
+        if (primaryObjective?.minScoreKnown) {
+          scoreObject.min = Number(primaryObjective.minScore);
+        }
+        if (primaryObjective?.maxScoreKnown) {
+          scoreObject.max = Number(primaryObjective.maxScore);
+        }
+      }
+    }
     const commitObject: CommitObject = {
       completionStatus: completionStatus,
       successStatus: successStatus,

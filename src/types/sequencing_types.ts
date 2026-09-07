@@ -10,6 +10,8 @@ import {
 } from "../cmi/scorm2004/sequencing/sequencing_rules";
 import {
   RollupActionType,
+  RollupConditionCombination,
+  RollupConditionOperator,
   RollupConditionType,
   RollupConsiderationType,
 } from "../cmi/scorm2004/sequencing/rollup_rules";
@@ -212,6 +214,7 @@ export type SequencingCollectionSettings = {
  */
 export type RollupConditionSettings = {
   condition: RollupConditionType;
+  operator?: RollupConditionOperator;
   parameters?: Record<string, any>;
 };
 
@@ -220,6 +223,7 @@ export type RollupConditionSettings = {
  */
 export type RollupRuleSettings = {
   action: RollupActionType;
+  conditionCombination?: RollupConditionCombination;
   consideration?: RollupConsiderationType;
   minimumCount?: number;
   minimumPercent?: number;

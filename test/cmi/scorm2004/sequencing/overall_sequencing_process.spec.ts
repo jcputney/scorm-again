@@ -20,6 +20,13 @@ import {
   SequencingRule,
   SequencingRules,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import {
+  RollupActionType,
+  RollupCondition,
+  RollupConditionType,
+  RollupConsiderationType,
+  RollupRule,
+} from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 
 describe("Overall Sequencing Process (OP.1)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -2373,6 +2380,13 @@ describe("Overall Sequencing Process (OP.1)", () => {
         });
         child1.primaryObjective = ancestorObjective;
 
+        const rootCompletionRule = new RollupRule(
+          RollupActionType.SATISFIED,
+          RollupConsiderationType.ANY,
+        );
+        rootCompletionRule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+        root.rollupRules.addRule(rootCompletionRule);
+
         const writerObjective = new ActivityObjective("writer-primary", {
           isPrimary: true,
           mapInfo: [
@@ -2418,6 +2432,8 @@ describe("Overall Sequencing Process (OP.1)", () => {
         expect(ancestorObjective.satisfiedStatusKnown).toBe(true);
         expect(child1.objectiveSatisfiedStatus).toBe(true);
         expect(child1.objectiveSatisfiedStatusKnown).toBe(true);
+        expect(root.objectiveSatisfiedStatus).toBe(true);
+        expect(root.successStatus).toBe("passed");
       });
 
       it("should trigger rollup after endAttemptProcess", () => {

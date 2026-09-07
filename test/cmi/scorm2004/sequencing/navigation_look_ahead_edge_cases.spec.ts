@@ -80,7 +80,7 @@ describe("Navigation Look-Ahead Edge Cases", () => {
       expect(result).toBe(false);
     });
 
-    it("should predict continue disabled when activity is hidden from navigation", () => {
+    it("should keep continue enabled when the next activity is hidden", () => {
       const root = new Activity("root", "Root");
       const child1 = new Activity("child1", "Child 1");
       const child2 = new Activity("child2", "Child 2");
@@ -96,9 +96,8 @@ describe("Navigation Look-Ahead Edge Cases", () => {
 
       navigationLookAhead.updateCache();
 
-      // Continue might be disabled if next activity is hidden
       const result = navigationLookAhead.predictContinueEnabled();
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(true);
     });
 
     it("should handle cache invalidation correctly", () => {

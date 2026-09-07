@@ -2,9 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import { NavigationLookAhead } from "../../../../src/cmi/scorm2004/sequencing/navigation_look_ahead";
 import {
-  NavigationLookAhead
-} from "../../../../src/cmi/scorm2004/sequencing/navigation_look_ahead";
+  RuleActionType,
+  RuleCondition,
+  RuleConditionOperator,
+  RuleConditionType,
+  SequencingRule,
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("NavigationLookAhead", () => {
   let activityTree: ActivityTree;
@@ -51,7 +56,7 @@ describe("NavigationLookAhead", () => {
       expect(continueEnabled).toBe(true);
     });
 
-    it("should predict Continue disabled at last activity", () => {
+    it("should keep Continue enabled at the last activity in a flow cluster", () => {
       // Set up flow mode on root
       root.sequencingControls.flow = true;
 
@@ -59,7 +64,7 @@ describe("NavigationLookAhead", () => {
       activityTree.currentActivity = activity3;
 
       const continueEnabled = lookAhead.predictContinueEnabled();
-      expect(continueEnabled).toBe(false);
+      expect(continueEnabled).toBe(true);
     });
 
     it("should predict Continue disabled when flow not enabled", () => {
@@ -72,10 +77,31 @@ describe("NavigationLookAhead", () => {
       expect(continueEnabled).toBe(false);
     });
 
-    it("should predict Continue disabled when forwardOnly blocks", () => {
-      // This test is for a specific edge case where forwardOnly affects Continue
-      // In standard SCORM, forwardOnly affects Previous, not Continue
-      // But we'll test the current behavior
+    it("should not deadlock Continue on a precondition that can change at End Attempt", () => {
+      root.sequencingControls.flow = true;
+      activityTree.currentActivity = activity1;
+
+      // Before End Attempt, the next activity can still reflect stale global
+      // objective state. Continue itself remains valid; termination transfers
+      // the current SCO's final CMI data before sequencing evaluates activity2.
+      activity2.objectiveSatisfiedStatusKnown = true;
+      activity2.objectiveSatisfiedStatus = false;
+      const notSatisfied = new RuleCondition(
+        RuleConditionType.SATISFIED,
+        RuleConditionOperator.NOT,
+      );
+      const disabledRule = new SequencingRule(RuleActionType.DISABLED);
+      disabledRule.addCondition(notSatisfied);
+      activity2.sequencingRules.addPreConditionRule(disabledRule);
+
+      expect(activity2.sequencingRules.evaluatePreConditionRules(activity2)).toBe(
+        RuleActionType.DISABLED,
+      );
+
+      expect(lookAhead.predictContinueEnabled()).toBe(true);
+    });
+
+    it("should keep Continue enabled when forwardOnly blocks Previous", () => {
       root.sequencingControls.flow = true;
       root.sequencingControls.forwardOnly = true;
 
@@ -125,6 +151,15 @@ describe("NavigationLookAhead", () => {
 
       const previousEnabled = lookAhead.predictPreviousEnabled();
       expect(previousEnabled).toBe(false);
+    });
+
+    it("should allow Previous flow to an activity hidden from choice", () => {
+      root.sequencingControls.flow = true;
+      activity1.isVisible = false;
+      activity1.isHiddenFromChoice = true;
+      activityTree.currentActivity = activity2;
+
+      expect(lookAhead.predictPreviousEnabled()).toBe(true);
     });
   });
 
@@ -209,6 +244,7 @@ describe("NavigationLookAhead", () => {
 
       // Change activity
       activityTree.currentActivity = activity3;
+      root.sequencingControls.flow = false;
       lookAhead.invalidateCache();
 
       // Prediction should change
@@ -291,9 +327,10 @@ describe("NavigationLookAhead", () => {
       root.sequencingControls.flow = true;
       activityTree.currentActivity = activity3;
 
-      // Continue should be disabled at end
+      // A flow-enabled cluster keeps Continue valid so the request can end the
+      // sequencing session after the final activity.
       const continueEnabled = lookAhead.predictContinueEnabled();
-      expect(continueEnabled).toBe(false);
+      expect(continueEnabled).toBe(true);
     });
 
     it("should handle root is current activity", () => {

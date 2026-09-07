@@ -379,6 +379,7 @@ describe("Activity Objective Dirty Flag Tracking", () => {
       expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(true);
       expect(activity.isObjectiveDirty("measureStatus")).toBe(true);
       expect(activity.isObjectiveDirty("normalizedMeasure")).toBe(true);
+      expect(activity.successStatus).toBe("passed");
     });
 
     it("should not set dirty flags when values unchanged", () => {

@@ -259,7 +259,7 @@ describe("EndSequencingSession Handling", () => {
       eventCallback.mockClear();
 
       // Execute: Continue past end
-      overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+      const delivery = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
 
       // Verify: Event should fire
       expect(eventCallback).toHaveBeenCalledWith(
@@ -269,6 +269,9 @@ describe("EndSequencingSession Handling", () => {
           exception: "SB.2.7-2"
         })
       );
+      expect(delivery.valid).toBe(true);
+      expect(delivery.targetActivity).toBeNull();
+      expect(delivery.exception).toBeNull();
     });
 
     it("should NOT fire onSequencingSessionEnd when session continues", () => {
@@ -472,7 +475,7 @@ describe("EndSequencingSession Handling", () => {
   });
 
   describe("Overall Sequencing Process Integration", () => {
-    it("should return appropriate DeliveryRequest when session ends", () => {
+    it("should return a successful DeliveryRequest when the session ends", () => {
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
@@ -480,9 +483,10 @@ describe("EndSequencingSession Handling", () => {
         NavigationRequestType.CONTINUE
       );
 
-      // Verify: Delivery request indicates failure due to session end
-      expect(result.valid).toBe(false);
-      expect(result.exception).toBeTruthy();
+      // End of forward flow is a successful terminal outcome, not a navigation failure.
+      expect(result.valid).toBe(true);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBeNull();
     });
 
     it("should handle session end after multiple successful navigations", () => {

@@ -203,6 +203,7 @@ export class SequencingConfigurationBuilder {
       ruleSettings.consideration,
       ruleSettings.minimumCount,
       ruleSettings.minimumPercent,
+      ruleSettings.conditionCombination,
     );
 
     // Add conditions
@@ -210,6 +211,7 @@ export class SequencingConfigurationBuilder {
       const condition = new RollupCondition(
         conditionSettings.condition,
         new Map(Object.entries(conditionSettings.parameters || {})),
+        conditionSettings.operator,
       );
       rule.addCondition(condition);
     }
@@ -329,9 +331,15 @@ export class SequencingConfigurationBuilder {
                 if (condition.parameters) {
                   clonedCondition.parameters = { ...condition.parameters };
                 }
+                if (condition.operator !== undefined) {
+                  clonedCondition.operator = condition.operator;
+                }
                 return clonedCondition;
               }),
             };
+            if (rule.conditionCombination !== undefined) {
+              clonedRule.conditionCombination = rule.conditionCombination;
+            }
             if (rule.consideration !== undefined) {
               clonedRule.consideration = rule.consideration;
             }

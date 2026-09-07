@@ -321,6 +321,11 @@ export class RteDataTransferService {
         (cmiData.success_status_was_set === undefined &&
           topLevelSuccessStatus !== null &&
           topLevelSuccessStatus !== SuccessStatus.UNKNOWN);
+      const topLevelPrimaryScoreWasSet =
+        cmiData.score_was_set === true ||
+        (cmiData.score_was_set === undefined &&
+          cmiData.score !== undefined &&
+          this.normalizeScore(cmiData.score) !== null);
 
       // Transfer success status. Read-mapped values remain valid write-map
       // sources even when the SCO leaves them untouched. The one conflicting
@@ -371,7 +376,11 @@ export class RteDataTransferService {
       }
 
       // Transfer score (with normalization)
-      if (cmiObjective.score) {
+      const objectiveScoreMayOverridePrimary =
+        cmiObjective.score_was_set !== false ||
+        !isPrimaryObjective ||
+        !topLevelPrimaryScoreWasSet;
+      if (cmiObjective.score && objectiveScoreMayOverridePrimary) {
         // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max
         // score write maps use the RTE objective score values, independent of scaled score.
         activityObjective.initializeScoreFromCMI(this.getObjectiveScoreState(cmiObjective.score));

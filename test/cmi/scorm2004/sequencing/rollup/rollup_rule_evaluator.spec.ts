@@ -8,6 +8,9 @@ import {
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RollupActionType,
+  RollupCondition,
+  RollupConditionCombination,
+  RollupConditionType,
   RollupConsiderationType,
   RollupRule
 } from "../../../../../src/cmi/scorm2004/sequencing/rollup_rules";
@@ -57,6 +60,7 @@ describe("RollupRuleEvaluator", () => {
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
+          conditionCombination: RollupConditionCombination.ALL,
           consideration: RollupConsiderationType.ALL,
           conditions: [],
           minimumCount: null,
@@ -304,6 +308,37 @@ describe("RollupRuleEvaluator", () => {
       expect(result).toBe(true);
     });
 
+    it("should OR conditions when conditionCombination is any", () => {
+      child1.objectiveSatisfiedStatus = true;
+      child1.attemptLimit = 2;
+      child1.attemptCount = 1;
+
+      const rule = new RollupRule(
+        RollupActionType.COMPLETED,
+        RollupConsiderationType.ANY,
+        0,
+        0,
+        RollupConditionCombination.ANY
+      );
+      rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+      rule.addCondition(new RollupCondition(RollupConditionType.ATTEMPT_LIMIT_EXCEEDED));
+
+      expect(evaluator.evaluateRollupConditionsSubprocess(child1, rule)).toBe(true);
+      expect(evaluator.evaluateRollupRule(parent, rule)).toBe(true);
+
+      rule.conditionCombination = RollupConditionCombination.ALL;
+      expect(evaluator.evaluateRollupConditionsSubprocess(child1, rule)).toBe(false);
+      expect(evaluator.evaluateRollupRule(parent, rule)).toBe(false);
+
+      // The Random Test manifest's alternate branch completes after the learner
+      // exhausts the post-test attempt limit, even when the test is not satisfied.
+      child1.objectiveSatisfiedStatus = false;
+      child1.attemptCount = 2;
+      rule.conditionCombination = RollupConditionCombination.ANY;
+      expect(evaluator.evaluateRollupConditionsSubprocess(child1, rule)).toBe(true);
+      expect(evaluator.evaluateRollupRule(parent, rule)).toBe(true);
+    });
+
     describe("with ALL consideration", () => {
       it("should return true when all conditions are met", () => {
         const condition1 = createMockCondition(() => true);
@@ -328,6 +363,7 @@ describe("RollupRuleEvaluator", () => {
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
+          conditionCombination: RollupConditionCombination.ALL,
           consideration: RollupConsiderationType.ALL,
           conditions: [condition1, condition2],
           minimumCount: null,
@@ -347,6 +383,7 @@ describe("RollupRuleEvaluator", () => {
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
+          conditionCombination: RollupConditionCombination.ALL,
           consideration: RollupConsiderationType.ANY,
           conditions: [condition1, condition2],
           minimumCount: null,
@@ -385,6 +422,7 @@ describe("RollupRuleEvaluator", () => {
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
+          conditionCombination: RollupConditionCombination.ALL,
           consideration: RollupConsiderationType.NONE,
           conditions: [condition1, condition2],
           minimumCount: null,
@@ -403,6 +441,7 @@ describe("RollupRuleEvaluator", () => {
 
         const rule: RollupRule = {
           action: RollupActionType.SATISFIED,
+          conditionCombination: RollupConditionCombination.ALL,
           consideration: RollupConsiderationType.NONE,
           conditions: [condition1, condition2],
           minimumCount: null,

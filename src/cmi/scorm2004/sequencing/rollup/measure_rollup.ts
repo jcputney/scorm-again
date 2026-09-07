@@ -52,10 +52,6 @@ export class MeasureRollupProcessor {
    * @returns Array of identified activity clusters (for cross-cluster processing)
    */
   public measureRollupProcess(activity: Activity): Activity[] {
-    if (!activity.sequencingControls.rollupObjectiveSatisfied) {
-      return [];
-    }
-
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
       return [];
