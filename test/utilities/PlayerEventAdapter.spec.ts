@@ -498,6 +498,14 @@ describe("PlayerEventAdapter", () => {
         expect(callbacks.onSessionEnd).toHaveBeenCalledWith("suspend", expect.any(Object));
       });
 
+      it("should normalize suspend_all to suspend reason", () => {
+        adapter.handleSequencingSessionEnd({
+          reason: "suspend_all",
+        });
+
+        expect(callbacks.onSessionEnd).toHaveBeenCalledWith("suspend", expect.any(Object));
+      });
+
       it("should emit session end with exit reason", () => {
         adapter.handleSequencingSessionEnd({
           reason: "exit",
@@ -514,6 +522,14 @@ describe("PlayerEventAdapter", () => {
         expect(callbacks.onSessionEnd).toHaveBeenCalledWith("exit", expect.any(Object));
       });
 
+      it("should normalize exit_all to exit reason", () => {
+        adapter.handleSequencingSessionEnd({
+          reason: "exit_all",
+        });
+
+        expect(callbacks.onSessionEnd).toHaveBeenCalledWith("exit", expect.any(Object));
+      });
+
       it("should emit session end with abandon reason", () => {
         adapter.handleSequencingSessionEnd({
           reason: "abandon",
@@ -525,6 +541,14 @@ describe("PlayerEventAdapter", () => {
       it("should handle abandonAll as abandon reason", () => {
         adapter.handleSequencingSessionEnd({
           reason: "abandonAll",
+        });
+
+        expect(callbacks.onSessionEnd).toHaveBeenCalledWith("abandon", expect.any(Object));
+      });
+
+      it("should normalize abandon_all to abandon reason", () => {
+        adapter.handleSequencingSessionEnd({
+          reason: "abandon_all",
         });
 
         expect(callbacks.onSessionEnd).toHaveBeenCalledWith("abandon", expect.any(Object));

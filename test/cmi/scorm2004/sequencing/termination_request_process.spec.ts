@@ -178,8 +178,8 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(child1.isSuspended).toBe(true);
       expect(root.isSuspended).toBe(true);
       expect(activityTree.suspendedActivity).toBe(grandchild1);
-      // Per TB.2.3 5.6, current activity is set to root
-      expect(activityTree.currentActivity).toBe(root);
+      // The root is only a transient TB.2.3 pointer; the ended session leaves no current activity.
+      expect(activityTree.currentActivity).toBeNull();
     });
 
     it("should suspend root when it is current activity", () => {
@@ -193,7 +193,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(root.isSuspended).toBe(true);
       expect(root.isActive).toBe(false);
       expect(activityTree.suspendedActivity).toBe(root);
-      expect(activityTree.currentActivity).toBe(root);
+      expect(activityTree.currentActivity).toBeNull();
     });
   });
 
@@ -435,8 +435,8 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(child1.isSuspended).toBe(true);
       expect(root.isSuspended).toBe(true);
       expect(activityTree.suspendedActivity).toBe(grandchild1);
-      // Per TB.2.3 5.6: current activity set to root
-      expect(activityTree.currentActivity).toBe(root);
+      // The root is only a transient TB.2.3 pointer; the ended session leaves no current activity.
+      expect(activityTree.currentActivity).toBeNull();
     });
 
     it("should clear suspended state when resuming different activity", () => {
@@ -784,7 +784,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(child1.isSuspended).toBe(true);
       expect(root.isSuspended).toBe(true);
       expect(activityTree.suspendedActivity).toBe(greatGrandchild);
-      expect(activityTree.currentActivity).toBe(root);
+      expect(activityTree.currentActivity).toBeNull();
     });
 
     it("should preserve activity attempt data during SUSPEND_ALL", () => {

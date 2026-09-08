@@ -303,10 +303,13 @@ export class PlayerEventAdapter {
     const reasonMap: Record<string, SessionEndReason> = {
       complete: "complete",
       suspend: "suspend",
+      suspend_all: "suspend",
       exit: "exit",
       exitAll: "exit",
+      exit_all: "exit",
       abandon: "abandon",
       abandonAll: "abandon",
+      abandon_all: "abandon",
     };
 
     const reason = reasonMap[data.reason] || "exit";

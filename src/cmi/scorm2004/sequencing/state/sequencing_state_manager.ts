@@ -213,8 +213,26 @@ export class SequencingStateManager {
       if (state.currentActivity) {
         const currentActivity = this.activityTree.getActivity(state.currentActivity);
         if (currentActivity) {
-          this.activityTree.currentActivity = currentActivity;
-          currentActivity.isActive = true;
+          const currentActivityState = state.activityStates?.[state.currentActivity];
+          const isLegacySuspendedRootPointer =
+            currentActivity === this.activityTree.root &&
+            !!state.suspendedActivity &&
+            currentActivityState?.isActive === false &&
+            currentActivityState?.isSuspended === true;
+
+          // A pre-activityStates snapshot has no serialized flags to preserve, so retain the
+          // original setter behavior that activates the current activity and its ancestors.
+          if (isLegacySuspendedRootPointer) {
+            this.activityTree.setCurrentActivityWithoutActivation(null);
+          } else if (!state.activityStates) {
+            this.activityTree.currentActivity = currentActivity;
+            currentActivity.isActive = true;
+          } else {
+            // New snapshots must not reactivate an activity that was persisted as inactive,
+            // such as the suspended root after SUSPEND_ALL. Activity flags were restored above.
+            this.activityTree.setCurrentActivityWithoutActivation(currentActivity);
+            currentActivity.isActive = currentActivityState?.isActive ?? true;
+          }
         }
       }
 
