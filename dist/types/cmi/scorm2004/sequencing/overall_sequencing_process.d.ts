@@ -24,7 +24,7 @@ export interface PreparedNavigationRequest {
     navigationRequest: NavigationRequestType;
     navResult: NavigationRequestResult;
     deliveryRequest: DeliveryRequest | null;
-    sessionEndReason: "exit_all" | "abandon_all" | null;
+    sessionEndReason: "exit_all" | "abandon_all" | "suspend_all" | null;
 }
 export declare class OverallSequencingProcess {
     private activityTree;

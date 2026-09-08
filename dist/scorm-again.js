@@ -5763,6 +5763,23 @@
           },
           {
               /**
+     * End one active attempt through the coordinator-owned UP.4 process.
+     * SequencingProcess can also be used without the overall coordinator in
+     * focused callers, so retain the state-only fallback for that case.
+     */ key: "endActiveAttempt",
+              value: function endActiveAttempt(activity) {
+                  if (!activity.isActive) {
+                      return;
+                  }
+                  if (this.endAttemptCallback) {
+                      this.endAttemptCallback(activity);
+                  } else {
+                      activity.isActive = false;
+                  }
+              }
+          },
+          {
+              /**
      * Flow Subprocess (SB.2.3)
      * Traverses the activity tree in the specified direction to find a deliverable activity
      * @param {Activity} fromActivity - The activity to flow from
@@ -5902,8 +5919,8 @@
      * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
      */ key: "endActiveClusterAttempt",
               value: function endActiveClusterAttempt(activity) {
-                  if (activity.parent && activity.children.length > 0 && activity.isActive && this.endAttemptCallback) {
-                      this.endAttemptCallback(activity);
+                  if (activity.parent && activity.children.length > 0 && activity.isActive) {
+                      this.endActiveAttempt(activity);
                   }
               }
           },
@@ -6474,7 +6491,8 @@
                   }
                   var commonAncestor = this.treeQueries.findCommonAncestor(currentActivity, targetActivity);
                   if (currentActivity) {
-                      this.terminateDescendentAttemptsProcess(commonAncestor || this.activityTree.root);
+                      var ancestor = commonAncestor || this.activityTree.root;
+                      this.terminateDescendentAttemptsProcess(currentActivity, ancestor);
                   }
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
@@ -6694,30 +6712,19 @@
           },
           {
               /**
-     * Terminate descendent attempts (simplified)
-     * @param {Activity} activity - The activity
+     * End active attempts on the path from current to common ancestor, exclusive.
+     * @param {Activity} currentActivity - The already-terminated current activity
+     * @param {Activity} commonAncestor - The ancestor whose attempt remains active
      */ key: "terminateDescendentAttemptsProcess",
-              value: function terminateDescendentAttemptsProcess(activity) {
-                  activity.isActive = false;
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          this.terminateDescendentAttemptsProcess(child);
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
+              value: function terminateDescendentAttemptsProcess(currentActivity, commonAncestor) {
+                  if (currentActivity === commonAncestor) {
+                      return;
+                  }
+                  var activity = currentActivity.parent;
+                  while(activity && activity !== commonAncestor){
+                      var parent = activity.parent;
+                      this.traversalService.endActiveAttempt(activity);
+                      activity = parent;
                   }
               }
           }
@@ -20488,8 +20495,19 @@
                       if (state.currentActivity) {
                           var currentActivity = this.activityTree.getActivity(state.currentActivity);
                           if (currentActivity) {
-                              this.activityTree.currentActivity = currentActivity;
-                              currentActivity.isActive = true;
+                              var _state_activityStates;
+                              var currentActivityState = (_state_activityStates = state.activityStates) === null || _state_activityStates === void 0 ? void 0 : _state_activityStates[state.currentActivity];
+                              var isLegacySuspendedRootPointer = currentActivity === this.activityTree.root && !!state.suspendedActivity && (currentActivityState === null || currentActivityState === void 0 ? void 0 : currentActivityState.isActive) === false && (currentActivityState === null || currentActivityState === void 0 ? void 0 : currentActivityState.isSuspended) === true;
+                              if (isLegacySuspendedRootPointer) {
+                                  this.activityTree.setCurrentActivityWithoutActivation(null);
+                              } else if (!state.activityStates) {
+                                  this.activityTree.currentActivity = currentActivity;
+                                  currentActivity.isActive = true;
+                              } else {
+                                  var _ref;
+                                  this.activityTree.setCurrentActivityWithoutActivation(currentActivity);
+                                  currentActivity.isActive = (_ref = currentActivityState === null || currentActivityState === void 0 ? void 0 : currentActivityState.isActive) !== null && _ref !== void 0 ? _ref : true;
+                              }
                           }
                       }
                       if (state.suspendedActivity) {
@@ -22043,7 +22061,7 @@
                           };
                       }
                       if (!navResult.sequencingRequest) {
-                          var sessionEndReason = navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL ? "abandon_all" : null;
+                          var sessionEndReason = navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL ? "abandon_all" : navResult.terminationRequest === SequencingRequestType.SUSPEND_ALL ? "suspend_all" : null;
                           return {
                               navigationRequest: navigationRequest,
                               navResult: navResult,
@@ -22073,6 +22091,9 @@
                       return prepared.deliveryRequest;
                   }
                   if (prepared.sessionEndReason) {
+                      if (prepared.sessionEndReason === "suspend_all") {
+                          this.activityTree.setCurrentActivityWithoutActivation(null);
+                      }
                       this.fireEvent("onSequencingSessionEnd", {
                           reason: prepared.sessionEndReason,
                           navigationRequest: navigationRequest

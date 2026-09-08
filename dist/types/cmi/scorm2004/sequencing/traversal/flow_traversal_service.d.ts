@@ -15,6 +15,7 @@ export declare class FlowTraversalService {
     private endAttemptCallback;
     constructor(activityTree: ActivityTree, ruleEngine: RuleEvaluationEngine);
     setEndAttemptCallback(callback: (activity: Activity) => void): void;
+    endActiveAttempt(activity: Activity): void;
     flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): FlowSubprocessResult;
     flowTreeTraversalSubprocess(fromActivity: Activity, direction: FlowSubprocessMode, skipChildren?: boolean, forwardTraversalBoundary?: Activity | null): FlowTreeTraversalResult;
     private traverseForward;

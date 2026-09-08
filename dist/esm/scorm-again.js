@@ -3979,6 +3979,21 @@ class FlowTraversalService {
     this.endAttemptCallback = callback;
   }
   /**
+   * End one active attempt through the coordinator-owned UP.4 process.
+   * SequencingProcess can also be used without the overall coordinator in
+   * focused callers, so retain the state-only fallback for that case.
+   */
+  endActiveAttempt(activity) {
+    if (!activity.isActive) {
+      return;
+    }
+    if (this.endAttemptCallback) {
+      this.endAttemptCallback(activity);
+    } else {
+      activity.isActive = false;
+    }
+  }
+  /**
    * Flow Subprocess (SB.2.3)
    * Traverses the activity tree in the specified direction to find a deliverable activity
    * @param {Activity} fromActivity - The activity to flow from
@@ -4108,8 +4123,8 @@ class FlowTraversalService {
    * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
    */
   endActiveClusterAttempt(activity) {
-    if (activity.parent && activity.children.length > 0 && activity.isActive && this.endAttemptCallback) {
-      this.endAttemptCallback(activity);
+    if (activity.parent && activity.children.length > 0 && activity.isActive) {
+      this.endActiveAttempt(activity);
     }
   }
   /**
@@ -4552,23 +4567,17 @@ class ChoiceRequestHandler {
       result.exception = "SB.2.9-6";
       return result;
     }
-    const validation = this.constraintValidator.validateChoice(
-      currentActivity,
-      targetActivity,
-      { checkAvailability: true }
-    );
+    const validation = this.constraintValidator.validateChoice(currentActivity, targetActivity, {
+      checkAvailability: true
+    });
     if (!validation.valid) {
       result.exception = validation.exception;
       return result;
     }
-    const commonAncestor = this.treeQueries.findCommonAncestor(
-      currentActivity,
-      targetActivity
-    );
+    const commonAncestor = this.treeQueries.findCommonAncestor(currentActivity, targetActivity);
     if (currentActivity) {
-      this.terminateDescendentAttemptsProcess(
-        commonAncestor || this.activityTree.root
-      );
+      const ancestor = commonAncestor || this.activityTree.root;
+      this.terminateDescendentAttemptsProcess(currentActivity, ancestor);
     }
     for (const pathActivity of this.treeQueries.getPathToRoot(targetActivity)) {
       const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
@@ -4665,10 +4674,7 @@ class ChoiceRequestHandler {
   choiceFlowTreeTraversal(fromActivity) {
     this.traversalService.ensureSelectionAndRandomization(fromActivity);
     const children = fromActivity.getAvailableChildren();
-    const validChildren = this.constraintValidator.validateFlowConstraints(
-      fromActivity,
-      children
-    );
+    const validChildren = this.constraintValidator.validateFlowConstraints(fromActivity, children);
     if (!validChildren.valid) {
       return null;
     }
@@ -4720,13 +4726,19 @@ class ChoiceRequestHandler {
     return new ChoiceTraversalResult(null, null);
   }
   /**
-   * Terminate descendent attempts (simplified)
-   * @param {Activity} activity - The activity
+   * End active attempts on the path from current to common ancestor, exclusive.
+   * @param {Activity} currentActivity - The already-terminated current activity
+   * @param {Activity} commonAncestor - The ancestor whose attempt remains active
    */
-  terminateDescendentAttemptsProcess(activity) {
-    activity.isActive = false;
-    for (const child of activity.children) {
-      this.terminateDescendentAttemptsProcess(child);
+  terminateDescendentAttemptsProcess(currentActivity, commonAncestor) {
+    if (currentActivity === commonAncestor) {
+      return;
+    }
+    let activity = currentActivity.parent;
+    while (activity && activity !== commonAncestor) {
+      const parent = activity.parent;
+      this.traversalService.endActiveAttempt(activity);
+      activity = parent;
     }
   }
 }
@@ -14372,8 +14384,17 @@ class SequencingStateManager {
       if (state.currentActivity) {
         const currentActivity = this.activityTree.getActivity(state.currentActivity);
         if (currentActivity) {
-          this.activityTree.currentActivity = currentActivity;
-          currentActivity.isActive = true;
+          const currentActivityState = state.activityStates?.[state.currentActivity];
+          const isLegacySuspendedRootPointer = currentActivity === this.activityTree.root && !!state.suspendedActivity && currentActivityState?.isActive === false && currentActivityState?.isSuspended === true;
+          if (isLegacySuspendedRootPointer) {
+            this.activityTree.setCurrentActivityWithoutActivation(null);
+          } else if (!state.activityStates) {
+            this.activityTree.currentActivity = currentActivity;
+            currentActivity.isActive = true;
+          } else {
+            this.activityTree.setCurrentActivityWithoutActivation(currentActivity);
+            currentActivity.isActive = currentActivityState?.isActive ?? true;
+          }
         }
       }
       if (state.suspendedActivity) {
@@ -15445,7 +15466,7 @@ class OverallSequencingProcess {
         };
       }
       if (!navResult.sequencingRequest) {
-        const sessionEndReason = navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL ? "abandon_all" : null;
+        const sessionEndReason = navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL ? "abandon_all" : navResult.terminationRequest === SequencingRequestType.SUSPEND_ALL ? "suspend_all" : null;
         return {
           navigationRequest,
           navResult,
@@ -15473,6 +15494,9 @@ class OverallSequencingProcess {
       return prepared.deliveryRequest;
     }
     if (prepared.sessionEndReason) {
+      if (prepared.sessionEndReason === "suspend_all") {
+        this.activityTree.setCurrentActivityWithoutActivation(null);
+      }
       this.fireEvent("onSequencingSessionEnd", {
         reason: prepared.sessionEndReason,
         navigationRequest
