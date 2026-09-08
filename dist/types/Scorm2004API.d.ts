@@ -49,6 +49,8 @@ declare class Scorm2004API extends BaseAPI {
     set _globalObjectives(objectives: CMIObjectivesObject[]);
     get _globalObjectives(): CMIObjectivesObject[];
     restoreGlobalObjectiveSnapshot(snapshot: Record<string, GlobalObjectiveMapEntry>): void;
+    restoreSharedDataSnapshot(snapshot: Record<string, string>): void;
+    captureSharedDataSnapshot(): Record<string, string>;
     compressStateData(data: string): string;
     decompressStateData(data: string): string;
     lmsInitialize(parameter?: string): string;

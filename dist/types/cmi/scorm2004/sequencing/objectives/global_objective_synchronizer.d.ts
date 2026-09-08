@@ -61,6 +61,7 @@ export declare class GlobalObjectiveSynchronizer {
     syncGlobalObjectivesWritePhase(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
     syncTerminatedActivityWritePhase(activity: Activity, globalObjectives: Map<string, GlobalObjective>): GlobalObjectiveWriteTargets;
     syncGlobalObjectivesReadPhase(activity: Activity, globalObjectives: Map<string, GlobalObjective>): boolean;
+    syncGlobalObjectivesDeliveryReadPhase(activity: Activity, globalObjectives: Map<string, GlobalObjective>): boolean;
     syncFreshlyWrittenGlobalObjectivesReadPhase(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): boolean;
     private syncGlobalObjectivesReadPhaseInternal;
     synchronizeGlobalObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;

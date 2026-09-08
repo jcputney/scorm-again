@@ -1,6 +1,7 @@
 import { Activity } from "../activity";
 export interface CMIDataForTransfer {
     completion_status?: string;
+    completion_status_was_set?: boolean;
     success_status?: string;
     success_status_was_set?: boolean;
     score_was_set?: boolean;

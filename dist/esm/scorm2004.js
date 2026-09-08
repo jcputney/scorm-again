@@ -5037,12 +5037,12 @@ class ActivityDeliveryService {
     }
     this.pendingDelivery = activity;
     this.loggingService.info(`Delivering activity: ${activity.id} - ${activity.title}`);
-    this.eventService.processListeners("ActivityDelivery", activity.id, activity);
-    this.callbacks.onDeliverActivity?.(activity);
     this.currentDeliveredActivity = activity;
     this.currentDeliveredAttemptCount = activity.attemptCount;
     this.pendingDelivery = null;
     activity.isActive = true;
+    this.callbacks.onDeliverActivity?.(activity);
+    this.eventService.processListeners("ActivityDelivery", activity.id, activity);
   }
   /**
    * Unload an activity
@@ -7755,6 +7755,7 @@ class Activity extends BaseCMI {
   _isAvailable = true;
   _hideLmsUi = [];
   _auxiliaryResources = [];
+  _sharedDataMaps = [];
   _attemptLimit = null;
   _attemptAbsoluteDurationLimit = null;
   _activityAbsoluteDurationLimit = null;
@@ -7780,12 +7781,6 @@ class Activity extends BaseCMI {
     requiredForIncomplete: "always",
     measureSatisfactionIfActive: true
   };
-  // Individual rollup consideration properties for this activity (RB.1.4.2)
-  // These determine when THIS activity is included in parent rollup calculations
-  _requiredForSatisfied = "always";
-  _requiredForNotSatisfied = "always";
-  _requiredForCompleted = "always";
-  _requiredForIncomplete = "always";
   _wasSkipped = false;
   _attemptProgressStatus = false;
   _wasAutoCompleted = false;
@@ -8767,28 +8762,28 @@ class Activity extends BaseCMI {
    * These control when THIS activity is included in parent rollup
    */
   get requiredForSatisfied() {
-    return this._requiredForSatisfied;
+    return this._rollupConsiderations.requiredForSatisfied;
   }
   set requiredForSatisfied(value) {
-    this._requiredForSatisfied = value;
+    this._rollupConsiderations.requiredForSatisfied = value;
   }
   get requiredForNotSatisfied() {
-    return this._requiredForNotSatisfied;
+    return this._rollupConsiderations.requiredForNotSatisfied;
   }
   set requiredForNotSatisfied(value) {
-    this._requiredForNotSatisfied = value;
+    this._rollupConsiderations.requiredForNotSatisfied = value;
   }
   get requiredForCompleted() {
-    return this._requiredForCompleted;
+    return this._rollupConsiderations.requiredForCompleted;
   }
   set requiredForCompleted(value) {
-    this._requiredForCompleted = value;
+    this._rollupConsiderations.requiredForCompleted = value;
   }
   get requiredForIncomplete() {
-    return this._requiredForIncomplete;
+    return this._rollupConsiderations.requiredForIncomplete;
   }
   set requiredForIncomplete(value) {
-    this._requiredForIncomplete = value;
+    this._rollupConsiderations.requiredForIncomplete = value;
   }
   get wasSkipped() {
     return this._wasSkipped;
@@ -9261,6 +9256,7 @@ class Activity extends BaseCMI {
       activityAttemptActive: this._activityAttemptActive,
       isHiddenFromChoice: this._isHiddenFromChoice,
       isAvailable: this._isAvailable,
+      sharedDataMaps: this.sharedDataMaps,
       rollupConsiderations: { ...this._rollupConsiderations },
       wasSkipped: this._wasSkipped,
       attemptProgressStatus: this._attemptProgressStatus,
@@ -9437,6 +9433,7 @@ class Activity extends BaseCMI {
       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
       hideLmsUi: [...this._hideLmsUi],
       auxiliaryResources: this._auxiliaryResources.map((resource) => ({ ...resource })),
+      sharedDataMaps: this.sharedDataMaps,
       children: this._children.map((child) => child.toJSON())
     };
     this.jsonString = false;
@@ -9444,6 +9441,17 @@ class Activity extends BaseCMI {
   }
   get auxiliaryResources() {
     return this._auxiliaryResources.map((resource) => ({ ...resource }));
+  }
+  /** SCORM 2004 shared-data bucket mappings for this activity. */
+  get sharedDataMaps() {
+    return this._sharedDataMaps.map((map) => ({ ...map }));
+  }
+  set sharedDataMaps(maps) {
+    this._sharedDataMaps = (maps || []).filter((map) => map && typeof map.targetID === "string" && map.targetID.length > 0).map((map) => ({
+      targetID: map.targetID,
+      readSharedData: map.readSharedData,
+      writeSharedData: map.writeSharedData
+    }));
   }
   set auxiliaryResources(resources) {
     const sanitized = [];
@@ -10659,6 +10667,24 @@ class GlobalObjectiveSynchronizer {
     return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives);
   }
   /**
+   * Read mapped global state into a newly initialized activity attempt.
+   *
+   * A read/write map normally suppresses reads while its activity is active so an in-progress
+   * attempt remains the source of the next write. During DB.2 delivery, however, the local
+   * attempt has just been initialized and must receive its mapped global state before content
+   * and sequencing inspect it.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
+   */
+  syncGlobalObjectivesDeliveryReadPhase(activity, globalObjectives) {
+    return this.syncGlobalObjectivesReadPhaseInternal(
+      activity,
+      globalObjectives,
+      void 0,
+      true
+    );
+  }
+  /**
    * Read only objective fields freshly written by a terminating descendant.
    *
    * Active write-mapped objectives normally suppress reads so a new attempt cannot revive its
@@ -10670,7 +10696,7 @@ class GlobalObjectiveSynchronizer {
   syncFreshlyWrittenGlobalObjectivesReadPhase(activity, globalObjectives, writeTargets) {
     return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, writeTargets);
   }
-  syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, writeTargets) {
+  syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, writeTargets, allowActiveWriteMappedRead = false) {
     const beforeStatus = activity.captureRollupStatus();
     const beforeObjectiveSatisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
     const objectives = activity.getAllObjectives();
@@ -10694,6 +10720,10 @@ class GlobalObjectiveSynchronizer {
             restrictToFreshWrites: true,
             allowSatisfiedStatus: freshlyWroteSatisfiedStatus,
             allowNormalizedMeasure: freshlyWroteNormalizedMeasure
+          } : allowActiveWriteMappedRead ? {
+            restrictToFreshWrites: false,
+            allowSatisfiedStatus: true,
+            allowNormalizedMeasure: true
           } : void 0
         );
         this.applyGlobalObjectiveReadState(objective, readState);
@@ -11359,6 +11389,21 @@ class RollupProcess {
     );
   }
   /**
+   * Restore an activity's read-mapped objective state after new-attempt initialization.
+   *
+   * DB.2 initializes attempt-scoped local objectives, while objective maps remain available
+   * across activities. Reapply the read phase before sequencing rules and navigation validity
+   * inspect the delivered attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
+   */
+  syncActivityObjectivesFromGlobals(activity, globalObjectives) {
+    return this.globalObjectiveSynchronizer.syncGlobalObjectivesDeliveryReadPhase(
+      activity,
+      globalObjectives
+    );
+  }
+  /**
    * Apply a terminating descendant's fresh objective writes to an active ancestor.
    *
    * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
@@ -11634,6 +11679,8 @@ class RteDataTransferService {
       let normalizedScore = 0;
       let hasCompletionStatus = false;
       let hasProgressMeasure = false;
+      const topLevelCompletionStatus = validateCompletionStatus(cmiData.completion_status);
+      const topLevelPrimaryCompletionWasSet = cmiData.completion_status_was_set === true || cmiData.completion_status_was_set === void 0 && topLevelCompletionStatus !== null && topLevelCompletionStatus !== CompletionStatus.UNKNOWN;
       const topLevelSuccessStatus = validateSuccessStatus(cmiData.success_status);
       const topLevelPrimarySuccessWasSet = cmiData.success_status_was_set === true || cmiData.success_status_was_set === void 0 && topLevelSuccessStatus !== null && topLevelSuccessStatus !== SuccessStatus.UNKNOWN;
       const topLevelPrimaryScoreWasSet = cmiData.score_was_set === true || cmiData.score_was_set === void 0 && cmiData.score !== void 0 && this.normalizeScore(cmiData.score) !== null;
@@ -11652,7 +11699,7 @@ class RteDataTransferService {
           activityObjective.initializeUnknownCompletionStatusFromCMI();
           hasCompletionStatus = true;
         }
-      } else if (validatedObjCompletionStatus !== null) {
+      } else if (validatedObjCompletionStatus !== null && (cmiObjective.completion_status_was_set !== false || !isPrimaryObjective || !topLevelPrimaryCompletionWasSet)) {
         activityObjective.completionStatus = validatedObjCompletionStatus;
         hasCompletionStatus = true;
       }
@@ -12569,6 +12616,7 @@ class DeliveryHandler {
         }
       }
       const activityPath = this.getActivityPath(activity, true);
+      const newAttemptActivities = [];
       for (const pathActivity of activityPath) {
         if (!pathActivity.isActive) {
           if (isResuming || pathActivity.isSuspended) {
@@ -12576,11 +12624,12 @@ class DeliveryHandler {
           } else {
             pathActivity.incrementAttemptCount();
             pathActivity.initializeTrackingForNewAttempt();
+            newAttemptActivities.push(pathActivity);
             pathActivity.objectiveInfoAvailableInCurrentParentAttempt = true;
             pathActivity.progressInfoAvailableInCurrentParentAttempt = true;
             for (const child of pathActivity.children) {
               if (pathActivity.sequencingControls.useCurrentAttemptObjectiveInfo) {
-                child.objectiveInfoAvailableInCurrentParentAttempt = false;
+                child.objectiveInfoAvailableInCurrentParentAttempt = this.hasKnownReadMappedObjective(child);
               }
               if (pathActivity.sequencingControls.useCurrentAttemptProgressInfo) {
                 child.progressInfoAvailableInCurrentParentAttempt = false;
@@ -12594,6 +12643,12 @@ class DeliveryHandler {
           );
         }
       }
+      for (const pathActivity of newAttemptActivities) {
+        this.rollupProcess?.syncActivityObjectivesFromGlobals(
+          pathActivity,
+          this.globalObjectiveMap
+        );
+      }
       this.activityTree.currentActivity = activity;
       this.initializeForDelivery(activity);
       this.setupAttemptTracking(activity);
@@ -12605,6 +12660,17 @@ class DeliveryHandler {
     } finally {
       this._deliveryInProgress = false;
     }
+  }
+  hasKnownReadMappedObjective(activity) {
+    const primaryObjective = activity.primaryObjective;
+    if (!primaryObjective) {
+      return false;
+    }
+    return primaryObjective.mapInfo.some((mapInfo) => {
+      const targetId = mapInfo.targetObjectiveID || primaryObjective.id;
+      const globalObjective = this.globalObjectiveMap.get(targetId);
+      return mapInfo.readSatisfiedStatus !== false && globalObjective?.satisfiedStatusKnown === true || mapInfo.readNormalizedMeasure !== false && globalObjective?.normalizedMeasureKnown === true;
+    });
   }
   /**
    * Initialize Activity For Delivery (DB.2.2)
@@ -15148,6 +15214,15 @@ class OverallSequencingProcess {
           navResult.sequencingRequest = termResult.sequencingRequest;
         }
       }
+      if (termResult.terminationRequest === SequencingRequestType.EXIT_ALL && termResult.sequencingRequest === SequencingRequestType.EXIT) {
+        navResult.sequencingRequest = null;
+        return {
+          navigationRequest,
+          navResult,
+          deliveryRequest: null,
+          sessionEndReason: "exit_all"
+        };
+      }
       if (!navResult.sequencingRequest) {
         const sessionEndReason = navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL ? "abandon_all" : null;
         return {
@@ -15176,13 +15251,14 @@ class OverallSequencingProcess {
     if (prepared.deliveryRequest) {
       return prepared.deliveryRequest;
     }
+    if (prepared.sessionEndReason) {
+      this.fireEvent("onSequencingSessionEnd", {
+        reason: prepared.sessionEndReason,
+        navigationRequest
+      });
+      return new DeliveryRequest(true, null);
+    }
     if (!navResult.sequencingRequest) {
-      if (prepared.sessionEndReason) {
-        this.fireEvent("onSequencingSessionEnd", {
-          reason: prepared.sessionEndReason,
-          navigationRequest
-        });
-      }
       return new DeliveryRequest(true, null);
     }
     const seqResult = this.sequencingProcess.sequencingRequestProcess(
@@ -15730,6 +15806,7 @@ class SequencingService {
       );
       return true;
     } else {
+      this.overallSequencingProcess?.updateNavigationValidity();
       if (deliveryRequest.exception) {
         this.log("warn", `Navigation request '${request}' failed: ${deliveryRequest.exception}`);
         this.fireEvent("onSequencingError", deliveryRequest.exception, "navigation");
@@ -15972,6 +16049,7 @@ class SequencingService {
   getCMIDataForTransfer() {
     const cmiData = {
       completion_status: this.cmi.completion_status,
+      completion_status_was_set: this.configuration.wasCMIElementSetByContent?.("cmi.completion_status") === true,
       success_status: this.cmi.success_status,
       // @spec SCORM 2004 4th Ed. SN 3.13.3 - auto-satisfaction applies only
       // when content did not communicate primary-objective success information.
@@ -20608,12 +20686,14 @@ class ADL extends BaseCMI {
   nav;
   data = new ADLData();
   _sequencing = null;
+  _sharedDataStores = /* @__PURE__ */ Object.create(null);
   /**
    * Called when the API has been initialized after the CMI has been created
    */
   initialize() {
     super.initialize();
     this.nav?.initialize();
+    this.data?.initialize();
   }
   /**
    * Called when the API needs to be reset
@@ -20621,6 +20701,60 @@ class ADL extends BaseCMI {
   reset() {
     this._initialized = false;
     this.nav?.reset();
+    this.data?.reset();
+  }
+  /**
+   * Configure the adl.data view for the activity being delivered.
+   *
+   * ADL data stores are keyed by the manifest targetID, while the RTE exposes
+   * only the mappings for the currently delivered activity as adl.data.n.
+   * Rebuilding that view is therefore safe: values live in this ADL-owned
+   * backing map and survive SCO reset/navigation.
+   */
+  configureSharedDataMaps(maps = []) {
+    this.captureVisibleSharedData();
+    this.data.configure(maps, this._sharedDataStores);
+  }
+  captureSharedDataSnapshot() {
+    this.captureVisibleSharedData();
+    return { ...this._sharedDataStores };
+  }
+  /** Capture only initialized stores this activity is allowed to write. */
+  captureWritableSharedDataSnapshot() {
+    this.captureVisibleSharedData();
+    const writableStores = {};
+    for (const child of this.data.childArray) {
+      const dataObject = child;
+      if (dataObject.id && dataObject.storeIsSet && dataObject.writeSharedData) {
+        writableStores[dataObject.id] = dataObject.storeValue;
+      }
+    }
+    return writableStores;
+  }
+  restoreSharedDataSnapshot(snapshot) {
+    if (!snapshot || typeof snapshot !== "object") {
+      return;
+    }
+    for (const targetID of Object.keys(this._sharedDataStores)) {
+      delete this._sharedDataStores[targetID];
+    }
+    for (const [targetID, store] of Object.entries(snapshot)) {
+      if (typeof targetID === "string" && typeof store === "string") {
+        this._sharedDataStores[targetID] = store;
+      }
+    }
+    this.data.refreshStores(this._sharedDataStores);
+  }
+  isConfiguredSharedDataElement(CMIElement) {
+    return this.data.isConfiguredElement(CMIElement);
+  }
+  captureVisibleSharedData() {
+    for (const child of this.data.childArray) {
+      const dataObject = child;
+      if (dataObject.id && dataObject.storeIsSet) {
+        this._sharedDataStores[dataObject.id] = dataObject.storeValue;
+      }
+    }
   }
   /**
    * Getter for sequencing
@@ -20690,7 +20824,9 @@ class ADLNav extends BaseCMI {
    */
   initialize() {
     super.initialize();
-    this.request_valid?.initialize();
+    if (typeof this.request_valid?.initialize === "function") {
+      this.request_valid.initialize();
+    }
   }
   /**
    * Called when the API needs to be reset
@@ -20747,14 +20883,68 @@ class ADLData extends CMIArray {
       errorClass: Scorm2004ValidationError
     });
   }
+  initialize() {
+    super.initialize();
+    for (const child of this.childArray) {
+      child.initialize();
+    }
+  }
+  reset(wipe = false) {
+    this._initialized = false;
+    if (wipe) {
+      this.childArray = [];
+      return;
+    }
+    for (const child of this.childArray) {
+      child.deinitialize();
+    }
+  }
+  configure(maps, stores) {
+    this.childArray = maps.map((map) => {
+      const child = new ADLDataObject();
+      const storeIsSet = Object.prototype.hasOwnProperty.call(stores, map.targetID);
+      child.configure(
+        map.targetID,
+        storeIsSet ? stores[map.targetID] : "",
+        map.readSharedData,
+        map.writeSharedData,
+        storeIsSet,
+        (value) => {
+          stores[map.targetID] = value;
+        }
+      );
+      if (this.initialized) {
+        child.initialize();
+      }
+      return child;
+    });
+  }
+  refreshStores(stores) {
+    for (const child of this.childArray) {
+      const dataObject = child;
+      const storeIsSet = Object.prototype.hasOwnProperty.call(stores, dataObject.id);
+      dataObject.refreshStore(storeIsSet ? stores[dataObject.id] : "", storeIsSet);
+    }
+  }
+  isConfiguredElement(CMIElement) {
+    const match = /^adl\.data\.(\d+)\.store$/.exec(CMIElement);
+    if (!match) return false;
+    const index = Number(match[1]);
+    return Number.isInteger(index) && index >= 0 && index < this.childArray.length;
+  }
 }
 class ADLDataObject extends BaseCMI {
   _id = "";
   _store = "";
   _idIsSet = false;
   _storeIsSet = false;
-  constructor() {
+  _readSharedData = true;
+  _writeSharedData = true;
+  _onStoreChange = null;
+  _allowStoreWithoutId;
+  constructor(allowStoreWithoutId = false) {
     super("adl.data.n");
+    this._allowStoreWithoutId = allowStoreWithoutId;
   }
   /**
    * Called when the API has been reset
@@ -20763,6 +20953,23 @@ class ADLDataObject extends BaseCMI {
     this._initialized = false;
     this._idIsSet = false;
     this._storeIsSet = false;
+  }
+  configure(id, store, readSharedData, writeSharedData, storeIsSet, onStoreChange) {
+    this._id = id;
+    this._store = store ?? "";
+    this._idIsSet = true;
+    this._storeIsSet = storeIsSet;
+    this._readSharedData = readSharedData;
+    this._writeSharedData = writeSharedData;
+    this._onStoreChange = onStoreChange;
+  }
+  refreshStore(store, storeIsSet) {
+    this._store = store;
+    this._storeIsSet = storeIsSet;
+  }
+  /** End the SCO session without discarding this LMS-configured bucket. */
+  deinitialize() {
+    this._initialized = false;
   }
   /**
    * Getter for _id
@@ -20794,6 +21001,12 @@ class ADLDataObject extends BaseCMI {
    * @return {string}
    */
   get store() {
+    if (this.initialized && !this._readSharedData) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".store",
+        scorm2004_errors.WRITE_ONLY_ELEMENT
+      );
+    }
     if (this.initialized && !this._storeIsSet) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".store",
@@ -20809,16 +21022,40 @@ class ADLDataObject extends BaseCMI {
    * @param {string} store
    */
   set store(store) {
-    if (this.initialized && !this._idIsSet) {
+    if (this.initialized && !this._writeSharedData) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".store",
+        scorm2004_errors.READ_ONLY_ELEMENT
+      );
+    }
+    if (this.initialized && !this._allowStoreWithoutId && !this._idIsSet) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".store",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED
       );
     }
-    if (check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMIString64000)) {
+    if (check2004ValidFormat(
+      this._cmi_element + ".store",
+      store,
+      scorm2004_regex.CMIString64000,
+      true
+    )) {
       this._store = store;
       this._storeIsSet = true;
+      this._onStoreChange?.(store);
     }
+  }
+  /** Internal value access used while rotating the mapped view. */
+  get storeValue() {
+    return this._store;
+  }
+  /** Whether the LMS has initialized this mapped store. */
+  get storeIsSet() {
+    return this._storeIsSet;
+  }
+  /** Whether the current activity may write this shared-data bucket. */
+  get writeSharedData() {
+    return this._writeSharedData;
   }
   /**
    * toJSON for adl.data.n
@@ -21188,7 +21425,11 @@ class ADLNavRequestValid extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT
       );
     }
-    if (check2004ValidFormat(this._cmi_element + ".abandonAll", _abandonAll, scorm2004_regex.NAVBoolean)) {
+    if (check2004ValidFormat(
+      this._cmi_element + ".abandonAll",
+      _abandonAll,
+      scorm2004_regex.NAVBoolean
+    )) {
       this._abandonAll = _abandonAll;
     }
   }
@@ -21210,7 +21451,11 @@ class ADLNavRequestValid extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT
       );
     }
-    if (check2004ValidFormat(this._cmi_element + ".suspendAll", _suspendAll, scorm2004_regex.NAVBoolean)) {
+    if (check2004ValidFormat(
+      this._cmi_element + ".suspendAll",
+      _suspendAll,
+      scorm2004_regex.NAVBoolean
+    )) {
       this._suspendAll = _suspendAll;
     }
   }
@@ -22085,7 +22330,7 @@ class Scorm2004CMIHandler {
       return new CMICommentsObject(true);
     }
     if (stringMatches(CMIElement, "adl\\.data\\.\\d+")) {
-      return new ADLDataObject();
+      return new ADLDataObject(true);
     }
     return null;
   }
@@ -22912,6 +23157,13 @@ class ActivityTreeBuilder {
         );
       }
     }
+    if (activitySettings.sharedDataMaps) {
+      activity.sharedDataMaps = activitySettings.sharedDataMaps.map((map) => ({
+        targetID: map.targetID,
+        readSharedData: map.readSharedData ?? true,
+        writeSharedData: map.writeSharedData ?? false
+      }));
+    }
     if (activitySettings.children) {
       for (const childSettings of activitySettings.children) {
         const childActivity = this.createActivity(childSettings);
@@ -23678,6 +23930,7 @@ class SequencingStatePersistence {
         request: this.context.adl.nav.request,
         request_valid: this.context.adl.nav.request_valid
       },
+      sharedData: typeof this.context.adl.captureSharedDataSnapshot === "function" ? this.context.adl.captureSharedDataSnapshot() : {},
       contentDelivered: false
     };
     if (this.context.sequencingService) {
@@ -23762,6 +24015,13 @@ class SequencingStatePersistence {
           }
         });
       }
+      if (state.sharedData && typeof state.sharedData === "object" && typeof this.context.adl.restoreSharedDataSnapshot === "function") {
+        this.context.adl.restoreSharedDataSnapshot(state.sharedData);
+      }
+      const restoredActivity = this.context.sequencing.getCurrentActivity();
+      if (restoredActivity && typeof this.context.adl.configureSharedDataMaps === "function") {
+        this.context.adl.configureSharedDataMaps(restoredActivity.sharedDataMaps);
+      }
       if (state.adlNavState) {
         this.context.adl.nav.request = state.adlNavState.request || "_none_";
         this.context.adl.nav.request_valid = state.adlNavState.request_valid || {};
@@ -23833,23 +24093,43 @@ class Scorm2004DataSerializer {
    * @return {object|Array} The rendered CMI data
    */
   renderCommitCMI(terminateCommit, includeTotalTime = false) {
-    const cmiExport = this.context.renderCMIToJSONObject();
-    if (terminateCommit || includeTotalTime) {
-      cmiExport.cmi.total_time = this.context.cmi.getCurrentTotalTime();
-    } else {
-      delete cmiExport.cmi.total_time;
-    }
+    const cmiExport = this.renderCMIExport(terminateCommit, includeTotalTime);
+    const sharedData = this.captureSharedData();
     const flattened = flatten(cmiExport);
-    const settings = this.context.getSettings();
-    switch (settings.dataCommitFormat) {
+    switch (this.context.getSettings().dataCommitFormat) {
       case "flattened":
         return flattened;
       case "params":
         return Object.entries(flattened).map(([item, value]) => `${item}=${value}`);
       case "json":
       default:
+        if (sharedData) {
+          cmiExport.sharedData = sharedData;
+        }
         return cmiExport;
     }
+  }
+  /** Render the runtime CMI envelope without compact-commit metadata. */
+  renderCMIExport(terminateCommit, includeTotalTime) {
+    const cmiExport = this.context.renderCMIToJSONObject();
+    if (this.context.adl && this.context.adl.data._count > 0) {
+      cmiExport.adl = {
+        data: JSON.parse(JSON.stringify(this.context.adl.data))
+      };
+    }
+    if (terminateCommit || includeTotalTime) {
+      cmiExport.cmi.total_time = this.context.cmi.getCurrentTotalTime();
+    } else {
+      delete cmiExport.cmi.total_time;
+    }
+    return cmiExport;
+  }
+  captureSharedData() {
+    if (!this.context.adl || typeof this.context.adl.captureWritableSharedDataSnapshot !== "function") {
+      return null;
+    }
+    const sharedData = this.context.adl.captureWritableSharedDataSnapshot();
+    return Object.keys(sharedData).length > 0 ? sharedData : null;
   }
   /**
    * Render the cmi object to the proper format for LMS commit
@@ -23859,6 +24139,9 @@ class Scorm2004DataSerializer {
    */
   renderCommitObject(terminateCommit, includeTotalTime = false) {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
+    if (!Array.isArray(cmiExport)) {
+      delete cmiExport.sharedData;
+    }
     const calculateTotalTime = terminateCommit || includeTotalTime;
     const totalTimeDuration = calculateTotalTime ? this.context.cmi.getCurrentTotalTime() : "";
     const totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
@@ -23909,6 +24192,10 @@ class Scorm2004DataSerializer {
       totalTimeSeconds,
       runtimeData: cmiExport
     };
+    const sharedData = this.captureSharedData();
+    if (sharedData) {
+      commitObject.sharedData = sharedData;
+    }
     if (scoreObject) {
       commitObject.score = scoreObject;
     }
@@ -23994,7 +24281,8 @@ const NO_DEFAULT_2004_ELEMENTS = /* @__PURE__ */ new Set([
   "cmi.interactions.N.latency",
   "cmi.interactions.N.learner_response",
   "cmi.interactions.N.description",
-  "cmi.comments_from_learner.N.timestamp"
+  "cmi.comments_from_learner.N.timestamp",
+  "adl.data.N.store"
 ]);
 function normalizeCMIIndices(CMIElement) {
   return CMIElement.replace(/\.\d+(?=\.|$)/g, ".N");
@@ -24064,6 +24352,7 @@ class Scorm2004API extends BaseAPI {
     const dataSerializerContext = {
       getSettings: () => this.settings,
       cmi: this.cmi,
+      adl: this.adl,
       sequencingService: this._sequencingService,
       renderCMIToJSONObject: this.renderCMIToJSONObject.bind(this)
     };
@@ -24103,8 +24392,8 @@ class Scorm2004API extends BaseAPI {
     this.commonReset(settings);
     this._runtimeSetCMIElements.clear();
     this.cmi?.reset();
-    this.applyCurrentActivityLaunchData();
     this.adl?.reset();
+    this.applyCurrentActivityLaunchData();
   }
   /**
    * Apply launch-static activity data to CMI while the new SCO is pre-initialize.
@@ -24117,6 +24406,7 @@ class Scorm2004API extends BaseAPI {
     if (!currentActivity) {
       return;
     }
+    this.adl.configureSharedDataMaps(currentActivity.sharedDataMaps);
     this.applyActivityLaunchData(currentActivity);
   }
   /**
@@ -24127,6 +24417,7 @@ class Scorm2004API extends BaseAPI {
    * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives is initialized before SCO access.
    */
   applyDeliveredActivityLaunchData(activity) {
+    this.adl.configureSharedDataMaps(activity.sharedDataMaps);
     if (!this.isNotInitialized()) {
       return;
     }
@@ -24381,6 +24672,14 @@ class Scorm2004API extends BaseAPI {
   restoreGlobalObjectiveSnapshot(snapshot) {
     this._globalObjectiveManager.restoreGlobalObjectiveSnapshot(snapshot);
   }
+  /** Restore the LMS-persisted SCORM 2004 shared-data stores. */
+  restoreSharedDataSnapshot(snapshot) {
+    this.adl.restoreSharedDataSnapshot(snapshot);
+  }
+  /** Capture all SCORM 2004 shared-data stores, including non-current mappings. */
+  captureSharedDataSnapshot() {
+    return this.adl.captureSharedDataSnapshot();
+  }
   /**
    * Compress state data (delegates to persistence class)
    * @param {string} data - Data to compress
@@ -24430,6 +24729,9 @@ class Scorm2004API extends BaseAPI {
       "LMS was already initialized!",
       "LMS is already finished!"
     );
+    if (result === global_constants.SCORM_TRUE) {
+      this.adl.initialize();
+    }
     if (result === global_constants.SCORM_TRUE && this._sequencingService) {
       this._sequencingService.initialize();
       this.applyCurrentActivityObjectiveData();
@@ -24496,10 +24798,13 @@ class Scorm2004API extends BaseAPI {
     }
     if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
       let navigationHandled = false;
+      let sequencingAttempted = false;
       let processedSequencingRequest = null;
       if (this._sequencingService) {
         try {
           if (requestToProcess) {
+            const sequencingAvailable = this._sequencingService.getSequencingState().isInitialized === true;
+            sequencingAttempted = sequencingAvailable;
             navigationHandled = preparedNavigation ? this._sequencingService.completeNavigationRequest(preparedNavigation) : this._sequencingService.processNavigationRequest(
               requestToProcess,
               targetForProcessing,
@@ -24508,15 +24813,11 @@ class Scorm2004API extends BaseAPI {
             processedSequencingRequest = requestToProcess;
           }
         } catch (error) {
-          this.apiLog(
-            "lmsFinish",
-            `Sequencing navigation failed, falling back to event-based navigation: ${error}`,
-            LogLevelEnum.WARN
-          );
+          this.apiLog("lmsFinish", `Sequencing navigation failed: ${error}`, LogLevelEnum.WARN);
           navigationHandled = false;
         }
       }
-      if (!navigationHandled) {
+      if (!navigationHandled && !sequencingAttempted) {
         if (pendingNavRequest !== "_none_") {
           const navActions = {
             continue: "SequenceNext",
@@ -24855,6 +25156,7 @@ class Scorm2004API extends BaseAPI {
   checkUninitializedGet(CMIElement, returnValue) {
     if (returnValue !== "") return;
     if (this._setCMIElements.has(CMIElement)) return;
+    if (this.adl.isConfiguredSharedDataElement(CMIElement)) return;
     if (!NO_DEFAULT_2004_ELEMENTS.has(normalizeCMIIndices(CMIElement))) return;
     this.throwSCORMError(
       CMIElement,

@@ -1,23 +1,23 @@
 this.Scorm2004API = (function () {
   'use strict';
 
-  function _array_like_to_array$g(arr, len) {
+  function _array_like_to_array$h(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$8(arr) {
+  function _array_with_holes$9(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _array_without_holes$b(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$h(arr);
   }
   function _iterable_to_array$b(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _iterable_to_array_limit$8(arr, i) {
+  function _iterable_to_array_limit$9(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -41,25 +41,25 @@ this.Scorm2004API = (function () {
       }
       return _arr;
   }
-  function _non_iterable_rest$8() {
+  function _non_iterable_rest$9() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$b() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _sliced_to_array$8(arr, i) {
-      return _array_with_holes$8(arr) || _iterable_to_array_limit$8(arr, i) || _unsupported_iterable_to_array$g(arr, i) || _non_iterable_rest$8();
+  function _sliced_to_array$9(arr, i) {
+      return _array_with_holes$9(arr) || _iterable_to_array_limit$9(arr, i) || _unsupported_iterable_to_array$h(arr, i) || _non_iterable_rest$9();
   }
   function _to_consumable_array$b(arr) {
-      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$b();
+      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$b();
   }
-  function _unsupported_iterable_to_array$g(o, minLen) {
+  function _unsupported_iterable_to_array$h(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$h(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
   }
   var SECONDS_PER_SECOND = 1;
   var SECONDS_PER_MINUTE = 60;
@@ -97,7 +97,7 @@ this.Scorm2004API = (function () {
       var remainder = seconds;
       var designationEntries = Object.entries(designations);
       designationEntries.forEach(function(param) {
-          var _param = _sliced_to_array$8(param, 2), designationsKey = _param[0], current_seconds = _param[1];
+          var _param = _sliced_to_array$9(param, 2), designationsKey = _param[0], current_seconds = _param[1];
           var value = Math.floor(remainder / current_seconds);
           remainder = remainder % current_seconds;
           if (countDecimals(remainder) > 2) {
@@ -129,7 +129,7 @@ this.Scorm2004API = (function () {
       if (!duration || !(duration === null || duration === void 0 ? void 0 : (_duration_match = duration.match) === null || _duration_match === void 0 ? void 0 : _duration_match.call(duration, durationRegex))) {
           return 0;
       }
-      var _ref1 = _sliced_to_array$8((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
+      var _ref1 = _sliced_to_array$9((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
       var result = 0;
       result += Number(seconds) || 0;
       result += Number(minutes) * 60 || 0;
@@ -5306,13 +5306,13 @@ this.Scorm2004API = (function () {
       return SequencingControls;
   }(BaseCMI);
 
-  function _array_like_to_array$f(arr, len) {
+  function _array_like_to_array$g(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$a(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
   function _class_call_check$10(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -5339,15 +5339,15 @@ this.Scorm2004API = (function () {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$a(arr) {
-      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$a();
+      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$a();
   }
-  function _unsupported_iterable_to_array$f(o, minLen) {
+  function _unsupported_iterable_to_array$g(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
@@ -7366,12 +7366,12 @@ this.Scorm2004API = (function () {
                   }
                   this.pendingDelivery = activity;
                   this.loggingService.info("Delivering activity: ".concat(activity.id, " - ").concat(activity.title));
-                  this.eventService.processListeners("ActivityDelivery", activity.id, activity);
-                  (_this_callbacks_onDeliverActivity = (_this_callbacks = this.callbacks).onDeliverActivity) === null || _this_callbacks_onDeliverActivity === void 0 ? void 0 : _this_callbacks_onDeliverActivity.call(_this_callbacks, activity);
                   this.currentDeliveredActivity = activity;
                   this.currentDeliveredAttemptCount = activity.attemptCount;
                   this.pendingDelivery = null;
                   activity.isActive = true;
+                  (_this_callbacks_onDeliverActivity = (_this_callbacks = this.callbacks).onDeliverActivity) === null || _this_callbacks_onDeliverActivity === void 0 ? void 0 : _this_callbacks_onDeliverActivity.call(_this_callbacks, activity);
+                  this.eventService.processListeners("ActivityDelivery", activity.id, activity);
               }
           },
           {
@@ -10635,13 +10635,13 @@ this.Scorm2004API = (function () {
       return RollupRules;
   }(BaseCMI);
 
-  function _array_like_to_array$e(arr, len) {
+  function _array_like_to_array$f(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$9(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
   function _assert_this_initialized$i(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -10767,19 +10767,19 @@ this.Scorm2004API = (function () {
       return object;
   }
   function _to_consumable_array$9(arr) {
-      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$9();
+      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$9();
   }
   function _type_of$J(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$e(o, minLen) {
+  function _unsupported_iterable_to_array$f(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
   }
   var __defProp$J = Object.defineProperty;
   var __defNormalProp$J = function __defNormalProp(obj, key, value) {
@@ -11412,6 +11412,7 @@ this.Scorm2004API = (function () {
           __publicField$J(_this, "_isAvailable", true);
           __publicField$J(_this, "_hideLmsUi", []);
           __publicField$J(_this, "_auxiliaryResources", []);
+          __publicField$J(_this, "_sharedDataMaps", []);
           __publicField$J(_this, "_attemptLimit", null);
           __publicField$J(_this, "_attemptAbsoluteDurationLimit", null);
           __publicField$J(_this, "_activityAbsoluteDurationLimit", null);
@@ -11437,12 +11438,6 @@ this.Scorm2004API = (function () {
               requiredForIncomplete: "always",
               measureSatisfactionIfActive: true
           });
-          // Individual rollup consideration properties for this activity (RB.1.4.2)
-          // These determine when THIS activity is included in parent rollup calculations
-          __publicField$J(_this, "_requiredForSatisfied", "always");
-          __publicField$J(_this, "_requiredForNotSatisfied", "always");
-          __publicField$J(_this, "_requiredForCompleted", "always");
-          __publicField$J(_this, "_requiredForIncomplete", "always");
           __publicField$J(_this, "_wasSkipped", false);
           __publicField$J(_this, "_attemptProgressStatus", false);
           __publicField$J(_this, "_wasAutoCompleted", false);
@@ -12582,37 +12577,37 @@ this.Scorm2004API = (function () {
      * Individual rollup consideration getters/setters (RB.1.4.2)
      * These control when THIS activity is included in parent rollup
      */ function get() {
-                  return this._requiredForSatisfied;
+                  return this._rollupConsiderations.requiredForSatisfied;
               },
               set: function set(value) {
-                  this._requiredForSatisfied = value;
+                  this._rollupConsiderations.requiredForSatisfied = value;
               }
           },
           {
               key: "requiredForNotSatisfied",
               get: function get() {
-                  return this._requiredForNotSatisfied;
+                  return this._rollupConsiderations.requiredForNotSatisfied;
               },
               set: function set(value) {
-                  this._requiredForNotSatisfied = value;
+                  this._rollupConsiderations.requiredForNotSatisfied = value;
               }
           },
           {
               key: "requiredForCompleted",
               get: function get() {
-                  return this._requiredForCompleted;
+                  return this._rollupConsiderations.requiredForCompleted;
               },
               set: function set(value) {
-                  this._requiredForCompleted = value;
+                  this._rollupConsiderations.requiredForCompleted = value;
               }
           },
           {
               key: "requiredForIncomplete",
               get: function get() {
-                  return this._requiredForIncomplete;
+                  return this._rollupConsiderations.requiredForIncomplete;
               },
               set: function set(value) {
-                  this._requiredForIncomplete = value;
+                  this._rollupConsiderations.requiredForIncomplete = value;
               }
           },
           {
@@ -13186,6 +13181,7 @@ this.Scorm2004API = (function () {
                       activityAttemptActive: this._activityAttemptActive,
                       isHiddenFromChoice: this._isHiddenFromChoice,
                       isAvailable: this._isAvailable,
+                      sharedDataMaps: this.sharedDataMaps,
                       rollupConsiderations: _object_spread$c({}, this._rollupConsiderations),
                       wasSkipped: this._wasSkipped,
                       attemptProgressStatus: this._attemptProgressStatus,
@@ -13409,6 +13405,7 @@ this.Scorm2004API = (function () {
                       auxiliaryResources: this._auxiliaryResources.map(function(resource) {
                           return _object_spread$c({}, resource);
                       }),
+                      sharedDataMaps: this.sharedDataMaps,
                       children: this._children.map(function(child) {
                           return child.toJSON();
                       })
@@ -13458,6 +13455,25 @@ this.Scorm2004API = (function () {
                       }
                   }
                   this._auxiliaryResources = sanitized;
+              }
+          },
+          {
+              key: "sharedDataMaps",
+              get: /** SCORM 2004 shared-data bucket mappings for this activity. */ function get() {
+                  return this._sharedDataMaps.map(function(map) {
+                      return _object_spread$c({}, map);
+                  });
+              },
+              set: function set(maps) {
+                  this._sharedDataMaps = (maps || []).filter(function(map) {
+                      return map && typeof map.targetID === "string" && map.targetID.length > 0;
+                  }).map(function(map) {
+                      return {
+                          targetID: map.targetID,
+                          readSharedData: map.readSharedData,
+                          writeSharedData: map.writeSharedData
+                      };
+                  });
               }
           },
           {
@@ -15394,6 +15410,21 @@ this.Scorm2004API = (function () {
           },
           {
               /**
+     * Read mapped global state into a newly initialized activity attempt.
+     *
+     * A read/write map normally suppresses reads while its activity is active so an in-progress
+     * attempt remains the source of the next write. During DB.2 delivery, however, the local
+     * attempt has just been initialized and must receive its mapped global state before content
+     * and sequencing inspect it.
+     *
+     * @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
+     */ key: "syncGlobalObjectivesDeliveryReadPhase",
+              value: function syncGlobalObjectivesDeliveryReadPhase(activity, globalObjectives) {
+                  return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, void 0, true);
+              }
+          },
+          {
+              /**
      * Read only objective fields freshly written by a terminating descendant.
      *
      * Active write-mapped objectives normally suppress reads so a new attempt cannot revive its
@@ -15409,6 +15440,7 @@ this.Scorm2004API = (function () {
           {
               key: "syncGlobalObjectivesReadPhaseInternal",
               value: function syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, writeTargets) {
+                  var allowActiveWriteMappedRead = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
                   var beforeStatus = activity.captureRollupStatus();
                   var beforeObjectiveSatisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
                   var objectives = activity.getAllObjectives();
@@ -15435,6 +15467,10 @@ this.Scorm2004API = (function () {
                                       restrictToFreshWrites: true,
                                       allowSatisfiedStatus: freshlyWroteSatisfiedStatus,
                                       allowNormalizedMeasure: freshlyWroteNormalizedMeasure
+                                  } : allowActiveWriteMappedRead ? {
+                                      restrictToFreshWrites: false,
+                                      allowSatisfiedStatus: true,
+                                      allowNormalizedMeasure: true
                                   } : void 0);
                                   this.applyGlobalObjectiveReadState(objective, readState);
                                   if (isPrimary) {
@@ -15883,13 +15919,13 @@ this.Scorm2004API = (function () {
       return GlobalObjectiveSynchronizer;
   }();
 
-  function _array_like_to_array$d(arr, len) {
+  function _array_like_to_array$e(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$8(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
   }
   function _class_call_check$E(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -15922,19 +15958,19 @@ this.Scorm2004API = (function () {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$8(arr) {
-      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$8();
+      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$8();
   }
   function _type_of$B(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$d(o, minLen) {
+  function _unsupported_iterable_to_array$e(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
   }
   var __defProp$B = Object.defineProperty;
   var __defNormalProp$B = function __defNormalProp(obj, key, value) {
@@ -16297,6 +16333,20 @@ this.Scorm2004API = (function () {
           },
           {
               /**
+     * Restore an activity's read-mapped objective state after new-attempt initialization.
+     *
+     * DB.2 initializes attempt-scoped local objectives, while objective maps remain available
+     * across activities. Reapply the read phase before sequencing rules and navigation validity
+     * inspect the delivered attempt.
+     *
+     * @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
+     */ key: "syncActivityObjectivesFromGlobals",
+              value: function syncActivityObjectivesFromGlobals(activity, globalObjectives) {
+                  return this.globalObjectiveSynchronizer.syncGlobalObjectivesDeliveryReadPhase(activity, globalObjectives);
+              }
+          },
+          {
+              /**
      * Apply a terminating descendant's fresh objective writes to an active ancestor.
      *
      * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
@@ -16636,6 +16686,8 @@ this.Scorm2004API = (function () {
                           var normalizedScore = 0;
                           var hasCompletionStatus = false;
                           var hasProgressMeasure = false;
+                          var topLevelCompletionStatus = validateCompletionStatus(cmiData.completion_status);
+                          var topLevelPrimaryCompletionWasSet = cmiData.completion_status_was_set === true || cmiData.completion_status_was_set === void 0 && topLevelCompletionStatus !== null && topLevelCompletionStatus !== CompletionStatus.UNKNOWN;
                           var topLevelSuccessStatus = validateSuccessStatus(cmiData.success_status);
                           var topLevelPrimarySuccessWasSet = cmiData.success_status_was_set === true || cmiData.success_status_was_set === void 0 && topLevelSuccessStatus !== null && topLevelSuccessStatus !== SuccessStatus.UNKNOWN;
                           var topLevelPrimaryScoreWasSet = cmiData.score_was_set === true || cmiData.score_was_set === void 0 && cmiData.score !== void 0 && this.normalizeScore(cmiData.score) !== null;
@@ -16654,7 +16706,7 @@ this.Scorm2004API = (function () {
                                   activityObjective.initializeUnknownCompletionStatusFromCMI();
                                   hasCompletionStatus = true;
                               }
-                          } else if (validatedObjCompletionStatus !== null) {
+                          } else if (validatedObjCompletionStatus !== null && (cmiObjective.completion_status_was_set !== false || !isPrimaryObjective || !topLevelPrimaryCompletionWasSet)) {
                               activityObjective.completionStatus = validatedObjCompletionStatus;
                               hasCompletionStatus = true;
                           }
@@ -17746,13 +17798,13 @@ this.Scorm2004API = (function () {
       return TerminationHandler;
   }();
 
-  function _array_like_to_array$c(arr, len) {
+  function _array_like_to_array$d(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$7(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$c(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
   }
   function _class_call_check$A(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -17805,19 +17857,19 @@ this.Scorm2004API = (function () {
       return target;
   }
   function _to_consumable_array$7(arr) {
-      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$c(arr) || _non_iterable_spread$7();
+      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$7();
   }
   function _type_of$x(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$c(o, minLen) {
+  function _unsupported_iterable_to_array$d(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
   }
   var __defProp$x = Object.defineProperty;
   var __defNormalProp$x = function __defNormalProp(obj, key, value) {
@@ -18003,6 +18055,7 @@ this.Scorm2004API = (function () {
                           }
                       }
                       var activityPath = this.getActivityPath(activity, true);
+                      var newAttemptActivities = [];
                       var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                       try {
                           for(var _iterator = activityPath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
@@ -18013,6 +18066,7 @@ this.Scorm2004API = (function () {
                                   } else {
                                       pathActivity.incrementAttemptCount();
                                       pathActivity.initializeTrackingForNewAttempt();
+                                      newAttemptActivities.push(pathActivity);
                                       pathActivity.objectiveInfoAvailableInCurrentParentAttempt = true;
                                       pathActivity.progressInfoAvailableInCurrentParentAttempt = true;
                                       var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
@@ -18020,7 +18074,7 @@ this.Scorm2004API = (function () {
                                           for(var _iterator1 = pathActivity.children[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
                                               var child = _step1.value;
                                               if (pathActivity.sequencingControls.useCurrentAttemptObjectiveInfo) {
-                                                  child.objectiveInfoAvailableInCurrentParentAttempt = false;
+                                                  child.objectiveInfoAvailableInCurrentParentAttempt = this.hasKnownReadMappedObjective(child);
                                               }
                                               if (pathActivity.sequencingControls.useCurrentAttemptProgressInfo) {
                                                   child.progressInfoAvailableInCurrentParentAttempt = false;
@@ -18059,6 +18113,27 @@ this.Scorm2004API = (function () {
                               }
                           }
                       }
+                      var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                      try {
+                          for(var _iterator2 = newAttemptActivities[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                              var pathActivity1 = _step2.value;
+                              var _this_rollupProcess;
+                              (_this_rollupProcess = this.rollupProcess) === null || _this_rollupProcess === void 0 ? void 0 : _this_rollupProcess.syncActivityObjectivesFromGlobals(pathActivity1, this.globalObjectiveMap);
+                          }
+                      } catch (err) {
+                          _didIteratorError2 = true;
+                          _iteratorError2 = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                  _iterator2.return();
+                              }
+                          } finally{
+                              if (_didIteratorError2) {
+                                  throw _iteratorError2;
+                              }
+                          }
+                      }
                       this.activityTree.currentActivity = activity;
                       this.initializeForDelivery(activity);
                       this.setupAttemptTracking(activity);
@@ -18070,6 +18145,21 @@ this.Scorm2004API = (function () {
                   } finally{
                       this._deliveryInProgress = false;
                   }
+              }
+          },
+          {
+              key: "hasKnownReadMappedObjective",
+              value: function hasKnownReadMappedObjective(activity) {
+                  var _this = this;
+                  var primaryObjective = activity.primaryObjective;
+                  if (!primaryObjective) {
+                      return false;
+                  }
+                  return primaryObjective.mapInfo.some(function(mapInfo) {
+                      var targetId = mapInfo.targetObjectiveID || primaryObjective.id;
+                      var globalObjective = _this.globalObjectiveMap.get(targetId);
+                      return mapInfo.readSatisfiedStatus !== false && (globalObjective === null || globalObjective === void 0 ? void 0 : globalObjective.satisfiedStatusKnown) === true || mapInfo.readNormalizedMeasure !== false && (globalObjective === null || globalObjective === void 0 ? void 0 : globalObjective.normalizedMeasureKnown) === true;
+                  });
               }
           },
           {
@@ -19642,12 +19732,12 @@ this.Scorm2004API = (function () {
       return NavigationValidityService;
   }();
 
-  function _array_like_to_array$b(arr, len) {
+  function _array_like_to_array$c(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$7(arr) {
+  function _array_with_holes$8(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$x(instance, Constructor) {
@@ -19683,7 +19773,7 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array_limit$7(arr, i) {
+  function _iterable_to_array_limit$8(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -19707,7 +19797,7 @@ this.Scorm2004API = (function () {
       }
       return _arr;
   }
-  function _non_iterable_rest$7() {
+  function _non_iterable_rest$8() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$9(target) {
@@ -19743,20 +19833,20 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _sliced_to_array$7(arr, i) {
-      return _array_with_holes$7(arr) || _iterable_to_array_limit$7(arr, i) || _unsupported_iterable_to_array$b(arr, i) || _non_iterable_rest$7();
+  function _sliced_to_array$8(arr, i) {
+      return _array_with_holes$8(arr) || _iterable_to_array_limit$8(arr, i) || _unsupported_iterable_to_array$c(arr, i) || _non_iterable_rest$8();
   }
   function _type_of$u(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$b(o, minLen) {
+  function _unsupported_iterable_to_array$c(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$b(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$b(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
   }
   var __defProp$u = Object.defineProperty;
   var __defNormalProp$u = function __defNormalProp(obj, key, value) {
@@ -20057,7 +20147,7 @@ this.Scorm2004API = (function () {
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = Object.entries(mapData)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var _step_value = _sliced_to_array$7(_step.value, 2), id = _step_value[0], data = _step_value[1];
+                          var _step_value = _sliced_to_array$8(_step.value, 2), id = _step_value[0], data = _step_value[1];
                           this.globalObjectiveMap.set(id, _object_spread$9({}, data));
                       }
                   } catch (err) {
@@ -20607,13 +20697,13 @@ this.Scorm2004API = (function () {
       return SequencingStateManager;
   }();
 
-  function _array_like_to_array$a(arr, len) {
+  function _array_like_to_array$b(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$6(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$a(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$b(arr);
   }
   function _class_call_check$v(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -20640,19 +20730,19 @@ this.Scorm2004API = (function () {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$6(arr) {
-      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$a(arr) || _non_iterable_spread$6();
+      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$b(arr) || _non_iterable_spread$6();
   }
   function _type_of$s(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$a(o, minLen) {
+  function _unsupported_iterable_to_array$b(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$a(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$b(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$a(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$b(o, minLen);
   }
   var __defProp$s = Object.defineProperty;
   var __defNormalProp$s = function __defNormalProp(obj, key, value) {
@@ -21773,6 +21863,15 @@ this.Scorm2004API = (function () {
                               navResult.sequencingRequest = termResult.sequencingRequest;
                           }
                       }
+                      if (termResult.terminationRequest === SequencingRequestType.EXIT_ALL && termResult.sequencingRequest === SequencingRequestType.EXIT) {
+                          navResult.sequencingRequest = null;
+                          return {
+                              navigationRequest: navigationRequest,
+                              navResult: navResult,
+                              deliveryRequest: null,
+                              sessionEndReason: "exit_all"
+                          };
+                      }
                       if (!navResult.sequencingRequest) {
                           var sessionEndReason = navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL ? "abandon_all" : null;
                           return {
@@ -21803,13 +21902,14 @@ this.Scorm2004API = (function () {
                   if (prepared.deliveryRequest) {
                       return prepared.deliveryRequest;
                   }
+                  if (prepared.sessionEndReason) {
+                      this.fireEvent("onSequencingSessionEnd", {
+                          reason: prepared.sessionEndReason,
+                          navigationRequest: navigationRequest
+                      });
+                      return new DeliveryRequest(true, null);
+                  }
                   if (!navResult.sequencingRequest) {
-                      if (prepared.sessionEndReason) {
-                          this.fireEvent("onSequencingSessionEnd", {
-                              reason: prepared.sessionEndReason,
-                              navigationRequest: navigationRequest
-                          });
-                      }
                       return new DeliveryRequest(true, null);
                   }
                   var seqResult = this.sequencingProcess.sequencingRequestProcess(navResult.sequencingRequest, navResult.targetActivityId);
@@ -22174,16 +22274,16 @@ this.Scorm2004API = (function () {
       return OverallSequencingProcess;
   }();
 
-  function _array_like_to_array$9(arr, len) {
+  function _array_like_to_array$a(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$6(arr) {
+  function _array_with_holes$7(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _array_without_holes$5(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$9(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$a(arr);
   }
   function _class_call_check$t(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -22217,7 +22317,7 @@ this.Scorm2004API = (function () {
           return Array.from(iter);
       }
   }
-  function _iterable_to_array_limit$6(arr, i) {
+  function _iterable_to_array_limit$7(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -22241,7 +22341,7 @@ this.Scorm2004API = (function () {
       }
       return _arr;
   }
-  function _non_iterable_rest$6() {
+  function _non_iterable_rest$7() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$5() {
@@ -22262,23 +22362,23 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _sliced_to_array$6(arr, i) {
-      return _array_with_holes$6(arr) || _iterable_to_array_limit$6(arr, i) || _unsupported_iterable_to_array$9(arr, i) || _non_iterable_rest$6();
+  function _sliced_to_array$7(arr, i) {
+      return _array_with_holes$7(arr) || _iterable_to_array_limit$7(arr, i) || _unsupported_iterable_to_array$a(arr, i) || _non_iterable_rest$7();
   }
   function _to_consumable_array$5(arr) {
-      return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$9(arr) || _non_iterable_spread$5();
+      return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$a(arr) || _non_iterable_spread$5();
   }
   function _type_of$q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$9(o, minLen) {
+  function _unsupported_iterable_to_array$a(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$9(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$a(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$9(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$a(o, minLen);
   }
   var __defProp$q = Object.defineProperty;
   var __defNormalProp$q = function __defNormalProp(obj, key, value) {
@@ -22535,6 +22635,8 @@ this.Scorm2004API = (function () {
                       this.log("info", "Navigation request '".concat(request, "' resulted in activity delivery: ").concat(deliveryRequest.targetActivity.id));
                       return true;
                   } else {
+                      var _this_overallSequencingProcess1;
+                      (_this_overallSequencingProcess1 = this.overallSequencingProcess) === null || _this_overallSequencingProcess1 === void 0 ? void 0 : _this_overallSequencingProcess1.updateNavigationValidity();
                       if (deliveryRequest.exception) {
                           this.log("warn", "Navigation request '".concat(request, "' failed: ").concat(deliveryRequest.exception));
                           this.fireEvent("onSequencingError", deliveryRequest.exception, "navigation");
@@ -22807,13 +22909,14 @@ this.Scorm2004API = (function () {
      */ key: "getCMIDataForTransfer",
               value: function getCMIDataForTransfer() {
                   var _this = this;
-                  var _this_configuration_wasCMIElementSetByContent, _this_configuration, _this_cmi_score, _this_cmi_score1, _this_cmi_score2, _this_cmi_score3;
+                  var _this_configuration_wasCMIElementSetByContent, _this_configuration, _this_configuration_wasCMIElementSetByContent1, _this_configuration1, _this_cmi_score, _this_cmi_score1, _this_cmi_score2, _this_cmi_score3;
                   var cmiData = {
                       completion_status: this.cmi.completion_status,
+                      completion_status_was_set: ((_this_configuration_wasCMIElementSetByContent = (_this_configuration = this.configuration).wasCMIElementSetByContent) === null || _this_configuration_wasCMIElementSetByContent === void 0 ? void 0 : _this_configuration_wasCMIElementSetByContent.call(_this_configuration, "cmi.completion_status")) === true,
                       success_status: this.cmi.success_status,
                       // @spec SCORM 2004 4th Ed. SN 3.13.3 - auto-satisfaction applies only
                       // when content did not communicate primary-objective success information.
-                      success_status_was_set: ((_this_configuration_wasCMIElementSetByContent = (_this_configuration = this.configuration).wasCMIElementSetByContent) === null || _this_configuration_wasCMIElementSetByContent === void 0 ? void 0 : _this_configuration_wasCMIElementSetByContent.call(_this_configuration, "cmi.success_status")) === true,
+                      success_status_was_set: ((_this_configuration_wasCMIElementSetByContent1 = (_this_configuration1 = this.configuration).wasCMIElementSetByContent) === null || _this_configuration_wasCMIElementSetByContent1 === void 0 ? void 0 : _this_configuration_wasCMIElementSetByContent1.call(_this_configuration1, "cmi.success_status")) === true,
                       // @spec SCORM 2004 4th Ed. TR OB-03b / SN UP.4 - a SCO-provided
                       // primary score is objective information for the End Attempt process.
                       score_was_set: [
@@ -22838,7 +22941,7 @@ this.Scorm2004API = (function () {
                       var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                       try {
                           var _this1, _loop = function() {
-                              var _step_value = _sliced_to_array$6(_step.value, 2), objectiveIndex = _step_value[0], baseCmiObj = _step_value[1];
+                              var _step_value = _sliced_to_array$7(_step.value, 2), objectiveIndex = _step_value[0], baseCmiObj = _step_value[1];
                               var cmiObjective = baseCmiObj;
                               if (cmiObjective.id) {
                                   var _this_configuration_wasCMIElementSetByContent, _this_configuration, _this_configuration_wasCMIElementSetByContent1, _this_configuration1, _cmiObjective_score, _cmiObjective_score1, _cmiObjective_score2, _cmiObjective_score3;
@@ -23444,12 +23547,12 @@ this.Scorm2004API = (function () {
       return SerializationService;
   }();
 
-  function _array_like_to_array$8(arr, len) {
+  function _array_like_to_array$9(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$5(arr) {
+  function _array_with_holes$6(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$r(instance, Constructor) {
@@ -23474,7 +23577,7 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array_limit$5(arr, i) {
+  function _iterable_to_array_limit$6(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -23498,23 +23601,23 @@ this.Scorm2004API = (function () {
       }
       return _arr;
   }
-  function _non_iterable_rest$5() {
+  function _non_iterable_rest$6() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _sliced_to_array$5(arr, i) {
-      return _array_with_holes$5(arr) || _iterable_to_array_limit$5(arr, i) || _unsupported_iterable_to_array$8(arr, i) || _non_iterable_rest$5();
+  function _sliced_to_array$6(arr, i) {
+      return _array_with_holes$6(arr) || _iterable_to_array_limit$6(arr, i) || _unsupported_iterable_to_array$9(arr, i) || _non_iterable_rest$6();
   }
   function _type_of$p(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$8(o, minLen) {
+  function _unsupported_iterable_to_array$9(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$8(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$9(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$8(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$9(o, minLen);
   }
   var __defProp$p = Object.defineProperty;
   var __defNormalProp$p = function __defNormalProp(obj, key, value) {
@@ -23616,7 +23719,7 @@ this.Scorm2004API = (function () {
                   xhr.open("POST", url, false);
                   xhr.setRequestHeader("Content-Type", contentType);
                   Object.entries(this.settings.xhrHeaders).forEach(function(param) {
-                      var _param = _sliced_to_array$5(param, 2), key = _param[0], value = _param[1];
+                      var _param = _sliced_to_array$6(param, 2), key = _param[0], value = _param[1];
                       xhr.setRequestHeader(key, String(value));
                   });
                   if (this.settings.xhrWithCredentials) {
@@ -23795,13 +23898,13 @@ this.Scorm2004API = (function () {
   }();
   var validationService = new ValidationService();
 
-  function _array_like_to_array$7(arr, len) {
+  function _array_like_to_array$8(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$4(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$7(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$8(arr);
   }
   function _class_call_check$p(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -23878,19 +23981,19 @@ this.Scorm2004API = (function () {
       return target;
   }
   function _to_consumable_array$4(arr) {
-      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$7(arr) || _non_iterable_spread$4();
+      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$8(arr) || _non_iterable_spread$4();
   }
   function _type_of$o(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$7(o, minLen) {
+  function _unsupported_iterable_to_array$8(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$7(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$8(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$7(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$8(o, minLen);
   }
   var __defProp$o = Object.defineProperty;
   var __defNormalProp$o = function __defNormalProp(obj, key, value) {
@@ -25482,12 +25585,12 @@ this.Scorm2004API = (function () {
       ];
   }
 
-  function _array_like_to_array$6(arr, len) {
+  function _array_like_to_array$7(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$4(arr) {
+  function _array_with_holes$5(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _assert_this_initialized$g(self) {
@@ -25554,7 +25657,7 @@ this.Scorm2004API = (function () {
           return !!result;
       })();
   }
-  function _iterable_to_array_limit$4(arr, i) {
+  function _iterable_to_array_limit$5(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -25578,7 +25681,7 @@ this.Scorm2004API = (function () {
       }
       return _arr;
   }
-  function _non_iterable_rest$4() {
+  function _non_iterable_rest$5() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _possible_constructor_return$g(self, call) {
@@ -25592,8 +25695,8 @@ this.Scorm2004API = (function () {
       };
       return _set_prototype_of$g(o, p);
   }
-  function _sliced_to_array$4(arr, i) {
-      return _array_with_holes$4(arr) || _iterable_to_array_limit$4(arr, i) || _unsupported_iterable_to_array$6(arr, i) || _non_iterable_rest$4();
+  function _sliced_to_array$5(arr, i) {
+      return _array_with_holes$5(arr) || _iterable_to_array_limit$5(arr, i) || _unsupported_iterable_to_array$7(arr, i) || _non_iterable_rest$5();
   }
   function _super_prop_base$7(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
@@ -25606,13 +25709,13 @@ this.Scorm2004API = (function () {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$6(o, minLen) {
+  function _unsupported_iterable_to_array$7(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$6(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$7(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$7(o, minLen);
   }
   var __defProp$m = Object.defineProperty;
   var __defNormalProp$m = function __defNormalProp(obj, key, value) {
@@ -26141,7 +26244,7 @@ this.Scorm2004API = (function () {
                           if (parts.length !== 2) {
                               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
                           }
-                          var _parts = _sliced_to_array$4(parts, 2), part1 = _parts[0], part2 = _parts[1];
+                          var _parts = _sliced_to_array$5(parts, 2), part1 = _parts[0], part2 = _parts[1];
                           if (part1 === "" && part2 === "") {
                               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
                           }
@@ -29046,6 +29149,14 @@ this.Scorm2004API = (function () {
       return CMI;
   }(BaseRootCMI);
 
+  function _array_like_to_array$6(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_with_holes$4(arr) {
+      if (Array.isArray(arr)) return arr;
+  }
   function _assert_this_initialized$3(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -29121,6 +29232,33 @@ this.Scorm2004API = (function () {
           return !!result;
       })();
   }
+  function _iterable_to_array_limit$4(arr, i) {
+      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+      if (_i == null) return;
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _s, _e;
+      try {
+          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
+              _arr.push(_s.value);
+              if (i && _arr.length === i) break;
+          }
+      } catch (err) {
+          _d = true;
+          _e = err;
+      } finally{
+          try {
+              if (!_n && _i["return"] != null) _i["return"]();
+          } finally{
+              if (_d) throw _e;
+          }
+      }
+      return _arr;
+  }
+  function _non_iterable_rest$4() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
   function _object_spread$6(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
@@ -29147,6 +29285,9 @@ this.Scorm2004API = (function () {
       };
       return _set_prototype_of$3(o, p);
   }
+  function _sliced_to_array$4(arr, i) {
+      return _array_with_holes$4(arr) || _iterable_to_array_limit$4(arr, i) || _unsupported_iterable_to_array$6(arr, i) || _non_iterable_rest$4();
+  }
   function _super_prop_base$3(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
           object = _get_prototype_of$3(object);
@@ -29157,6 +29298,14 @@ this.Scorm2004API = (function () {
   function _type_of$9(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$6(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$6(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
   }
   var __defProp$9 = Object.defineProperty;
   var __defNormalProp$9 = function __defNormalProp(obj, key, value) {
@@ -29181,6 +29330,7 @@ this.Scorm2004API = (function () {
           __publicField$9(_this, "nav");
           __publicField$9(_this, "data", new ADLData());
           __publicField$9(_this, "_sequencing", null);
+          __publicField$9(_this, "_sharedDataStores", /* @__PURE__ */ Object.create(null));
           _this.nav = new ADLNav();
           _this.data = new ADLData();
           return _this;
@@ -29191,9 +29341,10 @@ this.Scorm2004API = (function () {
      * Called when the API has been initialized after the CMI has been created
      */ key: "initialize",
               value: function initialize() {
-                  var _this_nav;
+                  var _this_nav, _this_data;
                   _get$3(_get_prototype_of$3(ADL.prototype), "initialize", this).call(this);
                   (_this_nav = this.nav) === null || _this_nav === void 0 ? void 0 : _this_nav.initialize();
+                  (_this_data = this.data) === null || _this_data === void 0 ? void 0 : _this_data.initialize();
               }
           },
           {
@@ -29201,9 +29352,148 @@ this.Scorm2004API = (function () {
      * Called when the API needs to be reset
      */ key: "reset",
               value: function reset() {
-                  var _this_nav;
+                  var _this_nav, _this_data;
                   this._initialized = false;
                   (_this_nav = this.nav) === null || _this_nav === void 0 ? void 0 : _this_nav.reset();
+                  (_this_data = this.data) === null || _this_data === void 0 ? void 0 : _this_data.reset();
+              }
+          },
+          {
+              /**
+     * Configure the adl.data view for the activity being delivered.
+     *
+     * ADL data stores are keyed by the manifest targetID, while the RTE exposes
+     * only the mappings for the currently delivered activity as adl.data.n.
+     * Rebuilding that view is therefore safe: values live in this ADL-owned
+     * backing map and survive SCO reset/navigation.
+     */ key: "configureSharedDataMaps",
+              value: function configureSharedDataMaps() {
+                  var maps = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : [];
+                  this.captureVisibleSharedData();
+                  this.data.configure(maps, this._sharedDataStores);
+              }
+          },
+          {
+              key: "captureSharedDataSnapshot",
+              value: function captureSharedDataSnapshot() {
+                  this.captureVisibleSharedData();
+                  return _object_spread$6({}, this._sharedDataStores);
+              }
+          },
+          {
+              /** Capture only initialized stores this activity is allowed to write. */ key: "captureWritableSharedDataSnapshot",
+              value: function captureWritableSharedDataSnapshot() {
+                  this.captureVisibleSharedData();
+                  var writableStores = {};
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = this.data.childArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          var dataObject = child;
+                          if (dataObject.id && dataObject.storeIsSet && dataObject.writeSharedData) {
+                              writableStores[dataObject.id] = dataObject.storeValue;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return writableStores;
+              }
+          },
+          {
+              key: "restoreSharedDataSnapshot",
+              value: function restoreSharedDataSnapshot(snapshot) {
+                  if (!snapshot || (typeof snapshot === "undefined" ? "undefined" : _type_of$9(snapshot)) !== "object") {
+                      return;
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = Object.keys(this._sharedDataStores)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var targetID = _step.value;
+                          delete this._sharedDataStores[targetID];
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                  try {
+                      for(var _iterator1 = Object.entries(snapshot)[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                          var _step_value = _sliced_to_array$4(_step1.value, 2), targetID1 = _step_value[0], store = _step_value[1];
+                          if (typeof targetID1 === "string" && typeof store === "string") {
+                              this._sharedDataStores[targetID1] = store;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError1 = true;
+                      _iteratorError1 = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                              _iterator1.return();
+                          }
+                      } finally{
+                          if (_didIteratorError1) {
+                              throw _iteratorError1;
+                          }
+                      }
+                  }
+                  this.data.refreshStores(this._sharedDataStores);
+              }
+          },
+          {
+              key: "isConfiguredSharedDataElement",
+              value: function isConfiguredSharedDataElement(CMIElement) {
+                  return this.data.isConfiguredElement(CMIElement);
+              }
+          },
+          {
+              key: "captureVisibleSharedData",
+              value: function captureVisibleSharedData() {
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = this.data.childArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          var dataObject = child;
+                          if (dataObject.id && dataObject.storeIsSet) {
+                              this._sharedDataStores[dataObject.id] = dataObject.storeValue;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
               }
           },
           {
@@ -29286,7 +29576,9 @@ this.Scorm2004API = (function () {
               value: function initialize() {
                   var _this_request_valid;
                   _get$3(_get_prototype_of$3(ADLNav.prototype), "initialize", this).call(this);
-                  (_this_request_valid = this.request_valid) === null || _this_request_valid === void 0 ? void 0 : _this_request_valid.initialize();
+                  if (typeof ((_this_request_valid = this.request_valid) === null || _this_request_valid === void 0 ? void 0 : _this_request_valid.initialize) === "function") {
+                      this.request_valid.initialize();
+                  }
               }
           },
           {
@@ -29356,11 +29648,124 @@ this.Scorm2004API = (function () {
               }
           ]);
       }
+      _create_class$a(ADLData, [
+          {
+              key: "initialize",
+              value: function initialize() {
+                  _get$3(_get_prototype_of$3(ADLData.prototype), "initialize", this).call(this);
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = this.childArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          child.initialize();
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              key: "reset",
+              value: function reset() {
+                  var wipe = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
+                  this._initialized = false;
+                  if (wipe) {
+                      this.childArray = [];
+                      return;
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = this.childArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          child.deinitialize();
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              key: "configure",
+              value: function configure(maps, stores) {
+                  var _this = this;
+                  this.childArray = maps.map(function(map) {
+                      var child = new ADLDataObject();
+                      var storeIsSet = Object.prototype.hasOwnProperty.call(stores, map.targetID);
+                      child.configure(map.targetID, storeIsSet ? stores[map.targetID] : "", map.readSharedData, map.writeSharedData, storeIsSet, function(value) {
+                          stores[map.targetID] = value;
+                      });
+                      if (_this.initialized) {
+                          child.initialize();
+                      }
+                      return child;
+                  });
+              }
+          },
+          {
+              key: "refreshStores",
+              value: function refreshStores(stores) {
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = this.childArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          var dataObject = child;
+                          var storeIsSet = Object.prototype.hasOwnProperty.call(stores, dataObject.id);
+                          dataObject.refreshStore(storeIsSet ? stores[dataObject.id] : "", storeIsSet);
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              key: "isConfiguredElement",
+              value: function isConfiguredElement(CMIElement) {
+                  var match = /^adl\.data\.(\d+)\.store$/.exec(CMIElement);
+                  if (!match) return false;
+                  var index = Number(match[1]);
+                  return Number.isInteger(index) && index >= 0 && index < this.childArray.length;
+              }
+          }
+      ]);
       return ADLData;
   }(CMIArray);
   var ADLDataObject = /*#__PURE__*/ function(BaseCMI) {
       _inherits$3(ADLDataObject, BaseCMI);
       function ADLDataObject() {
+          var allowStoreWithoutId = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
           _class_call_check$a(this, ADLDataObject);
           var _this;
           _this = _call_super$3(this, ADLDataObject, [
@@ -29370,6 +29775,11 @@ this.Scorm2004API = (function () {
           __publicField$9(_this, "_store", "");
           __publicField$9(_this, "_idIsSet", false);
           __publicField$9(_this, "_storeIsSet", false);
+          __publicField$9(_this, "_readSharedData", true);
+          __publicField$9(_this, "_writeSharedData", true);
+          __publicField$9(_this, "_onStoreChange", null);
+          __publicField$9(_this, "_allowStoreWithoutId");
+          _this._allowStoreWithoutId = allowStoreWithoutId;
           return _this;
       }
       _create_class$a(ADLDataObject, [
@@ -29381,6 +29791,31 @@ this.Scorm2004API = (function () {
                   this._initialized = false;
                   this._idIsSet = false;
                   this._storeIsSet = false;
+              }
+          },
+          {
+              key: "configure",
+              value: function configure(id, store, readSharedData, writeSharedData, storeIsSet, onStoreChange) {
+                  this._id = id;
+                  this._store = store !== null && store !== void 0 ? store : "";
+                  this._idIsSet = true;
+                  this._storeIsSet = storeIsSet;
+                  this._readSharedData = readSharedData;
+                  this._writeSharedData = writeSharedData;
+                  this._onStoreChange = onStoreChange;
+              }
+          },
+          {
+              key: "refreshStore",
+              value: function refreshStore(store, storeIsSet) {
+                  this._store = store;
+                  this._storeIsSet = storeIsSet;
+              }
+          },
+          {
+              /** End the SCO session without discarding this LMS-configured bucket. */ key: "deinitialize",
+              value: function deinitialize() {
+                  this._initialized = false;
               }
           },
           {
@@ -29412,6 +29847,9 @@ this.Scorm2004API = (function () {
      * Per SCORM 2004 4th Ed: returns error 403 if store not initialized
      * @return {string}
      */ function get() {
+                  if (this.initialized && !this._readSharedData) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".store", scorm2004_errors.WRITE_ONLY_ELEMENT);
+                  }
                   if (this.initialized && !this._storeIsSet) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".store", scorm2004_errors.VALUE_NOT_INITIALIZED);
                   }
@@ -29423,13 +29861,36 @@ this.Scorm2004API = (function () {
      * Per SCORM 2004 4th Ed SPM: store max length is 64000 characters
      * @param {string} store
      */ function set(store) {
-                  if (this.initialized && !this._idIsSet) {
+                  if (this.initialized && !this._writeSharedData) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".store", scorm2004_errors.READ_ONLY_ELEMENT);
+                  }
+                  if (this.initialized && !this._allowStoreWithoutId && !this._idIsSet) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".store", scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
                   }
-                  if (check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMIString64000)) {
+                  if (check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMIString64000, true)) {
+                      var _this__onStoreChange, _this;
                       this._store = store;
                       this._storeIsSet = true;
+                      (_this__onStoreChange = (_this = this)._onStoreChange) === null || _this__onStoreChange === void 0 ? void 0 : _this__onStoreChange.call(_this, store);
                   }
+              }
+          },
+          {
+              key: "storeValue",
+              get: /** Internal value access used while rotating the mapped view. */ function get() {
+                  return this._store;
+              }
+          },
+          {
+              key: "storeIsSet",
+              get: /** Whether the LMS has initialized this mapped store. */ function get() {
+                  return this._storeIsSet;
+              }
+          },
+          {
+              key: "writeSharedData",
+              get: /** Whether the current activity may write this shared-data bucket. */ function get() {
+                  return this._writeSharedData;
               }
           },
           {
@@ -31106,7 +31567,7 @@ this.Scorm2004API = (function () {
                       return new CMICommentsObject(true);
                   }
                   if (stringMatches(CMIElement, "adl\\.data\\.\\d+")) {
-                      return new ADLDataObject();
+                      return new ADLDataObject(true);
                   }
                   return null;
               }
@@ -32447,6 +32908,16 @@ this.Scorm2004API = (function () {
                           activity.auxiliaryResources = this.sequencingConfigBuilder.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
                       }
                   }
+                  if (activitySettings.sharedDataMaps) {
+                      activity.sharedDataMaps = activitySettings.sharedDataMaps.map(function(map) {
+                          var _map_readSharedData, _map_writeSharedData;
+                          return {
+                              targetID: map.targetID,
+                              readSharedData: (_map_readSharedData = map.readSharedData) !== null && _map_readSharedData !== void 0 ? _map_readSharedData : true,
+                              writeSharedData: (_map_writeSharedData = map.writeSharedData) !== null && _map_writeSharedData !== void 0 ? _map_writeSharedData : false
+                          };
+                      });
+                  }
                   if (activitySettings.children) {
                       var _iteratorNormalCompletion4 = true, _didIteratorError4 = false, _iteratorError4 = undefined;
                       try {
@@ -33701,6 +34172,7 @@ this.Scorm2004API = (function () {
                           request: this.context.adl.nav.request,
                           request_valid: this.context.adl.nav.request_valid
                       },
+                      sharedData: typeof this.context.adl.captureSharedDataSnapshot === "function" ? this.context.adl.captureSharedDataSnapshot() : {},
                       contentDelivered: false
                   };
                   if (this.context.sequencingService) {
@@ -33816,6 +34288,13 @@ this.Scorm2004API = (function () {
                                   _this.globalObjectiveManager.updateGlobalObjectiveFromCMI(objective.id, objective);
                               }
                           });
+                      }
+                      if (state.sharedData && _type_of$2(state.sharedData) === "object" && typeof this.context.adl.restoreSharedDataSnapshot === "function") {
+                          this.context.adl.restoreSharedDataSnapshot(state.sharedData);
+                      }
+                      var restoredActivity = this.context.sequencing.getCurrentActivity();
+                      if (restoredActivity && typeof this.context.adl.configureSharedDataMaps === "function") {
+                          this.context.adl.configureSharedDataMaps(restoredActivity.sharedDataMaps);
                       }
                       if (state.adlNavState) {
                           this.context.adl.nav.request = state.adlNavState.request || "_none_";
@@ -33977,15 +34456,10 @@ this.Scorm2004API = (function () {
      */ key: "renderCommitCMI",
               value: function renderCommitCMI(terminateCommit) {
                   var includeTotalTime = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false;
-                  var cmiExport = this.context.renderCMIToJSONObject();
-                  if (terminateCommit || includeTotalTime) {
-                      cmiExport.cmi.total_time = this.context.cmi.getCurrentTotalTime();
-                  } else {
-                      delete cmiExport.cmi.total_time;
-                  }
+                  var cmiExport = this.renderCMIExport(terminateCommit, includeTotalTime);
+                  var sharedData = this.captureSharedData();
                   var flattened = flatten(cmiExport);
-                  var settings = this.context.getSettings();
-                  switch(settings.dataCommitFormat){
+                  switch(this.context.getSettings().dataCommitFormat){
                       case "flattened":
                           return flattened;
                       case "params":
@@ -33995,8 +34469,38 @@ this.Scorm2004API = (function () {
                           });
                       case "json":
                       default:
+                          if (sharedData) {
+                              cmiExport.sharedData = sharedData;
+                          }
                           return cmiExport;
                   }
+              }
+          },
+          {
+              /** Render the runtime CMI envelope without compact-commit metadata. */ key: "renderCMIExport",
+              value: function renderCMIExport(terminateCommit, includeTotalTime) {
+                  var cmiExport = this.context.renderCMIToJSONObject();
+                  if (this.context.adl && this.context.adl.data._count > 0) {
+                      cmiExport.adl = {
+                          data: JSON.parse(JSON.stringify(this.context.adl.data))
+                      };
+                  }
+                  if (terminateCommit || includeTotalTime) {
+                      cmiExport.cmi.total_time = this.context.cmi.getCurrentTotalTime();
+                  } else {
+                      delete cmiExport.cmi.total_time;
+                  }
+                  return cmiExport;
+              }
+          },
+          {
+              key: "captureSharedData",
+              value: function captureSharedData() {
+                  if (!this.context.adl || typeof this.context.adl.captureWritableSharedDataSnapshot !== "function") {
+                      return null;
+                  }
+                  var sharedData = this.context.adl.captureWritableSharedDataSnapshot();
+                  return Object.keys(sharedData).length > 0 ? sharedData : null;
               }
           },
           {
@@ -34010,6 +34514,9 @@ this.Scorm2004API = (function () {
                   var includeTotalTime = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false;
                   var _this_context_sequencingService, _this_context_cmi_score, _this_context_cmi;
                   var cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
+                  if (!Array.isArray(cmiExport)) {
+                      delete cmiExport.sharedData;
+                  }
                   var calculateTotalTime = terminateCommit || includeTotalTime;
                   var totalTimeDuration = calculateTotalTime ? this.context.cmi.getCurrentTotalTime() : "";
                   var totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
@@ -34061,6 +34568,10 @@ this.Scorm2004API = (function () {
                       totalTimeSeconds: totalTimeSeconds,
                       runtimeData: cmiExport
                   };
+                  var sharedData = this.captureSharedData();
+                  if (sharedData) {
+                      commitObject.sharedData = sharedData;
+                  }
                   if (scoreObject) {
                       commitObject.score = scoreObject;
                   }
@@ -34452,7 +34963,8 @@ this.Scorm2004API = (function () {
       "cmi.interactions.N.latency",
       "cmi.interactions.N.learner_response",
       "cmi.interactions.N.description",
-      "cmi.comments_from_learner.N.timestamp"
+      "cmi.comments_from_learner.N.timestamp",
+      "adl.data.N.store"
   ]);
   function normalizeCMIIndices(CMIElement) {
       return CMIElement.replace(/\.\d+(?=\.|$)/g, ".N");
@@ -34546,6 +35058,7 @@ this.Scorm2004API = (function () {
                   return _this.settings;
               },
               cmi: _this.cmi,
+              adl: _this.adl,
               sequencingService: _this._sequencingService,
               renderCMIToJSONObject: _this.renderCMIToJSONObject.bind(_this)
           };
@@ -34576,8 +35089,8 @@ this.Scorm2004API = (function () {
                   this.commonReset(settings);
                   this._runtimeSetCMIElements.clear();
                   (_this_cmi = this.cmi) === null || _this_cmi === void 0 ? void 0 : _this_cmi.reset();
-                  this.applyCurrentActivityLaunchData();
                   (_this_adl = this.adl) === null || _this_adl === void 0 ? void 0 : _this_adl.reset();
+                  this.applyCurrentActivityLaunchData();
               }
           },
           {
@@ -34593,6 +35106,7 @@ this.Scorm2004API = (function () {
                   if (!currentActivity) {
                       return;
                   }
+                  this.adl.configureSharedDataMaps(currentActivity.sharedDataMaps);
                   this.applyActivityLaunchData(currentActivity);
               }
           },
@@ -34605,6 +35119,7 @@ this.Scorm2004API = (function () {
      * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives is initialized before SCO access.
      */ key: "applyDeliveredActivityLaunchData",
               value: function applyDeliveredActivityLaunchData(activity) {
+                  this.adl.configureSharedDataMaps(activity.sharedDataMaps);
                   if (!this.isNotInitialized()) {
                       return;
                   }
@@ -34872,6 +35387,18 @@ this.Scorm2004API = (function () {
               }
           },
           {
+              /** Restore the LMS-persisted SCORM 2004 shared-data stores. */ key: "restoreSharedDataSnapshot",
+              value: function restoreSharedDataSnapshot(snapshot) {
+                  this.adl.restoreSharedDataSnapshot(snapshot);
+              }
+          },
+          {
+              /** Capture all SCORM 2004 shared-data stores, including non-current mappings. */ key: "captureSharedDataSnapshot",
+              value: function captureSharedDataSnapshot() {
+                  return this.adl.captureSharedDataSnapshot();
+              }
+          },
+          {
               /**
      * Compress state data (delegates to persistence class)
      * @param {string} data - Data to compress
@@ -34923,6 +35450,9 @@ this.Scorm2004API = (function () {
                   }
                   this.cmi.initialize();
                   var result = this.initialize("Initialize", "LMS was already initialized!", "LMS is already finished!");
+                  if (result === global_constants.SCORM_TRUE) {
+                      this.adl.initialize();
+                  }
                   if (result === global_constants.SCORM_TRUE && this._sequencingService) {
                       this._sequencingService.initialize();
                       this.applyCurrentActivityObjectiveData();
@@ -34993,19 +35523,22 @@ this.Scorm2004API = (function () {
                   }
                   if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
                       var navigationHandled = false;
+                      var sequencingAttempted = false;
                       var processedSequencingRequest = null;
                       if (this._sequencingService) {
                           try {
                               if (requestToProcess) {
+                                  var sequencingAvailable = this._sequencingService.getSequencingState().isInitialized === true;
+                                  sequencingAttempted = sequencingAvailable;
                                   navigationHandled = preparedNavigation ? this._sequencingService.completeNavigationRequest(preparedNavigation) : this._sequencingService.processNavigationRequest(requestToProcess, targetForProcessing, exitType);
                                   processedSequencingRequest = requestToProcess;
                               }
                           } catch (error) {
-                              this.apiLog("lmsFinish", "Sequencing navigation failed, falling back to event-based navigation: ".concat(error), LogLevelEnum.WARN);
+                              this.apiLog("lmsFinish", "Sequencing navigation failed: ".concat(error), LogLevelEnum.WARN);
                               navigationHandled = false;
                           }
                       }
-                      if (!navigationHandled) {
+                      if (!navigationHandled && !sequencingAttempted) {
                           if (pendingNavRequest !== "_none_") {
                               var navActions = {
                                   continue: "SequenceNext",
@@ -35387,6 +35920,7 @@ this.Scorm2004API = (function () {
                   var _this__error_codes_VALUE_NOT_INITIALIZED;
                   if (returnValue !== "") return;
                   if (this._setCMIElements.has(CMIElement)) return;
+                  if (this.adl.isConfiguredSharedDataElement(CMIElement)) return;
                   if (!NO_DEFAULT_2004_ELEMENTS.has(normalizeCMIIndices(CMIElement))) return;
                   this.throwSCORMError(CMIElement, (_this__error_codes_VALUE_NOT_INITIALIZED = this._error_codes.VALUE_NOT_INITIALIZED) !== null && _this__error_codes_VALUE_NOT_INITIALIZED !== void 0 ? _this__error_codes_VALUE_NOT_INITIALIZED : 403, "The data model element passed to GetValue (".concat(CMIElement, ") has not been initialized."), this.settings.uninitializedGetLogLevel);
               }

@@ -26,6 +26,7 @@ export declare class RollupProcess {
     validateRollupStateConsistency(rootActivity: Activity): boolean;
     processGlobalObjectiveMapping(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
     syncTerminatedActivityObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): GlobalObjectiveWriteTargets;
+    syncActivityObjectivesFromGlobals(activity: Activity, globalObjectives: Map<string, GlobalObjective>): boolean;
     syncFreshlyWrittenObjectivesToActiveAncestor(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): boolean;
     calculateComplexWeightedMeasure(activity: Activity, children: Activity[], options?: MeasureRollupOptions): number;
     processCrossClusterDependencies(activity: Activity, clusters: Activity[]): void;

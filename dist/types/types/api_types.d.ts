@@ -136,6 +136,7 @@ export type CommitObject = {
     totalTimeSeconds: number;
     runtimeData: StringKeyMap;
     globalObjectives?: Record<string, GlobalObjectiveMapEntry>;
+    sharedData?: Record<string, string>;
     score?: ScoreObject;
     commitId?: string;
     courseId?: string;

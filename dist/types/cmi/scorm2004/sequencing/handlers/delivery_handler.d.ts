@@ -51,6 +51,7 @@ export declare class DeliveryHandler {
     setContentDelivered(value: boolean): void;
     processDeliveryRequest(activity: Activity): DeliveryRequest;
     contentDeliveryEnvironmentProcess(activity: Activity): void;
+    private hasKnownReadMappedObjective;
     private initializeForDelivery;
     private setupAttemptTracking;
     private fireDeliveryEvent;

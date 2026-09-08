@@ -1,4 +1,5 @@
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
+import type { SharedDataMapSettings } from "./sequencing_types";
 export interface IActivity {
     readonly id: string;
     readonly title: string;
@@ -20,5 +21,6 @@ export interface IActivity {
     readonly location: string;
     readonly progressMeasure: number;
     readonly progressMeasureStatus: boolean;
+    readonly sharedDataMaps?: SharedDataMapSettings[];
 }
 //# sourceMappingURL=activity_types.d.ts.map

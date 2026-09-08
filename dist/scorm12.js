@@ -5360,6 +5360,7 @@ this.Scorm12API = (function () {
                           }
                       }
                       var activityPath = this.getActivityPath(activity, true);
+                      var newAttemptActivities = [];
                       var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                       try {
                           for(var _iterator = activityPath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
@@ -5370,6 +5371,7 @@ this.Scorm12API = (function () {
                                   } else {
                                       pathActivity.incrementAttemptCount();
                                       pathActivity.initializeTrackingForNewAttempt();
+                                      newAttemptActivities.push(pathActivity);
                                       pathActivity.objectiveInfoAvailableInCurrentParentAttempt = true;
                                       pathActivity.progressInfoAvailableInCurrentParentAttempt = true;
                                       var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
@@ -5377,7 +5379,7 @@ this.Scorm12API = (function () {
                                           for(var _iterator1 = pathActivity.children[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
                                               var child = _step1.value;
                                               if (pathActivity.sequencingControls.useCurrentAttemptObjectiveInfo) {
-                                                  child.objectiveInfoAvailableInCurrentParentAttempt = false;
+                                                  child.objectiveInfoAvailableInCurrentParentAttempt = this.hasKnownReadMappedObjective(child);
                                               }
                                               if (pathActivity.sequencingControls.useCurrentAttemptProgressInfo) {
                                                   child.progressInfoAvailableInCurrentParentAttempt = false;
@@ -5416,6 +5418,27 @@ this.Scorm12API = (function () {
                               }
                           }
                       }
+                      var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                      try {
+                          for(var _iterator2 = newAttemptActivities[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                              var pathActivity1 = _step2.value;
+                              var _this_rollupProcess;
+                              (_this_rollupProcess = this.rollupProcess) === null || _this_rollupProcess === void 0 ? void 0 : _this_rollupProcess.syncActivityObjectivesFromGlobals(pathActivity1, this.globalObjectiveMap);
+                          }
+                      } catch (err) {
+                          _didIteratorError2 = true;
+                          _iteratorError2 = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                  _iterator2.return();
+                              }
+                          } finally{
+                              if (_didIteratorError2) {
+                                  throw _iteratorError2;
+                              }
+                          }
+                      }
                       this.activityTree.currentActivity = activity;
                       this.initializeForDelivery(activity);
                       this.setupAttemptTracking(activity);
@@ -5427,6 +5450,21 @@ this.Scorm12API = (function () {
                   } finally{
                       this._deliveryInProgress = false;
                   }
+              }
+          },
+          {
+              key: "hasKnownReadMappedObjective",
+              value: function hasKnownReadMappedObjective(activity) {
+                  var _this = this;
+                  var primaryObjective = activity.primaryObjective;
+                  if (!primaryObjective) {
+                      return false;
+                  }
+                  return primaryObjective.mapInfo.some(function(mapInfo) {
+                      var targetId = mapInfo.targetObjectiveID || primaryObjective.id;
+                      var globalObjective = _this.globalObjectiveMap.get(targetId);
+                      return mapInfo.readSatisfiedStatus !== false && (globalObjective === null || globalObjective === void 0 ? void 0 : globalObjective.satisfiedStatusKnown) === true || mapInfo.readNormalizedMeasure !== false && (globalObjective === null || globalObjective === void 0 ? void 0 : globalObjective.normalizedMeasureKnown) === true;
+                  });
               }
           },
           {

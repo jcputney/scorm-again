@@ -27,6 +27,11 @@ export type DeliveryControlsSettings = {
     completionSetByContent?: boolean;
     objectiveSetByContent?: boolean;
 };
+export type SharedDataMapSettings = {
+    targetID: string;
+    readSharedData?: boolean;
+    writeSharedData?: boolean;
+};
 export type ActivitySettings = {
     id: string;
     title: string;
@@ -57,6 +62,7 @@ export type ActivitySettings = {
     sequencingCollectionRefs?: string | string[];
     sequencingIdRef?: string | string[];
     auxiliaryResources?: AuxiliaryResourceSettings[];
+    sharedDataMaps?: SharedDataMapSettings[];
 };
 export type ObjectiveMapInfoSettings = {
     targetObjectiveID: string;

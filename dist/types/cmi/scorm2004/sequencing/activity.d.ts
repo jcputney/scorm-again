@@ -22,6 +22,11 @@ export interface ObjectiveMapInfo {
     writeMaxScore?: boolean;
     updateAttemptData?: boolean;
 }
+export interface SharedDataMapInfo {
+    targetID: string;
+    readSharedData: boolean;
+    writeSharedData: boolean;
+}
 export interface ActivityObjectiveOptions {
     description?: string | null;
     satisfiedByMeasure?: boolean;
@@ -201,6 +206,7 @@ export declare class Activity extends BaseCMI {
     private _isAvailable;
     private _hideLmsUi;
     private _auxiliaryResources;
+    private _sharedDataMaps;
     private _attemptLimit;
     private _attemptAbsoluteDurationLimit;
     private _activityAbsoluteDurationLimit;
@@ -220,10 +226,6 @@ export declare class Activity extends BaseCMI {
     private _primaryObjective;
     private _objectives;
     private _rollupConsiderations;
-    private _requiredForSatisfied;
-    private _requiredForNotSatisfied;
-    private _requiredForCompleted;
-    private _requiredForIncomplete;
     private _wasSkipped;
     private _attemptProgressStatus;
     private _wasAutoCompleted;
@@ -408,6 +410,8 @@ export declare class Activity extends BaseCMI {
     restoreSuspensionState(state: any): void;
     toJSON(): object;
     get auxiliaryResources(): AuxiliaryResource[];
+    get sharedDataMaps(): SharedDataMapInfo[];
+    set sharedDataMaps(maps: SharedDataMapInfo[]);
     set auxiliaryResources(resources: AuxiliaryResource[]);
     addAuxiliaryResource(resource: AuxiliaryResource): void;
     captureRollupStatus(): RollupStatusSnapshot;
