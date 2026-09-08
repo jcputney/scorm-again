@@ -11,6 +11,12 @@ import {
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { ADLNav } from "../../../../src";
 
 /**
@@ -327,6 +333,37 @@ describe("EndSequencingSession Handling", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "onSequencingSessionEnd",
         expect.objectContaining({
+          navigationRequest: NavigationRequestType.CONTINUE
+        })
+      );
+    });
+
+    it("should fire when a Continue post-condition cascade exits all activities", () => {
+      const exitParentRule = new SequencingRule(RuleActionType.EXIT_PARENT);
+      exitParentRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      sco3.sequencingRules.addPostConditionRule(exitParentRule);
+
+      const exitAllRule = new SequencingRule(RuleActionType.EXIT_ALL);
+      exitAllRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      root.sequencingRules.addPostConditionRule(exitAllRule);
+
+      activityTree.currentActivity = sco3;
+      root.isActive = true;
+      sco3.isActive = true;
+      eventCallback.mockClear();
+
+      const delivery = overallProcess.processNavigationRequest(
+        NavigationRequestType.CONTINUE
+      );
+
+      expect(delivery.valid).toBe(true);
+      expect(delivery.targetActivity).toBeNull();
+      expect(delivery.exception).toBeNull();
+      expect(activityTree.currentActivity).toBeNull();
+      expect(eventCallback).toHaveBeenCalledWith(
+        "onSequencingSessionEnd",
+        expect.objectContaining({
+          reason: "exit_all",
           navigationRequest: NavigationRequestType.CONTINUE
         })
       );

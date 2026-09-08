@@ -211,6 +211,10 @@ export class SequencingStatePersistence {
         request: this.context.adl.nav.request,
         request_valid: this.context.adl.nav.request_valid,
       },
+      sharedData:
+        typeof this.context.adl.captureSharedDataSnapshot === "function"
+          ? this.context.adl.captureSharedDataSnapshot()
+          : {},
       contentDelivered: false,
     };
 
@@ -332,6 +336,23 @@ export class SequencingStatePersistence {
       }
 
       // Restore ADL nav state
+      if (
+        state.sharedData &&
+        typeof state.sharedData === "object" &&
+        typeof this.context.adl.restoreSharedDataSnapshot === "function"
+      ) {
+        this.context.adl.restoreSharedDataSnapshot(state.sharedData);
+      }
+
+      // Restoring the sequencing tree changes the activity whose ADL data view
+      // is exposed. Rebind it before the host can initialize the restored SCO;
+      // configureSharedDataMaps also preserves the initialized-vs-missing bit
+      // from the restored backing snapshot.
+      const restoredActivity = this.context.sequencing.getCurrentActivity();
+      if (restoredActivity && typeof this.context.adl.configureSharedDataMaps === "function") {
+        this.context.adl.configureSharedDataMaps(restoredActivity.sharedDataMaps);
+      }
+
       if (state.adlNavState) {
         this.context.adl.nav.request = state.adlNavState.request || "_none_";
         this.context.adl.nav.request_valid = state.adlNavState.request_valid || {};

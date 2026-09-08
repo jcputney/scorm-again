@@ -241,6 +241,7 @@ export class DeliveryHandler {
       // Step 3: Process activity path and initialize tracking data (DB.2.2)
       // Get the full path from root to delivered activity
       const activityPath = this.getActivityPath(activity, true);
+      const newAttemptActivities: Activity[] = [];
 
       // Process each activity in the path (root to leaf)
       for (const pathActivity of activityPath) {
@@ -254,6 +255,7 @@ export class DeliveryHandler {
             // the Objective and Attempt Progress Information scoped to this attempt.
             pathActivity.incrementAttemptCount();
             pathActivity.initializeTrackingForNewAttempt();
+            newAttemptActivities.push(pathActivity);
             pathActivity.objectiveInfoAvailableInCurrentParentAttempt = true;
             pathActivity.progressInfoAvailableInCurrentParentAttempt = true;
 
@@ -263,7 +265,12 @@ export class DeliveryHandler {
             // @spec SCORM 2004 SN 4th Ed. SM.1 and TM.2
             for (const child of pathActivity.children) {
               if (pathActivity.sequencingControls.useCurrentAttemptObjectiveInfo) {
-                child.objectiveInfoAvailableInCurrentParentAttempt = false;
+                // A read map is evaluated from the shared global objective regardless of the
+                // child's prior local attempt. Keep known mapped objective information available
+                // to sequencing and rollup during the new parent attempt.
+                // @spec SCORM 2004 3rd Ed. Impact Summary 1.5-8
+                child.objectiveInfoAvailableInCurrentParentAttempt =
+                  this.hasKnownReadMappedObjective(child);
               }
               if (pathActivity.sequencingControls.useCurrentAttemptProgressInfo) {
                 child.progressInfoAvailableInCurrentParentAttempt = false;
@@ -280,6 +287,17 @@ export class DeliveryHandler {
             pathActivity.attemptCount <= 1,
           );
         }
+      }
+
+      // The global-objective read phase runs before delivery so prerequisites can be checked.
+      // New-attempt initialization above intentionally clears attempt-scoped local objectives,
+      // so restore each newly active activity's read maps before navigation validity is computed.
+      // @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
+      for (const pathActivity of newAttemptActivities) {
+        this.rollupProcess?.syncActivityObjectivesFromGlobals(
+          pathActivity,
+          this.globalObjectiveMap,
+        );
       }
 
       // Step 4: Set the activity as current
@@ -305,6 +323,25 @@ export class DeliveryHandler {
       // Clear delivery in progress flag
       this._deliveryInProgress = false;
     }
+  }
+
+  private hasKnownReadMappedObjective(activity: Activity): boolean {
+    const primaryObjective = activity.primaryObjective;
+    if (!primaryObjective) {
+      return false;
+    }
+
+    return primaryObjective.mapInfo.some((mapInfo) => {
+      const targetId = mapInfo.targetObjectiveID || primaryObjective.id;
+      const globalObjective = this.globalObjectiveMap.get(targetId);
+
+      return (
+        (mapInfo.readSatisfiedStatus !== false &&
+          globalObjective?.satisfiedStatusKnown === true) ||
+        (mapInfo.readNormalizedMeasure !== false &&
+          globalObjective?.normalizedMeasureKnown === true)
+      );
+    });
   }
 
   /**

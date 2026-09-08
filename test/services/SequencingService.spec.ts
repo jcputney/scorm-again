@@ -22,7 +22,7 @@ describe("SequencingService", () => {
     sequencing = new Sequencing();
     cmi = new CMI();
     adl = new ADL();
-    eventService = new EventService();
+    eventService = new EventService(() => {});
     loggingService = new LoggingService();
 
     configuration = {
@@ -153,7 +153,7 @@ describe("SequencingService", () => {
       expect(result).toBe(false);
     });
 
-    it("should reject navigation requests when not initialized", () => {
+    it("should support navigation as soon as sequencing processes are created", () => {
       const uninitializedService = new SequencingService(
         sequencing,
         cmi,
@@ -164,7 +164,7 @@ describe("SequencingService", () => {
       );
 
       const result = uninitializedService.processNavigationRequest("continue");
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
   });
 

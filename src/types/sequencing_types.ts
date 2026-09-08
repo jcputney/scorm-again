@@ -65,6 +65,13 @@ export type DeliveryControlsSettings = {
   objectiveSetByContent?: boolean;
 };
 
+/** Configuration for an activity's SCORM 2004 shared-data bucket mappings. */
+export type SharedDataMapSettings = {
+  targetID: string;
+  readSharedData?: boolean;
+  writeSharedData?: boolean;
+};
+
 export type ActivitySettings = {
   id: string;
   title: string;
@@ -96,6 +103,7 @@ export type ActivitySettings = {
   sequencingCollectionRefs?: string | string[];
   sequencingIdRef?: string | string[];
   auxiliaryResources?: AuxiliaryResourceSettings[];
+  sharedDataMaps?: SharedDataMapSettings[];
 };
 
 /**

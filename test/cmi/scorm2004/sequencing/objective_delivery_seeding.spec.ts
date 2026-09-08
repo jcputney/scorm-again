@@ -105,6 +105,67 @@ const TERMINATION_COMMIT_OBJECTIVE_TREE = {
   ],
 };
 
+const DELIVERY_READ_MAP_NAVIGATION_TREE = {
+  id: "delivery-read-map-navigation",
+  title: "Delivery read-map navigation",
+  sequencingControls: {
+    choice: true,
+    flow: true,
+  },
+  children: [
+    {
+      id: "activity_1",
+      title: "Activity 1",
+      primaryObjective: {
+        objectiveID: "activity_1_completed",
+        mapInfo: [
+          {
+            targetObjectiveID: "global_activity_1_completed",
+            readCompletionStatus: true,
+            writeCompletionStatus: true,
+          },
+        ],
+      },
+    },
+    {
+      id: "activity_2",
+      title: "Activity 2",
+      objectives: [
+        {
+          objectiveID: "previous_sco_completed",
+          mapInfo: [
+            {
+              targetObjectiveID: "global_activity_1_completed",
+              readCompletionStatus: true,
+              writeCompletionStatus: false,
+            },
+          ],
+        },
+      ],
+      sequencingRules: {
+        preConditionRules: [
+          {
+            action: "disabled",
+            conditionCombination: "any",
+            conditions: [
+              {
+                condition: "completed",
+                operator: "not",
+                referencedObjective: "previous_sco_completed",
+              },
+              {
+                condition: "activityProgressKnown",
+                operator: "not",
+                referencedObjective: "previous_sco_completed",
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+};
+
 const SX_11B_COMPLETION_CLEAR_TREE = {
   id: "sx-11b-completion-clear",
   title: "SX-11b Completion Clear",
@@ -583,6 +644,30 @@ describe("SCORM 2004 sequencing objective delivery seeding", () => {
     expect(api.lmsGetValue("cmi.objectives.0.success_status")).toBe("unknown");
   });
 
+  it("reapplies a read-mapped completion after new-attempt initialization", () => {
+    const api = createApi(DELIVERY_READ_MAP_NAVIGATION_TREE);
+
+    expect(api.lmsInitialize("")).toBe("true");
+    expect(api.lmsSetValue("cmi.completion_status", "completed")).toBe("true");
+    continueToNextActivity(api);
+
+    const activity2 = childActivity(api, "activity_2");
+    const previousScoObjective = activity2?.getObjectiveById("previous_sco_completed")?.objective;
+    expect(api.getSequencingState().currentActivity?.id).toBe("activity_2");
+    expect(previousScoObjective?.completionStatus).toBe("completed");
+    expect(
+      api
+        .getSequencingService()
+        ?.getOverallSequencingProcess()
+        ?.predictChoiceEnabled("activity_2"),
+    ).toBe(true);
+
+    prepareNextVisit(api);
+    // The current activity remains a valid Choice target after its prerequisite
+    // read map is restored; the LMS must not render delivered content as locked.
+    expect(api.lmsGetValue("adl.nav.request_valid.choice.{target=activity_2}")).toBe("true");
+  });
+
   it("seeds a read map before the delivered objective becomes the next writer", () => {
     const api = createApi({
       id: "read-write-objective-map",
@@ -643,6 +728,14 @@ describe("SCORM 2004 sequencing objective delivery seeding", () => {
     // delivery reads the prior global value before local writes can update it.
     expect(api.lmsGetValue(`cmi.objectives.${objectiveIndex}.success_status`)).toBe("passed");
     expect(api.lmsGetValue(`cmi.objectives.${objectiveIndex}.score.scaled`)).toBe("0.5");
+
+    const deliveredObjective = childActivity(api, "activity_2")?.getObjectiveById(
+      "reader-writer",
+    )?.objective;
+    expect(deliveredObjective?.satisfiedStatusKnown).toBe(true);
+    expect(deliveredObjective?.satisfiedStatus).toBe(true);
+    expect(deliveredObjective?.measureStatus).toBe(true);
+    expect(deliveredObjective?.normalizedMeasure).toBe(0.5);
   });
 
   it("writes an explicitly unknown objective satisfaction status to the global map", () => {

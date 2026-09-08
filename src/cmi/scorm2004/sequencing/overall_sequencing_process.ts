@@ -334,6 +334,23 @@ export class OverallSequencingProcess {
         }
       }
 
+      // EXIT_ALL reached through an exit/post-condition cascade returns the EXIT
+      // sequencing request after it has already ended every activity attempt and
+      // cleared the current activity. Treat that pair as a terminal sequencing
+      // session instead of trying to process EXIT again without a current activity.
+      if (
+        termResult.terminationRequest === SequencingRequestType.EXIT_ALL &&
+        termResult.sequencingRequest === SequencingRequestType.EXIT
+      ) {
+        navResult.sequencingRequest = null;
+        return {
+          navigationRequest,
+          navResult,
+          deliveryRequest: null,
+          sessionEndReason: "exit_all",
+        };
+      }
+
       // If this is a termination-only request (no sequencing request), return success
       if (!navResult.sequencingRequest) {
         const sessionEndReason =
@@ -372,13 +389,15 @@ export class OverallSequencingProcess {
       return prepared.deliveryRequest;
     }
 
+    if (prepared.sessionEndReason) {
+      this.fireEvent("onSequencingSessionEnd", {
+        reason: prepared.sessionEndReason,
+        navigationRequest,
+      });
+      return new DeliveryRequest(true, null);
+    }
+
     if (!navResult.sequencingRequest) {
-      if (prepared.sessionEndReason) {
-        this.fireEvent("onSequencingSessionEnd", {
-          reason: prepared.sessionEndReason,
-          navigationRequest,
-        });
-      }
       return new DeliveryRequest(true, null);
     }
 

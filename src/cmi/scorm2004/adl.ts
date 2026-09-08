@@ -3,6 +3,7 @@ import { CMIArray } from "../common/array";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat } from "./validation";
 import { Sequencing } from "./sequencing/sequencing";
+import type { SharedDataMapInfo } from "./sequencing/activity";
 import {
   NAVBoolean,
   scorm2004_constants,
@@ -26,6 +27,7 @@ export class ADL extends BaseCMI {
   public nav: ADLNav;
   public data = new ADLData();
   private _sequencing: Sequencing | null = null;
+  private _sharedDataStores: Record<string, string> = Object.create(null);
 
   /**
    * Called when the API has been initialized after the CMI has been created
@@ -33,6 +35,7 @@ export class ADL extends BaseCMI {
   override initialize() {
     super.initialize();
     this.nav?.initialize();
+    this.data?.initialize();
   }
 
   /**
@@ -41,6 +44,69 @@ export class ADL extends BaseCMI {
   reset() {
     this._initialized = false;
     this.nav?.reset();
+    this.data?.reset();
+  }
+
+  /**
+   * Configure the adl.data view for the activity being delivered.
+   *
+   * ADL data stores are keyed by the manifest targetID, while the RTE exposes
+   * only the mappings for the currently delivered activity as adl.data.n.
+   * Rebuilding that view is therefore safe: values live in this ADL-owned
+   * backing map and survive SCO reset/navigation.
+   */
+  configureSharedDataMaps(maps: SharedDataMapInfo[] = []): void {
+    this.captureVisibleSharedData();
+    this.data.configure(maps, this._sharedDataStores);
+  }
+
+  captureSharedDataSnapshot(): Record<string, string> {
+    this.captureVisibleSharedData();
+    return { ...this._sharedDataStores };
+  }
+
+  /** Capture only initialized stores this activity is allowed to write. */
+  captureWritableSharedDataSnapshot(): Record<string, string> {
+    this.captureVisibleSharedData();
+    const writableStores: Record<string, string> = {};
+    for (const child of this.data.childArray) {
+      const dataObject = child as ADLDataObject;
+      if (dataObject.id && dataObject.storeIsSet && dataObject.writeSharedData) {
+        writableStores[dataObject.id] = dataObject.storeValue;
+      }
+    }
+    return writableStores;
+  }
+
+  restoreSharedDataSnapshot(snapshot: Record<string, string> | null | undefined): void {
+    if (!snapshot || typeof snapshot !== "object") {
+      return;
+    }
+    for (const targetID of Object.keys(this._sharedDataStores)) {
+      delete this._sharedDataStores[targetID];
+    }
+    for (const [targetID, store] of Object.entries(snapshot)) {
+      if (typeof targetID === "string" && typeof store === "string") {
+        this._sharedDataStores[targetID] = store;
+      }
+    }
+    this.data.refreshStores(this._sharedDataStores);
+  }
+
+  isConfiguredSharedDataElement(CMIElement: string): boolean {
+    return this.data.isConfiguredElement(CMIElement);
+  }
+
+  private captureVisibleSharedData(): void {
+    for (const child of this.data.childArray) {
+      const dataObject = child as ADLDataObject;
+      // Presence in the backing record is the initialized bit.  In particular,
+      // do not turn a configured-but-never-written bucket into an initialized
+      // empty string while rotating the activity's mapped view.
+      if (dataObject.id && dataObject.storeIsSet) {
+        this._sharedDataStores[dataObject.id] = dataObject.storeValue;
+      }
+    }
   }
 
   /**
@@ -127,7 +193,9 @@ export class ADLNav extends BaseCMI {
    */
   override initialize() {
     super.initialize();
-    this.request_valid?.initialize();
+    if (typeof this.request_valid?.initialize === "function") {
+      this.request_valid.initialize();
+    }
   }
 
   /**
@@ -194,6 +262,60 @@ export class ADLData extends CMIArray {
       errorClass: Scorm2004ValidationError,
     });
   }
+
+  override initialize(): void {
+    super.initialize();
+    for (const child of this.childArray) {
+      child.initialize();
+    }
+  }
+
+  override reset(wipe: boolean = false): void {
+    this._initialized = false;
+    if (wipe) {
+      this.childArray = [];
+      return;
+    }
+    for (const child of this.childArray) {
+      (child as ADLDataObject).deinitialize();
+    }
+  }
+
+  configure(maps: SharedDataMapInfo[], stores: Record<string, string>): void {
+    this.childArray = maps.map((map) => {
+      const child = new ADLDataObject();
+      const storeIsSet = Object.prototype.hasOwnProperty.call(stores, map.targetID);
+      child.configure(
+        map.targetID,
+        storeIsSet ? stores[map.targetID]! : "",
+        map.readSharedData,
+        map.writeSharedData,
+        storeIsSet,
+        (value) => {
+          stores[map.targetID] = value;
+        },
+      );
+      if (this.initialized) {
+        child.initialize();
+      }
+      return child;
+    });
+  }
+
+  refreshStores(stores: Record<string, string>): void {
+    for (const child of this.childArray) {
+      const dataObject = child as ADLDataObject;
+      const storeIsSet = Object.prototype.hasOwnProperty.call(stores, dataObject.id);
+      dataObject.refreshStore(storeIsSet ? stores[dataObject.id]! : "", storeIsSet);
+    }
+  }
+
+  isConfiguredElement(CMIElement: string): boolean {
+    const match = /^adl\.data\.(\d+)\.store$/.exec(CMIElement);
+    if (!match) return false;
+    const index = Number(match[1]);
+    return Number.isInteger(index) && index >= 0 && index < this.childArray.length;
+  }
 }
 
 /**
@@ -204,9 +326,14 @@ export class ADLDataObject extends BaseCMI {
   private _store = "";
   private _idIsSet = false;
   private _storeIsSet = false;
+  private _readSharedData = true;
+  private _writeSharedData = true;
+  private _onStoreChange: ((value: string) => void) | null = null;
+  private readonly _allowStoreWithoutId: boolean;
 
-  constructor() {
+  constructor(allowStoreWithoutId: boolean = false) {
     super("adl.data.n");
+    this._allowStoreWithoutId = allowStoreWithoutId;
   }
 
   /**
@@ -216,6 +343,33 @@ export class ADLDataObject extends BaseCMI {
     this._initialized = false;
     this._idIsSet = false;
     this._storeIsSet = false;
+  }
+
+  configure(
+    id: string,
+    store: string | undefined,
+    readSharedData: boolean,
+    writeSharedData: boolean,
+    storeIsSet: boolean,
+    onStoreChange: (value: string) => void,
+  ): void {
+    this._id = id;
+    this._store = store ?? "";
+    this._idIsSet = true;
+    this._storeIsSet = storeIsSet;
+    this._readSharedData = readSharedData;
+    this._writeSharedData = writeSharedData;
+    this._onStoreChange = onStoreChange;
+  }
+
+  refreshStore(store: string, storeIsSet: boolean): void {
+    this._store = store;
+    this._storeIsSet = storeIsSet;
+  }
+
+  /** End the SCO session without discarding this LMS-configured bucket. */
+  deinitialize(): void {
+    this._initialized = false;
   }
 
   /**
@@ -251,6 +405,12 @@ export class ADLDataObject extends BaseCMI {
    * @return {string}
    */
   get store(): string {
+    if (this.initialized && !this._readSharedData) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".store",
+        scorm2004_errors.WRITE_ONLY_ELEMENT as number,
+      );
+    }
     // REQ-ADL-020: GetValue on uninitialized store returns error 403
     if (this.initialized && !this._storeIsSet) {
       throw new Scorm2004ValidationError(
@@ -268,8 +428,14 @@ export class ADLDataObject extends BaseCMI {
    * @param {string} store
    */
   set store(store: string) {
+    if (this.initialized && !this._writeSharedData) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".store",
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
+    }
     // REQ-ADL-025: Dependency check - id must be set before store
-    if (this.initialized && !this._idIsSet) {
+    if (this.initialized && !this._allowStoreWithoutId && !this._idIsSet) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".store",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
@@ -277,11 +443,32 @@ export class ADLDataObject extends BaseCMI {
     }
     // REQ-ADL-017: store SPM is 64000 characters (was incorrectly 4000)
     if (
-      check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMIString64000)
+      check2004ValidFormat(
+        this._cmi_element + ".store",
+        store,
+        scorm2004_regex.CMIString64000,
+        true,
+      )
     ) {
       this._store = store;
       this._storeIsSet = true;
+      this._onStoreChange?.(store);
     }
+  }
+
+  /** Internal value access used while rotating the mapped view. */
+  get storeValue(): string {
+    return this._store;
+  }
+
+  /** Whether the LMS has initialized this mapped store. */
+  get storeIsSet(): boolean {
+    return this._storeIsSet;
+  }
+
+  /** Whether the current activity may write this shared-data bucket. */
+  get writeSharedData(): boolean {
+    return this._writeSharedData;
   }
 
   /**
@@ -645,9 +832,7 @@ export class ADLNavRequestValid extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     }
-    if (
-      check2004ValidFormat(this._cmi_element + ".exit", _exit, scorm2004_regex.NAVBoolean)
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".exit", _exit, scorm2004_regex.NAVBoolean)) {
       this._exit = _exit;
     }
   }
@@ -724,7 +909,11 @@ export class ADLNavRequestValid extends BaseCMI {
       );
     }
     if (
-      check2004ValidFormat(this._cmi_element + ".abandonAll", _abandonAll, scorm2004_regex.NAVBoolean)
+      check2004ValidFormat(
+        this._cmi_element + ".abandonAll",
+        _abandonAll,
+        scorm2004_regex.NAVBoolean,
+      )
     ) {
       this._abandonAll = _abandonAll;
     }
@@ -750,7 +939,11 @@ export class ADLNavRequestValid extends BaseCMI {
       );
     }
     if (
-      check2004ValidFormat(this._cmi_element + ".suspendAll", _suspendAll, scorm2004_regex.NAVBoolean)
+      check2004ValidFormat(
+        this._cmi_element + ".suspendAll",
+        _suspendAll,
+        scorm2004_regex.NAVBoolean,
+      )
     ) {
       this._suspendAll = _suspendAll;
     }

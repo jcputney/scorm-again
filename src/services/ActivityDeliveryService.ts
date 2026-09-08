@@ -89,19 +89,19 @@ export class ActivityDeliveryService {
     // Log delivery
     this.loggingService.info(`Delivering activity: ${activity.id} - ${activity.title}`);
 
-    // Fire delivery event
-    this.eventService.processListeners("ActivityDelivery", activity.id, activity);
-
-    // Call delivery callback
-    this.callbacks.onDeliverActivity?.(activity);
-
-    // Update current delivered activity
+    // Publish the delivery state before either callback or event observers run. Generic
+    // ActivityDelivery listeners may inspect both the activity and this service's state.
     this.currentDeliveredActivity = activity;
     this.currentDeliveredAttemptCount = activity.attemptCount;
     this.pendingDelivery = null;
-
-    // Mark activity as active
     activity.isActive = true;
+
+    // Let API-owned delivery bookkeeping install the new activity's launch-static state before
+    // generic ActivityDelivery observers inspect the public API model.
+    this.callbacks.onDeliverActivity?.(activity);
+
+    // Fire delivery event
+    this.eventService.processListeners("ActivityDelivery", activity.id, activity);
   }
 
   /**

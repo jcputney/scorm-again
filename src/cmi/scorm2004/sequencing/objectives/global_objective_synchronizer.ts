@@ -371,6 +371,28 @@ export class GlobalObjectiveSynchronizer {
   }
 
   /**
+   * Read mapped global state into a newly initialized activity attempt.
+   *
+   * A read/write map normally suppresses reads while its activity is active so an in-progress
+   * attempt remains the source of the next write. During DB.2 delivery, however, the local
+   * attempt has just been initialized and must receive its mapped global state before content
+   * and sequencing inspect it.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
+   */
+  public syncGlobalObjectivesDeliveryReadPhase(
+    activity: Activity,
+    globalObjectives: Map<string, GlobalObjective>,
+  ): boolean {
+    return this.syncGlobalObjectivesReadPhaseInternal(
+      activity,
+      globalObjectives,
+      undefined,
+      true,
+    );
+  }
+
+  /**
    * Read only objective fields freshly written by a terminating descendant.
    *
    * Active write-mapped objectives normally suppress reads so a new attempt cannot revive its
@@ -391,6 +413,7 @@ export class GlobalObjectiveSynchronizer {
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
     writeTargets?: GlobalObjectiveWriteTargets,
+    allowActiveWriteMappedRead = false,
   ): boolean {
     const beforeStatus = activity.captureRollupStatus();
     const beforeObjectiveSatisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
@@ -424,7 +447,13 @@ export class GlobalObjectiveSynchronizer {
                 allowSatisfiedStatus: freshlyWroteSatisfiedStatus,
                 allowNormalizedMeasure: freshlyWroteNormalizedMeasure,
               }
-            : undefined,
+            : allowActiveWriteMappedRead
+              ? {
+                  restrictToFreshWrites: false,
+                  allowSatisfiedStatus: true,
+                  allowNormalizedMeasure: true,
+                }
+              : undefined,
         );
         this.applyGlobalObjectiveReadState(objective, readState);
 

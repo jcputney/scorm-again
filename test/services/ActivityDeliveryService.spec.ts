@@ -79,6 +79,31 @@ describe("ActivityDeliveryService", () => {
       expect(activity.isActive).toBe(true);
     });
 
+    it("should publish the new delivery state before generic listeners run", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      activity.incrementAttemptCount();
+      let observed: {
+        current: Activity | null;
+        attemptCount: number;
+        isActive: boolean;
+      } | null = null;
+      eventService.on("ActivityDelivery", (_activityId, deliveredActivity) => {
+        observed = {
+          current: activityDeliveryService.getCurrentDeliveredActivity(),
+          attemptCount: (deliveredActivity as Activity).attemptCount,
+          isActive: (deliveredActivity as Activity).isActive,
+        };
+      });
+
+      activityDeliveryService.processSequencingResult({
+        exception: null,
+        deliveryRequest: DeliveryRequestType.DELIVER,
+        targetActivity: activity,
+      });
+
+      expect(observed).toEqual({ current: activity, attemptCount: 1, isActive: true });
+    });
+
     it("should handle sequencing result with no delivery request", () => {
       const result: SequencingResult = {
         exception: null,

@@ -60,6 +60,105 @@ describe("SCORM 2004 API Navigation Request Processing Tests", () => {
   });
 
   describe("Navigation Request Processing During Terminate", () => {
+    it("refreshes rejected Choice validity after End Attempt without emitting a legacy Choice event", () => {
+      const apiInstance = api({
+        sequencing: {
+          activityTree: {
+            id: "objective-choice-root",
+            sequencingControls: { choice: true, flow: true },
+            children: [
+              {
+                id: "current",
+                primaryObjective: {
+                  objectiveID: "current-objective",
+                  mapInfo: [
+                    {
+                      targetObjectiveID: "shared-completion",
+                      readCompletionStatus: true,
+                      writeCompletionStatus: true,
+                    },
+                  ],
+                },
+                sequencingControls: { completionSetByContent: true },
+              },
+              {
+                id: "target",
+                objectives: [
+                  {
+                    objectiveID: "previous-completed",
+                    mapInfo: [
+                      {
+                        targetObjectiveID: "shared-completion",
+                        readCompletionStatus: true,
+                        writeCompletionStatus: false,
+                      },
+                    ],
+                  },
+                ],
+                sequencingRules: {
+                  preConditionRules: [
+                    {
+                      action: "disabled",
+                      conditionCombination: "any",
+                      conditions: [
+                        {
+                          condition: "completed",
+                          operator: "not",
+                          referencedObjective: "previous-completed",
+                        },
+                        {
+                          condition: "activityProgressKnown",
+                          operator: "not",
+                          referencedObjective: "previous-completed",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      });
+
+      expect(apiInstance.lmsInitialize()).toBe("true");
+      const sequencingProcess = apiInstance.getSequencingService()?.getOverallSequencingProcess();
+      expect(sequencingProcess).toBeDefined();
+
+      // Seed the shared objective as completed so the Choice request is valid
+      // before End Attempt transfers the current SCO's incomplete status.
+      sequencingProcess?.updateGlobalObjective("shared-completion", {
+        completionStatus: "completed",
+        completionStatusKnown: true,
+      });
+      sequencingProcess?.synchronizeGlobalObjectives();
+      expect(apiInstance.adl.nav.request_valid.choice._isTargetValid("target")).toBe("true");
+
+      const validityUpdates: any[] = [];
+      apiInstance.setSequencingEventListeners({
+        onNavigationValidityUpdate: (update) => validityUpdates.push(update),
+      });
+      const processListenersSpy = vi.spyOn(apiInstance, "processListeners");
+
+      expect(apiInstance.lmsSetValue("cmi.completion_status", "incomplete")).toBe("true");
+      expect(apiInstance.lmsSetValue("adl.nav.request", "{target=target}choice")).toBe("true");
+      expect(apiInstance.lmsFinish()).toBe("true");
+
+      const current = apiInstance.getSequencingState().currentActivity;
+      expect(current?.id).toBe("current");
+      expect(current?.isActive).toBe(false);
+      expect(current?.completionStatus).toBe("incomplete");
+      expect(sequencingProcess?.getGlobalObjectiveMap().get("shared-completion")).toMatchObject({
+        completionStatus: "incomplete",
+        completionStatusKnown: true,
+      });
+      expect(apiInstance.adl.nav.request_valid.choice._isTargetValid("target")).toBe("false");
+      expect(validityUpdates.some((update) => update.choice?.target === "false")).toBe(true);
+      expect(
+        processListenersSpy.mock.calls.some(([eventName]) => eventName === "SequenceChoice"),
+      ).toBe(false);
+    });
+
     it("should process navigation request during Terminate when set", () => {
       const apiInstance = apiInitialized();
 

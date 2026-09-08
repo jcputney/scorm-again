@@ -33,6 +33,12 @@ export interface ObjectiveMapInfo {
   updateAttemptData?: boolean;
 }
 
+export interface SharedDataMapInfo {
+  targetID: string;
+  readSharedData: boolean;
+  writeSharedData: boolean;
+}
+
 export interface ActivityObjectiveOptions {
   description?: string | null;
   satisfiedByMeasure?: boolean;
@@ -725,6 +731,7 @@ export class Activity extends BaseCMI {
   private _isAvailable: boolean = true;
   private _hideLmsUi: HideLmsUiItem[] = [];
   private _auxiliaryResources: AuxiliaryResource[] = [];
+  private _sharedDataMaps: SharedDataMapInfo[] = [];
   private _attemptLimit: number | null = null;
   private _attemptAbsoluteDurationLimit: string | null = null;
   private _activityAbsoluteDurationLimit: string | null = null;
@@ -750,12 +757,6 @@ export class Activity extends BaseCMI {
     requiredForIncomplete: "always",
     measureSatisfactionIfActive: true,
   };
-  // Individual rollup consideration properties for this activity (RB.1.4.2)
-  // These determine when THIS activity is included in parent rollup calculations
-  private _requiredForSatisfied: RollupConsiderationRequirement = "always";
-  private _requiredForNotSatisfied: RollupConsiderationRequirement = "always";
-  private _requiredForCompleted: RollupConsiderationRequirement = "always";
-  private _requiredForIncomplete: RollupConsiderationRequirement = "always";
   private _wasSkipped: boolean = false;
   private _attemptProgressStatus: boolean = false;
   private _wasAutoCompleted: boolean = false;
@@ -1869,35 +1870,35 @@ export class Activity extends BaseCMI {
    * These control when THIS activity is included in parent rollup
    */
   get requiredForSatisfied(): RollupConsiderationRequirement {
-    return this._requiredForSatisfied;
+    return this._rollupConsiderations.requiredForSatisfied;
   }
 
   set requiredForSatisfied(value: RollupConsiderationRequirement) {
-    this._requiredForSatisfied = value;
+    this._rollupConsiderations.requiredForSatisfied = value;
   }
 
   get requiredForNotSatisfied(): RollupConsiderationRequirement {
-    return this._requiredForNotSatisfied;
+    return this._rollupConsiderations.requiredForNotSatisfied;
   }
 
   set requiredForNotSatisfied(value: RollupConsiderationRequirement) {
-    this._requiredForNotSatisfied = value;
+    this._rollupConsiderations.requiredForNotSatisfied = value;
   }
 
   get requiredForCompleted(): RollupConsiderationRequirement {
-    return this._requiredForCompleted;
+    return this._rollupConsiderations.requiredForCompleted;
   }
 
   set requiredForCompleted(value: RollupConsiderationRequirement) {
-    this._requiredForCompleted = value;
+    this._rollupConsiderations.requiredForCompleted = value;
   }
 
   get requiredForIncomplete(): RollupConsiderationRequirement {
-    return this._requiredForIncomplete;
+    return this._rollupConsiderations.requiredForIncomplete;
   }
 
   set requiredForIncomplete(value: RollupConsiderationRequirement) {
-    this._requiredForIncomplete = value;
+    this._rollupConsiderations.requiredForIncomplete = value;
   }
 
   get wasSkipped(): boolean {
@@ -2469,6 +2470,7 @@ export class Activity extends BaseCMI {
       activityAttemptActive: this._activityAttemptActive,
       isHiddenFromChoice: this._isHiddenFromChoice,
       isAvailable: this._isAvailable,
+      sharedDataMaps: this.sharedDataMaps,
       rollupConsiderations: { ...this._rollupConsiderations },
       wasSkipped: this._wasSkipped,
       attemptProgressStatus: this._attemptProgressStatus,
@@ -2697,6 +2699,7 @@ export class Activity extends BaseCMI {
       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
       hideLmsUi: [...this._hideLmsUi],
       auxiliaryResources: this._auxiliaryResources.map((resource) => ({ ...resource })),
+      sharedDataMaps: this.sharedDataMaps,
       children: this._children.map((child) => child.toJSON()),
     };
     this.jsonString = false;
@@ -2705,6 +2708,21 @@ export class Activity extends BaseCMI {
 
   get auxiliaryResources(): AuxiliaryResource[] {
     return this._auxiliaryResources.map((resource) => ({ ...resource }));
+  }
+
+  /** SCORM 2004 shared-data bucket mappings for this activity. */
+  get sharedDataMaps(): SharedDataMapInfo[] {
+    return this._sharedDataMaps.map((map) => ({ ...map }));
+  }
+
+  set sharedDataMaps(maps: SharedDataMapInfo[]) {
+    this._sharedDataMaps = (maps || [])
+      .filter((map) => map && typeof map.targetID === "string" && map.targetID.length > 0)
+      .map((map) => ({
+        targetID: map.targetID,
+        readSharedData: map.readSharedData,
+        writeSharedData: map.writeSharedData,
+      }));
   }
 
   set auxiliaryResources(resources: AuxiliaryResource[]) {

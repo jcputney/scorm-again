@@ -478,6 +478,35 @@ describe("RTE Data Transfer", () => {
       expect(leafActivity.successStatus).toBe("failed");
     });
 
+    it("should not let launch-seeded primary completion override top-level content completion", () => {
+      const transfer = new RteDataTransferService({
+        getCMIData: null,
+        fireEvent: () => undefined,
+      });
+      const cmiData: CMIDataForTransfer = {
+        completion_status: "completed",
+        completion_status_was_set: true,
+        success_status: "unknown",
+        objectives: [
+          {
+            id: "primary_obj",
+            completion_status: "incomplete",
+            completion_status_was_set: false,
+          },
+        ],
+      };
+
+      transfer.transferPrimaryObjective(leafActivity, cmiData);
+      transfer.transferNonPrimaryObjectives(leafActivity, cmiData);
+
+      // The LMS seeds the primary cmi.objectives row at delivery. If content
+      // later writes only cmi.completion_status, that top-level primary value
+      // is authoritative at End Attempt.
+      expect(leafActivity.completionStatus).toBe(CompletionStatus.COMPLETED);
+      expect(leafActivity.attemptProgressStatus).toBe(true);
+      expect(leafActivity.primaryObjective?.completionStatus).toBe(CompletionStatus.COMPLETED);
+    });
+
     it("should not let a launch-seeded primary objective override a top-level content score", () => {
       const transfer = new RteDataTransferService({
         getCMIData: null,
