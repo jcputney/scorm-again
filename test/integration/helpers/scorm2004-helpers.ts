@@ -680,10 +680,20 @@ async function getQuizContentFrame(page: Page, moduleFrame: FrameLocator): Promi
   const iframeTimeout = isFirefox ? 20000 : 10000;
   const contentTimeout = isFirefox ? 20000 : 10000;
 
-  // The quiz is in a nested iframe with id="contentFrame"
-  // Wait for the iframe element to exist in the module frame
-  // Firefox needs more time for iframe creation
-  await moduleFrame.locator("#contentFrame").waitFor({ timeout: iframeTimeout, state: "attached" });
+  // The quiz is in a nested iframe with id="contentFrame". Waiting only for
+  // the outer module URL is racy in Firefox: the launch page can be visible
+  // while it is still creating and loading this nested frame. Wait until the
+  // nested document has a body, then use the FrameLocator for normal waits.
+  await page.waitForFunction(
+    () => {
+      const moduleFrame = document.getElementById("moduleFrame") as HTMLIFrameElement | null;
+      const contentFrame = moduleFrame?.contentDocument?.getElementById(
+        "contentFrame"
+      ) as HTMLIFrameElement | null;
+      return Boolean(contentFrame?.contentDocument?.body);
+    },
+    { timeout: iframeTimeout }
+  );
 
   // Additional wait for Firefox - iframe may exist but not be ready
   if (isFirefox) {
@@ -1266,16 +1276,6 @@ export async function completeAssessmentSCO(
   // Detect browser type for Firefox-specific timeouts
   const browserName = page.context().browser()?.browserType().name() || "chromium";
   const isFirefox = browserName === "firefox";
-  const iframeTimeout = isFirefox ? 20000 : 10000;
-
-  // Wait for the contentFrame iframe to be created (launchpage.html creates it)
-  // Firefox needs more time for iframe creation
-  await moduleFrame.locator("#contentFrame").waitFor({ state: "attached", timeout: iframeTimeout });
-
-  // Additional wait for Firefox - iframe may exist but not be ready
-  if (isFirefox) {
-    await page.waitForTimeout(500);
-  }
 
   // Answer questions correctly or incorrectly based on shouldPass parameter
   if (shouldPass) {

@@ -56,6 +56,7 @@ import { scorm2004InteractionsObjectivesTests } from "./suites/scorm2004-interac
 // Module path - first SCO in the sequence
 const MODULE_PATH =
   "/test/integration/modules/SequencingPostTestRollup4thEd_SCORM20044thEdition/shared/launchpage.html?content=playing";
+const NOTES_STORAGE = "com.scorm.golfsamples.sequencing.forcedsequential.notesStorage";
 
 // Activity tree configuration based on manifest analysis
 const ACTIVITY_TREE = {
@@ -66,6 +67,7 @@ const ACTIVITY_TREE = {
       id: "playing_item",
       title: "Playing the Game",
       identifierref: "playing_resource",
+      sharedDataMaps: [{ targetID: NOTES_STORAGE, readSharedData: true, writeSharedData: true }],
       objectives: [
         {
           objectiveID: "playing_completed",
@@ -90,6 +92,7 @@ const ACTIVITY_TREE = {
       id: "etuqiette_item",
       title: "Etiquette",
       identifierref: "etiquette_resource",
+      sharedDataMaps: [{ targetID: NOTES_STORAGE, readSharedData: true, writeSharedData: true }],
       objectives: [
         {
           objectiveID: "ettiquette_completed",
@@ -146,6 +149,7 @@ const ACTIVITY_TREE = {
       id: "handicapping_item",
       title: "Handicapping",
       identifierref: "handicapping_resource",
+      sharedDataMaps: [{ targetID: NOTES_STORAGE, readSharedData: true, writeSharedData: true }],
       objectives: [
         {
           objectiveID: "handicapping_completed",
@@ -202,6 +206,7 @@ const ACTIVITY_TREE = {
       id: "havingfun_item",
       title: "Having Fun",
       identifierref: "havingfun_resource",
+      sharedDataMaps: [{ targetID: NOTES_STORAGE, readSharedData: true, writeSharedData: true }],
       objectives: [
         {
           objectiveID: "havingfun_completed",
@@ -258,6 +263,7 @@ const ACTIVITY_TREE = {
       id: "assessment_item",
       title: "Quiz",
       identifierref: "assessment_resource",
+      sharedDataMaps: [{ targetID: NOTES_STORAGE, readSharedData: true, writeSharedData: true }],
       objectives: [
         {
           objectiveID: "previous_sco_completed",
@@ -1193,35 +1199,53 @@ wrappers.forEach((wrapper) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
       await waitForPageReady(page);
 
-      // Inject sequencing configuration
       await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
       await ensureApiInitialized(page);
       await page.waitForTimeout(2000);
 
-      // Verify shared data bucket configuration
-      // Note: Shared data buckets are configured in the activity tree
-      // but may not be directly accessible via the API
-      // This test verifies the configuration is present
-      const hasSharedDataConfig = await page.evaluate(() => {
+      const initial = await page.evaluate((targetId) => {
         const api = (window as any).API_1484_11;
-        const state = api.getSequencingState();
+        const count = api.lmsGetValue("adl.data._count");
+        const id = api.lmsGetValue("adl.data.0.id");
+        const store = api.lmsGetValue("adl.data.0.store");
+        const storeError = api.lmsGetLastError();
+        return { count, id, store, storeError, targetId };
+      }, NOTES_STORAGE);
 
-        // Check if activities have shared data configuration
-        if (state?.rootActivity?.children) {
-          for (const child of state.rootActivity.children) {
-            // Shared data buckets are typically configured at the activity level
-            // but may not be directly exposed in the sequencing state
-            // The presence of the activity indicates configuration is loaded
-            if (child.id === "playing_item") {
-              return true;
-            }
-          }
-        }
-        return false;
+      expect(initial.count).toBe("1");
+      expect(initial.id).toBe(NOTES_STORAGE);
+      expect(initial.store).toBe("");
+      expect(initial.storeError).toBe(String(403));
+
+      const afterNavigation = await page.evaluate((note) => {
+        const api = (window as any).API_1484_11;
+        const writeResult = api.lmsSetValue("adl.data.0.store", note);
+        api.lmsSetValue("cmi.completion_status", "completed");
+        api.lmsCommit("");
+        api.lmsSetValue("adl.nav.request", "_continue");
+        api.processNavigationRequest("continue");
+        api.reset();
+        api.lmsInitialize("");
+        return {
+          writeResult,
+          currentActivity: api.getSequencingState()?.currentActivity?.id || null,
+          count: api.lmsGetValue("adl.data._count"),
+          id: api.lmsGetValue("adl.data.0.id"),
+          store: api.lmsGetValue("adl.data.0.store"),
+          error: api.lmsGetLastError(),
+          snapshot: api.captureSharedDataSnapshot(),
+        };
+      }, "Remember the etiquette section");
+
+      expect(afterNavigation.writeResult).toBe("true");
+      expect(afterNavigation.currentActivity).toBe("etuqiette_item");
+      expect(afterNavigation.count).toBe("1");
+      expect(afterNavigation.id).toBe(NOTES_STORAGE);
+      expect(afterNavigation.store).toBe("Remember the etiquette section");
+      expect(afterNavigation.error).toBe("0");
+      expect(afterNavigation.snapshot).toEqual({
+        [NOTES_STORAGE]: "Remember the etiquette section",
       });
-
-      // Activities should be configured (shared data is part of manifest configuration)
-      expect(hasSharedDataConfig).toBe(true);
     });
 
     /**
@@ -1495,6 +1519,13 @@ wrappers.forEach((wrapper) => {
         return null;
       });
       expect(previousScoCompletionStatus).toBe("completed");
+
+      // The delivered Etiquette attempt must retain the same read-mapped value in
+      // sequencing state. Otherwise its disabled rule treats the current SCO as
+      // prerequisite-locked even though the LMS has already delivered it.
+      expect(await getCmiValue(page, "adl.nav.request_valid.choice.{target=etuqiette_item}")).toBe(
+        "true",
+      );
 
       const globalStatus = await getGlobalObjectiveStatus(
         page,

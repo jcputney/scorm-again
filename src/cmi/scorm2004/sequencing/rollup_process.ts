@@ -271,6 +271,25 @@ export class RollupProcess {
   }
 
   /**
+   * Restore an activity's read-mapped objective state after new-attempt initialization.
+   *
+   * DB.2 initializes attempt-scoped local objectives, while objective maps remain available
+   * across activities. Reapply the read phase before sequencing rules and navigation validity
+   * inspect the delivered attempt.
+   *
+   * @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
+   */
+  public syncActivityObjectivesFromGlobals(
+    activity: Activity,
+    globalObjectives: Map<string, GlobalObjective>,
+  ): boolean {
+    return this.globalObjectiveSynchronizer.syncGlobalObjectivesDeliveryReadPhase(
+      activity,
+      globalObjectives,
+    );
+  }
+
+  /**
    * Apply a terminating descendant's fresh objective writes to an active ancestor.
    *
    * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing

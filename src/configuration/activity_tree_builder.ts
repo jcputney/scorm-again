@@ -232,6 +232,14 @@ export class ActivityTreeBuilder {
       }
     }
 
+    if (activitySettings.sharedDataMaps) {
+      activity.sharedDataMaps = activitySettings.sharedDataMaps.map((map) => ({
+        targetID: map.targetID,
+        readSharedData: map.readSharedData ?? true,
+        writeSharedData: map.writeSharedData ?? false,
+      }));
+    }
+
     // Create child activities
     if (activitySettings.children) {
       for (const childSettings of activitySettings.children) {

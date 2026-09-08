@@ -5,6 +5,7 @@ import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import { scorm2004_regex } from "../constants/regex";
 import { SequencingService } from "../services/SequencingService";
 import { GlobalObjectiveManager } from "../objectives/global_objective_manager";
+import { ADL } from "../cmi/scorm2004/adl";
 
 /**
  * Render CMI to JSON function type
@@ -19,6 +20,7 @@ export type RenderCMIToJSONFn = () => StringKeyMap;
 export interface DataSerializerContext {
   getSettings: () => Settings;
   cmi: CMI;
+  adl?: ADL;
   sequencingService: SequencingService | null;
   renderCMIToJSONObject: RenderCMIToJSONFn;
 }
@@ -70,7 +72,37 @@ export class Scorm2004DataSerializer {
     terminateCommit: boolean,
     includeTotalTime: boolean = false,
   ): StringKeyMap | Array<any> {
+    const cmiExport = this.renderCMIExport(terminateCommit, includeTotalTime);
+    const sharedData = this.captureSharedData();
+
+    const flattened: StringKeyMap = flatten(cmiExport);
+    switch (this.context.getSettings().dataCommitFormat) {
+      case "flattened":
+        return flattened;
+      case "params":
+        return Object.entries(flattened).map(([item, value]) => `${item}=${value}`);
+      case "json":
+      default:
+        // Compact SCORM 2004 commits are the payload itself (rather than a
+        // runtimeData wrapper), so preserve sharedData at its top level.
+        if (sharedData) {
+          cmiExport.sharedData = sharedData;
+        }
+        return cmiExport;
+    }
+  }
+
+  /** Render the runtime CMI envelope without compact-commit metadata. */
+  private renderCMIExport(terminateCommit: boolean, includeTotalTime: boolean): StringKeyMap {
     const cmiExport: StringKeyMap = this.context.renderCMIToJSONObject();
+    // The structured commit's runtimeData includes the active CMI model and the currently mapped
+    // SCORM 2004 ADL data buckets. Navigation state belongs to sequencing persistence, not the
+    // per-SCO runtime envelope.
+    if (this.context.adl && this.context.adl.data._count > 0) {
+      cmiExport.adl = {
+        data: JSON.parse(JSON.stringify(this.context.adl.data)),
+      };
+    }
 
     if (terminateCommit || includeTotalTime) {
       // Add total_time to the exported cmi object
@@ -79,18 +111,18 @@ export class Scorm2004DataSerializer {
       // Remove total_time from export when not terminating
       delete (cmiExport.cmi as StringKeyMap).total_time;
     }
+    return cmiExport;
+  }
 
-    const flattened: StringKeyMap = flatten(cmiExport);
-    const settings = this.context.getSettings();
-    switch (settings.dataCommitFormat) {
-      case "flattened":
-        return flattened;
-      case "params":
-        return Object.entries(flattened).map(([item, value]) => `${item}=${value}`);
-      case "json":
-      default:
-        return cmiExport;
+  private captureSharedData(): Record<string, string> | null {
+    if (
+      !this.context.adl ||
+      typeof this.context.adl.captureWritableSharedDataSnapshot !== "function"
+    ) {
+      return null;
     }
+    const sharedData = this.context.adl.captureWritableSharedDataSnapshot();
+    return Object.keys(sharedData).length > 0 ? sharedData : null;
   }
 
   /**
@@ -101,6 +133,11 @@ export class Scorm2004DataSerializer {
    */
   renderCommitObject(terminateCommit: boolean, includeTotalTime: boolean = false): CommitObject {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
+    // renderCommitCMI adds compact-only metadata at the payload root. Structured commits expose
+    // that metadata beside runtimeData instead, retaining the pre-existing runtimeData format.
+    if (!Array.isArray(cmiExport)) {
+      delete cmiExport.sharedData;
+    }
     const calculateTotalTime = terminateCommit || includeTotalTime;
     const totalTimeDuration = calculateTotalTime ? this.context.cmi.getCurrentTotalTime() : "";
     const totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
@@ -168,6 +205,10 @@ export class Scorm2004DataSerializer {
       totalTimeSeconds: totalTimeSeconds,
       runtimeData: cmiExport as StringKeyMap,
     };
+    const sharedData = this.captureSharedData();
+    if (sharedData) {
+      commitObject.sharedData = sharedData;
+    }
     if (scoreObject) {
       commitObject.score = scoreObject;
     }

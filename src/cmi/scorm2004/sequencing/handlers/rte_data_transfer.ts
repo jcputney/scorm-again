@@ -7,6 +7,7 @@ import { evaluateCompletionStatusFromThreshold } from "../../completion_status_e
  */
 export interface CMIDataForTransfer {
   completion_status?: string;
+  completion_status_was_set?: boolean;
   success_status?: string;
   success_status_was_set?: boolean;
   score_was_set?: boolean;
@@ -315,6 +316,12 @@ export class RteDataTransferService {
       let hasCompletionStatus = false;
       let hasProgressMeasure = false;
 
+      const topLevelCompletionStatus = validateCompletionStatus(cmiData.completion_status);
+      const topLevelPrimaryCompletionWasSet =
+        cmiData.completion_status_was_set === true ||
+        (cmiData.completion_status_was_set === undefined &&
+          topLevelCompletionStatus !== null &&
+          topLevelCompletionStatus !== CompletionStatus.UNKNOWN);
       const topLevelSuccessStatus = validateSuccessStatus(cmiData.success_status);
       const topLevelPrimarySuccessWasSet =
         cmiData.success_status_was_set === true ||
@@ -367,19 +374,24 @@ export class RteDataTransferService {
           activityObjective.initializeUnknownCompletionStatusFromCMI();
           hasCompletionStatus = true;
         }
-      } else if (validatedObjCompletionStatus !== null) {
+      } else if (
+        validatedObjCompletionStatus !== null &&
+        (cmiObjective.completion_status_was_set !== false ||
+          !isPrimaryObjective ||
+          !topLevelPrimaryCompletionWasSet)
+      ) {
         // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 3.10.3 - an objective
         // completion status changed to unknown removes a previously known local
         // status; an untouched default unknown does not create a mapped write.
+        // A launch-seeded primary objective row likewise cannot replace a later
+        // content write to the top-level primary completion status.
         activityObjective.completionStatus = validatedObjCompletionStatus;
         hasCompletionStatus = true;
       }
 
       // Transfer score (with normalization)
       const objectiveScoreMayOverridePrimary =
-        cmiObjective.score_was_set !== false ||
-        !isPrimaryObjective ||
-        !topLevelPrimaryScoreWasSet;
+        cmiObjective.score_was_set !== false || !isPrimaryObjective || !topLevelPrimaryScoreWasSet;
       if (cmiObjective.score && objectiveScoreMayOverridePrimary) {
         // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max
         // score write maps use the RTE objective score values, independent of scaled score.

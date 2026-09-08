@@ -5,6 +5,7 @@
  */
 
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
+import type { SharedDataMapSettings } from "./sequencing_types";
 
 /**
  * Interface for Activity objects passed to sequencing event listeners.
@@ -70,4 +71,7 @@ export interface IActivity {
 
   /** Whether progress measure status is valid */
   readonly progressMeasureStatus: boolean;
+
+  /** Shared-data bucket mappings declared for this activity. */
+  readonly sharedDataMaps?: SharedDataMapSettings[];
 }

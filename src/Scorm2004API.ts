@@ -105,6 +105,7 @@ const NO_DEFAULT_2004_ELEMENTS: ReadonlySet<string> = new Set<string>([
   "cmi.interactions.N.learner_response",
   "cmi.interactions.N.description",
   "cmi.comments_from_learner.N.timestamp",
+  "adl.data.N.store",
 ]);
 
 /** Replace each numeric array-index segment with "N" so paths match the table. */
@@ -204,6 +205,7 @@ class Scorm2004API extends BaseAPI {
     const dataSerializerContext: DataSerializerContext = {
       getSettings: () => this.settings,
       cmi: this.cmi,
+      adl: this.adl,
       sequencingService: this._sequencingService,
       renderCMIToJSONObject: this.renderCMIToJSONObject.bind(this),
     };
@@ -253,8 +255,8 @@ class Scorm2004API extends BaseAPI {
     this._runtimeSetCMIElements.clear();
 
     this.cmi?.reset();
-    this.applyCurrentActivityLaunchData();
     this.adl?.reset();
+    this.applyCurrentActivityLaunchData();
   }
 
   /**
@@ -269,6 +271,7 @@ class Scorm2004API extends BaseAPI {
       return;
     }
 
+    this.adl.configureSharedDataMaps(currentActivity.sharedDataMaps);
     this.applyActivityLaunchData(currentActivity);
   }
 
@@ -280,6 +283,7 @@ class Scorm2004API extends BaseAPI {
    * @spec SCORM 2004 4th Ed. RTE 4.2.17, Table 4.2.17a - cmi.objectives is initialized before SCO access.
    */
   private applyDeliveredActivityLaunchData(activity: Activity): void {
+    this.adl.configureSharedDataMaps(activity.sharedDataMaps);
     // @spec SCORM 2004 4th Ed. RTE 3.1.6 - API Instance State Transition;
     // launch data is prepared before the SCO opens its communication session.
     if (!this.isNotInitialized()) {
@@ -601,6 +605,16 @@ class Scorm2004API extends BaseAPI {
     this._globalObjectiveManager.restoreGlobalObjectiveSnapshot(snapshot);
   }
 
+  /** Restore the LMS-persisted SCORM 2004 shared-data stores. */
+  restoreSharedDataSnapshot(snapshot: Record<string, string>): void {
+    this.adl.restoreSharedDataSnapshot(snapshot);
+  }
+
+  /** Capture all SCORM 2004 shared-data stores, including non-current mappings. */
+  captureSharedDataSnapshot(): Record<string, string> {
+    return this.adl.captureSharedDataSnapshot();
+  }
+
   /**
    * Compress state data (delegates to persistence class)
    * @param {string} data - Data to compress
@@ -655,6 +669,10 @@ class Scorm2004API extends BaseAPI {
       "LMS was already initialized!",
       "LMS is already finished!",
     );
+
+    if (result === global_constants.SCORM_TRUE) {
+      this.adl.initialize();
+    }
 
     if (result === global_constants.SCORM_TRUE && this._sequencingService) {
       this._sequencingService.initialize();
@@ -753,11 +771,20 @@ class Scorm2004API extends BaseAPI {
 
     if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
       let navigationHandled = false;
+      let sequencingAttempted = false;
       let processedSequencingRequest: string | null = null;
 
       if (this._sequencingService) {
         try {
           if (requestToProcess) {
+            // A prepared request proves that the internal engine was available
+            // and accepted the request for completion. If preparation was not
+            // possible, only invoke the compatibility path when the internal
+            // engine itself is unavailable; an available engine rejecting a
+            // request must not duplicate it through legacy listeners.
+            const sequencingAvailable =
+              this._sequencingService.getSequencingState().isInitialized === true;
+            sequencingAttempted = sequencingAvailable;
             navigationHandled = preparedNavigation
               ? this._sequencingService.completeNavigationRequest(preparedNavigation)
               : this._sequencingService.processNavigationRequest(
@@ -768,16 +795,12 @@ class Scorm2004API extends BaseAPI {
             processedSequencingRequest = requestToProcess;
           }
         } catch (error) {
-          this.apiLog(
-            "lmsFinish",
-            `Sequencing navigation failed, falling back to event-based navigation: ${error}`,
-            LogLevelEnum.WARN,
-          );
+          this.apiLog("lmsFinish", `Sequencing navigation failed: ${error}`, LogLevelEnum.WARN);
           navigationHandled = false;
         }
       }
 
-      if (!navigationHandled) {
+      if (!navigationHandled && !sequencingAttempted) {
         if (pendingNavRequest !== "_none_") {
           const navActions: { [key: string]: string } = {
             continue: "SequenceNext",
@@ -1203,6 +1226,7 @@ class Scorm2004API extends BaseAPI {
   protected override checkUninitializedGet(CMIElement: string, returnValue: any): void {
     if (returnValue !== "") return;
     if (this._setCMIElements.has(CMIElement)) return;
+    if (this.adl.isConfiguredSharedDataElement(CMIElement)) return;
     if (!NO_DEFAULT_2004_ELEMENTS.has(normalizeCMIIndices(CMIElement))) return;
 
     this.throwSCORMError(

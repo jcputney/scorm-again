@@ -81,7 +81,7 @@ export class Scorm2004CMIHandler {
       // SCOs should only access indices < _count. However, we intentionally
       // allow dynamic creation for backward compatibility with content that
       // creates adl.data elements on-the-fly.
-      return new ADLDataObject();
+      return new ADLDataObject(true);
     }
 
     return null;

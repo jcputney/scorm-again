@@ -384,6 +384,12 @@ export class SequencingService {
       return true;
     } else {
       // No delivery requested or invalid
+      // End Attempt may have changed global objectives and therefore the
+      // validity of choice requests even when sequencing rejects the request
+      // or has no activity to deliver. Keep the current activity pointer in
+      // place, but refresh the derived navigation state for the LMS/UI.
+      this.overallSequencingProcess?.updateNavigationValidity();
+
       if (deliveryRequest.exception) {
         this.log("warn", `Navigation request '${request}' failed: ${deliveryRequest.exception}`);
         this.fireEvent("onSequencingError", deliveryRequest.exception, "navigation");
@@ -705,6 +711,8 @@ export class SequencingService {
   private getCMIDataForTransfer(): any {
     const cmiData: any = {
       completion_status: this.cmi.completion_status,
+      completion_status_was_set:
+        this.configuration.wasCMIElementSetByContent?.("cmi.completion_status") === true,
       success_status: this.cmi.success_status,
       // @spec SCORM 2004 4th Ed. SN 3.13.3 - auto-satisfaction applies only
       // when content did not communicate primary-objective success information.

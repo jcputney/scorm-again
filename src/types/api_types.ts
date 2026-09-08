@@ -231,6 +231,8 @@ export type CommitObject = {
   runtimeData: StringKeyMap;
   /** SCORM 2004 sequencing global-objective state for LMS persistence. */
   globalObjectives?: Record<string, GlobalObjectiveMapEntry>;
+  /** SCORM 2004 shared-data stores keyed by manifest targetID. */
+  sharedData?: Record<string, string>;
   score?: ScoreObject;
   commitId?: string;
   courseId?: string;
