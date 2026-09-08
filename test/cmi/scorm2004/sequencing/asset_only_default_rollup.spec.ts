@@ -37,15 +37,16 @@ describe("asset-only default rollup", () => {
       }
     }
     expect(sequencing!.getSequencingState().currentActivity?.id).toBe("asset-4-3");
-    expect(sequencing!.processNavigationRequest("choice", "asset-1-1")).toBe(true);
-    for (let index = 1; index < 18; index += 1) {
-      expect(sequencing!.processNavigationRequest("continue")).toBe(true);
-    }
-
-    expect(sequencing!.getSequencingState().currentActivity?.id).toBe("asset-4-3");
     expect(sequencing!.processNavigationRequest("continue")).toBe(true);
 
     const state = sequencing!.getSequencingState();
+    expect(state.rootActivity?.attemptCount).toBe(1);
+    expect(state.rootActivity?.children.map((child) => child.attemptCount)).toEqual([1, 1, 1, 1]);
+    expect(
+      state.rootActivity?.children.flatMap((cluster) =>
+        cluster.children.map((leaf) => [leaf.completionStatus, leaf.successStatus]),
+      ),
+    ).toEqual(Array.from({ length: 18 }, () => ["completed", "passed"]));
     expect(state.rootActivity?.children.map((child) => child.completionStatus)).toEqual([
       "completed",
       "completed",

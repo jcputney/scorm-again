@@ -335,11 +335,14 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.targetActivity).toBe(lesson2_1);
     });
 
-    it("should terminate descendants from common ancestor", () => {
+    it("should end only the active path below the common ancestor", () => {
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      module1.isActive = true;
-      lesson1_2.isActive = true;
+      const endedActivities: string[] = [];
+      sequencingProcess.setEndAttemptCallback((activity) => {
+        endedActivities.push(activity.id);
+        activity.isActive = false;
+      });
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
@@ -347,8 +350,11 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      // Descendants should be terminated
-      expect(lesson1_2.isActive).toBe(false);
+      expect(endedActivities).toEqual(["module1"]);
+      expect(root.isActive).toBe(true);
+      expect(module1.isActive).toBe(false);
+      expect(module2.isActive).toBe(false);
+      expect(lesson2_1.isActive).toBe(false);
     });
   });
 

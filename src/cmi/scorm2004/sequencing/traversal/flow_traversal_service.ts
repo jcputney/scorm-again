@@ -46,6 +46,22 @@ export class FlowTraversalService {
   }
 
   /**
+   * End one active attempt through the coordinator-owned UP.4 process.
+   * SequencingProcess can also be used without the overall coordinator in
+   * focused callers, so retain the state-only fallback for that case.
+   */
+  public endActiveAttempt(activity: Activity): void {
+    if (!activity.isActive) {
+      return;
+    }
+    if (this.endAttemptCallback) {
+      this.endAttemptCallback(activity);
+    } else {
+      activity.isActive = false;
+    }
+  }
+
+  /**
    * Flow Subprocess (SB.2.3)
    * Traverses the activity tree in the specified direction to find a deliverable activity
    * @param {Activity} fromActivity - The activity to flow from
@@ -219,10 +235,9 @@ export class FlowTraversalService {
     if (
       activity.parent &&
       activity.children.length > 0 &&
-      activity.isActive &&
-      this.endAttemptCallback
+      activity.isActive
     ) {
-      this.endAttemptCallback(activity);
+      this.endActiveAttempt(activity);
     }
   }
 
