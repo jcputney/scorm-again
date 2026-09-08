@@ -689,11 +689,120 @@ describe("State Persistence (Multi-Session Support)", () => {
       expect(restoreResult).toBe(true);
 
       // Verify suspended state was restored correctly
+      expect(newActivityTree.currentActivity).toBeNull();
+      expect(newRoot.isActive).toBe(false);
+      expect(newRoot.isSuspended).toBe(true);
       expect(newActivityTree.suspendedActivity?.id).toBe("lesson1");
       expect(newLesson1.isSuspended).toBe(true);
 
       // The state is correctly restored - the suspended activity is available
-      // for a RESUME_ALL navigation request by the navigation process
+      // for a RESUME_ALL navigation request by the navigation process.
+      const resumeResult = newOverallProcess.processNavigationRequest(
+        NavigationRequestType.RESUME_ALL,
+      );
+      expect(resumeResult.valid).toBe(true);
+      expect(resumeResult.targetActivity).toBe(newLesson1);
+      expect(newActivityTree.currentActivity).toBe(newLesson1);
+      expect(newLesson1.isSuspended).toBe(false);
+    });
+
+    it("should clear a legacy suspended-root pointer before RESUME_ALL", () => {
+      overallProcess.processNavigationRequest(NavigationRequestType.START);
+      overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+      const state = overallProcess.getSequencingState();
+      // Older SUSPEND_ALL snapshots retained the transient root pointer.
+      state.currentActivity = "root";
+
+      const newActivityTree = new ActivityTree();
+      const newRoot = new Activity("root", "Course");
+      const newModule1 = new Activity("module1", "Module 1");
+      const newLesson1 = new Activity("lesson1", "Lesson 1");
+      const newLesson2 = new Activity("lesson2", "Lesson 2");
+      const newModule2 = new Activity("module2", "Module 2");
+      const newLesson3 = new Activity("lesson3", "Lesson 3");
+      newRoot.addChild(newModule1);
+      newRoot.addChild(newModule2);
+      newModule1.addChild(newLesson1);
+      newModule1.addChild(newLesson2);
+      newModule2.addChild(newLesson3);
+      newActivityTree.root = newRoot;
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      newModule2.sequencingControls.flow = true;
+
+      const newOverallProcess = new OverallSequencingProcess(
+        newActivityTree,
+        new SequencingProcess(newActivityTree),
+        new RollupProcess(),
+        new ADLNav()
+      );
+
+      expect(newOverallProcess.restoreSequencingState(state)).toBe(true);
+      expect(newActivityTree.currentActivity).toBeNull();
+      expect(newActivityTree.suspendedActivity).toBe(newLesson1);
+
+      const resumeResult = newOverallProcess.processNavigationRequest(
+        NavigationRequestType.RESUME_ALL,
+      );
+      expect(resumeResult.valid).toBe(true);
+      expect(resumeResult.targetActivity).toBe(newLesson1);
+    });
+
+    it("should preserve an ordinary inactive current activity", () => {
+      overallProcess.processNavigationRequest(NavigationRequestType.START);
+      lesson1.isActive = false;
+
+      const state = overallProcess.getSequencingState();
+
+      const newActivityTree = new ActivityTree();
+      const newRoot = new Activity("root", "Course");
+      const newModule1 = new Activity("module1", "Module 1");
+      const newLesson1 = new Activity("lesson1", "Lesson 1");
+      newRoot.addChild(newModule1);
+      newModule1.addChild(newLesson1);
+      newActivityTree.root = newRoot;
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+
+      const newOverallProcess = new OverallSequencingProcess(
+        newActivityTree,
+        new SequencingProcess(newActivityTree),
+        new RollupProcess(),
+        new ADLNav()
+      );
+
+      expect(newOverallProcess.restoreSequencingState(state)).toBe(true);
+      expect(newActivityTree.currentActivity).toBe(newLesson1);
+      expect(newLesson1.isActive).toBe(false);
+    });
+
+    it("should retain legacy current-pointer activation without activityStates", () => {
+      overallProcess.processNavigationRequest(NavigationRequestType.START);
+
+      const state = overallProcess.getSequencingState();
+      delete (state as Partial<typeof state>).activityStates;
+
+      const newActivityTree = new ActivityTree();
+      const newRoot = new Activity("root", "Course");
+      const newModule1 = new Activity("module1", "Module 1");
+      const newLesson1 = new Activity("lesson1", "Lesson 1");
+      newRoot.addChild(newModule1);
+      newModule1.addChild(newLesson1);
+      newActivityTree.root = newRoot;
+
+      const newOverallProcess = new OverallSequencingProcess(
+        newActivityTree,
+        new SequencingProcess(newActivityTree),
+        new RollupProcess(),
+        new ADLNav()
+      );
+
+      expect(newOverallProcess.restoreSequencingState(state)).toBe(true);
+      expect(newActivityTree.currentActivity).toBe(newLesson1);
+      expect(newLesson1.isActive).toBe(true);
+      expect(newModule1.isActive).toBe(true);
+      expect(newRoot.isActive).toBe(true);
     });
   });
 

@@ -708,8 +708,8 @@ describe("Overall Sequencing Process (OP.1)", () => {
         // Suspended activity reference should be set to current
         expect(activityTree.suspendedActivity).toBe(grandchild1);
 
-        // TB.2.3 5.6: Current activity should move to root
-        expect(activityTree.currentActivity).toBe(root);
+        // The root is only a transient TB.2.3 pointer; the ended session leaves no current activity.
+        expect(activityTree.currentActivity).toBeNull();
       });
 
       it("should suspend entire path for deeply nested activity (3+ levels)", () => {
@@ -761,7 +761,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         expect(level0.isActive).toBe(false);
 
         expect(deepTree.suspendedActivity).toBe(level4);
-        expect(deepTree.currentActivity).toBe(level0);
+        expect(deepTree.currentActivity).toBeNull();
       });
 
       it("should handle suspend when current activity is root (single element path)", () => {
@@ -777,7 +777,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         expect(root.isSuspended).toBe(true);
         expect(root.isActive).toBe(false);
         expect(activityTree.suspendedActivity).toBe(root);
-        expect(activityTree.currentActivity).toBe(root);
+        expect(activityTree.currentActivity).toBeNull();
       });
 
       it("should not affect sibling activities outside the path", () => {
@@ -817,7 +817,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         expect(child1.isSuspended).toBe(true);
         expect(root.isSuspended).toBe(true);
         expect(activityTree.suspendedActivity).toBe(grandchild1);
-        expect(activityTree.currentActivity).toBe(root);
+        expect(activityTree.currentActivity).toBeNull();
 
         // Simulate session termination and new session (Terminate/Initialize cycle)
         // During termination, currentActivity is cleared
@@ -3122,7 +3122,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         expect(state).toBeDefined();
         expect((state as any).activityTree).toBeDefined();
-        expect((state as any).currentActivityId).toBe(root.id);
+        expect((state as any).currentActivityId).toBeNull();
         expect((state as any).suspendedActivityId).toBe(grandchild1.id);
         expect((state as any).globalObjectives).toBeDefined();
         expect((state as any).timestamp).toBeDefined();
@@ -3179,7 +3179,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
         overallProcess.restoreSuspensionState(state);
 
-        expect(activityTree.currentActivity?.id).toBe(root.id);
+        expect(activityTree.currentActivity).toBeNull();
         expect(activityTree.suspendedActivity?.id).toBe(grandchild1.id);
       });
 

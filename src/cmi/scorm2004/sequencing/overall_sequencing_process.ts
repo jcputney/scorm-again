@@ -67,7 +67,7 @@ export interface PreparedNavigationRequest {
   navigationRequest: NavigationRequestType;
   navResult: NavigationRequestResult;
   deliveryRequest: DeliveryRequest | null;
-  sessionEndReason: "exit_all" | "abandon_all" | null;
+  sessionEndReason: "exit_all" | "abandon_all" | "suspend_all" | null;
 }
 
 /**
@@ -358,7 +358,9 @@ export class OverallSequencingProcess {
             ? "exit_all"
             : navResult.terminationRequest === SequencingRequestType.ABANDON_ALL
               ? "abandon_all"
-              : null;
+              : navResult.terminationRequest === SequencingRequestType.SUSPEND_ALL
+                ? "suspend_all"
+                : null;
         return {
           navigationRequest,
           navResult,
@@ -390,6 +392,13 @@ export class OverallSequencingProcess {
     }
 
     if (prepared.sessionEndReason) {
+      if (prepared.sessionEndReason === "suspend_all") {
+        // SUSPEND_ALL ends the current session while retaining the suspended
+        // activity path for RESUME_ALL in the next session. The root pointer
+        // installed by TB.2.3 is only an intermediate sequencing state and
+        // would make RESUME_ALL fail its currentActivity == null precondition.
+        this.activityTree.setCurrentActivityWithoutActivation(null);
+      }
       this.fireEvent("onSequencingSessionEnd", {
         reason: prepared.sessionEndReason,
         navigationRequest,

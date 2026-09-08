@@ -280,6 +280,34 @@ describe("EndSequencingSession Handling", () => {
       expect(delivery.exception).toBeNull();
     });
 
+    it("should report SUSPEND_ALL's implicit EXIT as suspend_all", () => {
+      activityTree.currentActivity = sco2;
+      sco2.isActive = true;
+      eventCallback.mockClear();
+
+      const prepared = overallProcess.prepareNavigationRequest(
+        NavigationRequestType.SUSPEND_ALL,
+      );
+
+      expect(prepared).not.toBeNull();
+      expect(prepared?.navResult.terminationRequest).toBe(SequencingRequestType.SUSPEND_ALL);
+      expect(prepared?.sessionEndReason).toBe("suspend_all");
+
+      const delivery = overallProcess.completeNavigationRequest(prepared!);
+
+      expect(delivery.valid).toBe(true);
+      expect(delivery.targetActivity).toBeNull();
+      expect(activityTree.currentActivity).toBeNull();
+      expect(activityTree.suspendedActivity).toBe(sco2);
+      expect(eventCallback).toHaveBeenCalledWith(
+        "onSequencingSessionEnd",
+        expect.objectContaining({
+          reason: "suspend_all",
+          navigationRequest: NavigationRequestType.SUSPEND_ALL,
+        }),
+      );
+    });
+
     it("should NOT fire onSequencingSessionEnd when session continues", () => {
       // Navigate to first activity
       overallProcess.processNavigationRequest(NavigationRequestType.START);
