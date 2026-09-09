@@ -224,6 +224,10 @@ export class DeliveryHandler {
       // Step 1: Check if we're resuming before clearing suspended state
       // Capture suspended state of delivered activity BEFORE clearSuspendedActivitySubprocess
       const isResuming = activity.isSuspended;
+      const activityPath = this.getActivityPath(activity, true);
+      const suspendedPathActivities = new Set(
+        activityPath.filter((pathActivity) => pathActivity.isSuspended),
+      );
       // @spec SCORM 2004 4th Ed. RTE 4.2.8 and SN DB.2: integrations must know
       // whether to restore the delivered SCO's suspended local RTE data after DB.2.1
       // clears the sequencing suspension flag.
@@ -239,15 +243,15 @@ export class DeliveryHandler {
       }
 
       // Step 3: Process activity path and initialize tracking data (DB.2.2)
-      // Get the full path from root to delivered activity
-      const activityPath = this.getActivityPath(activity, true);
       const newAttemptActivities: Activity[] = [];
 
       // Process each activity in the path (root to leaf)
       for (const pathActivity of activityPath) {
         // Only process activities that are not already active
         if (!pathActivity.isActive) {
-          if (isResuming || pathActivity.isSuspended) {
+          const isPathActivityResuming =
+            isResuming || suspendedPathActivities.has(pathActivity);
+          if (isPathActivityResuming) {
             // Resuming: clear suspended flag but don't increment attempt
             pathActivity.isSuspended = false;
           } else {
@@ -284,7 +288,7 @@ export class DeliveryHandler {
           // This occurs after activity.isActive is set and attempt count is incremented
           SelectionRandomization.applySelectionAndRandomization(
             pathActivity,
-            pathActivity.attemptCount <= 1,
+            !isPathActivityResuming,
           );
         }
       }

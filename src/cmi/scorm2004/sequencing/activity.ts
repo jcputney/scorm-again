@@ -2490,8 +2490,15 @@ export class Activity extends BaseCMI {
         ? {
             id: this._primaryObjective.id,
             satisfiedStatus: this._primaryObjective.satisfiedStatus,
+            satisfiedStatusKnown: this._primaryObjective.satisfiedStatusKnown,
             measureStatus: this._primaryObjective.measureStatus,
             normalizedMeasure: this._primaryObjective.normalizedMeasure,
+            rawScore: this._primaryObjective.rawScore,
+            rawScoreKnown: this._primaryObjective.rawScoreKnown,
+            minScore: this._primaryObjective.minScore,
+            minScoreKnown: this._primaryObjective.minScoreKnown,
+            maxScore: this._primaryObjective.maxScore,
+            maxScoreKnown: this._primaryObjective.maxScoreKnown,
             progressMeasure: this._primaryObjective.progressMeasure,
             progressMeasureStatus: this._primaryObjective.progressMeasureStatus,
             completionStatus: this._primaryObjective.completionStatus,
@@ -2504,8 +2511,15 @@ export class Activity extends BaseCMI {
       objectives: this._objectives.map((obj) => ({
         id: obj.id,
         satisfiedStatus: obj.satisfiedStatus,
+        satisfiedStatusKnown: obj.satisfiedStatusKnown,
         measureStatus: obj.measureStatus,
         normalizedMeasure: obj.normalizedMeasure,
+        rawScore: obj.rawScore,
+        rawScoreKnown: obj.rawScoreKnown,
+        minScore: obj.minScore,
+        minScoreKnown: obj.minScoreKnown,
+        maxScore: obj.maxScore,
+        maxScoreKnown: obj.maxScoreKnown,
         progressMeasure: obj.progressMeasure,
         progressMeasureStatus: obj.progressMeasureStatus,
         completionStatus: obj.completionStatus,
@@ -2617,21 +2631,31 @@ export class Activity extends BaseCMI {
 
     // Restore objective state
     if (state.primaryObjective && this._primaryObjective) {
-      this._primaryObjective.satisfiedStatus =
-        state.primaryObjective.satisfiedStatus ?? this._primaryObjective.satisfiedStatus;
-      this._primaryObjective.measureStatus =
-        state.primaryObjective.measureStatus ?? this._primaryObjective.measureStatus;
-      this._primaryObjective.normalizedMeasure =
-        state.primaryObjective.normalizedMeasure ?? this._primaryObjective.normalizedMeasure;
-      this._primaryObjective.progressMeasure =
-        state.primaryObjective.progressMeasure ?? this._primaryObjective.progressMeasure;
-      this._primaryObjective.progressMeasureStatus =
-        state.primaryObjective.progressMeasureStatus ??
-        this._primaryObjective.progressMeasureStatus;
-      this._primaryObjective.completionStatus =
-        state.primaryObjective.completionStatus ?? this._primaryObjective.completionStatus;
-      this._primaryObjective.progressStatus =
-        state.primaryObjective.progressStatus ?? this._primaryObjective.progressStatus;
+      const objective = this._primaryObjective;
+      const objectiveState = state.primaryObjective;
+      objective.satisfiedStatus = objectiveState.satisfiedStatus ?? objective.satisfiedStatus;
+      objective.satisfiedStatusKnown =
+        objectiveState.satisfiedStatusKnown ?? objective.satisfiedStatusKnown;
+      objective.measureStatus = objectiveState.measureStatus ?? objective.measureStatus;
+      objective.normalizedMeasure = objectiveState.normalizedMeasure ?? objective.normalizedMeasure;
+      objective.progressMeasure = objectiveState.progressMeasure ?? objective.progressMeasure;
+      objective.progressMeasureStatus =
+        objectiveState.progressMeasureStatus ?? objective.progressMeasureStatus;
+      objective.completionStatus = objectiveState.completionStatus ?? objective.completionStatus;
+      objective.progressStatus = objectiveState.progressStatus ?? objective.progressStatus;
+      if (objectiveState.rawScore !== undefined) {
+        objective.rawScore = objectiveState.rawScore;
+        objective.rawScoreKnown = objectiveState.rawScoreKnown ?? objectiveState.rawScore !== "";
+      }
+      if (objectiveState.minScore !== undefined) {
+        objective.minScore = objectiveState.minScore;
+        objective.minScoreKnown = objectiveState.minScoreKnown ?? objectiveState.minScore !== "";
+      }
+      if (objectiveState.maxScore !== undefined) {
+        objective.maxScore = objectiveState.maxScore;
+        objective.maxScoreKnown = objectiveState.maxScoreKnown ?? objectiveState.maxScore !== "";
+      }
+      objective.clearAllDirty();
     }
 
     if (state.objectives) {
@@ -2639,6 +2663,8 @@ export class Activity extends BaseCMI {
         const objective = this._objectives.find((o) => o.id === objState.id);
         if (objective) {
           objective.satisfiedStatus = objState.satisfiedStatus ?? objective.satisfiedStatus;
+          objective.satisfiedStatusKnown =
+            objState.satisfiedStatusKnown ?? objective.satisfiedStatusKnown;
           objective.measureStatus = objState.measureStatus ?? objective.measureStatus;
           objective.normalizedMeasure = objState.normalizedMeasure ?? objective.normalizedMeasure;
           objective.progressMeasure = objState.progressMeasure ?? objective.progressMeasure;
@@ -2646,12 +2672,26 @@ export class Activity extends BaseCMI {
             objState.progressMeasureStatus ?? objective.progressMeasureStatus;
           objective.completionStatus = objState.completionStatus ?? objective.completionStatus;
           objective.progressStatus = objState.progressStatus ?? objective.progressStatus;
+          if (objState.rawScore !== undefined) {
+            objective.rawScore = objState.rawScore;
+            objective.rawScoreKnown = objState.rawScoreKnown ?? objState.rawScore !== "";
+          }
+          if (objState.minScore !== undefined) {
+            objective.minScore = objState.minScore;
+            objective.minScoreKnown = objState.minScoreKnown ?? objState.minScore !== "";
+          }
+          if (objState.maxScore !== undefined) {
+            objective.maxScore = objState.maxScore;
+            objective.maxScoreKnown = objState.maxScoreKnown ?? objState.maxScore !== "";
+          }
+          objective.clearAllDirty();
         }
       }
     }
 
     // Recursively restore children state
     if (state.children && Array.isArray(state.children)) {
+      this.setChildOrder(state.children.map((childState: any) => childState.id));
       for (let i = 0; i < state.children.length && i < this._children.length; i++) {
         const childState = state.children[i];
         const child = this._children.find((c) => c.id === childState.id);

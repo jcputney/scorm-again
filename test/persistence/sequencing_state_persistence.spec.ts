@@ -467,6 +467,8 @@ describe("SequencingStatePersistence", () => {
 
     it("should restore sequencing state to service", () => {
       const mockOverallProcess = createMockOverallProcess();
+      const restoreSuspensionState = vi.fn();
+      Object.assign(mockOverallProcess, { restoreSuspensionState });
       const mockService = createMockSequencingService(mockOverallProcess);
       mockContext.sequencingService = mockService;
 
@@ -481,6 +483,7 @@ describe("SequencingStatePersistence", () => {
       expect(mockOverallProcess.restoreSequencingState).toHaveBeenCalledWith({
         currentActivityId: "act1",
       });
+      expect(restoreSuspensionState).not.toHaveBeenCalled();
       expect(mockOverallProcess.setContentDelivered).toHaveBeenCalledWith(true);
     });
 
@@ -655,6 +658,44 @@ describe("SequencingStatePersistence", () => {
   });
 
   describe("integration scenarios", () => {
+    it("should round-trip the complete suspension state through save and load", async () => {
+      let savedData: string | null = null;
+      const suspensionState = {
+        activityTree: { id: "root", isActive: false, children: [] },
+        currentActivityId: "leaf",
+        suspendedActivityId: "root",
+        globalObjectives: { objective: { id: "objective", satisfiedStatus: true } },
+        timestamp: "2026-01-01T00:00:00.000Z",
+      };
+      const mockOverallProcess = createMockOverallProcess({
+        sequencingState: { currentActivity: "leaf" },
+      });
+      const getSuspensionState = vi.fn().mockReturnValue(suspensionState);
+      const restoreSuspensionState = vi.fn();
+      Object.assign(mockOverallProcess, { getSuspensionState, restoreSuspensionState });
+      mockContext.sequencingService = createMockSequencingService(mockOverallProcess);
+
+      const saveFn = vi.fn().mockImplementation((data) => {
+        savedData = data;
+        return Promise.resolve(true);
+      });
+      const loadFn = vi.fn().mockImplementation(() => Promise.resolve(savedData));
+      mockContext.getSettings = vi.fn().mockReturnValue(
+        createMockSettings({
+          compress: false,
+          saveState: saveFn,
+          loadState: loadFn,
+        }),
+      );
+
+      await expect(persistence.saveSequencingState()).resolves.toBe(true);
+      expect(JSON.parse(savedData as string).suspensionState).toEqual(suspensionState);
+
+      await expect(persistence.loadSequencingState()).resolves.toBe(true);
+      expect(getSuspensionState).toHaveBeenCalledTimes(1);
+      expect(restoreSuspensionState).toHaveBeenCalledWith(suspensionState);
+    });
+
     it("should round-trip state through save and load", async () => {
       let savedData: string | null = null;
 

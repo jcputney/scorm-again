@@ -374,5 +374,54 @@ describe("Randomization at Specification-Required Process Points", () => {
 
       spy.mockRestore();
     });
+
+    it("should randomize again on the second new attempt", () => {
+      cluster1.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      cluster1.sequencingControls.randomizeChildren = true;
+
+      const spy = vi.spyOn(SelectionRandomization, "applySelectionAndRandomization");
+      const randomizeSpy = vi.spyOn(SelectionRandomization, "randomizeChildrenProcess");
+
+      const firstDelivery = overallProcess.processNavigationRequest(NavigationRequestType.START);
+      expect(firstDelivery.valid).toBe(true);
+      expect(cluster1.attemptCount).toBe(1);
+
+      overallProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
+      spy.mockClear();
+
+      const secondDelivery = overallProcess.processNavigationRequest(NavigationRequestType.START);
+
+      expect(secondDelivery.valid).toBe(true);
+      expect(cluster1.attemptCount).toBe(2);
+      expect(spy).toHaveBeenCalledWith(cluster1, true);
+      expect(randomizeSpy).toHaveBeenCalledWith(cluster1);
+
+      spy.mockRestore();
+      randomizeSpy.mockRestore();
+    });
+
+    it("should preserve randomized order and attempt count when resuming", () => {
+      cluster1.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      cluster1.sequencingControls.randomizeChildren = true;
+
+      const spy = vi.spyOn(SelectionRandomization, "applySelectionAndRandomization");
+      const firstDelivery = overallProcess.processNavigationRequest(NavigationRequestType.START);
+      expect(firstDelivery.valid).toBe(true);
+      const orderBeforeSuspend = cluster1.getAvailableChildren().map(child => child.id);
+      expect(cluster1.attemptCount).toBe(1);
+
+      const suspendResult = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+      expect(suspendResult.valid).toBe(true);
+      spy.mockClear();
+
+      const resumeResult = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
+
+      expect(resumeResult.valid).toBe(true);
+      expect(cluster1.attemptCount).toBe(1);
+      expect(cluster1.getAvailableChildren().map(child => child.id)).toEqual(orderBeforeSuspend);
+      expect(spy).toHaveBeenCalledWith(cluster1, false);
+
+      spy.mockRestore();
+    });
   });
 });
