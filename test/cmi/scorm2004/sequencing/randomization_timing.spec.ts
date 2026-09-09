@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -10,11 +10,9 @@ import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
 import {
   RandomizationTiming,
-  SelectionTiming
+  SelectionTiming,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
-import {
-  SelectionRandomization
-} from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
+import { SelectionRandomization } from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
 
 /**
  * Add randomization calls at specification-required process points
@@ -66,7 +64,7 @@ describe("Randomization at Specification-Required Process Points", () => {
       activityTree,
       sequencingProcess,
       rollupProcess,
-      adlNav
+      adlNav,
     );
   });
 
@@ -103,7 +101,7 @@ describe("Randomization at Specification-Required Process Points", () => {
       // Find the call for cluster1 during content delivery (isNewAttempt=true)
       // Note: There may be other calls from end attempt process, so we filter for the delivery call
       const cluster1DeliveryCall = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === true
+        (call) => call[0] === cluster1 && call[1] === true,
       );
       expect(cluster1DeliveryCall).toBeDefined();
       expect(cluster1DeliveryCall?.[1]).toBe(true); // isNewAttempt should be true for first attempt
@@ -135,7 +133,7 @@ describe("Randomization at Specification-Required Process Points", () => {
 
       // First delivery
       overallProcess.processNavigationRequest(NavigationRequestType.START);
-      const firstCallCount = spy.mock.calls.filter(call => call[0] === cluster1).length;
+      const firstCallCount = spy.mock.calls.filter((call) => call[0] === cluster1).length;
       expect(firstCallCount).toBeGreaterThan(0);
 
       // Mark as having been reordered
@@ -174,7 +172,7 @@ describe("Randomization at Specification-Required Process Points", () => {
       // Verify randomization was called during end attempt on cluster1
       // The call should have isNewAttempt=false for end attempt process
       const cluster1EndAttemptCall = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === false
+        (call) => call[0] === cluster1 && call[1] === false,
       );
       expect(cluster1EndAttemptCall).toBeDefined();
 
@@ -193,7 +191,7 @@ describe("Randomization at Specification-Required Process Points", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
 
       // Check that randomization was called with isNewAttempt=false for end attempt
-      const endAttemptCalls = spy.mock.calls.filter(call => call[1] === false);
+      const endAttemptCalls = spy.mock.calls.filter((call) => call[1] === false);
       expect(endAttemptCalls.length).toBeGreaterThan(0);
 
       spy.mockRestore();
@@ -213,7 +211,7 @@ describe("Randomization at Specification-Required Process Points", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
       // Randomization should not have been called on the leaf (no children to randomize)
-      const leafCalls = spy.mock.calls.filter(call => call[0] === leaf1);
+      const leafCalls = spy.mock.calls.filter((call) => call[0] === leaf1);
       expect(leafCalls.length).toBe(0);
 
       spy.mockRestore();
@@ -233,13 +231,11 @@ describe("Randomization at Specification-Required Process Points", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.START);
 
       // Verify the function was called with isNewAttempt=true
-      const cluster1Call = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === true
-      );
+      const cluster1Call = spy.mock.calls.find((call) => call[0] === cluster1 && call[1] === true);
       expect(cluster1Call).toBeDefined();
 
       // Verify selection was applied (2 out of 3 children selected)
-      const hiddenCount = cluster1.children.filter(c => c.isHiddenFromChoice).length;
+      const hiddenCount = cluster1.children.filter((c) => c.isHiddenFromChoice).length;
       expect(hiddenCount).toBe(1); // 1 child should be hidden (3 - 2 = 1)
 
       spy.mockRestore();
@@ -260,7 +256,7 @@ describe("Randomization at Specification-Required Process Points", () => {
 
       // Verify the function was called with isNewAttempt=false during end attempt
       const endAttemptCall = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === false
+        (call) => call[0] === cluster1 && call[1] === false,
       );
       expect(endAttemptCall).toBeDefined();
 
@@ -287,7 +283,7 @@ describe("Randomization at Specification-Required Process Points", () => {
 
       // All children should still be present
       expect(cluster1.children.length).toBe(originalOrder.length);
-      originalOrder.forEach(child => {
+      originalOrder.forEach((child) => {
         expect(cluster1.children).toContain(child);
       });
     });
@@ -315,12 +311,29 @@ describe("Randomization at Specification-Required Process Points", () => {
       expect(cluster1.sequencingControls.selectionCountStatus).toBe(true);
 
       // Verify correct number of children were hidden
-      const hiddenCount = cluster1.children.filter(c => c.isHiddenFromChoice).length;
+      const hiddenCount = cluster1.children.filter((c) => c.isHiddenFromChoice).length;
       expect(hiddenCount).toBe(1); // 3 - 2 = 1 hidden
 
       // Verify available count
-      const availableCount = cluster1.children.filter(c => c.isAvailable).length;
+      const availableCount = cluster1.children.filter((c) => c.isAvailable).length;
       expect(availableCount).toBe(2);
+    });
+
+    it("should preserve an ONCE selection on a second new attempt", () => {
+      cluster1.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      cluster1.sequencingControls.selectCount = 2;
+
+      const firstDelivery = overallProcess.processNavigationRequest(NavigationRequestType.START);
+      expect(firstDelivery.valid).toBe(true);
+      const selectedBeforeExit = cluster1.getAvailableChildren().map((child) => child.id);
+      expect(selectedBeforeExit).toHaveLength(2);
+
+      overallProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
+      const secondDelivery = overallProcess.processNavigationRequest(NavigationRequestType.START);
+
+      expect(secondDelivery.valid).toBe(true);
+      expect(cluster1.attemptCount).toBe(2);
+      expect(cluster1.getAvailableChildren().map((child) => child.id)).toEqual(selectedBeforeExit);
     });
   });
 
@@ -332,7 +345,7 @@ describe("Randomization at Specification-Required Process Points", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.START);
 
       // Verify the function was called but had no effect on leaves
-      const leafCalls = spy.mock.calls.filter(call => call[0] === leaf1);
+      const leafCalls = spy.mock.calls.filter((call) => call[0] === leaf1);
       if (leafCalls.length > 0) {
         // If called, verify it handled the empty children gracefully
         expect(leaf1.children.length).toBe(0);
@@ -407,18 +420,22 @@ describe("Randomization at Specification-Required Process Points", () => {
       const spy = vi.spyOn(SelectionRandomization, "applySelectionAndRandomization");
       const firstDelivery = overallProcess.processNavigationRequest(NavigationRequestType.START);
       expect(firstDelivery.valid).toBe(true);
-      const orderBeforeSuspend = cluster1.getAvailableChildren().map(child => child.id);
+      const orderBeforeSuspend = cluster1.getAvailableChildren().map((child) => child.id);
       expect(cluster1.attemptCount).toBe(1);
 
-      const suspendResult = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+      const suspendResult = overallProcess.processNavigationRequest(
+        NavigationRequestType.SUSPEND_ALL,
+      );
       expect(suspendResult.valid).toBe(true);
       spy.mockClear();
 
-      const resumeResult = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
+      const resumeResult = overallProcess.processNavigationRequest(
+        NavigationRequestType.RESUME_ALL,
+      );
 
       expect(resumeResult.valid).toBe(true);
       expect(cluster1.attemptCount).toBe(1);
-      expect(cluster1.getAvailableChildren().map(child => child.id)).toEqual(orderBeforeSuspend);
+      expect(cluster1.getAvailableChildren().map((child) => child.id)).toEqual(orderBeforeSuspend);
       expect(spy).toHaveBeenCalledWith(cluster1, false);
 
       spy.mockRestore();

@@ -21,10 +21,7 @@ export class SelectionRandomization {
     }
 
     // Check if selection has already been done (for ONCE timing)
-    if (
-      controls.selectionTiming === SelectionTiming.ONCE &&
-      controls.selectionCountStatus
-    ) {
+    if (controls.selectionTiming === SelectionTiming.ONCE && controls.selectionCountStatus) {
       return children;
     }
 
@@ -50,13 +47,13 @@ export class SelectionRandomization {
     // Randomly select children
     for (let i = 0; i < selectCount; i++) {
       if (availableIndices.length === 0) break;
-      
+
       const randomIndex = Math.floor(Math.random() * availableIndices.length);
       const childIndex = availableIndices[randomIndex];
       if (childIndex !== undefined && children[childIndex]) {
         selectedChildren.push(children[childIndex]);
       }
-      
+
       // Remove selected index from available indices
       availableIndices.splice(randomIndex, 1);
     }
@@ -93,10 +90,7 @@ export class SelectionRandomization {
     }
 
     // Check if randomization has already been done (for ONCE timing)
-    if (
-      controls.randomizationTiming === RandomizationTiming.ONCE &&
-      controls.reorderChildren
-    ) {
+    if (controls.randomizationTiming === RandomizationTiming.ONCE && controls.reorderChildren) {
       return children;
     }
 
@@ -145,7 +139,24 @@ export class SelectionRandomization {
     // Exit if activity is active or suspended AND this is not a new attempt (per SCORM spec SR.1, SR.2)
     // On a new attempt, we DO apply selection/randomization even though the activity becomes active
     if (!isNewAttempt && (activity.isActive || activity.isSuspended)) {
-      return activity.children;
+      if (controls.selectionTiming === SelectionTiming.NEVER) {
+        const processedChildren = activity.getAvailableChildren();
+        const childIds = new Set(activity.children.map((child) => child.id));
+        const processedIds = new Set(processedChildren.map((child) => child.id));
+
+        // A partial processed list cannot represent selection when selection is
+        // disabled. It is usually the result of transient availability during a
+        // prior attempt. Preserve a complete list's order for randomization, but
+        // restore an incomplete list to the current child order.
+        if (
+          processedChildren.length !== activity.children.length ||
+          processedIds.size !== childIds.size ||
+          [...childIds].some((id) => !processedIds.has(id))
+        ) {
+          activity.setProcessedChildren([...activity.children]);
+        }
+      }
+      return activity.getAvailableChildren();
     }
 
     // Check if we should apply selection/randomization
@@ -182,12 +193,24 @@ export class SelectionRandomization {
       this.randomizeChildrenProcess(activity);
     }
 
-    // Get the final processed children
-    const processedChildren = activity.children.filter(child => child.isAvailable);
-    
+    // Availability is also used by sequencing rules as a transient disabled state.
+    // Without selection controls, it must not become a persisted child subset on a
+    // new attempt: those rules are re-evaluated as progress changes. On a resume,
+    // retain an already processed order/subset, including explicit collection state.
+    let processedChildren: Activity[];
+    if (controls.selectionTiming === SelectionTiming.NEVER) {
+      if (isNewAttempt || shouldApplyRandomization) {
+        processedChildren = [...activity.children];
+      } else {
+        processedChildren = activity.getAvailableChildren();
+      }
+    } else {
+      processedChildren = activity.children.filter((child) => child.isAvailable);
+    }
+
     // Store the processed children on the activity
     activity.setProcessedChildren(processedChildren);
-    
+
     return processedChildren;
   }
 
@@ -203,10 +226,7 @@ export class SelectionRandomization {
       return false;
     }
 
-    if (
-      controls.selectionTiming === SelectionTiming.ONCE &&
-      controls.selectionCountStatus
-    ) {
+    if (controls.selectionTiming === SelectionTiming.ONCE && controls.selectionCountStatus) {
       return false;
     }
 
@@ -220,15 +240,12 @@ export class SelectionRandomization {
    */
   public static isRandomizationNeeded(activity: Activity): boolean {
     const controls = activity.sequencingControls;
-    
+
     if (controls.randomizationTiming === RandomizationTiming.NEVER) {
       return false;
     }
 
-    if (
-      controls.randomizationTiming === RandomizationTiming.ONCE &&
-      controls.reorderChildren
-    ) {
+    if (controls.randomizationTiming === RandomizationTiming.ONCE && controls.reorderChildren) {
       return false;
     }
 

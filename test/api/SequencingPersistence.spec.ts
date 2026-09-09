@@ -672,6 +672,151 @@ describe("SCORM 2004 sequencing persistence", () => {
     }
   });
 
+  it("re-evaluates unavailable children on a second attempt from a sparse snapshot", async () => {
+    const inMemoryState: { value: string | null } = { value: null };
+    const delivered: string[] = [];
+    const persistence = {
+      saveState: async (stateData: string) => {
+        inMemoryState.value = stateData;
+        return true;
+      },
+      loadState: async () => inMemoryState.value,
+      clearState: async () => true,
+    };
+    const settings: Settings = {
+      sequencing: {
+        eventListeners: {
+          onActivityDelivery: (activity) => delivered.push(activity.id),
+        },
+        activityTree: {
+          id: "course",
+          sequencingControls: { flow: true },
+          children: [
+            { id: "first_unit" },
+            { id: "second_unit" },
+            { id: "third_unit" },
+            { id: "later_unit" },
+          ],
+        },
+      },
+      sequencingStatePersistence: {
+        persistence,
+        autoLoadOnInitialize: false,
+        autoSaveOn: "never",
+        compress: false,
+      },
+    };
+
+    const source = new Scorm2004API(settings);
+    expect(source.Initialize("")).toBe("true");
+    const sourceTree = (source as any)._sequencing.activityTree;
+    const sourceRoot = sourceTree.root;
+    const sourceChildren = Object.fromEntries(
+      sourceRoot.children.map((activity: any) => [activity.id, activity]),
+    );
+    sourceRoot.attemptCount = 1;
+    sourceRoot.isActive = false;
+    sourceTree.currentActivity = null;
+    sourceTree.suspendedActivity = null;
+    for (const child of sourceRoot.children) {
+      child.isActive = false;
+      child.isAvailable = true;
+    }
+    sourceChildren.second_unit.isAvailable = false;
+    sourceChildren.third_unit.isAvailable = false;
+    sourceRoot.setProcessedChildren([sourceChildren.first_unit, sourceChildren.later_unit]);
+
+    const persisted = JSON.parse(source.serializeSequencingState());
+    persisted.sequencing.activityStates = {};
+    inMemoryState.value = JSON.stringify(persisted);
+
+    const restored = new Scorm2004API(settings);
+    expect(restored.Initialize("")).toBe("true");
+    await expect(restored.loadSequencingState(metadata)).resolves.toBe(true);
+
+    const restoredTree = (restored as any)._sequencing.activityTree;
+    const restoredRoot = restoredTree.root;
+    const restoredChildren = Object.fromEntries(
+      restoredRoot.children.map((activity: any) => [activity.id, activity]),
+    );
+    expect(restoredRoot.getAvailableChildren().map((activity: any) => activity.id)).toEqual([
+      "first_unit",
+      "later_unit",
+    ]);
+
+    expect(restored.processNavigationRequest("start")).toBe(true);
+    // The prerequisite represented by availability is now met; Continue must
+    // evaluate the manifest order instead of the stale processed subset.
+    restoredChildren.second_unit.isAvailable = true;
+    expect(restored.SetValue("cmi.completion_status", "completed")).toBe("true");
+    expect(restored.processNavigationRequest("continue")).toBe(true);
+    expect(delivered.at(-1)).toBe("second_unit");
+  });
+
+  it("restores a suspended subset before runtime initialization", async () => {
+    const inMemoryState: { value: string | null } = { value: null };
+    const delivered: string[] = [];
+    const persistence = {
+      saveState: async (stateData: string) => {
+        inMemoryState.value = stateData;
+        return true;
+      },
+      loadState: async () => inMemoryState.value,
+      clearState: async () => true,
+    };
+    const settings: Settings = {
+      sequencing: {
+        eventListeners: {
+          onActivityDelivery: (activity) => delivered.push(activity.id),
+        },
+        activityTree: {
+          id: "course",
+          sequencingControls: { flow: true },
+          children: [{ id: "first_unit" }, { id: "second_unit" }, { id: "later_unit" }],
+        },
+      },
+      sequencingStatePersistence: {
+        persistence,
+        autoLoadOnInitialize: false,
+        autoSaveOn: "never",
+        compress: false,
+      },
+    };
+
+    const source = new Scorm2004API(settings);
+    expect(source.Initialize("")).toBe("true");
+    const sourceTree = (source as any)._sequencing.activityTree;
+    const sourceRoot = sourceTree.root;
+    const sourceFirst = sourceRoot.children[0];
+    const sourceSecond = sourceRoot.children[1];
+    const sourceLater = sourceRoot.children[2];
+    sourceRoot.attemptCount = 1;
+    sourceRoot.isActive = false;
+    sourceRoot.isSuspended = true;
+    sourceFirst.isActive = false;
+    sourceFirst.isSuspended = true;
+    sourceSecond.isAvailable = false;
+    sourceTree.currentActivity = null;
+    sourceTree.suspendedActivity = sourceFirst;
+    sourceRoot.setProcessedChildren([sourceFirst, sourceLater]);
+
+    const persisted = JSON.parse(source.serializeSequencingState());
+    persisted.sequencing.activityStates = {};
+    inMemoryState.value = JSON.stringify(persisted);
+
+    const restored = new Scorm2004API(settings);
+    await expect(restored.loadSequencingState(metadata)).resolves.toBe(true);
+    expect(restored.processNavigationRequest("resumeAll")).toBe(true);
+    expect(restored.Initialize("")).toBe("true");
+
+    const restoredTree = (restored as any)._sequencing.activityTree;
+    const restoredSecond = restoredTree.root.children[1];
+    restoredSecond.isAvailable = true;
+    expect(restored.SetValue("cmi.completion_status", "completed")).toBe("true");
+    expect(restored.processNavigationRequest("continue")).toBe(true);
+    expect(delivered.at(-1)).toBe("second_unit");
+  });
+
   it("persists sequencing collection-derived state", async () => {
     const inMemoryState: { value: string | null } = { value: null };
     const persistence = {

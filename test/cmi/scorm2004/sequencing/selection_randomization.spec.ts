@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import {
-  SelectionRandomization
-} from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
+import { SelectionRandomization } from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
 import {
   RandomizationTiming,
-  SelectionTiming
+  SelectionTiming,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 
 describe("SelectionRandomization", () => {
@@ -71,7 +69,7 @@ describe("SelectionRandomization", () => {
 
       expect(selected).toHaveLength(3);
       // Verify selected children are from the original set
-      selected.forEach(child => {
+      selected.forEach((child) => {
         expect([child1, child2, child3, child4, child5]).toContain(child);
       });
     });
@@ -85,7 +83,7 @@ describe("SelectionRandomization", () => {
       let hiddenCount = 0;
       let availableCount = 0;
 
-      [child1, child2, child3, child4, child5].forEach(child => {
+      [child1, child2, child3, child4, child5].forEach((child) => {
         if (selected.includes(child)) {
           expect(child.isHiddenFromChoice).toBe(false);
           expect(child.isAvailable).toBe(true);
@@ -174,7 +172,7 @@ describe("SelectionRandomization", () => {
         // Reset for each iteration
         parentActivity.sequencingControls.reorderChildren = false;
         const randomized = SelectionRandomization.randomizeChildrenProcess(parentActivity);
-        results.add(randomized.map(a => a.id).join(","));
+        results.add(randomized.map((a) => a.id).join(","));
       }
 
       // With 5 children, we should get different orders (very unlikely to get same order 10 times)
@@ -191,7 +189,7 @@ describe("SelectionRandomization", () => {
       // Children array should be updated
       expect(parentActivity.children).toHaveLength(5);
       // All original children should still be present
-      originalOrder.forEach(child => {
+      originalOrder.forEach((child) => {
         expect(parentActivity.children).toContain(child);
       });
     });
@@ -220,21 +218,87 @@ describe("SelectionRandomization", () => {
   });
 
   describe("applySelectionAndRandomization", () => {
-    it("should apply both selection and randomization", () => {
-      parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
-      parentActivity.sequencingControls.selectCount = 3;
-      parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
-      parentActivity.sequencingControls.randomizeChildren = true;
+    it("includes transiently unavailable children on a new attempt without selection", () => {
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.NEVER;
+      child2.isAvailable = false;
+
+      const processed = SelectionRandomization.applySelectionAndRandomization(parentActivity, true);
+
+      expect(processed).toEqual([child1, child2, child3, child4, child5]);
+      expect(parentActivity.getAvailableChildren()).toEqual([
+        child1,
+        child2,
+        child3,
+        child4,
+        child5,
+      ]);
+    });
+
+    it("restores all children when resuming an incomplete list without selection", () => {
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.NEVER;
+      child2.isAvailable = false;
+      parentActivity.setProcessedChildren([child1, child3]);
+      parentActivity.isSuspended = true;
 
       const processed = SelectionRandomization.applySelectionAndRandomization(
         parentActivity,
-        true
+        false,
       );
+
+      expect(processed).toEqual([child1, child2, child3, child4, child5]);
+      expect(parentActivity.getAvailableChildren()).toEqual([
+        child1,
+        child2,
+        child3,
+        child4,
+        child5,
+      ]);
+    });
+
+    it("preserves a complete randomized order when resuming without selection", () => {
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.NEVER;
+      const randomizedOrder = [child3, child1, child5, child2, child4];
+      parentActivity.setProcessedChildren(randomizedOrder);
+      parentActivity.isSuspended = true;
+
+      const processed = SelectionRandomization.applySelectionAndRandomization(
+        parentActivity,
+        false,
+      );
+
+      expect(processed).toEqual(randomizedOrder);
+    });
+
+    it("preserves a selected ONCE subset and order when resuming", () => {
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      parentActivity.sequencingControls.selectCount = 3;
+      parentActivity.sequencingControls.selectionCountStatus = true;
+      child1.isAvailable = false;
+      child3.isAvailable = false;
+      parentActivity.setProcessedChildren([child4, child2]);
+      parentActivity.isSuspended = true;
+
+      const processed = SelectionRandomization.applySelectionAndRandomization(
+        parentActivity,
+        false,
+      );
+
+      expect(processed).toEqual([child4, child2]);
+    });
+
+    it("should apply both selection and randomization", () => {
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.selectCount = 3;
+      parentActivity.sequencingControls.randomizationTiming =
+        RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.randomizeChildren = true;
+
+      const processed = SelectionRandomization.applySelectionAndRandomization(parentActivity, true);
 
       expect(processed).toHaveLength(3);
       // Verify hidden status
       let hiddenCount = 0;
-      [child1, child2, child3, child4, child5].forEach(child => {
+      [child1, child2, child3, child4, child5].forEach((child) => {
         if (child.isHiddenFromChoice) hiddenCount++;
       });
       expect(hiddenCount).toBe(2);
@@ -244,7 +308,8 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.selectCount = 3;
       parentActivity.sequencingControls.selectionCountStatus = false; // Start disabled
-      parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.randomizationTiming =
+        RandomizationTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.randomizeChildren = true;
       parentActivity.sequencingControls.reorderChildren = false;
 
@@ -260,12 +325,13 @@ describe("SelectionRandomization", () => {
     it("should not apply when isNewAttempt is false and timing is ON_EACH_NEW_ATTEMPT", () => {
       parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.selectCount = 3;
-      parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.randomizationTiming =
+        RandomizationTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.randomizeChildren = true;
 
       const processed = SelectionRandomization.applySelectionAndRandomization(
         parentActivity,
-        false
+        false,
       );
 
       // Should return all children unchanged
@@ -383,12 +449,13 @@ describe("SelectionRandomization", () => {
 
     it("should not apply randomization to active activity when isNewAttempt is false", () => {
       parentActivity.isActive = true;
-      parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.randomizationTiming =
+        RandomizationTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.randomizeChildren = true;
 
-      const originalOrder = parentActivity.children.map(c => c.id);
+      const originalOrder = parentActivity.children.map((c) => c.id);
       SelectionRandomization.applySelectionAndRandomization(parentActivity, false);
-      const newOrder = parentActivity.children.map(c => c.id);
+      const newOrder = parentActivity.children.map((c) => c.id);
 
       // Order should be unchanged
       expect(newOrder).toEqual(originalOrder);
@@ -396,12 +463,13 @@ describe("SelectionRandomization", () => {
 
     it("should not apply randomization to suspended activity when isNewAttempt is false", () => {
       parentActivity.isSuspended = true;
-      parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.randomizationTiming =
+        RandomizationTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.randomizeChildren = true;
 
-      const originalOrder = parentActivity.children.map(c => c.id);
+      const originalOrder = parentActivity.children.map((c) => c.id);
       SelectionRandomization.applySelectionAndRandomization(parentActivity, false);
-      const newOrder = parentActivity.children.map(c => c.id);
+      const newOrder = parentActivity.children.map((c) => c.id);
 
       // Order should be unchanged
       expect(newOrder).toEqual(originalOrder);
