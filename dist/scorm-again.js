@@ -5642,7 +5642,21 @@
                   var isNewAttempt = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false;
                   var controls = activity.sequencingControls;
                   if (!isNewAttempt && (activity.isActive || activity.isSuspended)) {
-                      return activity.children;
+                      if (controls.selectionTiming === SelectionTiming.NEVER) {
+                          var processedChildren2 = activity.getAvailableChildren();
+                          var childIds = new Set(activity.children.map(function(child) {
+                              return child.id;
+                          }));
+                          var processedIds = new Set(processedChildren2.map(function(child) {
+                              return child.id;
+                          }));
+                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$a(childIds).some(function(id) {
+                              return !processedIds.has(id);
+                          })) {
+                              activity.setProcessedChildren(_to_consumable_array$a(activity.children));
+                          }
+                      }
+                      return activity.getAvailableChildren();
                   }
                   var shouldApplySelection = false;
                   var shouldApplyRandomization = false;
@@ -5668,9 +5682,18 @@
                   if (shouldApplyRandomization) {
                       this.randomizeChildrenProcess(activity);
                   }
-                  var processedChildren = activity.children.filter(function(child) {
-                      return child.isAvailable;
-                  });
+                  var processedChildren;
+                  if (controls.selectionTiming === SelectionTiming.NEVER) {
+                      if (isNewAttempt || shouldApplyRandomization) {
+                          processedChildren = _to_consumable_array$a(activity.children);
+                      } else {
+                          processedChildren = activity.getAvailableChildren();
+                      }
+                  } else {
+                      processedChildren = activity.children.filter(function(child) {
+                          return child.isAvailable;
+                      });
+                  }
                   activity.setProcessedChildren(processedChildren);
                   return processedChildren;
               }
@@ -13379,8 +13402,15 @@
                       primaryObjective: this._primaryObjective ? {
                           id: this._primaryObjective.id,
                           satisfiedStatus: this._primaryObjective.satisfiedStatus,
+                          satisfiedStatusKnown: this._primaryObjective.satisfiedStatusKnown,
                           measureStatus: this._primaryObjective.measureStatus,
                           normalizedMeasure: this._primaryObjective.normalizedMeasure,
+                          rawScore: this._primaryObjective.rawScore,
+                          rawScoreKnown: this._primaryObjective.rawScoreKnown,
+                          minScore: this._primaryObjective.minScore,
+                          minScoreKnown: this._primaryObjective.minScoreKnown,
+                          maxScore: this._primaryObjective.maxScore,
+                          maxScoreKnown: this._primaryObjective.maxScoreKnown,
                           progressMeasure: this._primaryObjective.progressMeasure,
                           progressMeasureStatus: this._primaryObjective.progressMeasureStatus,
                           completionStatus: this._primaryObjective.completionStatus,
@@ -13393,8 +13423,15 @@
                           return {
                               id: obj.id,
                               satisfiedStatus: obj.satisfiedStatus,
+                              satisfiedStatusKnown: obj.satisfiedStatusKnown,
                               measureStatus: obj.measureStatus,
                               normalizedMeasure: obj.normalizedMeasure,
+                              rawScore: obj.rawScore,
+                              rawScoreKnown: obj.rawScoreKnown,
+                              minScore: obj.minScore,
+                              minScoreKnown: obj.minScoreKnown,
+                              maxScore: obj.maxScore,
+                              maxScoreKnown: obj.maxScoreKnown,
                               progressMeasure: obj.progressMeasure,
                               progressMeasureStatus: obj.progressMeasureStatus,
                               completionStatus: obj.completionStatus,
@@ -13486,14 +13523,33 @@
                       this._processedChildren = null;
                   }
                   if (state.primaryObjective && this._primaryObjective) {
-                      var _state_primaryObjective_satisfiedStatus, _state_primaryObjective_measureStatus, _state_primaryObjective_normalizedMeasure, _state_primaryObjective_progressMeasure, _state_primaryObjective_progressMeasureStatus, _state_primaryObjective_completionStatus, _state_primaryObjective_progressStatus;
-                      this._primaryObjective.satisfiedStatus = (_state_primaryObjective_satisfiedStatus = state.primaryObjective.satisfiedStatus) !== null && _state_primaryObjective_satisfiedStatus !== void 0 ? _state_primaryObjective_satisfiedStatus : this._primaryObjective.satisfiedStatus;
-                      this._primaryObjective.measureStatus = (_state_primaryObjective_measureStatus = state.primaryObjective.measureStatus) !== null && _state_primaryObjective_measureStatus !== void 0 ? _state_primaryObjective_measureStatus : this._primaryObjective.measureStatus;
-                      this._primaryObjective.normalizedMeasure = (_state_primaryObjective_normalizedMeasure = state.primaryObjective.normalizedMeasure) !== null && _state_primaryObjective_normalizedMeasure !== void 0 ? _state_primaryObjective_normalizedMeasure : this._primaryObjective.normalizedMeasure;
-                      this._primaryObjective.progressMeasure = (_state_primaryObjective_progressMeasure = state.primaryObjective.progressMeasure) !== null && _state_primaryObjective_progressMeasure !== void 0 ? _state_primaryObjective_progressMeasure : this._primaryObjective.progressMeasure;
-                      this._primaryObjective.progressMeasureStatus = (_state_primaryObjective_progressMeasureStatus = state.primaryObjective.progressMeasureStatus) !== null && _state_primaryObjective_progressMeasureStatus !== void 0 ? _state_primaryObjective_progressMeasureStatus : this._primaryObjective.progressMeasureStatus;
-                      this._primaryObjective.completionStatus = (_state_primaryObjective_completionStatus = state.primaryObjective.completionStatus) !== null && _state_primaryObjective_completionStatus !== void 0 ? _state_primaryObjective_completionStatus : this._primaryObjective.completionStatus;
-                      this._primaryObjective.progressStatus = (_state_primaryObjective_progressStatus = state.primaryObjective.progressStatus) !== null && _state_primaryObjective_progressStatus !== void 0 ? _state_primaryObjective_progressStatus : this._primaryObjective.progressStatus;
+                      var _objectiveState_satisfiedStatus, _objectiveState_satisfiedStatusKnown, _objectiveState_measureStatus, _objectiveState_normalizedMeasure, _objectiveState_progressMeasure, _objectiveState_progressMeasureStatus, _objectiveState_completionStatus, _objectiveState_progressStatus;
+                      var objective = this._primaryObjective;
+                      var objectiveState = state.primaryObjective;
+                      objective.satisfiedStatus = (_objectiveState_satisfiedStatus = objectiveState.satisfiedStatus) !== null && _objectiveState_satisfiedStatus !== void 0 ? _objectiveState_satisfiedStatus : objective.satisfiedStatus;
+                      objective.satisfiedStatusKnown = (_objectiveState_satisfiedStatusKnown = objectiveState.satisfiedStatusKnown) !== null && _objectiveState_satisfiedStatusKnown !== void 0 ? _objectiveState_satisfiedStatusKnown : objective.satisfiedStatusKnown;
+                      objective.measureStatus = (_objectiveState_measureStatus = objectiveState.measureStatus) !== null && _objectiveState_measureStatus !== void 0 ? _objectiveState_measureStatus : objective.measureStatus;
+                      objective.normalizedMeasure = (_objectiveState_normalizedMeasure = objectiveState.normalizedMeasure) !== null && _objectiveState_normalizedMeasure !== void 0 ? _objectiveState_normalizedMeasure : objective.normalizedMeasure;
+                      objective.progressMeasure = (_objectiveState_progressMeasure = objectiveState.progressMeasure) !== null && _objectiveState_progressMeasure !== void 0 ? _objectiveState_progressMeasure : objective.progressMeasure;
+                      objective.progressMeasureStatus = (_objectiveState_progressMeasureStatus = objectiveState.progressMeasureStatus) !== null && _objectiveState_progressMeasureStatus !== void 0 ? _objectiveState_progressMeasureStatus : objective.progressMeasureStatus;
+                      objective.completionStatus = (_objectiveState_completionStatus = objectiveState.completionStatus) !== null && _objectiveState_completionStatus !== void 0 ? _objectiveState_completionStatus : objective.completionStatus;
+                      objective.progressStatus = (_objectiveState_progressStatus = objectiveState.progressStatus) !== null && _objectiveState_progressStatus !== void 0 ? _objectiveState_progressStatus : objective.progressStatus;
+                      if (objectiveState.rawScore !== void 0) {
+                          var _objectiveState_rawScoreKnown;
+                          objective.rawScore = objectiveState.rawScore;
+                          objective.rawScoreKnown = (_objectiveState_rawScoreKnown = objectiveState.rawScoreKnown) !== null && _objectiveState_rawScoreKnown !== void 0 ? _objectiveState_rawScoreKnown : objectiveState.rawScore !== "";
+                      }
+                      if (objectiveState.minScore !== void 0) {
+                          var _objectiveState_minScoreKnown;
+                          objective.minScore = objectiveState.minScore;
+                          objective.minScoreKnown = (_objectiveState_minScoreKnown = objectiveState.minScoreKnown) !== null && _objectiveState_minScoreKnown !== void 0 ? _objectiveState_minScoreKnown : objectiveState.minScore !== "";
+                      }
+                      if (objectiveState.maxScore !== void 0) {
+                          var _objectiveState_maxScoreKnown;
+                          objective.maxScore = objectiveState.maxScore;
+                          objective.maxScoreKnown = (_objectiveState_maxScoreKnown = objectiveState.maxScoreKnown) !== null && _objectiveState_maxScoreKnown !== void 0 ? _objectiveState_maxScoreKnown : objectiveState.maxScore !== "";
+                      }
+                      objective.clearAllDirty();
                   }
                   if (state.objectives) {
                       var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
@@ -13504,14 +13560,31 @@
                                   return o.id === objState.id;
                               });
                               if (objective) {
-                                  var _objState_satisfiedStatus, _objState_measureStatus, _objState_normalizedMeasure, _objState_progressMeasure, _objState_progressMeasureStatus, _objState_completionStatus, _objState_progressStatus;
+                                  var _objState_satisfiedStatus, _objState_satisfiedStatusKnown, _objState_measureStatus, _objState_normalizedMeasure, _objState_progressMeasure, _objState_progressMeasureStatus, _objState_completionStatus, _objState_progressStatus;
                                   objective.satisfiedStatus = (_objState_satisfiedStatus = objState.satisfiedStatus) !== null && _objState_satisfiedStatus !== void 0 ? _objState_satisfiedStatus : objective.satisfiedStatus;
+                                  objective.satisfiedStatusKnown = (_objState_satisfiedStatusKnown = objState.satisfiedStatusKnown) !== null && _objState_satisfiedStatusKnown !== void 0 ? _objState_satisfiedStatusKnown : objective.satisfiedStatusKnown;
                                   objective.measureStatus = (_objState_measureStatus = objState.measureStatus) !== null && _objState_measureStatus !== void 0 ? _objState_measureStatus : objective.measureStatus;
                                   objective.normalizedMeasure = (_objState_normalizedMeasure = objState.normalizedMeasure) !== null && _objState_normalizedMeasure !== void 0 ? _objState_normalizedMeasure : objective.normalizedMeasure;
                                   objective.progressMeasure = (_objState_progressMeasure = objState.progressMeasure) !== null && _objState_progressMeasure !== void 0 ? _objState_progressMeasure : objective.progressMeasure;
                                   objective.progressMeasureStatus = (_objState_progressMeasureStatus = objState.progressMeasureStatus) !== null && _objState_progressMeasureStatus !== void 0 ? _objState_progressMeasureStatus : objective.progressMeasureStatus;
                                   objective.completionStatus = (_objState_completionStatus = objState.completionStatus) !== null && _objState_completionStatus !== void 0 ? _objState_completionStatus : objective.completionStatus;
                                   objective.progressStatus = (_objState_progressStatus = objState.progressStatus) !== null && _objState_progressStatus !== void 0 ? _objState_progressStatus : objective.progressStatus;
+                                  if (objState.rawScore !== void 0) {
+                                      var _objState_rawScoreKnown;
+                                      objective.rawScore = objState.rawScore;
+                                      objective.rawScoreKnown = (_objState_rawScoreKnown = objState.rawScoreKnown) !== null && _objState_rawScoreKnown !== void 0 ? _objState_rawScoreKnown : objState.rawScore !== "";
+                                  }
+                                  if (objState.minScore !== void 0) {
+                                      var _objState_minScoreKnown;
+                                      objective.minScore = objState.minScore;
+                                      objective.minScoreKnown = (_objState_minScoreKnown = objState.minScoreKnown) !== null && _objState_minScoreKnown !== void 0 ? _objState_minScoreKnown : objState.minScore !== "";
+                                  }
+                                  if (objState.maxScore !== void 0) {
+                                      var _objState_maxScoreKnown;
+                                      objective.maxScore = objState.maxScore;
+                                      objective.maxScoreKnown = (_objState_maxScoreKnown = objState.maxScoreKnown) !== null && _objState_maxScoreKnown !== void 0 ? _objState_maxScoreKnown : objState.maxScore !== "";
+                                  }
+                                  objective.clearAllDirty();
                               }
                           };
                           for(var _iterator = state.objectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true)_this = this, _loop();
@@ -13540,6 +13613,9 @@
                               child.restoreSuspensionState(childState);
                           }
                       };
+                      this.setChildOrder(state.children.map(function(childState) {
+                          return childState.id;
+                      }));
                       for(var i = 0; i < state.children.length && i < this._children.length; i++)_this1 = this, _loop1(i);
                   }
               }
@@ -18225,20 +18301,24 @@
                   this._deliveryInProgress = true;
                   try {
                       var isResuming = activity.isSuspended;
+                      var activityPath = this.getActivityPath(activity, true);
+                      var suspendedPathActivities = new Set(activityPath.filter(function(pathActivity) {
+                          return pathActivity.isSuspended;
+                      }));
                       activity.deliveryWasResumed = isResuming;
                       if (this.activityTree.suspendedActivity) {
                           if (this.clearSuspendedActivityCallback) {
                               this.clearSuspendedActivityCallback();
                           }
                       }
-                      var activityPath = this.getActivityPath(activity, true);
                       var newAttemptActivities = [];
                       var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                       try {
                           for(var _iterator = activityPath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                               var pathActivity = _step.value;
                               if (!pathActivity.isActive) {
-                                  if (isResuming || pathActivity.isSuspended) {
+                                  var isPathActivityResuming = isResuming || suspendedPathActivities.has(pathActivity);
+                                  if (isPathActivityResuming) {
                                       pathActivity.isSuspended = false;
                                   } else {
                                       pathActivity.incrementAttemptCount();
@@ -18273,7 +18353,7 @@
                                       }
                                   }
                                   pathActivity.isActive = true;
-                                  SelectionRandomization.applySelectionAndRandomization(pathActivity, pathActivity.attemptCount <= 1);
+                                  SelectionRandomization.applySelectionAndRandomization(pathActivity, !isPathActivityResuming);
                               }
                           }
                       } catch (err) {
@@ -20509,6 +20589,8 @@
                                   currentActivity.isActive = (_ref = currentActivityState === null || currentActivityState === void 0 ? void 0 : currentActivityState.isActive) !== null && _ref !== void 0 ? _ref : true;
                               }
                           }
+                      } else if (state.currentActivity === null) {
+                          this.activityTree.setCurrentActivityWithoutActivation(null);
                       }
                       if (state.suspendedActivity) {
                           var suspendedActivity = this.activityTree.getActivity(state.suspendedActivity);
@@ -20516,6 +20598,8 @@
                               this.activityTree.suspendedActivity = suspendedActivity;
                               suspendedActivity.isSuspended = true;
                           }
+                      } else if (state.suspendedActivity === null) {
+                          this.activityTree.suspendedActivity = null;
                       }
                       if (state.navigationState) {
                           this.restoreNavigationState(state.navigationState);
@@ -20837,17 +20921,13 @@
                       if (state.activityTree && this.activityTree.root) {
                           this.activityTree.root.restoreSuspensionState(state.activityTree);
                       }
-                      if (state.currentActivityId) {
-                          var currentActivity = this.activityTree.getActivity(state.currentActivityId);
-                          if (currentActivity) {
-                              this.activityTree.currentActivity = currentActivity;
-                          }
+                      if (state.currentActivityId !== void 0) {
+                          var currentActivity = state.currentActivityId ? this.activityTree.getActivity(state.currentActivityId) : null;
+                          this.activityTree.currentActivity = currentActivity !== null && currentActivity !== void 0 ? currentActivity : null;
                       }
-                      if (state.suspendedActivityId) {
-                          var suspendedActivity = this.activityTree.getActivity(state.suspendedActivityId);
-                          if (suspendedActivity) {
-                              this.activityTree.suspendedActivity = suspendedActivity;
-                          }
+                      if (state.suspendedActivityId !== void 0) {
+                          var suspendedActivity = state.suspendedActivityId ? this.activityTree.getActivity(state.suspendedActivityId) : null;
+                          this.activityTree.suspendedActivity = suspendedActivity !== null && suspendedActivity !== void 0 ? suspendedActivity : null;
                       }
                       this.fireEvent("onSuspensionStateRestored", {
                           currentActivityId: state.currentActivityId,
@@ -37166,6 +37246,9 @@
                       if (overallProcess) {
                           var sequencingState = overallProcess.getSequencingState();
                           state.sequencing = sequencingState;
+                          if (typeof overallProcess.getSuspensionState === "function") {
+                              state.suspensionState = overallProcess.getSuspensionState();
+                          }
                           state.contentDelivered = overallProcess.hasContentBeenDelivered();
                           state.globalObjectiveMap = this.globalObjectiveManager.captureGlobalObjectiveSnapshot(overallProcess);
                       }
@@ -37199,11 +37282,16 @@
                       if (state.globalObjectiveMap && state.sequencing && !state.sequencing.globalObjectiveMap) {
                           state.sequencing.globalObjectiveMap = state.globalObjectiveMap;
                       }
-                      if (state.sequencing && this.context.sequencingService) {
+                      if (this.context.sequencingService) {
                           var overallProcess = this.context.sequencingService.getOverallSequencingProcess();
                           if (overallProcess) {
-                              overallProcess.restoreSequencingState(state.sequencing);
-                              if (state.contentDelivered) {
+                              if (state.sequencing) {
+                                  overallProcess.restoreSequencingState(state.sequencing);
+                              }
+                              if (state.suspensionState !== void 0 && typeof overallProcess.restoreSuspensionState === "function") {
+                                  overallProcess.restoreSuspensionState(state.suspensionState);
+                              }
+                              if (state.sequencing && state.contentDelivered) {
                                   overallProcess.setContentDelivered(true);
                               }
                           }

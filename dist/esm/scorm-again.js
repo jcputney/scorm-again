@@ -3902,7 +3902,15 @@ class SelectionRandomization {
   static applySelectionAndRandomization(activity, isNewAttempt = false) {
     const controls = activity.sequencingControls;
     if (!isNewAttempt && (activity.isActive || activity.isSuspended)) {
-      return activity.children;
+      if (controls.selectionTiming === SelectionTiming.NEVER) {
+        const processedChildren2 = activity.getAvailableChildren();
+        const childIds = new Set(activity.children.map((child) => child.id));
+        const processedIds = new Set(processedChildren2.map((child) => child.id));
+        if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || [...childIds].some((id) => !processedIds.has(id))) {
+          activity.setProcessedChildren([...activity.children]);
+        }
+      }
+      return activity.getAvailableChildren();
     }
     let shouldApplySelection = false;
     let shouldApplyRandomization = false;
@@ -3928,7 +3936,16 @@ class SelectionRandomization {
     if (shouldApplyRandomization) {
       this.randomizeChildrenProcess(activity);
     }
-    const processedChildren = activity.children.filter((child) => child.isAvailable);
+    let processedChildren;
+    if (controls.selectionTiming === SelectionTiming.NEVER) {
+      if (isNewAttempt || shouldApplyRandomization) {
+        processedChildren = [...activity.children];
+      } else {
+        processedChildren = activity.getAvailableChildren();
+      }
+    } else {
+      processedChildren = activity.children.filter((child) => child.isAvailable);
+    }
     activity.setProcessedChildren(processedChildren);
     return processedChildren;
   }
@@ -9508,8 +9525,15 @@ class Activity extends BaseCMI {
       primaryObjective: this._primaryObjective ? {
         id: this._primaryObjective.id,
         satisfiedStatus: this._primaryObjective.satisfiedStatus,
+        satisfiedStatusKnown: this._primaryObjective.satisfiedStatusKnown,
         measureStatus: this._primaryObjective.measureStatus,
         normalizedMeasure: this._primaryObjective.normalizedMeasure,
+        rawScore: this._primaryObjective.rawScore,
+        rawScoreKnown: this._primaryObjective.rawScoreKnown,
+        minScore: this._primaryObjective.minScore,
+        minScoreKnown: this._primaryObjective.minScoreKnown,
+        maxScore: this._primaryObjective.maxScore,
+        maxScoreKnown: this._primaryObjective.maxScoreKnown,
         progressMeasure: this._primaryObjective.progressMeasure,
         progressMeasureStatus: this._primaryObjective.progressMeasureStatus,
         completionStatus: this._primaryObjective.completionStatus,
@@ -9521,8 +9545,15 @@ class Activity extends BaseCMI {
       objectives: this._objectives.map((obj) => ({
         id: obj.id,
         satisfiedStatus: obj.satisfiedStatus,
+        satisfiedStatusKnown: obj.satisfiedStatusKnown,
         measureStatus: obj.measureStatus,
         normalizedMeasure: obj.normalizedMeasure,
+        rawScore: obj.rawScore,
+        rawScoreKnown: obj.rawScoreKnown,
+        minScore: obj.minScore,
+        minScoreKnown: obj.minScoreKnown,
+        maxScore: obj.maxScore,
+        maxScoreKnown: obj.maxScoreKnown,
         progressMeasure: obj.progressMeasure,
         progressMeasureStatus: obj.progressMeasureStatus,
         completionStatus: obj.completionStatus,
@@ -9599,29 +9630,60 @@ class Activity extends BaseCMI {
       this._processedChildren = null;
     }
     if (state.primaryObjective && this._primaryObjective) {
-      this._primaryObjective.satisfiedStatus = state.primaryObjective.satisfiedStatus ?? this._primaryObjective.satisfiedStatus;
-      this._primaryObjective.measureStatus = state.primaryObjective.measureStatus ?? this._primaryObjective.measureStatus;
-      this._primaryObjective.normalizedMeasure = state.primaryObjective.normalizedMeasure ?? this._primaryObjective.normalizedMeasure;
-      this._primaryObjective.progressMeasure = state.primaryObjective.progressMeasure ?? this._primaryObjective.progressMeasure;
-      this._primaryObjective.progressMeasureStatus = state.primaryObjective.progressMeasureStatus ?? this._primaryObjective.progressMeasureStatus;
-      this._primaryObjective.completionStatus = state.primaryObjective.completionStatus ?? this._primaryObjective.completionStatus;
-      this._primaryObjective.progressStatus = state.primaryObjective.progressStatus ?? this._primaryObjective.progressStatus;
+      const objective = this._primaryObjective;
+      const objectiveState = state.primaryObjective;
+      objective.satisfiedStatus = objectiveState.satisfiedStatus ?? objective.satisfiedStatus;
+      objective.satisfiedStatusKnown = objectiveState.satisfiedStatusKnown ?? objective.satisfiedStatusKnown;
+      objective.measureStatus = objectiveState.measureStatus ?? objective.measureStatus;
+      objective.normalizedMeasure = objectiveState.normalizedMeasure ?? objective.normalizedMeasure;
+      objective.progressMeasure = objectiveState.progressMeasure ?? objective.progressMeasure;
+      objective.progressMeasureStatus = objectiveState.progressMeasureStatus ?? objective.progressMeasureStatus;
+      objective.completionStatus = objectiveState.completionStatus ?? objective.completionStatus;
+      objective.progressStatus = objectiveState.progressStatus ?? objective.progressStatus;
+      if (objectiveState.rawScore !== void 0) {
+        objective.rawScore = objectiveState.rawScore;
+        objective.rawScoreKnown = objectiveState.rawScoreKnown ?? objectiveState.rawScore !== "";
+      }
+      if (objectiveState.minScore !== void 0) {
+        objective.minScore = objectiveState.minScore;
+        objective.minScoreKnown = objectiveState.minScoreKnown ?? objectiveState.minScore !== "";
+      }
+      if (objectiveState.maxScore !== void 0) {
+        objective.maxScore = objectiveState.maxScore;
+        objective.maxScoreKnown = objectiveState.maxScoreKnown ?? objectiveState.maxScore !== "";
+      }
+      objective.clearAllDirty();
     }
     if (state.objectives) {
       for (const objState of state.objectives) {
         const objective = this._objectives.find((o) => o.id === objState.id);
         if (objective) {
           objective.satisfiedStatus = objState.satisfiedStatus ?? objective.satisfiedStatus;
+          objective.satisfiedStatusKnown = objState.satisfiedStatusKnown ?? objective.satisfiedStatusKnown;
           objective.measureStatus = objState.measureStatus ?? objective.measureStatus;
           objective.normalizedMeasure = objState.normalizedMeasure ?? objective.normalizedMeasure;
           objective.progressMeasure = objState.progressMeasure ?? objective.progressMeasure;
           objective.progressMeasureStatus = objState.progressMeasureStatus ?? objective.progressMeasureStatus;
           objective.completionStatus = objState.completionStatus ?? objective.completionStatus;
           objective.progressStatus = objState.progressStatus ?? objective.progressStatus;
+          if (objState.rawScore !== void 0) {
+            objective.rawScore = objState.rawScore;
+            objective.rawScoreKnown = objState.rawScoreKnown ?? objState.rawScore !== "";
+          }
+          if (objState.minScore !== void 0) {
+            objective.minScore = objState.minScore;
+            objective.minScoreKnown = objState.minScoreKnown ?? objState.minScore !== "";
+          }
+          if (objState.maxScore !== void 0) {
+            objective.maxScore = objState.maxScore;
+            objective.maxScoreKnown = objState.maxScoreKnown ?? objState.maxScore !== "";
+          }
+          objective.clearAllDirty();
         }
       }
     }
     if (state.children && Array.isArray(state.children)) {
+      this.setChildOrder(state.children.map((childState) => childState.id));
       for (let i = 0; i < state.children.length && i < this._children.length; i++) {
         const childState = state.children[i];
         const child = this._children.find((c) => c.id === childState.id);
@@ -12842,17 +12904,21 @@ class DeliveryHandler {
     this._deliveryInProgress = true;
     try {
       const isResuming = activity.isSuspended;
+      const activityPath = this.getActivityPath(activity, true);
+      const suspendedPathActivities = new Set(
+        activityPath.filter((pathActivity) => pathActivity.isSuspended)
+      );
       activity.deliveryWasResumed = isResuming;
       if (this.activityTree.suspendedActivity) {
         if (this.clearSuspendedActivityCallback) {
           this.clearSuspendedActivityCallback();
         }
       }
-      const activityPath = this.getActivityPath(activity, true);
       const newAttemptActivities = [];
       for (const pathActivity of activityPath) {
         if (!pathActivity.isActive) {
-          if (isResuming || pathActivity.isSuspended) {
+          const isPathActivityResuming = isResuming || suspendedPathActivities.has(pathActivity);
+          if (isPathActivityResuming) {
             pathActivity.isSuspended = false;
           } else {
             pathActivity.incrementAttemptCount();
@@ -12872,7 +12938,7 @@ class DeliveryHandler {
           pathActivity.isActive = true;
           SelectionRandomization.applySelectionAndRandomization(
             pathActivity,
-            pathActivity.attemptCount <= 1
+            !isPathActivityResuming
           );
         }
       }
@@ -14396,6 +14462,8 @@ class SequencingStateManager {
             currentActivity.isActive = currentActivityState?.isActive ?? true;
           }
         }
+      } else if (state.currentActivity === null) {
+        this.activityTree.setCurrentActivityWithoutActivation(null);
       }
       if (state.suspendedActivity) {
         const suspendedActivity = this.activityTree.getActivity(state.suspendedActivity);
@@ -14403,6 +14471,8 @@ class SequencingStateManager {
           this.activityTree.suspendedActivity = suspendedActivity;
           suspendedActivity.isSuspended = true;
         }
+      } else if (state.suspendedActivity === null) {
+        this.activityTree.suspendedActivity = null;
       }
       if (state.navigationState) {
         this.restoreNavigationState(state.navigationState);
@@ -14646,17 +14716,13 @@ class SequencingStateManager {
       if (state.activityTree && this.activityTree.root) {
         this.activityTree.root.restoreSuspensionState(state.activityTree);
       }
-      if (state.currentActivityId) {
-        const currentActivity = this.activityTree.getActivity(state.currentActivityId);
-        if (currentActivity) {
-          this.activityTree.currentActivity = currentActivity;
-        }
+      if (state.currentActivityId !== void 0) {
+        const currentActivity = state.currentActivityId ? this.activityTree.getActivity(state.currentActivityId) : null;
+        this.activityTree.currentActivity = currentActivity ?? null;
       }
-      if (state.suspendedActivityId) {
-        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivityId);
-        if (suspendedActivity) {
-          this.activityTree.suspendedActivity = suspendedActivity;
-        }
+      if (state.suspendedActivityId !== void 0) {
+        const suspendedActivity = state.suspendedActivityId ? this.activityTree.getActivity(state.suspendedActivityId) : null;
+        this.activityTree.suspendedActivity = suspendedActivity ?? null;
       }
       this.fireEvent("onSuspensionStateRestored", {
         currentActivityId: state.currentActivityId,
@@ -26157,6 +26223,9 @@ class SequencingStatePersistence {
       if (overallProcess) {
         const sequencingState = overallProcess.getSequencingState();
         state.sequencing = sequencingState;
+        if (typeof overallProcess.getSuspensionState === "function") {
+          state.suspensionState = overallProcess.getSuspensionState();
+        }
         state.contentDelivered = overallProcess.hasContentBeenDelivered();
         state.globalObjectiveMap = this.globalObjectiveManager.captureGlobalObjectiveSnapshot(overallProcess);
       }
@@ -26190,11 +26259,16 @@ class SequencingStatePersistence {
       if (state.globalObjectiveMap && state.sequencing && !state.sequencing.globalObjectiveMap) {
         state.sequencing.globalObjectiveMap = state.globalObjectiveMap;
       }
-      if (state.sequencing && this.context.sequencingService) {
+      if (this.context.sequencingService) {
         const overallProcess = this.context.sequencingService.getOverallSequencingProcess();
         if (overallProcess) {
-          overallProcess.restoreSequencingState(state.sequencing);
-          if (state.contentDelivered) {
+          if (state.sequencing) {
+            overallProcess.restoreSequencingState(state.sequencing);
+          }
+          if (state.suspensionState !== void 0 && typeof overallProcess.restoreSuspensionState === "function") {
+            overallProcess.restoreSuspensionState(state.suspensionState);
+          }
+          if (state.sequencing && state.contentDelivered) {
             overallProcess.setContentDelivered(true);
           }
         }

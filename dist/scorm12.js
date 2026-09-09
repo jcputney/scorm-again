@@ -2538,7 +2538,21 @@ this.Scorm12API = (function () {
                   var isNewAttempt = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false;
                   var controls = activity.sequencingControls;
                   if (!isNewAttempt && (activity.isActive || activity.isSuspended)) {
-                      return activity.children;
+                      if (controls.selectionTiming === SelectionTiming.NEVER) {
+                          var processedChildren2 = activity.getAvailableChildren();
+                          var childIds = new Set(activity.children.map(function(child) {
+                              return child.id;
+                          }));
+                          var processedIds = new Set(processedChildren2.map(function(child) {
+                              return child.id;
+                          }));
+                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$2(childIds).some(function(id) {
+                              return !processedIds.has(id);
+                          })) {
+                              activity.setProcessedChildren(_to_consumable_array$2(activity.children));
+                          }
+                      }
+                      return activity.getAvailableChildren();
                   }
                   var shouldApplySelection = false;
                   var shouldApplyRandomization = false;
@@ -2564,9 +2578,18 @@ this.Scorm12API = (function () {
                   if (shouldApplyRandomization) {
                       this.randomizeChildrenProcess(activity);
                   }
-                  var processedChildren = activity.children.filter(function(child) {
-                      return child.isAvailable;
-                  });
+                  var processedChildren;
+                  if (controls.selectionTiming === SelectionTiming.NEVER) {
+                      if (isNewAttempt || shouldApplyRandomization) {
+                          processedChildren = _to_consumable_array$2(activity.children);
+                      } else {
+                          processedChildren = activity.getAvailableChildren();
+                      }
+                  } else {
+                      processedChildren = activity.children.filter(function(child) {
+                          return child.isAvailable;
+                      });
+                  }
                   activity.setProcessedChildren(processedChildren);
                   return processedChildren;
               }
@@ -5353,20 +5376,24 @@ this.Scorm12API = (function () {
                   this._deliveryInProgress = true;
                   try {
                       var isResuming = activity.isSuspended;
+                      var activityPath = this.getActivityPath(activity, true);
+                      var suspendedPathActivities = new Set(activityPath.filter(function(pathActivity) {
+                          return pathActivity.isSuspended;
+                      }));
                       activity.deliveryWasResumed = isResuming;
                       if (this.activityTree.suspendedActivity) {
                           if (this.clearSuspendedActivityCallback) {
                               this.clearSuspendedActivityCallback();
                           }
                       }
-                      var activityPath = this.getActivityPath(activity, true);
                       var newAttemptActivities = [];
                       var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                       try {
                           for(var _iterator = activityPath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                               var pathActivity = _step.value;
                               if (!pathActivity.isActive) {
-                                  if (isResuming || pathActivity.isSuspended) {
+                                  var isPathActivityResuming = isResuming || suspendedPathActivities.has(pathActivity);
+                                  if (isPathActivityResuming) {
                                       pathActivity.isSuspended = false;
                                   } else {
                                       pathActivity.incrementAttemptCount();
@@ -5401,7 +5428,7 @@ this.Scorm12API = (function () {
                                       }
                                   }
                                   pathActivity.isActive = true;
-                                  SelectionRandomization.applySelectionAndRandomization(pathActivity, pathActivity.attemptCount <= 1);
+                                  SelectionRandomization.applySelectionAndRandomization(pathActivity, !isPathActivityResuming);
                               }
                           }
                       } catch (err) {
