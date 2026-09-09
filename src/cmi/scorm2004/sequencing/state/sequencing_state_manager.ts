@@ -209,7 +209,8 @@ export class SequencingStateManager {
         this.deserializeActivities(state.activityStates);
       }
 
-      // Restore current activity
+      // Restore current activity. Explicit null clears a previously initialized
+      // pointer; undefined preserves compatibility with older partial states.
       if (state.currentActivity) {
         const currentActivity = this.activityTree.getActivity(state.currentActivity);
         if (currentActivity) {
@@ -234,6 +235,8 @@ export class SequencingStateManager {
             currentActivity.isActive = currentActivityState?.isActive ?? true;
           }
         }
+      } else if (state.currentActivity === null) {
+        this.activityTree.setCurrentActivityWithoutActivation(null);
       }
 
       // Restore suspended activity
@@ -243,6 +246,8 @@ export class SequencingStateManager {
           this.activityTree.suspendedActivity = suspendedActivity;
           suspendedActivity.isSuspended = true;
         }
+      } else if (state.suspendedActivity === null) {
+        this.activityTree.suspendedActivity = null;
       }
 
       // Restore navigation state
@@ -550,19 +555,21 @@ export class SequencingStateManager {
         this.activityTree.root.restoreSuspensionState(state.activityTree);
       }
 
-      // Restore current and suspended activity references
-      if (state.currentActivityId) {
-        const currentActivity = this.activityTree.getActivity(state.currentActivityId);
-        if (currentActivity) {
-          this.activityTree.currentActivity = currentActivity;
-        }
+      // Restore current and suspended activity references. Null is an explicit
+      // persisted value and must clear the pointer on an already initialized
+      // API; undefined remains the legacy "not persisted" value.
+      if (state.currentActivityId !== undefined) {
+        const currentActivity = state.currentActivityId
+          ? this.activityTree.getActivity(state.currentActivityId)
+          : null;
+        this.activityTree.currentActivity = currentActivity ?? null;
       }
 
-      if (state.suspendedActivityId) {
-        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivityId);
-        if (suspendedActivity) {
-          this.activityTree.suspendedActivity = suspendedActivity;
-        }
+      if (state.suspendedActivityId !== undefined) {
+        const suspendedActivity = state.suspendedActivityId
+          ? this.activityTree.getActivity(state.suspendedActivityId)
+          : null;
+        this.activityTree.suspendedActivity = suspendedActivity ?? null;
       }
 
       this.fireEvent("onSuspensionStateRestored", {

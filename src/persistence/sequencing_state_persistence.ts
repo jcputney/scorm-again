@@ -225,6 +225,9 @@ export class SequencingStatePersistence {
         // Use the getSequencingState method from overall_sequencing_process
         const sequencingState = overallProcess.getSequencingState();
         state.sequencing = sequencingState;
+        if (typeof overallProcess.getSuspensionState === "function") {
+          state.suspensionState = overallProcess.getSuspensionState();
+        }
         state.contentDelivered = overallProcess.hasContentBeenDelivered();
         state.globalObjectiveMap =
           this.globalObjectiveManager.captureGlobalObjectiveSnapshot(overallProcess);
@@ -270,13 +273,25 @@ export class SequencingStatePersistence {
       }
 
       // Restore sequencing state
-      if (state.sequencing && this.context.sequencingService) {
+      if (this.context.sequencingService) {
         const overallProcess = this.context.sequencingService.getOverallSequencingProcess();
         if (overallProcess) {
-          overallProcess.restoreSequencingState(state.sequencing);
+          if (state.sequencing) {
+            overallProcess.restoreSequencingState(state.sequencing);
+          }
+
+          // Complete suspension snapshots were added after the original 1.0
+          // persistence envelope. Keep restoring the flattened state for old
+          // snapshots, then apply the richer snapshot when it is present.
+          if (
+            state.suspensionState !== undefined &&
+            typeof overallProcess.restoreSuspensionState === "function"
+          ) {
+            overallProcess.restoreSuspensionState(state.suspensionState);
+          }
 
           // Restore content delivered flag
-          if (state.contentDelivered) {
+          if (state.sequencing && state.contentDelivered) {
             overallProcess.setContentDelivered(true);
           }
         }
