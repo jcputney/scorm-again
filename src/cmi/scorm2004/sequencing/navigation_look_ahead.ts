@@ -1,6 +1,7 @@
 import { Activity } from "./activity";
 import { ActivityTree } from "./activity_tree";
 import { SequencingProcess, SequencingRequestType } from "./sequencing_process";
+import { RuleActionType } from "./sequencing_rules";
 
 /**
  * Interface for navigation prediction cache entry
@@ -310,10 +311,10 @@ export class NavigationLookAhead {
 
   /**
    * Check if activity is potentially deliverable for backward navigation (Previous)
-   * This uses a simpler check that doesn't fully evaluate preConditionRules
-   * since we're typically going back to a previously visited activity
    * @param {Activity} activity - Activity to check
    * @return {boolean} - True if potentially deliverable
+   * @spec SN Book: UP.2 (Sequencing Rules Check Process) - evaluates preconditions to exclude skipped and disabled backward flow candidates.
+   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - stopForwardTraversal does not block backward traversal.
    * @private
    */
   private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean {
@@ -323,8 +324,16 @@ export class NavigationLookAhead {
       return false;
     }
 
-    // For backward navigation, use a simpler check since a leaf was likely
-    // already delivered before (the learner is going back to review).
+    // Previous targets have settled state, so their preconditions can be checked.
+    // Continue is predicted before End Attempt, which can change its next target's state.
+    const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(activity);
+    if (
+      preConditionResult === RuleActionType.SKIP ||
+      preConditionResult === RuleActionType.DISABLED
+    ) {
+      return false;
+    }
+
     if (activity.children.length === 0) {
       return true;
     }
