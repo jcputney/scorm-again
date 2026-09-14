@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {
+  SequencingProcess,
+  SequencingRequestType,
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { NavigationLookAhead } from "../../../../src/cmi/scorm2004/sequencing/navigation_look_ahead";
 import {
   RuleActionType,
@@ -111,9 +114,86 @@ describe("NavigationLookAhead", () => {
       const continueEnabled = lookAhead.predictContinueEnabled();
       expect(continueEnabled).toBe(true);
     });
+
+    it("should intentionally keep Continue enabled when the next sibling is satisfied and skip-gated", () => {
+      root.sequencingControls.flow = true;
+      activityTree.currentActivity = activity1;
+      activity2.objectiveSatisfiedStatusKnown = true;
+      activity2.objectiveSatisfiedStatus = true;
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+      activity2.sequencingRules.addPreConditionRule(skipRule);
+
+      // NB.2.1: Continue is valid before End Attempt transfers the current
+      // SCO's final state; predicting the next target here can deadlock it.
+      expect(activity2.sequencingRules.evaluatePreConditionRules(activity2)).toBe(
+        RuleActionType.SKIP,
+      );
+      expect(lookAhead.getAllPredictions().continueEnabled).toBe(true);
+    });
   });
 
   describe("Previous Navigation", () => {
+    it.each([true, false])(
+      "should evaluate satisfied -> skip for a previous sibling with satisfied=%s",
+      (satisfied) => {
+        root.sequencingControls.flow = true;
+        root.sequencingControls.forwardOnly = false;
+        activityTree.currentActivity = activity2;
+        activity1.objectiveSatisfiedStatusKnown = true;
+        activity1.objectiveSatisfiedStatus = satisfied;
+        const skipRule = new SequencingRule(RuleActionType.SKIP);
+        // A null operator is the rule model's noOp representation.
+        skipRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+        activity1.sequencingRules.addPreConditionRule(skipRule);
+
+        expect(lookAhead.getAllPredictions().previousEnabled).toBe(!satisfied);
+      },
+    );
+
+    it("should disable Previous when all earlier remediation leaves are satisfied and skipped", () => {
+      root.sequencingControls.choice = false;
+      root.sequencingControls.flow = true;
+      root.sequencingControls.forwardOnly = false;
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+      for (const activity of [activity1, activity2, activity3]) {
+        activity.sequencingRules.addPreConditionRule(skipRule);
+        activity.objectiveSatisfiedStatusKnown = true;
+        activity.objectiveSatisfiedStatus = activity !== activity3;
+      }
+      activityTree.currentActivity = activity3;
+
+      expect(lookAhead.getAllPredictions().previousEnabled).toBe(false);
+      // SB.2.8 requires the current attempt to end before actual traversal.
+      activity3.isActive = false;
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
+      expect(result.exception).toBe("SB.2.1-3");
+    });
+
+    it.each([
+      [RuleActionType.DISABLED, false],
+      [RuleActionType.HIDE_FROM_CHOICE, true],
+      [RuleActionType.STOP_FORWARD_TRAVERSAL, true],
+    ])("should predict Previous for precondition action %s as %s", (action, expected) => {
+      root.sequencingControls.flow = true;
+      root.sequencingControls.forwardOnly = false;
+      activityTree.currentActivity = activity2;
+      const rule = new SequencingRule(action);
+      rule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      activity1.sequencingRules.addPreConditionRule(rule);
+
+      expect(lookAhead.getAllPredictions().previousEnabled).toBe(expected);
+      activity2.isActive = false;
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
+      if (expected) {
+        expect(result.targetActivity).toBe(activity1);
+        expect(result.exception).toBeNull();
+      } else {
+        expect(result.exception).toBe("SB.2.1-3");
+      }
+    });
+
     it("should predict Previous enabled when prior activity available", () => {
       root.sequencingControls.flow = true;
       root.sequencingControls.forwardOnly = false;
