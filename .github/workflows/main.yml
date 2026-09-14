@@ -132,7 +132,7 @@ jobs:
 
       - name: 'Report Coverage'
         if: always()
-        uses: davelosert/vitest-coverage-report-action@v2.12.2
+        uses: davelosert/vitest-coverage-report-action@v2.13.0
         with:
           json-summary-path: './coverage/unit/coverage-summary.json'
           json-final-path: './coverage/unit/coverage-final.json'
