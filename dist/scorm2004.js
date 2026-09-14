@@ -18820,14 +18820,18 @@ this.Scorm2004API = (function () {
           {
               /**
      * Check if activity is potentially deliverable for backward navigation (Previous)
-     * This uses a simpler check that doesn't fully evaluate preConditionRules
-     * since we're typically going back to a previously visited activity
      * @param {Activity} activity - Activity to check
      * @return {boolean} - True if potentially deliverable
+     * @spec SN Book: UP.2 (Sequencing Rules Check Process) - evaluates preconditions to exclude skipped and disabled backward flow candidates.
+     * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - stopForwardTraversal does not block backward traversal.
      * @private
      */ key: "isActivityPotentiallyDeliverableBackward",
               value: function isActivityPotentiallyDeliverableBackward(activity) {
                   if (!activity.isAvailable) {
+                      return false;
+                  }
+                  var preConditionResult = activity.sequencingRules.evaluatePreConditionRules(activity);
+                  if (preConditionResult === RuleActionType.SKIP || preConditionResult === RuleActionType.DISABLED) {
                       return false;
                   }
                   if (activity.children.length === 0) {
