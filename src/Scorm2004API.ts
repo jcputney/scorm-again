@@ -1485,6 +1485,35 @@ class Scorm2004API extends BaseAPI {
   }
 
   /**
+   * Build the context handed to SequencingStatePersistence.
+   *
+   * `learnerId` is a getter, not a snapshot: the constructor builds this context before the
+   * host has loaded cmi.learner_id, and `this.cmi` can be replaced by reset() or a resume,
+   * so the persistence layer must read the current value each time it saves or loads.
+   *
+   * Because the value is live, a loadSequencingState() issued before the host sets
+   * cmi.learner_id keys its in-flight dedupe on "unknown", and a second load issued after the
+   * id is set keys on the real id, so the two are not coalesced. The learner id cannot change
+   * after Initialize(), so the window is limited to hosts that load before initializing.
+   * @spec SCORM 2004 4th Ed. RTE 4.2.11 - cmi.learner_id identifies the learner; persisted
+   * sequencing state must be attributed to that learner, not to a placeholder.
+   * @return {PersistenceContext}
+   */
+  private createPersistenceContext(): PersistenceContext {
+    const api = this;
+    return {
+      getSettings: () => this.settings,
+      apiLog: this.apiLog.bind(this),
+      adl: this.adl,
+      sequencing: this._sequencing,
+      sequencingService: this._sequencingService,
+      get learnerId(): string {
+        return api.cmi.learner_id;
+      },
+    };
+  }
+
+  /**
    * Initialize the sequencing service
    * @param {Settings} settings
    */
@@ -1520,18 +1549,10 @@ class Scorm2004API extends BaseAPI {
       this._globalObjectiveManager.updateSequencingService(this._sequencingService);
       this._dataSerializer.updateSequencingService(this._sequencingService);
 
-      // Initialize state persistence - use getter to always get current settings
+      // Initialize state persistence
       if (settings?.sequencingStatePersistence) {
-        const persistenceContext: PersistenceContext = {
-          getSettings: () => this.settings,
-          apiLog: this.apiLog.bind(this),
-          adl: this.adl,
-          sequencing: this._sequencing,
-          sequencingService: this._sequencingService,
-          learnerId: this.cmi.learner_id,
-        };
         this._statePersistence = new SequencingStatePersistence(
-          persistenceContext,
+          this.createPersistenceContext(),
           this._globalObjectiveManager,
         );
       }
@@ -1694,17 +1715,9 @@ class Scorm2004API extends BaseAPI {
       return false;
     }
 
-    // Fallback: create persistence on the fly - use getter to always get current settings
-    const persistenceContext: PersistenceContext = {
-      getSettings: () => this.settings,
-      apiLog: this.apiLog.bind(this),
-      adl: this.adl,
-      sequencing: this._sequencing,
-      sequencingService: this._sequencingService,
-      learnerId: this.cmi.learner_id,
-    };
+    // Fallback: create persistence on the fly
     const persistence = new SequencingStatePersistence(
-      persistenceContext,
+      this.createPersistenceContext(),
       this._globalObjectiveManager,
     );
     return persistence.saveSequencingState(metadata);
@@ -1729,17 +1742,9 @@ class Scorm2004API extends BaseAPI {
       return false;
     }
 
-    // Fallback: create persistence on the fly - use getter to always get current settings
-    const persistenceContext: PersistenceContext = {
-      getSettings: () => this.settings,
-      apiLog: this.apiLog.bind(this),
-      adl: this.adl,
-      sequencing: this._sequencing,
-      sequencingService: this._sequencingService,
-      learnerId: this.cmi.learner_id,
-    };
+    // Fallback: create persistence on the fly
     const persistence = new SequencingStatePersistence(
-      persistenceContext,
+      this.createPersistenceContext(),
       this._globalObjectiveManager,
     );
     return persistence.loadSequencingState(metadata);
@@ -1754,17 +1759,9 @@ class Scorm2004API extends BaseAPI {
       return this._statePersistence.serializeSequencingState();
     }
 
-    // Fallback: create persistence on the fly - use getter to always get current settings
-    const persistenceContext: PersistenceContext = {
-      getSettings: () => this.settings,
-      apiLog: this.apiLog.bind(this),
-      adl: this.adl,
-      sequencing: this._sequencing,
-      sequencingService: this._sequencingService,
-      learnerId: this.cmi.learner_id,
-    };
+    // Fallback: create persistence on the fly
     const persistence = new SequencingStatePersistence(
-      persistenceContext,
+      this.createPersistenceContext(),
       this._globalObjectiveManager,
     );
     return persistence.serializeSequencingState();
@@ -1780,17 +1777,9 @@ class Scorm2004API extends BaseAPI {
       return this._statePersistence.deserializeSequencingState(stateData);
     }
 
-    // Fallback: create persistence on the fly - use getter to always get current settings
-    const persistenceContext: PersistenceContext = {
-      getSettings: () => this.settings,
-      apiLog: this.apiLog.bind(this),
-      adl: this.adl,
-      sequencing: this._sequencing,
-      sequencingService: this._sequencingService,
-      learnerId: this.cmi.learner_id,
-    };
+    // Fallback: create persistence on the fly
     const persistence = new SequencingStatePersistence(
-      persistenceContext,
+      this.createPersistenceContext(),
       this._globalObjectiveManager,
     );
     return persistence.deserializeSequencingState(stateData);
