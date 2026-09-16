@@ -500,6 +500,9 @@ export class CMI extends BaseRootCMI {
    */
   accumulateSessionTime(): void {
     this.session.accumulateSessionTime(this.start_time);
+    if (this._start_time !== undefined) {
+      this._start_time = new Date().getTime();
+    }
   }
 
   /**

@@ -36,6 +36,7 @@ window.API_1484_11 = new Scorm2004API(settings);
 | `renderCommonCommitFields` | `false` | boolean | Emits a structured commit object with summary fields and `runtimeData`. SCORM 2004 structured commits also include the sequencing `globalObjectives` snapshot. |
 | `selfReportSessionTime` | `false` | boolean | Measures elapsed time from `Initialize()` and uses it instead of relying on SCO-reported `session_time`. |
 | `alwaysSendTotalTime` | `false` | boolean | Should the API always send `total_time` when committing to the LMS. |
+| `accumulateSessionTimeOnTerminate` | `false` | boolean | After a successful SCORM 2004 Terminate, fold the completed session into `cmi.total_time` on the API instance. Enable when later reads or commits need the accumulated total. Forced on when sequencing is active. |
 
 ### HTTP/Network Settings
 

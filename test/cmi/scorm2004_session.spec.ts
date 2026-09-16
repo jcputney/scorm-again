@@ -193,6 +193,24 @@ describe("SCORM 2004 CMISession Tests", () => {
   });
 
   describe("Method Tests", () => {
+    describe("accumulateSessionTime", () => {
+      it("clears session_time and preserves the cumulative total on repeated accumulation", () => {
+        const session = new CMISession();
+        session.total_time = "PT2M";
+        session.session_time = "PT1M";
+        session.initialize();
+
+        session.accumulateSessionTime(undefined);
+
+        expect(session.total_time).toBe("PT3M");
+        session.jsonString = true;
+        expect(session.session_time).toBe("PT0H0M0S");
+        expect(session.getCurrentTotalTime(undefined)).toBe("PT3M");
+        session.accumulateSessionTime(undefined);
+        expect(session.total_time).toBe("PT3M");
+      });
+    });
+
     describe("getCurrentTotalTime", () => {
       it("should add session_time to total_time", () => {
         const session = new CMISession();

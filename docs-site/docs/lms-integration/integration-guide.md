@@ -1239,6 +1239,8 @@ cmi.completion_status=completed&cmi.success_status=passed&cmi.score.scaled=0.85
 In synchronous mode, `Terminate()` / `LMSFinish()` uses `navigator.sendBeacon()` for reliability.
 Asynchronous mode follows `asyncModeBeaconBehavior` and defaults to fetch.
 
+Wrappers should check `api.isTerminated()` before calling `terminate()` from an unload safety net, and skip the call if the session has already ended. For SCORM 2004, `accumulateSessionTimeOnTerminate` folds the completed session into the instance's `cmi.total_time` after a successful Terminate. It defaults to `false` and is always enabled when sequencing is active.
+
 **Important:** Ensure your endpoint can handle beacon requests (no response expected, small payload).
 
 ### Custom Response Handling
