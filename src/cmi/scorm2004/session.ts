@@ -162,6 +162,7 @@ export class CMISession extends BaseCMI {
    */
   accumulateSessionTime(start_time: number | undefined): void {
     this._total_time = this.getCurrentTotalTime(start_time);
+    this._session_time = "PT0H0M0S";
   }
 
   /**

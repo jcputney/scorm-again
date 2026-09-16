@@ -762,9 +762,15 @@ class Scorm2004API extends BaseAPI {
       this._sequencingService.cancelPreparedNavigation(preparedNavigation);
     }
 
-    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated) {
-      // terminate() has already serialized the completed session. Preserve
-      // that same total before sequencing delivery resets SCO-local CMI data.
+    if (
+      result === global_constants.SCORM_TRUE &&
+      !wasAlreadyTerminated &&
+      (this.settings.accumulateSessionTimeOnTerminate === true ||
+        this._sequencingService?.getSequencingState().isInitialized === true)
+    ) {
+      // terminate() has already serialized the completed session. Preserve that
+      // total when opted in, or when active sequencing needs it across delivery
+      // resets of SCO-local CMI data.
       // @spec SCORM 2004 4th Ed. RTE 4.2.24 / 4.2.28
       this.cmi.accumulateSessionTime();
     }

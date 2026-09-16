@@ -44,6 +44,7 @@ export type Settings = {
   uninitializedGetLogLevel?: LogLevel | undefined;
   selfReportSessionTime?: boolean | undefined;
   alwaysSendTotalTime?: boolean | undefined;
+  accumulateSessionTimeOnTerminate?: boolean | undefined;
   strict_errors?: boolean | undefined;
   xhrHeaders?: StringKeyMap | undefined;
   xhrWithCredentials?: boolean | undefined;
@@ -129,6 +130,7 @@ export type InternalSettings = {
   renderCommonCommitFields: boolean;
   autoCompleteLessonStatus: boolean;
   alwaysSendTotalTime: boolean;
+  accumulateSessionTimeOnTerminate: boolean;
   strict_errors: boolean;
   xhrHeaders: StringKeyMap;
   xhrWithCredentials: boolean;
