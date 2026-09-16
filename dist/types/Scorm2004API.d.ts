@@ -79,6 +79,7 @@ declare class Scorm2004API extends BaseAPI {
     private configureSequencingRules;
     private configureSequencingControls;
     private configureRollupRules;
+    private createPersistenceContext;
     private initializeSequencingService;
     private buildSequencingEventListeners;
     getSequencingService(): SequencingService | null;

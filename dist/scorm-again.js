@@ -39201,6 +39201,39 @@
           },
           {
               /**
+     * Build the context handed to SequencingStatePersistence.
+     *
+     * `learnerId` is a getter, not a snapshot: the constructor builds this context before the
+     * host has loaded cmi.learner_id, and `this.cmi` can be replaced by reset() or a resume,
+     * so the persistence layer must read the current value each time it saves or loads.
+     *
+     * Because the value is live, a loadSequencingState() issued before the host sets
+     * cmi.learner_id keys its in-flight dedupe on "unknown", and a second load issued after the
+     * id is set keys on the real id, so the two are not coalesced. The learner id cannot change
+     * after Initialize(), so the window is limited to hosts that load before initializing.
+     * @spec SCORM 2004 4th Ed. RTE 4.2.11 - cmi.learner_id identifies the learner; persisted
+     * sequencing state must be attributed to that learner, not to a placeholder.
+     * @return {PersistenceContext}
+     */ key: "createPersistenceContext",
+              value: function createPersistenceContext() {
+                  var _this = this;
+                  var api = this;
+                  return {
+                      getSettings: function getSettings() {
+                          return _this.settings;
+                      },
+                      apiLog: this.apiLog.bind(this),
+                      adl: this.adl,
+                      sequencing: this._sequencing,
+                      sequencingService: this._sequencingService,
+                      get learnerId () {
+                          return api.cmi.learner_id;
+                      }
+                  };
+              }
+          },
+          {
+              /**
      * Initialize the sequencing service
      * @param {Settings} settings
      */ key: "initializeSequencingService",
@@ -39224,17 +39257,7 @@
                       this._globalObjectiveManager.updateSequencingService(this._sequencingService);
                       this._dataSerializer.updateSequencingService(this._sequencingService);
                       if (settings === null || settings === void 0 ? void 0 : settings.sequencingStatePersistence) {
-                          var persistenceContext = {
-                              getSettings: function getSettings() {
-                                  return _this.settings;
-                              },
-                              apiLog: this.apiLog.bind(this),
-                              adl: this.adl,
-                              sequencing: this._sequencing,
-                              sequencingService: this._sequencingService,
-                              learnerId: this.cmi.learner_id
-                          };
-                          this._statePersistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+                          this._statePersistence = new SequencingStatePersistence(this.createPersistenceContext(), this._globalObjectiveManager);
                       }
                       this._globalObjectiveManager.syncGlobalObjectiveIdsFromSequencing();
                   } catch (error) {
@@ -39388,9 +39411,8 @@
      * @return {Promise<boolean>}
      */ function saveSequencingState(metadata) {
                   return _async_to_generator(function() {
-                      var _this, persistenceContext, persistence;
+                      var persistence;
                       return _ts_generator(this, function(_state) {
-                          _this = this;
                           if (this._statePersistence) {
                               return [
                                   2,
@@ -39404,17 +39426,7 @@
                                   false
                               ];
                           }
-                          persistenceContext = {
-                              getSettings: function getSettings() {
-                                  return _this.settings;
-                              },
-                              apiLog: this.apiLog.bind(this),
-                              adl: this.adl,
-                              sequencing: this._sequencing,
-                              sequencingService: this._sequencingService,
-                              learnerId: this.cmi.learner_id
-                          };
-                          persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+                          persistence = new SequencingStatePersistence(this.createPersistenceContext(), this._globalObjectiveManager);
                           return [
                               2,
                               persistence.saveSequencingState(metadata)
@@ -39431,9 +39443,8 @@
      * @return {Promise<boolean>}
      */ function loadSequencingState(metadata) {
                   return _async_to_generator(function() {
-                      var _this, persistenceContext, persistence;
+                      var persistence;
                       return _ts_generator(this, function(_state) {
-                          _this = this;
                           if (this._statePersistence) {
                               return [
                                   2,
@@ -39447,17 +39458,7 @@
                                   false
                               ];
                           }
-                          persistenceContext = {
-                              getSettings: function getSettings() {
-                                  return _this.settings;
-                              },
-                              apiLog: this.apiLog.bind(this),
-                              adl: this.adl,
-                              sequencing: this._sequencing,
-                              sequencingService: this._sequencingService,
-                              learnerId: this.cmi.learner_id
-                          };
-                          persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+                          persistence = new SequencingStatePersistence(this.createPersistenceContext(), this._globalObjectiveManager);
                           return [
                               2,
                               persistence.loadSequencingState(metadata)
@@ -39472,21 +39473,10 @@
      * @return {string} Serialized state
      */ key: "serializeSequencingState",
               value: function serializeSequencingState() {
-                  var _this = this;
                   if (this._statePersistence) {
                       return this._statePersistence.serializeSequencingState();
                   }
-                  var persistenceContext = {
-                      getSettings: function getSettings() {
-                          return _this.settings;
-                      },
-                      apiLog: this.apiLog.bind(this),
-                      adl: this.adl,
-                      sequencing: this._sequencing,
-                      sequencingService: this._sequencingService,
-                      learnerId: this.cmi.learner_id
-                  };
-                  var persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+                  var persistence = new SequencingStatePersistence(this.createPersistenceContext(), this._globalObjectiveManager);
                   return persistence.serializeSequencingState();
               }
           },
@@ -39497,21 +39487,10 @@
      * @return {boolean} Success status
      */ key: "deserializeSequencingState",
               value: function deserializeSequencingState(stateData) {
-                  var _this = this;
                   if (this._statePersistence) {
                       return this._statePersistence.deserializeSequencingState(stateData);
                   }
-                  var persistenceContext = {
-                      getSettings: function getSettings() {
-                          return _this.settings;
-                      },
-                      apiLog: this.apiLog.bind(this),
-                      adl: this.adl,
-                      sequencing: this._sequencing,
-                      sequencingService: this._sequencingService,
-                      learnerId: this.cmi.learner_id
-                  };
-                  var persistence = new SequencingStatePersistence(persistenceContext, this._globalObjectiveManager);
+                  var persistence = new SequencingStatePersistence(this.createPersistenceContext(), this._globalObjectiveManager);
                   return persistence.deserializeSequencingState(stateData);
               }
           },
