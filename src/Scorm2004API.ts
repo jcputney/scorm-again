@@ -1490,7 +1490,12 @@ class Scorm2004API extends BaseAPI {
    * `learnerId` is a getter, not a snapshot: the constructor builds this context before the
    * host has loaded cmi.learner_id, and `this.cmi` can be replaced by reset() or a resume,
    * so the persistence layer must read the current value each time it saves or loads.
-   * @spec SCORM 2004 4th Ed. RTE 4.2.9 - cmi.learner_id identifies the learner; persisted
+   *
+   * Because the value is live, a loadSequencingState() issued before the host sets
+   * cmi.learner_id keys its in-flight dedupe on "unknown", and a second load issued after the
+   * id is set keys on the real id, so the two are not coalesced. The learner id cannot change
+   * after Initialize(), so the window is limited to hosts that load before initializing.
+   * @spec SCORM 2004 4th Ed. RTE 4.2.11 - cmi.learner_id identifies the learner; persisted
    * sequencing state must be attributed to that learner, not to a placeholder.
    * @return {PersistenceContext}
    */
