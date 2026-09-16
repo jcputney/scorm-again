@@ -1518,6 +1518,7 @@
       uninitializedGetLogLevel: LogLevelEnum.WARN,
       selfReportSessionTime: false,
       alwaysSendTotalTime: false,
+      accumulateSessionTimeOnTerminate: false,
       renderCommonCommitFields: false,
       autoCompleteLessonStatus: false,
       strict_errors: true,
@@ -31051,6 +31052,7 @@
      */ key: "accumulateSessionTime",
               value: function accumulateSessionTime(start_time) {
                   this._total_time = this.getCurrentTotalTime(start_time);
+                  this._session_time = "PT0H0M0S";
               }
           },
           {
@@ -32146,6 +32148,9 @@
      */ key: "accumulateSessionTime",
               value: function accumulateSessionTime() {
                   this.session.accumulateSessionTime(this.start_time);
+                  if (this._start_time !== void 0) {
+                      this._start_time = (/* @__PURE__ */ new Date()).getTime();
+                  }
               }
           },
           {
@@ -38556,7 +38561,7 @@
               value: function lmsFinish() {
                   var parameter = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : "";
                   var _ref;
-                  var _this_adl_nav, _this_adl, _this_cmi, _this__sequencingService;
+                  var _this_adl_nav, _this_adl, _this_cmi, _this__sequencingService, _this__sequencingService1;
                   if (parameter !== "") {
                       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
                       return global_constants.SCORM_FALSE;
@@ -38596,7 +38601,7 @@
                   if (result !== global_constants.SCORM_TRUE && preparedNavigation && this._sequencingService) {
                       this._sequencingService.cancelPreparedNavigation(preparedNavigation);
                   }
-                  if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated) {
+                  if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && (this.settings.accumulateSessionTimeOnTerminate === true || ((_this__sequencingService1 = this._sequencingService) === null || _this__sequencingService1 === void 0 ? void 0 : _this__sequencingService1.getSequencingState().isInitialized) === true)) {
                       this.cmi.accumulateSessionTime();
                   }
                   if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {

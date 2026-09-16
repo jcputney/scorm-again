@@ -759,6 +759,7 @@ const DefaultSettings = {
   uninitializedGetLogLevel: LogLevelEnum.WARN,
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
+  accumulateSessionTimeOnTerminate: false,
   renderCommonCommitFields: false,
   autoCompleteLessonStatus: false,
   strict_errors: true,
@@ -19966,6 +19967,7 @@ class CMISession extends BaseCMI {
    */
   accumulateSessionTime(start_time) {
     this._total_time = this.getCurrentTotalTime(start_time);
+    this._session_time = "PT0H0M0S";
   }
   /**
    * Reset the session properties
@@ -20700,6 +20702,9 @@ class CMI extends BaseRootCMI {
    */
   accumulateSessionTime() {
     this.session.accumulateSessionTime(this.start_time);
+    if (this._start_time !== void 0) {
+      this._start_time = (/* @__PURE__ */ new Date()).getTime();
+    }
   }
   /**
    * toJSON for cmi
@@ -24895,7 +24900,7 @@ class Scorm2004API extends BaseAPI {
     if (result !== global_constants.SCORM_TRUE && preparedNavigation && this._sequencingService) {
       this._sequencingService.cancelPreparedNavigation(preparedNavigation);
     }
-    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated) {
+    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && (this.settings.accumulateSessionTimeOnTerminate === true || this._sequencingService?.getSequencingState().isInitialized === true)) {
       this.cmi.accumulateSessionTime();
     }
     if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {

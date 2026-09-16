@@ -554,6 +554,7 @@ const DefaultSettings = {
   uninitializedGetLogLevel: LogLevelEnum.WARN,
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
+  accumulateSessionTimeOnTerminate: false,
   renderCommonCommitFields: false,
   autoCompleteLessonStatus: false,
   strict_errors: true,
