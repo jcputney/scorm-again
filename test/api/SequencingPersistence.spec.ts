@@ -38,6 +38,26 @@ describe("SCORM 2004 sequencing persistence", () => {
     await vi.waitFor(() => expect(saveState).toHaveBeenCalledOnce());
   });
 
+  it("saves with the learner id loaded after construction", async () => {
+    const saveState = vi.fn().mockResolvedValue(true);
+    const api = new Scorm2004API({
+      sequencing: { activityTree: { id: "root", children: [{ id: "sco1" }] } },
+      sequencingStatePersistence: {
+        persistence: { saveState, loadState: vi.fn().mockResolvedValue(null) },
+        autoLoadOnInitialize: false,
+        compress: false,
+      },
+    });
+    api.loadFromJSON({ learner_id: "learner-42" });
+
+    expect(await api.saveSequencingState()).toBe(true);
+
+    expect(saveState).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ learnerId: "learner-42" }),
+    );
+  });
+
   it("auto-saves the post-navigation state when content terminates", async () => {
     const saveState = vi.fn().mockResolvedValue(true);
     const delivered: string[] = [];
