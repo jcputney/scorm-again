@@ -100,7 +100,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@vitest/coverage-v8": "5.0.0",
-    "@vitest/ui": "4.1.11",
+    "@vitest/ui": "5.0.0",
     "cors": "^2.8.6",
     "es-check": "^9.6.4",
     "esbuild": "0.28.2",
