@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:ui` - Interactive test UI for debugging
 
 ### Code Quality
-- `npm run lint` - ESLint + Prettier check
+- `npm run lint` - oxlint + Prettier check
 - `npm run lint:fix` - Auto-fix linting issues and format code
 - **Important**: Always run `npm run lint:fix` after making changes to ensure code follows project standards
 

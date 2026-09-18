@@ -140,13 +140,14 @@ jobs:
       - name: Build (prod)
         run: npm run build:all:prod
 
-      - name: Run ESLint
-        run: npx eslint ./src
+      - name: Run oxlint
+        run: npx oxlint ./src
 
       - name: Code complexity analysis
         run: |
           mkdir -p reports/complexity
-          ./node_modules/.bin/eslint ./src --config eslint.config.js --rule 'complexity/complexity: ["error", { max: 15 }]' --format json > reports/complexity/complexity-report.json || true
+          printf '%s' '{"categories":{"correctness":"off"},"rules":{"complexity":["error",{"max":15}]}}' > reports/complexity/oxlintrc.json
+          npx oxlint ./src -c reports/complexity/oxlintrc.json --format json > reports/complexity/complexity-report.json || true
           echo "Complexity report generated at reports/complexity/complexity-report.json"
 
       - name: TypeScript type checking

@@ -24,7 +24,7 @@ Start reading our code, and you'll get the hang of it. I try to optimize for rea
 
 - We indent using two spaces (soft tabs)
 - We ALWAYS put spaces after list items and method parameters (`[1, 2, 3]`, not `[1,2,3]`), around operators (`x += 1`, not `x+=1`), and around hash arrows.
-- `eslint ./src --fix` should always be run before submitting a pull request. Otherwise, the build could fail if you have issues with the formatting of your code.
+- `npm run lint:fix` should always be run before submitting a pull request. Otherwise, the build could fail if you have issues with the formatting of your code.
 
 ## dist/ policy and local development
 

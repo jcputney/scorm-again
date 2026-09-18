@@ -20,7 +20,7 @@
 - TypeScript, ESM modules. Strict compiler options (`tsconfig.json`).
 - Indentation: 2 spaces; LF endings (`.editorconfig`).
 - Prefer named exports; keep API file names in PascalCase (e.g., `Scorm2004API.ts`), directories lower-case; functions `camelCase`, classes `PascalCase`, constants `UPPER_SNAKE_CASE` in `src/constants/*`.
-- Use ESLint + Prettier before committing.
+- Use oxlint + Prettier before committing.
 
 ## Testing Guidelines
 - Unit tests live in `test/**/*.spec.ts`; integration tests in `test/integration/` (require build).
