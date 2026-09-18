@@ -198,7 +198,7 @@ export class Scorm12Sequencer {
    */
   processExitAction(
     scoId: string,
-    exitValue: ExitAction | string,
+    exitValue: ExitAction | (string & {}),
   ): NavigationSuggestion {
     const sco = this._scoById.get(scoId);
     const state = this._stateTracker.getScoState(scoId);

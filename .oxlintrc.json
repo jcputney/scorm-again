@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "typescript/no-explicit-any": "off",
+    "typescript/no-unsafe-function-type": "off",
+    "typescript/no-this-alias": "off",
+    "typescript/unbound-method": "off",
+    "typescript/restrict-template-expressions": "off"
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "node_modules/**",
+    "coverage/**"
+  ],
+  "options": {
+    "typeAware": true
+  }
+}

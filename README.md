@@ -971,7 +971,7 @@ To run a build, you need to just run the `npm run build:all` command in the root
 
 Similarly, to run the tests, you just run the `npm test` command.
 
-Before submitting pull requests, please also run `eslint ./src --fix` against your code first,
+Before submitting pull requests, please also run `npm run lint:fix` against your code first,
 otherwise your pull
 request build could fail.
 

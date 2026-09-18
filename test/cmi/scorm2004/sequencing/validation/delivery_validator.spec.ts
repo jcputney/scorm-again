@@ -792,19 +792,17 @@ describe("DeliveryValidator", () => {
     });
 
     it("should handle resource check errors gracefully", () => {
-      // Mock document to throw an error
-      const originalDocument = globalThis.document;
-      (globalThis as any).document = {
-        createElement: () => {
-          throw new Error("DOM error");
-        }
-      };
+      // jsdom 30 makes window.document getter-only, so spy on the method instead
+      // of replacing the whole document object
+      const createElementSpy = vi.spyOn(document, "createElement").mockImplementation(() => {
+        throw new Error("DOM error");
+      });
 
       try {
         const result = validator.isResourceAvailable("video-codec");
         expect(result).toBe(false);
       } finally {
-        (globalThis as any).document = originalDocument;
+        createElementSpy.mockRestore();
       }
     });
   });

@@ -38,7 +38,7 @@
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] I have updated the documentation to reflect my changes
 - [ ] I have run `npm run test:min` and all tests pass
-- [ ] I have run `eslint ./src --fix` to ensure code style compliance
+- [ ] I have run `npm run lint:fix` to ensure code style compliance
 - [ ] I have checked that my changes do not decrease test coverage
 - [ ] My changes generate no new warnings or errors
 - [ ] I have made corresponding changes to the documentation

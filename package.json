@@ -90,43 +90,40 @@
     "test": "test"
   },
   "devDependencies": {
-    "@cyclonedx/cyclonedx-npm": "^6.0.0",
-    "@eslint/js": "10.0.1",
+    "@cyclonedx/cyclonedx-npm": "^6.0.1",
     "@mo36924/rollup-plugin-cache": "1.6.11",
     "@playwright/test": "1.63.0",
     "@rollup/plugin-terser": "1.0.0",
     "@rollup/plugin-typescript": "12.3.0",
-    "@swc/core": "^1.15.43",
+    "@swc/core": "^1.16.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@vitest/coverage-v8": "4.1.11",
-    "@vitest/ui": "4.1.11",
+    "@vitest/coverage-v8": "5.0.1",
+    "@vitest/ui": "5.0.1",
     "cors": "^2.8.6",
-    "es-check": "^9.6.4",
+    "es-check": "^9.7.2",
     "esbuild": "0.28.2",
-    "eslint": "10.10.0",
-    "eslint-plugin-jsdoc": "63.2.0",
     "express": "^5.2.1",
-    "fast-check": "4.9.0",
+    "fast-check": "4.10.1",
     "fflate": "0.8.3",
     "glob": "13.0.6",
-    "globals": "17.12.0",
-    "jsdom": "29.1.1",
-    "monocart-coverage-reports": "^2.12.12",
-    "monocart-reporter": "^2.12.2",
+    "jsdom": "30.1.0",
+    "monocart-coverage-reports": "^2.13.0",
+    "monocart-reporter": "^2.13.1",
+    "oxlint": "1.83.0",
+    "oxlint-tsgolint": "7.0.2001",
     "playwright": "1.63.0",
-    "prettier": "3.9.6",
-    "rollup": "4.63.1",
+    "prettier": "3.9.8",
+    "rollup": "4.63.3",
     "rollup-plugin-esbuild": "6.2.1",
     "rollup-plugin-swc3": "^0.12.1",
     "standard-version": "9.5.0",
     "terser": "5.51.2",
     "tslib": "2.8.1",
     "tsx": "4.23.13",
-    "typescript": "6.0.3",
-    "typescript-eslint": "8.70.0",
-    "vite": "8.2.2",
-    "vitest": "4.1.11"
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
   },
   "engines": {
     "node": ">=20.19.0"
@@ -147,9 +144,9 @@
     "coverage:view": "open coverage/merged/index.html",
     "dev:dist:ignore": "git ls-files dist | xargs git update-index --skip-worktree || true",
     "dev:dist:track": "git ls-files dist | xargs git update-index --no-skip-worktree || true",
-    "fix": "eslint ./src --fix",
+    "fix": "oxlint ./src --fix",
     "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/pre-commit",
-    "lint": "eslint ./src && prettier --check src/**/*.ts test/**/*.ts src/*.ts test/*.ts",
+    "lint": "oxlint ./src && prettier --check src/**/*.ts test/**/*.ts src/*.ts test/*.ts",
     "lint:fix": "npm run fix && npm run prettier",
     "prettier": "prettier --write src/**/*.ts test/**/*.ts src/*.ts test/*.ts",
     "release": "npm run test:min && npm run test:integration:ci && npm run release:prepare && npm run build:all:prod && npm run release:publish",
@@ -213,9 +210,6 @@
       "libxmljs2": "npm:noop2@2.0.0"
     },
     "ajv": "6.14.0",
-    "nodemailer": ">=8.0.4",
-    "typescript-eslint": {
-      "typescript": "$typescript"
-    }
+    "nodemailer": ">=8.0.4"
   }
 }

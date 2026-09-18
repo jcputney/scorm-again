@@ -61,7 +61,7 @@ export class AsynchronousHttpService implements IHttpService {
     onRequestComplete?: () => void,
   ): ResultObject {
     // Fire request in background - don't wait for result
-    this._performAsyncRequest(
+    void this._performAsyncRequest(
       url,
       params,
       immediate,

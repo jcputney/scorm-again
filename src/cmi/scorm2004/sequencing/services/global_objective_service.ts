@@ -189,7 +189,7 @@ export class GlobalObjectiveService {
    * @param {string} objectiveId - The objective ID
    * @return {any | undefined} - The objective data or undefined
    */
-  public getObjective(objectiveId: string): any | undefined {
+  public getObjective(objectiveId: string): any {
     return this.globalObjectiveMap.get(objectiveId);
   }
 

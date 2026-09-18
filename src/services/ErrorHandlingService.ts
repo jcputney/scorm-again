@@ -157,11 +157,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
    *   return handleValueAccessException(e, "");
    * }
    */
-  handleValueAccessException(
-    CMIElement: string,
-    e: Error | ValidationError | unknown,
-    returnValue: string,
-  ): string {
+  handleValueAccessException(CMIElement: string, e: unknown, returnValue: string): string {
     if (e instanceof ValidationError) {
       const validationError = e as ValidationError;
       this._lastErrorCode = String(validationError.errorCode);
