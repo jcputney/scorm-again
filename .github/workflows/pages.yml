@@ -61,6 +61,9 @@ jobs:
           cd docs-site
           npm ci
           npm run build
+        env:
+          UMAMI_HOST: ${{ secrets.UMAMI_HOST }}
+          UMAMI_SITE_ID: ${{ secrets.UMAMI_SITE_ID }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
