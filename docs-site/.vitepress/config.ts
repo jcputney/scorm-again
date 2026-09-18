@@ -1,9 +1,41 @@
 import { defineConfig } from "vitepress";
+import type { HeadConfig } from "vitepress";
 
 // The docs live under docs/ and the site root is docs-site/, so every page
 // keeps the URL it had under Docusaurus: /scorm-again/docs/<section>/<page>.
 // That is why the existing absolute /docs/... links in the markdown still
 // resolve without being rewritten.
+
+// Umami analytics. Only injected on production builds when CI supplies the
+// host and site id (see .github/workflows/pages.yml). Local dev and PR
+// builds send nothing.
+const umamiHost = process.env.UMAMI_HOST;
+const umamiSiteId = process.env.UMAMI_SITE_ID;
+const umamiEnabled = process.env.NODE_ENV === "production" && !!umamiHost && !!umamiSiteId;
+
+const umamiHead: HeadConfig[] = umamiEnabled
+  ? [
+      [
+        "script",
+        {
+          src: `${umamiHost}/script.js`,
+          "data-website-id": umamiSiteId!,
+          defer: "true",
+        },
+      ],
+      [
+        "script",
+        {
+          src: `${umamiHost}/recorder.js`,
+          "data-website-id": umamiSiteId!,
+          "data-sample-rate": "1",
+          "data-mask-level": "moderate",
+          defer: "true",
+        },
+      ],
+    ]
+  : [];
+
 export default defineConfig({
   title: "scorm-again",
   description: "A modern SCORM runtime for JavaScript",
@@ -23,6 +55,7 @@ export default defineConfig({
     ["link", { rel: "apple-touch-icon", sizes: "180x180", href: "/scorm-again/img/apple-touch-icon.png" }],
     ["link", { rel: "manifest", href: "/scorm-again/img/site.webmanifest" }],
     ["meta", { property: "og:image", content: "/scorm-again/img/scorm-again-logo.svg" }],
+    ...umamiHead,
   ],
 
   markdown: {
