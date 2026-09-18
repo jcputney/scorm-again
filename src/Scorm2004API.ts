@@ -890,10 +890,10 @@ class Scorm2004API extends BaseAPI {
             return String(this.settings.scoItemIdValidator(target));
           }
 
+          // There is no jump predictor on OverallSequencingProcess, so "jump"
+          // requests fall through to the extracted SCO item ID check below.
           if (overallProcess?.predictChoiceEnabled && request === "choice") {
             return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
-          } else if (overallProcess?.predictJumpEnabled && request === "jump") {
-            return overallProcess.predictJumpEnabled(target) ? "true" : "false";
           } else {
             if (this._extractedScoItemIds.length > 0) {
               return String(this._extractedScoItemIds.includes(target));

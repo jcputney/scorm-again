@@ -29,6 +29,12 @@ updates:
       semver-minor-days: 5
       semver-patch-days: 3
     groups:
+      # oxlint-tsgolint is pinned to an exact TypeScript version, so the two
+      # must move together (majors included) or type-aware linting breaks.
+      typescript-toolchain:
+        patterns:
+          - "typescript"
+          - "oxlint-tsgolint"
       # All root deps are devDependencies, so this batches every non-major
       # bump into one PR. Majors stay individual for manual review.
       dev-dependencies:

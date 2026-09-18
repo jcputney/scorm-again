@@ -325,11 +325,7 @@ export interface IErrorHandlingService {
    * @param {string} returnValue - The default return value
    * @return {string} - The return value after handling the exception
    */
-  handleValueAccessException(
-    CMIElement: string,
-    e: ValidationError | Error | unknown,
-    returnValue: string,
-  ): string;
+  handleValueAccessException(CMIElement: string, e: unknown, returnValue: string): string;
 
   /**
    * Get the error codes object

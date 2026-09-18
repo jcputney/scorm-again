@@ -404,21 +404,23 @@ export default abstract class BaseAPI implements IBaseAPI {
         this.settings.syncOnInitialize &&
         this._offlineStorageService.isDeviceOnline()
       ) {
-        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
-          if (hasPendingData) {
-            this.apiLog(
-              callbackName,
-              "Syncing pending offline data on initialization",
-              LogLevelEnum.INFO,
-            );
-            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
-              if (syncSuccess) {
-                this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                this.processListeners("OfflineDataSynced");
-              }
-            });
-          }
-        });
+        void this._offlineStorageService
+          .hasPendingOfflineData(this._courseId)
+          .then((hasPendingData) => {
+            if (hasPendingData) {
+              this.apiLog(
+                callbackName,
+                "Syncing pending offline data on initialization",
+                LogLevelEnum.INFO,
+              );
+              void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+                if (syncSuccess) {
+                  this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                  this.processListeners("OfflineDataSynced");
+                }
+              });
+            }
+          });
       }
     }
 
@@ -1050,19 +1052,21 @@ export default abstract class BaseAPI implements IBaseAPI {
         this._offlineStorageService.isDeviceOnline() &&
         this._courseId
       ) {
-        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
-          if (hasPendingData) {
-            this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
-            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
-              if (syncSuccess) {
-                this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                this.processListeners("OfflineDataSynced");
-              } else {
-                this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
-              }
-            });
-          }
-        });
+        void this._offlineStorageService
+          .hasPendingOfflineData(this._courseId)
+          .then((hasPendingData) => {
+            if (hasPendingData) {
+              this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
+              void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+                if (syncSuccess) {
+                  this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                  this.processListeners("OfflineDataSynced");
+                } else {
+                  this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
+                }
+              });
+            }
+          });
       }
     }
 

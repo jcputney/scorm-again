@@ -9,9 +9,8 @@ import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptio
 import { scorm2004_errors } from "../../../constants/error_codes";
 import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
 
-// Forward declaration to avoid circular dependency
- 
-type OverallSequencingProcessType = any;
+// Type-only import: erased at compile time, so no runtime circular dependency
+import type { OverallSequencingProcess } from "./overall_sequencing_process";
 
 /**
  * Class representing SCORM 2004 sequencing
@@ -24,7 +23,7 @@ export class Sequencing extends BaseCMI {
   private _adlNav: ADLNav | null = null;
   private _hideLmsUi: HideLmsUiItem[] = [];
   private _auxiliaryResources: AuxiliaryResource[] = [];
-  private _overallSequencingProcess: OverallSequencingProcessType | null = null;
+  private _overallSequencingProcess: OverallSequencingProcess | null = null;
 
   /**
    * Constructor for Sequencing
@@ -189,17 +188,17 @@ export class Sequencing extends BaseCMI {
 
   /**
    * Getter for overallSequencingProcess
-   * @return {any | null}
+   * @return {OverallSequencingProcess | null}
    */
-  get overallSequencingProcess(): OverallSequencingProcessType | null {
+  get overallSequencingProcess(): OverallSequencingProcess | null {
     return this._overallSequencingProcess;
   }
 
   /**
    * Setter for overallSequencingProcess
-   * @param {any | null} process
+   * @param {OverallSequencingProcess | null} process
    */
-  set overallSequencingProcess(process: OverallSequencingProcessType | null) {
+  set overallSequencingProcess(process: OverallSequencingProcess | null) {
     this._overallSequencingProcess = process;
   }
 

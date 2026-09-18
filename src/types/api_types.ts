@@ -270,7 +270,7 @@ export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
 /**
  * All possible log level values
  */
-export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum;
+export type LogLevel = StringNumericLogLevel | NamedLogLevel | LogLevelEnum;
 
 /**
  * Metadata for sequencing state operations
