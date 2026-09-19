@@ -427,6 +427,75 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // All have known progress
       expect(parent.isCompleted).toBe(true);
     });
+
+    describe("Activity Progress Rollup Using Rules (RB.1.3.b) - rules present but unfired", () => {
+      // Reproduces the ADL golf sample "Sequencing Pre or Post Test Rollup"
+      // dummy_item wrapper: two explicit rollup rules -
+      //   any child completed  -> incomplete
+      //   all children completed -> completed
+      // Neither rule requires every child to have a KNOWN status, so a partial
+      // attempt (one known-incomplete child, the rest never attempted) fires
+      // neither rule. Per RB.1.3.b, once an activity defines completion-type
+      // rollup rules, those rules - not the RB.1.3 default - are authoritative
+      // for its progress status, so it must stay unchanged rather than being
+      // recomputed from children the same way an activity with NO rules would be.
+      beforeEach(() => {
+        const anyCompletedIncomplete = new RollupRule(
+          RollupActionType.INCOMPLETE,
+          RollupConsiderationType.ANY,
+        );
+        anyCompletedIncomplete.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
+        parent.rollupRules.addRule(anyCompletedIncomplete);
+
+        const allCompletedCompleted = new RollupRule(
+          RollupActionType.COMPLETED,
+          RollupConsiderationType.ALL,
+        );
+        allCompletedCompleted.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
+        parent.rollupRules.addRule(allCompletedCompleted);
+      });
+
+      it("leaves completion status unchanged when neither rule fires (one known-incomplete child, rest unattempted)", () => {
+        // child1 attempted but not finished; child2 and child3 never attempted.
+        child1.completionStatus = CompletionStatus.INCOMPLETE;
+        child1.isCompleted = false;
+        child2.completionStatus = CompletionStatus.UNKNOWN;
+        child3.completionStatus = CompletionStatus.UNKNOWN;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Neither "any completed" nor "all completed" fires (no child is
+        // completed at all), so RB.1.3.b leaves the parent's prior status as-is
+        // instead of falling through to the RB.1.3 default, which would have
+        // seen child1's known-incomplete status and forced INCOMPLETE.
+        expect(parent.completionStatus).toBe(CompletionStatus.UNKNOWN);
+      });
+
+      it("still applies the incomplete rule once a child actually completes", () => {
+        child1.completionStatus = CompletionStatus.COMPLETED;
+        child1.isCompleted = true;
+        child2.completionStatus = CompletionStatus.UNKNOWN;
+        child3.completionStatus = CompletionStatus.UNKNOWN;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // "any completed" now fires -> incomplete (partial progress).
+        expect(parent.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+      });
+
+      it("applies the completed rule once every child completes", () => {
+        child1.completionStatus = CompletionStatus.COMPLETED;
+        child1.isCompleted = true;
+        child2.completionStatus = CompletionStatus.COMPLETED;
+        child2.isCompleted = true;
+        child3.completionStatus = CompletionStatus.COMPLETED;
+        child3.isCompleted = true;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
+      });
+    });
   });
 
   describe("Check Child For Rollup Subprocess (RB.1.4.2)", () => {
@@ -1102,15 +1171,20 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
 
     describe("Completion rollup with no tracking data", () => {
-      it("should handle children with unknown completion status", () => {
+      it("should leave completion status unknown when all children are unknown", () => {
         child1.completionStatus = CompletionStatus.UNKNOWN;
         child2.completionStatus = CompletionStatus.UNKNOWN;
         child3.completionStatus = CompletionStatus.UNKNOWN;
 
         rollupProcess.overallRollupProcess(child1);
 
-        // Parent should be incomplete when all children unknown
-        expect(parent.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+        // @spec SN Book RB.1.3 (Activity Progress Rollup Using Default): "incomplete
+        // if any child incomplete" requires a KNOWN incomplete child. This test
+        // previously asserted INCOMPLETE here, but that collapsed "unknown" (no
+        // information) into "known incomplete", which contradicts RB.1.3 and RB.1.4
+        // (an unknown status must not evaluate True for "any"). With no known
+        // information from any child, the parent's completion status is left as-is.
+        expect(parent.completionStatus).toBe(CompletionStatus.UNKNOWN);
       });
 
       it("should handle mix of completed and unknown children", () => {
