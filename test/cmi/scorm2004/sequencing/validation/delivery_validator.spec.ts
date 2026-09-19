@@ -431,6 +431,23 @@ describe("DeliveryValidator", () => {
       expect(result).toBe(true);
     });
 
+    // @spec SN UP.1 step 1: a suspended activity's attempt is in progress; resuming it does not
+    // begin a new attempt, so the attempt limit it already consumed cannot block the resume.
+    it("should pass for a suspended activity whose in-progress attempt reached the limit", () => {
+      grandchild1.attemptLimit = 1;
+      grandchild1.attemptCount = 1;
+      grandchild1.isSuspended = true;
+
+      expect(validator.checkLimitConditions(grandchild1)).toBe(true);
+      expect(eventCallback).toHaveBeenCalledWith(
+        "onLimitConditionCheck",
+        expect.objectContaining({ activity: grandchild1, result: true, attemptInProgress: true })
+      );
+
+      grandchild1.isSuspended = false;
+      expect(validator.checkLimitConditions(grandchild1)).toBe(false);
+    });
+
     it("should fail when attempt duration limit exceeded", () => {
       grandchild1.attemptAbsoluteDurationLimit = "PT1H0M0S"; // 1 hour
       grandchild1.attemptAbsoluteDuration = "PT2H0M0S"; // 2 hours
