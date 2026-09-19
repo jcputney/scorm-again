@@ -77,6 +77,13 @@ describe("Utility Tests", () => {
     it("Empty seconds returns PT0S", () => {
       expect(Utilities.getSecondsAsISODuration(null)).toEqual("PT0S");
     });
+
+    it("1.14 returns PT1.14S without binary floating-point noise", () => {
+      // Regression test: adding a whole-number `value` to a rounded `remainder`
+      // (e.g. 1 + 0.14) can reintroduce float noise such as 1.1400000000000001
+      // if the sum itself is not re-rounded.
+      expect(Utilities.getSecondsAsISODuration(1.14)).toEqual("PT1.14S");
+    });
   });
 
   describe("getTimeAsSeconds()", () => {
