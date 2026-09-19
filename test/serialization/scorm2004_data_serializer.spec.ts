@@ -7,7 +7,7 @@ import {
 import { SequencingService } from "../../src/services/SequencingService";
 
 describe("Scorm2004DataSerializer", () => {
-  it("uses the course root only for terminate commit status", () => {
+  it("uses the course root for every commit status while a sequencing root exists", () => {
     const context = {
       getSettings: () => ({ autoPopulateCommitMetadata: false, dataCommitFormat: "json" }),
       cmi: {
@@ -36,8 +36,12 @@ describe("Scorm2004DataSerializer", () => {
     const ordinaryCommit = serializer.renderCommitObject(false);
     const terminateCommit = serializer.renderCommitObject(true);
 
-    expect(ordinaryCommit.completionStatus).toBe("incomplete");
-    expect(ordinaryCommit.successStatus).toBe("unknown");
+    expect(ordinaryCommit.completionStatus).toBe("completed");
+    expect(ordinaryCommit.successStatus).toBe("passed");
+    expect(ordinaryCommit.runtimeData.cmi).toMatchObject({
+      completion_status: "incomplete",
+      success_status: "unknown",
+    });
     expect(terminateCommit.completionStatus).toBe("completed");
     expect(terminateCommit.successStatus).toBe("passed");
     expect(terminateCommit.runtimeData.cmi).toMatchObject({
@@ -81,7 +85,7 @@ describe("Scorm2004DataSerializer", () => {
     });
   });
 
-  it("uses the rolled-up course score for a terminate commit", () => {
+  it("uses the rolled-up course score for every commit", () => {
     const context = {
       getSettings: () => ({ autoPopulateCommitMetadata: false, dataCommitFormat: "json" }),
       cmi: {
@@ -111,7 +115,7 @@ describe("Scorm2004DataSerializer", () => {
     } as unknown as DataSerializerContext;
     const serializer = new Scorm2004DataSerializer(context);
 
-    expect(serializer.renderCommitObject(false).score).toEqual({});
+    expect(serializer.renderCommitObject(false).score).toEqual({ scaled: 1 });
     expect(serializer.renderCommitObject(true).score).toEqual({ scaled: 1 });
   });
 
