@@ -1469,10 +1469,23 @@ export class Activity extends BaseCMI {
 
   /**
    * Check if attempt limit has been exceeded
+   *
+   * A suspended activity has an attempt in progress. Resuming it (SB.2.6 Resume All, DB.2)
+   * continues that attempt rather than beginning a new one, so the attempt already counted
+   * against the limit is the one being resumed and the limit is not exceeded by it.
+   *
+   * @spec SCORM 2004 4th Ed. SN UP.1 step 1 (Limit Conditions Check Process): a suspended
+   * activity is not checked because only activities that will begin a new attempt are subject
+   * to limit conditions
+   * @spec SCORM 2004 4th Ed. SN DB.2 step 5 (Content Delivery Environment Process): a
+   * suspended activity's attempt count is not incremented when it is delivered again
    * @return {boolean}
    */
   hasAttemptLimitExceeded(): boolean {
     if (this._attemptLimit === null) {
+      return false;
+    }
+    if (this._isSuspended) {
       return false;
     }
     return this._attemptCount >= this._attemptLimit;

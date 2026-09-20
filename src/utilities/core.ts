@@ -137,9 +137,12 @@ export const getSecondsAsISODuration = (seconds: number | null): string => {
     }
 
     // If we have anything left in the remainder, and we're currently adding
-    // seconds to the duration, go ahead and add the decimal to the seconds
+    // seconds to the duration, go ahead and add the decimal to the seconds.
+    // Round the sum, not just the remainder: adding a whole-number `value` to a
+    // rounded-but-still-binary-imprecise `remainder` (e.g. 108 + 0.74) can itself
+    // reintroduce floating-point noise (e.g. 108.74000000000001).
     if (designationsKey === "S" && remainder > 0) {
-      value += remainder;
+      value = Number((value + remainder).toFixed(2));
     }
 
     if (value) {

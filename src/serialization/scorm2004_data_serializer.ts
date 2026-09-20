@@ -159,13 +159,15 @@ export class Scorm2004DataSerializer {
       }
     }
 
-    // Structured top-level fields represent the LMS course result at the session boundary. The
-    // CMI export remains the active SCO's runtime data. A sequenced course can roll up to complete
-    // while its next/current SCO is still incomplete (for example, a successful pre-test), so a
-    // terminate commit must use the root activity's tracking state.
-    const sequencingRoot = terminateCommit
-      ? this.context.sequencingService?.getSequencingState().rootActivity
-      : null;
+    // Structured top-level fields represent the LMS course result. The CMI export remains the
+    // active SCO's runtime data. In a sequenced course the course result is the root activity's
+    // rolled-up tracking state on every commit, not only at the session boundary: a SCO can be
+    // complete/passed while the course root is still incomplete (a pre-test), and a resumed SCO
+    // reports its own passed status while the course root is known-failed. Reporting the SCO's
+    // CMI as the course result on an ordinary commit lets one SCO's status overwrite the course.
+    // @spec SCORM 2004 4th Ed. SN RB.1 (Overall Rollup Process): the tracking status of the
+    // root activity is the course status; a leaf's status contributes only through rollup.
+    const sequencingRoot = this.context.sequencingService?.getSequencingState().rootActivity;
     if (sequencingRoot) {
       completionStatus = sequencingRoot.completionStatus ?? CompletionStatus.UNKNOWN;
       successStatus = sequencingRoot.successStatus ?? SuccessStatus.UNKNOWN;

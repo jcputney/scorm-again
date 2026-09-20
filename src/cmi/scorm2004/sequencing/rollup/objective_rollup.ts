@@ -73,10 +73,17 @@ export class ObjectiveRollupProcessor {
     }
 
     // Finally, use default rollup (RB.1.2.c)
-    activity.objectiveSatisfiedStatus = this.objectiveRollupUsingDefault(activity);
-    // Do NOT set objectiveMeasureStatus here - default rollup doesn't involve measures
-    // Per SCORM 2004 SN Book RB.1.2.c, only satisfaction status is determined by default rollup
-    this.syncPrimaryObjectiveFromActivity(activity);
+    // @spec SN Book: RB.1.4 (Rollup Rule Check) - an unknown default-rollup result
+    // (null) means this subprocess has no information to contribute, so the
+    // activity's existing satisfaction status must be left untouched, exactly
+    // like the rules and measure branches above.
+    const defaultResult = this.objectiveRollupUsingDefault(activity);
+    if (defaultResult !== null) {
+      activity.objectiveSatisfiedStatus = defaultResult;
+      // Do NOT set objectiveMeasureStatus here - default rollup doesn't involve measures
+      // Per SCORM 2004 SN Book RB.1.2.c, only satisfaction status is determined by default rollup
+      this.syncPrimaryObjectiveFromActivity(activity);
+    }
   }
 
   /**
@@ -141,14 +148,28 @@ export class ObjectiveRollupProcessor {
    * This ensures symmetric exclusion: setting either consideration excludes
    * the child from the entire objective rollup evaluation.
    *
+   * A contributing child's objective status may itself be unknown (e.g. it has
+   * never been attempted in this parent attempt). Per RB.1.4 (Rollup Rule
+   * Check), an unknown status must not evaluate True for either the "any not
+   * satisfied" or the "all satisfied" check, so this returns `null` - "no
+   * information" - rather than collapsing an unknown child into "not
+   * satisfied".
+   *
    * @spec SN Book: RB.1.2.c (Objective Rollup Using Default)
+   * @spec SN Book: RB.1.4 (Rollup Rule Check: unknown does not evaluate True for
+   * "any")
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
    * @param activity - The parent activity
-   * @returns True if all tracked children are satisfied
+   * @returns True if all contributing children are known-satisfied, false if
+   * any contributing child is known-not-satisfied, or null if there is no
+   * information to roll up (no contributors, or none with a known status)
    */
-  public objectiveRollupUsingDefault(activity: Activity): boolean {
+  public objectiveRollupUsingDefault(activity: Activity): boolean | null {
     const children = activity.getAvailableChildren();
+    // @spec SN Book: RB.1.2.c / RB.1.4 - with no children at all, this
+    // subprocess has no information to contribute.
     if (children.length === 0) {
-      return false;
+      return null;
     }
 
     const considerations = activity.rollupConsiderations;
@@ -178,18 +199,31 @@ export class ObjectiveRollupProcessor {
       return true;
     });
 
+    // @spec SN Book: RB.1.2.c / RB.1.4 - as above, no contributing children
+    // means no information for this subprocess to report.
     if (contributors.length === 0) {
-      return false;
+      return null;
     }
 
-    // Default rollup logic:
-    // - Parent is "not satisfied" if ANY contributor is not satisfied
-    // - Parent is "satisfied" if ALL contributors are satisfied
-    if (contributors.some((child) => !this.childFilter.isChildSatisfiedForRollup(child))) {
-      return false;
+    // Default rollup logic, partitioned by whether each contributor's status is
+    // actually KNOWN (RB.1.4.2):
+    // - Parent is "not satisfied" if ANY known contributor is not satisfied
+    // - Parent is "satisfied" if ALL contributors are known and satisfied
+    // - Otherwise (no known-not-satisfied contributor, but at least one
+    //   contributor's status is unknown) the parent's status is unknown too.
+    let sawUnknownContributor = false;
+    for (const child of contributors) {
+      if (!this.childFilter.isChildObjectiveStatusKnownForRollup(child)) {
+        sawUnknownContributor = true;
+        continue;
+      }
+
+      if (!this.childFilter.isChildSatisfiedForRollup(child)) {
+        return false;
+      }
     }
 
-    return contributors.every((child) => this.childFilter.isChildSatisfiedForRollup(child));
+    return sawUnknownContributor ? null : true;
   }
 
   /**

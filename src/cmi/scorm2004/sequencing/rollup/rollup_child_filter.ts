@@ -1,5 +1,5 @@
 import { Activity, RollupConsiderationsConfig } from "../activity";
-import { SuccessStatus } from "../../../../constants/enums";
+import { CompletionStatus, SuccessStatus } from "../../../../constants/enums";
 
 /**
  * Type of rollup operation being performed
@@ -239,6 +239,40 @@ export class RollupChildFilter {
   }
 
   /**
+   * Check if a child's objective satisfaction status is actually KNOWN, as opposed
+   * to simply defaulting to "not satisfied" because the child was never attempted
+   * in this parent attempt.
+   *
+   * `Activity.objectiveSatisfiedStatus` is a plain boolean that defaults to
+   * `false`, so an untouched child and a child that has genuinely failed both
+   * read as `false` from {@link isChildSatisfiedForRollup}. The default objective
+   * rollup subprocess (RB.1.2.c) must not treat those two cases the same way -
+   * an unknown child contributes no information, while a known-not-satisfied
+   * child forces the parent to "not satisfied". `objectiveSatisfiedStatusKnown`
+   * is the flag the rest of the codebase already treats as authoritative for
+   * that distinction (see the identical known/not-known guard in
+   * `SequencingStateManager.deserializeActivities`), so it is used here rather
+   * than the raw boolean.
+   *
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+   * @spec SN Book: RB.1.2.c (Objective Rollup Using Default) and RB.1.4 (Rollup
+   * Rule Check: an unknown status must not evaluate True for either the "any not
+   * satisfied" or "all satisfied" default checks)
+   * @param child - Child activity to check
+   * @returns True if the child's objective satisfaction status is known for this parent attempt
+   */
+  public isChildObjectiveStatusKnownForRollup(child: Activity): boolean {
+    // @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo: when the
+    // child's objective data is not visible to the current parent attempt, the
+    // parent has no information at all, not a known "not satisfied" status.
+    if (child.objectiveInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
+
+    return child.objectiveSatisfiedStatusKnown;
+  }
+
+  /**
    * Check if child is completed for rollup
    * Evaluates completion status
    *
@@ -255,6 +289,38 @@ export class RollupChildFilter {
     }
 
     return false;
+  }
+
+  /**
+   * Check if a child's completion status is actually KNOWN, as opposed to
+   * defaulting to "incomplete" because the child was never attempted in this
+   * parent attempt.
+   *
+   * Unlike objective satisfaction, `Activity.completionStatus` already has a
+   * distinct `CompletionStatus.UNKNOWN` value, so "known" is simply "not
+   * unknown" here - but that distinction is lost by
+   * {@link isChildCompletedForRollup}, which folds "unknown" and "incomplete"
+   * together into `false`. The default progress rollup subprocess (RB.1.3) must
+   * not let an untouched sibling's unknown completion status masquerade as a
+   * known "incomplete" that forces the parent incomplete.
+   *
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+   * @spec SN Book: RB.1.3 (Activity Progress Rollup Using Default: completed if
+   * all children completed, incomplete if any child incomplete - unknown does
+   * not count as either) and RB.1.4 (Rollup Rule Check: unknown does not
+   * evaluate True for "any")
+   * @param child - Child activity to check
+   * @returns True if the child's completion status is known for this parent attempt
+   */
+  public isChildCompletionStatusKnownForRollup(child: Activity): boolean {
+    // @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptProgressInfo: when the
+    // child's progress data is not visible to the current parent attempt, the
+    // parent has no information at all, not a known "incomplete" status.
+    if (child.progressInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
+
+    return child.completionStatus !== CompletionStatus.UNKNOWN;
   }
 
   /**

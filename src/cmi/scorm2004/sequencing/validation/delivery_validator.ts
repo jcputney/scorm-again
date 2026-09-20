@@ -262,6 +262,19 @@ export class DeliveryValidator {
     let result = true;
     let failureReason = "";
 
+    // @spec SCORM 2004 4th Ed. SN UP.1 step 1: a suspended activity has an attempt in progress;
+    // limit conditions only apply to activities that will begin a new attempt, so they are not
+    // violated by the attempt being continued (SB.2.6 Resume All, DB.2 step 5).
+    if (activity.isSuspended) {
+      this.fireEvent("onLimitConditionCheck", {
+        activity: activity,
+        result: true,
+        failureReason: "",
+        attemptInProgress: true,
+      });
+      return true;
+    }
+
     // Check attempt limit
     if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
       if (activity.attemptCount >= activity.attemptLimit) {

@@ -163,6 +163,21 @@ describe("RuleCondition Edge Cases", () => {
       expect(attemptLimitCondition.evaluate(activity)).toBe(false);
     });
 
+    // @spec SN UP.1 step 1 / DB.2: a suspended attempt is resumed, not re-attempted, so it is
+    // not an exceeded attempt limit. The Golf "Pre or Post Test" pre-test (attemptLimit=1,
+    // preCondition attemptLimitExceeded -> disabled) must stay deliverable for Resume All.
+    it("should not treat a suspended activity's in-progress attempt as an exceeded limit", () => {
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
+      const activity = new Activity("pretest_item", "Pre Test");
+      activity.attemptLimit = 1;
+      activity.attemptCount = 1;
+
+      expect(condition.evaluate(activity)).toBe(true);
+
+      activity.isSuspended = true;
+      expect(condition.evaluate(activity)).toBe(false);
+    });
+
     it("should handle non-boolean objectiveMeasureStatus values", () => {
       const condition = new RuleCondition(RuleConditionType.OBJECTIVE_MEASURE_KNOWN);
       const activity = new Activity();

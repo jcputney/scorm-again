@@ -3,7 +3,7 @@ import {
   RollupChildFilter
 } from "../../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
-import { SuccessStatus } from "../../../../../src/constants/enums";
+import { CompletionStatus, SuccessStatus } from "../../../../../src/constants/enums";
 import {
   createMockActivity,
   createMockRollupConsiderations
@@ -562,6 +562,74 @@ describe("RollupChildFilter", () => {
       });
 
       expect(filter.isChildCompletedForRollup(child)).toBe(false);
+    });
+  });
+
+  /**
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+   * @spec SN Book: RB.1.2.c (Objective Rollup Using Default) and RB.1.4 (Rollup
+   * Rule Check: unknown does not evaluate True for "any")
+   */
+  describe("isChildObjectiveStatusKnownForRollup", () => {
+    it("should return false for an untouched child (never attempted this parent attempt)", () => {
+      const child = { objectiveInfoAvailableInCurrentParentAttempt: true, objectiveSatisfiedStatusKnown: false } as Activity;
+
+      expect(filter.isChildObjectiveStatusKnownForRollup(child)).toBe(false);
+    });
+
+    it("should return true once the child's objective status has actually been set", () => {
+      const child = { objectiveInfoAvailableInCurrentParentAttempt: true, objectiveSatisfiedStatusKnown: true } as Activity;
+
+      expect(filter.isChildObjectiveStatusKnownForRollup(child)).toBe(true);
+    });
+
+    it("should return false when objective info is not available in the current parent attempt, even if known", () => {
+      const child = { objectiveInfoAvailableInCurrentParentAttempt: false, objectiveSatisfiedStatusKnown: true } as Activity;
+
+      expect(filter.isChildObjectiveStatusKnownForRollup(child)).toBe(false);
+    });
+  });
+
+  /**
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+   * @spec SN Book: RB.1.3 (Activity Progress Rollup Using Default: unknown does
+   * not count as either completed or incomplete)
+   */
+  describe("isChildCompletionStatusKnownForRollup", () => {
+    it("should return false for an untouched child whose completion status is unknown", () => {
+      const child = {
+        progressInfoAvailableInCurrentParentAttempt: true,
+        completionStatus: CompletionStatus.UNKNOWN
+      } as Activity;
+
+      expect(filter.isChildCompletionStatusKnownForRollup(child)).toBe(false);
+    });
+
+    it("should return true when completion status is 'incomplete'", () => {
+      const child = {
+        progressInfoAvailableInCurrentParentAttempt: true,
+        completionStatus: CompletionStatus.INCOMPLETE
+      } as Activity;
+
+      expect(filter.isChildCompletionStatusKnownForRollup(child)).toBe(true);
+    });
+
+    it("should return true when completion status is 'completed'", () => {
+      const child = {
+        progressInfoAvailableInCurrentParentAttempt: true,
+        completionStatus: CompletionStatus.COMPLETED
+      } as Activity;
+
+      expect(filter.isChildCompletionStatusKnownForRollup(child)).toBe(true);
+    });
+
+    it("should return false when progress info is not available in the current parent attempt, even if known", () => {
+      const child = {
+        progressInfoAvailableInCurrentParentAttempt: false,
+        completionStatus: CompletionStatus.COMPLETED
+      } as Activity;
+
+      expect(filter.isChildCompletionStatusKnownForRollup(child)).toBe(false);
     });
   });
 

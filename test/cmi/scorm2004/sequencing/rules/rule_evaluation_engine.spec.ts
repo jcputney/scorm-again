@@ -236,6 +236,17 @@ describe("RuleEvaluationEngine", () => {
       expect(engine.checkLimitConditions(activity)).toBe(false);
     });
 
+    // @spec SN UP.1 step 1: limit conditions only apply to an activity that will begin a new
+    // attempt; a suspended activity has an attempt in progress that Resume All continues.
+    it("should return false for a suspended activity at its attempt limit", () => {
+      activity.attemptLimit = 1;
+      activity.attemptCount = 1;
+      expect(engine.checkLimitConditions(activity)).toBe(true);
+
+      activity.isSuspended = true;
+      expect(engine.checkLimitConditions(activity)).toBe(false);
+    });
+
     it("should return true when attempt duration limit is exceeded", () => {
       activity.attemptAbsoluteDurationLimit = "PT1H"; // 1 hour
       activity.attemptExperiencedDuration = "PT2H";   // 2 hours
