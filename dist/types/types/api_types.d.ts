@@ -156,7 +156,7 @@ export type CommitObjectWithScore = CommitObject & {
 export type NumericLogLevel = 1 | 2 | 3 | 4 | 5;
 export type StringNumericLogLevel = "1" | "2" | "3" | "4" | "5";
 export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
-export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum;
+export type LogLevel = StringNumericLogLevel | NamedLogLevel | LogLevelEnum;
 export type SequencingStateMetadata = {
     learnerId: string;
     courseId: string;

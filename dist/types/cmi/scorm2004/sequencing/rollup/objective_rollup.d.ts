@@ -11,7 +11,7 @@ export declare class ObjectiveRollupProcessor {
     objectiveRollupProcess(activity: Activity): void;
     objectiveRollupUsingRules(activity: Activity, rules: RollupRule[]): boolean | null;
     objectiveRollupUsingMeasure(activity: Activity): boolean | null;
-    objectiveRollupUsingDefault(activity: Activity): boolean;
+    objectiveRollupUsingDefault(activity: Activity): boolean | null;
     syncPrimaryObjectiveFromActivity(activity: Activity): void;
 }
 //# sourceMappingURL=objective_rollup.d.ts.map

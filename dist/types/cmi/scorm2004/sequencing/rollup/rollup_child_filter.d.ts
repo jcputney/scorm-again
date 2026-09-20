@@ -6,7 +6,9 @@ export declare class RollupChildFilter {
     filterChildrenForRequirement(children: Activity[], rollupType: "objective" | "progress", mode: RollupAction, considerations: RollupConsiderationsConfig): Activity[];
     shouldIncludeChildForRollup(child: Activity, rollupType: "objective" | "progress", mode: RollupAction, considerations: RollupConsiderationsConfig): boolean;
     isChildSatisfiedForRollup(child: Activity): boolean;
+    isChildObjectiveStatusKnownForRollup(child: Activity): boolean;
     isChildCompletedForRollup(child: Activity): boolean;
+    isChildCompletionStatusKnownForRollup(child: Activity): boolean;
     getTrackableChildren(activity: Activity): Activity[];
 }
 //# sourceMappingURL=rollup_child_filter.d.ts.map

@@ -949,7 +949,7 @@ class ScheduledCommit {
   wrapper() {
     if (!this._cancelled) {
       if (this._API.isInitialized()) {
-        (async () => await this._API.commit(this._callback, false, "autocommit"))();
+        this._API.commit(this._callback, false, "autocommit");
       }
     }
   }
@@ -986,7 +986,7 @@ class AsynchronousHttpService {
    * @return {ResultObject} - Immediate optimistic success result
    */
   processHttpRequest(url, params, immediate = false, apiLog, processListeners, metadata, onRequestComplete) {
-    this._performAsyncRequest(
+    void this._performAsyncRequest(
       url,
       params,
       immediate,
@@ -3243,14 +3243,14 @@ class BaseAPI {
       returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnInitialize && this._offlineStorageService.isDeviceOnline()) {
-        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+        void this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
           if (hasPendingData) {
             this.apiLog(
               callbackName,
               "Syncing pending offline data on initialization",
               LogLevelEnum.INFO
             );
-            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+            void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
                 this.processListeners("OfflineDataSynced");
@@ -3524,10 +3524,10 @@ class BaseAPI {
       if (checkTerminated && errorCode === 0) this.lastErrorCode = "0";
       this.processListeners(callbackName);
       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._offlineStorageService.isDeviceOnline() && this._courseId) {
-        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+        void this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
           if (hasPendingData) {
             this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
-            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+            void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
                 this.processListeners("OfflineDataSynced");

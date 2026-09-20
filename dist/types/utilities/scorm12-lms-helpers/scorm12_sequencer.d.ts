@@ -17,7 +17,7 @@ export declare class Scorm12Sequencer {
     hasNext(currentScoId: string): boolean;
     hasPrevious(currentScoId: string): boolean;
     isScoAvailable(scoId: string): boolean;
-    processExitAction(scoId: string, exitValue: ExitAction | string): NavigationSuggestion;
+    processExitAction(scoId: string, exitValue: ExitAction | (string & {})): NavigationSuggestion;
     getStartingSco(): ScoDefinition | null;
     getProgress(): {
         completed: number;

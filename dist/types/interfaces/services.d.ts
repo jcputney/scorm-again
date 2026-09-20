@@ -2,7 +2,6 @@ import { CommitEventContext, CommitMetadata, CommitObject, LogLevel, ResultObjec
 import { ErrorCode } from "../constants/error_codes";
 import { LogLevelEnum } from "../constants/enums";
 import { BaseCMI } from "../cmi/common/base_cmi";
-import { ValidationError } from "../exceptions";
 import { StringKeyMap } from "../utilities";
 export interface IHttpService {
     readonly reportsRequestCompletion?: boolean;
@@ -36,7 +35,7 @@ export interface IErrorHandlingService {
     get lastDiagnostic(): string;
     throwSCORMError(CMIElement: string | undefined, errorNumber: number, message?: string, messageLevel?: LogLevel): void;
     clearSCORMError(success: string): void;
-    handleValueAccessException(CMIElement: string, e: ValidationError | Error | unknown, returnValue: string): string;
+    handleValueAccessException(CMIElement: string, e: unknown, returnValue: string): string;
     get errorCodes(): ErrorCode;
 }
 export interface ILoggingService {

@@ -11,7 +11,7 @@ export declare class GlobalObjectiveService {
     restoreSnapshot(snapshot: Record<string, any>): void;
     updateObjective(objectiveId: string, objectiveData: any): void;
     synchronize(root: Activity | null, rollupProcess: RollupProcess): void;
-    getObjective(objectiveId: string): any | undefined;
+    getObjective(objectiveId: string): any;
     hasObjective(objectiveId: string): boolean;
     getObjectiveIds(): string[];
     getObjectiveCount(): number;

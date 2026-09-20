@@ -1,5 +1,4 @@
 import { ErrorCode } from "../constants/error_codes";
-import { ValidationError } from "../exceptions";
 import { IErrorHandlingService, ILoggingService } from "../interfaces/services";
 import { LogLevel } from "../types/api_types";
 export declare class ErrorHandlingService implements IErrorHandlingService {
@@ -15,7 +14,7 @@ export declare class ErrorHandlingService implements IErrorHandlingService {
     get lastDiagnostic(): string;
     throwSCORMError(CMIElement: string | undefined, errorNumber: number, message?: string, messageLevel?: LogLevel): void;
     clearSCORMError(success: string): void;
-    handleValueAccessException(CMIElement: string, e: Error | ValidationError | unknown, returnValue: string): string;
+    handleValueAccessException(CMIElement: string, e: unknown, returnValue: string): string;
     get errorCodes(): ErrorCode;
 }
 export declare function createErrorHandlingService(errorCodes: ErrorCode, apiLog: (functionName: string, message: string, logLevel?: LogLevel, CMIElement?: string) => void, getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string, loggingService?: ILoggingService): ErrorHandlingService;

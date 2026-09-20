@@ -124,7 +124,7 @@
               remainder = Number(Number(remainder).toFixed(2));
           }
           if (designationsKey === "S" && remainder > 0) {
-              value += remainder;
+              value = Number((value + remainder).toFixed(2));
           }
           if (value) {
               var needsTimeSeparator = (duration.indexOf("D") > 0 || [
@@ -1378,7 +1378,7 @@
       NONE: 5
   };
 
-  function asyncGeneratorStep$5(gen, resolve, reject, _next, _throw, key, arg) {
+  function asyncGeneratorStep$4(gen, resolve, reject, _next, _throw, key, arg) {
       try {
           var info = gen[key](arg);
           var value = info.value;
@@ -1389,22 +1389,22 @@
       if (info.done) resolve(value);
       else Promise.resolve(value).then(_next, _throw);
   }
-  function _async_to_generator$5(fn) {
+  function _async_to_generator$4(fn) {
       return function() {
           var self = this, args = arguments;
           return new Promise(function(resolve, reject) {
               var gen = fn.apply(self, args);
               function _next(value) {
-                  asyncGeneratorStep$5(gen, resolve, reject, _next, _throw, "next", value);
+                  asyncGeneratorStep$4(gen, resolve, reject, _next, _throw, "next", value);
               }
               function _throw(err) {
-                  asyncGeneratorStep$5(gen, resolve, reject, _next, _throw, "throw", err);
+                  asyncGeneratorStep$4(gen, resolve, reject, _next, _throw, "throw", err);
               }
               _next(undefined);
           });
       };
   }
-  function _ts_generator$5(thisArg, body) {
+  function _ts_generator$4(thisArg, body) {
       var f, y, t, _ = {
           label: 0,
           sent: function() {
@@ -1528,9 +1528,9 @@
       asyncModeBeaconBehavior: "never",
       includeCommitSequence: false,
       responseHandler: function responseHandler(response) {
-          return _async_to_generator$5(function() {
+          return _async_to_generator$4(function() {
               var httpResult, responseText;
-              return _ts_generator$5(this, function(_state) {
+              return _ts_generator$4(this, function(_state) {
                   switch(_state.label){
                       case 0:
                           if (!(typeof response !== "undefined")) return [
@@ -2557,32 +2557,6 @@
       "zul"
   ];
 
-  function asyncGeneratorStep$4(gen, resolve, reject, _next, _throw, key, arg) {
-      try {
-          var info = gen[key](arg);
-          var value = info.value;
-      } catch (error) {
-          reject(error);
-          return;
-      }
-      if (info.done) resolve(value);
-      else Promise.resolve(value).then(_next, _throw);
-  }
-  function _async_to_generator$4(fn) {
-      return function() {
-          var self = this, args = arguments;
-          return new Promise(function(resolve, reject) {
-              var gen = fn.apply(self, args);
-              function _next(value) {
-                  asyncGeneratorStep$4(gen, resolve, reject, _next, _throw, "next", value);
-              }
-              function _throw(err) {
-                  asyncGeneratorStep$4(gen, resolve, reject, _next, _throw, "throw", err);
-              }
-              _next(undefined);
-          });
-      };
-  }
   function _class_call_check$1f(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
@@ -2598,105 +2572,6 @@
   function _create_class$1e(Constructor, protoProps, staticProps) {
       if (protoProps) _defineProperties$1e(Constructor.prototype, protoProps);
       return Constructor;
-  }
-  function _ts_generator$4(thisArg, body) {
-      var f, y, t, _ = {
-          label: 0,
-          sent: function() {
-              if (t[0] & 1) throw t[1];
-              return t[1];
-          },
-          trys: [],
-          ops: []
-      }, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype), d = Object.defineProperty;
-      return d(g, "next", {
-          value: verb(0)
-      }), d(g, "throw", {
-          value: verb(1)
-      }), d(g, "return", {
-          value: verb(2)
-      }), typeof Symbol === "function" && d(g, Symbol.iterator, {
-          value: function() {
-              return this;
-          }
-      }), g;
-      function verb(n) {
-          return function(v) {
-              return step([
-                  n,
-                  v
-              ]);
-          };
-      }
-      function step(op) {
-          if (f) throw new TypeError("Generator is already executing.");
-          while(g && (g = 0, op[0] && (_ = 0)), _)try {
-              if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-              if (y = 0, t) op = [
-                  op[0] & 2,
-                  t.value
-              ];
-              switch(op[0]){
-                  case 0:
-                  case 1:
-                      t = op;
-                      break;
-                  case 4:
-                      _.label++;
-                      return {
-                          value: op[1],
-                          done: false
-                      };
-                  case 5:
-                      _.label++;
-                      y = op[1];
-                      op = [
-                          0
-                      ];
-                      continue;
-                  case 7:
-                      op = _.ops.pop();
-                      _.trys.pop();
-                      continue;
-                  default:
-                      if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-                          _ = 0;
-                          continue;
-                      }
-                      if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-                          _.label = op[1];
-                          break;
-                      }
-                      if (op[0] === 6 && _.label < t[1]) {
-                          _.label = t[1];
-                          t = op;
-                          break;
-                      }
-                      if (t && _.label < t[2]) {
-                          _.label = t[2];
-                          _.ops.push(op);
-                          break;
-                      }
-                      if (t[2]) _.ops.pop();
-                      _.trys.pop();
-                      continue;
-              }
-              op = body.call(thisArg, _);
-          } catch (e) {
-              op = [
-                  6,
-                  e
-              ];
-              y = 0;
-          } finally{
-              f = t = 0;
-          }
-          if (op[0] & 5) throw op[1];
-          return {
-              value: op[0] ? op[1] : void 0,
-              done: true
-          };
-      }
   }
   function _type_of$1b(obj) {
       "@swc/helpers - typeof";
@@ -2742,27 +2617,9 @@
      * Wrap the API commit call to check if the call has already been canceled
      */ key: "wrapper",
               value: function wrapper() {
-                  var _this = this;
                   if (!this._cancelled) {
                       if (this._API.isInitialized()) {
-                          (function() {
-                              return _async_to_generator$4(function() {
-                                  return _ts_generator$4(this, function(_state) {
-                                      switch(_state.label){
-                                          case 0:
-                                              return [
-                                                  4,
-                                                  this._API.commit(this._callback, false, "autocommit")
-                                              ];
-                                          case 1:
-                                              return [
-                                                  2,
-                                                  _state.sent()
-                                              ];
-                                      }
-                                  });
-                              }).call(_this);
-                          })();
+                          this._API.commit(this._callback, false, "autocommit");
                       }
                   }
               }
@@ -4751,6 +4608,9 @@
      * @return {boolean} - True if limit conditions are violated
      */ key: "checkLimitConditions",
               value: function checkLimitConditions(activity) {
+                  if (activity.isSuspended) {
+                      return false;
+                  }
                   if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
                       return true;
                   }
@@ -7869,7 +7729,7 @@
      */ key: "processHttpRequest",
               value: function processHttpRequest(url, params) {
                   var immediate = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, apiLog = arguments.length > 3 ? arguments[3] : void 0, processListeners = arguments.length > 4 ? arguments[4] : void 0, metadata = arguments.length > 5 ? arguments[5] : void 0, onRequestComplete = arguments.length > 6 ? arguments[6] : void 0;
-                  this._performAsyncRequest(url, params, immediate, apiLog, processListeners, metadata, onRequestComplete);
+                  void this._performAsyncRequest(url, params, immediate, apiLog, processListeners, metadata, onRequestComplete);
                   return {
                       result: global_constants.SCORM_TRUE,
                       errorCode: 0
@@ -12420,10 +12280,23 @@
           {
               /**
      * Check if attempt limit has been exceeded
+     *
+     * A suspended activity has an attempt in progress. Resuming it (SB.2.6 Resume All, DB.2)
+     * continues that attempt rather than beginning a new one, so the attempt already counted
+     * against the limit is the one being resumed and the limit is not exceeded by it.
+     *
+     * @spec SCORM 2004 4th Ed. SN UP.1 step 1 (Limit Conditions Check Process): a suspended
+     * activity is not checked because only activities that will begin a new attempt are subject
+     * to limit conditions
+     * @spec SCORM 2004 4th Ed. SN DB.2 step 5 (Content Delivery Environment Process): a
+     * suspended activity's attempt count is not incremented when it is delivered again
      * @return {boolean}
      */ key: "hasAttemptLimitExceeded",
               value: function hasAttemptLimitExceeded() {
                   if (this._attemptLimit === null) {
+                      return false;
+                  }
+                  if (this._isSuspended) {
                       return false;
                   }
                   return this._attemptCount >= this._attemptLimit;
@@ -13969,6 +13842,37 @@
           },
           {
               /**
+     * Check if a child's objective satisfaction status is actually KNOWN, as opposed
+     * to simply defaulting to "not satisfied" because the child was never attempted
+     * in this parent attempt.
+     *
+     * `Activity.objectiveSatisfiedStatus` is a plain boolean that defaults to
+     * `false`, so an untouched child and a child that has genuinely failed both
+     * read as `false` from {@link isChildSatisfiedForRollup}. The default objective
+     * rollup subprocess (RB.1.2.c) must not treat those two cases the same way -
+     * an unknown child contributes no information, while a known-not-satisfied
+     * child forces the parent to "not satisfied". `objectiveSatisfiedStatusKnown`
+     * is the flag the rest of the codebase already treats as authoritative for
+     * that distinction (see the identical known/not-known guard in
+     * `SequencingStateManager.deserializeActivities`), so it is used here rather
+     * than the raw boolean.
+     *
+     * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+     * @spec SN Book: RB.1.2.c (Objective Rollup Using Default) and RB.1.4 (Rollup
+     * Rule Check: an unknown status must not evaluate True for either the "any not
+     * satisfied" or "all satisfied" default checks)
+     * @param child - Child activity to check
+     * @returns True if the child's objective satisfaction status is known for this parent attempt
+     */ key: "isChildObjectiveStatusKnownForRollup",
+              value: function isChildObjectiveStatusKnownForRollup(child) {
+                  if (child.objectiveInfoAvailableInCurrentParentAttempt === false) {
+                      return false;
+                  }
+                  return child.objectiveSatisfiedStatusKnown;
+              }
+          },
+          {
+              /**
      * Check if child is completed for rollup
      * Evaluates completion status
      *
@@ -13983,6 +13887,35 @@
                       return true;
                   }
                   return false;
+              }
+          },
+          {
+              /**
+     * Check if a child's completion status is actually KNOWN, as opposed to
+     * defaulting to "incomplete" because the child was never attempted in this
+     * parent attempt.
+     *
+     * Unlike objective satisfaction, `Activity.completionStatus` already has a
+     * distinct `CompletionStatus.UNKNOWN` value, so "known" is simply "not
+     * unknown" here - but that distinction is lost by
+     * {@link isChildCompletedForRollup}, which folds "unknown" and "incomplete"
+     * together into `false`. The default progress rollup subprocess (RB.1.3) must
+     * not let an untouched sibling's unknown completion status masquerade as a
+     * known "incomplete" that forces the parent incomplete.
+     *
+     * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+     * @spec SN Book: RB.1.3 (Activity Progress Rollup Using Default: completed if
+     * all children completed, incomplete if any child incomplete - unknown does
+     * not count as either) and RB.1.4 (Rollup Rule Check: unknown does not
+     * evaluate True for "any")
+     * @param child - Child activity to check
+     * @returns True if the child's completion status is known for this parent attempt
+     */ key: "isChildCompletionStatusKnownForRollup",
+              value: function isChildCompletionStatusKnownForRollup(child) {
+                  if (child.progressInfoAvailableInCurrentParentAttempt === false) {
+                      return false;
+                  }
+                  return child.completionStatus !== CompletionStatus.UNKNOWN;
               }
           },
           {
@@ -14521,8 +14454,11 @@
                       this.syncPrimaryObjectiveFromActivity(activity);
                       return;
                   }
-                  activity.objectiveSatisfiedStatus = this.objectiveRollupUsingDefault(activity);
-                  this.syncPrimaryObjectiveFromActivity(activity);
+                  var defaultResult = this.objectiveRollupUsingDefault(activity);
+                  if (defaultResult !== null) {
+                      activity.objectiveSatisfiedStatus = defaultResult;
+                      this.syncPrimaryObjectiveFromActivity(activity);
+                  }
               }
           },
           {
@@ -14614,15 +14550,27 @@
      * This ensures symmetric exclusion: setting either consideration excludes
      * the child from the entire objective rollup evaluation.
      *
+     * A contributing child's objective status may itself be unknown (e.g. it has
+     * never been attempted in this parent attempt). Per RB.1.4 (Rollup Rule
+     * Check), an unknown status must not evaluate True for either the "any not
+     * satisfied" or the "all satisfied" check, so this returns `null` - "no
+     * information" - rather than collapsing an unknown child into "not
+     * satisfied".
+     *
      * @spec SN Book: RB.1.2.c (Objective Rollup Using Default)
+     * @spec SN Book: RB.1.4 (Rollup Rule Check: unknown does not evaluate True for
+     * "any")
+     * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
      * @param activity - The parent activity
-     * @returns True if all tracked children are satisfied
+     * @returns True if all contributing children are known-satisfied, false if
+     * any contributing child is known-not-satisfied, or null if there is no
+     * information to roll up (no contributors, or none with a known status)
      */ key: "objectiveRollupUsingDefault",
               value: function objectiveRollupUsingDefault(activity) {
                   var _this = this;
                   var children = activity.getAvailableChildren();
                   if (children.length === 0) {
-                      return false;
+                      return null;
                   }
                   var considerations = activity.rollupConsiderations;
                   var contributors = children.filter(function(child) {
@@ -14635,16 +14583,36 @@
                       return true;
                   });
                   if (contributors.length === 0) {
-                      return false;
+                      return null;
                   }
-                  if (contributors.some(function(child) {
-                      return !_this.childFilter.isChildSatisfiedForRollup(child);
-                  })) {
-                      return false;
+                  var sawUnknownContributor = false;
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = contributors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          if (!this.childFilter.isChildObjectiveStatusKnownForRollup(child)) {
+                              sawUnknownContributor = true;
+                              continue;
+                          }
+                          if (!this.childFilter.isChildSatisfiedForRollup(child)) {
+                              return false;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
                   }
-                  return contributors.every(function(child) {
-                      return _this.childFilter.isChildSatisfiedForRollup(child);
-                  });
+                  return sawUnknownContributor ? null : true;
               }
           },
           {
@@ -14788,6 +14756,9 @@
                           }
                       }
                   }
+                  if (completedRules.length > 0 || incompleteRules.length > 0) {
+                      return;
+                  }
                   var children = activity.getAvailableChildren();
                   var contributors = children.filter(function(child) {
                       return _this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && _this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete");
@@ -14797,11 +14768,36 @@
                       this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
                       return;
                   }
-                  if (contributors.some(function(child) {
-                      return !_this.childFilter.isChildCompletedForRollup(child);
-                  })) {
-                      activity.completionStatus = CompletionStatus.INCOMPLETE;
-                      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+                  var sawUnknownContributor = false;
+                  var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                  try {
+                      for(var _iterator2 = contributors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                          var child = _step2.value;
+                          if (!this.childFilter.isChildCompletionStatusKnownForRollup(child)) {
+                              sawUnknownContributor = true;
+                              continue;
+                          }
+                          if (!this.childFilter.isChildCompletedForRollup(child)) {
+                              activity.completionStatus = CompletionStatus.INCOMPLETE;
+                              this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+                              return;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError2 = true;
+                      _iteratorError2 = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                              _iterator2.return();
+                          }
+                      } finally{
+                          if (_didIteratorError2) {
+                              throw _iteratorError2;
+                          }
+                      }
+                  }
+                  if (sawUnknownContributor) {
                       return;
                   }
                   activity.completionStatus = CompletionStatus.COMPLETED;
@@ -21278,6 +21274,15 @@
               value: function checkLimitConditions(activity) {
                   var result = true;
                   var failureReason = "";
+                  if (activity.isSuspended) {
+                      this.fireEvent("onLimitConditionCheck", {
+                          activity: activity,
+                          result: true,
+                          failureReason: "",
+                          attemptInProgress: true
+                      });
+                      return true;
+                  }
                   if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
                       if (activity.attemptCount >= activity.attemptLimit) {
                           result = false;
@@ -24521,16 +24526,16 @@
                       returnValue = global_constants.SCORM_TRUE;
                       this.processListeners(callbackName);
                       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnInitialize && this._offlineStorageService.isDeviceOnline()) {
-                          this._offlineStorageService.hasPendingOfflineData(this._courseId).then(function(hasPendingData) {
+                          void this._offlineStorageService.hasPendingOfflineData(this._courseId).then(function(hasPendingData) {
                               if (hasPendingData) {
                                   var _this__offlineStorageService;
                                   _this.apiLog(callbackName, "Syncing pending offline data on initialization", LogLevelEnum.INFO);
-                                  (_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
+                                  void ((_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
                                       if (syncSuccess) {
                                           _this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
                                           _this.processListeners("OfflineDataSynced");
                                       }
-                                  });
+                                  }));
                               }
                           });
                       }
@@ -24822,18 +24827,18 @@
                       if (checkTerminated && errorCode2 === 0) this.lastErrorCode = "0";
                       this.processListeners(callbackName);
                       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._offlineStorageService.isDeviceOnline() && this._courseId) {
-                          this._offlineStorageService.hasPendingOfflineData(this._courseId).then(function(hasPendingData) {
+                          void this._offlineStorageService.hasPendingOfflineData(this._courseId).then(function(hasPendingData) {
                               if (hasPendingData) {
                                   var _this__offlineStorageService;
                                   _this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
-                                  (_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
+                                  void ((_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
                                       if (syncSuccess) {
                                           _this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
                                           _this.processListeners("OfflineDataSynced");
                                       } else {
                                           _this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
                                       }
-                                  });
+                                  }));
                               }
                           });
                       }
@@ -34223,13 +34228,13 @@
               key: "overallSequencingProcess",
               get: /**
      * Getter for overallSequencingProcess
-     * @return {any | null}
+     * @return {OverallSequencingProcess | null}
      */ function get() {
                   return this._overallSequencingProcess;
               },
               set: /**
      * Setter for overallSequencingProcess
-     * @param {any | null} process
+     * @param {OverallSequencingProcess | null} process
      */ function set(process) {
                   this._overallSequencingProcess = process;
               }
@@ -37619,7 +37624,7 @@
                           successStatus = SuccessStatus.FAILED;
                       }
                   }
-                  var sequencingRoot = terminateCommit ? (_this_context_sequencingService = this.context.sequencingService) === null || _this_context_sequencingService === void 0 ? void 0 : _this_context_sequencingService.getSequencingState().rootActivity : null;
+                  var sequencingRoot = (_this_context_sequencingService = this.context.sequencingService) === null || _this_context_sequencingService === void 0 ? void 0 : _this_context_sequencingService.getSequencingState().rootActivity;
                   if (sequencingRoot) {
                       var _sequencingRoot_completionStatus, _sequencingRoot_successStatus;
                       completionStatus = (_sequencingRoot_completionStatus = sequencingRoot.completionStatus) !== null && _sequencingRoot_completionStatus !== void 0 ? _sequencingRoot_completionStatus : CompletionStatus.UNKNOWN;
@@ -38699,8 +38704,6 @@
                               }
                               if ((overallProcess === null || overallProcess === void 0 ? void 0 : overallProcess.predictChoiceEnabled) && request === "choice") {
                                   return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
-                              } else if ((overallProcess === null || overallProcess === void 0 ? void 0 : overallProcess.predictJumpEnabled) && request === "jump") {
-                                  return overallProcess.predictJumpEnabled(target) ? "true" : "false";
                               } else {
                                   var _this_settings_scoItemIds, _this_settings;
                                   if (this._extractedScoItemIds.length > 0) {

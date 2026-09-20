@@ -39,7 +39,7 @@ const getSecondsAsISODuration = (seconds) => {
       remainder = Number(Number(remainder).toFixed(2));
     }
     if (designationsKey === "S" && remainder > 0) {
-      value += remainder;
+      value = Number((value + remainder).toFixed(2));
     }
     if (value) {
       const needsTimeSeparator = (duration.indexOf("D") > 0 || ["H", "M", "S"].includes(designationsKey)) && duration.indexOf("T") === -1;
@@ -1560,7 +1560,7 @@ class ScheduledCommit {
   wrapper() {
     if (!this._cancelled) {
       if (this._API.isInitialized()) {
-        (async () => await this._API.commit(this._callback, false, "autocommit"))();
+        this._API.commit(this._callback, false, "autocommit");
       }
     }
   }
@@ -2992,6 +2992,9 @@ class RuleEvaluationEngine {
    * @return {boolean} - True if limit conditions are violated
    */
   checkLimitConditions(activity) {
+    if (activity.isSuspended) {
+      return false;
+    }
     if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
       return true;
     }
@@ -5149,7 +5152,7 @@ class AsynchronousHttpService {
    * @return {ResultObject} - Immediate optimistic success result
    */
   processHttpRequest(url, params, immediate = false, apiLog, processListeners, metadata, onRequestComplete) {
-    this._performAsyncRequest(
+    void this._performAsyncRequest(
       url,
       params,
       immediate,
@@ -8435,10 +8438,23 @@ class Activity extends BaseCMI {
   }
   /**
    * Check if attempt limit has been exceeded
+   *
+   * A suspended activity has an attempt in progress. Resuming it (SB.2.6 Resume All, DB.2)
+   * continues that attempt rather than beginning a new one, so the attempt already counted
+   * against the limit is the one being resumed and the limit is not exceeded by it.
+   *
+   * @spec SCORM 2004 4th Ed. SN UP.1 step 1 (Limit Conditions Check Process): a suspended
+   * activity is not checked because only activities that will begin a new attempt are subject
+   * to limit conditions
+   * @spec SCORM 2004 4th Ed. SN DB.2 step 5 (Content Delivery Environment Process): a
+   * suspended activity's attempt count is not incremented when it is delivered again
    * @return {boolean}
    */
   hasAttemptLimitExceeded() {
     if (this._attemptLimit === null) {
+      return false;
+    }
+    if (this._isSuspended) {
       return false;
     }
     return this._attemptCount >= this._attemptLimit;
@@ -9722,6 +9738,35 @@ class RollupChildFilter {
     return false;
   }
   /**
+   * Check if a child's objective satisfaction status is actually KNOWN, as opposed
+   * to simply defaulting to "not satisfied" because the child was never attempted
+   * in this parent attempt.
+   *
+   * `Activity.objectiveSatisfiedStatus` is a plain boolean that defaults to
+   * `false`, so an untouched child and a child that has genuinely failed both
+   * read as `false` from {@link isChildSatisfiedForRollup}. The default objective
+   * rollup subprocess (RB.1.2.c) must not treat those two cases the same way -
+   * an unknown child contributes no information, while a known-not-satisfied
+   * child forces the parent to "not satisfied". `objectiveSatisfiedStatusKnown`
+   * is the flag the rest of the codebase already treats as authoritative for
+   * that distinction (see the identical known/not-known guard in
+   * `SequencingStateManager.deserializeActivities`), so it is used here rather
+   * than the raw boolean.
+   *
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+   * @spec SN Book: RB.1.2.c (Objective Rollup Using Default) and RB.1.4 (Rollup
+   * Rule Check: an unknown status must not evaluate True for either the "any not
+   * satisfied" or "all satisfied" default checks)
+   * @param child - Child activity to check
+   * @returns True if the child's objective satisfaction status is known for this parent attempt
+   */
+  isChildObjectiveStatusKnownForRollup(child) {
+    if (child.objectiveInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
+    return child.objectiveSatisfiedStatusKnown;
+  }
+  /**
    * Check if child is completed for rollup
    * Evaluates completion status
    *
@@ -9736,6 +9781,33 @@ class RollupChildFilter {
       return true;
     }
     return false;
+  }
+  /**
+   * Check if a child's completion status is actually KNOWN, as opposed to
+   * defaulting to "incomplete" because the child was never attempted in this
+   * parent attempt.
+   *
+   * Unlike objective satisfaction, `Activity.completionStatus` already has a
+   * distinct `CompletionStatus.UNKNOWN` value, so "known" is simply "not
+   * unknown" here - but that distinction is lost by
+   * {@link isChildCompletedForRollup}, which folds "unknown" and "incomplete"
+   * together into `false`. The default progress rollup subprocess (RB.1.3) must
+   * not let an untouched sibling's unknown completion status masquerade as a
+   * known "incomplete" that forces the parent incomplete.
+   *
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
+   * @spec SN Book: RB.1.3 (Activity Progress Rollup Using Default: completed if
+   * all children completed, incomplete if any child incomplete - unknown does
+   * not count as either) and RB.1.4 (Rollup Rule Check: unknown does not
+   * evaluate True for "any")
+   * @param child - Child activity to check
+   * @returns True if the child's completion status is known for this parent attempt
+   */
+  isChildCompletionStatusKnownForRollup(child) {
+    if (child.progressInfoAvailableInCurrentParentAttempt === false) {
+      return false;
+    }
+    return child.completionStatus !== CompletionStatus.UNKNOWN;
   }
   /**
    * Get trackable children for rollup operations
@@ -10081,8 +10153,11 @@ class ObjectiveRollupProcessor {
       this.syncPrimaryObjectiveFromActivity(activity);
       return;
     }
-    activity.objectiveSatisfiedStatus = this.objectiveRollupUsingDefault(activity);
-    this.syncPrimaryObjectiveFromActivity(activity);
+    const defaultResult = this.objectiveRollupUsingDefault(activity);
+    if (defaultResult !== null) {
+      activity.objectiveSatisfiedStatus = defaultResult;
+      this.syncPrimaryObjectiveFromActivity(activity);
+    }
   }
   /**
    * Objective Rollup Using Rules
@@ -10132,14 +10207,26 @@ class ObjectiveRollupProcessor {
    * This ensures symmetric exclusion: setting either consideration excludes
    * the child from the entire objective rollup evaluation.
    *
+   * A contributing child's objective status may itself be unknown (e.g. it has
+   * never been attempted in this parent attempt). Per RB.1.4 (Rollup Rule
+   * Check), an unknown status must not evaluate True for either the "any not
+   * satisfied" or the "all satisfied" check, so this returns `null` - "no
+   * information" - rather than collapsing an unknown child into "not
+   * satisfied".
+   *
    * @spec SN Book: RB.1.2.c (Objective Rollup Using Default)
+   * @spec SN Book: RB.1.4 (Rollup Rule Check: unknown does not evaluate True for
+   * "any")
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
    * @param activity - The parent activity
-   * @returns True if all tracked children are satisfied
+   * @returns True if all contributing children are known-satisfied, false if
+   * any contributing child is known-not-satisfied, or null if there is no
+   * information to roll up (no contributors, or none with a known status)
    */
   objectiveRollupUsingDefault(activity) {
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
-      return false;
+      return null;
     }
     const considerations = activity.rollupConsiderations;
     const contributors = children.filter((child) => {
@@ -10152,12 +10239,19 @@ class ObjectiveRollupProcessor {
       return true;
     });
     if (contributors.length === 0) {
-      return false;
+      return null;
     }
-    if (contributors.some((child) => !this.childFilter.isChildSatisfiedForRollup(child))) {
-      return false;
+    let sawUnknownContributor = false;
+    for (const child of contributors) {
+      if (!this.childFilter.isChildObjectiveStatusKnownForRollup(child)) {
+        sawUnknownContributor = true;
+        continue;
+      }
+      if (!this.childFilter.isChildSatisfiedForRollup(child)) {
+        return false;
+      }
     }
-    return contributors.every((child) => this.childFilter.isChildSatisfiedForRollup(child));
+    return sawUnknownContributor ? null : true;
   }
   /**
    * Sync primary objective status from activity properties
@@ -10234,6 +10328,9 @@ class ProgressRollupProcessor {
         return;
       }
     }
+    if (completedRules.length > 0 || incompleteRules.length > 0) {
+      return;
+    }
     const children = activity.getAvailableChildren();
     const contributors = children.filter(
       (child) => this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete")
@@ -10243,9 +10340,19 @@ class ProgressRollupProcessor {
       this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
       return;
     }
-    if (contributors.some((child) => !this.childFilter.isChildCompletedForRollup(child))) {
-      activity.completionStatus = CompletionStatus.INCOMPLETE;
-      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+    let sawUnknownContributor = false;
+    for (const child of contributors) {
+      if (!this.childFilter.isChildCompletionStatusKnownForRollup(child)) {
+        sawUnknownContributor = true;
+        continue;
+      }
+      if (!this.childFilter.isChildCompletedForRollup(child)) {
+        activity.completionStatus = CompletionStatus.INCOMPLETE;
+        this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+        return;
+      }
+    }
+    if (sawUnknownContributor) {
       return;
     }
     activity.completionStatus = CompletionStatus.COMPLETED;
@@ -14701,6 +14808,15 @@ class DeliveryValidator {
   checkLimitConditions(activity) {
     let result = true;
     let failureReason = "";
+    if (activity.isSuspended) {
+      this.fireEvent("onLimitConditionCheck", {
+        activity,
+        result: true,
+        failureReason: "",
+        attemptInProgress: true
+      });
+      return true;
+    }
     if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
       if (activity.attemptCount >= activity.attemptLimit) {
         result = false;
@@ -17149,14 +17265,14 @@ class BaseAPI {
       returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnInitialize && this._offlineStorageService.isDeviceOnline()) {
-        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+        void this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
           if (hasPendingData) {
             this.apiLog(
               callbackName,
               "Syncing pending offline data on initialization",
               LogLevelEnum.INFO
             );
-            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+            void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
                 this.processListeners("OfflineDataSynced");
@@ -17430,10 +17546,10 @@ class BaseAPI {
       if (checkTerminated && errorCode === 0) this.lastErrorCode = "0";
       this.processListeners(callbackName);
       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._offlineStorageService.isDeviceOnline() && this._courseId) {
-        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+        void this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
           if (hasPendingData) {
             this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
-            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+            void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
                 this.processListeners("OfflineDataSynced");
@@ -22072,14 +22188,14 @@ class Sequencing extends BaseCMI {
   }
   /**
    * Getter for overallSequencingProcess
-   * @return {any | null}
+   * @return {OverallSequencingProcess | null}
    */
   get overallSequencingProcess() {
     return this._overallSequencingProcess;
   }
   /**
    * Setter for overallSequencingProcess
-   * @param {any | null} process
+   * @param {OverallSequencingProcess | null} process
    */
   set overallSequencingProcess(process) {
     this._overallSequencingProcess = process;
@@ -24268,7 +24384,7 @@ class Scorm2004DataSerializer {
         successStatus = SuccessStatus.FAILED;
       }
     }
-    const sequencingRoot = terminateCommit ? this.context.sequencingService?.getSequencingState().rootActivity : null;
+    const sequencingRoot = this.context.sequencingService?.getSequencingState().rootActivity;
     if (sequencingRoot) {
       completionStatus = sequencingRoot.completionStatus ?? CompletionStatus.UNKNOWN;
       successStatus = sequencingRoot.successStatus ?? SuccessStatus.UNKNOWN;
@@ -24993,8 +25109,6 @@ class Scorm2004API extends BaseAPI {
           }
           if (overallProcess?.predictChoiceEnabled && request === "choice") {
             return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
-          } else if (overallProcess?.predictJumpEnabled && request === "jump") {
-            return overallProcess.predictJumpEnabled(target) ? "true" : "false";
           } else {
             if (this._extractedScoItemIds.length > 0) {
               return String(this._extractedScoItemIds.includes(target));
