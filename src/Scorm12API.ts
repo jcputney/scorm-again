@@ -17,7 +17,14 @@ import {
   scorm12_regex,
   SuccessStatus,
 } from "./constants";
-import { CommitObject, CommitTrigger, ResultObject, ScoreObject, Settings } from "./types";
+import {
+  CommitObject,
+  CommitTrigger,
+  ResetOptions,
+  ResultObject,
+  ScoreObject,
+  Settings,
+} from "./types";
 import { IHttpService } from "./interfaces";
 
 /**
@@ -108,11 +115,16 @@ class Scorm12API extends BaseAPI {
 
   /**
    * Called when the API needs to be reset
+   * @param {Settings} settings - Optional new settings to merge with existing settings
+   * @param {ResetOptions} options - Behavior for this reset only
    */
-  reset(settings?: Settings) {
-    this.commonReset(settings);
+  reset(settings?: Settings, options?: ResetOptions) {
+    this.commonReset(settings, options);
 
     this.cmi?.reset();
+    if (options?.resetTotalTime === true) {
+      this.cmi.core.total_time = "00:00:00";
+    }
     this.nav?.reset();
     this.statusSetByModule = false;
   }

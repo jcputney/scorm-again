@@ -1093,8 +1093,21 @@ window.API_1484_11 = api;
 
 #### Handling Activity Transitions
 
+Use the per-call reset options below to keep `api.on()` listeners and clear the outgoing SCO's total time. Load the incoming SCO's own saved total before launch. Callbacks supplied through `sequencing.eventListeners` remain configured.
+
+An ordinary `reset()` still removes `on()` listeners and retains `cmi.total_time`. If you use that form, re-register your listeners and explicitly load the next SCO's saved total or `PT0S`; otherwise its time includes the preceding SCO's time. With `preserveListeners: true`, register handlers once to avoid duplicate notifications.
+
 ```javascript
 let hasDeliveredSco = false;
+
+function registerRuntimeListeners() {
+  api.on('Initialize', onScoInitialize);
+  api.on('SetValue', onScoSetValue);
+  api.on('Terminate', onScoTerminate);
+}
+
+// Register the host's handlers for the first delivery too.
+registerRuntimeListeners();
 
 // Configure this as sequencing.eventListeners.onActivityDelivery.
 async function onActivityDelivery(activity) {
@@ -1107,7 +1120,7 @@ async function onActivityDelivery(activity) {
   // 2. Reset only after the prior SCO has terminated. reset() preserves
   // sequencing tracking and global objectives.
   if (hasDeliveredSco) {
-    api.reset();
+    api.reset(undefined, { preserveListeners: true, resetTotalTime: true });
   }
 
   // 3. Load SCO-local data; mapped objectives are seeded by the engine.
@@ -1116,6 +1129,7 @@ async function onActivityDelivery(activity) {
       learner_id: learner.id,
       learner_name: learner.displayName,
       entry: previousState?.suspendData ? "resume" : "ab-initio",
+      total_time: previousState?.totalTime ?? "PT0S",
       // ... other CMI data from previousState
     }
   });

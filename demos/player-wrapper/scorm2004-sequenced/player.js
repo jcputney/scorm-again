@@ -81,6 +81,8 @@ class Scorm2004SequencedPlayer {
     this.api = null;
     this.manifest = COURSE_MANIFEST;
     this.currentActivityId = null;
+    this.hasDeliveredSco = false;
+    this.totalTimeByActivity = new Map();
     this.choiceValidity = {};
     this.canContinue = false;
     this.canPrevious = false;
@@ -209,10 +211,15 @@ class Scorm2004SequencedPlayer {
   handleActivityDelivery(activity) {
     log.info(`Activity delivery: ${activity.id}`);
 
-    if (this.currentActivityId && this.currentActivityId !== activity.id) {
-      this.api.reset();
+    if (this.hasDeliveredSco) {
+      this.saveCurrentActivityTime();
+      this.api.reset(undefined, { preserveListeners: true, resetTotalTime: true });
     }
     this.currentActivityId = activity.id;
+    this.api.loadFromJSON({
+      cmi: { total_time: this.totalTimeByActivity.get(activity.id) ?? 'PT0S' },
+    });
+    this.hasDeliveredSco = true;
     this.dom.loading.hidden = false;
 
     // Find activity in tree to get launch URL
@@ -267,6 +274,7 @@ class Scorm2004SequencedPlayer {
   handleSessionEnd(data) {
     log.info('Sequencing session end:', data.reason);
 
+    this.saveCurrentActivityTime();
     this.dom.frame.src = 'about:blank';
     this.currentActivityId = null;
 
@@ -288,6 +296,14 @@ class Scorm2004SequencedPlayer {
 
   handleSequencingError(error, context) {
     log.error(`Sequencing error: ${error}`, context);
+  }
+
+  saveCurrentActivityTime() {
+    if (this.currentActivityId) {
+      // Includes the session when player navigation precedes the SCO's Terminate.
+      // A successful Terminate has already folded that session into total_time.
+      this.totalTimeByActivity.set(this.currentActivityId, this.api.cmi.getCurrentTotalTime());
+    }
   }
 
   // ---------------------------------------------------------------------------

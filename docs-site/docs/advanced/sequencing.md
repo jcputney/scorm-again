@@ -750,17 +750,21 @@ Each SCO needs a fresh SCORM communication session and SCO-local CMI model. A se
 keep one API instance and call `reset()` between delivered SCOs:
 
 1. **Terminate the current SCO**: Call `Terminate()` which will commit any pending data
-2. **Reset the API**: Call `api.reset()` to clear the current state
+2. **Reset the API**: Call `api.reset(undefined, { preserveListeners: true, resetTotalTime: true })` to retain runtime event handlers and clear the outgoing SCO's total time
 3. **Keep shared state**: `reset()` preserves the sequencing tree, tracking state, and global objectives
 4. **Initialize the new SCO**: Load the new SCO's local runtime data, then let it call `Initialize()`
 
 #### What Gets Reset
 
-When `api.reset()` is called:
+When resetting with these options:
 - SCO-local CMI and ADL data are cleared
 - The API returns to the pre-initialize state for the next SCO
 - Sequencing tracking and global objectives are preserved
 - Sequencing callbacks configured through `sequencing.eventListeners` remain installed
+- Runtime listeners registered with `api.on()` remain installed
+- `cmi.total_time` starts at `PT0S`; load the incoming SCO's own saved total before `Initialize()` if it has prior runtime data
+
+The options apply to one call only. With no options, `reset()` continues to clear runtime listeners and retain total time.
 
 #### Recommended Implementation
 
@@ -771,7 +775,7 @@ const eventListeners = {
   onActivityDelivery: async (activity) => {
     if (hasDeliveredSco) {
       // The prior SCO has terminated before subsequent delivery events.
-      api.reset();
+      api.reset(undefined, { preserveListeners: true, resetTotalTime: true });
     }
     api.loadFromJSON(await loadScoData(activity.id));
     hasDeliveredSco = true;

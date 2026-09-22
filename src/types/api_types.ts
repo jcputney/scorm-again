@@ -22,6 +22,14 @@ export type CommitEventContext = {
   errorCode?: number;
 };
 
+/** Per-call reset behavior; these options are not retained as API settings. */
+export type ResetOptions = {
+  /** Keep listeners registered with on(). Defaults to false. */
+  preserveListeners?: boolean;
+  /** Clear the outgoing SCO's total time before loading the next SCO. Defaults to false. */
+  resetTotalTime?: boolean;
+};
+
 /**
  * Base settings type with all properties optional
  */
