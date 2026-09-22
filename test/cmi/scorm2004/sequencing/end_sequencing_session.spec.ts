@@ -10,11 +10,12 @@ import {
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
+  RuleConditionOperator,
   SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { ADLNav } from "../../../../src";
@@ -396,6 +397,170 @@ describe("EndSequencingSession Handling", () => {
         })
       );
     });
+  });
+
+  describe("Blocked Continue candidates", () => {
+    /** @spec SN Book: OP.1; SB.2.2 step 5.1; 5.6.7 - blocked candidates fail without ending the session. */
+    it.each(["disabled", "attempt limit"])(
+      "should retain the session when the next SCO is blocked by %s",
+      (reason) => {
+        if (reason === "disabled") {
+          const disabled = new SequencingRule(RuleActionType.DISABLED);
+          disabled.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+          sco2.sequencingRules.addPreConditionRule(disabled);
+        } else {
+          sco2.attemptLimit = 1;
+          sco2.attemptCount = 1;
+        }
+        expect(
+          overallProcess.processNavigationRequest(NavigationRequestType.START).targetActivity,
+        ).toBe(sco1);
+        overallProcess.updateNavigationValidity();
+        // Continue stays predicted valid (#1678): the SCO's final data only reaches the
+        // candidate's preconditions at End Attempt, so a false prediction could deadlock content.
+        expect(adlNav.request_valid.continue).toBe("true");
+        eventCallback.mockClear();
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("SB.2.2-2");
+        expect(result.targetActivity).toBeNull();
+        expect(activityTree.currentActivity).toBe(sco1);
+        expect(root.isActive).toBe(true);
+        expect(eventCallback).not.toHaveBeenCalledWith(
+          "onSequencingSessionEnd",
+          expect.anything(),
+        );
+        expect(eventCallback).not.toHaveBeenCalledWith("onActivityDelivery", expect.anything());
+      },
+    );
+
+    /** @spec SN Book: SB.2.2 step 3; SB.2.1 step 3.1; 5.6.7 - skip onward, then end only on tree exhaustion. */
+    it("should deliver beyond a skipped SCO and end the session only after the final SCO", () => {
+      const skip = new SequencingRule(RuleActionType.SKIP);
+      skip.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      sco2.sequencingRules.addPreConditionRule(skip);
+      overallProcess.processNavigationRequest(NavigationRequestType.START);
+      overallProcess.updateNavigationValidity();
+      expect(adlNav.request_valid.continue).toBe("true");
+      eventCallback.mockClear();
+
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+
+      expect(result.valid).toBe(true);
+      expect(result.targetActivity).toBe(sco3);
+      expect(activityTree.currentActivity).toBe(sco3);
+      expect(eventCallback).not.toHaveBeenCalledWith("onSequencingSessionEnd", expect.anything());
+      overallProcess.updateNavigationValidity();
+      // Continue at the final SCO stays valid (#1678); processing it ends the session.
+      expect(adlNav.request_valid.continue).toBe("true");
+
+      const end = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+      expect(end.valid).toBe(true);
+      expect(end.targetActivity).toBeNull();
+      expect(eventCallback).toHaveBeenCalledWith(
+        "onSequencingSessionEnd",
+        expect.objectContaining({ reason: "end_of_content" }),
+      );
+    });
+
+    /** @spec SN Book: UP.4; SM.7; SB.2.2 step 5.1 - Post Test Rollup gates use the previous SCO's mapped satisfaction. */
+    it.each([false, true])(
+      "should unlock the second Post Test Rollup lesson after satisfying the first (initially known=%s)",
+      (initiallyKnown) => {
+        root.sequencingControls.choice = true;
+        for (const [index, sco] of [sco1, sco2, sco3].entries()) {
+          sco.primaryObjective = new ActivityObjective("lesson_satisfied", {
+            isPrimary: true,
+            mapInfo: [
+              {
+                targetObjectiveID: `lesson_${index + 1}_satisfied`,
+                readSatisfiedStatus: false,
+                writeSatisfiedStatus: true,
+                readNormalizedMeasure: false,
+                writeNormalizedMeasure: false,
+              },
+            ],
+          });
+          sco.sequencingControls.objectiveSetByContent = true;
+          if (index === 0) continue;
+          sco.addObjective(
+            new ActivityObjective("previous_sco_satisfied", {
+              mapInfo: [
+                {
+                  targetObjectiveID: `lesson_${index}_satisfied`,
+                  readSatisfiedStatus: true,
+                  writeSatisfiedStatus: false,
+                  readNormalizedMeasure: false,
+                  writeNormalizedMeasure: false,
+                },
+              ],
+            }),
+          );
+          const disabled = new SequencingRule(RuleActionType.DISABLED);
+          disabled.conditionCombination = "any";
+          for (const type of [
+            RuleConditionType.SATISFIED,
+            RuleConditionType.OBJECTIVE_STATUS_KNOWN,
+          ]) {
+            const condition = new RuleCondition(type, RuleConditionOperator.NOT);
+            condition.referencedObjective = "previous_sco_satisfied";
+            disabled.addCondition(condition);
+          }
+          sco.sequencingRules.addPreConditionRule(disabled);
+        }
+        overallProcess = new OverallSequencingProcess(
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav,
+          eventCallback,
+        );
+        expect(
+          overallProcess.processNavigationRequest(NavigationRequestType.START).targetActivity,
+        ).toBe(sco1);
+        sco1.objectiveSatisfiedStatus = false;
+        sco1.objectiveSatisfiedStatusKnown = initiallyKnown;
+        overallProcess.updateNavigationValidity();
+        // Continue stays predicted valid (#1678): the SCO's final data only reaches the
+        // candidate's preconditions at End Attempt, so a false prediction could deadlock content.
+        expect(adlNav.request_valid.continue).toBe("true");
+        eventCallback.mockClear();
+
+        const blocked = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+        expect(blocked.valid).toBe(false);
+        expect(blocked.exception).toBe("SB.2.2-2");
+        expect(blocked.targetActivity).toBeNull();
+        expect(activityTree.currentActivity).toBe(sco1);
+        expect(root.isActive).toBe(true);
+        expect(eventCallback).not.toHaveBeenCalledWith(
+          "onSequencingSessionEnd",
+          expect.anything(),
+        );
+        expect(eventCallback).not.toHaveBeenCalledWith("onActivityDelivery", expect.anything());
+
+        expect(
+          overallProcess.processNavigationRequest(NavigationRequestType.CHOICE, sco1.id)
+            .targetActivity,
+        ).toBe(sco1);
+        sco1.objectiveSatisfiedStatus = true;
+        sco1.objectiveSatisfiedStatusKnown = true;
+        const delivered = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+        expect(delivered.valid).toBe(true);
+        expect(delivered.exception).toBeNull();
+        expect(delivered.targetActivity).toBe(sco2);
+        expect(activityTree.currentActivity).toBe(sco2);
+        expect(overallProcess.getGlobalObjectiveMap().get("lesson_1_satisfied")).toMatchObject({
+          satisfiedStatus: true,
+          satisfiedStatusKnown: true,
+        });
+        expect(eventCallback).not.toHaveBeenCalledWith(
+          "onSequencingSessionEnd",
+          expect.anything(),
+        );
+      },
+    );
   });
 
   describe("Edge Cases and Integration", () => {

@@ -8,6 +8,12 @@ import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_p
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
   let activityTree: ActivityTree;
@@ -293,8 +299,11 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
       expect(result.targetActivity?.id).not.toBe("lesson1");
     });
 
-    it("should fail if target activity is unavailable", () => {
-      lesson1.isAvailable = false;
+    /** @spec SN Book: SB.2.2 step 3 - use a skip rule to select the next deliverable target. */
+    it("should deliver the next target when the first is skipped", () => {
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson1.sequencingRules.addPreConditionRule(skipRule);
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
 

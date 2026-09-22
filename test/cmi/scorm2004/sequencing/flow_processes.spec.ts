@@ -145,6 +145,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
   });
 
   describe("Flow Activity Traversal Subprocess (SB.2.2)", () => {
+    /** @spec SN Book: SB.2.2 step 5.1 - an unavailable candidate stops flow without ending the session. */
     it("should check activity availability", () => {
       lesson1_2.isAvailable = false;
       activityTree.currentActivity = lesson1_1;
@@ -152,8 +153,10 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
-      // Should skip unavailable activity
-      expect(result.targetActivity).toBe(lesson2_1);
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
+      expect(result.endSequencingSession).toBe(false);
     });
 
     it("should check flow control", () => {
@@ -166,6 +169,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
     });
 
+    /** @spec SN Book: SB.2.2 step 5.1 - an unavailable candidate stops flow without ending the session. */
     it("should check limit conditions", () => {
       lesson1_2.attemptLimit = 1;
       lesson1_2.attemptCount = 1; // Limit exceeded
@@ -174,8 +178,10 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
-      // Should skip activity with exceeded limits
-      expect(result.targetActivity).toBe(lesson2_1);
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
+      expect(result.endSequencingSession).toBe(false);
     });
 
     it("should check pre-condition rules", () => {
@@ -193,6 +199,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       expect(result.targetActivity).toBe(lesson2_1);
     });
 
+    /** @spec SN Book: SB.2.2 step 5.1 - an unavailable candidate stops flow without ending the session. */
     it("should handle disabled activities", () => {
       // Add disabled pre-condition rule
       const disabledRule = new SequencingRule(RuleActionType.DISABLED);
@@ -204,8 +211,10 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
-      // Should skip disabled activity
-      expect(result.targetActivity).toBe(lesson2_1);
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
+      expect(result.endSequencingSession).toBe(false);
     });
 
     it("should flow into clusters to find deliverable leaf", () => {
@@ -243,10 +252,12 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       expect(result.targetActivity).toBe(lesson1_2);
     });
 
+    /** @spec SN Book: SB.2.2 step 3 - skip rules traverse onward across cluster boundaries. */
     it("should handle complex skip patterns", () => {
-      // Skip multiple activities
-      lesson1_2.isAvailable = false;
-      lesson2_1.isAvailable = false;
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson1_2.sequencingRules.addPreConditionRule(skipRule);
+      lesson2_1.sequencingRules.addPreConditionRule(skipRule);
 
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
@@ -361,6 +372,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       expect(result.exception).toBe("SB.2.7-1"); // Current activity not terminated
     });
 
+    /** @spec SN Book: SB.2.2 step 1.1; SB.2.3 step 4.3 - propagate a flow violation without retrying. */
     it("should handle mixed flow controls", () => {
       // Disable flow for module2 only
       module2.sequencingControls.flow = false;
@@ -370,8 +382,10 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
-      // Should skip module2 entirely and go to module3
-      expect(result.targetActivity).toBe(lesson3_1);
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-1");
+      expect(result.endSequencingSession).toBe(false);
     });
 
     it("should handle forwardOnly at different levels", () => {

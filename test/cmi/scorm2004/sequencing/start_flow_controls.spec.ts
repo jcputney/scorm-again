@@ -132,6 +132,7 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       expect(result.targetActivity).toBeNull();
     });
 
+    /** @spec SN Book: SB.2.2 step 1.1; SB.2.3 step 4.3 - a nested flow violation prevents delivery. */
     it("should handle deeply nested flow control correctly", () => {
       // Setup - three levels deep
       activityTree = new ActivityTree();
@@ -162,10 +163,10 @@ describe("START Sequencing Request Process - Flow Controls", () => {
         SequencingRequestType.START
       );
 
-      // Verify - should skip section1_1 and deliver lesson1_2_1
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson1_2_1");
-      expect(result.exception).toBeNull();
+      // Flow cannot retry beyond the first section's flow violation.
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.5-3");
     });
   });
 
