@@ -7,6 +7,12 @@ import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequ
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Delivery Request Process (DB.1.1)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -218,9 +224,11 @@ describe("Delivery Request Process (DB.1.1)", () => {
       expect(result.exception).toBeDefined();
     });
 
-    it("should respect activity availability during flow", () => {
-      // Make first activity unavailable
-      grandchild1.isAvailable = false;
+    /** @spec SN Book: SB.2.2 step 3 - only a skip rule advances beyond a candidate. */
+    it("should follow an explicit skip rule during flow", () => {
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      grandchild1.sequencingRules.addPreConditionRule(skipRule);
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
 

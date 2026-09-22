@@ -6,6 +6,12 @@ import {
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 /**
  * Flow Control Check Location and Logic Tests
@@ -153,7 +159,8 @@ describe("Flow Control Check Location and Logic", () => {
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
     });
 
-    it("should skip unavailable activities and find next available one", () => {
+    /** @spec SN Book: SB.2.2 step 3 - explicit skip rules advance across siblings. */
+    it("should follow skip rules to the next available activity", () => {
       const parent = new Activity("parent", "Parent");
       const child1 = new Activity("child1", "Child 1");
       const child2 = new Activity("child2", "Child 2");
@@ -168,9 +175,10 @@ describe("Flow Control Check Location and Logic", () => {
       root.sequencingControls.flow = true;
       parent.sequencingControls.flow = true;
 
-      // Make first two children unavailable
-      child1.isAvailable = false;
-      child2.isAvailable = false;
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      child1.sequencingRules.addPreConditionRule(skipRule);
+      child2.sequencingRules.addPreConditionRule(skipRule);
       child3.isAvailable = true;
 
       // Try to start
@@ -439,7 +447,8 @@ describe("Flow Control Check Location and Logic", () => {
       expect(result.targetActivity).toBe(lesson1);
     });
 
-    it("should handle complex tree with mixed availability", () => {
+    /** @spec SN Book: SB.2.2 step 3 - skipped candidates advance within a cluster. */
+    it("should handle explicit skip rules in a complex tree", () => {
       const module1 = new Activity("module1", "Module 1");
       const module2 = new Activity("module2", "Module 2");
       const lesson1_1 = new Activity("lesson1_1", "Lesson 1.1");
@@ -457,12 +466,13 @@ describe("Flow Control Check Location and Logic", () => {
       module1.sequencingControls.flow = true;
       module2.sequencingControls.flow = true;
 
-      // Make lesson1_1 unavailable
-      lesson1_1.isAvailable = false;
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson1_1.sequencingRules.addPreConditionRule(skipRule);
       lesson1_2.isAvailable = true;
       lesson2_1.isAvailable = true;
 
-      // Start should skip unavailable lesson1_1 and deliver lesson1_2
+      // Start should skip lesson1_1 and deliver lesson1_2
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);

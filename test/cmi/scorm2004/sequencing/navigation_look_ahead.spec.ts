@@ -190,7 +190,8 @@ describe("NavigationLookAhead", () => {
         expect(result.targetActivity).toBe(activity1);
         expect(result.exception).toBeNull();
       } else {
-        expect(result.exception).toBe("SB.2.1-3");
+        // SB.2.2 step 5.1: a disabled candidate fails as SB.2.2-2, not as tree exhaustion.
+        expect(result.exception).toBe("SB.2.2-2");
       }
     });
 

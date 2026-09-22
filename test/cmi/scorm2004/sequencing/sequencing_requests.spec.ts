@@ -88,11 +88,12 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.exception).toBe("SB.2.5-3");
     });
 
-    it("should skip disabled activities", () => {
-      // Disable first activity
-      const disableRule = new SequencingRule(RuleActionType.DISABLED);
-      disableRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
-      lesson1_1.sequencingRules.addPreConditionRule(disableRule);
+    /** @spec SN Book: SB.2.2 step 3 - startup can advance past an explicitly skipped candidate. */
+    it("should honor an explicit skip rule at startup", () => {
+      // Skip first activity
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson1_1.sequencingRules.addPreConditionRule(skipRule);
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
@@ -169,7 +170,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.targetActivity).toBe(lesson2_1);
     });
 
-    it("should end if activity check fails", () => {
+    /** @spec SN Book: SB.2.2 step 5.1 - a limit violation stops Continue without ending the session. */
+    it("should fail without ending the session if activity check fails", () => {
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
 
@@ -179,8 +181,10 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
-      // Should skip to next available
-      expect(result.targetActivity).toBe(lesson2_1);
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
+      expect(result.endSequencingSession).toBe(false);
     });
   });
 

@@ -298,6 +298,119 @@ describe("FlowTraversalService", () => {
     });
   });
 
+  describe("blocked flow candidates", () => {
+    /** @spec SN Book: SB.2.2 step 5.1 - disabled and limit-violated candidates stop flow. */
+    it.each(["disabled", "attempt limit"])("should stop at a sibling blocked by %s", (reason) => {
+      if (reason === "disabled") {
+        const rule = new SequencingRule(RuleActionType.DISABLED);
+        rule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+        lesson2.sequencingRules.addPreConditionRule(rule);
+      } else {
+        lesson2.attemptLimit = 1;
+        lesson2.attemptCount = 1;
+      }
+      activityTree.currentActivity = lesson1;
+
+      const result = service.flowSubprocess(lesson1, FlowSubprocessMode.FORWARD);
+
+      expect(result).toMatchObject({
+        identifiedActivity: lesson2,
+        deliverable: false,
+        exception: "SB.2.2-2",
+        endSequencingSession: false,
+      });
+      expect(activityTree.currentActivity).toBe(lesson1);
+      expect(root.isActive).toBe(true);
+    });
+
+    /** @spec SN Book: SB.2.2 steps 5.1, 6.3.3 - propagate a blocked descendant without retrying. */
+    it.each(["disabled", "attempt limit"])(
+      "should stop cluster descent at a child blocked by %s",
+      (reason) => {
+        const laterChild = new Activity("laterChild", "Later Child");
+        chapter2.addChild(laterChild);
+        if (reason === "disabled") {
+          const rule = new SequencingRule(RuleActionType.DISABLED);
+          rule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+          lesson3.sequencingRules.addPreConditionRule(rule);
+        } else {
+          lesson3.attemptLimit = 1;
+          lesson3.attemptCount = 1;
+        }
+
+        const result = service.flowSubprocess(lesson2, FlowSubprocessMode.FORWARD);
+
+        expect(result).toMatchObject({
+          identifiedActivity: lesson3,
+          deliverable: false,
+          exception: "SB.2.2-2",
+          endSequencingSession: false,
+        });
+      },
+    );
+
+    /** @spec SN Book: SB.2.2 step 5 precedes step 6 - check clusters before descending. */
+    it("should stop at a disabled cluster before entering its available child", () => {
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      chapter2.sequencingRules.addPreConditionRule(rule);
+
+      expect(service.flowSubprocess(lesson2, FlowSubprocessMode.FORWARD)).toMatchObject({
+        identifiedActivity: chapter2,
+        deliverable: false,
+        exception: "SB.2.2-2",
+        endSequencingSession: false,
+      });
+    });
+
+    /** @spec SN Book: SB.2.2 steps 3, 5.1 - skip onward, then stop on a disabled candidate. */
+    it("should preserve a blocked candidate after a skipped sibling", () => {
+      const skip = new SequencingRule(RuleActionType.SKIP);
+      skip.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson2.sequencingRules.addPreConditionRule(skip);
+      const disabled = new SequencingRule(RuleActionType.DISABLED);
+      disabled.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson3.sequencingRules.addPreConditionRule(disabled);
+
+      expect(service.flowSubprocess(lesson1, FlowSubprocessMode.FORWARD)).toMatchObject({
+        identifiedActivity: lesson3,
+        deliverable: false,
+        exception: "SB.2.2-2",
+        endSequencingSession: false,
+      });
+    });
+
+    /** @spec SN Book: SB.2.2 step 3 - only skip rules traverse onward past a candidate. */
+    it("should skip a limit-violated sibling when its skip rule applies", () => {
+      const skip = new SequencingRule(RuleActionType.SKIP);
+      skip.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson2.sequencingRules.addPreConditionRule(skip);
+      lesson2.attemptLimit = 1;
+      lesson2.attemptCount = 1;
+
+      expect(service.flowSubprocess(lesson1, FlowSubprocessMode.FORWARD)).toMatchObject({
+        identifiedActivity: lesson3,
+        deliverable: true,
+        exception: null,
+        endSequencingSession: false,
+      });
+    });
+
+    /** @spec SN Book: SB.2.2 step 5.1 - backward flow also stops at disabled candidates. */
+    it("should preserve a blocked candidate in backward flow", () => {
+      const disabled = new SequencingRule(RuleActionType.DISABLED);
+      disabled.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      lesson2.sequencingRules.addPreConditionRule(disabled);
+
+      expect(service.flowSubprocess(lesson3, FlowSubprocessMode.BACKWARD)).toMatchObject({
+        identifiedActivity: lesson2,
+        deliverable: false,
+        exception: "SB.2.2-2",
+        endSequencingSession: false,
+      });
+    });
+  });
+
   describe("checkActivityProcess", () => {
     it("should return true for available, visible leaf activity", () => {
       expect(service.checkActivityProcess(lesson1)).toBe(true);
