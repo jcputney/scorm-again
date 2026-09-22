@@ -24,6 +24,7 @@ export declare class FlowTraversalService {
     private getBackwardTraversalEntry;
     private isDescendantOfOrSelf;
     flowActivityTraversalSubprocess(activity: Activity, _direction: boolean, considerChildren: boolean, mode: FlowSubprocessMode, forwardTraversalBoundary?: Activity | null): Activity | null;
+    private evaluateFlowActivity;
     private continueFlowActivityTraversal;
     private checkSkippedRuleSet;
     checkActivityProcess(activity: Activity): boolean;
