@@ -5,6 +5,7 @@ import {
 } from "../../src/persistence/sequencing_state_persistence";
 import { GlobalObjectiveManager } from "../../src/objectives/global_objective_manager";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
+import { ADL, ADLNavRequestValid } from "../../src/cmi/scorm2004/adl";
 import { LogLevelEnum } from "../../src/constants/enums";
 import {
   createMockGlobalObjectiveContext,
@@ -21,7 +22,7 @@ describe("SequencingStatePersistence", () => {
   let mockGOM: GlobalObjectiveManager;
 
   beforeEach(() => {
-    mockContext = createMockPersistenceContext();
+    mockContext = createMockPersistenceContext({ adl: new ADL() });
     mockGOM = new GlobalObjectiveManager(createMockGlobalObjectiveContext());
     persistence = new SequencingStatePersistence(mockContext, mockGOM);
   });
@@ -374,7 +375,7 @@ describe("SequencingStatePersistence", () => {
       expect(parsed.globalObjectives).toEqual([]);
       expect(parsed.adlNavState).toEqual({
         request: "_none_",
-        request_valid: {},
+        request_valid: new ADLNavRequestValid().toJSON(),
       });
     });
 
@@ -568,31 +569,63 @@ describe("SequencingStatePersistence", () => {
       expect(mockGOM.globalObjectives).toHaveLength(1);
     });
 
-    it("should restore ADL nav state", () => {
+    it.each([false, true])("should restore ADL nav state when initialized=%s", (initialized) => {
+      const requestValid = mockContext.adl.nav.request_valid;
+      const choice = requestValid.choice;
+      const jump = requestValid.jump;
+      if (initialized) mockContext.adl.initialize();
+      const validity = {
+        continue: "true",
+        previous: "false",
+        choice: { "{target=sco1}": "true", "{target=sco2}": "false" },
+        jump: { "{target=sco1}": "false", "{target=sco2}": "unknown" },
+        exit: "true",
+        exitAll: "false",
+        abandon: "unknown",
+        abandonAll: "true",
+        suspendAll: "false",
+      };
       const stateData = JSON.stringify({
         version: "1.0",
         adlNavState: {
           request: "continue",
-          request_valid: { continue: true },
+          request_valid: validity,
         },
       });
 
-      persistence.deserializeSequencingState(stateData);
+      expect(persistence.deserializeSequencingState(stateData)).toBe(true);
 
       expect(mockContext.adl.nav.request).toBe("continue");
-      expect(mockContext.adl.nav.request_valid).toEqual({ continue: true });
+      expect(mockContext.adl.nav.request_valid).toBe(requestValid);
+      expect(requestValid.toJSON()).toEqual(validity);
+      expect(requestValid.choice).toBe(choice);
+      expect(requestValid.jump).toBe(jump);
+      expect(choice.getAll()).toEqual(validity.choice);
+      expect(jump.getAll()).toEqual(validity.jump);
+      expect(requestValid.initialized).toBe(initialized);
+      if (initialized) {
+        expect(() => {
+          requestValid.continue = "false";
+        }).toThrow();
+      }
     });
 
     it("should use defaults for missing ADL nav values", () => {
+      const requestValid = mockContext.adl.nav.request_valid;
+      requestValid.continue = "true";
+      requestValid.choice = { "{target=sco1}": "true" };
+      requestValid.jump = { "{target=sco1}": "true" };
       const stateData = JSON.stringify({
         version: "1.0",
         adlNavState: {},
       });
 
-      persistence.deserializeSequencingState(stateData);
+      expect(persistence.deserializeSequencingState(stateData)).toBe(true);
 
       expect(mockContext.adl.nav.request).toBe("_none_");
-      expect(mockContext.adl.nav.request_valid).toEqual({});
+      expect(mockContext.adl.nav.request_valid).toBe(requestValid);
+      expect(requestValid.toJSON()).toEqual(new ADLNavRequestValid().toJSON());
+      expect(() => mockContext.adl.reset()).not.toThrow();
     });
 
     it("should handle parse error", () => {
@@ -746,7 +779,8 @@ describe("SequencingStatePersistence", () => {
       mockContext.sequencingService = mockService;
       mockContext.sequencing = createMockSequencing({ id: "current-act" });
       mockContext.adl.nav.request = "continue";
-      mockContext.adl.nav.request_valid = { continue: true, previous: false };
+      mockContext.adl.nav.request_valid.continue = "true";
+      mockContext.adl.nav.request_valid.previous = "false";
 
       const objective = new CMIObjectivesObject();
       objective.id = "global-obj";
