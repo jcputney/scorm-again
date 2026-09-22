@@ -3,8 +3,7 @@ import { ActivityTree } from "../activity_tree";
 import { FlowTraversalService } from "../traversal/flow_traversal_service";
 import {
   SequencingResult,
-  DeliveryRequestType,
-  FlowSubprocessMode
+  DeliveryRequestType
 } from "../rules/sequencing_request_types";
 
 /**
@@ -24,6 +23,7 @@ export class RetryRequestHandler {
    * Retry Sequencing Request Process (SB.2.10)
    * @param {Activity} currentActivity - The current activity
    * @return {SequencingResult}
+   * @spec SN Book: SB.2.10 step 3 (Retry Sequencing Request Process) - apply Flow once to a cluster and preserve its failure.
    */
   public handleRetry(currentActivity: Activity): SequencingResult {
     const result = new SequencingResult();
@@ -35,36 +35,22 @@ export class RetryRequestHandler {
     }
 
     // SB.2.10 step 3: If current activity is not a leaf (is a cluster)
+    // @spec SN Book: SB.2.10 step 3; SB.2.2 steps 3, 5.1 - only Skip may advance past a candidate within the retried cluster.
     if (currentActivity.children.length > 0) {
-      // Apply flow subprocess to find deliverable activity
-      this.traversalService.ensureSelectionAndRandomization(currentActivity);
-      const availableChildren = currentActivity.getAvailableChildren();
+      const flowResult = this.traversalService.findFirstDeliverableActivityResult(
+        currentActivity,
+        currentActivity,
+      );
 
-      let deliverableActivity: Activity | null = null;
-
-      // Try each child using flowActivityTraversalSubprocess
-      for (const child of availableChildren) {
-        deliverableActivity = this.traversalService.flowActivityTraversalSubprocess(
-          child,
-          true,
-          true,
-          FlowSubprocessMode.FORWARD,
-          currentActivity,
-        );
-        if (deliverableActivity) {
-          break;
-        }
-      }
-
-      // SB.2.10 step 3.2: If flow subprocess returned false
-      if (!deliverableActivity) {
-        result.exception = "SB.2.10-3";
+      // @spec SN Book: SB.2.10 step 3.2 - preserve the Flow Subprocess exception when present.
+      if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+        result.exception = flowResult.exception || "SB.2.10-3";
         return result;
       }
 
       // SB.2.10 step 3.3: Deliver the activity identified by flow subprocess
       result.deliveryRequest = DeliveryRequestType.DELIVER;
-      result.targetActivity = deliverableActivity;
+      result.targetActivity = flowResult.identifiedActivity;
       return result;
     }
 
@@ -81,6 +67,7 @@ export class RetryRequestHandler {
    * Retry All Sequencing Request Process
    * Clears current activity and restarts from the root
    * @return {SequencingResult}
+   * @spec SN Book: SB.2.10; SB.2.5 steps 3.2, 3.2.1 - restart with one Forward Flow Subprocess and retain its exception.
    */
   public handleRetryAll(): SequencingResult {
     // Clear current activity to allow restart
@@ -93,18 +80,19 @@ export class RetryRequestHandler {
       return result;
     }
 
-    const deliverableActivity = this.traversalService.findFirstDeliverableActivity(
-      this.activityTree.root
+    const flowResult = this.traversalService.findFirstDeliverableActivityResult(
+      this.activityTree.root,
     );
 
     const result = new SequencingResult();
-    if (!deliverableActivity) {
-      result.exception = "SB.2.10-3";
+    // @spec SN Book: SB.2.10 step 3.2; SB.2.2 step 5.1 - report blocked flow instead of trying a later child.
+    if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+      result.exception = flowResult.exception || "SB.2.10-3";
       return result;
     }
 
     result.deliveryRequest = DeliveryRequestType.DELIVER;
-    result.targetActivity = deliverableActivity;
+    result.targetActivity = flowResult.identifiedActivity;
     return result;
   }
 

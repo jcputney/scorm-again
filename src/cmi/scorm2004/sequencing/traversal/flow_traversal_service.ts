@@ -501,35 +501,34 @@ export class FlowTraversalService {
    * Used for START and RETRY_ALL requests
    * @param {Activity} cluster - The cluster activity
    * @return {Activity | null} - The first deliverable activity
-   * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - START/RETRY_ALL cluster search remains bounded to the starting cluster while evaluating SB.2.2 candidates.
+   * @spec SN Book: SB.2.5 step 3.2; SB.2.2 steps 3, 5.1 - only Skipped candidates permit traversal past a failed candidate.
    */
   public findFirstDeliverableActivity(cluster: Activity): Activity | null {
+    const result = this.findFirstDeliverableActivityResult(cluster);
+    return result.deliverable ? result.identifiedActivity : null;
+  }
+
+  /**
+   * Enter a cluster through one Flow Subprocess, retaining any traversal exception.
+   * @param {Activity} cluster - The activity to enter
+   * @param {Activity | null} boundary - Optional boundary for a cluster Retry
+   * @return {FlowSubprocessResult} - Delivery candidate or the original flow failure
+   * @spec SN Book: SB.2.5 steps 3.2, 3.2.1 (Start Sequencing Request Process) - flow Forward with Consider Children true exactly once.
+   * @spec SN Book: SB.2.10 step 3 (Retry Sequencing Request Process) - enter the retried cluster and retain the Flow Subprocess result.
+   * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - child selection and randomization occur when traversal enters the cluster.
+   */
+  public findFirstDeliverableActivityResult(
+    cluster: Activity,
+    boundary: Activity | null = null,
+  ): FlowSubprocessResult {
     // If the cluster itself is a leaf (no children), check if it can be delivered
+    // @spec SN Book: SB.2.2 step 5; UP.5 (Check Activity Process) - preserve direct leaf delivery checks.
     if (cluster.children.length === 0) {
-      if (this.checkActivityProcess(cluster)) {
-        return cluster;
-      }
-      return null;
+      return new FlowSubprocessResult(cluster, this.checkActivityProcess(cluster));
     }
 
-    // Otherwise, look for a deliverable child
-    this.ensureSelectionAndRandomization(cluster);
-    const availableChildren = cluster.getAvailableChildren();
-
-    for (const child of availableChildren) {
-      const deliverable = this.flowActivityTraversalSubprocess(
-        child,
-        true,
-        true,
-        FlowSubprocessMode.FORWARD,
-        cluster,
-      );
-      if (deliverable) {
-        return deliverable;
-      }
-    }
-
-    return null;
+    // @spec SN Book: SB.2.3 step 4.3; SB.2.2 steps 3, 5.1 - propagate a blocked candidate; only Skip traverses onward.
+    return this.continueFlowActivityTraversal(cluster, FlowSubprocessMode.FORWARD, false, boundary);
   }
 
   /**

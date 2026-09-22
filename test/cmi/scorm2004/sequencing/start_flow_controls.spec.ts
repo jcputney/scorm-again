@@ -20,7 +20,8 @@ describe("START Sequencing Request Process - Flow Controls", () => {
   let activityTree: ActivityTree;
 
   describe("Root with Flow Disabled", () => {
-    it("should fail when root has flow=false (cannot traverse into children)", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 1.1 - propagate the flow-disabled exception instead of SB.2.5-3. */
+    it("should fail when root has flow=false (SB.2.5 / SB.2.2-1)", () => {
       // Setup
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -33,13 +34,11 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should fail because flow is disabled, cannot traverse into children
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.5-3"); // No activity available
+      expect(result.exception).toBe("SB.2.2-1");
       expect(result.targetActivity).toBeNull();
     });
 
@@ -66,7 +65,8 @@ describe("START Sequencing Request Process - Flow Controls", () => {
   });
 
   describe("Nested Clusters with Mixed Flow Settings", () => {
-    it("should skip cluster when child cluster has flow=false", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 steps 1.1, 3 - flow=false blocks; only Skip advances to a later cluster. */
+    it("should stop when the first child cluster has flow=false (SB.2.5 / SB.2.2-1)", () => {
       // Setup
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -89,17 +89,16 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
-      // Verify - should skip module1 (flow=false) and deliver lesson2_1
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson2_1");
-      expect(result.exception).toBeNull();
+      // @spec SN Book: SB.2.5 step 3.2; SB.2.2 step 3 - the former walk-past expectation incorrectly treated a flow violation as Skip.
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-1");
     });
 
-    it("should fail when all modules have flow=false", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 1.1 - retain the first flow violation rather than SB.2.5-3. */
+    it("should fail when all modules have flow=false (SB.2.5 / SB.2.2-1)", () => {
       // Setup
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -122,18 +121,16 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should fail because no deliverable activity available
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.5-3");
+      expect(result.exception).toBe("SB.2.2-1");
       expect(result.targetActivity).toBeNull();
     });
 
     /** @spec SN Book: SB.2.2 step 1.1; SB.2.3 step 4.3 - a nested flow violation prevents delivery. */
-    it("should handle deeply nested flow control correctly", () => {
+    it("should propagate deeply nested flow failure (SB.2.5 / SB.2.2-1)", () => {
       // Setup - three levels deep
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -159,19 +156,18 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
-      // Flow cannot retry beyond the first section's flow violation.
+      // @spec SN Book: SB.2.5 step 3.2.1 - preserve the nested flow exception instead of masking it as SB.2.5-3.
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
       expect(result.targetActivity).toBeNull();
-      expect(result.exception).toBe("SB.2.5-3");
+      expect(result.exception).toBe("SB.2.2-1");
     });
   });
 
   describe("stopForwardTraversal Flag", () => {
-    it("should respect stopForwardTraversal on cluster activities", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - stopForwardTraversal blocks rather than skips a cluster. */
+    it("should stop at stopForwardTraversal on the first cluster (SB.2.5 / SB.2.2-2)", () => {
       // Setup
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -195,18 +191,16 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
-      // Verify - stopForwardTraversal should prevent traversal into module1's children
-      // So it should skip module1 and go to module2
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson2_1");
-      expect(result.exception).toBeNull();
+      // @spec SN Book: SB.2.5 step 3.2; SB.2.2 step 3 - the former later-cluster delivery required Skip, not stopForwardTraversal.
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
     });
 
-    it("should fail when stopForwardTraversal blocks all activities", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - preserve the blocking exception instead of SB.2.5-3. */
+    it("should fail when stopForwardTraversal blocks all activities (SB.2.5 / SB.2.2-2)", () => {
       // Setup
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -225,13 +219,11 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should fail because stopForwardTraversal blocks access
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.5-3");
+      expect(result.exception).toBe("SB.2.2-2");
       expect(result.targetActivity).toBeNull();
     });
   });
@@ -361,7 +353,8 @@ describe("START Sequencing Request Process - Flow Controls", () => {
   });
 
   describe("Edge Cases", () => {
-    it("should handle empty cluster (cluster with no available children)", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - an unavailable child fails Check Activity, not tree traversal. */
+    it("should propagate the unavailable-child failure (SB.2.5 / SB.2.2-2)", () => {
       // Setup
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -380,13 +373,11 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should fail because no available activity
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.5-3");
+      expect(result.exception).toBe("SB.2.2-2");
       expect(result.targetActivity).toBeNull();
     });
 
@@ -418,7 +409,8 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       expect(result.targetActivity?.id).toBe("leafActivity");
     });
 
-    it("should find first available when some activities are unavailable", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 steps 3, 5.1 - unavailability blocks; only Skip advances. */
+    it("should stop at an unavailable first child (SB.2.5 / SB.2.2-2)", () => {
       // Setup
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
@@ -440,14 +432,12 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
-      // Verify - should deliver lesson3 (first available)
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("lesson3");
-      expect(result.exception).toBeNull();
+      // @spec SN Book: SB.2.5 step 3.2; SB.2.2 step 3 - the former walk-past expectation incorrectly treated unavailability as Skip.
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
     });
   });
 });

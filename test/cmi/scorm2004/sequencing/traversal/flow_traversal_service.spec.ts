@@ -439,11 +439,13 @@ describe("FlowTraversalService", () => {
       expect(result).toBe(lesson1);
     });
 
-    it("should skip unavailable children", () => {
+    /** @spec SN Book: SB.2.5 step 3.2; SB.2.2 steps 3, 5.1 - unavailability blocks; only Skip advances to another child. */
+    it("should stop at an unavailable first child (SB.2.5 / SB.2.2)", () => {
       lesson1.isAvailable = false;
 
       const result = service.findFirstDeliverableActivity(chapter1);
-      expect(result).toBe(lesson2);
+      // @spec SN Book: SB.2.5 step 3.2; SB.2.2 step 3 - the old lesson2 expectation incorrectly walked past a blocked candidate.
+      expect(result).toBeNull();
     });
 
     it("should return null when no deliverable children", () => {

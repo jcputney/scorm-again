@@ -266,7 +266,8 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       expect(result.targetActivity).toBe(lesson2_2);
     });
 
-    it("should handle all activities unavailable", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - propagate the first unavailable candidate's failure instead of SB.2.5-3. */
+    it("should fail at the first unavailable activity (SB.2.5 / SB.2.2-2)", () => {
       // Make all activities unavailable
       lesson1_1.isAvailable = false;
       lesson1_2.isAvailable = false;
@@ -278,7 +279,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.5-3");
+      expect(result.exception).toBe("SB.2.2-2");
     });
   });
 

@@ -294,7 +294,8 @@ describe("Flow Control Check Location and Logic", () => {
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
     });
 
-    it("should skip cluster with all unavailable children and find next valid activity", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 steps 3, 5.1 - only Skip permits traversal past the first blocked child. */
+    it("should stop at a cluster's unavailable first child (SB.2.5 / SB.2.2-2)", () => {
       const module1 = new Activity("module1", "Module 1");
       const module2 = new Activity("module2", "Module 2");
       const child1_1 = new Activity("child1_1", "Child 1.1");
@@ -316,9 +317,10 @@ describe("Flow Control Check Location and Logic", () => {
       // Try to start
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
-      // Should skip module1 (no available children) and deliver child2_1
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity).toBe(child2_1);
+      // @spec SN Book: SB.2.5 step 3.2; SB.2.2 step 3 - the former walk-past expectation incorrectly treated unavailability as Skip.
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
     });
 
     it("should deliver leaf activity with flow=false when it has no children", () => {

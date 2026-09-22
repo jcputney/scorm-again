@@ -75,7 +75,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.exception).toBe("SB.2.5-2");
     });
 
-    it("should fail if no activity available (SB.2.5-3)", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - preserve the first unavailable candidate's failure instead of SB.2.5-3. */
+    it("should fail if the first activity is unavailable (SB.2.5 / SB.2.2-2)", () => {
       // Make all activities unavailable
       lesson1_1.isAvailable = false;
       lesson1_2.isAvailable = false;
@@ -85,7 +86,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.5-3");
+      expect(result.exception).toBe("SB.2.2-2");
     });
 
     /** @spec SN Book: SB.2.2 step 3 - startup can advance past an explicitly skipped candidate. */

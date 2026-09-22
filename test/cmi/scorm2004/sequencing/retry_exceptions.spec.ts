@@ -77,7 +77,8 @@ describe("Retry Sequencing Request Process - Exception Handling (SB.2.10)", () =
   });
 
   describe("SB.2.10-3: Flow subprocess returned false (nothing to deliver)", () => {
-    it("should return SB.2.10-3 when retrying a cluster with no deliverable children", () => {
+    /** @spec SN Book: SB.2.10 step 3.2; SB.2.2 step 5.1 - preserve the unavailable child's failure instead of SB.2.10-3. */
+    it("should return SB.2.2-2 when retrying a cluster with unavailable children (SB.2.10)", () => {
       const root = new Activity("root", "Root Activity");
       const cluster = new Activity("cluster", "Cluster Activity");
       const child1 = new Activity("child1", "Child 1");
@@ -97,11 +98,12 @@ describe("Retry Sequencing Request Process - Exception Handling (SB.2.10)", () =
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.RETRY);
 
-      expect(result.exception).toBe("SB.2.10-3");
+      expect(result.exception).toBe("SB.2.2-2");
       expect(result.deliveryRequest).toBe("doNotDeliver");
     });
 
-    it("should return SB.2.10-3 when retrying a cluster with flow disabled", () => {
+    /** @spec SN Book: SB.2.10 step 3.2; SB.2.2 step 1.1 - preserve the flow-disabled failure instead of SB.2.10-3. */
+    it("should return SB.2.2-1 when retrying a cluster with flow disabled (SB.2.10)", () => {
       const root = new Activity("root", "Root Activity");
       const cluster = new Activity("cluster", "Cluster Activity");
       const child1 = new Activity("child1", "Child 1");
@@ -121,7 +123,7 @@ describe("Retry Sequencing Request Process - Exception Handling (SB.2.10)", () =
 
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.RETRY);
 
-      expect(result.exception).toBe("SB.2.10-3");
+      expect(result.exception).toBe("SB.2.2-1");
       expect(result.deliveryRequest).toBe("doNotDeliver");
     });
 

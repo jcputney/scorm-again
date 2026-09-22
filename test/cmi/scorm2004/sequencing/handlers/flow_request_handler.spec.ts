@@ -59,11 +59,12 @@ describe("FlowRequestHandler", () => {
       expect(result.exception).toBe("SB.2.5-1"); // SB.2.5-1: No activity tree
     });
 
-    it("should return exception when no deliverable activity", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - preserve the unavailable candidate's failure instead of SB.2.5-3. */
+    it("should return the flow exception when no deliverable activity (SB.2.5 / SB.2.2-2)", () => {
       lesson1.isAvailable = false;
       lesson2.isAvailable = false;
       const result = handler.handleStart();
-      expect(result.exception).toBe("SB.2.5-3");
+      expect(result.exception).toBe("SB.2.2-2");
     });
   });
 
