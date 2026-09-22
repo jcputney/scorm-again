@@ -371,6 +371,53 @@ if (errorCode !== "0") {
 
 SCORM 2004 includes advanced sequencing and navigation capabilities. Navigation requests are set via `adl.nav.request` and processed during `Terminate()`.
 
+### `getActivityTrackingData(activityId: string)`
+
+Returns a snapshot of an activity's tracking data, or `null` if the activity does not exist.
+Pass the root activity ID to read course-level tracking.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `completionStatus` | `string` | Activity completion status |
+| `successStatus` | `string` | Activity success status |
+| `progressMeasure` | `number \| null` | Activity's runtime progress measure; does not expose cluster completion rollup |
+| `attemptCompletionAmount` | `number` | Attempt completion amount, including weighted completion rollup for clusters |
+| `attemptCompletionAmountStatus` | `boolean` | Whether the completion amount is known; ignore the amount when `false` |
+| `score` | `number \| null` | Normalized objective measure, or `null` when unknown |
+
+```javascript
+const course = api.getActivityTrackingData("course");
+const percent = course?.attemptCompletionAmountStatus
+  ? Math.round(course.attemptCompletionAmount * 100)
+  : null;
+```
+
+A known amount of `0` is different from unknown progress. Existing `progressMeasure` and `score`
+values retain their meanings. By default, content reports transfer to the activity tree at the end
+of the attempt, such as during `Terminate()`; this accessor does not trigger rollup.
+
+See [Reading Course Progress](/docs/advanced/sequencing#reading-course-progress).
+
+### `processNavigationRequest(request: string, targetActivityId?: string): boolean`
+
+Processes an LMS navigation request immediately and returns whether it succeeded. Sequencing must
+be configured. The LMS uses this method for requests such as `start`, `resumeAll`, and `suspendAll`;
+SCOs use `SetValue("adl.nav.request", ...)` and `Terminate()`.
+
+```javascript
+// After a SCO has terminated with cmi.exit = "suspend", suspend the sequencing session.
+if (api.processNavigationRequest("suspendAll")) {
+  const snapshot = api.serializeSequencingState();
+  // Persist snapshot for the next launch.
+}
+```
+
+`serializeSequencingState(): string` exports the sequencing snapshot.
+`deserializeSequencingState(snapshot: string): boolean` restores it without starting delivery or
+converting an interrupted session to a suspended session. SCO-local CMI data must be saved and
+restored separately. See [Closing and Resuming a Player](/docs/advanced/sequencing#closing-and-resuming-a-player)
+for shutdown and recovery ordering.
+
 ### Navigation Requests
 
 Set navigation requests using `SetValue("adl.nav.request", request)`:

@@ -406,6 +406,100 @@ const canChooseLesson3 = api.GetValue("adl.nav.request_valid.choice.{target=less
 `Commit()` checkpoints SCO runtime data but does not end the activity attempt or process the
 navigation request. Content-driven sequencing runs when the SCO calls `Terminate()`.
 
+## Reading Course Progress
+
+Use `getActivityTrackingData(rootActivityId).attemptCompletionAmount` to read the course's rolled-up
+completion amount. Check `attemptCompletionAmountStatus` first: `false` means the amount is unknown,
+while `true` with an amount of `0` means known zero progress.
+
+```javascript
+const course = api.getActivityTrackingData("course");
+const progress = course?.attemptCompletionAmountStatus
+  ? course.attemptCompletionAmount
+  : null;
+```
+
+For example, child weights of `0.5`, `0.3`, `0.4`, `0.3`, and `0.1`, with the first two reporting
+completion amounts of `1` and `0.5`, produce `(0.5 * 1 + 0.3 * 0.5) / 1.6 = 0.40625` at the root.
+Tracked children with unknown completion amounts still contribute their weights to the denominator.
+The accessor's existing `progressMeasure` field represents runtime progress and can remain `0` on a
+cluster even when completion rollup is known. The new fields also work for individual SCO activities.
+
+By default, read tracking after end-attempt processing, such as after `Terminate()`. `Commit()` and
+the tracking accessor do not themselves trigger completion rollup. Restored sequencing snapshots
+expose the same completion amount and status through the accessor.
+
+## Closing and Resuming a Player
+
+`cmi.exit = "suspend"` preserves a SCO attempt. Suspending the entire sequencing session also requires
+the `suspendAll` navigation request. A snapshot saved after a SCO terminates without that request can
+still have a current activity and no suspended activity. In that state, both `start` and `resumeAll`
+are rejected.
+
+When the host coordinates shutdown while the SCO's communication session is still open, have the
+SCO save its current runtime data and then request suspension before terminating:
+
+```javascript
+api.SetValue("cmi.exit", "suspend");
+api.SetValue("adl.nav.request", "suspendAll");
+if (api.Terminate("") === "true") {
+  const snapshot = api.serializeSequencingState();
+  // Persist snapshot after Terminate has finished processing suspendAll.
+}
+```
+
+If the SCO already called `Terminate()` with `cmi.exit = "suspend"` and no navigation request, the
+host can complete suspension with `api.processNavigationRequest("suspendAll")`. The following
+`pagehide` handler assumes the host has coordinated that SCO termination first:
+
+```javascript
+const snapshotKey = `sequencing:${learnerId}:${courseId}:${attemptNumber}`;
+
+window.addEventListener("pagehide", (event) => {
+  if (event.persisted) return; // The live player may return from the back/forward cache.
+
+  if (api.getSequencingState().currentActivity) {
+    if (!api.processNavigationRequest("suspendAll")) return;
+  }
+  localStorage.setItem(snapshotKey, api.serializeSequencingState());
+});
+```
+
+This example stores the sequencing snapshot synchronously in browser storage. Persist SCO-local
+data such as `cmi.location` and `cmi.suspend_data` separately, under the delivered activity ID.
+Coordinate shutdown in the host rather than relying on parent/iframe unload-handler order. Use
+regular checkpoints as well: browser termination can prevent `pagehide` from running, and an
+asynchronous save started during page exit may not finish.
+
+On the next launch, create an API with the same tree, restore the snapshot, and request `resumeAll`
+before launching content. Restore the delivered SCO's saved CMI data before it calls `Initialize()`.
+If configured, set `sequencingStatePersistence.autoLoadOnInitialize: false` when preloading state
+to prevent a second asynchronous restore during initialization.
+
+For an older snapshot known to come from a closed player whose SCO terminated with
+`cmi.exit = "suspend"` but without `suspendAll`, recover through public navigation methods:
+
+```javascript
+if (!api.deserializeSequencingState(savedSnapshot)) {
+  throw new Error("Could not restore sequencing state");
+}
+
+// Apply this policy only to an interrupted session that the host intends to resume.
+if (api.getSequencingState().currentActivity) {
+  if (!api.processNavigationRequest("suspendAll")) {
+    throw new Error("Could not suspend the interrupted session");
+  }
+}
+
+if (!api.processNavigationRequest("resumeAll")) {
+  throw new Error("Could not resume the suspended session");
+}
+```
+
+This resumes the same activity attempt without rewriting the snapshot. Do not apply this recovery
+policy to a live session or a completed registration; the host decides whether the learner should
+resume or begin a new attempt.
+
 ## Implementation Details
 
 The sequencing implementation follows the algorithms defined in the SCORM 2004 Sequencing and Navigation book:
