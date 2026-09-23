@@ -17400,15 +17400,18 @@ class BaseAPI {
   /**
    * Common reset method for all APIs. New settings are merged with the existing settings.
    * @param {Settings} settings
+   * @param {ResetOptions} options
    * @protected
    */
-  commonReset(settings) {
+  commonReset(settings, options) {
     this.apiLog("reset", "Called", LogLevelEnum.INFO);
     this.settings = { ...this.settings, ...settings };
     this.clearScheduledCommit();
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
-    this._eventService.reset();
+    if (options?.preserveListeners !== true) {
+      this._eventService.reset();
+    }
     this.startingData = {};
     this._setCMIElements.clear();
     if (this._offlineStorageService) {
@@ -20181,10 +20184,15 @@ class Scorm12API extends BaseAPI {
   LMSGetDiagnostic;
   /**
    * Called when the API needs to be reset
+   * @param {Settings} settings - Optional new settings to merge with existing settings
+   * @param {ResetOptions} options - Behavior for this reset only
    */
-  reset(settings) {
-    this.commonReset(settings);
+  reset(settings, options) {
+    this.commonReset(settings, options);
     this.cmi?.reset();
+    if (options?.resetTotalTime === true) {
+      this.cmi.core.total_time = "00:00:00";
+    }
     this.nav?.reset();
     this.statusSetByModule = false;
   }
@@ -26779,11 +26787,15 @@ class Scorm2004API extends BaseAPI {
    * Called when the API needs to be reset
    *
    * @param {Settings} settings - Optional new settings to merge with existing settings
+   * @param {ResetOptions} options - Behavior for this reset only
    */
-  reset(settings) {
-    this.commonReset(settings);
+  reset(settings, options) {
+    this.commonReset(settings, options);
     this._runtimeSetCMIElements.clear();
     this.cmi?.reset();
+    if (options?.resetTotalTime === true) {
+      this.cmi.total_time = "PT0S";
+    }
     this.adl?.reset();
     this.applyCurrentActivityLaunchData();
   }

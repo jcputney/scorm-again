@@ -4,7 +4,7 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import { CMI } from "./cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
-import { CommitObject, CommitTrigger, GlobalObjectiveMapEntry, ResultObject, SequencingStateMetadata, Settings } from "./types";
+import { CommitObject, CommitTrigger, GlobalObjectiveMapEntry, ResetOptions, ResultObject, SequencingStateMetadata, Settings } from "./types";
 import { IHttpService } from "./interfaces";
 import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
 declare class Scorm2004API extends BaseAPI {
@@ -33,7 +33,7 @@ declare class Scorm2004API extends BaseAPI {
     GetLastError: () => string;
     GetErrorString: (CMIErrorCode: string | number) => string;
     GetDiagnostic: (CMIErrorCode: string | number) => string;
-    reset(settings?: Settings): void;
+    reset(settings?: Settings, options?: ResetOptions): void;
     private applyCurrentActivityLaunchData;
     private applyDeliveredActivityLaunchData;
     private applyActivityLaunchData;

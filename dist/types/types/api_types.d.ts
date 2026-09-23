@@ -15,6 +15,10 @@ export type CommitEventContext = {
     sequence?: number;
     errorCode?: number;
 };
+export type ResetOptions = {
+    preserveListeners?: boolean;
+    resetTotalTime?: boolean;
+};
 export type Settings = {
     autocommit?: boolean | undefined;
     autocommitSeconds?: number | undefined;

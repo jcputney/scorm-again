@@ -1,7 +1,7 @@
 import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { ErrorCode } from "./constants";
-import { CommitEventContext, CommitObject, CommitTrigger, InternalSettings, LogLevel, ResultObject, Settings } from "./types";
+import { CommitEventContext, CommitObject, CommitTrigger, InternalSettings, LogLevel, ResetOptions, ResultObject, Settings } from "./types";
 import { IBaseAPI, ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService, ScormEventCallback } from "./interfaces";
 export default abstract class BaseAPI implements IBaseAPI {
     private _timeout?;
@@ -27,8 +27,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     set lastErrorCode(errorCode: string);
     protected get eventService(): IEventService;
     protected get loggingService(): ILoggingService;
-    abstract reset(settings?: Settings): void;
-    commonReset(settings?: Settings): void;
+    abstract reset(settings?: Settings, options?: ResetOptions): void;
+    commonReset(settings?: Settings, options?: ResetOptions): void;
     initialize(callbackName: string, initializeMessage?: string, terminationMessage?: string): string;
     abstract lmsInitialize(parameter?: string): string;
     abstract lmsFinish(parameter?: string): string;
