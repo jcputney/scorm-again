@@ -370,7 +370,13 @@ export class SequencingStatePersistence {
 
       if (state.adlNavState) {
         this.context.adl.nav.request = state.adlNavState.request || "_none_";
-        this.context.adl.nav.request_valid = state.adlNavState.request_valid || {};
+        const requestValidState = state.adlNavState.request_valid || {};
+
+        if (typeof this.context.adl.nav.request_valid?.restore === "function") {
+          this.context.adl.nav.request_valid.restore(requestValidState);
+        } else {
+          this.context.adl.nav.request_valid = requestValidState;
+        }
       }
 
       return true;

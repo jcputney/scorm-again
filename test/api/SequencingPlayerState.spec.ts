@@ -158,4 +158,14 @@ describe("SCORM 2004 closed-window suspension", () => {
     expect(restored.processNavigationRequest("resumeAll")).toBe(true);
     expect(restored.getSequencingState().currentActivity.id).toBe("sco1");
   });
+
+  it("keeps restored APIs reusable across reset", () => {
+    const source = makeApi();
+    terminateSuspendedSco(source);
+
+    const restored = makeApi();
+    expect(restored.deserializeSequencingState(source.serializeSequencingState())).toBe(true);
+    expect(typeof restored.adl.nav.request_valid.reset).toBe("function");
+    expect(() => restored.reset()).not.toThrow();
+  });
 });

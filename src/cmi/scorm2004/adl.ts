@@ -641,6 +641,53 @@ export class ADLNavRequestValid extends BaseCMI {
     this._suspendAll = "unknown";
   }
 
+  restore(state: {
+    previous?: unknown;
+    continue?: unknown;
+    choice?: Record<string, unknown>;
+    jump?: Record<string, unknown>;
+    exit?: unknown;
+    exitAll?: unknown;
+    abandon?: unknown;
+    abandonAll?: unknown;
+    suspendAll?: unknown;
+  }): void {
+    this._continue = this.normalizeValue(state.continue);
+    this._previous = this.normalizeValue(state.previous);
+    this._choice.setAll(this.normalizeMap(state.choice));
+    this._jump.setAll(this.normalizeMap(state.jump));
+    this._exit = this.normalizeValue(state.exit);
+    this._exitAll = this.normalizeValue(state.exitAll);
+    this._abandon = this.normalizeValue(state.abandon);
+    this._abandonAll = this.normalizeValue(state.abandonAll);
+    this._suspendAll = this.normalizeValue(state.suspendAll);
+  }
+
+  private normalizeValue(value: unknown): NAVBoolean {
+    if (value === true || value === NAVBoolean.TRUE) {
+      return NAVBoolean.TRUE;
+    }
+
+    if (value === false || value === NAVBoolean.FALSE) {
+      return NAVBoolean.FALSE;
+    }
+
+    return NAVBoolean.UNKNOWN;
+  }
+
+  private normalizeMap(values: unknown): { [key: string]: NAVBoolean } {
+    if (!values || typeof values !== "object") {
+      return {};
+    }
+
+    const normalized: { [key: string]: NAVBoolean } = {};
+    for (const [key, value] of Object.entries(values)) {
+      normalized[key] = this.normalizeValue(value);
+    }
+
+    return normalized;
+  }
+
   /**
    * Getter for _continue
    * Dynamically evaluates whether continue navigation is valid using sequencing
