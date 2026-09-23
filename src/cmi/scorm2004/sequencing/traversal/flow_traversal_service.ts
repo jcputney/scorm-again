@@ -523,8 +523,10 @@ export class FlowTraversalService {
   ): FlowSubprocessResult {
     // If the cluster itself is a leaf (no children), check if it can be delivered
     // @spec SN Book: SB.2.2 step 5; UP.5 (Check Activity Process) - preserve direct leaf delivery checks.
+    // @spec SN Book: SB.2.2 step 5.1 - a blocked leaf fails with SB.2.2-2, as in child traversal.
     if (cluster.children.length === 0) {
-      return new FlowSubprocessResult(cluster, this.checkActivityProcess(cluster));
+      const deliverable = this.checkActivityProcess(cluster);
+      return new FlowSubprocessResult(cluster, deliverable, deliverable ? null : "SB.2.2-2");
     }
 
     // @spec SN Book: SB.2.3 step 4.3; SB.2.2 steps 3, 5.1 - propagate a blocked candidate; only Skip traverses onward.

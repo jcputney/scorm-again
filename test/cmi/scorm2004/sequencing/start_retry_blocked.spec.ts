@@ -96,6 +96,24 @@ describe.each([
   });
 });
 
+/** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - a blocked leaf root reports the flow exception. */
+describe.each([SequencingRequestType.START, SequencingRequestType.RETRY_ALL])(
+  "%s blocked leaf root (SB.2.5 / SB.2.2)",
+  (request) => {
+    it("fails with SB.2.2-2 instead of the generic fallback", () => {
+      const root = new Activity("root");
+      addPrecondition(root, RuleActionType.DISABLED);
+      const process = new SequencingProcess(new ActivityTree(root));
+
+      const result = process.sequencingRequestProcess(request);
+
+      expect(result.deliveryRequest).toBe("doNotDeliver");
+      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBe("SB.2.2-2");
+    });
+  },
+);
+
 /** @spec SN Book: SB.2.5 step 3.2; SB.2.2 step 5.1 - the legacy wrapper must not walk past a blocked candidate. */
 it("findFirstDeliverableActivity stops at a blocked first child (SB.2.5 / SB.2.2)", () => {
   const { root, a, tree } = fixture(SequencingRequestType.START);
