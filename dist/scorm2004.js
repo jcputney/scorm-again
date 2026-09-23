@@ -5499,43 +5499,13 @@ this.Scorm2004API = (function () {
      * @param {Activity} fromActivity - The activity to flow from
      * @param {FlowSubprocessMode} direction - The flow direction
      * @return {FlowSubprocessResult} - Result containing the deliverable activity
+     * @spec SN Book: SB.2.3 step 4.3 - returns the SB.2.2 result without retrying a blocked candidate.
      * @spec SN Book: SB.2.3 (Flow Subprocess) - preserves the SB.2.1 effective traversal direction for SB.2.2.
      * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates candidates using the effective direction returned by SB.2.1.
      * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - skipped candidates keep children bypassed when SB.2.3 resumes traversal.
      */ key: "flowSubprocess",
               value: function flowSubprocess(fromActivity, direction) {
-                  var candidateActivity = fromActivity;
-                  var firstIteration = true;
-                  var lastCandidateHadNoChildren = false;
-                  var currentDirection = direction;
-                  var forwardOnlyCluster = null;
-                  while(candidateActivity){
-                      var traversalResult = this.flowTreeTraversalSubprocess(candidateActivity, currentDirection, firstIteration, forwardOnlyCluster);
-                      if (!traversalResult.activity) {
-                          var exceptionCode = null;
-                          if (traversalResult.exception) {
-                              exceptionCode = traversalResult.exception;
-                          } else if (direction === FlowSubprocessMode.BACKWARD) {
-                              exceptionCode = "SB.2.1-3";
-                          } else if (lastCandidateHadNoChildren) {
-                              exceptionCode = "SB.2.1-2";
-                          }
-                          return new FlowSubprocessResult(candidateActivity, false, exceptionCode, traversalResult.endSequencingSession);
-                      }
-                      var effectiveDirection = traversalResult.direction || currentDirection;
-                      if (traversalResult.forwardOnlyCluster) {
-                          forwardOnlyCluster = traversalResult.forwardOnlyCluster;
-                      }
-                      lastCandidateHadNoChildren = traversalResult.activity.children.length > 0 && traversalResult.activity.getAvailableChildren().length === 0;
-                      var deliverable = this.flowActivityTraversalSubprocess(traversalResult.activity, effectiveDirection === FlowSubprocessMode.FORWARD, true, effectiveDirection, forwardOnlyCluster);
-                      if (deliverable) {
-                          return new FlowSubprocessResult(deliverable, true, null, false);
-                      }
-                      candidateActivity = traversalResult.activity;
-                      currentDirection = effectiveDirection;
-                      firstIteration = traversalResult.activity.wasSkipped;
-                  }
-                  return new FlowSubprocessResult(null, false, null, false);
+                  return this.continueFlowActivityTraversal(fromActivity, direction, true, null);
               }
           },
           {
@@ -5755,29 +5725,36 @@ this.Scorm2004API = (function () {
      */ key: "flowActivityTraversalSubprocess",
               value: function flowActivityTraversalSubprocess(activity, _direction, considerChildren, mode) {
                   var forwardTraversalBoundary = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null;
+                  var result = this.evaluateFlowActivity(activity, considerChildren, mode, forwardTraversalBoundary);
+                  return result.deliverable ? result.identifiedActivity : null;
+              }
+          },
+          {
+              /**
+     * Evaluate a flow candidate while retaining its exception and session-end result.
+     * @spec SN Book: SB.2.2 steps 3, 5.1, 6 - only skipped candidates traverse onward; blocked candidates stop before cluster descent.
+     */ key: "evaluateFlowActivity",
+              value: function evaluateFlowActivity(activity, considerChildren, mode, forwardTraversalBoundary) {
                   var parent = activity.parent;
                   if (parent && !parent.sequencingControls.flow) {
-                      return null;
-                  }
-                  if (!activity.isAvailable) {
-                      return null;
+                      return new FlowSubprocessResult(activity, false, "SB.2.2-1");
                   }
                   if (this.checkSkippedRuleSet(activity)) {
                       return this.continueFlowActivityTraversal(activity, mode, true, forwardTraversalBoundary);
                   }
                   if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
-                      return null;
+                      return new FlowSubprocessResult(activity, false, "SB.2.2-2");
+                  }
+                  if (!this.checkActivityProcess(activity)) {
+                      return new FlowSubprocessResult(activity, false, "SB.2.2-2");
                   }
                   if (activity.children.length === 0) {
-                      if (this.checkActivityProcess(activity)) {
-                          return activity;
-                      }
-                      return null;
+                      return new FlowSubprocessResult(activity, true);
                   }
                   if (considerChildren) {
                       return this.continueFlowActivityTraversal(activity, mode, false, forwardTraversalBoundary);
                   }
-                  return null;
+                  return new FlowSubprocessResult(activity, false);
               }
           },
           {
@@ -5787,33 +5764,18 @@ this.Scorm2004API = (function () {
      * @param {FlowSubprocessMode} mode - The flow mode
      * @param {boolean} skipChildren - Whether SB.2.1 should skip children of the start activity
      * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
-     * @return {Activity | null} - The deliverable activity or null
+     * @return {FlowSubprocessResult} - The candidate evaluation or tree traversal failure
      * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - recursively evaluates successive SB.2.1 candidates when a candidate cannot be delivered.
+     * @spec SN Book: SB.2.2 steps 3, 6.3.3; SB.2.3 step 4.3 - propagate recursive results; only skip and cluster descent request another candidate.
+     * @spec SN Book: SB.2.1 step 3.1 - preserve session end on genuine tree exhaustion.
      */ key: "continueFlowActivityTraversal",
               value: function continueFlowActivityTraversal(fromActivity, mode, skipChildren, forwardTraversalBoundary) {
-                  var currentActivity = fromActivity;
-                  var currentMode = mode;
-                  var currentSkipChildren = skipChildren;
-                  var currentBoundary = forwardTraversalBoundary;
-                  var iterations = 0;
-                  var maxIterations = 1e4;
-                  while(true){
-                      if (++iterations > maxIterations) {
-                          throw new Error("Infinite loop detected in flow activity traversal");
-                      }
-                      var traversalResult = this.flowTreeTraversalSubprocess(currentActivity, currentMode, currentSkipChildren, currentBoundary);
-                      if (!traversalResult.activity) {
-                          return null;
-                      }
-                      currentMode = traversalResult.direction || currentMode;
-                      currentBoundary = traversalResult.forwardOnlyCluster || currentBoundary;
-                      var deliverable = this.flowActivityTraversalSubprocess(traversalResult.activity, currentMode === FlowSubprocessMode.FORWARD, true, currentMode, currentBoundary);
-                      if (deliverable) {
-                          return deliverable;
-                      }
-                      currentActivity = traversalResult.activity;
-                      currentSkipChildren = true;
+                  var traversalResult = this.flowTreeTraversalSubprocess(fromActivity, mode, skipChildren, forwardTraversalBoundary);
+                  if (!traversalResult.activity) {
+                      var exception = traversalResult.exception || (mode === FlowSubprocessMode.BACKWARD ? "SB.2.1-3" : fromActivity.children.length > 0 && fromActivity.getAvailableChildren().length === 0 ? "SB.2.1-2" : null);
+                      return new FlowSubprocessResult(fromActivity, false, exception, traversalResult.endSequencingSession);
                   }
+                  return this.evaluateFlowActivity(traversalResult.activity, true, traversalResult.direction || mode, traversalResult.forwardOnlyCluster || forwardTraversalBoundary);
               }
           },
           {
@@ -6690,7 +6652,7 @@ this.Scorm2004API = (function () {
                       try {
                           for(var _iterator = availableChildren[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                               var child = _step.value;
-                              deliverableActivity = this.traversalService.flowActivityTraversalSubprocess(child, true, true, FlowSubprocessMode.FORWARD);
+                              deliverableActivity = this.traversalService.flowActivityTraversalSubprocess(child, true, true, FlowSubprocessMode.FORWARD, currentActivity);
                               if (deliverableActivity) {
                                   break;
                               }
@@ -34421,7 +34383,30 @@ this.Scorm2004API = (function () {
                       }
                       if (state.adlNavState) {
                           this.context.adl.nav.request = state.adlNavState.request || "_none_";
-                          this.context.adl.nav.request_valid = state.adlNavState.request_valid || {};
+                          var requestValid = this.context.adl.nav.request_valid;
+                          var wasInitialized = requestValid.initialized;
+                          var savedValidity = state.adlNavState.request_valid || {};
+                          requestValid.reset();
+                          try {
+                              var _savedValidity_choice, _savedValidity_jump;
+                              for(var _i = 0, _iter = [
+                                  "continue",
+                                  "previous",
+                                  "exit",
+                                  "exitAll",
+                                  "abandon",
+                                  "abandonAll",
+                                  "suspendAll"
+                              ]; _i < _iter.length; _i++){
+                                  var key = _iter[_i];
+                                  var _savedValidity_key;
+                                  requestValid[key] = (_savedValidity_key = savedValidity[key]) !== null && _savedValidity_key !== void 0 ? _savedValidity_key : "unknown";
+                              }
+                              requestValid.choice = (_savedValidity_choice = savedValidity.choice) !== null && _savedValidity_choice !== void 0 ? _savedValidity_choice : {};
+                              requestValid.jump = (_savedValidity_jump = savedValidity.jump) !== null && _savedValidity_jump !== void 0 ? _savedValidity_jump : {};
+                          } finally{
+                              if (wasInitialized) requestValid.initialize();
+                          }
                       }
                       return true;
                   } catch (error) {

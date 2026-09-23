@@ -14,6 +14,67 @@ const metadata: SequencingStateMetadata = {
 };
 
 describe("SCORM 2004 sequencing persistence", () => {
+  it("can reset and deliver the next SCO after restoring a suspended course (#1699)", () => {
+    const delivered = vi.fn();
+    const makeApi = () =>
+      new Scorm2004API({
+        logLevel: 5,
+        sequencing: {
+          activityTree: {
+            id: "course",
+            sequencingControls: { flow: true },
+            children: [{ id: "sco1" }, { id: "sco2" }],
+          },
+          eventListeners: { onActivityDelivery: delivered },
+        },
+      });
+    const original = makeApi();
+    expect(original.processNavigationRequest("start")).toBe(true);
+    expect(original.Initialize("")).toBe("true");
+    expect(original.SetValue("cmi.exit", "suspend")).toBe("true");
+    expect(original.SetValue("adl.nav.request", "suspendAll")).toBe("true");
+    expect(original.Terminate("")).toBe("true");
+
+    const restored = makeApi();
+    expect(restored.deserializeSequencingState(original.serializeSequencingState())).toBe(true);
+    expect(restored.processNavigationRequest("resumeAll")).toBe(true);
+    expect(() => restored.reset()).not.toThrow();
+    expect(restored.Initialize("")).toBe("true");
+    expect(restored.SetValue("adl.nav.request", "continue")).toBe("true");
+    expect(restored.Terminate("")).toBe("true");
+    expect(delivered.mock.lastCall?.[0].id).toBe("sco2");
+    expect(() => restored.reset()).not.toThrow();
+    expect(restored.Initialize("")).toBe("true");
+  });
+
+  it("keeps navigation validity linked to the restored sequencing tree", () => {
+    const makeApi = () =>
+      new Scorm2004API({
+        logLevel: 5,
+        sequencing: {
+          activityTree: {
+            id: "course",
+            sequencingControls: { flow: true },
+            children: [{ id: "sco1" }, { id: "sco2" }],
+          },
+        },
+      });
+    const original = makeApi();
+    expect(original.processNavigationRequest("start")).toBe(true);
+    const restored = makeApi();
+    expect(restored.deserializeSequencingState(original.serializeSequencingState())).toBe(true);
+    expect(restored.Initialize("")).toBe("true");
+    expect(restored.GetValue("adl.nav.request_valid.continue")).toBe("true");
+    expect(restored.GetValue("adl.nav.request_valid.previous")).toBe("false");
+    expect(restored.GetValue("adl.nav.request_valid.choice.{target=sco2}")).toBe("true");
+    expect(restored.GetValue("adl.nav.request_valid.jump.{target=sco2}")).toBe("true");
+    expect(restored.GetValue("adl.nav.request_valid.jump.{target=missing}")).toBe("false");
+
+    expect(restored.SetValue("adl.nav.request", "continue")).toBe("true");
+    expect(restored.Terminate("")).toBe("true");
+    expect(restored.adl.nav.request_valid.previous).toBe("true");
+  });
+
   it("defaults to auto-saving sequencing state on Commit", async () => {
     const saveState = vi.fn().mockResolvedValue(true);
     const api = new Scorm2004API({

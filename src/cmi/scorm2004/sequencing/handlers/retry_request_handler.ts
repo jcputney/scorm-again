@@ -48,7 +48,8 @@ export class RetryRequestHandler {
           child,
           true,
           true,
-          FlowSubprocessMode.FORWARD
+          FlowSubprocessMode.FORWARD,
+          currentActivity,
         );
         if (deliverableActivity) {
           break;

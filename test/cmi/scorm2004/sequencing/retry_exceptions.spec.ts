@@ -5,6 +5,12 @@ import {
   SequencingProcess,
   SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule,
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Retry Sequencing Request Process - Exception Handling (SB.2.10)", () => {
   let activityTree: ActivityTree;
@@ -117,6 +123,37 @@ describe("Retry Sequencing Request Process - Exception Handling (SB.2.10)", () =
 
       expect(result.exception).toBe("SB.2.10-3");
       expect(result.deliveryRequest).toBe("doNotDeliver");
+    });
+
+    it("should keep retry traversal within the retried cluster after a skip", () => {
+      const root = new Activity("root", "Root Activity");
+      const cluster = new Activity("cluster", "Cluster Activity");
+      const child1 = new Activity("child1", "Child 1");
+      const siblingCluster = new Activity("siblingCluster", "Sibling Cluster");
+      const siblingLesson = new Activity("siblingLesson", "Sibling Lesson");
+
+      root.addChild(cluster);
+      root.addChild(siblingCluster);
+      cluster.addChild(child1);
+      siblingCluster.addChild(siblingLesson);
+      activityTree.root = root;
+      activityTree.currentActivity = cluster;
+      sequencingProcess = new SequencingProcess(activityTree);
+
+      cluster.isActive = false;
+      cluster.isSuspended = false;
+      cluster.sequencingControls.flow = true;
+      siblingCluster.sequencingControls.flow = true;
+
+      const skipRule = new SequencingRule(RuleActionType.SKIP);
+      skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      child1.sequencingRules.addPreConditionRule(skipRule);
+
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.RETRY);
+
+      expect(result.exception).toBe("SB.2.10-3");
+      expect(result.deliveryRequest).toBe("doNotDeliver");
+      expect(result.targetActivity).toBeNull();
     });
   });
 

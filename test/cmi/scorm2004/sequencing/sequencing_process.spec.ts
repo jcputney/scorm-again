@@ -1910,6 +1910,7 @@ describe("SequencingProcess", () => {
       expect(result.targetActivity?.id).toBe("child2");
     });
 
+    /** @spec SN Book: SB.2.2 step 5.1 - a blocked sibling is not tree exhaustion. */
     it("should handle all siblings unavailable during flow", () => {
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
@@ -1935,8 +1936,9 @@ describe("SequencingProcess", () => {
 
       const result = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
-      // Should end session since no more available activities
-      expect(result.endSequencingSession).toBe(true);
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.exception).toBe("SB.2.2-2");
+      expect(result.endSequencingSession).toBe(false);
     });
 
     it("should handle deep backward traversal to find available activity", () => {

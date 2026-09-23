@@ -4020,59 +4020,13 @@ class FlowTraversalService {
    * @param {Activity} fromActivity - The activity to flow from
    * @param {FlowSubprocessMode} direction - The flow direction
    * @return {FlowSubprocessResult} - Result containing the deliverable activity
+   * @spec SN Book: SB.2.3 step 4.3 - returns the SB.2.2 result without retrying a blocked candidate.
    * @spec SN Book: SB.2.3 (Flow Subprocess) - preserves the SB.2.1 effective traversal direction for SB.2.2.
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates candidates using the effective direction returned by SB.2.1.
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - skipped candidates keep children bypassed when SB.2.3 resumes traversal.
    */
   flowSubprocess(fromActivity, direction) {
-    let candidateActivity = fromActivity;
-    let firstIteration = true;
-    let lastCandidateHadNoChildren = false;
-    let currentDirection = direction;
-    let forwardOnlyCluster = null;
-    while (candidateActivity) {
-      const traversalResult = this.flowTreeTraversalSubprocess(
-        candidateActivity,
-        currentDirection,
-        firstIteration,
-        forwardOnlyCluster
-      );
-      if (!traversalResult.activity) {
-        let exceptionCode = null;
-        if (traversalResult.exception) {
-          exceptionCode = traversalResult.exception;
-        } else if (direction === FlowSubprocessMode.BACKWARD) {
-          exceptionCode = "SB.2.1-3";
-        } else if (lastCandidateHadNoChildren) {
-          exceptionCode = "SB.2.1-2";
-        }
-        return new FlowSubprocessResult(
-          candidateActivity,
-          false,
-          exceptionCode,
-          traversalResult.endSequencingSession
-        );
-      }
-      const effectiveDirection = traversalResult.direction || currentDirection;
-      if (traversalResult.forwardOnlyCluster) {
-        forwardOnlyCluster = traversalResult.forwardOnlyCluster;
-      }
-      lastCandidateHadNoChildren = traversalResult.activity.children.length > 0 && traversalResult.activity.getAvailableChildren().length === 0;
-      const deliverable = this.flowActivityTraversalSubprocess(
-        traversalResult.activity,
-        effectiveDirection === FlowSubprocessMode.FORWARD,
-        true,
-        effectiveDirection,
-        forwardOnlyCluster
-      );
-      if (deliverable) {
-        return new FlowSubprocessResult(deliverable, true, null, false);
-      }
-      candidateActivity = traversalResult.activity;
-      currentDirection = effectiveDirection;
-      firstIteration = traversalResult.activity.wasSkipped;
-    }
-    return new FlowSubprocessResult(null, false, null, false);
+    return this.continueFlowActivityTraversal(fromActivity, direction, true, null);
   }
   /**
    * Flow Tree Traversal Subprocess (SB.2.1)
@@ -4250,29 +4204,39 @@ class FlowTraversalService {
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - clusters enter children through SB.2.1 using the active traversal direction.
    */
   flowActivityTraversalSubprocess(activity, _direction, considerChildren, mode, forwardTraversalBoundary = null) {
+    const result = this.evaluateFlowActivity(
+      activity,
+      considerChildren,
+      mode,
+      forwardTraversalBoundary
+    );
+    return result.deliverable ? result.identifiedActivity : null;
+  }
+  /**
+   * Evaluate a flow candidate while retaining its exception and session-end result.
+   * @spec SN Book: SB.2.2 steps 3, 5.1, 6 - only skipped candidates traverse onward; blocked candidates stop before cluster descent.
+   */
+  evaluateFlowActivity(activity, considerChildren, mode, forwardTraversalBoundary) {
     const parent = activity.parent;
     if (parent && !parent.sequencingControls.flow) {
-      return null;
-    }
-    if (!activity.isAvailable) {
-      return null;
+      return new FlowSubprocessResult(activity, false, "SB.2.2-1");
     }
     if (this.checkSkippedRuleSet(activity)) {
       return this.continueFlowActivityTraversal(activity, mode, true, forwardTraversalBoundary);
     }
     if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
-      return null;
+      return new FlowSubprocessResult(activity, false, "SB.2.2-2");
+    }
+    if (!this.checkActivityProcess(activity)) {
+      return new FlowSubprocessResult(activity, false, "SB.2.2-2");
     }
     if (activity.children.length === 0) {
-      if (this.checkActivityProcess(activity)) {
-        return activity;
-      }
-      return null;
+      return new FlowSubprocessResult(activity, true);
     }
     if (considerChildren) {
       return this.continueFlowActivityTraversal(activity, mode, false, forwardTraversalBoundary);
     }
-    return null;
+    return new FlowSubprocessResult(activity, false);
   }
   /**
    * Continue SB.2.2 evaluation from the next SB.2.1 flow candidate.
@@ -4280,44 +4244,33 @@ class FlowTraversalService {
    * @param {FlowSubprocessMode} mode - The flow mode
    * @param {boolean} skipChildren - Whether SB.2.1 should skip children of the start activity
    * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
-   * @return {Activity | null} - The deliverable activity or null
+   * @return {FlowSubprocessResult} - The candidate evaluation or tree traversal failure
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - recursively evaluates successive SB.2.1 candidates when a candidate cannot be delivered.
+   * @spec SN Book: SB.2.2 steps 3, 6.3.3; SB.2.3 step 4.3 - propagate recursive results; only skip and cluster descent request another candidate.
+   * @spec SN Book: SB.2.1 step 3.1 - preserve session end on genuine tree exhaustion.
    */
   continueFlowActivityTraversal(fromActivity, mode, skipChildren, forwardTraversalBoundary) {
-    let currentActivity = fromActivity;
-    let currentMode = mode;
-    let currentSkipChildren = skipChildren;
-    let currentBoundary = forwardTraversalBoundary;
-    let iterations = 0;
-    const maxIterations = 1e4;
-    while (true) {
-      if (++iterations > maxIterations) {
-        throw new Error("Infinite loop detected in flow activity traversal");
-      }
-      const traversalResult = this.flowTreeTraversalSubprocess(
-        currentActivity,
-        currentMode,
-        currentSkipChildren,
-        currentBoundary
+    const traversalResult = this.flowTreeTraversalSubprocess(
+      fromActivity,
+      mode,
+      skipChildren,
+      forwardTraversalBoundary
+    );
+    if (!traversalResult.activity) {
+      const exception = traversalResult.exception || (mode === FlowSubprocessMode.BACKWARD ? "SB.2.1-3" : fromActivity.children.length > 0 && fromActivity.getAvailableChildren().length === 0 ? "SB.2.1-2" : null);
+      return new FlowSubprocessResult(
+        fromActivity,
+        false,
+        exception,
+        traversalResult.endSequencingSession
       );
-      if (!traversalResult.activity) {
-        return null;
-      }
-      currentMode = traversalResult.direction || currentMode;
-      currentBoundary = traversalResult.forwardOnlyCluster || currentBoundary;
-      const deliverable = this.flowActivityTraversalSubprocess(
-        traversalResult.activity,
-        currentMode === FlowSubprocessMode.FORWARD,
-        true,
-        currentMode,
-        currentBoundary
-      );
-      if (deliverable) {
-        return deliverable;
-      }
-      currentActivity = traversalResult.activity;
-      currentSkipChildren = true;
     }
+    return this.evaluateFlowActivity(
+      traversalResult.activity,
+      true,
+      traversalResult.direction || mode,
+      traversalResult.forwardOnlyCluster || forwardTraversalBoundary
+    );
   }
   /**
    * Check whether the Skipped pre-condition rule set applies to an activity.
@@ -4908,7 +4861,8 @@ class RetryRequestHandler {
           child,
           true,
           true,
-          FlowSubprocessMode.FORWARD
+          FlowSubprocessMode.FORWARD,
+          currentActivity
         );
         if (deliverableActivity) {
           break;
@@ -26442,7 +26396,27 @@ class SequencingStatePersistence {
       }
       if (state.adlNavState) {
         this.context.adl.nav.request = state.adlNavState.request || "_none_";
-        this.context.adl.nav.request_valid = state.adlNavState.request_valid || {};
+        const requestValid = this.context.adl.nav.request_valid;
+        const wasInitialized = requestValid.initialized;
+        const savedValidity = state.adlNavState.request_valid || {};
+        requestValid.reset();
+        try {
+          for (const key of [
+            "continue",
+            "previous",
+            "exit",
+            "exitAll",
+            "abandon",
+            "abandonAll",
+            "suspendAll"
+          ]) {
+            requestValid[key] = savedValidity[key] ?? "unknown";
+          }
+          requestValid.choice = savedValidity.choice ?? {};
+          requestValid.jump = savedValidity.jump ?? {};
+        } finally {
+          if (wasInitialized) requestValid.initialize();
+        }
       }
       return true;
     } catch (error) {

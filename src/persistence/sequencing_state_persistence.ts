@@ -370,12 +370,29 @@ export class SequencingStatePersistence {
 
       if (state.adlNavState) {
         this.context.adl.nav.request = state.adlNavState.request || "_none_";
-        const requestValidState = state.adlNavState.request_valid || {};
+        const requestValid = this.context.adl.nav.request_valid;
+        const wasInitialized = requestValid.initialized;
+        const savedValidity = state.adlNavState.request_valid || {};
 
-        if (typeof this.context.adl.nav.request_valid?.restore === "function") {
-          this.context.adl.nav.request_valid.restore(requestValidState);
-        } else {
-          this.context.adl.nav.request_valid = requestValidState;
+        // Preserve the live object, its choice/jump helpers, and their sequencing links.
+        // Initialize-time auto-loads must also restore read-only validity values.
+        requestValid.reset();
+        try {
+          for (const key of [
+            "continue",
+            "previous",
+            "exit",
+            "exitAll",
+            "abandon",
+            "abandonAll",
+            "suspendAll",
+          ] as const) {
+            requestValid[key] = savedValidity[key] ?? "unknown";
+          }
+          requestValid.choice = savedValidity.choice ?? {};
+          requestValid.jump = savedValidity.jump ?? {};
+        } finally {
+          if (wasInitialized) requestValid.initialize();
         }
       }
 
