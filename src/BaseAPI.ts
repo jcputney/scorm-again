@@ -16,6 +16,7 @@ import {
   CommitTrigger,
   InternalSettings,
   LogLevel,
+  ResetOptions,
   ResultObject,
   ScheduledCommit,
   Settings,
@@ -338,15 +339,17 @@ export default abstract class BaseAPI implements IBaseAPI {
    * It can optionally accept new settings to configure the API after reset.
    *
    * @param {Settings} settings - Optional new settings to apply after reset
+   * @param {ResetOptions} options - Behavior for this reset only
    */
-  abstract reset(settings?: Settings): void;
+  abstract reset(settings?: Settings, options?: ResetOptions): void;
 
   /**
    * Common reset method for all APIs. New settings are merged with the existing settings.
    * @param {Settings} settings
+   * @param {ResetOptions} options
    * @protected
    */
-  commonReset(settings?: Settings): void {
+  commonReset(settings?: Settings, options?: ResetOptions): void {
     this.apiLog("reset", "Called", LogLevelEnum.INFO);
 
     this.settings = { ...this.settings, ...settings };
@@ -354,7 +357,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.clearScheduledCommit();
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
-    this._eventService.reset();
+    if (options?.preserveListeners !== true) {
+      this._eventService.reset();
+    }
     this.startingData = {};
     this._setCMIElements.clear();
 

@@ -25,6 +25,8 @@ api.on("SetValue", function(element, value) {
 });
 ```
 
+`api.reset()` removes all listeners registered with `on()` by default. To retain them, call `api.reset(undefined, { preserveListeners: true })`. This option applies to that reset only. Register handlers once when preserving them; otherwise re-register after each reset and before launching content. Callbacks configured through `sequencing.eventListeners` are always retained. See [Handling Activity Transitions](./integration-guide.md#handling-activity-transitions) for the complete reset and SCO-local data-loading sequence.
+
 ### Removing Listeners
 
 Use the `off()` method to remove event listeners:

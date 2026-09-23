@@ -494,7 +494,13 @@ class Scorm2004SimplePlayer {
 
 ### SCORM 2004 Sequenced Player
 
-For courses with SCORM 2004 sequencing, leverage the built-in sequencing engine:
+For courses with SCORM 2004 sequencing, use the built-in sequencing engine:
+
+When reusing an API instance, call `reset(undefined, { preserveListeners: true, resetTotalTime: true })` between SCO deliveries. This keeps listeners registered with `api.on()` and clears the outgoing SCO's total time. Load the incoming SCO's saved total before its `Initialize()` call; a SCO without saved time starts at `PT0S`. Callbacks configured through `sequencing.eventListeners` also survive the API reset.
+
+These options apply to one reset call. Without them, `reset()` retains its existing behavior: it clears `on()` listeners and preserves total time. When using `preserveListeners`, register the handlers once rather than adding them again after each reset.
+
+The example below keeps each activity's total in memory for the demo. In an LMS, persist and load that value with the SCO's other runtime data for the learner and attempt; sequencing state does not replace this SCO-local storage.
 
 #### Sequencing Configuration
 
@@ -546,15 +552,17 @@ const COURSE_MANIFEST = {
 #### Initialize API with Sequencing
 
 ```javascript
-import Scorm2004API from 'scorm-again/Scorm2004API';
+import { Scorm2004API } from 'scorm-again/scorm2004';
 
 class Scorm2004SequencedPlayer {
   initApi() {
+    this.totalTimeByActivity = new Map();
+    this.hasDeliveredSco = false;
     this.api = new Scorm2004API({
       autocommit: true,
       renderCommonCommitFields: true,
       sequencing: {
-        activityTree: COURSE_MANIFEST.activities,
+        activityTree: COURSE_MANIFEST.activities[0],
         autoRollupOnCMIChange: false,
         eventListeners: {
           onActivityDelivery: (activity) => this.handleActivityDelivery(activity),
@@ -566,14 +574,25 @@ class Scorm2004SequencedPlayer {
     });
 
     window.API_1484_11 = this.api;
+    this.setupApiListeners();
+  }
 
+  setupApiListeners() {
     this.api.on('Initialize', () => this.handleInitialize());
     this.api.on('SetValue', (el, val) => this.handleSetValue(el, val));
     this.api.on('Terminate', () => this.handleTerminate());
   }
 
   handleActivityDelivery(activity) {
+    if (this.hasDeliveredSco) {
+      this.saveCurrentActivityTime();
+      this.api.reset(undefined, { preserveListeners: true, resetTotalTime: true });
+    }
     this.currentActivityId = activity.id;
+    this.api.loadFromJSON({
+      cmi: { total_time: this.totalTimeByActivity.get(activity.id) ?? 'PT0S' },
+    });
+    this.hasDeliveredSco = true;
 
     const activityDef = this.findActivity(activity.id);
     if (activityDef?.launchUrl) {
@@ -581,6 +600,15 @@ class Scorm2004SequencedPlayer {
     }
 
     this.highlightCurrentActivity(activity.id);
+  }
+
+  saveCurrentActivityTime() {
+    if (this.currentActivityId) {
+      this.totalTimeByActivity.set(
+        this.currentActivityId,
+        this.api.cmi.getCurrentTotalTime(),
+      );
+    }
   }
 
   handleNavValidityUpdate(data) {
@@ -596,6 +624,8 @@ class Scorm2004SequencedPlayer {
   }
 
   handleSessionEnd(data) {
+    this.saveCurrentActivityTime();
+    this.currentActivityId = null;
     if (data.reason === 'satisfied') {
       this.showCompletionScreen({ completionPct: 100 });
     }

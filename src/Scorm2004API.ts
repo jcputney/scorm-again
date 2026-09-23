@@ -35,6 +35,7 @@ import {
   CommitObject,
   CommitTrigger,
   GlobalObjectiveMapEntry,
+  ResetOptions,
   ResultObject,
   RollupRulesSettings,
   SequencingCollectionSettings,
@@ -249,12 +250,16 @@ class Scorm2004API extends BaseAPI {
    * Called when the API needs to be reset
    *
    * @param {Settings} settings - Optional new settings to merge with existing settings
+   * @param {ResetOptions} options - Behavior for this reset only
    */
-  reset(settings?: Settings) {
-    this.commonReset(settings);
+  reset(settings?: Settings, options?: ResetOptions) {
+    this.commonReset(settings, options);
     this._runtimeSetCMIElements.clear();
 
     this.cmi?.reset();
+    if (options?.resetTotalTime === true) {
+      this.cmi.total_time = "PT0S";
+    }
     this.adl?.reset();
     this.applyCurrentActivityLaunchData();
   }
