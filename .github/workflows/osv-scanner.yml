@@ -19,7 +19,7 @@ jobs:
   # than a moving tag for supply-chain hardening: tags can be
   # retargeted upstream, but a SHA guarantees the exact workflow
   # code that was reviewed is what runs in CI. The SHA below
-  # corresponds to google/osv-scanner-action v2.2.4. Update
+  # corresponds to google/osv-scanner-action v2.6.0. Update
   # deliberately; Dependabot's `github-actions` ecosystem keeps
   # SHA-pinned references current via PRs.
   scan-scheduled:
@@ -28,7 +28,6 @@ jobs:
     with:
       scan-args: |-
         --recursive
-        --skip-git
         ./
     permissions:
       actions: read
@@ -41,7 +40,6 @@ jobs:
     with:
       scan-args: |-
         --recursive
-        --skip-git
         ./
     permissions:
       actions: read
