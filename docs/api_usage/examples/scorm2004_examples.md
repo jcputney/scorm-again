@@ -501,6 +501,12 @@ console.log("Completed Modules:", parsedData.completedModules);
 
 ## Handling Interactions
 
+SCORM 2004 RTE section 4.2.9 permits interaction journaling: when a learner answers
+the same question again, append a record at `cmi.interactions._count` using the
+same question ID. The earlier response remains available at its original index.
+Objective IDs must still be unique within `cmi.objectives` and within each
+interaction's `objectives` collection.
+
 ### Recording a Multiple Choice Question
 
 ```javascript

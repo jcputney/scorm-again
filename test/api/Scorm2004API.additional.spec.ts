@@ -1045,7 +1045,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       });
     });
 
-    describe("Interaction ID Uniqueness", (): void => {
+    describe("Interaction IDs", (): void => {
       it("should allow setting unique interaction IDs", (): void => {
         const scorm2004API = apiInitialized();
 
@@ -1056,7 +1056,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         expect(scorm2004API.lmsGetLastError()).toBe("0");
       });
 
-      it("should reject duplicate interaction IDs with error 351", (): void => {
+      it("should allow repeated interaction IDs for journaling", (): void => {
         const scorm2004API = apiInitialized();
 
         // Set first interaction ID
@@ -1065,11 +1065,12 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         );
         expect(scorm2004API.lmsGetLastError()).toBe("0");
 
-        // Attempt to set same ID on different interaction - should fail
+        // SCORM 2004 RTE 4.2.9 defines interactions as a bag, allowing repeated IDs.
         expect(scorm2004API.lmsSetValue("cmi.interactions.1.id", "duplicate-interaction")).toBe(
-          "false",
+          "true",
         );
-        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+        expect(scorm2004API.lmsGetValue("cmi.interactions._count")).toBe("2");
       });
 
       it("should allow setting the same ID on the same interaction (idempotent)", (): void => {

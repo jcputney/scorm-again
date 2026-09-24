@@ -55,7 +55,7 @@ export interface CMIValueAccessContext {
   /** Validate a correct response value for SCORM 2004 interactions */
   validateCorrectResponse: (CMIElement: string, value: string) => void;
 
-  /** Check for duplicate ID in objectives/interactions arrays */
+  /** Check for duplicate IDs in objective collections */
   checkForDuplicateId: (CMIElement: string, value: string) => boolean;
 
   /** Get or create a child element for array operations */
@@ -374,7 +374,7 @@ export class CMIValueAccessService {
         return global_constants.SCORM_FALSE;
       }
 
-      // SCORM 2004: Check for duplicate IDs in objectives and interactions arrays
+      // SCORM 2004: Check for duplicate IDs in objective collections.
       if (scorm2004 && attribute === "id" && this.context.isInitialized()) {
         const duplicateError = this.context.checkForDuplicateId(CMIElement, value);
         if (duplicateError) {

@@ -320,16 +320,16 @@ describe("Error Conditions Tests", () => {
         expect(diagnostic.length).toBeGreaterThan(0);
       });
 
-      it("should provide diagnostic for SetValue with duplicate interaction ID", () => {
+      it("should report no error for SetValue with a repeated interaction ID", () => {
         const api = scorm2004Api();
         api.lmsInitialize();
 
         // Set first interaction ID
         expect(api.lmsSetValue("cmi.interactions.0.id", "interaction-1")).toEqual("true");
 
-        // Try to set duplicate ID - should fail with error 351
-        expect(api.lmsSetValue("cmi.interactions.1.id", "interaction-1")).toEqual("false");
-        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_SET_FAILURE));
+        // Repeated IDs are valid for interaction journals (SCORM 2004 RTE 4.2.9).
+        expect(api.lmsSetValue("cmi.interactions.1.id", "interaction-1")).toEqual("true");
+        expect(api.lmsGetLastError()).toEqual("0");
 
         // Diagnostic should provide information (exact wording may vary)
         const diagnostic = api.lmsGetDiagnostic("");
