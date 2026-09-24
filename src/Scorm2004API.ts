@@ -1689,6 +1689,8 @@ class Scorm2004API extends BaseAPI {
 
   /**
    * Get tracking data for a specific activity
+   * attemptCompletionAmount includes completion measure rollup for clusters.
+   * Only use it when attemptCompletionAmountStatus is true; false means unknown.
    * @param {string} activityId
    * @return {object | null}
    */
@@ -1696,6 +1698,8 @@ class Scorm2004API extends BaseAPI {
     completionStatus: string;
     successStatus: string;
     progressMeasure: number | null;
+    attemptCompletionAmount: number;
+    attemptCompletionAmountStatus: boolean;
     score: number | null;
   } | null {
     if (!this._sequencing?.activityTree) {
@@ -1711,6 +1715,8 @@ class Scorm2004API extends BaseAPI {
       completionStatus: activity.completionStatus || "unknown",
       successStatus: activity.successStatus || "unknown",
       progressMeasure: activity.progressMeasure ?? null,
+      attemptCompletionAmount: activity.attemptCompletionAmount,
+      attemptCompletionAmountStatus: activity.attemptCompletionAmountStatus,
       score: activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure : null,
     };
   }
