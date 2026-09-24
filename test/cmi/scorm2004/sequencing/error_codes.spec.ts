@@ -341,21 +341,17 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
   });
 
   describe("SB.2.1-2: No available children to deliver", () => {
-    it("should return SB.2.1-2 when cluster has no available children", () => {
-      // Make all leaves unavailable
-      leaf1.isAvailable = false;
-      leaf2.isAvailable = false;
-      leaf3.isAvailable = false;
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.1 - preserve the no-available-children traversal exception. */
+    it("should return SB.2.1-2 when cluster has no available children (SB.2.5)", () => {
+      // @spec SN Book: SB.2.1; SB.2.2 step 5.1 - an empty available-child list exercises tree traversal; isAvailable=false instead blocks Check Activity.
+      cluster1.setProcessedChildren([]);
 
       // Try to start
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START,
-        null
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START, null);
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      // Should indicate no available children
-      expect(result.exception).toMatch(/SB\.2\.(1-2|5-3)/);
+      // @spec SN Book: SB.2.5 step 3.2.1 - the precise Flow exception replaces the former SB.2.5-3 fallback allowance.
+      expect(result.exception).toBe("SB.2.1-2");
     });
 
     it("should deliver when cluster has available children", () => {

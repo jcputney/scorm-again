@@ -626,7 +626,8 @@ describe("EndSequencingSession Handling", () => {
       expect(result.endSequencingSession).toBe(true);
     });
 
-    it("should handle tree with no deliverable children gracefully", () => {
+    /** @spec SN Book: SB.2.5 step 3.2.1; SB.2.2 step 5.1 - preserve the unavailable child's failure instead of SB.2.5-3. */
+    it("should report an unavailable first child without ending the session (SB.2.5 / SB.2.2-2)", () => {
       // Tree with children but none are deliverable
       const emptyTree = new ActivityTree();
       const emptyRoot = new Activity("root", "Empty Course");
@@ -638,13 +639,11 @@ describe("EndSequencingSession Handling", () => {
 
       const emptyProcess = new SequencingProcess(emptyTree);
 
-      const result = emptyProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = emptyProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Should fail to start (no activities available)
-      expect(result.exception).toBe("SB.2.5-3");
-      // Note: endSequencingSession is false here because START failed before flow
+      expect(result.exception).toBe("SB.2.2-2");
+      // @spec SN Book: SB.2.5 step 3.2.1 - a blocked candidate fails Start without exhausting the tree.
       expect(result.endSequencingSession).toBe(false);
     });
   });

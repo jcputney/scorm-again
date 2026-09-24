@@ -1152,7 +1152,8 @@ describe("SequencingProcess", () => {
       expect(result.exception).toBe("SB.2.10-2");
     });
 
-    it("should reject retry when no deliverable child found in cluster", () => {
+    /** @spec SN Book: SB.2.10 step 3.2; SB.2.2 step 5.1 - propagate the first unavailable child's failure instead of SB.2.10-3. */
+    it("should reject retry at an unavailable first child (SB.2.10 / SB.2.2-2)", () => {
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const cluster = new Activity("cluster", "Cluster");
@@ -1176,12 +1177,12 @@ describe("SequencingProcess", () => {
         tree,
         new SequencingRules(),
         new SequencingControls(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       const result = process.sequencingRequestProcess(SequencingRequestType.RETRY);
 
-      expect(result.exception).toBe("SB.2.10-3");
+      expect(result.exception).toBe("SB.2.2-2");
     });
   });
 

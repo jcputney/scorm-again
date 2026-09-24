@@ -26,6 +26,7 @@ export class FlowRequestHandler {
    * Start Sequencing Request Process (SB.2.5)
    * Initiates a new sequencing session from the root
    * @return {SequencingResult}
+   * @spec SN Book: SB.2.5 steps 3.2, 3.2.1 (Start Sequencing Request Process) - apply Flow once and preserve its exception.
    */
   public handleStart(): SequencingResult {
     const result = new SequencingResult();
@@ -43,17 +44,18 @@ export class FlowRequestHandler {
     }
 
     // Find the first deliverable activity
-    const deliverableActivity = this.traversalService.findFirstDeliverableActivity(
-      this.activityTree.root
+    const flowResult = this.traversalService.findFirstDeliverableActivityResult(
+      this.activityTree.root,
     );
 
-    if (!deliverableActivity) {
-      result.exception = "SB.2.5-3";
+    // @spec SN Book: SB.2.5 step 3.2.1 - return the exception identified by the Flow Subprocess.
+    if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+      result.exception = flowResult.exception || "SB.2.5-3";
       return result;
     }
 
     result.deliveryRequest = DeliveryRequestType.DELIVER;
-    result.targetActivity = deliverableActivity;
+    result.targetActivity = flowResult.identifiedActivity;
     return result;
   }
 

@@ -251,6 +251,8 @@ class Scorm2004API extends BaseAPI {
    *
    * @param {Settings} settings - Optional new settings to merge with existing settings
    * @param {ResetOptions} options - Behavior for this reset only
+   * @spec SCORM 2004 4th Ed. RTE 4.4 (adl.nav.request_valid) - navigation validity is LMS-determined, not per-SCO run-time data.
+   * @spec SN Book: NB.2.1 (Navigation Request Process) - refresh validity for the current sequencing activity after a SCO reset.
    */
   reset(settings?: Settings, options?: ResetOptions) {
     this.commonReset(settings, options);
@@ -262,6 +264,12 @@ class Scorm2004API extends BaseAPI {
     }
     this.adl?.reset();
     this.applyCurrentActivityLaunchData();
+
+    // @spec SCORM 2004 4th Ed. RTE 4.4; SN Book: NB.2.1 - restore the LMS navigation connection and validity only for a delivered activity.
+    if (this._sequencing?.getCurrentActivity()) {
+      this.adl.sequencing = this._sequencing;
+      this._sequencing.overallSequencingProcess?.updateNavigationValidity();
+    }
   }
 
   /**
