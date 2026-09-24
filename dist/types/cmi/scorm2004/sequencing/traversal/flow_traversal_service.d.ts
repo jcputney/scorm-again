@@ -32,6 +32,7 @@ export declare class FlowTraversalService {
     private isActivityLastOverall;
     private terminateDescendentAttempts;
     findFirstDeliverableActivity(cluster: Activity): Activity | null;
+    findFirstDeliverableActivityResult(cluster: Activity, boundary?: Activity | null): FlowSubprocessResult;
     canDeliver(activity: Activity): boolean;
 }
 //# sourceMappingURL=flow_traversal_service.d.ts.map

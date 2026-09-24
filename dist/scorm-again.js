@@ -6050,41 +6050,30 @@
      * Used for START and RETRY_ALL requests
      * @param {Activity} cluster - The cluster activity
      * @return {Activity | null} - The first deliverable activity
-     * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - START/RETRY_ALL cluster search remains bounded to the starting cluster while evaluating SB.2.2 candidates.
+     * @spec SN Book: SB.2.5 step 3.2; SB.2.2 steps 3, 5.1 - only Skipped candidates permit traversal past a failed candidate.
      */ key: "findFirstDeliverableActivity",
               value: function findFirstDeliverableActivity(cluster) {
+                  var result = this.findFirstDeliverableActivityResult(cluster);
+                  return result.deliverable ? result.identifiedActivity : null;
+              }
+          },
+          {
+              /**
+     * Enter a cluster through one Flow Subprocess, retaining any traversal exception.
+     * @param {Activity} cluster - The activity to enter
+     * @param {Activity | null} boundary - Optional boundary for a cluster Retry
+     * @return {FlowSubprocessResult} - Delivery candidate or the original flow failure
+     * @spec SN Book: SB.2.5 steps 3.2, 3.2.1 (Start Sequencing Request Process) - flow Forward with Consider Children true exactly once.
+     * @spec SN Book: SB.2.10 step 3 (Retry Sequencing Request Process) - enter the retried cluster and retain the Flow Subprocess result.
+     * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - child selection and randomization occur when traversal enters the cluster.
+     */ key: "findFirstDeliverableActivityResult",
+              value: function findFirstDeliverableActivityResult(cluster) {
+                  var boundary = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null;
                   if (cluster.children.length === 0) {
-                      if (this.checkActivityProcess(cluster)) {
-                          return cluster;
-                      }
-                      return null;
+                      var deliverable = this.checkActivityProcess(cluster);
+                      return new FlowSubprocessResult(cluster, deliverable, deliverable ? null : "SB.2.2-2");
                   }
-                  this.ensureSelectionAndRandomization(cluster);
-                  var availableChildren = cluster.getAvailableChildren();
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = availableChildren[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          var deliverable = this.flowActivityTraversalSubprocess(child, true, true, FlowSubprocessMode.FORWARD, cluster);
-                          if (deliverable) {
-                              return deliverable;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return null;
+                  return this.continueFlowActivityTraversal(cluster, FlowSubprocessMode.FORWARD, false, boundary);
               }
           },
           {
@@ -6145,6 +6134,7 @@
      * Start Sequencing Request Process (SB.2.5)
      * Initiates a new sequencing session from the root
      * @return {SequencingResult}
+     * @spec SN Book: SB.2.5 steps 3.2, 3.2.1 (Start Sequencing Request Process) - apply Flow once and preserve its exception.
      */ key: "handleStart",
               value: function handleStart() {
                   var result = new SequencingResult();
@@ -6156,13 +6146,13 @@
                       result.exception = "SB.2.5-2";
                       return result;
                   }
-                  var deliverableActivity = this.traversalService.findFirstDeliverableActivity(this.activityTree.root);
-                  if (!deliverableActivity) {
-                      result.exception = "SB.2.5-3";
+                  var flowResult = this.traversalService.findFirstDeliverableActivityResult(this.activityTree.root);
+                  if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+                      result.exception = flowResult.exception || "SB.2.5-3";
                       return result;
                   }
                   result.deliveryRequest = DeliveryRequestType.DELIVER;
-                  result.targetActivity = deliverableActivity;
+                  result.targetActivity = flowResult.identifiedActivity;
                   return result;
               }
           },
@@ -6807,6 +6797,7 @@
      * Retry Sequencing Request Process (SB.2.10)
      * @param {Activity} currentActivity - The current activity
      * @return {SequencingResult}
+     * @spec SN Book: SB.2.10 step 3 (Retry Sequencing Request Process) - apply Flow once to a cluster and preserve its failure.
      */ key: "handleRetry",
               value: function handleRetry(currentActivity) {
                   var result = new SequencingResult();
@@ -6815,38 +6806,13 @@
                       return result;
                   }
                   if (currentActivity.children.length > 0) {
-                      this.traversalService.ensureSelectionAndRandomization(currentActivity);
-                      var availableChildren = currentActivity.getAvailableChildren();
-                      var deliverableActivity = null;
-                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                      try {
-                          for(var _iterator = availableChildren[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                              var child = _step.value;
-                              deliverableActivity = this.traversalService.flowActivityTraversalSubprocess(child, true, true, FlowSubprocessMode.FORWARD, currentActivity);
-                              if (deliverableActivity) {
-                                  break;
-                              }
-                          }
-                      } catch (err) {
-                          _didIteratorError = true;
-                          _iteratorError = err;
-                      } finally{
-                          try {
-                              if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                  _iterator.return();
-                              }
-                          } finally{
-                              if (_didIteratorError) {
-                                  throw _iteratorError;
-                              }
-                          }
-                      }
-                      if (!deliverableActivity) {
-                          result.exception = "SB.2.10-3";
+                      var flowResult = this.traversalService.findFirstDeliverableActivityResult(currentActivity, currentActivity);
+                      if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+                          result.exception = flowResult.exception || "SB.2.10-3";
                           return result;
                       }
                       result.deliveryRequest = DeliveryRequestType.DELIVER;
-                      result.targetActivity = deliverableActivity;
+                      result.targetActivity = flowResult.identifiedActivity;
                       return result;
                   }
                   this.terminateDescendentAttempts(currentActivity);
@@ -6860,6 +6826,7 @@
      * Retry All Sequencing Request Process
      * Clears current activity and restarts from the root
      * @return {SequencingResult}
+     * @spec SN Book: SB.2.10; SB.2.5 steps 3.2, 3.2.1 - restart with one Forward Flow Subprocess and retain its exception.
      */ key: "handleRetryAll",
               value: function handleRetryAll() {
                   this.activityTree.currentActivity = null;
@@ -6868,14 +6835,14 @@
                       result2.exception = "SB.2.10-1";
                       return result2;
                   }
-                  var deliverableActivity = this.traversalService.findFirstDeliverableActivity(this.activityTree.root);
+                  var flowResult = this.traversalService.findFirstDeliverableActivityResult(this.activityTree.root);
                   var result = new SequencingResult();
-                  if (!deliverableActivity) {
-                      result.exception = "SB.2.10-3";
+                  if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+                      result.exception = flowResult.exception || "SB.2.10-3";
                       return result;
                   }
                   result.deliveryRequest = DeliveryRequestType.DELIVER;
-                  result.targetActivity = deliverableActivity;
+                  result.targetActivity = flowResult.identifiedActivity;
                   return result;
               }
           },
@@ -38165,9 +38132,11 @@
      *
      * @param {Settings} settings - Optional new settings to merge with existing settings
      * @param {ResetOptions} options - Behavior for this reset only
+     * @spec SCORM 2004 4th Ed. RTE 4.4 (adl.nav.request_valid) - navigation validity is LMS-determined, not per-SCO run-time data.
+     * @spec SN Book: NB.2.1 (Navigation Request Process) - refresh validity for the current sequencing activity after a SCO reset.
      */ key: "reset",
               value: function reset(settings, options) {
-                  var _this_cmi, _this_adl;
+                  var _this_cmi, _this_adl, _this__sequencing;
                   this.commonReset(settings, options);
                   this._runtimeSetCMIElements.clear();
                   (_this_cmi = this.cmi) === null || _this_cmi === void 0 ? void 0 : _this_cmi.reset();
@@ -38176,6 +38145,11 @@
                   }
                   (_this_adl = this.adl) === null || _this_adl === void 0 ? void 0 : _this_adl.reset();
                   this.applyCurrentActivityLaunchData();
+                  if ((_this__sequencing = this._sequencing) === null || _this__sequencing === void 0 ? void 0 : _this__sequencing.getCurrentActivity()) {
+                      var _this__sequencing_overallSequencingProcess;
+                      this.adl.sequencing = this._sequencing;
+                      (_this__sequencing_overallSequencingProcess = this._sequencing.overallSequencingProcess) === null || _this__sequencing_overallSequencingProcess === void 0 ? void 0 : _this__sequencing_overallSequencingProcess.updateNavigationValidity();
+                  }
               }
           },
           {
@@ -39387,6 +39361,8 @@
           {
               /**
      * Get tracking data for a specific activity
+     * attemptCompletionAmount includes completion measure rollup for clusters.
+     * Only use it when attemptCompletionAmountStatus is true; false means unknown.
      * @param {string} activityId
      * @return {object | null}
      */ key: "getActivityTrackingData",
@@ -39404,6 +39380,8 @@
                       completionStatus: activity.completionStatus || "unknown",
                       successStatus: activity.successStatus || "unknown",
                       progressMeasure: (_activity_progressMeasure = activity.progressMeasure) !== null && _activity_progressMeasure !== void 0 ? _activity_progressMeasure : null,
+                      attemptCompletionAmount: activity.attemptCompletionAmount,
+                      attemptCompletionAmountStatus: activity.attemptCompletionAmountStatus,
                       score: activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure : null
                   };
               }

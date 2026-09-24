@@ -93,6 +93,8 @@ declare class Scorm2004API extends BaseAPI {
         completionStatus: string;
         successStatus: string;
         progressMeasure: number | null;
+        attemptCompletionAmount: number;
+        attemptCompletionAmountStatus: boolean;
         score: number | null;
     } | null;
     saveSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean>;
