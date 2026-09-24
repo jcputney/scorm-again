@@ -876,3 +876,10 @@ const api: Scorm2004API = new Scorm2004API(settings);
 - [Sequencing](/docs/advanced/sequencing) - SCORM 2004 sequencing and navigation
 - [LMS Integration](/docs/lms-integration/integration-guide) - LMS integration guide
 - [Multi-SCO Support](/docs/lms-integration/multi-sco-support) - Multi-SCO navigation utilities
+
+## Host navigation preview
+
+Use [`previewNavigationRequest("continue" | "previous")`](../lms-integration/navigation-preview.md)
+to detect a blocked player navigation before terminating the current SCO. It evaluates
+current reported progress on isolated sequencing state, without changing the live
+attempt or `adl.nav.request_valid` semantics. Unsupported predictions return `unknown`.

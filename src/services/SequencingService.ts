@@ -22,10 +22,12 @@ import { global_constants } from "../constants/api_constants";
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import { evaluateCompletionStatusFromThreshold } from "../cmi/scorm2004/completion_status_evaluation";
 import { RuleCondition } from "../cmi/scorm2004/sequencing/sequencing_rules";
+import { clonePreviewState } from "../cmi/scorm2004/sequencing/utils/clone_preview_state";
 import {
   AuxiliaryResource,
   HideLmsUiItem,
   SequencingEventListeners,
+  NavigationPreview,
 } from "../types/sequencing_types";
 
 /**
@@ -68,6 +70,7 @@ export class SequencingService {
   private eventListeners: SequencingEventListeners = {};
   private configuration: SequencingConfiguration;
   private isInitialized: boolean = false;
+  private navigationPreviewConfiguration: SequencingConfiguration | null = null;
   private isSequencingActive: boolean = false;
   private lastCMIValues: Map<string, any> = new Map();
   private lastSequencingResult: SequencingResult | null = null;
@@ -132,6 +135,8 @@ export class SequencingService {
       if (!this.sequencing.initialized) {
         this.sequencing.initialize();
       }
+
+      this.navigationPreviewConfiguration = this.configuration;
 
       // Set up ADL Nav connection
       this.sequencing.adlNav = this.adl.nav;
@@ -275,6 +280,95 @@ export class SequencingService {
   ): boolean {
     const prepared = this.prepareNavigationRequest(request, targetActivityId, exitType);
     return prepared ? this.completeNavigationRequest(prepared) : false;
+  }
+
+  /**
+   * Evaluate host flow navigation on isolated live tracking data. No runtime
+   * termination, host events, persistence or delivery callbacks are performed.
+   * @spec SCORM 2004 SN OP.1 / TB.2.3 / UP.4 / SB.2.2 - End Attempt and
+   * objective transfer must precede checking the next activity's preconditions.
+   */
+  public previewNavigationRequest(request: "continue" | "previous"): NavigationPreview {
+    const unknown: NavigationPreview = {
+      outcome: "unknown",
+      targetActivityId: null,
+      endSequencingSession: false,
+      exception: null,
+    };
+    if (
+      !this.isInitialized ||
+      !this.overallSequencingProcess ||
+      this.isDeliveryInProgress() ||
+      !this.sequencing.activityTree.currentActivity?.isActive ||
+      (request !== "continue" && request !== "previous")
+    )
+      return unknown;
+
+    try {
+      const configuration = this.navigationPreviewConfiguration!;
+      const tree = clonePreviewState(this.sequencing.activityTree);
+      // A speculative draw must not consume randomness or promise an outcome
+      // that a later real draw can change. Existing deterministic order is copied.
+      const pending = tree.root ? [tree.root] : [];
+      while (pending.length) {
+        const activity = pending.pop()!;
+        const controls = activity.sequencingControls;
+        if (
+          (controls.randomizeChildren && controls.randomizationTiming !== "never") ||
+          (controls.selectCount !== null && controls.selectionTiming !== "never")
+        ) {
+          return unknown;
+        }
+        pending.push(...activity.children);
+      }
+      const process = new SequencingProcess(tree, null, null, null, {
+        ...(configuration.now ? { now: configuration.now } : {}),
+        ...(configuration.getAttemptElapsedSeconds
+          ? { getAttemptElapsedSeconds: configuration.getAttemptElapsedSeconds }
+          : {}),
+        ...(configuration.getActivityElapsedSeconds
+          ? { getActivityElapsedSeconds: configuration.getActivityElapsedSeconds }
+          : {}),
+      });
+      const cmiData = this.getCMIDataForTransfer();
+      let ended = false;
+      const preview = new OverallSequencingProcess(
+        tree,
+        process,
+        new RollupProcess(),
+        null,
+        (event) => {
+          if (event === "onSequencingSessionEnd") ended = true;
+        },
+        {
+          getCMIData: () => cmiData,
+          ...(configuration.now ? { now: configuration.now } : {}),
+          defaultHideLmsUi: clonePreviewState(this.sequencing.hideLmsUi),
+          defaultAuxiliaryResources: clonePreviewState(this.sequencing.auxiliaryResources),
+        },
+      );
+      // Copy the map directly, retaining field-level known/dirty metadata without
+      // a persistence restore's normalization or synchronization side effects.
+      preview.getGlobalObjectiveMap().clear();
+      for (const [id, value] of this.overallSequencingProcess.getGlobalObjectiveMap()) {
+        preview.getGlobalObjectiveMap().set(id, clonePreviewState(value));
+      }
+      preview.setContentDelivered(this.overallSequencingProcess.hasContentBeenDelivered());
+      const result = preview.processNavigationRequest(
+        request === "continue" ? NavigationRequestType.CONTINUE : NavigationRequestType.PREVIOUS,
+        null,
+        this.cmi.getExitValueInternal() || "",
+      );
+      return {
+        outcome: result.valid ? "allowed" : "blocked",
+        targetActivityId: result.targetActivity?.id ?? null,
+        endSequencingSession: ended,
+        exception: result.exception ?? null,
+      };
+    } catch {
+      // Unsupported/custom state must not lock the learner out or alter API errors.
+      return unknown;
+    }
   }
 
   /**

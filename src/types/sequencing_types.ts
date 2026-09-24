@@ -329,3 +329,10 @@ export interface SequencingEventListeners {
   onActivityAttemptEnd?: (activity: IActivity) => void;
   onSequencingStateChange?: (state: any) => void;
 }
+/** A host navigation preview; this does not replace adl.nav.request_valid. */
+export interface NavigationPreview {
+  outcome: "allowed" | "blocked" | "unknown";
+  targetActivityId: string | null;
+  endSequencingSession: boolean;
+  exception: string | null;
+}
