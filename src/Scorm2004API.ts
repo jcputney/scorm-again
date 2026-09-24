@@ -47,6 +47,7 @@ import {
 } from "./types";
 import { IHttpService } from "./interfaces";
 import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
+import type { NavigationPreview } from "./types/sequencing_types";
 
 // Import extracted classes
 import {
@@ -1608,6 +1609,23 @@ class Scorm2004API extends BaseAPI {
    */
   public getSequencingService(): SequencingService | null {
     return this._sequencingService;
+  }
+
+  /**
+   * Preview a host Continue/Previous click without ending the SCO or changing its
+   * tracking data. The result reflects currently reported CMI, not future SCO writes.
+   * This host extension does not change SCORM's adl.nav.request_valid semantics.
+   */
+  public previewNavigationRequest(request: "continue" | "previous"): NavigationPreview {
+    if (this.isInitialized() && this._sequencingService) {
+      return this._sequencingService.previewNavigationRequest(request);
+    }
+    return {
+      outcome: "unknown",
+      targetActivityId: null,
+      endSequencingSession: false,
+      exception: null,
+    };
   }
 
   /**
