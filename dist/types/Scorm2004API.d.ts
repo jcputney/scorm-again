@@ -7,6 +7,7 @@ import { ADL } from "./cmi/scorm2004/adl";
 import { CommitObject, CommitTrigger, GlobalObjectiveMapEntry, ResetOptions, ResultObject, SequencingStateMetadata, Settings } from "./types";
 import { IHttpService } from "./interfaces";
 import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
+import type { NavigationPreview } from "./types/sequencing_types";
 declare class Scorm2004API extends BaseAPI {
     private _version;
     private readonly _sequencing;
@@ -83,6 +84,7 @@ declare class Scorm2004API extends BaseAPI {
     private initializeSequencingService;
     private buildSequencingEventListeners;
     getSequencingService(): SequencingService | null;
+    previewNavigationRequest(request: "continue" | "previous"): NavigationPreview;
     setSequencingEventListeners(listeners: SequencingEventListeners): void;
     updateSequencingConfiguration(config: SequencingConfiguration): void;
     getSequencingState(): any;

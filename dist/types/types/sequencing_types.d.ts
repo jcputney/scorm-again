@@ -272,4 +272,10 @@ export interface SequencingEventListeners {
     onActivityAttemptEnd?: (activity: IActivity) => void;
     onSequencingStateChange?: (state: any) => void;
 }
+export interface NavigationPreview {
+    outcome: "allowed" | "blocked" | "unknown";
+    targetActivityId: string | null;
+    endSequencingSession: boolean;
+    exception: string | null;
+}
 //# sourceMappingURL=sequencing_types.d.ts.map

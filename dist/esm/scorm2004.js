@@ -15726,6 +15726,387 @@ class OverallSequencingProcess {
   }
 }
 
+class ActivityTree extends BaseCMI {
+  _root = null;
+  _currentActivity = null;
+  _suspendedActivity = null;
+  _activities = /* @__PURE__ */ new Map();
+  /**
+   * Constructor for ActivityTree
+   */
+  constructor(root) {
+    super("activityTree");
+    if (root) {
+      this.root = root;
+    }
+  }
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    if (this._root) {
+      this._root.initialize();
+    }
+  }
+  /**
+   * Called when the API needs to be reset
+   */
+  reset() {
+    this._initialized = false;
+    this._currentActivity = null;
+    this._suspendedActivity = null;
+    this._activities.clear();
+    if (this._root) {
+      this._root.reset();
+      this._activities.set(this._root.id, this._root);
+      this._addActivitiesToMap(this._root);
+    }
+  }
+  /**
+   * Getter for root
+   * @return {Activity | null}
+   */
+  get root() {
+    return this._root;
+  }
+  /**
+   * Setter for root
+   * @param {Activity} root
+   */
+  set root(root) {
+    if (root !== null && !(root instanceof Activity)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".root",
+        scorm2004_errors.TYPE_MISMATCH
+      );
+    }
+    this._activities.clear();
+    this._root = root;
+    if (root) {
+      this._activities.set(root.id, root);
+      this._addActivitiesToMap(root);
+    }
+  }
+  /**
+   * Recursively add activities to the activities map
+   * @param {Activity} activity
+   * @private
+   */
+  _addActivitiesToMap(activity) {
+    for (const child of activity.children) {
+      this._activities.set(child.id, child);
+      this._addActivitiesToMap(child);
+    }
+  }
+  /**
+   * Getter for currentActivity
+   * @return {Activity | null}
+   */
+  get currentActivity() {
+    return this._currentActivity;
+  }
+  /**
+   * Setter for currentActivity
+   * @param {Activity | null} activity
+   */
+  set currentActivity(activity) {
+    if (activity !== null && !(activity instanceof Activity)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".currentActivity",
+        scorm2004_errors.TYPE_MISMATCH
+      );
+    }
+    if (this._currentActivity) {
+      this._currentActivity.isActive = false;
+      let ancestor = this._currentActivity.parent;
+      while (ancestor) {
+        ancestor.isActive = false;
+        ancestor = ancestor.parent;
+      }
+    }
+    this._currentActivity = activity;
+    if (activity) {
+      activity.isActive = true;
+      let ancestor = activity.parent;
+      while (ancestor) {
+        ancestor.isActive = true;
+        ancestor = ancestor.parent;
+      }
+    }
+  }
+  /**
+   * Set current activity without activating it
+   * This method is used when the sequencing process needs to update the current activity
+   * pointer without triggering the automatic activation behavior (e.g., after termination).
+   * Unlike the normal setter, this method only deactivates the old current activity (and
+   * non-shared ancestors) WITHOUT activating the new current activity.
+   * @param {Activity | null} activity - The activity to set as current
+   */
+  setCurrentActivityWithoutActivation(activity) {
+    if (activity !== null && !(activity instanceof Activity)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".currentActivity",
+        scorm2004_errors.TYPE_MISMATCH
+      );
+    }
+    if (this._currentActivity) {
+      const activitiesToPreserve = /* @__PURE__ */ new Set();
+      if (activity) {
+        activitiesToPreserve.add(activity);
+        let ancestor2 = activity.parent;
+        while (ancestor2) {
+          activitiesToPreserve.add(ancestor2);
+          ancestor2 = ancestor2.parent;
+        }
+      }
+      this._currentActivity.isActive = false;
+      let ancestor = this._currentActivity.parent;
+      while (ancestor) {
+        if (!activitiesToPreserve.has(ancestor)) {
+          ancestor.isActive = false;
+        }
+        ancestor = ancestor.parent;
+      }
+    }
+    this._currentActivity = activity;
+  }
+  /**
+   * Getter for suspendedActivity
+   * @return {Activity | null}
+   */
+  get suspendedActivity() {
+    return this._suspendedActivity;
+  }
+  /**
+   * Setter for suspendedActivity
+   * @param {Activity | null} activity
+   */
+  set suspendedActivity(activity) {
+    if (activity !== null && !(activity instanceof Activity)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".suspendedActivity",
+        scorm2004_errors.TYPE_MISMATCH
+      );
+    }
+    if (this._suspendedActivity) {
+      this._suspendedActivity.isSuspended = false;
+      let ancestor = this._suspendedActivity.parent;
+      while (ancestor) {
+        ancestor.isSuspended = false;
+        ancestor = ancestor.parent;
+      }
+    }
+    this._suspendedActivity = activity;
+    if (activity) {
+      activity.isSuspended = true;
+      let ancestor = activity.parent;
+      while (ancestor) {
+        ancestor.isSuspended = true;
+        ancestor = ancestor.parent;
+      }
+    }
+  }
+  /**
+   * Get an activity by ID
+   * @param {string} id - The ID of the activity to get
+   * @return {Activity | null} - The activity with the given ID, or null if not found
+   */
+  getActivity(id) {
+    return this._activities.get(id) || null;
+  }
+  /**
+   * Get all activities in the tree
+   * @return {Activity[]} - An array of all activities in the tree
+   */
+  getAllActivities() {
+    return Array.from(this._activities.values());
+  }
+  /**
+   * Get the parent of an activity
+   * @param {Activity} activity - The activity to get the parent of
+   * @return {Activity | null} - The parent of the activity, or null if it has no parent
+   */
+  getParent(activity) {
+    return activity.parent;
+  }
+  /**
+   * Get the children of an activity
+   * @param {Activity} activity - The activity to get the children of
+   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+   * @return {Activity[]} - An array of the activity's children
+   */
+  getChildren(activity, useAvailableChildren = true) {
+    return useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+  }
+  /**
+   * Get the siblings of an activity
+   * @param {Activity} activity - The activity to get the siblings of
+   * @return {Activity[]} - An array of the activity's siblings
+   */
+  getSiblings(activity) {
+    if (!activity.parent) {
+      return [];
+    }
+    return activity.parent.children.filter((child) => child !== activity);
+  }
+  /**
+   * Get the next sibling of an activity
+   * @param {Activity} activity - The activity to get the next sibling of
+   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+   * @return {Activity | null} - The next sibling of the activity, or null if it has no next sibling
+   */
+  getNextSibling(activity, useAvailableChildren = true) {
+    if (!activity.parent) {
+      return null;
+    }
+    let siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
+    let index = siblings.indexOf(activity);
+    if (index === -1 && useAvailableChildren) {
+      siblings = activity.parent.children;
+      index = siblings.indexOf(activity);
+    }
+    if (index === -1 || index === siblings.length - 1) {
+      return null;
+    }
+    return siblings[index + 1] ?? null;
+  }
+  /**
+   * Get the previous sibling of an activity
+   * @param {Activity} activity - The activity to get the previous sibling of
+   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+   * @return {Activity | null} - The previous sibling of the activity, or null if it has no previous sibling
+   */
+  getPreviousSibling(activity, useAvailableChildren = true) {
+    if (!activity.parent) {
+      return null;
+    }
+    let siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
+    let index = siblings.indexOf(activity);
+    if (index === -1 && useAvailableChildren) {
+      siblings = activity.parent.children;
+      index = siblings.indexOf(activity);
+    }
+    if (index <= 0) {
+      return null;
+    }
+    return siblings[index - 1] ?? null;
+  }
+  /**
+   * Get the first child of an activity
+   * @param {Activity} activity - The activity to get the first child of
+   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+   * @return {Activity | null} - The first child of the activity, or null if it has no children
+   */
+  getFirstChild(activity, useAvailableChildren = true) {
+    const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+    if (children.length === 0) {
+      return null;
+    }
+    return children[0] ?? null;
+  }
+  /**
+   * Get the last child of an activity
+   * @param {Activity} activity - The activity to get the last child of
+   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+   * @return {Activity | null} - The last child of the activity, or null if it has no children
+   */
+  getLastChild(activity, useAvailableChildren = true) {
+    const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+    if (children.length === 0) {
+      return null;
+    }
+    return children[children.length - 1] ?? null;
+  }
+  /**
+   * Get the common ancestor of two activities
+   * @param {Activity} activity1 - The first activity
+   * @param {Activity} activity2 - The second activity
+   * @return {Activity | null} - The common ancestor of the two activities, or null if they have no common ancestor
+   */
+  getCommonAncestor(activity1, activity2) {
+    const path1 = [];
+    let current = activity1;
+    while (current) {
+      path1.unshift(current);
+      current = current.parent;
+    }
+    current = activity2;
+    while (current) {
+      if (path1.includes(current)) {
+        return current;
+      }
+      current = current.parent;
+    }
+    return null;
+  }
+  /**
+   * toJSON for ActivityTree
+   * @return {object}
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      root: this._root,
+      currentActivity: this._currentActivity ? this._currentActivity.id : null,
+      suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
+const modelPrototypes = /* @__PURE__ */ new Set([
+  Object.prototype,
+  Activity.prototype,
+  ActivityObjective.prototype,
+  ActivityTree.prototype,
+  SequencingControls.prototype,
+  RuleCondition.prototype,
+  SequencingRule.prototype,
+  SequencingRules.prototype,
+  RollupCondition.prototype,
+  RollupRule.prototype,
+  RollupRules.prototype
+]);
+function clonePreviewState(value) {
+  const seen = /* @__PURE__ */ new Map();
+  const copy = (item) => {
+    if (typeof item === "function") throw new Error("Preview cannot copy callbacks");
+    if (item === null || typeof item !== "object") return item;
+    if (seen.has(item)) return seen.get(item);
+    const prototype = Object.getPrototypeOf(item);
+    if ([Date.prototype, Map.prototype, Set.prototype].includes(prototype) && Reflect.ownKeys(item).length > 0)
+      throw new Error("Preview cannot copy custom collection properties");
+    if (prototype === Date.prototype) return new Date(Date.prototype.getTime.call(item));
+    if (prototype === Map.prototype) {
+      const result2 = /* @__PURE__ */ new Map();
+      seen.set(item, result2);
+      for (const [key, entry] of Map.prototype.entries.call(item))
+        result2.set(copy(key), copy(entry));
+      return result2;
+    }
+    if (prototype === Set.prototype) {
+      const result2 = /* @__PURE__ */ new Set();
+      seen.set(item, result2);
+      for (const entry of Set.prototype.values.call(item)) result2.add(copy(entry));
+      return result2;
+    }
+    if (prototype !== null && prototype !== Array.prototype && !modelPrototypes.has(prototype)) {
+      throw new Error("Preview cannot copy a custom model");
+    }
+    const result = Array.isArray(item) ? [] : Object.create(prototype);
+    seen.set(item, result);
+    for (const key of Reflect.ownKeys(item)) {
+      const descriptor = Object.getOwnPropertyDescriptor(item, key);
+      if (!("value" in descriptor)) throw new Error("Preview cannot copy accessors");
+      Object.defineProperty(result, key, { ...descriptor, value: copy(descriptor.value) });
+    }
+    return result;
+  };
+  return copy(value);
+}
+
 class SequencingService {
   sequencing;
   cmi;
@@ -15739,6 +16120,7 @@ class SequencingService {
   eventListeners = {};
   configuration;
   isInitialized = false;
+  navigationPreviewConfiguration = null;
   isSequencingActive = false;
   lastCMIValues = /* @__PURE__ */ new Map();
   lastSequencingResult = null;
@@ -15784,6 +16166,7 @@ class SequencingService {
       if (!this.sequencing.initialized) {
         this.sequencing.initialize();
       }
+      this.navigationPreviewConfiguration = this.configuration;
       this.sequencing.adlNav = this.adl.nav;
       if (this.sequencing.activityTree.root) {
         const seqOptions = {};
@@ -15882,6 +16265,75 @@ class SequencingService {
   processNavigationRequest(request, targetActivityId, exitType) {
     const prepared = this.prepareNavigationRequest(request, targetActivityId, exitType);
     return prepared ? this.completeNavigationRequest(prepared) : false;
+  }
+  /**
+   * Evaluate host flow navigation on isolated live tracking data. No runtime
+   * termination, host events, persistence or delivery callbacks are performed.
+   * @spec SCORM 2004 SN OP.1 / TB.2.3 / UP.4 / SB.2.2 - End Attempt and
+   * objective transfer must precede checking the next activity's preconditions.
+   */
+  previewNavigationRequest(request) {
+    const unknown = {
+      outcome: "unknown",
+      targetActivityId: null,
+      endSequencingSession: false,
+      exception: null
+    };
+    if (!this.isInitialized || !this.overallSequencingProcess || this.isDeliveryInProgress() || !this.sequencing.activityTree.currentActivity?.isActive || request !== "continue" && request !== "previous")
+      return unknown;
+    try {
+      const configuration = this.navigationPreviewConfiguration;
+      const tree = clonePreviewState(this.sequencing.activityTree);
+      const pending = tree.root ? [tree.root] : [];
+      while (pending.length) {
+        const activity = pending.pop();
+        const controls = activity.sequencingControls;
+        if (controls.randomizeChildren && controls.randomizationTiming !== "never" || controls.selectCount !== null && controls.selectionTiming !== "never") {
+          return unknown;
+        }
+        pending.push(...activity.children);
+      }
+      const process = new SequencingProcess(tree, null, null, null, {
+        ...configuration.now ? { now: configuration.now } : {},
+        ...configuration.getAttemptElapsedSeconds ? { getAttemptElapsedSeconds: configuration.getAttemptElapsedSeconds } : {},
+        ...configuration.getActivityElapsedSeconds ? { getActivityElapsedSeconds: configuration.getActivityElapsedSeconds } : {}
+      });
+      const cmiData = this.getCMIDataForTransfer();
+      let ended = false;
+      const preview = new OverallSequencingProcess(
+        tree,
+        process,
+        new RollupProcess(),
+        null,
+        (event) => {
+          if (event === "onSequencingSessionEnd") ended = true;
+        },
+        {
+          getCMIData: () => cmiData,
+          ...configuration.now ? { now: configuration.now } : {},
+          defaultHideLmsUi: clonePreviewState(this.sequencing.hideLmsUi),
+          defaultAuxiliaryResources: clonePreviewState(this.sequencing.auxiliaryResources)
+        }
+      );
+      preview.getGlobalObjectiveMap().clear();
+      for (const [id, value] of this.overallSequencingProcess.getGlobalObjectiveMap()) {
+        preview.getGlobalObjectiveMap().set(id, clonePreviewState(value));
+      }
+      preview.setContentDelivered(this.overallSequencingProcess.hasContentBeenDelivered());
+      const result = preview.processNavigationRequest(
+        request === "continue" ? NavigationRequestType.CONTINUE : NavigationRequestType.PREVIOUS,
+        null,
+        this.cmi.getExitValueInternal() || ""
+      );
+      return {
+        outcome: result.valid ? "allowed" : "blocked",
+        targetActivityId: result.targetActivity?.id ?? null,
+        endSequencingSession: ended,
+        exception: result.exception ?? null
+      };
+    } catch {
+      return unknown;
+    }
   }
   /**
    * Run the navigation and termination phases without unloading or delivering a SCO.
@@ -21655,336 +22107,6 @@ class ADLNavRequestValid extends BaseCMI {
   }
 }
 
-class ActivityTree extends BaseCMI {
-  _root = null;
-  _currentActivity = null;
-  _suspendedActivity = null;
-  _activities = /* @__PURE__ */ new Map();
-  /**
-   * Constructor for ActivityTree
-   */
-  constructor(root) {
-    super("activityTree");
-    if (root) {
-      this.root = root;
-    }
-  }
-  /**
-   * Called when the API has been initialized after the CMI has been created
-   */
-  initialize() {
-    super.initialize();
-    if (this._root) {
-      this._root.initialize();
-    }
-  }
-  /**
-   * Called when the API needs to be reset
-   */
-  reset() {
-    this._initialized = false;
-    this._currentActivity = null;
-    this._suspendedActivity = null;
-    this._activities.clear();
-    if (this._root) {
-      this._root.reset();
-      this._activities.set(this._root.id, this._root);
-      this._addActivitiesToMap(this._root);
-    }
-  }
-  /**
-   * Getter for root
-   * @return {Activity | null}
-   */
-  get root() {
-    return this._root;
-  }
-  /**
-   * Setter for root
-   * @param {Activity} root
-   */
-  set root(root) {
-    if (root !== null && !(root instanceof Activity)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".root",
-        scorm2004_errors.TYPE_MISMATCH
-      );
-    }
-    this._activities.clear();
-    this._root = root;
-    if (root) {
-      this._activities.set(root.id, root);
-      this._addActivitiesToMap(root);
-    }
-  }
-  /**
-   * Recursively add activities to the activities map
-   * @param {Activity} activity
-   * @private
-   */
-  _addActivitiesToMap(activity) {
-    for (const child of activity.children) {
-      this._activities.set(child.id, child);
-      this._addActivitiesToMap(child);
-    }
-  }
-  /**
-   * Getter for currentActivity
-   * @return {Activity | null}
-   */
-  get currentActivity() {
-    return this._currentActivity;
-  }
-  /**
-   * Setter for currentActivity
-   * @param {Activity | null} activity
-   */
-  set currentActivity(activity) {
-    if (activity !== null && !(activity instanceof Activity)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".currentActivity",
-        scorm2004_errors.TYPE_MISMATCH
-      );
-    }
-    if (this._currentActivity) {
-      this._currentActivity.isActive = false;
-      let ancestor = this._currentActivity.parent;
-      while (ancestor) {
-        ancestor.isActive = false;
-        ancestor = ancestor.parent;
-      }
-    }
-    this._currentActivity = activity;
-    if (activity) {
-      activity.isActive = true;
-      let ancestor = activity.parent;
-      while (ancestor) {
-        ancestor.isActive = true;
-        ancestor = ancestor.parent;
-      }
-    }
-  }
-  /**
-   * Set current activity without activating it
-   * This method is used when the sequencing process needs to update the current activity
-   * pointer without triggering the automatic activation behavior (e.g., after termination).
-   * Unlike the normal setter, this method only deactivates the old current activity (and
-   * non-shared ancestors) WITHOUT activating the new current activity.
-   * @param {Activity | null} activity - The activity to set as current
-   */
-  setCurrentActivityWithoutActivation(activity) {
-    if (activity !== null && !(activity instanceof Activity)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".currentActivity",
-        scorm2004_errors.TYPE_MISMATCH
-      );
-    }
-    if (this._currentActivity) {
-      const activitiesToPreserve = /* @__PURE__ */ new Set();
-      if (activity) {
-        activitiesToPreserve.add(activity);
-        let ancestor2 = activity.parent;
-        while (ancestor2) {
-          activitiesToPreserve.add(ancestor2);
-          ancestor2 = ancestor2.parent;
-        }
-      }
-      this._currentActivity.isActive = false;
-      let ancestor = this._currentActivity.parent;
-      while (ancestor) {
-        if (!activitiesToPreserve.has(ancestor)) {
-          ancestor.isActive = false;
-        }
-        ancestor = ancestor.parent;
-      }
-    }
-    this._currentActivity = activity;
-  }
-  /**
-   * Getter for suspendedActivity
-   * @return {Activity | null}
-   */
-  get suspendedActivity() {
-    return this._suspendedActivity;
-  }
-  /**
-   * Setter for suspendedActivity
-   * @param {Activity | null} activity
-   */
-  set suspendedActivity(activity) {
-    if (activity !== null && !(activity instanceof Activity)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".suspendedActivity",
-        scorm2004_errors.TYPE_MISMATCH
-      );
-    }
-    if (this._suspendedActivity) {
-      this._suspendedActivity.isSuspended = false;
-      let ancestor = this._suspendedActivity.parent;
-      while (ancestor) {
-        ancestor.isSuspended = false;
-        ancestor = ancestor.parent;
-      }
-    }
-    this._suspendedActivity = activity;
-    if (activity) {
-      activity.isSuspended = true;
-      let ancestor = activity.parent;
-      while (ancestor) {
-        ancestor.isSuspended = true;
-        ancestor = ancestor.parent;
-      }
-    }
-  }
-  /**
-   * Get an activity by ID
-   * @param {string} id - The ID of the activity to get
-   * @return {Activity | null} - The activity with the given ID, or null if not found
-   */
-  getActivity(id) {
-    return this._activities.get(id) || null;
-  }
-  /**
-   * Get all activities in the tree
-   * @return {Activity[]} - An array of all activities in the tree
-   */
-  getAllActivities() {
-    return Array.from(this._activities.values());
-  }
-  /**
-   * Get the parent of an activity
-   * @param {Activity} activity - The activity to get the parent of
-   * @return {Activity | null} - The parent of the activity, or null if it has no parent
-   */
-  getParent(activity) {
-    return activity.parent;
-  }
-  /**
-   * Get the children of an activity
-   * @param {Activity} activity - The activity to get the children of
-   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-   * @return {Activity[]} - An array of the activity's children
-   */
-  getChildren(activity, useAvailableChildren = true) {
-    return useAvailableChildren ? activity.getAvailableChildren() : activity.children;
-  }
-  /**
-   * Get the siblings of an activity
-   * @param {Activity} activity - The activity to get the siblings of
-   * @return {Activity[]} - An array of the activity's siblings
-   */
-  getSiblings(activity) {
-    if (!activity.parent) {
-      return [];
-    }
-    return activity.parent.children.filter((child) => child !== activity);
-  }
-  /**
-   * Get the next sibling of an activity
-   * @param {Activity} activity - The activity to get the next sibling of
-   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-   * @return {Activity | null} - The next sibling of the activity, or null if it has no next sibling
-   */
-  getNextSibling(activity, useAvailableChildren = true) {
-    if (!activity.parent) {
-      return null;
-    }
-    let siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
-    let index = siblings.indexOf(activity);
-    if (index === -1 && useAvailableChildren) {
-      siblings = activity.parent.children;
-      index = siblings.indexOf(activity);
-    }
-    if (index === -1 || index === siblings.length - 1) {
-      return null;
-    }
-    return siblings[index + 1] ?? null;
-  }
-  /**
-   * Get the previous sibling of an activity
-   * @param {Activity} activity - The activity to get the previous sibling of
-   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-   * @return {Activity | null} - The previous sibling of the activity, or null if it has no previous sibling
-   */
-  getPreviousSibling(activity, useAvailableChildren = true) {
-    if (!activity.parent) {
-      return null;
-    }
-    let siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
-    let index = siblings.indexOf(activity);
-    if (index === -1 && useAvailableChildren) {
-      siblings = activity.parent.children;
-      index = siblings.indexOf(activity);
-    }
-    if (index <= 0) {
-      return null;
-    }
-    return siblings[index - 1] ?? null;
-  }
-  /**
-   * Get the first child of an activity
-   * @param {Activity} activity - The activity to get the first child of
-   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-   * @return {Activity | null} - The first child of the activity, or null if it has no children
-   */
-  getFirstChild(activity, useAvailableChildren = true) {
-    const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
-    if (children.length === 0) {
-      return null;
-    }
-    return children[0] ?? null;
-  }
-  /**
-   * Get the last child of an activity
-   * @param {Activity} activity - The activity to get the last child of
-   * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-   * @return {Activity | null} - The last child of the activity, or null if it has no children
-   */
-  getLastChild(activity, useAvailableChildren = true) {
-    const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
-    if (children.length === 0) {
-      return null;
-    }
-    return children[children.length - 1] ?? null;
-  }
-  /**
-   * Get the common ancestor of two activities
-   * @param {Activity} activity1 - The first activity
-   * @param {Activity} activity2 - The second activity
-   * @return {Activity | null} - The common ancestor of the two activities, or null if they have no common ancestor
-   */
-  getCommonAncestor(activity1, activity2) {
-    const path1 = [];
-    let current = activity1;
-    while (current) {
-      path1.unshift(current);
-      current = current.parent;
-    }
-    current = activity2;
-    while (current) {
-      if (path1.includes(current)) {
-        return current;
-      }
-      current = current.parent;
-    }
-    return null;
-  }
-  /**
-   * toJSON for ActivityTree
-   * @return {object}
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      root: this._root,
-      currentActivity: this._currentActivity ? this._currentActivity.id : null,
-      suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
 class Sequencing extends BaseCMI {
   _activityTree;
   _sequencingRules;
@@ -25648,6 +25770,22 @@ class Scorm2004API extends BaseAPI {
    */
   getSequencingService() {
     return this._sequencingService;
+  }
+  /**
+   * Preview a host Continue/Previous click without ending the SCO or changing its
+   * tracking data. The result reflects currently reported CMI, not future SCO writes.
+   * This host extension does not change SCORM's adl.nav.request_valid semantics.
+   */
+  previewNavigationRequest(request) {
+    if (this.isInitialized() && this._sequencingService) {
+      return this._sequencingService.previewNavigationRequest(request);
+    }
+    return {
+      outcome: "unknown",
+      targetActivityId: null,
+      endSequencingSession: false,
+      exception: null
+    };
   }
   /**
    * Set sequencing event listeners

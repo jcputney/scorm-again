@@ -5,7 +5,7 @@ import { SequencingResult } from "../cmi/scorm2004/sequencing/sequencing_process
 import { IEventService, ILoggingService } from "../interfaces/services";
 import { CMI } from "../cmi/scorm2004/cmi";
 import { ADL } from "../cmi/scorm2004/adl";
-import { SequencingEventListeners } from "../types/sequencing_types";
+import { SequencingEventListeners, NavigationPreview } from "../types/sequencing_types";
 export interface SequencingConfiguration {
     autoRollupOnCMIChange?: boolean;
     autoProgressOnCompletion?: boolean;
@@ -35,6 +35,7 @@ export declare class SequencingService {
     private eventListeners;
     private configuration;
     private isInitialized;
+    private navigationPreviewConfiguration;
     private isSequencingActive;
     private lastCMIValues;
     private lastSequencingResult;
@@ -43,6 +44,7 @@ export declare class SequencingService {
     initialize(): string;
     terminate(): string;
     processNavigationRequest(request: string, targetActivityId?: string, exitType?: string): boolean;
+    previewNavigationRequest(request: "continue" | "previous"): NavigationPreview;
     prepareNavigationRequest(request: string, targetActivityId?: string, exitType?: string): PreparedSequencingNavigation | null;
     completeNavigationRequest(prepared: PreparedSequencingNavigation): boolean;
     cancelPreparedNavigation(prepared: PreparedSequencingNavigation): void;

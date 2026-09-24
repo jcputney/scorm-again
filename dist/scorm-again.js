@@ -1,23 +1,23 @@
 (function () {
   'use strict';
 
-  function _array_like_to_array$i(arr, len) {
+  function _array_like_to_array$j(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$a(arr) {
+  function _array_with_holes$b(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _array_without_holes$b(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$j(arr);
   }
   function _iterable_to_array$b(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _iterable_to_array_limit$a(arr, i) {
+  function _iterable_to_array_limit$b(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -41,25 +41,25 @@
       }
       return _arr;
   }
-  function _non_iterable_rest$a() {
+  function _non_iterable_rest$b() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$b() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _sliced_to_array$a(arr, i) {
-      return _array_with_holes$a(arr) || _iterable_to_array_limit$a(arr, i) || _unsupported_iterable_to_array$i(arr, i) || _non_iterable_rest$a();
+  function _sliced_to_array$b(arr, i) {
+      return _array_with_holes$b(arr) || _iterable_to_array_limit$b(arr, i) || _unsupported_iterable_to_array$j(arr, i) || _non_iterable_rest$b();
   }
   function _to_consumable_array$b(arr) {
-      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$b();
+      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$j(arr) || _non_iterable_spread$b();
   }
-  function _unsupported_iterable_to_array$i(o, minLen) {
+  function _unsupported_iterable_to_array$j(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$j(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$j(o, minLen);
   }
   var SECONDS_PER_SECOND = 1;
   var SECONDS_PER_MINUTE = 60;
@@ -117,7 +117,7 @@
       var remainder = seconds;
       var designationEntries = Object.entries(designations);
       designationEntries.forEach(function(param) {
-          var _param = _sliced_to_array$a(param, 2), designationsKey = _param[0], current_seconds = _param[1];
+          var _param = _sliced_to_array$b(param, 2), designationsKey = _param[0], current_seconds = _param[1];
           var value = Math.floor(remainder / current_seconds);
           remainder = remainder % current_seconds;
           if (countDecimals(remainder) > 2) {
@@ -177,7 +177,7 @@
       if (!duration || !(duration === null || duration === void 0 ? void 0 : (_duration_match = duration.match) === null || _duration_match === void 0 ? void 0 : _duration_match.call(duration, durationRegex))) {
           return 0;
       }
-      var _ref1 = _sliced_to_array$a((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
+      var _ref1 = _sliced_to_array$b((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
       var result = 0;
       result += Number(seconds) || 0;
       result += Number(minutes) * 60 || 0;
@@ -428,7 +428,7 @@
       })();
   }
   function _possible_constructor_return$y(self, call) {
-      if (call && (_type_of$1g(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1h(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$y(self);
   }
   function _set_prototype_of$y(o, p) {
@@ -438,7 +438,7 @@
       };
       return _set_prototype_of$y(o, p);
   }
-  function _type_of$1g(obj) {
+  function _type_of$1h(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -452,7 +452,7 @@
       }) : obj[key] = value;
   };
   var __publicField$1d = function __publicField(obj, key, value) {
-      return __defNormalProp$1d(obj, (typeof key === "undefined" ? "undefined" : _type_of$1g(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$1d(obj, (typeof key === "undefined" ? "undefined" : _type_of$1h(key)) !== "symbol" ? key + "" : key, value);
   };
   var BaseCMI = /*#__PURE__*/ function() {
       function BaseCMI(cmi_element) {
@@ -594,7 +594,7 @@
       })();
   }
   function _possible_constructor_return$x(self, call) {
-      if (call && (_type_of$1f(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1g(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$x(self);
   }
   function _set_prototype_of$x(o, p) {
@@ -604,7 +604,7 @@
       };
       return _set_prototype_of$x(o, p);
   }
-  function _type_of$1f(obj) {
+  function _type_of$1g(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -642,7 +642,7 @@
       }) : obj[key] = value;
   };
   var __publicField$1c = function __publicField(obj, key, value) {
-      return __defNormalProp$1c(obj, (typeof key === "undefined" ? "undefined" : _type_of$1f(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$1c(obj, (typeof key === "undefined" ? "undefined" : _type_of$1g(key)) !== "symbol" ? key + "" : key, value);
   };
   var BaseScormValidationError = /*#__PURE__*/ function(Error1) {
       _inherits$x(BaseScormValidationError, Error1);
@@ -941,7 +941,7 @@
       })();
   }
   function _possible_constructor_return$w(self, call) {
-      if (call && (_type_of$1e(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1f(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$w(self);
   }
   function _set_prototype_of$w(o, p) {
@@ -951,7 +951,7 @@
       };
       return _set_prototype_of$w(o, p);
   }
-  function _type_of$1e(obj) {
+  function _type_of$1f(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -1024,7 +1024,7 @@
       })();
   }
   function _possible_constructor_return$v(self, call) {
-      if (call && (_type_of$1d(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1e(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$v(self);
   }
   function _set_prototype_of$v(o, p) {
@@ -1034,7 +1034,7 @@
       };
       return _set_prototype_of$v(o, p);
   }
-  function _type_of$1d(obj) {
+  function _type_of$1e(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -1067,7 +1067,7 @@
       return Scorm2004ValidationError;
   }(ValidationError);
 
-  function _define_property$i(obj, key, value) {
+  function _define_property$j(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -1078,7 +1078,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$i(target) {
+  function _object_spread$j(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -1088,12 +1088,12 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$i(target, key, source[key]);
+              _define_property$j(target, key, source[key]);
           });
       }
       return target;
   }
-  function ownKeys$8(object, enumerableOnly) {
+  function ownKeys$a(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -1101,11 +1101,11 @@
       }
       return keys;
   }
-  function _object_spread_props$8(target, source) {
+  function _object_spread_props$a(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       else {
-          ownKeys$8(Object(source)).forEach(function(key) {
+          ownKeys$a(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
@@ -1141,7 +1141,7 @@
       VALUE_OUT_OF_RANGE: 101,
       DEPENDENCY_NOT_ESTABLISHED: 101
   };
-  var scorm12_errors = _object_spread_props$8(_object_spread$i({}, global_errors), {
+  var scorm12_errors = _object_spread_props$a(_object_spread$j({}, global_errors), {
       TERMINATION_BEFORE_INIT: 301,
       RETRIEVE_BEFORE_INIT: 301,
       STORE_BEFORE_INIT: 301,
@@ -1162,7 +1162,7 @@
       VALUE_OUT_OF_RANGE: 405,
       DEPENDENCY_NOT_ESTABLISHED: 408
   });
-  var scorm2004_errors = _object_spread_props$8(_object_spread$i({}, global_errors), {
+  var scorm2004_errors = _object_spread_props$a(_object_spread$j({}, global_errors), {
       INITIALIZATION_FAILED: 102,
       INITIALIZED: 103,
       TERMINATED: 104,
@@ -1242,7 +1242,7 @@
       })();
   }
   function _possible_constructor_return$u(self, call) {
-      if (call && (_type_of$1c(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1d(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$u(self);
   }
   function _set_prototype_of$u(o, p) {
@@ -1252,7 +1252,7 @@
       };
       return _set_prototype_of$u(o, p);
   }
-  function _type_of$1c(obj) {
+  function _type_of$1d(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -1266,7 +1266,7 @@
       }) : obj[key] = value;
   };
   var __publicField$1b = function __publicField(obj, key, value) {
-      return __defNormalProp$1b(obj, (typeof key === "undefined" ? "undefined" : _type_of$1c(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$1b(obj, (typeof key === "undefined" ? "undefined" : _type_of$1d(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIArray = /*#__PURE__*/ function(BaseCMI) {
       _inherits$u(CMIArray, BaseCMI);
@@ -2044,7 +2044,7 @@
       }
   };
 
-  function _define_property$h(obj, key, value) {
+  function _define_property$i(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -2055,7 +2055,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$h(target) {
+  function _object_spread$i(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -2065,7 +2065,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$h(target, key, source[key]);
+              _define_property$i(target, key, source[key]);
           });
       }
       return target;
@@ -2161,7 +2161,7 @@
   var SuspendExceptions = {
       "SB.2.15-1": "Cannot suspend root"
   };
-  _object_spread$h({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
+  _object_spread$i({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
 
   var ValidLanguages = [
       "aa",
@@ -2573,7 +2573,7 @@
       if (protoProps) _defineProperties$1e(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$1b(obj) {
+  function _type_of$1c(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -2587,7 +2587,7 @@
       }) : obj[key] = value;
   };
   var __publicField$1a = function __publicField(obj, key, value) {
-      return __defNormalProp$1a(obj, (typeof key === "undefined" ? "undefined" : _type_of$1b(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$1a(obj, (typeof key === "undefined" ? "undefined" : _type_of$1c(key)) !== "symbol" ? key + "" : key, value);
   };
   var ScheduledCommit = /*#__PURE__*/ function() {
       function ScheduledCommit(API, when, callback) {
@@ -2697,7 +2697,7 @@
       })();
   }
   function _possible_constructor_return$t(self, call) {
-      if (call && (_type_of$1a(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1b(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$t(self);
   }
   function _set_prototype_of$t(o, p) {
@@ -2707,7 +2707,7 @@
       };
       return _set_prototype_of$t(o, p);
   }
-  function _type_of$1a(obj) {
+  function _type_of$1b(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -2721,7 +2721,7 @@
       }) : obj[key] = value;
   };
   var __publicField$19 = function __publicField(obj, key, value) {
-      return __defNormalProp$19(obj, (typeof key === "undefined" ? "undefined" : _type_of$1a(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$19(obj, (typeof key === "undefined" ? "undefined" : _type_of$1b(key)) !== "symbol" ? key + "" : key, value);
   };
   var RuleActionType = /* @__PURE__ */ function(RuleActionType2) {
       RuleActionType2["SKIP"] = "skip";
@@ -3518,7 +3518,7 @@
       if (protoProps) _defineProperties$1c(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$19(obj) {
+  function _type_of$1a(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -3532,7 +3532,7 @@
       }) : obj[key] = value;
   };
   var __publicField$18 = function __publicField(obj, key, value) {
-      return __defNormalProp$18(obj, (_type_of$19(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$18(obj, (_type_of$1a(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityTreeQueries = /*#__PURE__*/ function() {
       function ActivityTreeQueries(activityTree) {
@@ -3816,7 +3816,7 @@
       if (protoProps) _defineProperties$1b(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$18(obj) {
+  function _type_of$19(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -3830,7 +3830,7 @@
       }) : obj[key] = value;
   };
   var __publicField$17 = function __publicField(obj, key, value) {
-      return __defNormalProp$17(obj, (typeof key === "undefined" ? "undefined" : _type_of$18(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$17(obj, (typeof key === "undefined" ? "undefined" : _type_of$19(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceConstraintValidator = /*#__PURE__*/ function() {
       function ChoiceConstraintValidator(activityTree, treeQueries) {
@@ -4336,7 +4336,7 @@
   function _class_call_check$1b(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _type_of$17(obj) {
+  function _type_of$18(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -4350,7 +4350,7 @@
       }) : obj[key] = value;
   };
   var __publicField$16 = function __publicField(obj, key, value) {
-      return __defNormalProp$16(obj, (typeof key === "undefined" ? "undefined" : _type_of$17(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$16(obj, (typeof key === "undefined" ? "undefined" : _type_of$18(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingRequestType = /* @__PURE__ */ function(SequencingRequestType2) {
       SequencingRequestType2["START"] = "start";
@@ -4428,7 +4428,7 @@
       if (protoProps) _defineProperties$1a(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$16(obj) {
+  function _type_of$17(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -4442,7 +4442,7 @@
       }) : obj[key] = value;
   };
   var __publicField$15 = function __publicField(obj, key, value) {
-      return __defNormalProp$15(obj, (typeof key === "undefined" ? "undefined" : _type_of$16(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$15(obj, (typeof key === "undefined" ? "undefined" : _type_of$17(key)) !== "symbol" ? key + "" : key, value);
   };
   var RuleEvaluationEngine = /*#__PURE__*/ function() {
       function RuleEvaluationEngine() {
@@ -4818,7 +4818,7 @@
       })();
   }
   function _possible_constructor_return$s(self, call) {
-      if (call && (_type_of$15(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$16(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$s(self);
   }
   function _set_prototype_of$s(o, p) {
@@ -4828,7 +4828,7 @@
       };
       return _set_prototype_of$s(o, p);
   }
-  function _type_of$15(obj) {
+  function _type_of$16(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -4842,7 +4842,7 @@
       }) : obj[key] = value;
   };
   var __publicField$14 = function __publicField(obj, key, value) {
-      return __defNormalProp$14(obj, (typeof key === "undefined" ? "undefined" : _type_of$15(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$14(obj, (typeof key === "undefined" ? "undefined" : _type_of$16(key)) !== "symbol" ? key + "" : key, value);
   };
   var SelectionTiming = /* @__PURE__ */ function(SelectionTiming2) {
       SelectionTiming2["NEVER"] = "never";
@@ -5337,13 +5337,13 @@
       return SequencingControls;
   }(BaseCMI);
 
-  function _array_like_to_array$h(arr, len) {
+  function _array_like_to_array$i(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$a(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$h(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
   }
   function _class_call_check$18(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -5370,15 +5370,15 @@
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$a(arr) {
-      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$a();
+      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$a();
   }
-  function _unsupported_iterable_to_array$h(o, minLen) {
+  function _unsupported_iterable_to_array$i(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$h(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
@@ -5613,7 +5613,7 @@
       if (protoProps) _defineProperties$17(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$14(obj) {
+  function _type_of$15(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -5627,7 +5627,7 @@
       }) : obj[key] = value;
   };
   var __publicField$13 = function __publicField(obj, key, value) {
-      return __defNormalProp$13(obj, (typeof key === "undefined" ? "undefined" : _type_of$14(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$13(obj, (typeof key === "undefined" ? "undefined" : _type_of$15(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowTraversalService = /*#__PURE__*/ function() {
       function FlowTraversalService(activityTree, ruleEngine) {
@@ -6106,7 +6106,7 @@
       if (protoProps) _defineProperties$16(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$13(obj) {
+  function _type_of$14(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -6120,7 +6120,7 @@
       }) : obj[key] = value;
   };
   var __publicField$12 = function __publicField(obj, key, value) {
-      return __defNormalProp$12(obj, (typeof key === "undefined" ? "undefined" : _type_of$13(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$12(obj, (typeof key === "undefined" ? "undefined" : _type_of$14(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowRequestHandler = /*#__PURE__*/ function() {
       function FlowRequestHandler(activityTree, traversalService) {
@@ -6274,7 +6274,7 @@
       if (protoProps) _defineProperties$15(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$12(obj) {
+  function _type_of$13(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -6288,7 +6288,7 @@
       }) : obj[key] = value;
   };
   var __publicField$11 = function __publicField(obj, key, value) {
-      return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$13(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceRequestHandler = /*#__PURE__*/ function() {
       function ChoiceRequestHandler(activityTree, constraintValidator, traversalService, treeQueries) {
@@ -6346,7 +6346,7 @@
                       };
                       for(var _iterator = this.treeQueries.getPathToRoot(targetActivity)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var _ret = _loop();
-                          if (_type_of$12(_ret) === "object") return _ret.v;
+                          if (_type_of$13(_ret) === "object") return _ret.v;
                       }
                   } catch (err) {
                       _didIteratorError = true;
@@ -6584,7 +6584,7 @@
       if (protoProps) _defineProperties$14(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$11(obj) {
+  function _type_of$12(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -6598,7 +6598,7 @@
       }) : obj[key] = value;
   };
   var __publicField$10 = function __publicField(obj, key, value) {
-      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
   };
   var ExitRequestHandler = /*#__PURE__*/ function() {
       function ExitRequestHandler(activityTree, ruleEngine) {
@@ -6769,7 +6769,7 @@
       if (protoProps) _defineProperties$13(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$10(obj) {
+  function _type_of$11(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -6783,7 +6783,7 @@
       }) : obj[key] = value;
   };
   var __publicField$$ = function __publicField(obj, key, value) {
-      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$10(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
   };
   var RetryRequestHandler = /*#__PURE__*/ function() {
       function RetryRequestHandler(activityTree, traversalService) {
@@ -6895,7 +6895,7 @@
       if (protoProps) _defineProperties$12(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$$(obj) {
+  function _type_of$10(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -6909,7 +6909,7 @@
       }) : obj[key] = value;
   };
   var __publicField$_ = function __publicField(obj, key, value) {
-      return __defNormalProp$_(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$_(obj, (typeof key === "undefined" ? "undefined" : _type_of$10(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingProcess = /*#__PURE__*/ function() {
       function SequencingProcess(activityTree, _sequencingRules, _sequencingControls) {
@@ -7262,7 +7262,7 @@
       if (protoProps) _defineProperties$11(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$g(obj, key, value) {
+  function _define_property$h(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -7273,7 +7273,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$g(target) {
+  function _object_spread$h(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -7283,12 +7283,12 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$g(target, key, source[key]);
+              _define_property$h(target, key, source[key]);
           });
       }
       return target;
   }
-  function _type_of$_(obj) {
+  function _type_of$$(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -7302,7 +7302,7 @@
       }) : obj[key] = value;
   };
   var __publicField$Z = function __publicField(obj, key, value) {
-      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$_(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityDeliveryService = /*#__PURE__*/ function() {
       function ActivityDeliveryService(eventService, loggingService) {
@@ -7401,7 +7401,7 @@
      * @param {ActivityDeliveryCallbacks} callbacks - The new callbacks
      */ key: "updateCallbacks",
               value: function updateCallbacks(callbacks) {
-                  this.callbacks = _object_spread$g({}, this.callbacks, callbacks);
+                  this.callbacks = _object_spread$h({}, this.callbacks, callbacks);
               }
           },
           {
@@ -7463,7 +7463,7 @@
       if (protoProps) _defineProperties$10(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$f(obj, key, value) {
+  function _define_property$g(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -7480,7 +7480,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _object_spread$f(target) {
+  function _object_spread$g(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -7490,12 +7490,12 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$f(target, key, source[key]);
+              _define_property$g(target, key, source[key]);
           });
       }
       return target;
   }
-  function ownKeys$7(object, enumerableOnly) {
+  function ownKeys$9(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -7503,11 +7503,11 @@
       }
       return keys;
   }
-  function _object_spread_props$7(target, source) {
+  function _object_spread_props$9(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       else {
-          ownKeys$7(Object(source)).forEach(function(key) {
+          ownKeys$9(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
@@ -7612,7 +7612,7 @@
           };
       }
   }
-  function _type_of$Z(obj) {
+  function _type_of$_(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -7626,7 +7626,7 @@
       }) : obj[key] = value;
   };
   var __publicField$Y = function __publicField(obj, key, value) {
-      return __defNormalProp$Y(obj, (typeof key === "undefined" ? "undefined" : _type_of$Z(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$Y(obj, (typeof key === "undefined" ? "undefined" : _type_of$_(key)) !== "symbol" ? key + "" : key, value);
   };
   var AsynchronousHttpService = /*#__PURE__*/ function() {
       function AsynchronousHttpService(settings, error_codes) {
@@ -7791,7 +7791,7 @@
                               method: "POST",
                               mode: this.settings.fetchMode,
                               body: body,
-                              headers: _object_spread_props$7(_object_spread$f({}, this.settings.xhrHeaders), {
+                              headers: _object_spread_props$9(_object_spread$g({}, this.settings.xhrHeaders), {
                                   "Content-Type": contentType
                               }),
                               keepalive: true
@@ -7953,7 +7953,7 @@
                                       result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391;
                                   }
                                   if (!this._isSuccessResponse(response, result)) {
-                                      result.errorDetails = _object_spread$f({
+                                      result.errorDetails = _object_spread$g({
                                           status: response.status,
                                           statusText: response.statusText,
                                           url: response.url
@@ -8016,7 +8016,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$Y(obj) {
+  function _type_of$Z(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -8030,7 +8030,7 @@
       }) : obj[key] = value;
   };
   var __publicField$X = function __publicField(obj, key, value) {
-      return __defNormalProp$X(obj, (_type_of$Y(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$X(obj, (_type_of$Z(key)) !== "symbol" ? key + "" : key, value);
   };
   var TARGET_ATTRIBUTE_PREFIX = "{target=";
   function getErrorCode(errorCodes, key) {
@@ -8449,7 +8449,7 @@
       if (staticProps) _defineProperties$_(Constructor, staticProps);
       return Constructor;
   }
-  function _type_of$X(obj) {
+  function _type_of$Y(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -8463,7 +8463,7 @@
       }) : obj[key] = value;
   };
   var __publicField$W = function __publicField(obj, key, value) {
-      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
   };
   var _LoggingService = /*#__PURE__*/ function() {
       function _LoggingService() {
@@ -8673,7 +8673,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$W(obj) {
+  function _type_of$X(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -8687,7 +8687,7 @@
       }) : obj[key] = value;
   };
   var __publicField$V = function __publicField(obj, key, value) {
-      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
   };
   var ErrorHandlingService = /*#__PURE__*/ function() {
       function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
@@ -8869,7 +8869,7 @@
       if (protoProps) _defineProperties$Y(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$V(obj) {
+  function _type_of$W(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -8883,7 +8883,7 @@
       }) : obj[key] = value;
   };
   var __publicField$U = function __publicField(obj, key, value) {
-      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$V(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
   };
   var EventService = /*#__PURE__*/ function() {
       function EventService(apiLog) {
@@ -9179,7 +9179,7 @@
       if (protoProps) _defineProperties$X(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$e(obj, key, value) {
+  function _define_property$f(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -9196,7 +9196,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _object_spread$e(target) {
+  function _object_spread$f(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -9206,12 +9206,12 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$e(target, key, source[key]);
+              _define_property$f(target, key, source[key]);
           });
       }
       return target;
   }
-  function ownKeys$6(object, enumerableOnly) {
+  function ownKeys$8(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -9219,11 +9219,11 @@
       }
       return keys;
   }
-  function _object_spread_props$6(target, source) {
+  function _object_spread_props$8(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       else {
-          ownKeys$6(Object(source)).forEach(function(key) {
+          ownKeys$8(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
@@ -9328,7 +9328,7 @@
           };
       }
   }
-  function _type_of$U(obj) {
+  function _type_of$V(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -9342,7 +9342,7 @@
       }) : obj[key] = value;
   };
   var __publicField$T = function __publicField(obj, key, value) {
-      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$U(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$V(key)) !== "symbol" ? key + "" : key, value);
   };
   var OfflineStorageService = /*#__PURE__*/ function() {
       function OfflineStorageService(settings, error_codes, apiLog) {
@@ -9435,7 +9435,7 @@
      */ key: "storeOffline",
               value: function storeOffline(courseId, commitData, metadata) {
                   try {
-                      var queueItem = _object_spread$e({
+                      var queueItem = _object_spread$f({
                           id: "".concat(courseId, "_").concat(Date.now(), "_").concat(Math.random().toString(36).substring(2, 9)),
                           courseId: courseId,
                           timestamp: Date.now(),
@@ -9568,7 +9568,7 @@
                                   ]);
                                   return [
                                       4,
-                                      this.sendDataToLMS(item.data, _object_spread$e({}, item.isTerminateCommit !== void 0 ? {
+                                      this.sendDataToLMS(item.data, _object_spread$f({}, item.isTerminateCommit !== void 0 ? {
                                           isTerminateCommit: item.isTerminateCommit
                                       } : {}, item.sequence !== void 0 ? {
                                           sequence: item.sequence
@@ -9685,7 +9685,7 @@
                                       8
                                   ]);
                                   lmsCommitUrl = String(configuredCommitUrl);
-                                  processedData = this.settings.requestHandler(data, _object_spread$e({
+                                  processedData = this.settings.requestHandler(data, _object_spread$f({
                                       isTerminateCommit: (_ref = metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) !== null && _ref !== void 0 ? _ref : false,
                                       trigger: "offline-replay"
                                   }, (metadata === null || metadata === void 0 ? void 0 : metadata.sequence) !== void 0 ? {
@@ -9696,7 +9696,7 @@
                                       method: "POST",
                                       mode: this.settings.fetchMode,
                                       body: JSON.stringify(processedData),
-                                      headers: _object_spread_props$6(_object_spread$e({}, this.settings.xhrHeaders), {
+                                      headers: _object_spread_props$8(_object_spread$f({}, this.settings.xhrHeaders), {
                                           "Content-Type": this.settings.commitRequestDataType
                                       })
                                   };
@@ -9863,7 +9863,7 @@
       return OfflineStorageService;
   }();
 
-  function _type_of$T(obj) {
+  function _type_of$U(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -9883,7 +9883,7 @@
   }, // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   function(CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$T(value), "]");
+      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$U(value), "]");
       return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
   }, // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
   {
@@ -9980,7 +9980,7 @@
       })();
   }
   function _possible_constructor_return$r(self, call) {
-      if (call && (_type_of$S(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$T(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$r(self);
   }
   function _set_prototype_of$r(o, p) {
@@ -9990,7 +9990,7 @@
       };
       return _set_prototype_of$r(o, p);
   }
-  function _type_of$S(obj) {
+  function _type_of$T(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -10004,7 +10004,7 @@
       }) : obj[key] = value;
   };
   var __publicField$S = function __publicField(obj, key, value) {
-      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$S(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupActionType = /* @__PURE__ */ function(RollupActionType2) {
       RollupActionType2["SATISFIED"] = "satisfied";
@@ -10625,13 +10625,13 @@
       return RollupRules;
   }(BaseCMI);
 
-  function _array_like_to_array$g(arr, len) {
+  function _array_like_to_array$h(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$9(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$h(arr);
   }
   function _assert_this_initialized$q(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -10658,7 +10658,7 @@
       if (staticProps) _defineProperties$V(Constructor, staticProps);
       return Constructor;
   }
-  function _define_property$d(obj, key, value) {
+  function _define_property$e(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -10723,7 +10723,7 @@
   function _non_iterable_spread$9() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _object_spread$d(target) {
+  function _object_spread$e(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -10733,13 +10733,13 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$d(target, key, source[key]);
+              _define_property$e(target, key, source[key]);
           });
       }
       return target;
   }
   function _possible_constructor_return$q(self, call) {
-      if (call && (_type_of$R(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$S(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$q(self);
   }
   function _set_prototype_of$q(o, p) {
@@ -10757,19 +10757,19 @@
       return object;
   }
   function _to_consumable_array$9(arr) {
-      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$9();
+      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$9();
   }
-  function _type_of$R(obj) {
+  function _type_of$S(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$g(o, minLen) {
+  function _unsupported_iterable_to_array$h(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$h(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
   }
   var __defProp$R = Object.defineProperty;
   var __defNormalProp$R = function __defNormalProp(obj, key, value) {
@@ -10781,7 +10781,7 @@
       }) : obj[key] = value;
   };
   var __publicField$R = function __publicField(obj, key, value) {
-      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$R(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$S(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityObjective = /*#__PURE__*/ function() {
       function ActivityObjective(id) {
@@ -12562,16 +12562,16 @@
           {
               key: "rollupConsiderations",
               get: function get() {
-                  return _object_spread$d({}, this._rollupConsiderations);
+                  return _object_spread$e({}, this._rollupConsiderations);
               },
               set: function set(config) {
-                  this._rollupConsiderations = _object_spread$d({}, config);
+                  this._rollupConsiderations = _object_spread$e({}, config);
               }
           },
           {
               key: "applyRollupConsiderations",
               value: function applyRollupConsiderations(settings) {
-                  this._rollupConsiderations = _object_spread$d({}, this._rollupConsiderations, settings);
+                  this._rollupConsiderations = _object_spread$e({}, this._rollupConsiderations, settings);
               }
           },
           {
@@ -13185,7 +13185,7 @@
                       isHiddenFromChoice: this._isHiddenFromChoice,
                       isAvailable: this._isAvailable,
                       sharedDataMaps: this.sharedDataMaps,
-                      rollupConsiderations: _object_spread$d({}, this._rollupConsiderations),
+                      rollupConsiderations: _object_spread$e({}, this._rollupConsiderations),
                       wasSkipped: this._wasSkipped,
                       attemptProgressStatus: this._attemptProgressStatus,
                       wasAutoCompleted: this._wasAutoCompleted,
@@ -13293,7 +13293,7 @@
                   this._isHiddenFromChoice = (_state_isHiddenFromChoice = state.isHiddenFromChoice) !== null && _state_isHiddenFromChoice !== void 0 ? _state_isHiddenFromChoice : this._isHiddenFromChoice;
                   this._isAvailable = (_state_isAvailable = state.isAvailable) !== null && _state_isAvailable !== void 0 ? _state_isAvailable : this._isAvailable;
                   if (state.rollupConsiderations) {
-                      this._rollupConsiderations = _object_spread$d({}, state.rollupConsiderations);
+                      this._rollupConsiderations = _object_spread$e({}, state.rollupConsiderations);
                   }
                   this._wasSkipped = (_state_wasSkipped = state.wasSkipped) !== null && _state_wasSkipped !== void 0 ? _state_wasSkipped : this._wasSkipped;
                   this._attemptProgressStatus = (_state_attemptProgressStatus = state.attemptProgressStatus) !== null && _state_attemptProgressStatus !== void 0 ? _state_attemptProgressStatus : this._attemptProgressStatus;
@@ -13451,7 +13451,7 @@
                       objectiveSatisfiedStatusKnown: this._objectiveSatisfiedStatusKnown,
                       objectiveMeasureStatus: this._objectiveMeasureStatus,
                       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
-                      rollupConsiderations: _object_spread$d({}, this._rollupConsiderations),
+                      rollupConsiderations: _object_spread$e({}, this._rollupConsiderations),
                       wasSkipped: this._wasSkipped,
                       completedByMeasure: this._completedByMeasure,
                       minProgressMeasure: this._minProgressMeasure,
@@ -13459,7 +13459,7 @@
                       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
                       hideLmsUi: _to_consumable_array$9(this._hideLmsUi),
                       auxiliaryResources: this._auxiliaryResources.map(function(resource) {
-                          return _object_spread$d({}, resource);
+                          return _object_spread$e({}, resource);
                       }),
                       sharedDataMaps: this.sharedDataMaps,
                       children: this._children.map(function(child) {
@@ -13474,7 +13474,7 @@
               key: "auxiliaryResources",
               get: function get() {
                   return this._auxiliaryResources.map(function(resource) {
-                      return _object_spread$d({}, resource);
+                      return _object_spread$e({}, resource);
                   });
               },
               set: function set(resources) {
@@ -13517,7 +13517,7 @@
               key: "sharedDataMaps",
               get: /** SCORM 2004 shared-data bucket mappings for this activity. */ function get() {
                   return this._sharedDataMaps.map(function(map) {
-                      return _object_spread$d({}, map);
+                      return _object_spread$e({}, map);
                   });
               },
               set: function set(maps) {
@@ -13881,7 +13881,7 @@
       if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$Q(obj) {
+  function _type_of$R(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -13895,7 +13895,7 @@
       }) : obj[key] = value;
   };
   var __publicField$Q = function __publicField(obj, key, value) {
-      return __defNormalProp$Q(obj, (_type_of$Q(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$Q(obj, (_type_of$R(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupRuleEvaluator = /*#__PURE__*/ function() {
       function RollupRuleEvaluator(childFilter) {
@@ -14060,7 +14060,7 @@
       if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$P(obj) {
+  function _type_of$Q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -14074,7 +14074,7 @@
       }) : obj[key] = value;
   };
   var __publicField$P = function __publicField(obj, key, value) {
-      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
   };
   var MeasureRollupProcessor = /*#__PURE__*/ function() {
       function MeasureRollupProcessor(childFilter, eventCallback) {
@@ -14334,7 +14334,7 @@
       if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$O(obj) {
+  function _type_of$P(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -14348,7 +14348,7 @@
       }) : obj[key] = value;
   };
   var __publicField$O = function __publicField(obj, key, value) {
-      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveRollupProcessor = /*#__PURE__*/ function() {
       function ObjectiveRollupProcessor(childFilter, ruleEvaluator, eventCallback) {
@@ -14587,7 +14587,7 @@
       if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$N(obj) {
+  function _type_of$O(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -14601,7 +14601,7 @@
       }) : obj[key] = value;
   };
   var __publicField$N = function __publicField(obj, key, value) {
-      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$N(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
   };
   var ProgressRollupProcessor = /*#__PURE__*/ function() {
       function ProgressRollupProcessor(childFilter, ruleEvaluator, objectiveProcessor, eventCallback) {
@@ -14781,7 +14781,7 @@
       if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$M(obj) {
+  function _type_of$N(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -14795,7 +14795,7 @@
       }) : obj[key] = value;
   };
   var __publicField$M = function __publicField(obj, key, value) {
-      return __defNormalProp$M(obj, (_type_of$M(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$M(obj, (_type_of$N(key)) !== "symbol" ? key + "" : key, value);
   };
   var DurationRollupProcessor = /*#__PURE__*/ function() {
       function DurationRollupProcessor(eventCallback) {
@@ -14936,7 +14936,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$L(obj) {
+  function _type_of$M(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -14950,7 +14950,7 @@
       }) : obj[key] = value;
   };
   var __publicField$L = function __publicField(obj, key, value) {
-      return __defNormalProp$L(obj, (typeof key === "undefined" ? "undefined" : _type_of$L(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$L(obj, (typeof key === "undefined" ? "undefined" : _type_of$M(key)) !== "symbol" ? key + "" : key, value);
   };
   var MAX_CLUSTER_DEPTH = 10;
   var CrossClusterProcessor = /*#__PURE__*/ function() {
@@ -15231,7 +15231,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$K(obj) {
+  function _type_of$L(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -15245,7 +15245,7 @@
       }) : obj[key] = value;
   };
   var __publicField$K = function __publicField(obj, key, value) {
-      return __defNormalProp$K(obj, (_type_of$K(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$K(obj, (_type_of$L(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveSynchronizer = /*#__PURE__*/ function() {
       function GlobalObjectiveSynchronizer(eventCallback) {
@@ -16098,13 +16098,13 @@
       return GlobalObjectiveSynchronizer;
   }();
 
-  function _array_like_to_array$f(arr, len) {
+  function _array_like_to_array$g(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$8(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
   function _class_call_check$M(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -16137,19 +16137,19 @@
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$8(arr) {
-      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$8();
+      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$8();
   }
-  function _type_of$J(obj) {
+  function _type_of$K(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$f(o, minLen) {
+  function _unsupported_iterable_to_array$g(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
   }
   var __defProp$J = Object.defineProperty;
   var __defNormalProp$J = function __defNormalProp(obj, key, value) {
@@ -16161,7 +16161,7 @@
       }) : obj[key] = value;
   };
   var __publicField$J = function __publicField(obj, key, value) {
-      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$K(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupStateValidator = /*#__PURE__*/ function() {
       function RollupStateValidator(childFilter, eventCallback) {
@@ -16332,7 +16332,7 @@
       if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$I(obj) {
+  function _type_of$J(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -16346,7 +16346,7 @@
       }) : obj[key] = value;
   };
   var __publicField$I = function __publicField(obj, key, value) {
-      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$I(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupProcess = /*#__PURE__*/ function() {
       function RollupProcess(eventCallback) {
@@ -16670,7 +16670,7 @@
       if (protoProps) _defineProperties$K(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$H(obj) {
+  function _type_of$I(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -16684,7 +16684,7 @@
       }) : obj[key] = value;
   };
   var __publicField$H = function __publicField(obj, key, value) {
-      return __defNormalProp$H(obj, (_type_of$H(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$H(obj, (_type_of$I(key)) !== "symbol" ? key + "" : key, value);
   };
   var VALID_SUCCESS_STATUSES = [
       SuccessStatus.PASSED,
@@ -17020,7 +17020,7 @@
       if (protoProps) _defineProperties$J(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$c(obj, key, value) {
+  function _define_property$d(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -17031,7 +17031,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$c(target) {
+  function _object_spread$d(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -17041,12 +17041,12 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$c(target, key, source[key]);
+              _define_property$d(target, key, source[key]);
           });
       }
       return target;
   }
-  function ownKeys$5(object, enumerableOnly) {
+  function ownKeys$7(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -17054,17 +17054,17 @@
       }
       return keys;
   }
-  function _object_spread_props$5(target, source) {
+  function _object_spread_props$7(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       else {
-          ownKeys$5(Object(source)).forEach(function(key) {
+          ownKeys$7(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
   }
-  function _type_of$G(obj) {
+  function _type_of$H(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -17078,7 +17078,7 @@
       }) : obj[key] = value;
   };
   var __publicField$G = function __publicField(obj, key, value) {
-      return __defNormalProp$G(obj, (typeof key === "undefined" ? "undefined" : _type_of$G(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$G(obj, (typeof key === "undefined" ? "undefined" : _type_of$H(key)) !== "symbol" ? key + "" : key, value);
   };
   var TerminationHandler = /*#__PURE__*/ function() {
       function TerminationHandler(activityTree, sequencingProcess, rollupProcess, globalObjectiveMap) {
@@ -17242,7 +17242,7 @@
                           });
                           var exitAllResult = this.handleExitAll(this.activityTree.root);
                           if (postConditionResult.sequencingRequest === SequencingRequestType.RETRY) {
-                              return _object_spread_props$5(_object_spread$c({}, exitAllResult), {
+                              return _object_spread_props$7(_object_spread$d({}, exitAllResult), {
                                   sequencingRequest: SequencingRequestType.RETRY_ALL
                               });
                           }
@@ -17977,13 +17977,13 @@
       return TerminationHandler;
   }();
 
-  function _array_like_to_array$e(arr, len) {
+  function _array_like_to_array$f(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$7(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
   function _class_call_check$I(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -18001,7 +18001,7 @@
       if (protoProps) _defineProperties$I(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$b(obj, key, value) {
+  function _define_property$c(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -18020,7 +18020,7 @@
   function _non_iterable_spread$7() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _object_spread$b(target) {
+  function _object_spread$c(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -18030,25 +18030,25 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$b(target, key, source[key]);
+              _define_property$c(target, key, source[key]);
           });
       }
       return target;
   }
   function _to_consumable_array$7(arr) {
-      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$7();
+      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$7();
   }
-  function _type_of$F(obj) {
+  function _type_of$G(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$e(o, minLen) {
+  function _unsupported_iterable_to_array$f(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
   }
   var __defProp$F = Object.defineProperty;
   var __defNormalProp$F = function __defNormalProp(obj, key, value) {
@@ -18060,7 +18060,7 @@
       }) : obj[key] = value;
   };
   var __publicField$F = function __publicField(obj, key, value) {
-      return __defNormalProp$F(obj, (typeof key === "undefined" ? "undefined" : _type_of$F(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$F(obj, (typeof key === "undefined" ? "undefined" : _type_of$G(key)) !== "symbol" ? key + "" : key, value);
   };
   var DeliveryRequest = function DeliveryRequest() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
@@ -18100,7 +18100,7 @@
           };
           this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$7(options.defaultHideLmsUi) : [];
           this.defaultAuxiliaryResources = (options === null || options === void 0 ? void 0 : options.defaultAuxiliaryResources) ? options.defaultAuxiliaryResources.map(function(resource) {
-              return _object_spread$b({}, resource);
+              return _object_spread$c({}, resource);
           }) : [];
       }
       _create_class$I(_DeliveryHandler, [
@@ -18485,7 +18485,7 @@
                       for(var _iterator = this.defaultAuxiliaryResources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var resource = _step.value;
                           if (resource.resourceId) {
-                              merged.set(resource.resourceId, _object_spread$b({}, resource));
+                              merged.set(resource.resourceId, _object_spread$c({}, resource));
                           }
                       }
                   } catch (err) {
@@ -18517,7 +18517,7 @@
                               for(var _iterator2 = node.auxiliaryResources[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
                                   var resource1 = _step2.value;
                                   if (resource1.resourceId) {
-                                      merged.set(resource1.resourceId, _object_spread$b({}, resource1));
+                                      merged.set(resource1.resourceId, _object_spread$c({}, resource1));
                                   }
                               }
                           } catch (err) {
@@ -18632,7 +18632,7 @@
       if (protoProps) _defineProperties$H(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$E(obj) {
+  function _type_of$F(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -18646,7 +18646,7 @@
       }) : obj[key] = value;
   };
   var __publicField$E = function __publicField(obj, key, value) {
-      return __defNormalProp$E(obj, (typeof key === "undefined" ? "undefined" : _type_of$E(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$E(obj, (typeof key === "undefined" ? "undefined" : _type_of$F(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationLookAhead = /*#__PURE__*/ function() {
       function NavigationLookAhead(activityTree, sequencingProcess) {
@@ -19052,7 +19052,7 @@
       if (protoProps) _defineProperties$G(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$D(obj) {
+  function _type_of$E(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -19066,7 +19066,7 @@
       }) : obj[key] = value;
   };
   var __publicField$D = function __publicField(obj, key, value) {
-      return __defNormalProp$D(obj, (typeof key === "undefined" ? "undefined" : _type_of$D(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$D(obj, (typeof key === "undefined" ? "undefined" : _type_of$E(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationRequestType = /* @__PURE__ */ function(NavigationRequestType2) {
       NavigationRequestType2["START"] = "start";
@@ -19919,12 +19919,12 @@
       return NavigationValidityService;
   }();
 
-  function _array_like_to_array$d(arr, len) {
+  function _array_like_to_array$e(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$9(arr) {
+  function _array_with_holes$a(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _class_call_check$F(instance, Constructor) {
@@ -19943,7 +19943,7 @@
       if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$a(obj, key, value) {
+  function _define_property$b(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -19960,7 +19960,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array_limit$9(arr, i) {
+  function _iterable_to_array_limit$a(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -19984,10 +19984,10 @@
       }
       return _arr;
   }
-  function _non_iterable_rest$9() {
+  function _non_iterable_rest$a() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _object_spread$a(target) {
+  function _object_spread$b(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -19997,12 +19997,12 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$a(target, key, source[key]);
+              _define_property$b(target, key, source[key]);
           });
       }
       return target;
   }
-  function ownKeys$4(object, enumerableOnly) {
+  function ownKeys$6(object, enumerableOnly) {
       var keys = Object.keys(object);
       if (Object.getOwnPropertySymbols) {
           var symbols = Object.getOwnPropertySymbols(object);
@@ -20010,30 +20010,30 @@
       }
       return keys;
   }
-  function _object_spread_props$4(target, source) {
+  function _object_spread_props$6(target, source) {
       source = source != null ? source : {};
       if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       else {
-          ownKeys$4(Object(source)).forEach(function(key) {
+          ownKeys$6(Object(source)).forEach(function(key) {
               Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
           });
       }
       return target;
   }
-  function _sliced_to_array$9(arr, i) {
-      return _array_with_holes$9(arr) || _iterable_to_array_limit$9(arr, i) || _unsupported_iterable_to_array$d(arr, i) || _non_iterable_rest$9();
+  function _sliced_to_array$a(arr, i) {
+      return _array_with_holes$a(arr) || _iterable_to_array_limit$a(arr, i) || _unsupported_iterable_to_array$e(arr, i) || _non_iterable_rest$a();
   }
-  function _type_of$C(obj) {
+  function _type_of$D(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$d(o, minLen) {
+  function _unsupported_iterable_to_array$e(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
   }
   var __defProp$C = Object.defineProperty;
   var __defNormalProp$C = function __defNormalProp(obj, key, value) {
@@ -20045,7 +20045,7 @@
       }) : obj[key] = value;
   };
   var __publicField$C = function __publicField(obj, key, value) {
-      return __defNormalProp$C(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$C(obj, (typeof key === "undefined" ? "undefined" : _type_of$D(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveService = /*#__PURE__*/ function() {
       function GlobalObjectiveService(eventCallback) {
@@ -20227,7 +20227,7 @@
      */ key: "updateObjective",
               value: function updateObjective(objectiveId, objectiveData) {
                   try {
-                      this.globalObjectiveMap.set(objectiveId, _object_spread_props$4(_object_spread$a({}, this.globalObjectiveMap.get(objectiveId), objectiveData), {
+                      this.globalObjectiveMap.set(objectiveId, _object_spread_props$6(_object_spread$b({}, this.globalObjectiveMap.get(objectiveId), objectiveData), {
                           lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
                       }));
                       this.fireEvent("onGlobalObjectiveUpdated", {
@@ -20316,7 +20316,7 @@
               value: function serialize() {
                   var serialized = {};
                   this.globalObjectiveMap.forEach(function(data, id) {
-                      serialized[id] = _object_spread$a({}, data);
+                      serialized[id] = _object_spread$b({}, data);
                   });
                   return serialized;
               }
@@ -20334,8 +20334,8 @@
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = Object.entries(mapData)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var _step_value = _sliced_to_array$9(_step.value, 2), id = _step_value[0], data = _step_value[1];
-                          this.globalObjectiveMap.set(id, _object_spread$a({}, data));
+                          var _step_value = _sliced_to_array$a(_step.value, 2), id = _step_value[0], data = _step_value[1];
+                          this.globalObjectiveMap.set(id, _object_spread$b({}, data));
                       }
                   } catch (err) {
                       _didIteratorError = true;
@@ -20399,7 +20399,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$B(obj) {
+  function _type_of$C(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -20413,7 +20413,7 @@
       }) : obj[key] = value;
   };
   var __publicField$B = function __publicField(obj, key, value) {
-      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingStateManager = /*#__PURE__*/ function() {
       function SequencingStateManager(activityTree, globalObjectiveService, rollupProcess) {
@@ -20895,13 +20895,13 @@
       return SequencingStateManager;
   }();
 
-  function _array_like_to_array$c(arr, len) {
+  function _array_like_to_array$d(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$6(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$c(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
   }
   function _class_call_check$D(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -20928,19 +20928,19 @@
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$6(arr) {
-      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$c(arr) || _non_iterable_spread$6();
+      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$6();
   }
-  function _type_of$A(obj) {
+  function _type_of$B(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$c(o, minLen) {
+  function _unsupported_iterable_to_array$d(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
   }
   var __defProp$A = Object.defineProperty;
   var __defNormalProp$A = function __defNormalProp(obj, key, value) {
@@ -20952,7 +20952,7 @@
       }) : obj[key] = value;
   };
   var __publicField$A = function __publicField(obj, key, value) {
-      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$A(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
   };
   var DeliveryValidator = /*#__PURE__*/ function() {
       function DeliveryValidator(activityTree) {
@@ -21897,7 +21897,7 @@
       if (protoProps) _defineProperties$C(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$z(obj) {
+  function _type_of$A(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -21911,7 +21911,7 @@
       }) : obj[key] = value;
   };
   var __publicField$z = function __publicField(obj, key, value) {
-      return __defNormalProp$z(obj, (typeof key === "undefined" ? "undefined" : _type_of$z(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$z(obj, (typeof key === "undefined" ? "undefined" : _type_of$A(key)) !== "symbol" ? key + "" : key, value);
   };
   var OverallSequencingProcess = /*#__PURE__*/ function() {
       function OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess) {
@@ -22484,16 +22484,13 @@
       return OverallSequencingProcess;
   }();
 
-  function _array_like_to_array$b(arr, len) {
-      if (len == null || len > arr.length) len = arr.length;
-      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
-      return arr2;
+  function _assert_this_initialized$p(self) {
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+      return self;
   }
-  function _array_with_holes$8(arr) {
-      if (Array.isArray(arr)) return arr;
-  }
-  function _array_without_holes$5(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$b(arr);
+  function _call_super$p(_this, derived, args) {
+      derived = _get_prototype_of$p(derived);
+      return _possible_constructor_return$p(_this, _is_native_reflect_construct$p() ? Reflect.construct(derived, args || [], _get_prototype_of$p(_this).constructor) : derived.apply(_this, args));
   }
   function _class_call_check$B(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -22509,6 +22506,702 @@
   }
   function _create_class$B(Constructor, protoProps, staticProps) {
       if (protoProps) _defineProperties$B(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _get$a(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$a = Reflect.get;
+      else {
+          _get$a = function get(target, property, receiver) {
+              var base = _super_prop_base$a(target, property);
+              if (!base) return;
+              var desc = Object.getOwnPropertyDescriptor(base, property);
+              if (desc.get) return desc.get.call(receiver || target);
+              return desc.value;
+          };
+      }
+      return _get$a(target, property, receiver || target);
+  }
+  function _get_prototype_of$p(o) {
+      _get_prototype_of$p = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+          return o.__proto__ || Object.getPrototypeOf(o);
+      };
+      return _get_prototype_of$p(o);
+  }
+  function _inherits$p(subClass, superClass) {
+      if (typeof superClass !== "function" && superClass !== null) {
+          throw new TypeError("Super expression must either be null or a function");
+      }
+      subClass.prototype = Object.create(superClass && superClass.prototype, {
+          constructor: {
+              value: subClass,
+              writable: true,
+              configurable: true
+          }
+      });
+      if (superClass) _set_prototype_of$p(subClass, superClass);
+  }
+  function _instanceof$5(left, right) {
+      "@swc/helpers - instanceof";
+      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
+          return !!right[Symbol.hasInstance](left);
+      } else return left instanceof right;
+  }
+  function _is_native_reflect_construct$p() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$p = function() {
+          return !!result;
+      })();
+  }
+  function _possible_constructor_return$p(self, call) {
+      if (call && (_type_of$z(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$p(self);
+  }
+  function _set_prototype_of$p(o, p) {
+      _set_prototype_of$p = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+          o.__proto__ = p;
+          return o;
+      };
+      return _set_prototype_of$p(o, p);
+  }
+  function _super_prop_base$a(object, property) {
+      while(!Object.prototype.hasOwnProperty.call(object, property)){
+          object = _get_prototype_of$p(object);
+          if (object === null) break;
+      }
+      return object;
+  }
+  function _type_of$z(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$y = Object.defineProperty;
+  var __defNormalProp$y = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$y(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$y = function __publicField(obj, key, value) {
+      return __defNormalProp$y(obj, (typeof key === "undefined" ? "undefined" : _type_of$z(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var ActivityTree = /*#__PURE__*/ function(BaseCMI) {
+      _inherits$p(ActivityTree, BaseCMI);
+      function ActivityTree(root) {
+          _class_call_check$B(this, ActivityTree);
+          var _this;
+          _this = _call_super$p(this, ActivityTree, [
+              "activityTree"
+          ]);
+          __publicField$y(_this, "_root", null);
+          __publicField$y(_this, "_currentActivity", null);
+          __publicField$y(_this, "_suspendedActivity", null);
+          __publicField$y(_this, "_activities", /* @__PURE__ */ new Map());
+          if (root) {
+              _this.root = root;
+          }
+          return _this;
+      }
+      _create_class$B(ActivityTree, [
+          {
+              /**
+     * Called when the API has been initialized after the CMI has been created
+     */ key: "initialize",
+              value: function initialize() {
+                  _get$a(_get_prototype_of$p(ActivityTree.prototype), "initialize", this).call(this);
+                  if (this._root) {
+                      this._root.initialize();
+                  }
+              }
+          },
+          {
+              /**
+     * Called when the API needs to be reset
+     */ key: "reset",
+              value: function reset() {
+                  this._initialized = false;
+                  this._currentActivity = null;
+                  this._suspendedActivity = null;
+                  this._activities.clear();
+                  if (this._root) {
+                      this._root.reset();
+                      this._activities.set(this._root.id, this._root);
+                      this._addActivitiesToMap(this._root);
+                  }
+              }
+          },
+          {
+              key: "root",
+              get: /**
+     * Getter for root
+     * @return {Activity | null}
+     */ function get() {
+                  return this._root;
+              },
+              set: /**
+     * Setter for root
+     * @param {Activity} root
+     */ function set(root) {
+                  if (root !== null && !_instanceof$5(root, Activity)) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".root", scorm2004_errors.TYPE_MISMATCH);
+                  }
+                  this._activities.clear();
+                  this._root = root;
+                  if (root) {
+                      this._activities.set(root.id, root);
+                      this._addActivitiesToMap(root);
+                  }
+              }
+          },
+          {
+              /**
+     * Recursively add activities to the activities map
+     * @param {Activity} activity
+     * @private
+     */ key: "_addActivitiesToMap",
+              value: function _addActivitiesToMap(activity) {
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          this._activities.set(child.id, child);
+                          this._addActivitiesToMap(child);
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              key: "currentActivity",
+              get: /**
+     * Getter for currentActivity
+     * @return {Activity | null}
+     */ function get() {
+                  return this._currentActivity;
+              },
+              set: /**
+     * Setter for currentActivity
+     * @param {Activity | null} activity
+     */ function set(activity) {
+                  if (activity !== null && !_instanceof$5(activity, Activity)) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
+                  }
+                  if (this._currentActivity) {
+                      this._currentActivity.isActive = false;
+                      var ancestor = this._currentActivity.parent;
+                      while(ancestor){
+                          ancestor.isActive = false;
+                          ancestor = ancestor.parent;
+                      }
+                  }
+                  this._currentActivity = activity;
+                  if (activity) {
+                      activity.isActive = true;
+                      var ancestor1 = activity.parent;
+                      while(ancestor1){
+                          ancestor1.isActive = true;
+                          ancestor1 = ancestor1.parent;
+                      }
+                  }
+              }
+          },
+          {
+              /**
+     * Set current activity without activating it
+     * This method is used when the sequencing process needs to update the current activity
+     * pointer without triggering the automatic activation behavior (e.g., after termination).
+     * Unlike the normal setter, this method only deactivates the old current activity (and
+     * non-shared ancestors) WITHOUT activating the new current activity.
+     * @param {Activity | null} activity - The activity to set as current
+     */ key: "setCurrentActivityWithoutActivation",
+              value: function setCurrentActivityWithoutActivation(activity) {
+                  if (activity !== null && !_instanceof$5(activity, Activity)) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
+                  }
+                  if (this._currentActivity) {
+                      var activitiesToPreserve = /* @__PURE__ */ new Set();
+                      if (activity) {
+                          activitiesToPreserve.add(activity);
+                          var ancestor2 = activity.parent;
+                          while(ancestor2){
+                              activitiesToPreserve.add(ancestor2);
+                              ancestor2 = ancestor2.parent;
+                          }
+                      }
+                      this._currentActivity.isActive = false;
+                      var ancestor = this._currentActivity.parent;
+                      while(ancestor){
+                          if (!activitiesToPreserve.has(ancestor)) {
+                              ancestor.isActive = false;
+                          }
+                          ancestor = ancestor.parent;
+                      }
+                  }
+                  this._currentActivity = activity;
+              }
+          },
+          {
+              key: "suspendedActivity",
+              get: /**
+     * Getter for suspendedActivity
+     * @return {Activity | null}
+     */ function get() {
+                  return this._suspendedActivity;
+              },
+              set: /**
+     * Setter for suspendedActivity
+     * @param {Activity | null} activity
+     */ function set(activity) {
+                  if (activity !== null && !_instanceof$5(activity, Activity)) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".suspendedActivity", scorm2004_errors.TYPE_MISMATCH);
+                  }
+                  if (this._suspendedActivity) {
+                      this._suspendedActivity.isSuspended = false;
+                      var ancestor = this._suspendedActivity.parent;
+                      while(ancestor){
+                          ancestor.isSuspended = false;
+                          ancestor = ancestor.parent;
+                      }
+                  }
+                  this._suspendedActivity = activity;
+                  if (activity) {
+                      activity.isSuspended = true;
+                      var ancestor1 = activity.parent;
+                      while(ancestor1){
+                          ancestor1.isSuspended = true;
+                          ancestor1 = ancestor1.parent;
+                      }
+                  }
+              }
+          },
+          {
+              /**
+     * Get an activity by ID
+     * @param {string} id - The ID of the activity to get
+     * @return {Activity | null} - The activity with the given ID, or null if not found
+     */ key: "getActivity",
+              value: function getActivity(id) {
+                  return this._activities.get(id) || null;
+              }
+          },
+          {
+              /**
+     * Get all activities in the tree
+     * @return {Activity[]} - An array of all activities in the tree
+     */ key: "getAllActivities",
+              value: function getAllActivities() {
+                  return Array.from(this._activities.values());
+              }
+          },
+          {
+              /**
+     * Get the parent of an activity
+     * @param {Activity} activity - The activity to get the parent of
+     * @return {Activity | null} - The parent of the activity, or null if it has no parent
+     */ key: "getParent",
+              value: function getParent(activity) {
+                  return activity.parent;
+              }
+          },
+          {
+              /**
+     * Get the children of an activity
+     * @param {Activity} activity - The activity to get the children of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+     * @return {Activity[]} - An array of the activity's children
+     */ key: "getChildren",
+              value: function getChildren(activity) {
+                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+                  return useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+              }
+          },
+          {
+              /**
+     * Get the siblings of an activity
+     * @param {Activity} activity - The activity to get the siblings of
+     * @return {Activity[]} - An array of the activity's siblings
+     */ key: "getSiblings",
+              value: function getSiblings(activity) {
+                  if (!activity.parent) {
+                      return [];
+                  }
+                  return activity.parent.children.filter(function(child) {
+                      return child !== activity;
+                  });
+              }
+          },
+          {
+              /**
+     * Get the next sibling of an activity
+     * @param {Activity} activity - The activity to get the next sibling of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+     * @return {Activity | null} - The next sibling of the activity, or null if it has no next sibling
+     */ key: "getNextSibling",
+              value: function getNextSibling(activity) {
+                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+                  var _siblings_;
+                  if (!activity.parent) {
+                      return null;
+                  }
+                  var siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
+                  var index = siblings.indexOf(activity);
+                  if (index === -1 && useAvailableChildren) {
+                      siblings = activity.parent.children;
+                      index = siblings.indexOf(activity);
+                  }
+                  if (index === -1 || index === siblings.length - 1) {
+                      return null;
+                  }
+                  return (_siblings_ = siblings[index + 1]) !== null && _siblings_ !== void 0 ? _siblings_ : null;
+              }
+          },
+          {
+              /**
+     * Get the previous sibling of an activity
+     * @param {Activity} activity - The activity to get the previous sibling of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+     * @return {Activity | null} - The previous sibling of the activity, or null if it has no previous sibling
+     */ key: "getPreviousSibling",
+              value: function getPreviousSibling(activity) {
+                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+                  var _siblings_;
+                  if (!activity.parent) {
+                      return null;
+                  }
+                  var siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
+                  var index = siblings.indexOf(activity);
+                  if (index === -1 && useAvailableChildren) {
+                      siblings = activity.parent.children;
+                      index = siblings.indexOf(activity);
+                  }
+                  if (index <= 0) {
+                      return null;
+                  }
+                  return (_siblings_ = siblings[index - 1]) !== null && _siblings_ !== void 0 ? _siblings_ : null;
+              }
+          },
+          {
+              /**
+     * Get the first child of an activity
+     * @param {Activity} activity - The activity to get the first child of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+     * @return {Activity | null} - The first child of the activity, or null if it has no children
+     */ key: "getFirstChild",
+              value: function getFirstChild(activity) {
+                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+                  var _children_;
+                  var children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+                  if (children.length === 0) {
+                      return null;
+                  }
+                  return (_children_ = children[0]) !== null && _children_ !== void 0 ? _children_ : null;
+              }
+          },
+          {
+              /**
+     * Get the last child of an activity
+     * @param {Activity} activity - The activity to get the last child of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
+     * @return {Activity | null} - The last child of the activity, or null if it has no children
+     */ key: "getLastChild",
+              value: function getLastChild(activity) {
+                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+                  var _children_;
+                  var children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+                  if (children.length === 0) {
+                      return null;
+                  }
+                  return (_children_ = children[children.length - 1]) !== null && _children_ !== void 0 ? _children_ : null;
+              }
+          },
+          {
+              /**
+     * Get the common ancestor of two activities
+     * @param {Activity} activity1 - The first activity
+     * @param {Activity} activity2 - The second activity
+     * @return {Activity | null} - The common ancestor of the two activities, or null if they have no common ancestor
+     */ key: "getCommonAncestor",
+              value: function getCommonAncestor(activity1, activity2) {
+                  var path1 = [];
+                  var current = activity1;
+                  while(current){
+                      path1.unshift(current);
+                      current = current.parent;
+                  }
+                  current = activity2;
+                  while(current){
+                      if (path1.includes(current)) {
+                          return current;
+                      }
+                      current = current.parent;
+                  }
+                  return null;
+              }
+          },
+          {
+              /**
+     * toJSON for ActivityTree
+     * @return {object}
+     */ key: "toJSON",
+              value: function toJSON() {
+                  this.jsonString = true;
+                  var result = {
+                      root: this._root,
+                      currentActivity: this._currentActivity ? this._currentActivity.id : null,
+                      suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null
+                  };
+                  this.jsonString = false;
+                  return result;
+              }
+          }
+      ]);
+      return ActivityTree;
+  }(BaseCMI);
+
+  function _array_like_to_array$c(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_with_holes$9(arr) {
+      if (Array.isArray(arr)) return arr;
+  }
+  function _define_property$a(obj, key, value) {
+      if (key in obj) {
+          Object.defineProperty(obj, key, {
+              value: value,
+              enumerable: true,
+              configurable: true,
+              writable: true
+          });
+      } else obj[key] = value;
+      return obj;
+  }
+  function _iterable_to_array_limit$9(arr, i) {
+      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+      if (_i == null) return;
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _s, _e;
+      try {
+          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
+              _arr.push(_s.value);
+              if (i && _arr.length === i) break;
+          }
+      } catch (err) {
+          _d = true;
+          _e = err;
+      } finally{
+          try {
+              if (!_n && _i["return"] != null) _i["return"]();
+          } finally{
+              if (_d) throw _e;
+          }
+      }
+      return _arr;
+  }
+  function _non_iterable_rest$9() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _object_spread$a(target) {
+      for(var i = 1; i < arguments.length; i++){
+          var source = arguments[i] != null ? arguments[i] : {};
+          var ownKeys = Object.keys(source);
+          if (typeof Object.getOwnPropertySymbols === "function") {
+              ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function(sym) {
+                  return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+              }));
+          }
+          ownKeys.forEach(function(key) {
+              _define_property$a(target, key, source[key]);
+          });
+      }
+      return target;
+  }
+  function ownKeys$5(object, enumerableOnly) {
+      var keys = Object.keys(object);
+      if (Object.getOwnPropertySymbols) {
+          var symbols = Object.getOwnPropertySymbols(object);
+          keys.push.apply(keys, symbols);
+      }
+      return keys;
+  }
+  function _object_spread_props$5(target, source) {
+      source = source != null ? source : {};
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
+          ownKeys$5(Object(source)).forEach(function(key) {
+              Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+          });
+      }
+      return target;
+  }
+  function _sliced_to_array$9(arr, i) {
+      return _array_with_holes$9(arr) || _iterable_to_array_limit$9(arr, i) || _unsupported_iterable_to_array$c(arr, i) || _non_iterable_rest$9();
+  }
+  function _type_of$y(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$c(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
+  }
+  var modelPrototypes = /* @__PURE__ */ new Set([
+      Object.prototype,
+      Activity.prototype,
+      ActivityObjective.prototype,
+      ActivityTree.prototype,
+      SequencingControls.prototype,
+      RuleCondition.prototype,
+      SequencingRule.prototype,
+      SequencingRules.prototype,
+      RollupCondition.prototype,
+      RollupRule.prototype,
+      RollupRules.prototype
+  ]);
+  function clonePreviewState(value) {
+      var seen = /* @__PURE__ */ new Map();
+      var copy = function copy1(item) {
+          if (typeof item === "function") throw new Error("Preview cannot copy callbacks");
+          if (item === null || (typeof item === "undefined" ? "undefined" : _type_of$y(item)) !== "object") return item;
+          if (seen.has(item)) return seen.get(item);
+          var prototype = Object.getPrototypeOf(item);
+          if ([
+              Date.prototype,
+              Map.prototype,
+              Set.prototype
+          ].includes(prototype) && Reflect.ownKeys(item).length > 0) throw new Error("Preview cannot copy custom collection properties");
+          if (prototype === Date.prototype) return new Date(Date.prototype.getTime.call(item));
+          if (prototype === Map.prototype) {
+              var result2 = /* @__PURE__ */ new Map();
+              seen.set(item, result2);
+              var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+              try {
+                  for(var _iterator = Map.prototype.entries.call(item)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                      var _step_value = _sliced_to_array$9(_step.value, 2), key = _step_value[0], entry = _step_value[1];
+                      result2.set(copy(key), copy(entry));
+                  }
+              } catch (err) {
+                  _didIteratorError = true;
+                  _iteratorError = err;
+              } finally{
+                  try {
+                      if (!_iteratorNormalCompletion && _iterator.return != null) {
+                          _iterator.return();
+                      }
+                  } finally{
+                      if (_didIteratorError) {
+                          throw _iteratorError;
+                      }
+                  }
+              }
+              return result2;
+          }
+          if (prototype === Set.prototype) {
+              var result21 = /* @__PURE__ */ new Set();
+              seen.set(item, result21);
+              var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+              try {
+                  for(var _iterator1 = Set.prototype.values.call(item)[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                      var entry1 = _step1.value;
+                      result21.add(copy(entry1));
+                  }
+              } catch (err) {
+                  _didIteratorError1 = true;
+                  _iteratorError1 = err;
+              } finally{
+                  try {
+                      if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                          _iterator1.return();
+                      }
+                  } finally{
+                      if (_didIteratorError1) {
+                          throw _iteratorError1;
+                      }
+                  }
+              }
+              return result21;
+          }
+          if (prototype !== null && prototype !== Array.prototype && !modelPrototypes.has(prototype)) {
+              throw new Error("Preview cannot copy a custom model");
+          }
+          var result = Array.isArray(item) ? [] : Object.create(prototype);
+          seen.set(item, result);
+          var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+          try {
+              for(var _iterator2 = Reflect.ownKeys(item)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                  var key1 = _step2.value;
+                  var descriptor = Object.getOwnPropertyDescriptor(item, key1);
+                  if (!("value" in descriptor)) throw new Error("Preview cannot copy accessors");
+                  Object.defineProperty(result, key1, _object_spread_props$5(_object_spread$a({}, descriptor), {
+                      value: copy(descriptor.value)
+                  }));
+              }
+          } catch (err) {
+              _didIteratorError2 = true;
+              _iteratorError2 = err;
+          } finally{
+              try {
+                  if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                      _iterator2.return();
+                  }
+              } finally{
+                  if (_didIteratorError2) {
+                      throw _iteratorError2;
+                  }
+              }
+          }
+          return result;
+      };
+      return copy(value);
+  }
+
+  function _array_like_to_array$b(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_with_holes$8(arr) {
+      if (Array.isArray(arr)) return arr;
+  }
+  function _array_without_holes$5(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$b(arr);
+  }
+  function _class_call_check$A(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$A(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$A(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$A(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$9(obj, key, value) {
@@ -22572,13 +23265,31 @@
       }
       return target;
   }
+  function ownKeys$4(object, enumerableOnly) {
+      var keys = Object.keys(object);
+      if (Object.getOwnPropertySymbols) {
+          var symbols = Object.getOwnPropertySymbols(object);
+          keys.push.apply(keys, symbols);
+      }
+      return keys;
+  }
+  function _object_spread_props$4(target, source) {
+      source = source != null ? source : {};
+      if (Object.getOwnPropertyDescriptors) Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      else {
+          ownKeys$4(Object(source)).forEach(function(key) {
+              Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+          });
+      }
+      return target;
+  }
   function _sliced_to_array$8(arr, i) {
       return _array_with_holes$8(arr) || _iterable_to_array_limit$8(arr, i) || _unsupported_iterable_to_array$b(arr, i) || _non_iterable_rest$8();
   }
   function _to_consumable_array$5(arr) {
       return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$b(arr) || _non_iterable_spread$5();
   }
-  function _type_of$y(obj) {
+  function _type_of$x(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -22590,38 +23301,39 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$b(o, minLen);
   }
-  var __defProp$y = Object.defineProperty;
-  var __defNormalProp$y = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$y(obj, key, {
+  var __defProp$x = Object.defineProperty;
+  var __defNormalProp$x = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$x(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$y = function __publicField(obj, key, value) {
-      return __defNormalProp$y(obj, (typeof key === "undefined" ? "undefined" : _type_of$y(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$x = function __publicField(obj, key, value) {
+      return __defNormalProp$x(obj, (typeof key === "undefined" ? "undefined" : _type_of$x(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingService = /*#__PURE__*/ function() {
       function SequencingService(sequencing, cmi, adl, eventService, loggingService) {
           var _this = this;
           var configuration = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : {};
-          _class_call_check$B(this, SequencingService);
-          __publicField$y(this, "sequencing");
-          __publicField$y(this, "cmi");
-          __publicField$y(this, "adl");
-          __publicField$y(this, "eventService");
-          __publicField$y(this, "loggingService");
-          __publicField$y(this, "activityDeliveryService");
-          __publicField$y(this, "rollupProcess");
-          __publicField$y(this, "overallSequencingProcess", null);
-          __publicField$y(this, "sequencingProcess", null);
-          __publicField$y(this, "eventListeners", {});
-          __publicField$y(this, "configuration");
-          __publicField$y(this, "isInitialized", false);
-          __publicField$y(this, "isSequencingActive", false);
-          __publicField$y(this, "lastCMIValues", /* @__PURE__ */ new Map());
-          __publicField$y(this, "lastSequencingResult", null);
+          _class_call_check$A(this, SequencingService);
+          __publicField$x(this, "sequencing");
+          __publicField$x(this, "cmi");
+          __publicField$x(this, "adl");
+          __publicField$x(this, "eventService");
+          __publicField$x(this, "loggingService");
+          __publicField$x(this, "activityDeliveryService");
+          __publicField$x(this, "rollupProcess");
+          __publicField$x(this, "overallSequencingProcess", null);
+          __publicField$x(this, "sequencingProcess", null);
+          __publicField$x(this, "eventListeners", {});
+          __publicField$x(this, "configuration");
+          __publicField$x(this, "isInitialized", false);
+          __publicField$x(this, "navigationPreviewConfiguration", null);
+          __publicField$x(this, "isSequencingActive", false);
+          __publicField$x(this, "lastCMIValues", /* @__PURE__ */ new Map());
+          __publicField$x(this, "lastSequencingResult", null);
           this.sequencing = sequencing;
           this.cmi = cmi;
           this.adl = adl;
@@ -22659,7 +23371,7 @@
           this.setupCMIChangeWatchers();
           this.createSequencingProcesses();
       }
-      _create_class$B(SequencingService, [
+      _create_class$A(SequencingService, [
           {
               /**
      * Create sequencing processes
@@ -22671,6 +23383,7 @@
                       if (!this.sequencing.initialized) {
                           this.sequencing.initialize();
                       }
+                      this.navigationPreviewConfiguration = this.configuration;
                       this.sequencing.adlNav = this.adl.nav;
                       if (this.sequencing.activityTree.root) {
                           var seqOptions = {};
@@ -22764,6 +23477,94 @@
               value: function processNavigationRequest(request, targetActivityId, exitType) {
                   var prepared = this.prepareNavigationRequest(request, targetActivityId, exitType);
                   return prepared ? this.completeNavigationRequest(prepared) : false;
+              }
+          },
+          {
+              /**
+     * Evaluate host flow navigation on isolated live tracking data. No runtime
+     * termination, host events, persistence or delivery callbacks are performed.
+     * @spec SCORM 2004 SN OP.1 / TB.2.3 / UP.4 / SB.2.2 - End Attempt and
+     * objective transfer must precede checking the next activity's preconditions.
+     */ key: "previewNavigationRequest",
+              value: function previewNavigationRequest(request) {
+                  var _this_sequencing_activityTree_currentActivity;
+                  var unknown = {
+                      outcome: "unknown",
+                      targetActivityId: null,
+                      endSequencingSession: false,
+                      exception: null
+                  };
+                  if (!this.isInitialized || !this.overallSequencingProcess || this.isDeliveryInProgress() || !((_this_sequencing_activityTree_currentActivity = this.sequencing.activityTree.currentActivity) === null || _this_sequencing_activityTree_currentActivity === void 0 ? void 0 : _this_sequencing_activityTree_currentActivity.isActive) || request !== "continue" && request !== "previous") return unknown;
+                  try {
+                      var _ref, _result_exception;
+                      var _result_targetActivity;
+                      var configuration = this.navigationPreviewConfiguration;
+                      var tree = clonePreviewState(this.sequencing.activityTree);
+                      var pending = tree.root ? [
+                          tree.root
+                      ] : [];
+                      while(pending.length){
+                          var _pending;
+                          var activity = pending.pop();
+                          var controls = activity.sequencingControls;
+                          if (controls.randomizeChildren && controls.randomizationTiming !== "never" || controls.selectCount !== null && controls.selectionTiming !== "never") {
+                              return unknown;
+                          }
+                          (_pending = pending).push.apply(_pending, _to_consumable_array$5(activity.children));
+                      }
+                      var process = new SequencingProcess(tree, null, null, null, _object_spread$9({}, configuration.now ? {
+                          now: configuration.now
+                      } : {}, configuration.getAttemptElapsedSeconds ? {
+                          getAttemptElapsedSeconds: configuration.getAttemptElapsedSeconds
+                      } : {}, configuration.getActivityElapsedSeconds ? {
+                          getActivityElapsedSeconds: configuration.getActivityElapsedSeconds
+                      } : {}));
+                      var cmiData = this.getCMIDataForTransfer();
+                      var ended = false;
+                      var preview = new OverallSequencingProcess(tree, process, new RollupProcess(), null, function(event) {
+                          if (event === "onSequencingSessionEnd") ended = true;
+                      }, _object_spread_props$4(_object_spread$9({
+                          getCMIData: function getCMIData() {
+                              return cmiData;
+                          }
+                      }, configuration.now ? {
+                          now: configuration.now
+                      } : {}), {
+                          defaultHideLmsUi: clonePreviewState(this.sequencing.hideLmsUi),
+                          defaultAuxiliaryResources: clonePreviewState(this.sequencing.auxiliaryResources)
+                      }));
+                      preview.getGlobalObjectiveMap().clear();
+                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                      try {
+                          for(var _iterator = this.overallSequencingProcess.getGlobalObjectiveMap()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                              var _step_value = _sliced_to_array$8(_step.value, 2), id = _step_value[0], value = _step_value[1];
+                              preview.getGlobalObjectiveMap().set(id, clonePreviewState(value));
+                          }
+                      } catch (err) {
+                          _didIteratorError = true;
+                          _iteratorError = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                  _iterator.return();
+                              }
+                          } finally{
+                              if (_didIteratorError) {
+                                  throw _iteratorError;
+                              }
+                          }
+                      }
+                      preview.setContentDelivered(this.overallSequencingProcess.hasContentBeenDelivered());
+                      var result = preview.processNavigationRequest(request === "continue" ? NavigationRequestType.CONTINUE : NavigationRequestType.PREVIOUS, null, this.cmi.getExitValueInternal() || "");
+                      return {
+                          outcome: result.valid ? "allowed" : "blocked",
+                          targetActivityId: (_ref = (_result_targetActivity = result.targetActivity) === null || _result_targetActivity === void 0 ? void 0 : _result_targetActivity.id) !== null && _ref !== void 0 ? _ref : null,
+                          endSequencingSession: ended,
+                          exception: (_result_exception = result.exception) !== null && _result_exception !== void 0 ? _result_exception : null
+                      };
+                  } catch (unused) {
+                      return unknown;
+                  }
               }
           },
           {
@@ -23485,10 +24286,10 @@
       return SequencingService;
   }();
 
-  function _class_call_check$A(instance, Constructor) {
+  function _class_call_check$z(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$A(target, props) {
+  function _defineProperties$z(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -23497,15 +24298,15 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$A(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$A(Constructor.prototype, protoProps);
+  function _create_class$z(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$z(Constructor.prototype, protoProps);
       return Constructor;
   }
   var SerializationService = /*#__PURE__*/ function() {
       function SerializationService() {
-          _class_call_check$A(this, SerializationService);
+          _class_call_check$z(this, SerializationService);
       }
-      _create_class$A(SerializationService, [
+      _create_class$z(SerializationService, [
           {
               /**
      * Loads CMI data from a flattened JSON object with special handling for arrays and ordering.
@@ -23765,10 +24566,10 @@
   function _array_with_holes$7(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _class_call_check$z(instance, Constructor) {
+  function _class_call_check$y(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$z(target, props) {
+  function _defineProperties$y(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -23777,11 +24578,11 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$z(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$z(Constructor.prototype, protoProps);
+  function _create_class$y(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$y(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _instanceof$5(left, right) {
+  function _instanceof$4(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -23817,7 +24618,7 @@
   function _sliced_to_array$7(arr, i) {
       return _array_with_holes$7(arr) || _iterable_to_array_limit$7(arr, i) || _unsupported_iterable_to_array$a(arr, i) || _non_iterable_rest$7();
   }
-  function _type_of$x(obj) {
+  function _type_of$w(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -23829,27 +24630,27 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$a(o, minLen);
   }
-  var __defProp$x = Object.defineProperty;
-  var __defNormalProp$x = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$x(obj, key, {
+  var __defProp$w = Object.defineProperty;
+  var __defNormalProp$w = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$w(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$x = function __publicField(obj, key, value) {
-      return __defNormalProp$x(obj, (typeof key === "undefined" ? "undefined" : _type_of$x(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$w = function __publicField(obj, key, value) {
+      return __defNormalProp$w(obj, (typeof key === "undefined" ? "undefined" : _type_of$w(key)) !== "symbol" ? key + "" : key, value);
   };
   var SynchronousHttpService = /*#__PURE__*/ function() {
       function SynchronousHttpService(settings, error_codes) {
-          _class_call_check$z(this, SynchronousHttpService);
-          __publicField$x(this, "settings");
-          __publicField$x(this, "error_codes");
+          _class_call_check$y(this, SynchronousHttpService);
+          __publicField$w(this, "settings");
+          __publicField$w(this, "error_codes");
           this.settings = settings;
           this.error_codes = error_codes;
       }
-      _create_class$z(SynchronousHttpService, [
+      _create_class$y(SynchronousHttpService, [
           {
               /**
      * Sends synchronous HTTP requests to the LMS
@@ -23939,7 +24740,7 @@
                       xhr.send(body);
                       return this.settings.xhrResponseHandler(xhr);
                   } catch (e) {
-                      var message = _instanceof$5(e, Error) ? e.message : String(e);
+                      var message = _instanceof$4(e, Error) ? e.message : String(e);
                       return {
                           result: global_constants.SCORM_FALSE,
                           errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
@@ -23956,8 +24757,8 @@
      * @private
      */ key: "_prepareRequestBody",
               value: function _prepareRequestBody(params) {
-                  var body = _instanceof$5(params, Array) ? params.join("&") : JSON.stringify(params);
-                  var contentType = _instanceof$5(params, Array) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+                  var body = _instanceof$4(params, Array) ? params.join("&") : JSON.stringify(params);
+                  var contentType = _instanceof$4(params, Array) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
                   return {
                       body: body,
                       contentType: contentType
@@ -23989,10 +24790,10 @@
       return checkValidRange(CMIElement, value, rangePattern, scorm12_errors.VALUE_OUT_OF_RANGE, Scorm12ValidationError);
   }
 
-  function _class_call_check$y(instance, Constructor) {
+  function _class_call_check$x(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$y(target, props) {
+  function _defineProperties$x(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -24001,15 +24802,15 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$y(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$y(Constructor.prototype, protoProps);
+  function _create_class$x(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$x(Constructor.prototype, protoProps);
       return Constructor;
   }
   var ValidationService = /*#__PURE__*/ function() {
       function ValidationService() {
-          _class_call_check$y(this, ValidationService);
+          _class_call_check$x(this, ValidationService);
       }
-      _create_class$y(ValidationService, [
+      _create_class$x(ValidationService, [
           {
               /**
      * Validates a score property (raw, min, max)
@@ -24116,10 +24917,10 @@
   function _array_without_holes$4(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$9(arr);
   }
-  function _class_call_check$x(instance, Constructor) {
+  function _class_call_check$w(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$x(target, props) {
+  function _defineProperties$w(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -24128,8 +24929,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$x(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$x(Constructor.prototype, protoProps);
+  function _create_class$w(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$w(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$8(obj, key, value) {
@@ -24143,7 +24944,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _instanceof$4(left, right) {
+  function _instanceof$3(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -24193,7 +24994,7 @@
   function _to_consumable_array$4(arr) {
       return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$9(arr) || _non_iterable_spread$4();
   }
-  function _type_of$w(obj) {
+  function _type_of$v(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -24205,49 +25006,49 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$9(o, minLen);
   }
-  var __defProp$w = Object.defineProperty;
-  var __defNormalProp$w = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$w(obj, key, {
+  var __defProp$v = Object.defineProperty;
+  var __defNormalProp$v = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$v(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$w = function __publicField(obj, key, value) {
-      return __defNormalProp$w(obj, (typeof key === "undefined" ? "undefined" : _type_of$w(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$v = function __publicField(obj, key, value) {
+      return __defNormalProp$v(obj, (typeof key === "undefined" ? "undefined" : _type_of$v(key)) !== "symbol" ? key + "" : key, value);
   };
   var BaseAPI = /*#__PURE__*/ function _target() {
       function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService, offlineStorageService) {
           var _this = this;
-          _class_call_check$x(this, BaseAPI);
-          __publicField$w(this, "_timeout");
-          __publicField$w(this, "_error_codes");
-          __publicField$w(this, "_settings", DefaultSettings);
-          __publicField$w(this, "_httpService");
-          __publicField$w(this, "_eventService");
-          __publicField$w(this, "_serializationService");
-          __publicField$w(this, "_errorHandlingService");
-          __publicField$w(this, "_loggingService");
-          __publicField$w(this, "_offlineStorageService");
-          __publicField$w(this, "_cmiValueAccessService");
-          __publicField$w(this, "_courseId", "");
-          __publicField$w(this, "_pendingCommitCount", 0);
+          _class_call_check$w(this, BaseAPI);
+          __publicField$v(this, "_timeout");
+          __publicField$v(this, "_error_codes");
+          __publicField$v(this, "_settings", DefaultSettings);
+          __publicField$v(this, "_httpService");
+          __publicField$v(this, "_eventService");
+          __publicField$v(this, "_serializationService");
+          __publicField$v(this, "_errorHandlingService");
+          __publicField$v(this, "_loggingService");
+          __publicField$v(this, "_offlineStorageService");
+          __publicField$v(this, "_cmiValueAccessService");
+          __publicField$v(this, "_courseId", "");
+          __publicField$v(this, "_pendingCommitCount", 0);
           /**
        * Monotonic sequence for commits captured by this API instance. It is
        * intentionally not reset by reset().
-       */ __publicField$w(this, "_commitSequence", 0);
-          __publicField$w(this, "_commitSettleWaiters", []);
+       */ __publicField$v(this, "_commitSequence", 0);
+          __publicField$v(this, "_commitSettleWaiters", []);
           /**
        * Canonical paths of every CMI element that has been explicitly assigned a
        * value via SetValue / loadFromJSON (both funnel through _commonSetCMIValue).
        * Used by standards that must tell "implemented but never set" apart from a
        * legitimately empty value when answering GetValue (SCORM 2004 error 403).
        * Cleared on reset so a fresh SCO attempt starts with nothing "set".
-       */ __publicField$w(this, "_setCMIElements", /* @__PURE__ */ new Set());
-          __publicField$w(this, "startingData");
-          __publicField$w(this, "currentState");
-          if ((_instanceof$4(this, BaseAPI) ? this.constructor : void 0) === BaseAPI) {
+       */ __publicField$v(this, "_setCMIElements", /* @__PURE__ */ new Set());
+          __publicField$v(this, "startingData");
+          __publicField$v(this, "currentState");
+          if ((_instanceof$3(this, BaseAPI) ? this.constructor : void 0) === BaseAPI) {
               throw new TypeError("Cannot construct BaseAPI instances directly");
           }
           this.currentState = global_constants.STATE_NOT_INITIALIZED;
@@ -24370,7 +25171,7 @@
           };
           this._cmiValueAccessService = new CMIValueAccessService(cmiValueAccessContext);
       }
-      _create_class$x(BaseAPI, [
+      _create_class$w(BaseAPI, [
           {
               key: "lastErrorCode",
               get: /**
@@ -24875,9 +25676,9 @@
      */ key: "_checkForDuplicateId",
               value: function _checkForDuplicateId(CMIElement, value) {
                   var getCMIArrayProperty = function getCMIArrayProperty(obj, prop) {
-                      if (obj && (typeof obj === "undefined" ? "undefined" : _type_of$w(obj)) === "object" && prop in obj) {
+                      if (obj && (typeof obj === "undefined" ? "undefined" : _type_of$v(obj)) === "object" && prop in obj) {
                           var value2 = obj[prop];
-                          return _instanceof$4(value2, CMIArray) ? value2 : void 0;
+                          return _instanceof$3(value2, CMIArray) ? value2 : void 0;
                       }
                       return void 0;
                   };
@@ -24885,7 +25686,7 @@
                       for(var i = 0; i < array.childArray.length; i++){
                           if (i !== currentIndex) {
                               var child = array.childArray[i];
-                              if (child && (typeof child === "undefined" ? "undefined" : _type_of$w(child)) === "object" && "id" in child && child.id === idValue) {
+                              if (child && (typeof child === "undefined" ? "undefined" : _type_of$v(child)) === "object" && "id" in child && child.id === idValue) {
                                   return true;
                               }
                           }
@@ -25295,7 +26096,7 @@
                               finalParams = _to_consumable_array$4(finalParams).concat([
                                   "".concat(encodeURIComponent(field), "=true")
                               ]);
-                          } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$w(finalParams)) === "object") {
+                          } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$v(finalParams)) === "object") {
                               finalParams = _object_spread_props$3(_object_spread$8({}, finalParams), _define_property$8({}, field, true));
                           }
                       }
@@ -25304,7 +26105,7 @@
                               finalParams = _to_consumable_array$4(finalParams).concat([
                                   "commitSequence=".concat(sequence)
                               ]);
-                          } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$w(finalParams)) === "object") {
+                          } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$v(finalParams)) === "object") {
                               finalParams = _object_spread_props$3(_object_spread$8({}, finalParams), {
                                   commitSequence: sequence
                               });
@@ -25324,7 +26125,7 @@
                       };
                       if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
                           this.apiLog("processHttpRequest", "Device is offline, storing data locally", LogLevelEnum.INFO);
-                          if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$w(finalParams)) === "object" && "cmi" in finalParams) {
+                          if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$v(finalParams)) === "object" && "cmi" in finalParams) {
                               return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
                                   isTerminateCommit: immediate,
                                   sequence: sequence
@@ -25429,7 +26230,7 @@
      * this._checkObjectHasProperty(obj, "age"); // Returns false
      */ key: "_checkObjectHasProperty",
               value: function _checkObjectHasProperty(obj, attribute) {
-                  if (obj === null || obj === void 0 || (typeof obj === "undefined" ? "undefined" : _type_of$w(obj)) !== "object") {
+                  if (obj === null || obj === void 0 || (typeof obj === "undefined" ? "undefined" : _type_of$v(obj)) !== "object") {
                       return false;
                   }
                   return Object.hasOwnProperty.call(obj, attribute) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), attribute) != null || attribute in obj;
@@ -25466,14 +26267,14 @@
      * }
      */ key: "handleValueAccessException",
               value: function handleValueAccessException(CMIElement, e, returnValue) {
-                  if (_instanceof$4(e, ValidationError)) {
+                  if (_instanceof$3(e, ValidationError)) {
                       this.lastErrorCode = String(e.errorCode);
                       if (returnValue !== "") {
                           returnValue = global_constants.SCORM_FALSE;
                       }
                       this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
                   } else {
-                      if (_instanceof$4(e, Error) && e.message) {
+                      if (_instanceof$3(e, Error) && e.message) {
                           this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
                       } else {
                           this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
@@ -25517,18 +26318,18 @@
       return BaseAPI;
   }();
 
-  function _assert_this_initialized$p(self) {
+  function _assert_this_initialized$o(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$p(_this, derived, args) {
-      derived = _get_prototype_of$p(derived);
-      return _possible_constructor_return$p(_this, _is_native_reflect_construct$p() ? Reflect.construct(derived, args || [], _get_prototype_of$p(_this).constructor) : derived.apply(_this, args));
+  function _call_super$o(_this, derived, args) {
+      derived = _get_prototype_of$o(derived);
+      return _possible_constructor_return$o(_this, _is_native_reflect_construct$o() ? Reflect.construct(derived, args || [], _get_prototype_of$o(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$w(instance, Constructor) {
+  function _class_call_check$v(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$w(target, props) {
+  function _defineProperties$v(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -25537,17 +26338,17 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$w(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$w(Constructor.prototype, protoProps);
+  function _create_class$v(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$v(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get_prototype_of$p(o) {
-      _get_prototype_of$p = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$o(o) {
+      _get_prototype_of$o = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$p(o);
+      return _get_prototype_of$o(o);
   }
-  function _inherits$p(subClass, superClass) {
+  function _inherits$o(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -25558,70 +26359,70 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$p(subClass, superClass);
+      if (superClass) _set_prototype_of$o(subClass, superClass);
   }
-  function _is_native_reflect_construct$p() {
+  function _is_native_reflect_construct$o() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$p = function() {
+      return (_is_native_reflect_construct$o = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$p(self, call) {
-      if (call && (_type_of$v(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$p(self);
+  function _possible_constructor_return$o(self, call) {
+      if (call && (_type_of$u(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$o(self);
   }
-  function _set_prototype_of$p(o, p) {
-      _set_prototype_of$p = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$o(o, p) {
+      _set_prototype_of$o = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$p(o, p);
+      return _set_prototype_of$o(o, p);
   }
-  function _type_of$v(obj) {
+  function _type_of$u(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$v = Object.defineProperty;
-  var __defNormalProp$v = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$v(obj, key, {
+  var __defProp$u = Object.defineProperty;
+  var __defNormalProp$u = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$u(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$v = function __publicField(obj, key, value) {
-      return __defNormalProp$v(obj, (typeof key === "undefined" ? "undefined" : _type_of$v(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$u = function __publicField(obj, key, value) {
+      return __defNormalProp$u(obj, (typeof key === "undefined" ? "undefined" : _type_of$u(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIScore = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$p(CMIScore, BaseCMI);
+      _inherits$o(CMIScore, BaseCMI);
       function CMIScore(params) {
-          _class_call_check$w(this, CMIScore);
+          _class_call_check$v(this, CMIScore);
           var _this;
           var _params_allowEmptyString;
-          _this = _call_super$p(this, CMIScore, [
+          _this = _call_super$o(this, CMIScore, [
               params.CMIElement
           ]);
-          __publicField$v(_this, "__children");
+          __publicField$u(_this, "__children");
           /**
        * Score range validation pattern (e.g., "0#100" for SCORM 1.2).
        * Set to `false` to disable range validation (e.g., for SCORM 2004 where scores have no upper bound).
        * This property is intentionally unused in the base class but provides subclass flexibility.
-       */ __publicField$v(_this, "__score_range");
-          __publicField$v(_this, "__invalid_error_code");
-          __publicField$v(_this, "__invalid_type_code");
-          __publicField$v(_this, "__invalid_range_code");
-          __publicField$v(_this, "__decimal_regex");
-          __publicField$v(_this, "__error_class");
+       */ __publicField$u(_this, "__score_range");
+          __publicField$u(_this, "__invalid_error_code");
+          __publicField$u(_this, "__invalid_type_code");
+          __publicField$u(_this, "__invalid_range_code");
+          __publicField$u(_this, "__decimal_regex");
+          __publicField$u(_this, "__error_class");
           /**
        * When true, an empty string is a valid value (clears the element). SCORM 1.2
        * score elements may be blank per the ADL 1.2 CTS; SCORM 2004 leaves this off.
-       */ __publicField$v(_this, "__allow_empty_string");
-          __publicField$v(_this, "_raw", "");
-          __publicField$v(_this, "_min", "");
-          __publicField$v(_this, "_max");
+       */ __publicField$u(_this, "__allow_empty_string");
+          __publicField$u(_this, "_raw", "");
+          __publicField$u(_this, "_min", "");
+          __publicField$u(_this, "_max");
           _this.__children = params.score_children || scorm12_constants.score_children;
           _this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
           _this._max = params.max || params.max === "" ? params.max : "100";
@@ -25633,7 +26434,7 @@
           _this.__allow_empty_string = (_params_allowEmptyString = params.allowEmptyString) !== null && _params_allowEmptyString !== void 0 ? _params_allowEmptyString : false;
           return _this;
       }
-      _create_class$w(CMIScore, [
+      _create_class$v(CMIScore, [
           {
               /**
      * Called when the API has been reset
@@ -25759,18 +26560,18 @@
       return CMIScore;
   }(BaseCMI);
 
-  function _assert_this_initialized$o(self) {
+  function _assert_this_initialized$n(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$o(_this, derived, args) {
-      derived = _get_prototype_of$o(derived);
-      return _possible_constructor_return$o(_this, _is_native_reflect_construct$o() ? Reflect.construct(derived, args || [], _get_prototype_of$o(_this).constructor) : derived.apply(_this, args));
+  function _call_super$n(_this, derived, args) {
+      derived = _get_prototype_of$n(derived);
+      return _possible_constructor_return$n(_this, _is_native_reflect_construct$n() ? Reflect.construct(derived, args || [], _get_prototype_of$n(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$v(instance, Constructor) {
+  function _class_call_check$u(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$v(target, props) {
+  function _defineProperties$u(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -25779,30 +26580,30 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$v(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$v(Constructor.prototype, protoProps);
+  function _create_class$u(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$u(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get$a(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$a = Reflect.get;
+  function _get$9(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$9 = Reflect.get;
       else {
-          _get$a = function get(target, property, receiver) {
-              var base = _super_prop_base$a(target, property);
+          _get$9 = function get(target, property, receiver) {
+              var base = _super_prop_base$9(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
               if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
-      return _get$a(target, property, receiver || target);
+      return _get$9(target, property, receiver || target);
   }
-  function _get_prototype_of$o(o) {
-      _get_prototype_of$o = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$n(o) {
+      _get_prototype_of$n = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$o(o);
+      return _get_prototype_of$n(o);
   }
-  function _inherits$o(subClass, superClass) {
+  function _inherits$n(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -25813,71 +26614,71 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$o(subClass, superClass);
+      if (superClass) _set_prototype_of$n(subClass, superClass);
   }
-  function _is_native_reflect_construct$o() {
+  function _is_native_reflect_construct$n() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$o = function() {
+      return (_is_native_reflect_construct$n = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$o(self, call) {
-      if (call && (_type_of$u(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$o(self);
+  function _possible_constructor_return$n(self, call) {
+      if (call && (_type_of$t(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$n(self);
   }
-  function _set_prototype_of$o(o, p) {
-      _set_prototype_of$o = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$n(o, p) {
+      _set_prototype_of$n = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$o(o, p);
+      return _set_prototype_of$n(o, p);
   }
-  function _super_prop_base$a(object, property) {
+  function _super_prop_base$9(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$o(object);
+          object = _get_prototype_of$n(object);
           if (object === null) break;
       }
       return object;
   }
-  function _type_of$u(obj) {
+  function _type_of$t(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$u = Object.defineProperty;
-  var __defNormalProp$u = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$u(obj, key, {
+  var __defProp$t = Object.defineProperty;
+  var __defNormalProp$t = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$t(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$u = function __publicField(obj, key, value) {
-      return __defNormalProp$u(obj, (typeof key === "undefined" ? "undefined" : _type_of$u(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$t = function __publicField(obj, key, value) {
+      return __defNormalProp$t(obj, (typeof key === "undefined" ? "undefined" : _type_of$t(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMICore = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$o(CMICore, BaseCMI);
+      _inherits$n(CMICore, BaseCMI);
       function CMICore() {
-          _class_call_check$v(this, CMICore);
+          _class_call_check$u(this, CMICore);
           var _this;
-          _this = _call_super$o(this, CMICore, [
+          _this = _call_super$n(this, CMICore, [
               "cmi.core"
           ]);
-          __publicField$u(_this, "score");
-          __publicField$u(_this, "__children", scorm12_constants.core_children);
-          __publicField$u(_this, "_student_id", "");
-          __publicField$u(_this, "_student_name", "");
-          __publicField$u(_this, "_lesson_location", "");
-          __publicField$u(_this, "_credit", "");
-          __publicField$u(_this, "_lesson_status", "not attempted");
-          __publicField$u(_this, "_entry", "");
-          __publicField$u(_this, "_total_time", "");
-          __publicField$u(_this, "_lesson_mode", "normal");
-          __publicField$u(_this, "_exit", "");
-          __publicField$u(_this, "_session_time", "00:00:00");
-          __publicField$u(_this, "_suspend_data", "");
+          __publicField$t(_this, "score");
+          __publicField$t(_this, "__children", scorm12_constants.core_children);
+          __publicField$t(_this, "_student_id", "");
+          __publicField$t(_this, "_student_name", "");
+          __publicField$t(_this, "_lesson_location", "");
+          __publicField$t(_this, "_credit", "");
+          __publicField$t(_this, "_lesson_status", "not attempted");
+          __publicField$t(_this, "_entry", "");
+          __publicField$t(_this, "_total_time", "");
+          __publicField$t(_this, "_lesson_mode", "normal");
+          __publicField$t(_this, "_exit", "");
+          __publicField$t(_this, "_session_time", "00:00:00");
+          __publicField$t(_this, "_suspend_data", "");
           _this.score = new CMIScore({
               CMIElement: "cmi.core.score",
               score_children: scorm12_constants.score_children,
@@ -25891,14 +26692,14 @@
           });
           return _this;
       }
-      _create_class$v(CMICore, [
+      _create_class$u(CMICore, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
      */ key: "initialize",
               value: function initialize() {
                   var _this_score;
-                  _get$a(_get_prototype_of$o(CMICore.prototype), "initialize", this).call(this);
+                  _get$9(_get_prototype_of$n(CMICore.prototype), "initialize", this).call(this);
                   (_this_score = this.score) === null || _this_score === void 0 ? void 0 : _this_score.initialize();
               }
           },
@@ -26244,18 +27045,18 @@
       return CMICore;
   }(BaseCMI);
 
-  function _assert_this_initialized$n(self) {
+  function _assert_this_initialized$m(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$n(_this, derived, args) {
-      derived = _get_prototype_of$n(derived);
-      return _possible_constructor_return$n(_this, _is_native_reflect_construct$n() ? Reflect.construct(derived, args || [], _get_prototype_of$n(_this).constructor) : derived.apply(_this, args));
+  function _call_super$m(_this, derived, args) {
+      derived = _get_prototype_of$m(derived);
+      return _possible_constructor_return$m(_this, _is_native_reflect_construct$m() ? Reflect.construct(derived, args || [], _get_prototype_of$m(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$u(instance, Constructor) {
+  function _class_call_check$t(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$u(target, props) {
+  function _defineProperties$t(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -26264,17 +27065,17 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$u(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$u(Constructor.prototype, protoProps);
+  function _create_class$t(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$t(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get_prototype_of$n(o) {
-      _get_prototype_of$n = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$m(o) {
+      _get_prototype_of$m = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$n(o);
+      return _get_prototype_of$m(o);
   }
-  function _inherits$n(subClass, superClass) {
+  function _inherits$m(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -26285,48 +27086,48 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$n(subClass, superClass);
+      if (superClass) _set_prototype_of$m(subClass, superClass);
   }
-  function _is_native_reflect_construct$n() {
+  function _is_native_reflect_construct$m() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$n = function() {
+      return (_is_native_reflect_construct$m = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$n(self, call) {
-      if (call && (_type_of$t(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$n(self);
+  function _possible_constructor_return$m(self, call) {
+      if (call && (_type_of$s(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$m(self);
   }
-  function _set_prototype_of$n(o, p) {
-      _set_prototype_of$n = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$m(o, p) {
+      _set_prototype_of$m = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$n(o, p);
+      return _set_prototype_of$m(o, p);
   }
-  function _type_of$t(obj) {
+  function _type_of$s(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$t = Object.defineProperty;
-  var __defNormalProp$t = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$t(obj, key, {
+  var __defProp$s = Object.defineProperty;
+  var __defNormalProp$s = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$s(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$t = function __publicField(obj, key, value) {
-      return __defNormalProp$t(obj, (typeof key === "undefined" ? "undefined" : _type_of$t(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$s = function __publicField(obj, key, value) {
+      return __defNormalProp$s(obj, (typeof key === "undefined" ? "undefined" : _type_of$s(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIObjectives$1 = /*#__PURE__*/ function(CMIArray) {
-      _inherits$n(CMIObjectives, CMIArray);
+      _inherits$m(CMIObjectives, CMIArray);
       function CMIObjectives() {
-          _class_call_check$u(this, CMIObjectives);
-          return _call_super$n(this, CMIObjectives, [
+          _class_call_check$t(this, CMIObjectives);
+          return _call_super$m(this, CMIObjectives, [
               {
                   CMIElement: "cmi.objectives",
                   children: scorm12_constants.objectives_children,
@@ -26338,16 +27139,16 @@
       return CMIObjectives;
   }(CMIArray);
   var CMIObjectivesObject$1 = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$n(CMIObjectivesObject, BaseCMI);
+      _inherits$m(CMIObjectivesObject, BaseCMI);
       function CMIObjectivesObject() {
-          _class_call_check$u(this, CMIObjectivesObject);
+          _class_call_check$t(this, CMIObjectivesObject);
           var _this;
-          _this = _call_super$n(this, CMIObjectivesObject, [
+          _this = _call_super$m(this, CMIObjectivesObject, [
               "cmi.objectives.n"
           ]);
-          __publicField$t(_this, "score");
-          __publicField$t(_this, "_id", "");
-          __publicField$t(_this, "_status", "");
+          __publicField$s(_this, "score");
+          __publicField$s(_this, "_id", "");
+          __publicField$s(_this, "_status", "");
           _this.score = new CMIScore({
               CMIElement: "cmi.objectives.n.score",
               score_children: scorm12_constants.score_children,
@@ -26361,7 +27162,7 @@
           });
           return _this;
       }
-      _create_class$u(CMIObjectivesObject, [
+      _create_class$t(CMIObjectivesObject, [
           {
               /**
      * Called when the API has been reset
@@ -26446,18 +27247,18 @@
       return CMIObjectivesObject;
   }(BaseCMI);
 
-  function _assert_this_initialized$m(self) {
+  function _assert_this_initialized$l(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$m(_this, derived, args) {
-      derived = _get_prototype_of$m(derived);
-      return _possible_constructor_return$m(_this, _is_native_reflect_construct$m() ? Reflect.construct(derived, args || [], _get_prototype_of$m(_this).constructor) : derived.apply(_this, args));
+  function _call_super$l(_this, derived, args) {
+      derived = _get_prototype_of$l(derived);
+      return _possible_constructor_return$l(_this, _is_native_reflect_construct$l() ? Reflect.construct(derived, args || [], _get_prototype_of$l(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$t(instance, Constructor) {
+  function _class_call_check$s(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$t(target, props) {
+  function _defineProperties$s(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -26466,17 +27267,17 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$t(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$t(Constructor.prototype, protoProps);
+  function _create_class$s(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$s(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get_prototype_of$m(o) {
-      _get_prototype_of$m = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$l(o) {
+      _get_prototype_of$l = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$m(o);
+      return _get_prototype_of$l(o);
   }
-  function _inherits$m(subClass, superClass) {
+  function _inherits$l(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -26487,42 +27288,42 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$m(subClass, superClass);
+      if (superClass) _set_prototype_of$l(subClass, superClass);
   }
-  function _is_native_reflect_construct$m() {
+  function _is_native_reflect_construct$l() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$m = function() {
+      return (_is_native_reflect_construct$l = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$m(self, call) {
-      if (call && (_type_of$s(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$m(self);
+  function _possible_constructor_return$l(self, call) {
+      if (call && (_type_of$r(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$l(self);
   }
-  function _set_prototype_of$m(o, p) {
-      _set_prototype_of$m = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$l(o, p) {
+      _set_prototype_of$l = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$m(o, p);
+      return _set_prototype_of$l(o, p);
   }
-  function _type_of$s(obj) {
+  function _type_of$r(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$s = Object.defineProperty;
-  var __defNormalProp$s = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$s(obj, key, {
+  var __defProp$r = Object.defineProperty;
+  var __defNormalProp$r = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$r(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$s = function __publicField(obj, key, value) {
-      return __defNormalProp$s(obj, (typeof key === "undefined" ? "undefined" : _type_of$s(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$r = function __publicField(obj, key, value) {
+      return __defNormalProp$r(obj, (typeof key === "undefined" ? "undefined" : _type_of$r(key)) !== "symbol" ? key + "" : key, value);
   };
   function parseTimeAllowed(value, fieldName) {
       try {
@@ -26538,21 +27339,21 @@
       throw new Scorm12ValidationError(fieldName, scorm12_errors.TYPE_MISMATCH);
   }
   var CMIStudentData = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$m(CMIStudentData, BaseCMI);
+      _inherits$l(CMIStudentData, BaseCMI);
       function CMIStudentData(student_data_children) {
-          _class_call_check$t(this, CMIStudentData);
+          _class_call_check$s(this, CMIStudentData);
           var _this;
-          _this = _call_super$m(this, CMIStudentData, [
+          _this = _call_super$l(this, CMIStudentData, [
               "cmi.student_data"
           ]);
-          __publicField$s(_this, "__children");
-          __publicField$s(_this, "_mastery_score", "");
-          __publicField$s(_this, "_max_time_allowed", "");
-          __publicField$s(_this, "_time_limit_action", "");
+          __publicField$r(_this, "__children");
+          __publicField$r(_this, "_mastery_score", "");
+          __publicField$r(_this, "_max_time_allowed", "");
+          __publicField$r(_this, "_time_limit_action", "");
           _this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
           return _this;
       }
-      _create_class$t(CMIStudentData, [
+      _create_class$s(CMIStudentData, [
           {
               /**
      * Called when the API has been reset
@@ -26680,18 +27481,18 @@
       return CMIStudentData;
   }(BaseCMI);
 
-  function _assert_this_initialized$l(self) {
+  function _assert_this_initialized$k(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$l(_this, derived, args) {
-      derived = _get_prototype_of$l(derived);
-      return _possible_constructor_return$l(_this, _is_native_reflect_construct$l() ? Reflect.construct(derived, args || [], _get_prototype_of$l(_this).constructor) : derived.apply(_this, args));
+  function _call_super$k(_this, derived, args) {
+      derived = _get_prototype_of$k(derived);
+      return _possible_constructor_return$k(_this, _is_native_reflect_construct$k() ? Reflect.construct(derived, args || [], _get_prototype_of$k(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$s(instance, Constructor) {
+  function _class_call_check$r(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$s(target, props) {
+  function _defineProperties$r(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -26700,17 +27501,17 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$s(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$s(Constructor.prototype, protoProps);
+  function _create_class$r(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$r(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get_prototype_of$l(o) {
-      _get_prototype_of$l = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$k(o) {
+      _get_prototype_of$k = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$l(o);
+      return _get_prototype_of$k(o);
   }
-  function _inherits$l(subClass, superClass) {
+  function _inherits$k(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -26721,60 +27522,60 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$l(subClass, superClass);
+      if (superClass) _set_prototype_of$k(subClass, superClass);
   }
-  function _is_native_reflect_construct$l() {
+  function _is_native_reflect_construct$k() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$l = function() {
+      return (_is_native_reflect_construct$k = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$l(self, call) {
-      if (call && (_type_of$r(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$l(self);
+  function _possible_constructor_return$k(self, call) {
+      if (call && (_type_of$q(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$k(self);
   }
-  function _set_prototype_of$l(o, p) {
-      _set_prototype_of$l = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$k(o, p) {
+      _set_prototype_of$k = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$l(o, p);
+      return _set_prototype_of$k(o, p);
   }
-  function _type_of$r(obj) {
+  function _type_of$q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$r = Object.defineProperty;
-  var __defNormalProp$r = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$r(obj, key, {
+  var __defProp$q = Object.defineProperty;
+  var __defNormalProp$q = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$q(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$r = function __publicField(obj, key, value) {
-      return __defNormalProp$r(obj, (typeof key === "undefined" ? "undefined" : _type_of$r(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$q = function __publicField(obj, key, value) {
+      return __defNormalProp$q(obj, (typeof key === "undefined" ? "undefined" : _type_of$q(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIStudentPreference = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$l(CMIStudentPreference, BaseCMI);
+      _inherits$k(CMIStudentPreference, BaseCMI);
       function CMIStudentPreference(student_preference_children) {
-          _class_call_check$s(this, CMIStudentPreference);
+          _class_call_check$r(this, CMIStudentPreference);
           var _this;
-          _this = _call_super$l(this, CMIStudentPreference, [
+          _this = _call_super$k(this, CMIStudentPreference, [
               "cmi.student_preference"
           ]);
-          __publicField$r(_this, "__children");
-          __publicField$r(_this, "_audio", "");
-          __publicField$r(_this, "_language", "");
-          __publicField$r(_this, "_speed", "");
-          __publicField$r(_this, "_text", "");
+          __publicField$q(_this, "__children");
+          __publicField$q(_this, "_audio", "");
+          __publicField$q(_this, "_language", "");
+          __publicField$q(_this, "_speed", "");
+          __publicField$q(_this, "_text", "");
           _this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
           return _this;
       }
-      _create_class$s(CMIStudentPreference, [
+      _create_class$r(CMIStudentPreference, [
           {
               /**
      * Called when the API has been reset
@@ -26905,18 +27706,18 @@
       return CMIStudentPreference;
   }(BaseCMI);
 
-  function _assert_this_initialized$k(self) {
+  function _assert_this_initialized$j(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$k(_this, derived, args) {
-      derived = _get_prototype_of$k(derived);
-      return _possible_constructor_return$k(_this, _is_native_reflect_construct$k() ? Reflect.construct(derived, args || [], _get_prototype_of$k(_this).constructor) : derived.apply(_this, args));
+  function _call_super$j(_this, derived, args) {
+      derived = _get_prototype_of$j(derived);
+      return _possible_constructor_return$j(_this, _is_native_reflect_construct$j() ? Reflect.construct(derived, args || [], _get_prototype_of$j(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$r(instance, Constructor) {
+  function _class_call_check$q(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$r(target, props) {
+  function _defineProperties$q(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -26925,30 +27726,30 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$r(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$r(Constructor.prototype, protoProps);
+  function _create_class$q(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$q(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get$9(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$9 = Reflect.get;
+  function _get$8(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$8 = Reflect.get;
       else {
-          _get$9 = function get(target, property, receiver) {
-              var base = _super_prop_base$9(target, property);
+          _get$8 = function get(target, property, receiver) {
+              var base = _super_prop_base$8(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
               if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
-      return _get$9(target, property, receiver || target);
+      return _get$8(target, property, receiver || target);
   }
-  function _get_prototype_of$k(o) {
-      _get_prototype_of$k = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$j(o) {
+      _get_prototype_of$j = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$k(o);
+      return _get_prototype_of$j(o);
   }
-  function _inherits$k(subClass, superClass) {
+  function _inherits$j(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -26959,55 +27760,55 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$k(subClass, superClass);
+      if (superClass) _set_prototype_of$j(subClass, superClass);
   }
-  function _is_native_reflect_construct$k() {
+  function _is_native_reflect_construct$j() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$k = function() {
+      return (_is_native_reflect_construct$j = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$k(self, call) {
-      if (call && (_type_of$q(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$k(self);
+  function _possible_constructor_return$j(self, call) {
+      if (call && (_type_of$p(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$j(self);
   }
-  function _set_prototype_of$k(o, p) {
-      _set_prototype_of$k = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$j(o, p) {
+      _set_prototype_of$j = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$k(o, p);
+      return _set_prototype_of$j(o, p);
   }
-  function _super_prop_base$9(object, property) {
+  function _super_prop_base$8(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$k(object);
+          object = _get_prototype_of$j(object);
           if (object === null) break;
       }
       return object;
   }
-  function _type_of$q(obj) {
+  function _type_of$p(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$q = Object.defineProperty;
-  var __defNormalProp$q = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$q(obj, key, {
+  var __defProp$p = Object.defineProperty;
+  var __defNormalProp$p = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$p(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$q = function __publicField(obj, key, value) {
-      return __defNormalProp$q(obj, (typeof key === "undefined" ? "undefined" : _type_of$q(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$p = function __publicField(obj, key, value) {
+      return __defNormalProp$p(obj, (typeof key === "undefined" ? "undefined" : _type_of$p(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIInteractions$1 = /*#__PURE__*/ function(CMIArray) {
-      _inherits$k(CMIInteractions, CMIArray);
+      _inherits$j(CMIInteractions, CMIArray);
       function CMIInteractions() {
-          _class_call_check$r(this, CMIInteractions);
-          return _call_super$k(this, CMIInteractions, [
+          _class_call_check$q(this, CMIInteractions);
+          return _call_super$j(this, CMIInteractions, [
               {
                   CMIElement: "cmi.interactions",
                   children: scorm12_constants.interactions_children,
@@ -27019,22 +27820,22 @@
       return CMIInteractions;
   }(CMIArray);
   var CMIInteractionsObject$1 = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$k(CMIInteractionsObject, BaseCMI);
+      _inherits$j(CMIInteractionsObject, BaseCMI);
       function CMIInteractionsObject() {
-          _class_call_check$r(this, CMIInteractionsObject);
+          _class_call_check$q(this, CMIInteractionsObject);
           var _this;
-          _this = _call_super$k(this, CMIInteractionsObject, [
+          _this = _call_super$j(this, CMIInteractionsObject, [
               "cmi.interactions.n"
           ]);
-          __publicField$q(_this, "objectives");
-          __publicField$q(_this, "correct_responses");
-          __publicField$q(_this, "_id", "");
-          __publicField$q(_this, "_time", "");
-          __publicField$q(_this, "_type", "");
-          __publicField$q(_this, "_weighting", "");
-          __publicField$q(_this, "_student_response", "");
-          __publicField$q(_this, "_result", "");
-          __publicField$q(_this, "_latency", "");
+          __publicField$p(_this, "objectives");
+          __publicField$p(_this, "correct_responses");
+          __publicField$p(_this, "_id", "");
+          __publicField$p(_this, "_time", "");
+          __publicField$p(_this, "_type", "");
+          __publicField$p(_this, "_weighting", "");
+          __publicField$p(_this, "_student_response", "");
+          __publicField$p(_this, "_result", "");
+          __publicField$p(_this, "_latency", "");
           _this.objectives = new CMIArray({
               CMIElement: "cmi.interactions.n.objectives",
               errorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -27049,14 +27850,14 @@
           });
           return _this;
       }
-      _create_class$r(CMIInteractionsObject, [
+      _create_class$q(CMIInteractionsObject, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
      */ key: "initialize",
               value: function initialize() {
                   var _this_objectives, _this_correct_responses;
-                  _get$9(_get_prototype_of$k(CMIInteractionsObject.prototype), "initialize", this).call(this);
+                  _get$8(_get_prototype_of$j(CMIInteractionsObject.prototype), "initialize", this).call(this);
                   (_this_objectives = this.objectives) === null || _this_objectives === void 0 ? void 0 : _this_objectives.initialize();
                   (_this_correct_responses = this.correct_responses) === null || _this_correct_responses === void 0 ? void 0 : _this_correct_responses.initialize();
               }
@@ -27267,17 +28068,17 @@
       return CMIInteractionsObject;
   }(BaseCMI);
   var CMIInteractionsObjectivesObject$1 = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$k(CMIInteractionsObjectivesObject, BaseCMI);
+      _inherits$j(CMIInteractionsObjectivesObject, BaseCMI);
       function CMIInteractionsObjectivesObject() {
-          _class_call_check$r(this, CMIInteractionsObjectivesObject);
+          _class_call_check$q(this, CMIInteractionsObjectivesObject);
           var _this;
-          _this = _call_super$k(this, CMIInteractionsObjectivesObject, [
+          _this = _call_super$j(this, CMIInteractionsObjectivesObject, [
               "cmi.interactions.n.objectives.n"
           ]);
-          __publicField$q(_this, "_id", "");
+          __publicField$p(_this, "_id", "");
           return _this;
       }
-      _create_class$r(CMIInteractionsObjectivesObject, [
+      _create_class$q(CMIInteractionsObjectivesObject, [
           {
               /**
      * Called when the API has been reset
@@ -27329,17 +28130,17 @@
       return CMIInteractionsObjectivesObject;
   }(BaseCMI);
   var CMIInteractionsCorrectResponsesObject$1 = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$k(CMIInteractionsCorrectResponsesObject, BaseCMI);
+      _inherits$j(CMIInteractionsCorrectResponsesObject, BaseCMI);
       function CMIInteractionsCorrectResponsesObject() {
-          _class_call_check$r(this, CMIInteractionsCorrectResponsesObject);
+          _class_call_check$q(this, CMIInteractionsCorrectResponsesObject);
           var _this;
-          _this = _call_super$k(this, CMIInteractionsCorrectResponsesObject, [
+          _this = _call_super$j(this, CMIInteractionsCorrectResponsesObject, [
               "cmi.interactions.correct_responses.n"
           ]);
-          __publicField$q(_this, "_pattern", "");
+          __publicField$p(_this, "_pattern", "");
           return _this;
       }
-      _create_class$r(CMIInteractionsCorrectResponsesObject, [
+      _create_class$q(CMIInteractionsCorrectResponsesObject, [
           {
               /**
      * Called when the API has been reset
@@ -27391,18 +28192,18 @@
       return CMIInteractionsCorrectResponsesObject;
   }(BaseCMI);
 
-  function _assert_this_initialized$j(self) {
+  function _assert_this_initialized$i(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$j(_this, derived, args) {
-      derived = _get_prototype_of$j(derived);
-      return _possible_constructor_return$j(_this, _is_native_reflect_construct$j() ? Reflect.construct(derived, args || [], _get_prototype_of$j(_this).constructor) : derived.apply(_this, args));
+  function _call_super$i(_this, derived, args) {
+      derived = _get_prototype_of$i(derived);
+      return _possible_constructor_return$i(_this, _is_native_reflect_construct$i() ? Reflect.construct(derived, args || [], _get_prototype_of$i(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$q(instance, Constructor) {
+  function _class_call_check$p(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$q(target, props) {
+  function _defineProperties$p(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -27411,30 +28212,30 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$q(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$q(Constructor.prototype, protoProps);
+  function _create_class$p(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$p(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get$8(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$8 = Reflect.get;
+  function _get$7(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$7 = Reflect.get;
       else {
-          _get$8 = function get(target, property, receiver) {
-              var base = _super_prop_base$8(target, property);
+          _get$7 = function get(target, property, receiver) {
+              var base = _super_prop_base$7(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
               if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
-      return _get$8(target, property, receiver || target);
+      return _get$7(target, property, receiver || target);
   }
-  function _get_prototype_of$j(o) {
-      _get_prototype_of$j = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$i(o) {
+      _get_prototype_of$i = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$j(o);
+      return _get_prototype_of$i(o);
   }
-  function _inherits$j(subClass, superClass) {
+  function _inherits$i(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -27445,68 +28246,68 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$j(subClass, superClass);
+      if (superClass) _set_prototype_of$i(subClass, superClass);
   }
-  function _is_native_reflect_construct$j() {
+  function _is_native_reflect_construct$i() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$j = function() {
+      return (_is_native_reflect_construct$i = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$j(self, call) {
-      if (call && (_type_of$p(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$j(self);
+  function _possible_constructor_return$i(self, call) {
+      if (call && (_type_of$o(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$i(self);
   }
-  function _set_prototype_of$j(o, p) {
-      _set_prototype_of$j = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$i(o, p) {
+      _set_prototype_of$i = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$j(o, p);
+      return _set_prototype_of$i(o, p);
   }
-  function _super_prop_base$8(object, property) {
+  function _super_prop_base$7(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$j(object);
+          object = _get_prototype_of$i(object);
           if (object === null) break;
       }
       return object;
   }
-  function _type_of$p(obj) {
+  function _type_of$o(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$p = Object.defineProperty;
-  var __defNormalProp$p = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$p(obj, key, {
+  var __defProp$o = Object.defineProperty;
+  var __defNormalProp$o = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$o(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$p = function __publicField(obj, key, value) {
-      return __defNormalProp$p(obj, (typeof key === "undefined" ? "undefined" : _type_of$p(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$o = function __publicField(obj, key, value) {
+      return __defNormalProp$o(obj, (typeof key === "undefined" ? "undefined" : _type_of$o(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMI$1 = /*#__PURE__*/ function(BaseRootCMI) {
-      _inherits$j(CMI, BaseRootCMI);
+      _inherits$i(CMI, BaseRootCMI);
       function CMI(cmi_children, student_data, initialized) {
-          _class_call_check$q(this, CMI);
+          _class_call_check$p(this, CMI);
           var _this;
-          _this = _call_super$j(this, CMI, [
+          _this = _call_super$i(this, CMI, [
               "cmi"
           ]);
-          __publicField$p(_this, "__children", "");
-          __publicField$p(_this, "__version", "3.4");
-          __publicField$p(_this, "_launch_data", "");
-          __publicField$p(_this, "_comments", "");
-          __publicField$p(_this, "_comments_from_lms", "");
-          __publicField$p(_this, "core");
-          __publicField$p(_this, "objectives");
-          __publicField$p(_this, "student_data");
-          __publicField$p(_this, "student_preference");
-          __publicField$p(_this, "interactions");
+          __publicField$o(_this, "__children", "");
+          __publicField$o(_this, "__version", "3.4");
+          __publicField$o(_this, "_launch_data", "");
+          __publicField$o(_this, "_comments", "");
+          __publicField$o(_this, "_comments_from_lms", "");
+          __publicField$o(_this, "core");
+          __publicField$o(_this, "objectives");
+          __publicField$o(_this, "student_data");
+          __publicField$o(_this, "student_preference");
+          __publicField$o(_this, "interactions");
           if (initialized) _this.initialize();
           _this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
           _this.core = new CMICore();
@@ -27516,7 +28317,7 @@
           _this.interactions = new CMIInteractions$1();
           return _this;
       }
-      _create_class$q(CMI, [
+      _create_class$p(CMI, [
           {
               /**
      * Called when the API has been reset
@@ -27543,7 +28344,7 @@
      */ key: "initialize",
               value: function initialize() {
                   var _this_core, _this_objectives, _this_student_data, _this_student_preference, _this_interactions;
-                  _get$8(_get_prototype_of$j(CMI.prototype), "initialize", this).call(this);
+                  _get$7(_get_prototype_of$i(CMI.prototype), "initialize", this).call(this);
                   (_this_core = this.core) === null || _this_core === void 0 ? void 0 : _this_core.initialize();
                   (_this_objectives = this.objectives) === null || _this_objectives === void 0 ? void 0 : _this_objectives.initialize();
                   (_this_student_data = this.student_data) === null || _this_student_data === void 0 ? void 0 : _this_student_data.initialize();
@@ -27718,18 +28519,18 @@
       return CMI;
   }(BaseRootCMI);
 
-  function _assert_this_initialized$i(self) {
+  function _assert_this_initialized$h(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$i(_this, derived, args) {
-      derived = _get_prototype_of$i(derived);
-      return _possible_constructor_return$i(_this, _is_native_reflect_construct$i() ? Reflect.construct(derived, args || [], _get_prototype_of$i(_this).constructor) : derived.apply(_this, args));
+  function _call_super$h(_this, derived, args) {
+      derived = _get_prototype_of$h(derived);
+      return _possible_constructor_return$h(_this, _is_native_reflect_construct$h() ? Reflect.construct(derived, args || [], _get_prototype_of$h(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$p(instance, Constructor) {
+  function _class_call_check$o(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$p(target, props) {
+  function _defineProperties$o(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -27738,17 +28539,17 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$p(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$p(Constructor.prototype, protoProps);
+  function _create_class$o(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$o(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get_prototype_of$i(o) {
-      _get_prototype_of$i = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$h(o) {
+      _get_prototype_of$h = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$i(o);
+      return _get_prototype_of$h(o);
   }
-  function _inherits$i(subClass, superClass) {
+  function _inherits$h(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -27759,55 +28560,55 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$i(subClass, superClass);
+      if (superClass) _set_prototype_of$h(subClass, superClass);
   }
-  function _is_native_reflect_construct$i() {
+  function _is_native_reflect_construct$h() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$i = function() {
+      return (_is_native_reflect_construct$h = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$i(self, call) {
-      if (call && (_type_of$o(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$i(self);
+  function _possible_constructor_return$h(self, call) {
+      if (call && (_type_of$n(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$h(self);
   }
-  function _set_prototype_of$i(o, p) {
-      _set_prototype_of$i = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$h(o, p) {
+      _set_prototype_of$h = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$i(o, p);
+      return _set_prototype_of$h(o, p);
   }
-  function _type_of$o(obj) {
+  function _type_of$n(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$o = Object.defineProperty;
-  var __defNormalProp$o = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$o(obj, key, {
+  var __defProp$n = Object.defineProperty;
+  var __defNormalProp$n = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$n(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$o = function __publicField(obj, key, value) {
-      return __defNormalProp$o(obj, (_type_of$o(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$n = function __publicField(obj, key, value) {
+      return __defNormalProp$n(obj, (_type_of$n(key)) !== "symbol" ? key + "" : key, value);
   };
   var NAV = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$i(NAV, BaseCMI);
+      _inherits$h(NAV, BaseCMI);
       function NAV() {
-          _class_call_check$p(this, NAV);
+          _class_call_check$o(this, NAV);
           var _this;
-          _this = _call_super$i(this, NAV, [
+          _this = _call_super$h(this, NAV, [
               "cmi.nav"
           ]);
-          __publicField$o(_this, "_event", "");
+          __publicField$n(_this, "_event", "");
           return _this;
       }
-      _create_class$p(NAV, [
+      _create_class$o(NAV, [
           {
               /**
      * Called when the API has been reset
@@ -27872,18 +28673,18 @@
   function _array_with_holes$6(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _assert_this_initialized$h(self) {
+  function _assert_this_initialized$g(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$h(_this, derived, args) {
-      derived = _get_prototype_of$h(derived);
-      return _possible_constructor_return$h(_this, _is_native_reflect_construct$h() ? Reflect.construct(derived, args || [], _get_prototype_of$h(_this).constructor) : derived.apply(_this, args));
+  function _call_super$g(_this, derived, args) {
+      derived = _get_prototype_of$g(derived);
+      return _possible_constructor_return$g(_this, _is_native_reflect_construct$g() ? Reflect.construct(derived, args || [], _get_prototype_of$g(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$o(instance, Constructor) {
+  function _class_call_check$n(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$o(target, props) {
+  function _defineProperties$n(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -27892,9 +28693,9 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$o(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$o(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$o(Constructor, staticProps);
+  function _create_class$n(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$n(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$n(Constructor, staticProps);
       return Constructor;
   }
   function _define_property$7(obj, key, value) {
@@ -27908,13 +28709,13 @@
       } else obj[key] = value;
       return obj;
   }
-  function _get_prototype_of$h(o) {
-      _get_prototype_of$h = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$g(o) {
+      _get_prototype_of$g = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$h(o);
+      return _get_prototype_of$g(o);
   }
-  function _inherits$h(subClass, superClass) {
+  function _inherits$g(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -27925,13 +28726,13 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$h(subClass, superClass);
+      if (superClass) _set_prototype_of$g(subClass, superClass);
   }
-  function _is_native_reflect_construct$h() {
+  function _is_native_reflect_construct$g() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$h = function() {
+      return (_is_native_reflect_construct$g = function() {
           return !!result;
       })();
   }
@@ -27977,21 +28778,21 @@
       }
       return target;
   }
-  function _possible_constructor_return$h(self, call) {
-      if (call && (_type_of$n(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$h(self);
+  function _possible_constructor_return$g(self, call) {
+      if (call && (_type_of$m(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$g(self);
   }
-  function _set_prototype_of$h(o, p) {
-      _set_prototype_of$h = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$g(o, p) {
+      _set_prototype_of$g = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$h(o, p);
+      return _set_prototype_of$g(o, p);
   }
   function _sliced_to_array$6(arr, i) {
       return _array_with_holes$6(arr) || _iterable_to_array_limit$6(arr, i) || _unsupported_iterable_to_array$8(arr, i) || _non_iterable_rest$6();
   }
-  function _type_of$n(obj) {
+  function _type_of$m(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -28003,22 +28804,22 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$8(o, minLen);
   }
-  var __defProp$n = Object.defineProperty;
-  var __defNormalProp$n = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$n(obj, key, {
+  var __defProp$m = Object.defineProperty;
+  var __defNormalProp$m = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$m(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$n = function __publicField(obj, key, value) {
-      return __defNormalProp$n(obj, (typeof key === "undefined" ? "undefined" : _type_of$n(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$m = function __publicField(obj, key, value) {
+      return __defNormalProp$m(obj, (typeof key === "undefined" ? "undefined" : _type_of$m(key)) !== "symbol" ? key + "" : key, value);
   };
   var _Scorm12API = /*#__PURE__*/ function(BaseAPI) {
-      _inherits$h(_Scorm12API, BaseAPI);
+      _inherits$g(_Scorm12API, BaseAPI);
       function _Scorm12API(settings, httpService) {
-          _class_call_check$o(this, _Scorm12API);
+          _class_call_check$n(this, _Scorm12API);
           var _this;
           var settingsCopy = settings ? _object_spread$7({}, settings) : void 0;
           if (settingsCopy) {
@@ -28026,22 +28827,22 @@
                   settingsCopy.mastery_override = true;
               }
           }
-          _this = _call_super$h(this, _Scorm12API, [
+          _this = _call_super$g(this, _Scorm12API, [
               scorm12_errors,
               settingsCopy,
               httpService
           ]);
-          __publicField$n(_this, "statusSetByModule", false);
-          __publicField$n(_this, "cmi");
-          __publicField$n(_this, "nav");
-          __publicField$n(_this, "LMSInitialize");
-          __publicField$n(_this, "LMSFinish");
-          __publicField$n(_this, "LMSGetValue");
-          __publicField$n(_this, "LMSSetValue");
-          __publicField$n(_this, "LMSCommit");
-          __publicField$n(_this, "LMSGetLastError");
-          __publicField$n(_this, "LMSGetErrorString");
-          __publicField$n(_this, "LMSGetDiagnostic");
+          __publicField$m(_this, "statusSetByModule", false);
+          __publicField$m(_this, "cmi");
+          __publicField$m(_this, "nav");
+          __publicField$m(_this, "LMSInitialize");
+          __publicField$m(_this, "LMSFinish");
+          __publicField$m(_this, "LMSGetValue");
+          __publicField$m(_this, "LMSSetValue");
+          __publicField$m(_this, "LMSCommit");
+          __publicField$m(_this, "LMSGetLastError");
+          __publicField$m(_this, "LMSGetErrorString");
+          __publicField$m(_this, "LMSGetDiagnostic");
           _this.cmi = new CMI$1();
           _this.nav = new NAV();
           if (_this.settings.globalStudentPreferences && _Scorm12API._globalLearnerPrefs) {
@@ -28068,7 +28869,7 @@
           _this.LMSGetDiagnostic = _this.lmsGetDiagnostic;
           return _this;
       }
-      _create_class$o(_Scorm12API, [
+      _create_class$n(_Scorm12API, [
           {
               /**
      * Called when the API needs to be reset
@@ -28556,21 +29357,21 @@
    * Static global storage for learner preferences
    * When globalStudentPreferences is enabled, preferences persist across SCO instances
    * @private
-   */ __publicField$n(_Scorm12API, "_globalLearnerPrefs", null);
+   */ __publicField$m(_Scorm12API, "_globalLearnerPrefs", null);
   var Scorm12API = _Scorm12API;
 
-  function _assert_this_initialized$g(self) {
+  function _assert_this_initialized$f(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$g(_this, derived, args) {
-      derived = _get_prototype_of$g(derived);
-      return _possible_constructor_return$g(_this, _is_native_reflect_construct$g() ? Reflect.construct(derived, args || [], _get_prototype_of$g(_this).constructor) : derived.apply(_this, args));
+  function _call_super$f(_this, derived, args) {
+      derived = _get_prototype_of$f(derived);
+      return _possible_constructor_return$f(_this, _is_native_reflect_construct$f() ? Reflect.construct(derived, args || [], _get_prototype_of$f(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$n(instance, Constructor) {
+  function _class_call_check$m(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$n(target, props) {
+  function _defineProperties$m(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -28579,17 +29380,17 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$n(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$n(Constructor.prototype, protoProps);
+  function _create_class$m(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$m(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get_prototype_of$g(o) {
-      _get_prototype_of$g = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$f(o) {
+      _get_prototype_of$f = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$g(o);
+      return _get_prototype_of$f(o);
   }
-  function _inherits$g(subClass, superClass) {
+  function _inherits$f(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -28600,59 +29401,59 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$g(subClass, superClass);
+      if (superClass) _set_prototype_of$f(subClass, superClass);
   }
-  function _is_native_reflect_construct$g() {
+  function _is_native_reflect_construct$f() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$g = function() {
+      return (_is_native_reflect_construct$f = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$g(self, call) {
-      if (call && (_type_of$m(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$g(self);
+  function _possible_constructor_return$f(self, call) {
+      if (call && (_type_of$l(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$f(self);
   }
-  function _set_prototype_of$g(o, p) {
-      _set_prototype_of$g = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$f(o, p) {
+      _set_prototype_of$f = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$g(o, p);
+      return _set_prototype_of$f(o, p);
   }
-  function _type_of$m(obj) {
+  function _type_of$l(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$m = Object.defineProperty;
-  var __defNormalProp$m = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$m(obj, key, {
+  var __defProp$l = Object.defineProperty;
+  var __defNormalProp$l = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$l(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$m = function __publicField(obj, key, value) {
-      return __defNormalProp$m(obj, (typeof key === "undefined" ? "undefined" : _type_of$m(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$l = function __publicField(obj, key, value) {
+      return __defNormalProp$l(obj, (typeof key === "undefined" ? "undefined" : _type_of$l(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMILearnerPreference = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$g(CMILearnerPreference, BaseCMI);
+      _inherits$f(CMILearnerPreference, BaseCMI);
       function CMILearnerPreference() {
-          _class_call_check$n(this, CMILearnerPreference);
+          _class_call_check$m(this, CMILearnerPreference);
           var _this;
-          _this = _call_super$g(this, CMILearnerPreference, [
+          _this = _call_super$f(this, CMILearnerPreference, [
               "cmi.learner_preference"
           ]);
-          __publicField$m(_this, "__children", scorm2004_constants.student_preference_children);
-          __publicField$m(_this, "_audio_level", "1");
-          __publicField$m(_this, "_language", "");
-          __publicField$m(_this, "_delivery_speed", "1");
-          __publicField$m(_this, "_audio_captioning", "0");
+          __publicField$l(_this, "__children", scorm2004_constants.student_preference_children);
+          __publicField$l(_this, "_audio_level", "1");
+          __publicField$l(_this, "_language", "");
+          __publicField$l(_this, "_delivery_speed", "1");
+          __publicField$l(_this, "_audio_captioning", "0");
           return _this;
       }
-      _create_class$n(CMILearnerPreference, [
+      _create_class$m(CMILearnerPreference, [
           {
               /**
      * Called when the API has been reset
@@ -28848,18 +29649,18 @@
   function _array_with_holes$5(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _assert_this_initialized$f(self) {
+  function _assert_this_initialized$e(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$f(_this, derived, args) {
-      derived = _get_prototype_of$f(derived);
-      return _possible_constructor_return$f(_this, _is_native_reflect_construct$f() ? Reflect.construct(derived, args || [], _get_prototype_of$f(_this).constructor) : derived.apply(_this, args));
+  function _call_super$e(_this, derived, args) {
+      derived = _get_prototype_of$e(derived);
+      return _possible_constructor_return$e(_this, _is_native_reflect_construct$e() ? Reflect.construct(derived, args || [], _get_prototype_of$e(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$m(instance, Constructor) {
+  function _class_call_check$l(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$m(target, props) {
+  function _defineProperties$l(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -28868,30 +29669,30 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$m(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$m(Constructor.prototype, protoProps);
+  function _create_class$l(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$l(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get$7(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$7 = Reflect.get;
+  function _get$6(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$6 = Reflect.get;
       else {
-          _get$7 = function get(target, property, receiver) {
-              var base = _super_prop_base$7(target, property);
+          _get$6 = function get(target, property, receiver) {
+              var base = _super_prop_base$6(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
               if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
-      return _get$7(target, property, receiver || target);
+      return _get$6(target, property, receiver || target);
   }
-  function _get_prototype_of$f(o) {
-      _get_prototype_of$f = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$e(o) {
+      _get_prototype_of$e = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$f(o);
+      return _get_prototype_of$e(o);
   }
-  function _inherits$f(subClass, superClass) {
+  function _inherits$e(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -28902,13 +29703,13 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$f(subClass, superClass);
+      if (superClass) _set_prototype_of$e(subClass, superClass);
   }
-  function _is_native_reflect_construct$f() {
+  function _is_native_reflect_construct$e() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$f = function() {
+      return (_is_native_reflect_construct$e = function() {
           return !!result;
       })();
   }
@@ -28939,28 +29740,28 @@
   function _non_iterable_rest$5() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _possible_constructor_return$f(self, call) {
-      if (call && (_type_of$l(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$f(self);
+  function _possible_constructor_return$e(self, call) {
+      if (call && (_type_of$k(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$e(self);
   }
-  function _set_prototype_of$f(o, p) {
-      _set_prototype_of$f = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$e(o, p) {
+      _set_prototype_of$e = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$f(o, p);
+      return _set_prototype_of$e(o, p);
   }
   function _sliced_to_array$5(arr, i) {
       return _array_with_holes$5(arr) || _iterable_to_array_limit$5(arr, i) || _unsupported_iterable_to_array$7(arr, i) || _non_iterable_rest$5();
   }
-  function _super_prop_base$7(object, property) {
+  function _super_prop_base$6(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$f(object);
+          object = _get_prototype_of$e(object);
           if (object === null) break;
       }
       return object;
   }
-  function _type_of$l(obj) {
+  function _type_of$k(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -28972,23 +29773,23 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$7(o, minLen);
   }
-  var __defProp$l = Object.defineProperty;
-  var __defNormalProp$l = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$l(obj, key, {
+  var __defProp$k = Object.defineProperty;
+  var __defNormalProp$k = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$k(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$l = function __publicField(obj, key, value) {
-      return __defNormalProp$l(obj, (typeof key === "undefined" ? "undefined" : _type_of$l(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$k = function __publicField(obj, key, value) {
+      return __defNormalProp$k(obj, (typeof key === "undefined" ? "undefined" : _type_of$k(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIInteractions = /*#__PURE__*/ function(CMIArray) {
-      _inherits$f(CMIInteractions, CMIArray);
+      _inherits$e(CMIInteractions, CMIArray);
       function CMIInteractions() {
-          _class_call_check$m(this, CMIInteractions);
-          return _call_super$f(this, CMIInteractions, [
+          _class_call_check$l(this, CMIInteractions);
+          return _call_super$e(this, CMIInteractions, [
               {
                   CMIElement: "cmi.interactions",
                   children: scorm2004_constants.interactions_children,
@@ -29000,24 +29801,24 @@
       return CMIInteractions;
   }(CMIArray);
   var CMIInteractionsObject = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$f(CMIInteractionsObject, BaseCMI);
+      _inherits$e(CMIInteractionsObject, BaseCMI);
       function CMIInteractionsObject() {
-          _class_call_check$m(this, CMIInteractionsObject);
+          _class_call_check$l(this, CMIInteractionsObject);
           var _this;
-          _this = _call_super$f(this, CMIInteractionsObject, [
+          _this = _call_super$e(this, CMIInteractionsObject, [
               "cmi.interactions.n"
           ]);
-          __publicField$l(_this, "_id", "");
-          __publicField$l(_this, "_idIsSet", false);
-          __publicField$l(_this, "_type", "");
-          __publicField$l(_this, "_timestamp", "");
-          __publicField$l(_this, "_weighting", "");
-          __publicField$l(_this, "_learner_response", "");
-          __publicField$l(_this, "_result", "");
-          __publicField$l(_this, "_latency", "");
-          __publicField$l(_this, "_description", "");
-          __publicField$l(_this, "objectives");
-          __publicField$l(_this, "correct_responses");
+          __publicField$k(_this, "_id", "");
+          __publicField$k(_this, "_idIsSet", false);
+          __publicField$k(_this, "_type", "");
+          __publicField$k(_this, "_timestamp", "");
+          __publicField$k(_this, "_weighting", "");
+          __publicField$k(_this, "_learner_response", "");
+          __publicField$k(_this, "_result", "");
+          __publicField$k(_this, "_latency", "");
+          __publicField$k(_this, "_description", "");
+          __publicField$k(_this, "objectives");
+          __publicField$k(_this, "correct_responses");
           _this.objectives = new CMIArray({
               CMIElement: "cmi.interactions.n.objectives",
               errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
@@ -29032,14 +29833,14 @@
           });
           return _this;
       }
-      _create_class$m(CMIInteractionsObject, [
+      _create_class$l(CMIInteractionsObject, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
      */ key: "initialize",
               value: function initialize() {
                   var _this_objectives, _this_correct_responses;
-                  _get$7(_get_prototype_of$f(CMIInteractionsObject.prototype), "initialize", this).call(this);
+                  _get$6(_get_prototype_of$e(CMIInteractionsObject.prototype), "initialize", this).call(this);
                   (_this_objectives = this.objectives) === null || _this_objectives === void 0 ? void 0 : _this_objectives.initialize();
                   (_this_correct_responses = this.correct_responses) === null || _this_correct_responses === void 0 ? void 0 : _this_correct_responses.initialize();
               }
@@ -29335,17 +30136,17 @@
       return CMIInteractionsObject;
   }(BaseCMI);
   var CMIInteractionsObjectivesObject = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$f(CMIInteractionsObjectivesObject, BaseCMI);
+      _inherits$e(CMIInteractionsObjectivesObject, BaseCMI);
       function CMIInteractionsObjectivesObject() {
-          _class_call_check$m(this, CMIInteractionsObjectivesObject);
+          _class_call_check$l(this, CMIInteractionsObjectivesObject);
           var _this;
-          _this = _call_super$f(this, CMIInteractionsObjectivesObject, [
+          _this = _call_super$e(this, CMIInteractionsObjectivesObject, [
               "cmi.interactions.n.objectives.n"
           ]);
-          __publicField$l(_this, "_id", "");
+          __publicField$k(_this, "_id", "");
           return _this;
       }
-      _create_class$m(CMIInteractionsObjectivesObject, [
+      _create_class$l(CMIInteractionsObjectivesObject, [
           {
               /**
      * Called when the API has been reset
@@ -29535,19 +30336,19 @@
       }
   }
   var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$f(CMIInteractionsCorrectResponsesObject, BaseCMI);
+      _inherits$e(CMIInteractionsCorrectResponsesObject, BaseCMI);
       function CMIInteractionsCorrectResponsesObject(interactionType) {
-          _class_call_check$m(this, CMIInteractionsCorrectResponsesObject);
+          _class_call_check$l(this, CMIInteractionsCorrectResponsesObject);
           var _this;
-          _this = _call_super$f(this, CMIInteractionsCorrectResponsesObject, [
+          _this = _call_super$e(this, CMIInteractionsCorrectResponsesObject, [
               "cmi.interactions.n.correct_responses.n"
           ]);
-          __publicField$l(_this, "_pattern", "");
-          __publicField$l(_this, "_interactionType");
+          __publicField$k(_this, "_pattern", "");
+          __publicField$k(_this, "_interactionType");
           _this._interactionType = interactionType;
           return _this;
       }
-      _create_class$m(CMIInteractionsCorrectResponsesObject, [
+      _create_class$l(CMIInteractionsCorrectResponsesObject, [
           {
               key: "reset",
               value: function reset() {
@@ -29594,193 +30395,6 @@
       return CMIInteractionsCorrectResponsesObject;
   }(BaseCMI);
 
-  function _assert_this_initialized$e(self) {
-      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      return self;
-  }
-  function _call_super$e(_this, derived, args) {
-      derived = _get_prototype_of$e(derived);
-      return _possible_constructor_return$e(_this, _is_native_reflect_construct$e() ? Reflect.construct(derived, args || [], _get_prototype_of$e(_this).constructor) : derived.apply(_this, args));
-  }
-  function _class_call_check$l(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$l(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$l(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$l(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _get$6(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$6 = Reflect.get;
-      else {
-          _get$6 = function get(target, property, receiver) {
-              var base = _super_prop_base$6(target, property);
-              if (!base) return;
-              var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) return desc.get.call(receiver || target);
-              return desc.value;
-          };
-      }
-      return _get$6(target, property, receiver || target);
-  }
-  function _get_prototype_of$e(o) {
-      _get_prototype_of$e = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
-          return o.__proto__ || Object.getPrototypeOf(o);
-      };
-      return _get_prototype_of$e(o);
-  }
-  function _inherits$e(subClass, superClass) {
-      if (typeof superClass !== "function" && superClass !== null) {
-          throw new TypeError("Super expression must either be null or a function");
-      }
-      subClass.prototype = Object.create(superClass && superClass.prototype, {
-          constructor: {
-              value: subClass,
-              writable: true,
-              configurable: true
-          }
-      });
-      if (superClass) _set_prototype_of$e(subClass, superClass);
-  }
-  function _is_native_reflect_construct$e() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$e = function() {
-          return !!result;
-      })();
-  }
-  function _possible_constructor_return$e(self, call) {
-      if (call && (_type_of$k(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$e(self);
-  }
-  function _set_prototype_of$e(o, p) {
-      _set_prototype_of$e = Object.setPrototypeOf || function setPrototypeOf(o, p) {
-          o.__proto__ = p;
-          return o;
-      };
-      return _set_prototype_of$e(o, p);
-  }
-  function _super_prop_base$6(object, property) {
-      while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$e(object);
-          if (object === null) break;
-      }
-      return object;
-  }
-  function _type_of$k(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$k = Object.defineProperty;
-  var __defNormalProp$k = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$k(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$k = function __publicField(obj, key, value) {
-      return __defNormalProp$k(obj, (_type_of$k(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var Scorm2004CMIScore = /*#__PURE__*/ function(CMIScore) {
-      _inherits$e(Scorm2004CMIScore, CMIScore);
-      function Scorm2004CMIScore() {
-          _class_call_check$l(this, Scorm2004CMIScore);
-          var _this;
-          _this = _call_super$e(this, Scorm2004CMIScore, [
-              {
-                  CMIElement: "cmi.score",
-                  score_children: scorm2004_constants.score_children,
-                  max: "",
-                  invalidErrorCode: scorm2004_errors.READ_ONLY_ELEMENT,
-                  invalidTypeCode: scorm2004_errors.TYPE_MISMATCH,
-                  invalidRangeCode: scorm2004_errors.VALUE_OUT_OF_RANGE,
-                  decimalRegex: scorm2004_regex.CMIDecimal,
-                  errorClass: Scorm2004ValidationError
-              }
-          ]);
-          __publicField$k(_this, "_scaled", "");
-          return _this;
-      }
-      _create_class$l(Scorm2004CMIScore, [
-          {
-              /**
-     * Called when the API has been reset
-     */ key: "reset",
-              value: function reset() {
-                  this._initialized = false;
-                  this._scaled = "";
-                  this._raw = "";
-                  this._min = "";
-                  this._max = "";
-              }
-          },
-          {
-              key: "scaled",
-              get: /**
-     * Getter for _scaled
-     * @return {string}
-     */ function get() {
-                  return this._scaled;
-              },
-              set: /**
-     * Setter for _scaled
-     * @param {string} scaled
-     */ function set(scaled) {
-                  if (check2004ValidFormat(this._cmi_element + ".scaled", scaled, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".scaled", scaled, scorm2004_regex.scaled_range)) {
-                      this._scaled = scaled;
-                  }
-              }
-          },
-          {
-              key: "getScoreObject",
-              value: function getScoreObject() {
-                  var scoreObject = _get$6(_get_prototype_of$e(Scorm2004CMIScore.prototype), "getScoreObject", this).call(this);
-                  if (!Number.isNaN(Number.parseFloat(this.scaled))) {
-                      scoreObject.scaled = Number.parseFloat(this.scaled);
-                  }
-                  return scoreObject;
-              }
-          },
-          {
-              /**
-     * toJSON for cmi *.score
-     *
-     * @return {
-     *    {
-     *      scaled: string,
-     *      raw: string,
-     *      min: string,
-     *      max: string
-     *    }
-     *  }
-     */ key: "toJSON",
-              value: function toJSON() {
-                  this.jsonString = true;
-                  var result = {
-                      scaled: this.scaled,
-                      raw: this.raw,
-                      min: this.min,
-                      max: this.max
-                  };
-                  this.jsonString = false;
-                  return result;
-              }
-          }
-      ]);
-      return Scorm2004CMIScore;
-  }(CMIScore);
-
   function _assert_this_initialized$d(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -29804,6 +30418,19 @@
   function _create_class$k(Constructor, protoProps, staticProps) {
       if (protoProps) _defineProperties$k(Constructor.prototype, protoProps);
       return Constructor;
+  }
+  function _get$5(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$5 = Reflect.get;
+      else {
+          _get$5 = function get(target, property, receiver) {
+              var base = _super_prop_base$5(target, property);
+              if (!base) return;
+              var desc = Object.getOwnPropertyDescriptor(base, property);
+              if (desc.get) return desc.get.call(receiver || target);
+              return desc.value;
+          };
+      }
+      return _get$5(target, property, receiver || target);
   }
   function _get_prototype_of$d(o) {
       _get_prototype_of$d = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
@@ -29843,6 +30470,13 @@
       };
       return _set_prototype_of$d(o, p);
   }
+  function _super_prop_base$5(object, property) {
+      while(!Object.prototype.hasOwnProperty.call(object, property)){
+          object = _get_prototype_of$d(object);
+          if (object === null) break;
+      }
+      return object;
+  }
   function _type_of$j(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
@@ -29857,13 +30491,180 @@
       }) : obj[key] = value;
   };
   var __publicField$j = function __publicField(obj, key, value) {
-      return __defNormalProp$j(obj, (typeof key === "undefined" ? "undefined" : _type_of$j(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$j(obj, (_type_of$j(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var Scorm2004CMIScore = /*#__PURE__*/ function(CMIScore) {
+      _inherits$d(Scorm2004CMIScore, CMIScore);
+      function Scorm2004CMIScore() {
+          _class_call_check$k(this, Scorm2004CMIScore);
+          var _this;
+          _this = _call_super$d(this, Scorm2004CMIScore, [
+              {
+                  CMIElement: "cmi.score",
+                  score_children: scorm2004_constants.score_children,
+                  max: "",
+                  invalidErrorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+                  invalidTypeCode: scorm2004_errors.TYPE_MISMATCH,
+                  invalidRangeCode: scorm2004_errors.VALUE_OUT_OF_RANGE,
+                  decimalRegex: scorm2004_regex.CMIDecimal,
+                  errorClass: Scorm2004ValidationError
+              }
+          ]);
+          __publicField$j(_this, "_scaled", "");
+          return _this;
+      }
+      _create_class$k(Scorm2004CMIScore, [
+          {
+              /**
+     * Called when the API has been reset
+     */ key: "reset",
+              value: function reset() {
+                  this._initialized = false;
+                  this._scaled = "";
+                  this._raw = "";
+                  this._min = "";
+                  this._max = "";
+              }
+          },
+          {
+              key: "scaled",
+              get: /**
+     * Getter for _scaled
+     * @return {string}
+     */ function get() {
+                  return this._scaled;
+              },
+              set: /**
+     * Setter for _scaled
+     * @param {string} scaled
+     */ function set(scaled) {
+                  if (check2004ValidFormat(this._cmi_element + ".scaled", scaled, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".scaled", scaled, scorm2004_regex.scaled_range)) {
+                      this._scaled = scaled;
+                  }
+              }
+          },
+          {
+              key: "getScoreObject",
+              value: function getScoreObject() {
+                  var scoreObject = _get$5(_get_prototype_of$d(Scorm2004CMIScore.prototype), "getScoreObject", this).call(this);
+                  if (!Number.isNaN(Number.parseFloat(this.scaled))) {
+                      scoreObject.scaled = Number.parseFloat(this.scaled);
+                  }
+                  return scoreObject;
+              }
+          },
+          {
+              /**
+     * toJSON for cmi *.score
+     *
+     * @return {
+     *    {
+     *      scaled: string,
+     *      raw: string,
+     *      min: string,
+     *      max: string
+     *    }
+     *  }
+     */ key: "toJSON",
+              value: function toJSON() {
+                  this.jsonString = true;
+                  var result = {
+                      scaled: this.scaled,
+                      raw: this.raw,
+                      min: this.min,
+                      max: this.max
+                  };
+                  this.jsonString = false;
+                  return result;
+              }
+          }
+      ]);
+      return Scorm2004CMIScore;
+  }(CMIScore);
+
+  function _assert_this_initialized$c(self) {
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+      return self;
+  }
+  function _call_super$c(_this, derived, args) {
+      derived = _get_prototype_of$c(derived);
+      return _possible_constructor_return$c(_this, _is_native_reflect_construct$c() ? Reflect.construct(derived, args || [], _get_prototype_of$c(_this).constructor) : derived.apply(_this, args));
+  }
+  function _class_call_check$j(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$j(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$j(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$j(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _get_prototype_of$c(o) {
+      _get_prototype_of$c = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+          return o.__proto__ || Object.getPrototypeOf(o);
+      };
+      return _get_prototype_of$c(o);
+  }
+  function _inherits$c(subClass, superClass) {
+      if (typeof superClass !== "function" && superClass !== null) {
+          throw new TypeError("Super expression must either be null or a function");
+      }
+      subClass.prototype = Object.create(superClass && superClass.prototype, {
+          constructor: {
+              value: subClass,
+              writable: true,
+              configurable: true
+          }
+      });
+      if (superClass) _set_prototype_of$c(subClass, superClass);
+  }
+  function _is_native_reflect_construct$c() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$c = function() {
+          return !!result;
+      })();
+  }
+  function _possible_constructor_return$c(self, call) {
+      if (call && (_type_of$i(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$c(self);
+  }
+  function _set_prototype_of$c(o, p) {
+      _set_prototype_of$c = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+          o.__proto__ = p;
+          return o;
+      };
+      return _set_prototype_of$c(o, p);
+  }
+  function _type_of$i(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$i = Object.defineProperty;
+  var __defNormalProp$i = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$i(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$i = function __publicField(obj, key, value) {
+      return __defNormalProp$i(obj, (typeof key === "undefined" ? "undefined" : _type_of$i(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMICommentsFromLMS = /*#__PURE__*/ function(CMIArray) {
-      _inherits$d(CMICommentsFromLMS, CMIArray);
+      _inherits$c(CMICommentsFromLMS, CMIArray);
       function CMICommentsFromLMS() {
-          _class_call_check$k(this, CMICommentsFromLMS);
-          return _call_super$d(this, CMICommentsFromLMS, [
+          _class_call_check$j(this, CMICommentsFromLMS);
+          return _call_super$c(this, CMICommentsFromLMS, [
               {
                   CMIElement: "cmi.comments_from_lms",
                   children: scorm2004_constants.comments_children,
@@ -29875,10 +30676,10 @@
       return CMICommentsFromLMS;
   }(CMIArray);
   var CMICommentsFromLearner = /*#__PURE__*/ function(CMIArray) {
-      _inherits$d(CMICommentsFromLearner, CMIArray);
+      _inherits$c(CMICommentsFromLearner, CMIArray);
       function CMICommentsFromLearner() {
-          _class_call_check$k(this, CMICommentsFromLearner);
-          return _call_super$d(this, CMICommentsFromLearner, [
+          _class_call_check$j(this, CMICommentsFromLearner);
+          return _call_super$c(this, CMICommentsFromLearner, [
               {
                   CMIElement: "cmi.comments_from_learner",
                   children: scorm2004_constants.comments_children,
@@ -29890,25 +30691,25 @@
       return CMICommentsFromLearner;
   }(CMIArray);
   var CMICommentsObject = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$d(CMICommentsObject, BaseCMI);
+      _inherits$c(CMICommentsObject, BaseCMI);
       function CMICommentsObject() {
           var readOnlyAfterInit = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
-          _class_call_check$k(this, CMICommentsObject);
+          _class_call_check$j(this, CMICommentsObject);
           var _this;
-          _this = _call_super$d(this, CMICommentsObject, [
+          _this = _call_super$c(this, CMICommentsObject, [
               "cmi.comments_from_learner.n"
           ]);
-          __publicField$j(_this, "_comment", "");
-          __publicField$j(_this, "_location", "");
-          __publicField$j(_this, "_timestamp", "");
-          __publicField$j(_this, "_readOnlyAfterInit");
+          __publicField$i(_this, "_comment", "");
+          __publicField$i(_this, "_location", "");
+          __publicField$i(_this, "_timestamp", "");
+          __publicField$i(_this, "_readOnlyAfterInit");
           _this._comment = "";
           _this._location = "";
           _this._timestamp = "";
           _this._readOnlyAfterInit = readOnlyAfterInit;
           return _this;
       }
-      _create_class$k(CMICommentsObject, [
+      _create_class$j(CMICommentsObject, [
           {
               /**
      * Called when the API has been reset
@@ -30006,18 +30807,18 @@
       return CMICommentsObject;
   }(BaseCMI);
 
-  function _assert_this_initialized$c(self) {
+  function _assert_this_initialized$b(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$c(_this, derived, args) {
-      derived = _get_prototype_of$c(derived);
-      return _possible_constructor_return$c(_this, _is_native_reflect_construct$c() ? Reflect.construct(derived, args || [], _get_prototype_of$c(_this).constructor) : derived.apply(_this, args));
+  function _call_super$b(_this, derived, args) {
+      derived = _get_prototype_of$b(derived);
+      return _possible_constructor_return$b(_this, _is_native_reflect_construct$b() ? Reflect.construct(derived, args || [], _get_prototype_of$b(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$j(instance, Constructor) {
+  function _class_call_check$i(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$j(target, props) {
+  function _defineProperties$i(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -30026,30 +30827,30 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$j(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$j(Constructor.prototype, protoProps);
+  function _create_class$i(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$i(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get$5(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$5 = Reflect.get;
+  function _get$4(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$4 = Reflect.get;
       else {
-          _get$5 = function get(target, property, receiver) {
-              var base = _super_prop_base$5(target, property);
+          _get$4 = function get(target, property, receiver) {
+              var base = _super_prop_base$4(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
               if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
-      return _get$5(target, property, receiver || target);
+      return _get$4(target, property, receiver || target);
   }
-  function _get_prototype_of$c(o) {
-      _get_prototype_of$c = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$b(o) {
+      _get_prototype_of$b = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$c(o);
+      return _get_prototype_of$b(o);
   }
-  function _inherits$c(subClass, superClass) {
+  function _inherits$b(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -30060,55 +30861,55 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$c(subClass, superClass);
+      if (superClass) _set_prototype_of$b(subClass, superClass);
   }
-  function _is_native_reflect_construct$c() {
+  function _is_native_reflect_construct$b() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$c = function() {
+      return (_is_native_reflect_construct$b = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$c(self, call) {
-      if (call && (_type_of$i(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$c(self);
+  function _possible_constructor_return$b(self, call) {
+      if (call && (_type_of$h(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$b(self);
   }
-  function _set_prototype_of$c(o, p) {
-      _set_prototype_of$c = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$b(o, p) {
+      _set_prototype_of$b = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$c(o, p);
+      return _set_prototype_of$b(o, p);
   }
-  function _super_prop_base$5(object, property) {
+  function _super_prop_base$4(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$c(object);
+          object = _get_prototype_of$b(object);
           if (object === null) break;
       }
       return object;
   }
-  function _type_of$i(obj) {
+  function _type_of$h(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$i = Object.defineProperty;
-  var __defNormalProp$i = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$i(obj, key, {
+  var __defProp$h = Object.defineProperty;
+  var __defNormalProp$h = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$h(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$i = function __publicField(obj, key, value) {
-      return __defNormalProp$i(obj, (typeof key === "undefined" ? "undefined" : _type_of$i(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$h = function __publicField(obj, key, value) {
+      return __defNormalProp$h(obj, (typeof key === "undefined" ? "undefined" : _type_of$h(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIObjectives = /*#__PURE__*/ function(CMIArray) {
-      _inherits$c(CMIObjectives, CMIArray);
+      _inherits$b(CMIObjectives, CMIArray);
       function CMIObjectives() {
-          _class_call_check$j(this, CMIObjectives);
-          return _call_super$c(this, CMIObjectives, [
+          _class_call_check$i(this, CMIObjectives);
+          return _call_super$b(this, CMIObjectives, [
               {
                   CMIElement: "cmi.objectives",
                   children: scorm2004_constants.objectives_children,
@@ -30117,7 +30918,7 @@
               }
           ]);
       }
-      _create_class$j(CMIObjectives, [
+      _create_class$i(CMIObjectives, [
           {
               /**
      * Find an objective by its ID
@@ -30148,24 +30949,24 @@
       return CMIObjectives;
   }(CMIArray);
   var CMIObjectivesObject = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$c(CMIObjectivesObject, BaseCMI);
+      _inherits$b(CMIObjectivesObject, BaseCMI);
       function CMIObjectivesObject() {
-          _class_call_check$j(this, CMIObjectivesObject);
+          _class_call_check$i(this, CMIObjectivesObject);
           var _this;
-          _this = _call_super$c(this, CMIObjectivesObject, [
+          _this = _call_super$b(this, CMIObjectivesObject, [
               "cmi.objectives.n"
           ]);
-          __publicField$i(_this, "_id", "");
-          __publicField$i(_this, "_idIsSet", false);
-          __publicField$i(_this, "_success_status", "unknown");
-          __publicField$i(_this, "_completion_status", "unknown");
-          __publicField$i(_this, "_progress_measure", "");
-          __publicField$i(_this, "_description", "");
-          __publicField$i(_this, "score");
+          __publicField$h(_this, "_id", "");
+          __publicField$h(_this, "_idIsSet", false);
+          __publicField$h(_this, "_success_status", "unknown");
+          __publicField$h(_this, "_completion_status", "unknown");
+          __publicField$h(_this, "_progress_measure", "");
+          __publicField$h(_this, "_description", "");
+          __publicField$h(_this, "score");
           _this.score = new Scorm2004CMIScore();
           return _this;
       }
-      _create_class$j(CMIObjectivesObject, [
+      _create_class$i(CMIObjectivesObject, [
           {
               key: "reset",
               value: function reset() {
@@ -30186,7 +30987,7 @@
      */ key: "initialize",
               value: function initialize() {
                   var _this_score;
-                  _get$5(_get_prototype_of$c(CMIObjectivesObject.prototype), "initialize", this).call(this);
+                  _get$4(_get_prototype_of$b(CMIObjectivesObject.prototype), "initialize", this).call(this);
                   (_this_score = this.score) === null || _this_score === void 0 ? void 0 : _this_score.initialize();
               }
           },
@@ -30335,13 +31136,13 @@
      * @param {any} data
      */ key: "fromJSON",
               value: function fromJSON(data) {
-                  if (!data || (typeof data === "undefined" ? "undefined" : _type_of$i(data)) !== "object") return;
+                  if (!data || (typeof data === "undefined" ? "undefined" : _type_of$h(data)) !== "object") return;
                   if (typeof data.id === "string") this.id = data.id;
                   if (typeof data.success_status === "string") this.success_status = data.success_status;
                   if (typeof data.completion_status === "string") this.completion_status = data.completion_status;
                   if (typeof data.progress_measure !== "undefined") this.progress_measure = String(data.progress_measure);
                   if (typeof data.description === "string") this.description = data.description;
-                  if (data.score && _type_of$i(data.score) === "object") {
+                  if (data.score && _type_of$h(data.score) === "object") {
                       if (typeof data.score.scaled !== "undefined") this.score.scaled = String(data.score.scaled);
                       if (typeof data.score.raw !== "undefined") this.score.raw = String(data.score.raw);
                       if (typeof data.score.min !== "undefined") this.score.min = String(data.score.min);
@@ -30351,139 +31152,6 @@
           }
       ]);
       return CMIObjectivesObject;
-  }(BaseCMI);
-
-  function _assert_this_initialized$b(self) {
-      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      return self;
-  }
-  function _call_super$b(_this, derived, args) {
-      derived = _get_prototype_of$b(derived);
-      return _possible_constructor_return$b(_this, _is_native_reflect_construct$b() ? Reflect.construct(derived, args || [], _get_prototype_of$b(_this).constructor) : derived.apply(_this, args));
-  }
-  function _class_call_check$i(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$i(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$i(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$i(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _get_prototype_of$b(o) {
-      _get_prototype_of$b = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
-          return o.__proto__ || Object.getPrototypeOf(o);
-      };
-      return _get_prototype_of$b(o);
-  }
-  function _inherits$b(subClass, superClass) {
-      if (typeof superClass !== "function" && superClass !== null) {
-          throw new TypeError("Super expression must either be null or a function");
-      }
-      subClass.prototype = Object.create(superClass && superClass.prototype, {
-          constructor: {
-              value: subClass,
-              writable: true,
-              configurable: true
-          }
-      });
-      if (superClass) _set_prototype_of$b(subClass, superClass);
-  }
-  function _is_native_reflect_construct$b() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$b = function() {
-          return !!result;
-      })();
-  }
-  function _possible_constructor_return$b(self, call) {
-      if (call && (_type_of$h(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$b(self);
-  }
-  function _set_prototype_of$b(o, p) {
-      _set_prototype_of$b = Object.setPrototypeOf || function setPrototypeOf(o, p) {
-          o.__proto__ = p;
-          return o;
-      };
-      return _set_prototype_of$b(o, p);
-  }
-  function _type_of$h(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$h = Object.defineProperty;
-  var __defNormalProp$h = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$h(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$h = function __publicField(obj, key, value) {
-      return __defNormalProp$h(obj, (typeof key === "undefined" ? "undefined" : _type_of$h(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var CMIMetadata = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$b(CMIMetadata, BaseCMI);
-      function CMIMetadata() {
-          _class_call_check$i(this, CMIMetadata);
-          var _this;
-          _this = _call_super$b(this, CMIMetadata, [
-              "cmi"
-          ]);
-          __publicField$h(_this, "__version", "1.0");
-          __publicField$h(_this, "__children", scorm2004_constants.cmi_children);
-          return _this;
-      }
-      _create_class$i(CMIMetadata, [
-          {
-              key: "_version",
-              get: /**
-     * Getter for __version
-     * @return {string}
-     */ function get() {
-                  return this.__version;
-              },
-              set: /**
-     * Setter for __version. Just throws an error.
-     * @param {string} _version
-     */ function set(_version) {
-                  throw new Scorm2004ValidationError(this._cmi_element + "._version", scorm2004_errors.READ_ONLY_ELEMENT);
-              }
-          },
-          {
-              key: "_children",
-              get: /**
-     * Getter for __children
-     * @return {string}
-     */ function get() {
-                  return this.__children;
-              },
-              set: /**
-     * Setter for __children. Just throws an error.
-     * @param {number} _children
-     */ function set(_children) {
-                  throw new Scorm2004ValidationError(this._cmi_element + "._children", scorm2004_errors.READ_ONLY_ELEMENT);
-              }
-          },
-          {
-              /**
-     * Reset the metadata properties
-     */ key: "reset",
-              value: function reset() {
-                  this._initialized = false;
-              }
-          }
-      ]);
-      return CMIMetadata;
   }(BaseCMI);
 
   function _assert_this_initialized$a(self) {
@@ -30564,67 +31232,59 @@
   var __publicField$g = function __publicField(obj, key, value) {
       return __defNormalProp$g(obj, (typeof key === "undefined" ? "undefined" : _type_of$g(key)) !== "symbol" ? key + "" : key, value);
   };
-  var CMILearner = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$a(CMILearner, BaseCMI);
-      function CMILearner() {
-          _class_call_check$h(this, CMILearner);
+  var CMIMetadata = /*#__PURE__*/ function(BaseCMI) {
+      _inherits$a(CMIMetadata, BaseCMI);
+      function CMIMetadata() {
+          _class_call_check$h(this, CMIMetadata);
           var _this;
-          _this = _call_super$a(this, CMILearner, [
+          _this = _call_super$a(this, CMIMetadata, [
               "cmi"
           ]);
-          __publicField$g(_this, "_learner_id", "");
-          __publicField$g(_this, "_learner_name", "");
+          __publicField$g(_this, "__version", "1.0");
+          __publicField$g(_this, "__children", scorm2004_constants.cmi_children);
           return _this;
       }
-      _create_class$h(CMILearner, [
+      _create_class$h(CMIMetadata, [
           {
-              key: "learner_id",
+              key: "_version",
               get: /**
-     * Getter for _learner_id
+     * Getter for __version
      * @return {string}
      */ function get() {
-                  return this._learner_id;
+                  return this.__version;
               },
               set: /**
-     * Setter for _learner_id. Can only be called before initialization.
-     * @param {string} learner_id
-     */ function set(learner_id) {
-                  if (this.initialized) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".learner_id", scorm2004_errors.READ_ONLY_ELEMENT);
-                  } else {
-                      this._learner_id = learner_id;
-                  }
+     * Setter for __version. Just throws an error.
+     * @param {string} _version
+     */ function set(_version) {
+                  throw new Scorm2004ValidationError(this._cmi_element + "._version", scorm2004_errors.READ_ONLY_ELEMENT);
               }
           },
           {
-              key: "learner_name",
+              key: "_children",
               get: /**
-     * Getter for _learner_name
+     * Getter for __children
      * @return {string}
      */ function get() {
-                  return this._learner_name;
+                  return this.__children;
               },
               set: /**
-     * Setter for _learner_name. Can only be called before initialization.
-     * @param {string} learner_name
-     */ function set(learner_name) {
-                  if (this.initialized) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".learner_name", scorm2004_errors.READ_ONLY_ELEMENT);
-                  } else {
-                      this._learner_name = learner_name;
-                  }
+     * Setter for __children. Just throws an error.
+     * @param {number} _children
+     */ function set(_children) {
+                  throw new Scorm2004ValidationError(this._cmi_element + "._children", scorm2004_errors.READ_ONLY_ELEMENT);
               }
           },
           {
               /**
-     * Reset the learner properties
+     * Reset the metadata properties
      */ key: "reset",
               value: function reset() {
                   this._initialized = false;
               }
           }
       ]);
-      return CMILearner;
+      return CMIMetadata;
   }(BaseCMI);
 
   function _assert_this_initialized$9(self) {
@@ -30705,84 +31365,67 @@
   var __publicField$f = function __publicField(obj, key, value) {
       return __defNormalProp$f(obj, (typeof key === "undefined" ? "undefined" : _type_of$f(key)) !== "symbol" ? key + "" : key, value);
   };
-  var CMIStatus = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$9(CMIStatus, BaseCMI);
-      function CMIStatus() {
-          _class_call_check$g(this, CMIStatus);
+  var CMILearner = /*#__PURE__*/ function(BaseCMI) {
+      _inherits$9(CMILearner, BaseCMI);
+      function CMILearner() {
+          _class_call_check$g(this, CMILearner);
           var _this;
-          _this = _call_super$9(this, CMIStatus, [
+          _this = _call_super$9(this, CMILearner, [
               "cmi"
           ]);
-          __publicField$f(_this, "_completion_status", "unknown");
-          __publicField$f(_this, "_success_status", "unknown");
-          __publicField$f(_this, "_progress_measure", "");
+          __publicField$f(_this, "_learner_id", "");
+          __publicField$f(_this, "_learner_name", "");
           return _this;
       }
-      _create_class$g(CMIStatus, [
+      _create_class$g(CMILearner, [
           {
-              key: "completion_status",
+              key: "learner_id",
               get: /**
-     * Getter for _completion_status
+     * Getter for _learner_id
      * @return {string}
      */ function get() {
-                  return this._completion_status;
+                  return this._learner_id;
               },
               set: /**
-     * Setter for _completion_status
-     * @param {string} completion_status
-     */ function set(completion_status) {
-                  if (check2004ValidFormat(this._cmi_element + ".completion_status", completion_status, scorm2004_regex.CMICStatus)) {
-                      this._completion_status = completion_status;
+     * Setter for _learner_id. Can only be called before initialization.
+     * @param {string} learner_id
+     */ function set(learner_id) {
+                  if (this.initialized) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".learner_id", scorm2004_errors.READ_ONLY_ELEMENT);
+                  } else {
+                      this._learner_id = learner_id;
                   }
               }
           },
           {
-              key: "success_status",
+              key: "learner_name",
               get: /**
-     * Getter for _success_status
+     * Getter for _learner_name
      * @return {string}
      */ function get() {
-                  return this._success_status;
+                  return this._learner_name;
               },
               set: /**
-     * Setter for _success_status
-     * @param {string} success_status
-     */ function set(success_status) {
-                  if (check2004ValidFormat(this._cmi_element + ".success_status", success_status, scorm2004_regex.CMISStatus)) {
-                      this._success_status = success_status;
-                  }
-              }
-          },
-          {
-              key: "progress_measure",
-              get: /**
-     * Getter for _progress_measure
-     * @return {string}
-     */ function get() {
-                  return this._progress_measure;
-              },
-              set: /**
-     * Setter for _progress_measure
-     * @param {string} progress_measure
-     */ function set(progress_measure) {
-                  if (check2004ValidFormat(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.progress_range)) {
-                      this._progress_measure = progress_measure;
+     * Setter for _learner_name. Can only be called before initialization.
+     * @param {string} learner_name
+     */ function set(learner_name) {
+                  if (this.initialized) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".learner_name", scorm2004_errors.READ_ONLY_ELEMENT);
+                  } else {
+                      this._learner_name = learner_name;
                   }
               }
           },
           {
               /**
-     * Reset the status properties
+     * Reset the learner properties
      */ key: "reset",
               value: function reset() {
                   this._initialized = false;
-                  this._completion_status = "unknown";
-                  this._success_status = "unknown";
-                  this._progress_measure = "";
               }
           }
       ]);
-      return CMIStatus;
+      return CMILearner;
   }(BaseCMI);
 
   function _assert_this_initialized$8(self) {
@@ -30863,21 +31506,179 @@
   var __publicField$e = function __publicField(obj, key, value) {
       return __defNormalProp$e(obj, (typeof key === "undefined" ? "undefined" : _type_of$e(key)) !== "symbol" ? key + "" : key, value);
   };
-  var CMISession = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$8(CMISession, BaseCMI);
-      function CMISession() {
-          _class_call_check$f(this, CMISession);
+  var CMIStatus = /*#__PURE__*/ function(BaseCMI) {
+      _inherits$8(CMIStatus, BaseCMI);
+      function CMIStatus() {
+          _class_call_check$f(this, CMIStatus);
           var _this;
-          _this = _call_super$8(this, CMISession, [
+          _this = _call_super$8(this, CMIStatus, [
               "cmi"
           ]);
-          __publicField$e(_this, "_entry", "");
-          __publicField$e(_this, "_exit", "");
-          __publicField$e(_this, "_session_time", "PT0H0M0S");
-          __publicField$e(_this, "_total_time", "PT0S");
+          __publicField$e(_this, "_completion_status", "unknown");
+          __publicField$e(_this, "_success_status", "unknown");
+          __publicField$e(_this, "_progress_measure", "");
           return _this;
       }
-      _create_class$f(CMISession, [
+      _create_class$f(CMIStatus, [
+          {
+              key: "completion_status",
+              get: /**
+     * Getter for _completion_status
+     * @return {string}
+     */ function get() {
+                  return this._completion_status;
+              },
+              set: /**
+     * Setter for _completion_status
+     * @param {string} completion_status
+     */ function set(completion_status) {
+                  if (check2004ValidFormat(this._cmi_element + ".completion_status", completion_status, scorm2004_regex.CMICStatus)) {
+                      this._completion_status = completion_status;
+                  }
+              }
+          },
+          {
+              key: "success_status",
+              get: /**
+     * Getter for _success_status
+     * @return {string}
+     */ function get() {
+                  return this._success_status;
+              },
+              set: /**
+     * Setter for _success_status
+     * @param {string} success_status
+     */ function set(success_status) {
+                  if (check2004ValidFormat(this._cmi_element + ".success_status", success_status, scorm2004_regex.CMISStatus)) {
+                      this._success_status = success_status;
+                  }
+              }
+          },
+          {
+              key: "progress_measure",
+              get: /**
+     * Getter for _progress_measure
+     * @return {string}
+     */ function get() {
+                  return this._progress_measure;
+              },
+              set: /**
+     * Setter for _progress_measure
+     * @param {string} progress_measure
+     */ function set(progress_measure) {
+                  if (check2004ValidFormat(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.progress_range)) {
+                      this._progress_measure = progress_measure;
+                  }
+              }
+          },
+          {
+              /**
+     * Reset the status properties
+     */ key: "reset",
+              value: function reset() {
+                  this._initialized = false;
+                  this._completion_status = "unknown";
+                  this._success_status = "unknown";
+                  this._progress_measure = "";
+              }
+          }
+      ]);
+      return CMIStatus;
+  }(BaseCMI);
+
+  function _assert_this_initialized$7(self) {
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+      return self;
+  }
+  function _call_super$7(_this, derived, args) {
+      derived = _get_prototype_of$7(derived);
+      return _possible_constructor_return$7(_this, _is_native_reflect_construct$7() ? Reflect.construct(derived, args || [], _get_prototype_of$7(_this).constructor) : derived.apply(_this, args));
+  }
+  function _class_call_check$e(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$e(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$e(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$e(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _get_prototype_of$7(o) {
+      _get_prototype_of$7 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+          return o.__proto__ || Object.getPrototypeOf(o);
+      };
+      return _get_prototype_of$7(o);
+  }
+  function _inherits$7(subClass, superClass) {
+      if (typeof superClass !== "function" && superClass !== null) {
+          throw new TypeError("Super expression must either be null or a function");
+      }
+      subClass.prototype = Object.create(superClass && superClass.prototype, {
+          constructor: {
+              value: subClass,
+              writable: true,
+              configurable: true
+          }
+      });
+      if (superClass) _set_prototype_of$7(subClass, superClass);
+  }
+  function _is_native_reflect_construct$7() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$7 = function() {
+          return !!result;
+      })();
+  }
+  function _possible_constructor_return$7(self, call) {
+      if (call && (_type_of$d(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$7(self);
+  }
+  function _set_prototype_of$7(o, p) {
+      _set_prototype_of$7 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+          o.__proto__ = p;
+          return o;
+      };
+      return _set_prototype_of$7(o, p);
+  }
+  function _type_of$d(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$d = Object.defineProperty;
+  var __defNormalProp$d = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$d(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$d = function __publicField(obj, key, value) {
+      return __defNormalProp$d(obj, (typeof key === "undefined" ? "undefined" : _type_of$d(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var CMISession = /*#__PURE__*/ function(BaseCMI) {
+      _inherits$7(CMISession, BaseCMI);
+      function CMISession() {
+          _class_call_check$e(this, CMISession);
+          var _this;
+          _this = _call_super$7(this, CMISession, [
+              "cmi"
+          ]);
+          __publicField$d(_this, "_entry", "");
+          __publicField$d(_this, "_exit", "");
+          __publicField$d(_this, "_session_time", "PT0H0M0S");
+          __publicField$d(_this, "_total_time", "PT0S");
+          return _this;
+      }
+      _create_class$e(CMISession, [
           {
               key: "entry",
               get: /**
@@ -31019,165 +31820,6 @@
       return CMISession;
   }(BaseCMI);
 
-  function _assert_this_initialized$7(self) {
-      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      return self;
-  }
-  function _call_super$7(_this, derived, args) {
-      derived = _get_prototype_of$7(derived);
-      return _possible_constructor_return$7(_this, _is_native_reflect_construct$7() ? Reflect.construct(derived, args || [], _get_prototype_of$7(_this).constructor) : derived.apply(_this, args));
-  }
-  function _class_call_check$e(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$e(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$e(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$e(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _get_prototype_of$7(o) {
-      _get_prototype_of$7 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
-          return o.__proto__ || Object.getPrototypeOf(o);
-      };
-      return _get_prototype_of$7(o);
-  }
-  function _inherits$7(subClass, superClass) {
-      if (typeof superClass !== "function" && superClass !== null) {
-          throw new TypeError("Super expression must either be null or a function");
-      }
-      subClass.prototype = Object.create(superClass && superClass.prototype, {
-          constructor: {
-              value: subClass,
-              writable: true,
-              configurable: true
-          }
-      });
-      if (superClass) _set_prototype_of$7(subClass, superClass);
-  }
-  function _is_native_reflect_construct$7() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$7 = function() {
-          return !!result;
-      })();
-  }
-  function _possible_constructor_return$7(self, call) {
-      if (call && (_type_of$d(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$7(self);
-  }
-  function _set_prototype_of$7(o, p) {
-      _set_prototype_of$7 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
-          o.__proto__ = p;
-          return o;
-      };
-      return _set_prototype_of$7(o, p);
-  }
-  function _type_of$d(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$d = Object.defineProperty;
-  var __defNormalProp$d = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$d(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$d = function __publicField(obj, key, value) {
-      return __defNormalProp$d(obj, (typeof key === "undefined" ? "undefined" : _type_of$d(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var CMIContent = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$7(CMIContent, BaseCMI);
-      function CMIContent() {
-          _class_call_check$e(this, CMIContent);
-          var _this;
-          _this = _call_super$7(this, CMIContent, [
-              "cmi"
-          ]);
-          __publicField$d(_this, "_location", "");
-          __publicField$d(_this, "_launch_data", "");
-          __publicField$d(_this, "_suspend_data", "");
-          return _this;
-      }
-      _create_class$e(CMIContent, [
-          {
-              key: "location",
-              get: /**
-     * Getter for _location
-     * @return {string}
-     */ function get() {
-                  return this._location;
-              },
-              set: /**
-     * Setter for _location
-     * @param {string} location
-     */ function set(location) {
-                  if (check2004ValidFormat(this._cmi_element + ".location", location, scorm2004_regex.CMIString1000)) {
-                      this._location = location;
-                  }
-              }
-          },
-          {
-              key: "launch_data",
-              get: /**
-     * Getter for _launch_data
-     * @return {string}
-     */ function get() {
-                  return this._launch_data;
-              },
-              set: /**
-     * Setter for _launch_data. Can only be called before initialization.
-     * @param {string} launch_data
-     */ function set(launch_data) {
-                  if (this.initialized) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".launch_data", scorm2004_errors.READ_ONLY_ELEMENT);
-                  } else {
-                      this._launch_data = launch_data;
-                  }
-              }
-          },
-          {
-              key: "suspend_data",
-              get: /**
-     * Getter for _suspend_data
-     * @return {string}
-     */ function get() {
-                  return this._suspend_data;
-              },
-              set: /**
-     * Setter for _suspend_data
-     * @param {string} suspend_data
-     */ function set(suspend_data) {
-                  if (check2004ValidFormat(this._cmi_element + ".suspend_data", suspend_data, scorm2004_regex.CMIString64000, true)) {
-                      this._suspend_data = suspend_data;
-                  }
-              }
-          },
-          {
-              /**
-     * Reset the content properties
-     */ key: "reset",
-              value: function reset() {
-                  this._initialized = false;
-                  this._location = "";
-                  this._suspend_data = "";
-              }
-          }
-      ]);
-      return CMIContent;
-  }(BaseCMI);
-
   function _assert_this_initialized$6(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -31256,21 +31898,180 @@
   var __publicField$c = function __publicField(obj, key, value) {
       return __defNormalProp$c(obj, (typeof key === "undefined" ? "undefined" : _type_of$c(key)) !== "symbol" ? key + "" : key, value);
   };
-  var CMISettings = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$6(CMISettings, BaseCMI);
-      function CMISettings() {
-          _class_call_check$d(this, CMISettings);
+  var CMIContent = /*#__PURE__*/ function(BaseCMI) {
+      _inherits$6(CMIContent, BaseCMI);
+      function CMIContent() {
+          _class_call_check$d(this, CMIContent);
           var _this;
-          _this = _call_super$6(this, CMISettings, [
+          _this = _call_super$6(this, CMIContent, [
               "cmi"
           ]);
-          __publicField$c(_this, "_credit", "credit");
-          __publicField$c(_this, "_mode", "normal");
-          __publicField$c(_this, "_time_limit_action", "continue,no message");
-          __publicField$c(_this, "_max_time_allowed", "");
+          __publicField$c(_this, "_location", "");
+          __publicField$c(_this, "_launch_data", "");
+          __publicField$c(_this, "_suspend_data", "");
           return _this;
       }
-      _create_class$d(CMISettings, [
+      _create_class$d(CMIContent, [
+          {
+              key: "location",
+              get: /**
+     * Getter for _location
+     * @return {string}
+     */ function get() {
+                  return this._location;
+              },
+              set: /**
+     * Setter for _location
+     * @param {string} location
+     */ function set(location) {
+                  if (check2004ValidFormat(this._cmi_element + ".location", location, scorm2004_regex.CMIString1000)) {
+                      this._location = location;
+                  }
+              }
+          },
+          {
+              key: "launch_data",
+              get: /**
+     * Getter for _launch_data
+     * @return {string}
+     */ function get() {
+                  return this._launch_data;
+              },
+              set: /**
+     * Setter for _launch_data. Can only be called before initialization.
+     * @param {string} launch_data
+     */ function set(launch_data) {
+                  if (this.initialized) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".launch_data", scorm2004_errors.READ_ONLY_ELEMENT);
+                  } else {
+                      this._launch_data = launch_data;
+                  }
+              }
+          },
+          {
+              key: "suspend_data",
+              get: /**
+     * Getter for _suspend_data
+     * @return {string}
+     */ function get() {
+                  return this._suspend_data;
+              },
+              set: /**
+     * Setter for _suspend_data
+     * @param {string} suspend_data
+     */ function set(suspend_data) {
+                  if (check2004ValidFormat(this._cmi_element + ".suspend_data", suspend_data, scorm2004_regex.CMIString64000, true)) {
+                      this._suspend_data = suspend_data;
+                  }
+              }
+          },
+          {
+              /**
+     * Reset the content properties
+     */ key: "reset",
+              value: function reset() {
+                  this._initialized = false;
+                  this._location = "";
+                  this._suspend_data = "";
+              }
+          }
+      ]);
+      return CMIContent;
+  }(BaseCMI);
+
+  function _assert_this_initialized$5(self) {
+      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+      return self;
+  }
+  function _call_super$5(_this, derived, args) {
+      derived = _get_prototype_of$5(derived);
+      return _possible_constructor_return$5(_this, _is_native_reflect_construct$5() ? Reflect.construct(derived, args || [], _get_prototype_of$5(_this).constructor) : derived.apply(_this, args));
+  }
+  function _class_call_check$c(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$c(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$c(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$c(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _get_prototype_of$5(o) {
+      _get_prototype_of$5 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+          return o.__proto__ || Object.getPrototypeOf(o);
+      };
+      return _get_prototype_of$5(o);
+  }
+  function _inherits$5(subClass, superClass) {
+      if (typeof superClass !== "function" && superClass !== null) {
+          throw new TypeError("Super expression must either be null or a function");
+      }
+      subClass.prototype = Object.create(superClass && superClass.prototype, {
+          constructor: {
+              value: subClass,
+              writable: true,
+              configurable: true
+          }
+      });
+      if (superClass) _set_prototype_of$5(subClass, superClass);
+  }
+  function _is_native_reflect_construct$5() {
+      try {
+          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
+      } catch (_) {}
+      return (_is_native_reflect_construct$5 = function() {
+          return !!result;
+      })();
+  }
+  function _possible_constructor_return$5(self, call) {
+      if (call && (_type_of$b(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$5(self);
+  }
+  function _set_prototype_of$5(o, p) {
+      _set_prototype_of$5 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+          o.__proto__ = p;
+          return o;
+      };
+      return _set_prototype_of$5(o, p);
+  }
+  function _type_of$b(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$b = Object.defineProperty;
+  var __defNormalProp$b = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$b(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$b = function __publicField(obj, key, value) {
+      return __defNormalProp$b(obj, (typeof key === "undefined" ? "undefined" : _type_of$b(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var CMISettings = /*#__PURE__*/ function(BaseCMI) {
+      _inherits$5(CMISettings, BaseCMI);
+      function CMISettings() {
+          _class_call_check$c(this, CMISettings);
+          var _this;
+          _this = _call_super$5(this, CMISettings, [
+              "cmi"
+          ]);
+          __publicField$b(_this, "_credit", "credit");
+          __publicField$b(_this, "_mode", "normal");
+          __publicField$b(_this, "_time_limit_action", "continue,no message");
+          __publicField$b(_this, "_max_time_allowed", "");
+          return _this;
+      }
+      _create_class$c(CMISettings, [
           {
               key: "credit",
               get: /**
@@ -31372,18 +32173,18 @@
       return CMISettings;
   }(BaseCMI);
 
-  function _assert_this_initialized$5(self) {
+  function _assert_this_initialized$4(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$5(_this, derived, args) {
-      derived = _get_prototype_of$5(derived);
-      return _possible_constructor_return$5(_this, _is_native_reflect_construct$5() ? Reflect.construct(derived, args || [], _get_prototype_of$5(_this).constructor) : derived.apply(_this, args));
+  function _call_super$4(_this, derived, args) {
+      derived = _get_prototype_of$4(derived);
+      return _possible_constructor_return$4(_this, _is_native_reflect_construct$4() ? Reflect.construct(derived, args || [], _get_prototype_of$4(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$c(instance, Constructor) {
+  function _class_call_check$b(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$c(target, props) {
+  function _defineProperties$b(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -31392,17 +32193,17 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$c(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$c(Constructor.prototype, protoProps);
+  function _create_class$b(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$b(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get_prototype_of$5(o) {
-      _get_prototype_of$5 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$4(o) {
+      _get_prototype_of$4 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$5(o);
+      return _get_prototype_of$4(o);
   }
-  function _inherits$5(subClass, superClass) {
+  function _inherits$4(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -31413,56 +32214,56 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$5(subClass, superClass);
+      if (superClass) _set_prototype_of$4(subClass, superClass);
   }
-  function _is_native_reflect_construct$5() {
+  function _is_native_reflect_construct$4() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$5 = function() {
+      return (_is_native_reflect_construct$4 = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$5(self, call) {
-      if (call && (_type_of$b(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$5(self);
+  function _possible_constructor_return$4(self, call) {
+      if (call && (_type_of$a(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$4(self);
   }
-  function _set_prototype_of$5(o, p) {
-      _set_prototype_of$5 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$4(o, p) {
+      _set_prototype_of$4 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$5(o, p);
+      return _set_prototype_of$4(o, p);
   }
-  function _type_of$b(obj) {
+  function _type_of$a(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$b = Object.defineProperty;
-  var __defNormalProp$b = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$b(obj, key, {
+  var __defProp$a = Object.defineProperty;
+  var __defNormalProp$a = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$a(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$b = function __publicField(obj, key, value) {
-      return __defNormalProp$b(obj, (typeof key === "undefined" ? "undefined" : _type_of$b(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$a = function __publicField(obj, key, value) {
+      return __defNormalProp$a(obj, (typeof key === "undefined" ? "undefined" : _type_of$a(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIThresholds = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$5(CMIThresholds, BaseCMI);
+      _inherits$4(CMIThresholds, BaseCMI);
       function CMIThresholds() {
-          _class_call_check$c(this, CMIThresholds);
+          _class_call_check$b(this, CMIThresholds);
           var _this;
-          _this = _call_super$5(this, CMIThresholds, [
+          _this = _call_super$4(this, CMIThresholds, [
               "cmi"
           ]);
-          __publicField$b(_this, "_scaled_passing_score", "");
-          __publicField$b(_this, "_completion_threshold", "");
+          __publicField$a(_this, "_scaled_passing_score", "");
+          __publicField$a(_this, "_completion_threshold", "");
           return _this;
       }
-      _create_class$c(CMIThresholds, [
+      _create_class$b(CMIThresholds, [
           {
               key: "scaled_passing_score",
               get: /**
@@ -31541,18 +32342,18 @@
       return CMIThresholds;
   }(BaseCMI);
 
-  function _assert_this_initialized$4(self) {
+  function _assert_this_initialized$3(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$4(_this, derived, args) {
-      derived = _get_prototype_of$4(derived);
-      return _possible_constructor_return$4(_this, _is_native_reflect_construct$4() ? Reflect.construct(derived, args || [], _get_prototype_of$4(_this).constructor) : derived.apply(_this, args));
+  function _call_super$3(_this, derived, args) {
+      derived = _get_prototype_of$3(derived);
+      return _possible_constructor_return$3(_this, _is_native_reflect_construct$3() ? Reflect.construct(derived, args || [], _get_prototype_of$3(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$b(instance, Constructor) {
+  function _class_call_check$a(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$b(target, props) {
+  function _defineProperties$a(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -31561,30 +32362,30 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$b(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$b(Constructor.prototype, protoProps);
+  function _create_class$a(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$a(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _get$4(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$4 = Reflect.get;
+  function _get$3(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$3 = Reflect.get;
       else {
-          _get$4 = function get(target, property, receiver) {
-              var base = _super_prop_base$4(target, property);
+          _get$3 = function get(target, property, receiver) {
+              var base = _super_prop_base$3(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
               if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
-      return _get$4(target, property, receiver || target);
+      return _get$3(target, property, receiver || target);
   }
-  function _get_prototype_of$4(o) {
-      _get_prototype_of$4 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$3(o) {
+      _get_prototype_of$3 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$4(o);
+      return _get_prototype_of$3(o);
   }
-  function _inherits$4(subClass, superClass) {
+  function _inherits$3(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -31595,74 +32396,74 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$4(subClass, superClass);
+      if (superClass) _set_prototype_of$3(subClass, superClass);
   }
-  function _is_native_reflect_construct$4() {
+  function _is_native_reflect_construct$3() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$4 = function() {
+      return (_is_native_reflect_construct$3 = function() {
           return !!result;
       })();
   }
-  function _possible_constructor_return$4(self, call) {
-      if (call && (_type_of$a(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$4(self);
+  function _possible_constructor_return$3(self, call) {
+      if (call && (_type_of$9(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$3(self);
   }
-  function _set_prototype_of$4(o, p) {
-      _set_prototype_of$4 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$3(o, p) {
+      _set_prototype_of$3 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$4(o, p);
+      return _set_prototype_of$3(o, p);
   }
-  function _super_prop_base$4(object, property) {
+  function _super_prop_base$3(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$4(object);
+          object = _get_prototype_of$3(object);
           if (object === null) break;
       }
       return object;
   }
-  function _type_of$a(obj) {
+  function _type_of$9(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$a = Object.defineProperty;
-  var __defNormalProp$a = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$a(obj, key, {
+  var __defProp$9 = Object.defineProperty;
+  var __defNormalProp$9 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$9(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$a = function __publicField(obj, key, value) {
-      return __defNormalProp$a(obj, (typeof key === "undefined" ? "undefined" : _type_of$a(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$9 = function __publicField(obj, key, value) {
+      return __defNormalProp$9(obj, (typeof key === "undefined" ? "undefined" : _type_of$9(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMI = /*#__PURE__*/ function(BaseRootCMI) {
-      _inherits$4(CMI, BaseRootCMI);
+      _inherits$3(CMI, BaseRootCMI);
       function CMI() {
           var initialized = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
-          _class_call_check$b(this, CMI);
+          _class_call_check$a(this, CMI);
           var _this;
-          _this = _call_super$4(this, CMI, [
+          _this = _call_super$3(this, CMI, [
               "cmi"
           ]);
           // New component classes
-          __publicField$a(_this, "metadata");
-          __publicField$a(_this, "learner");
-          __publicField$a(_this, "status");
-          __publicField$a(_this, "session");
-          __publicField$a(_this, "content");
-          __publicField$a(_this, "settings");
-          __publicField$a(_this, "thresholds");
+          __publicField$9(_this, "metadata");
+          __publicField$9(_this, "learner");
+          __publicField$9(_this, "status");
+          __publicField$9(_this, "session");
+          __publicField$9(_this, "content");
+          __publicField$9(_this, "settings");
+          __publicField$9(_this, "thresholds");
           // Original complex objects
-          __publicField$a(_this, "learner_preference");
-          __publicField$a(_this, "score");
-          __publicField$a(_this, "comments_from_learner");
-          __publicField$a(_this, "comments_from_lms");
-          __publicField$a(_this, "interactions");
-          __publicField$a(_this, "objectives");
+          __publicField$9(_this, "learner_preference");
+          __publicField$9(_this, "score");
+          __publicField$9(_this, "comments_from_learner");
+          __publicField$9(_this, "comments_from_lms");
+          __publicField$9(_this, "interactions");
+          __publicField$9(_this, "objectives");
           _this.metadata = new CMIMetadata();
           _this.learner = new CMILearner();
           _this.status = new CMIStatus();
@@ -31679,14 +32480,14 @@
           if (initialized) _this.initialize();
           return _this;
       }
-      _create_class$b(CMI, [
+      _create_class$a(CMI, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
      */ key: "initialize",
               value: function initialize() {
                   var _this_metadata, _this_learner, _this_status, _this_session, _this_content, _this_settings, _this_thresholds, _this_learner_preference, _this_score, _this_comments_from_learner, _this_comments_from_lms, _this_interactions, _this_objectives;
-                  _get$4(_get_prototype_of$4(CMI.prototype), "initialize", this).call(this);
+                  _get$3(_get_prototype_of$3(CMI.prototype), "initialize", this).call(this);
                   (_this_metadata = this.metadata) === null || _this_metadata === void 0 ? void 0 : _this_metadata.initialize();
                   (_this_learner = this.learner) === null || _this_learner === void 0 ? void 0 : _this_learner.initialize();
                   (_this_status = this.status) === null || _this_status === void 0 ? void 0 : _this_status.initialize();
@@ -32174,18 +32975,18 @@
   function _array_with_holes$4(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _assert_this_initialized$3(self) {
+  function _assert_this_initialized$2(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
   }
-  function _call_super$3(_this, derived, args) {
-      derived = _get_prototype_of$3(derived);
-      return _possible_constructor_return$3(_this, _is_native_reflect_construct$3() ? Reflect.construct(derived, args || [], _get_prototype_of$3(_this).constructor) : derived.apply(_this, args));
+  function _call_super$2(_this, derived, args) {
+      derived = _get_prototype_of$2(derived);
+      return _possible_constructor_return$2(_this, _is_native_reflect_construct$2() ? Reflect.construct(derived, args || [], _get_prototype_of$2(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$a(instance, Constructor) {
+  function _class_call_check$9(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$a(target, props) {
+  function _defineProperties$9(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -32194,8 +32995,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$a(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$a(Constructor.prototype, protoProps);
+  function _create_class$9(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$9(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$6(obj, key, value) {
@@ -32209,26 +33010,26 @@
       } else obj[key] = value;
       return obj;
   }
-  function _get$3(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$3 = Reflect.get;
+  function _get$2(target, property, receiver) {
+      if (typeof Reflect !== "undefined" && Reflect.get) _get$2 = Reflect.get;
       else {
-          _get$3 = function get(target, property, receiver) {
-              var base = _super_prop_base$3(target, property);
+          _get$2 = function get(target, property, receiver) {
+              var base = _super_prop_base$2(target, property);
               if (!base) return;
               var desc = Object.getOwnPropertyDescriptor(base, property);
               if (desc.get) return desc.get.call(receiver || target);
               return desc.value;
           };
       }
-      return _get$3(target, property, receiver || target);
+      return _get$2(target, property, receiver || target);
   }
-  function _get_prototype_of$3(o) {
-      _get_prototype_of$3 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
+  function _get_prototype_of$2(o) {
+      _get_prototype_of$2 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
           return o.__proto__ || Object.getPrototypeOf(o);
       };
-      return _get_prototype_of$3(o);
+      return _get_prototype_of$2(o);
   }
-  function _inherits$3(subClass, superClass) {
+  function _inherits$2(subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
           throw new TypeError("Super expression must either be null or a function");
       }
@@ -32239,13 +33040,13 @@
               configurable: true
           }
       });
-      if (superClass) _set_prototype_of$3(subClass, superClass);
+      if (superClass) _set_prototype_of$2(subClass, superClass);
   }
-  function _is_native_reflect_construct$3() {
+  function _is_native_reflect_construct$2() {
       try {
           var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
       } catch (_) {}
-      return (_is_native_reflect_construct$3 = function() {
+      return (_is_native_reflect_construct$2 = function() {
           return !!result;
       })();
   }
@@ -32291,28 +33092,28 @@
       }
       return target;
   }
-  function _possible_constructor_return$3(self, call) {
-      if (call && (_type_of$9(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$3(self);
+  function _possible_constructor_return$2(self, call) {
+      if (call && (_type_of$8(call) === "object" || typeof call === "function")) return call;
+      return _assert_this_initialized$2(self);
   }
-  function _set_prototype_of$3(o, p) {
-      _set_prototype_of$3 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+  function _set_prototype_of$2(o, p) {
+      _set_prototype_of$2 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
       };
-      return _set_prototype_of$3(o, p);
+      return _set_prototype_of$2(o, p);
   }
   function _sliced_to_array$4(arr, i) {
       return _array_with_holes$4(arr) || _iterable_to_array_limit$4(arr, i) || _unsupported_iterable_to_array$6(arr, i) || _non_iterable_rest$4();
   }
-  function _super_prop_base$3(object, property) {
+  function _super_prop_base$2(object, property) {
       while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$3(object);
+          object = _get_prototype_of$2(object);
           if (object === null) break;
       }
       return object;
   }
-  function _type_of$9(obj) {
+  function _type_of$8(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -32324,42 +33125,42 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
   }
-  var __defProp$9 = Object.defineProperty;
-  var __defNormalProp$9 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$9(obj, key, {
+  var __defProp$8 = Object.defineProperty;
+  var __defNormalProp$8 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$8(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$9 = function __publicField(obj, key, value) {
-      return __defNormalProp$9(obj, (typeof key === "undefined" ? "undefined" : _type_of$9(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$8 = function __publicField(obj, key, value) {
+      return __defNormalProp$8(obj, (typeof key === "undefined" ? "undefined" : _type_of$8(key)) !== "symbol" ? key + "" : key, value);
   };
   var ADL = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$3(ADL, BaseCMI);
+      _inherits$2(ADL, BaseCMI);
       function ADL() {
-          _class_call_check$a(this, ADL);
+          _class_call_check$9(this, ADL);
           var _this;
-          _this = _call_super$3(this, ADL, [
+          _this = _call_super$2(this, ADL, [
               "adl"
           ]);
-          __publicField$9(_this, "nav");
-          __publicField$9(_this, "data", new ADLData());
-          __publicField$9(_this, "_sequencing", null);
-          __publicField$9(_this, "_sharedDataStores", /* @__PURE__ */ Object.create(null));
+          __publicField$8(_this, "nav");
+          __publicField$8(_this, "data", new ADLData());
+          __publicField$8(_this, "_sequencing", null);
+          __publicField$8(_this, "_sharedDataStores", /* @__PURE__ */ Object.create(null));
           _this.nav = new ADLNav();
           _this.data = new ADLData();
           return _this;
       }
-      _create_class$a(ADL, [
+      _create_class$9(ADL, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
      */ key: "initialize",
               value: function initialize() {
                   var _this_nav, _this_data;
-                  _get$3(_get_prototype_of$3(ADL.prototype), "initialize", this).call(this);
+                  _get$2(_get_prototype_of$2(ADL.prototype), "initialize", this).call(this);
                   (_this_nav = this.nav) === null || _this_nav === void 0 ? void 0 : _this_nav.initialize();
                   (_this_data = this.data) === null || _this_data === void 0 ? void 0 : _this_data.initialize();
               }
@@ -32431,7 +33232,7 @@
           {
               key: "restoreSharedDataSnapshot",
               value: function restoreSharedDataSnapshot(snapshot) {
-                  if (!snapshot || (typeof snapshot === "undefined" ? "undefined" : _type_of$9(snapshot)) !== "object") {
+                  if (!snapshot || (typeof snapshot === "undefined" ? "undefined" : _type_of$8(snapshot)) !== "object") {
                       return;
                   }
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
@@ -32556,21 +33357,21 @@
       return ADL;
   }(BaseCMI);
   var ADLNav = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$3(ADLNav, BaseCMI);
+      _inherits$2(ADLNav, BaseCMI);
       function ADLNav() {
-          _class_call_check$a(this, ADLNav);
+          _class_call_check$9(this, ADLNav);
           var _this;
-          _this = _call_super$3(this, ADLNav, [
+          _this = _call_super$2(this, ADLNav, [
               "adl.nav"
           ]);
-          __publicField$9(_this, "_request", "_none_");
-          __publicField$9(_this, "_sequencing", null);
-          __publicField$9(_this, "request_valid");
+          __publicField$8(_this, "_request", "_none_");
+          __publicField$8(_this, "_sequencing", null);
+          __publicField$8(_this, "request_valid");
           _this.request_valid = new ADLNavRequestValid();
           _this.request_valid.setParentNav(_this);
           return _this;
       }
-      _create_class$a(ADLNav, [
+      _create_class$9(ADLNav, [
           {
               key: "sequencing",
               get: /**
@@ -32592,7 +33393,7 @@
      */ key: "initialize",
               value: function initialize() {
                   var _this_request_valid;
-                  _get$3(_get_prototype_of$3(ADLNav.prototype), "initialize", this).call(this);
+                  _get$2(_get_prototype_of$2(ADLNav.prototype), "initialize", this).call(this);
                   if (typeof ((_this_request_valid = this.request_valid) === null || _this_request_valid === void 0 ? void 0 : _this_request_valid.initialize) === "function") {
                       this.request_valid.initialize();
                   }
@@ -32653,10 +33454,10 @@
       return ADLNav;
   }(BaseCMI);
   var ADLData = /*#__PURE__*/ function(CMIArray) {
-      _inherits$3(ADLData, CMIArray);
+      _inherits$2(ADLData, CMIArray);
       function ADLData() {
-          _class_call_check$a(this, ADLData);
-          return _call_super$3(this, ADLData, [
+          _class_call_check$9(this, ADLData);
+          return _call_super$2(this, ADLData, [
               {
                   CMIElement: "adl.data",
                   children: scorm2004_constants.adl_data_children,
@@ -32665,11 +33466,11 @@
               }
           ]);
       }
-      _create_class$a(ADLData, [
+      _create_class$9(ADLData, [
           {
               key: "initialize",
               value: function initialize() {
-                  _get$3(_get_prototype_of$3(ADLData.prototype), "initialize", this).call(this);
+                  _get$2(_get_prototype_of$2(ADLData.prototype), "initialize", this).call(this);
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = this.childArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
@@ -32780,26 +33581,26 @@
       return ADLData;
   }(CMIArray);
   var ADLDataObject = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$3(ADLDataObject, BaseCMI);
+      _inherits$2(ADLDataObject, BaseCMI);
       function ADLDataObject() {
           var allowStoreWithoutId = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
-          _class_call_check$a(this, ADLDataObject);
+          _class_call_check$9(this, ADLDataObject);
           var _this;
-          _this = _call_super$3(this, ADLDataObject, [
+          _this = _call_super$2(this, ADLDataObject, [
               "adl.data.n"
           ]);
-          __publicField$9(_this, "_id", "");
-          __publicField$9(_this, "_store", "");
-          __publicField$9(_this, "_idIsSet", false);
-          __publicField$9(_this, "_storeIsSet", false);
-          __publicField$9(_this, "_readSharedData", true);
-          __publicField$9(_this, "_writeSharedData", true);
-          __publicField$9(_this, "_onStoreChange", null);
-          __publicField$9(_this, "_allowStoreWithoutId");
+          __publicField$8(_this, "_id", "");
+          __publicField$8(_this, "_store", "");
+          __publicField$8(_this, "_idIsSet", false);
+          __publicField$8(_this, "_storeIsSet", false);
+          __publicField$8(_this, "_readSharedData", true);
+          __publicField$8(_this, "_writeSharedData", true);
+          __publicField$8(_this, "_onStoreChange", null);
+          __publicField$8(_this, "_allowStoreWithoutId");
           _this._allowStoreWithoutId = allowStoreWithoutId;
           return _this;
       }
-      _create_class$a(ADLDataObject, [
+      _create_class$9(ADLDataObject, [
           {
               /**
      * Called when the API has been reset
@@ -32936,11 +33737,11 @@
   }(BaseCMI);
   var ADLNavRequestValidChoice = /*#__PURE__*/ function() {
       function ADLNavRequestValidChoice() {
-          _class_call_check$a(this, ADLNavRequestValidChoice);
-          __publicField$9(this, "_parentNav", null);
-          __publicField$9(this, "_staticValues", {});
+          _class_call_check$9(this, ADLNavRequestValidChoice);
+          __publicField$8(this, "_parentNav", null);
+          __publicField$8(this, "_staticValues", {});
       }
-      _create_class$a(ADLNavRequestValidChoice, [
+      _create_class$9(ADLNavRequestValidChoice, [
           {
               key: "setParentNav",
               value: function setParentNav(nav) {
@@ -32992,11 +33793,11 @@
   }();
   var ADLNavRequestValidJump = /*#__PURE__*/ function() {
       function ADLNavRequestValidJump() {
-          _class_call_check$a(this, ADLNavRequestValidJump);
-          __publicField$9(this, "_parentNav", null);
-          __publicField$9(this, "_staticValues", {});
+          _class_call_check$9(this, ADLNavRequestValidJump);
+          __publicField$8(this, "_parentNav", null);
+          __publicField$8(this, "_staticValues", {});
       }
-      _create_class$a(ADLNavRequestValidJump, [
+      _create_class$9(ADLNavRequestValidJump, [
           {
               key: "setParentNav",
               value: function setParentNav(nav) {
@@ -33040,28 +33841,28 @@
       return ADLNavRequestValidJump;
   }();
   var ADLNavRequestValid = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$3(ADLNavRequestValid, BaseCMI);
+      _inherits$2(ADLNavRequestValid, BaseCMI);
       function ADLNavRequestValid() {
-          _class_call_check$a(this, ADLNavRequestValid);
+          _class_call_check$9(this, ADLNavRequestValid);
           var _this;
-          _this = _call_super$3(this, ADLNavRequestValid, [
+          _this = _call_super$2(this, ADLNavRequestValid, [
               "adl.nav.request_valid"
           ]);
-          __publicField$9(_this, "_continue", "unknown");
-          __publicField$9(_this, "_previous", "unknown");
-          __publicField$9(_this, "_choice");
-          __publicField$9(_this, "_jump");
-          __publicField$9(_this, "_exit", "unknown");
-          __publicField$9(_this, "_exitAll", "unknown");
-          __publicField$9(_this, "_abandon", "unknown");
-          __publicField$9(_this, "_abandonAll", "unknown");
-          __publicField$9(_this, "_suspendAll", "unknown");
-          __publicField$9(_this, "_parentNav", null);
+          __publicField$8(_this, "_continue", "unknown");
+          __publicField$8(_this, "_previous", "unknown");
+          __publicField$8(_this, "_choice");
+          __publicField$8(_this, "_jump");
+          __publicField$8(_this, "_exit", "unknown");
+          __publicField$8(_this, "_exitAll", "unknown");
+          __publicField$8(_this, "_abandon", "unknown");
+          __publicField$8(_this, "_abandonAll", "unknown");
+          __publicField$8(_this, "_suspendAll", "unknown");
+          __publicField$8(_this, "_parentNav", null);
           _this._choice = new ADLNavRequestValidChoice();
           _this._jump = new ADLNavRequestValidJump();
           return _this;
       }
-      _create_class$a(ADLNavRequestValid, [
+      _create_class$9(ADLNavRequestValid, [
           {
               /**
      * Set parent nav reference for sequencing access
@@ -33161,7 +33962,7 @@
                   if (this.initialized) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".choice", scorm2004_errors.READ_ONLY_ELEMENT);
                   }
-                  if ((typeof choice === "undefined" ? "undefined" : _type_of$9(choice)) !== "object") {
+                  if ((typeof choice === "undefined" ? "undefined" : _type_of$8(choice)) !== "object") {
                       throw new Scorm2004ValidationError(this._cmi_element + ".choice", scorm2004_errors.TYPE_MISMATCH);
                   }
                   var converted = {};
@@ -33197,7 +33998,7 @@
                   if (this.initialized) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".jump", scorm2004_errors.READ_ONLY_ELEMENT);
                   }
-                  if ((typeof jump === "undefined" ? "undefined" : _type_of$9(jump)) !== "object") {
+                  if ((typeof jump === "undefined" ? "undefined" : _type_of$8(jump)) !== "object") {
                       throw new Scorm2004ValidationError(this._cmi_element + ".jump", scorm2004_errors.TYPE_MISMATCH);
                   }
                   var converted = {};
@@ -33355,495 +34156,6 @@
           }
       ]);
       return ADLNavRequestValid;
-  }(BaseCMI);
-
-  function _assert_this_initialized$2(self) {
-      if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      return self;
-  }
-  function _call_super$2(_this, derived, args) {
-      derived = _get_prototype_of$2(derived);
-      return _possible_constructor_return$2(_this, _is_native_reflect_construct$2() ? Reflect.construct(derived, args || [], _get_prototype_of$2(_this).constructor) : derived.apply(_this, args));
-  }
-  function _class_call_check$9(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$9(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$9(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$9(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _get$2(target, property, receiver) {
-      if (typeof Reflect !== "undefined" && Reflect.get) _get$2 = Reflect.get;
-      else {
-          _get$2 = function get(target, property, receiver) {
-              var base = _super_prop_base$2(target, property);
-              if (!base) return;
-              var desc = Object.getOwnPropertyDescriptor(base, property);
-              if (desc.get) return desc.get.call(receiver || target);
-              return desc.value;
-          };
-      }
-      return _get$2(target, property, receiver || target);
-  }
-  function _get_prototype_of$2(o) {
-      _get_prototype_of$2 = Object.setPrototypeOf ? Object.getPrototypeOf : function getPrototypeOf(o) {
-          return o.__proto__ || Object.getPrototypeOf(o);
-      };
-      return _get_prototype_of$2(o);
-  }
-  function _inherits$2(subClass, superClass) {
-      if (typeof superClass !== "function" && superClass !== null) {
-          throw new TypeError("Super expression must either be null or a function");
-      }
-      subClass.prototype = Object.create(superClass && superClass.prototype, {
-          constructor: {
-              value: subClass,
-              writable: true,
-              configurable: true
-          }
-      });
-      if (superClass) _set_prototype_of$2(subClass, superClass);
-  }
-  function _instanceof$3(left, right) {
-      "@swc/helpers - instanceof";
-      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
-          return !!right[Symbol.hasInstance](left);
-      } else return left instanceof right;
-  }
-  function _is_native_reflect_construct$2() {
-      try {
-          var result = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {}));
-      } catch (_) {}
-      return (_is_native_reflect_construct$2 = function() {
-          return !!result;
-      })();
-  }
-  function _possible_constructor_return$2(self, call) {
-      if (call && (_type_of$8(call) === "object" || typeof call === "function")) return call;
-      return _assert_this_initialized$2(self);
-  }
-  function _set_prototype_of$2(o, p) {
-      _set_prototype_of$2 = Object.setPrototypeOf || function setPrototypeOf(o, p) {
-          o.__proto__ = p;
-          return o;
-      };
-      return _set_prototype_of$2(o, p);
-  }
-  function _super_prop_base$2(object, property) {
-      while(!Object.prototype.hasOwnProperty.call(object, property)){
-          object = _get_prototype_of$2(object);
-          if (object === null) break;
-      }
-      return object;
-  }
-  function _type_of$8(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$8 = Object.defineProperty;
-  var __defNormalProp$8 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$8(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$8 = function __publicField(obj, key, value) {
-      return __defNormalProp$8(obj, (typeof key === "undefined" ? "undefined" : _type_of$8(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var ActivityTree = /*#__PURE__*/ function(BaseCMI) {
-      _inherits$2(ActivityTree, BaseCMI);
-      function ActivityTree(root) {
-          _class_call_check$9(this, ActivityTree);
-          var _this;
-          _this = _call_super$2(this, ActivityTree, [
-              "activityTree"
-          ]);
-          __publicField$8(_this, "_root", null);
-          __publicField$8(_this, "_currentActivity", null);
-          __publicField$8(_this, "_suspendedActivity", null);
-          __publicField$8(_this, "_activities", /* @__PURE__ */ new Map());
-          if (root) {
-              _this.root = root;
-          }
-          return _this;
-      }
-      _create_class$9(ActivityTree, [
-          {
-              /**
-     * Called when the API has been initialized after the CMI has been created
-     */ key: "initialize",
-              value: function initialize() {
-                  _get$2(_get_prototype_of$2(ActivityTree.prototype), "initialize", this).call(this);
-                  if (this._root) {
-                      this._root.initialize();
-                  }
-              }
-          },
-          {
-              /**
-     * Called when the API needs to be reset
-     */ key: "reset",
-              value: function reset() {
-                  this._initialized = false;
-                  this._currentActivity = null;
-                  this._suspendedActivity = null;
-                  this._activities.clear();
-                  if (this._root) {
-                      this._root.reset();
-                      this._activities.set(this._root.id, this._root);
-                      this._addActivitiesToMap(this._root);
-                  }
-              }
-          },
-          {
-              key: "root",
-              get: /**
-     * Getter for root
-     * @return {Activity | null}
-     */ function get() {
-                  return this._root;
-              },
-              set: /**
-     * Setter for root
-     * @param {Activity} root
-     */ function set(root) {
-                  if (root !== null && !_instanceof$3(root, Activity)) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".root", scorm2004_errors.TYPE_MISMATCH);
-                  }
-                  this._activities.clear();
-                  this._root = root;
-                  if (root) {
-                      this._activities.set(root.id, root);
-                      this._addActivitiesToMap(root);
-                  }
-              }
-          },
-          {
-              /**
-     * Recursively add activities to the activities map
-     * @param {Activity} activity
-     * @private
-     */ key: "_addActivitiesToMap",
-              value: function _addActivitiesToMap(activity) {
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          this._activities.set(child.id, child);
-                          this._addActivitiesToMap(child);
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-              }
-          },
-          {
-              key: "currentActivity",
-              get: /**
-     * Getter for currentActivity
-     * @return {Activity | null}
-     */ function get() {
-                  return this._currentActivity;
-              },
-              set: /**
-     * Setter for currentActivity
-     * @param {Activity | null} activity
-     */ function set(activity) {
-                  if (activity !== null && !_instanceof$3(activity, Activity)) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
-                  }
-                  if (this._currentActivity) {
-                      this._currentActivity.isActive = false;
-                      var ancestor = this._currentActivity.parent;
-                      while(ancestor){
-                          ancestor.isActive = false;
-                          ancestor = ancestor.parent;
-                      }
-                  }
-                  this._currentActivity = activity;
-                  if (activity) {
-                      activity.isActive = true;
-                      var ancestor1 = activity.parent;
-                      while(ancestor1){
-                          ancestor1.isActive = true;
-                          ancestor1 = ancestor1.parent;
-                      }
-                  }
-              }
-          },
-          {
-              /**
-     * Set current activity without activating it
-     * This method is used when the sequencing process needs to update the current activity
-     * pointer without triggering the automatic activation behavior (e.g., after termination).
-     * Unlike the normal setter, this method only deactivates the old current activity (and
-     * non-shared ancestors) WITHOUT activating the new current activity.
-     * @param {Activity | null} activity - The activity to set as current
-     */ key: "setCurrentActivityWithoutActivation",
-              value: function setCurrentActivityWithoutActivation(activity) {
-                  if (activity !== null && !_instanceof$3(activity, Activity)) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
-                  }
-                  if (this._currentActivity) {
-                      var activitiesToPreserve = /* @__PURE__ */ new Set();
-                      if (activity) {
-                          activitiesToPreserve.add(activity);
-                          var ancestor2 = activity.parent;
-                          while(ancestor2){
-                              activitiesToPreserve.add(ancestor2);
-                              ancestor2 = ancestor2.parent;
-                          }
-                      }
-                      this._currentActivity.isActive = false;
-                      var ancestor = this._currentActivity.parent;
-                      while(ancestor){
-                          if (!activitiesToPreserve.has(ancestor)) {
-                              ancestor.isActive = false;
-                          }
-                          ancestor = ancestor.parent;
-                      }
-                  }
-                  this._currentActivity = activity;
-              }
-          },
-          {
-              key: "suspendedActivity",
-              get: /**
-     * Getter for suspendedActivity
-     * @return {Activity | null}
-     */ function get() {
-                  return this._suspendedActivity;
-              },
-              set: /**
-     * Setter for suspendedActivity
-     * @param {Activity | null} activity
-     */ function set(activity) {
-                  if (activity !== null && !_instanceof$3(activity, Activity)) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".suspendedActivity", scorm2004_errors.TYPE_MISMATCH);
-                  }
-                  if (this._suspendedActivity) {
-                      this._suspendedActivity.isSuspended = false;
-                      var ancestor = this._suspendedActivity.parent;
-                      while(ancestor){
-                          ancestor.isSuspended = false;
-                          ancestor = ancestor.parent;
-                      }
-                  }
-                  this._suspendedActivity = activity;
-                  if (activity) {
-                      activity.isSuspended = true;
-                      var ancestor1 = activity.parent;
-                      while(ancestor1){
-                          ancestor1.isSuspended = true;
-                          ancestor1 = ancestor1.parent;
-                      }
-                  }
-              }
-          },
-          {
-              /**
-     * Get an activity by ID
-     * @param {string} id - The ID of the activity to get
-     * @return {Activity | null} - The activity with the given ID, or null if not found
-     */ key: "getActivity",
-              value: function getActivity(id) {
-                  return this._activities.get(id) || null;
-              }
-          },
-          {
-              /**
-     * Get all activities in the tree
-     * @return {Activity[]} - An array of all activities in the tree
-     */ key: "getAllActivities",
-              value: function getAllActivities() {
-                  return Array.from(this._activities.values());
-              }
-          },
-          {
-              /**
-     * Get the parent of an activity
-     * @param {Activity} activity - The activity to get the parent of
-     * @return {Activity | null} - The parent of the activity, or null if it has no parent
-     */ key: "getParent",
-              value: function getParent(activity) {
-                  return activity.parent;
-              }
-          },
-          {
-              /**
-     * Get the children of an activity
-     * @param {Activity} activity - The activity to get the children of
-     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-     * @return {Activity[]} - An array of the activity's children
-     */ key: "getChildren",
-              value: function getChildren(activity) {
-                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
-                  return useAvailableChildren ? activity.getAvailableChildren() : activity.children;
-              }
-          },
-          {
-              /**
-     * Get the siblings of an activity
-     * @param {Activity} activity - The activity to get the siblings of
-     * @return {Activity[]} - An array of the activity's siblings
-     */ key: "getSiblings",
-              value: function getSiblings(activity) {
-                  if (!activity.parent) {
-                      return [];
-                  }
-                  return activity.parent.children.filter(function(child) {
-                      return child !== activity;
-                  });
-              }
-          },
-          {
-              /**
-     * Get the next sibling of an activity
-     * @param {Activity} activity - The activity to get the next sibling of
-     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-     * @return {Activity | null} - The next sibling of the activity, or null if it has no next sibling
-     */ key: "getNextSibling",
-              value: function getNextSibling(activity) {
-                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
-                  var _siblings_;
-                  if (!activity.parent) {
-                      return null;
-                  }
-                  var siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
-                  var index = siblings.indexOf(activity);
-                  if (index === -1 && useAvailableChildren) {
-                      siblings = activity.parent.children;
-                      index = siblings.indexOf(activity);
-                  }
-                  if (index === -1 || index === siblings.length - 1) {
-                      return null;
-                  }
-                  return (_siblings_ = siblings[index + 1]) !== null && _siblings_ !== void 0 ? _siblings_ : null;
-              }
-          },
-          {
-              /**
-     * Get the previous sibling of an activity
-     * @param {Activity} activity - The activity to get the previous sibling of
-     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-     * @return {Activity | null} - The previous sibling of the activity, or null if it has no previous sibling
-     */ key: "getPreviousSibling",
-              value: function getPreviousSibling(activity) {
-                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
-                  var _siblings_;
-                  if (!activity.parent) {
-                      return null;
-                  }
-                  var siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
-                  var index = siblings.indexOf(activity);
-                  if (index === -1 && useAvailableChildren) {
-                      siblings = activity.parent.children;
-                      index = siblings.indexOf(activity);
-                  }
-                  if (index <= 0) {
-                      return null;
-                  }
-                  return (_siblings_ = siblings[index - 1]) !== null && _siblings_ !== void 0 ? _siblings_ : null;
-              }
-          },
-          {
-              /**
-     * Get the first child of an activity
-     * @param {Activity} activity - The activity to get the first child of
-     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-     * @return {Activity | null} - The first child of the activity, or null if it has no children
-     */ key: "getFirstChild",
-              value: function getFirstChild(activity) {
-                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
-                  var _children_;
-                  var children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
-                  if (children.length === 0) {
-                      return null;
-                  }
-                  return (_children_ = children[0]) !== null && _children_ !== void 0 ? _children_ : null;
-              }
-          },
-          {
-              /**
-     * Get the last child of an activity
-     * @param {Activity} activity - The activity to get the last child of
-     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
-     * @return {Activity | null} - The last child of the activity, or null if it has no children
-     */ key: "getLastChild",
-              value: function getLastChild(activity) {
-                  var useAvailableChildren = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
-                  var _children_;
-                  var children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
-                  if (children.length === 0) {
-                      return null;
-                  }
-                  return (_children_ = children[children.length - 1]) !== null && _children_ !== void 0 ? _children_ : null;
-              }
-          },
-          {
-              /**
-     * Get the common ancestor of two activities
-     * @param {Activity} activity1 - The first activity
-     * @param {Activity} activity2 - The second activity
-     * @return {Activity | null} - The common ancestor of the two activities, or null if they have no common ancestor
-     */ key: "getCommonAncestor",
-              value: function getCommonAncestor(activity1, activity2) {
-                  var path1 = [];
-                  var current = activity1;
-                  while(current){
-                      path1.unshift(current);
-                      current = current.parent;
-                  }
-                  current = activity2;
-                  while(current){
-                      if (path1.includes(current)) {
-                          return current;
-                      }
-                      current = current.parent;
-                  }
-                  return null;
-              }
-          },
-          {
-              /**
-     * toJSON for ActivityTree
-     * @return {object}
-     */ key: "toJSON",
-              value: function toJSON() {
-                  this.jsonString = true;
-                  var result = {
-                      root: this._root,
-                      currentActivity: this._currentActivity ? this._currentActivity.id : null,
-                      suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null
-                  };
-                  this.jsonString = false;
-                  return result;
-              }
-          }
-      ]);
-      return ActivityTree;
   }(BaseCMI);
 
   function _array_like_to_array$5(arr, len) {
@@ -39271,6 +39583,24 @@
      */ key: "getSequencingService",
               value: function getSequencingService() {
                   return this._sequencingService;
+              }
+          },
+          {
+              /**
+     * Preview a host Continue/Previous click without ending the SCO or changing its
+     * tracking data. The result reflects currently reported CMI, not future SCO writes.
+     * This host extension does not change SCORM's adl.nav.request_valid semantics.
+     */ key: "previewNavigationRequest",
+              value: function previewNavigationRequest(request) {
+                  if (this.isInitialized() && this._sequencingService) {
+                      return this._sequencingService.previewNavigationRequest(request);
+                  }
+                  return {
+                      outcome: "unknown",
+                      targetActivityId: null,
+                      endSequencingSession: false,
+                      exception: null
+                  };
               }
           },
           {
