@@ -968,9 +968,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
    *
    * Per SCORM 2004 spec:
    * - Objective IDs must be unique within the cmi.objectives array
-   * - Interaction IDs must be unique within the cmi.interactions array
-   * - Once set, an ID cannot be changed (immutability)
-   * - Violation results in error 351 (General Set Failure)
+   * - Objective IDs must be unique within each cmi.interactions.n.objectives array
+   * - Interaction IDs may repeat: RTE 4.2.9 defines cmi.interactions as a bag,
+   *   so content can journal a new record for the same interaction (e.g. quiz retakes)
+   * - Once set, an objective or interaction ID cannot be changed (immutability)
+   * - A duplicate objective ID or a changed ID results in error 351 (General Set Failure)
    *
    * INTENTIONAL RELAXATION: SPM (Smallest Permitted Maximum) limits are NOT enforced
    * for suspend_data, location, and comments. Modern content often exceeds these limits,
