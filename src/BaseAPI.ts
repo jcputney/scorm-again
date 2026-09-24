@@ -1181,8 +1181,10 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Checks if setting an ID would create a duplicate in the objectives or interactions array.
-   * Per SCORM 2004 RTE Section 4.1.5/4.1.6: IDs must be unique within their respective arrays.
+   * Checks ID uniqueness in the objectives and interaction-objectives collections.
+   * SCORM 2004 RTE 4.2.9 permits repeated interaction IDs for journaling; only
+   * the objective IDs within each interaction must be unique. RTE 4.2.17 also
+   * requires unique IDs in the top-level objectives collection.
    *
    * @param {string} CMIElement - The element path (e.g., "cmi.objectives.0.id")
    * @param {string} value - The ID value being set
@@ -1230,17 +1232,6 @@ export default abstract class BaseAPI implements IBaseAPI {
       const objectives = getCMIArrayProperty(this.cmi, "objectives");
       if (objectives) {
         return hasDuplicateId(objectives, currentIndex, value);
-      }
-      return false;
-    }
-
-    // Match interactions: cmi.interactions.n.id
-    const interactionsMatch = CMIElement.match(/^cmi\.interactions\.(\d+)\.id$/);
-    if (interactionsMatch && interactionsMatch[1]) {
-      const currentIndex = parseInt(interactionsMatch[1], 10);
-      const interactions = getCMIArrayProperty(this.cmi, "interactions");
-      if (interactions) {
-        return hasDuplicateId(interactions, currentIndex, value);
       }
       return false;
     }
