@@ -379,12 +379,18 @@ console.log("Total time:", totalTime); // "01:23:45"
 
 ---
 
-### `reset(settings?: Settings): void`
+### `reset(settings?: Settings, options?: ResetOptions): void`
 
 Resets the API to its initial state, optionally applying new settings.
 
 **Parameters:**
 - `settings` (optional): New settings to merge with existing settings
+- `options` (optional): Behavior for this reset call only; not stored in API settings
+
+| Option | Default | Effect when `true` |
+|--------|---------|--------------------|
+| `preserveListeners` | `false` | Retain listeners registered with `on()` |
+| `resetTotalTime` | `false` | Set `cmi.core.total_time` to `00:00:00` after resetting CMI |
 
 **Example:**
 
@@ -397,7 +403,12 @@ api.reset({
   logLevel: 'DEBUG',
   autocommit: false
 });
+
+// Switch SCOs while retaining the player's event handlers.
+api.reset(undefined, { preserveListeners: true, resetTotalTime: true });
 ```
+
+Without options, `reset()` clears `on()` listeners and retains total time, as in previous releases. Load the incoming SCO's own saved total time before `LMSInitialize()` if it has prior runtime data. When preserving listeners, do not register them again after every reset.
 
 **Warning:** This clears all current CMI data and resets to uninitialized state.
 

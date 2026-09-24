@@ -6549,15 +6549,18 @@ this.Scorm12API = (function () {
               /**
      * Common reset method for all APIs. New settings are merged with the existing settings.
      * @param {Settings} settings
+     * @param {ResetOptions} options
      * @protected
      */ key: "commonReset",
-              value: function commonReset(settings) {
+              value: function commonReset(settings, options) {
                   this.apiLog("reset", "Called", LogLevelEnum.INFO);
                   this.settings = _object_spread$1({}, this.settings, settings);
                   this.clearScheduledCommit();
                   this.currentState = global_constants.STATE_NOT_INITIALIZED;
                   this.lastErrorCode = "0";
-                  this._eventService.reset();
+                  if ((options === null || options === void 0 ? void 0 : options.preserveListeners) !== true) {
+                      this._eventService.reset();
+                  }
                   this.startingData = {};
                   this._setCMIElements.clear();
                   if (this._offlineStorageService) {
@@ -10206,11 +10209,16 @@ this.Scorm12API = (function () {
           {
               /**
      * Called when the API needs to be reset
+     * @param {Settings} settings - Optional new settings to merge with existing settings
+     * @param {ResetOptions} options - Behavior for this reset only
      */ key: "reset",
-              value: function reset(settings) {
+              value: function reset(settings, options) {
                   var _this_cmi, _this_nav;
-                  this.commonReset(settings);
+                  this.commonReset(settings, options);
                   (_this_cmi = this.cmi) === null || _this_cmi === void 0 ? void 0 : _this_cmi.reset();
+                  if ((options === null || options === void 0 ? void 0 : options.resetTotalTime) === true) {
+                      this.cmi.core.total_time = "00:00:00";
+                  }
                   (_this_nav = this.nav) === null || _this_nav === void 0 ? void 0 : _this_nav.reset();
                   this.statusSetByModule = false;
               }

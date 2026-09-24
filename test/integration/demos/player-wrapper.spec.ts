@@ -290,6 +290,57 @@ test.describe("SCORM 2004 Sequenced Demo", () => {
     await expect(frame.locator("h1")).toContainText("Lesson 1");
   });
 
+  test("reset keeps player callbacks working once per event across SCO deliveries", async ({ page }) => {
+    await page.evaluate(() => localStorage.setItem("scorm-player-debug", "true"));
+    const messages: string[] = [];
+    page.on("console", (message) => messages.push(message.text()));
+    const count = (message: string) =>
+      messages.filter((text) => text === `[SCORM2004-Sequenced] ${message}`).length;
+
+    for (const [index, title] of ["Basics", "Deep Dive"].entries()) {
+      await page.frameLocator("#sco-frame").locator(".btn-pass").click();
+      await expect
+        .poll(() => count("SetValue: cmi.completion_status = completed"))
+        .toBe(index + 1);
+      await page.frameLocator("#sco-frame").locator("#btn-next").click();
+      await expect(page.frameLocator("#sco-frame").locator("h1")).toContainText(title);
+      await expect.poll(() => count("Initialize called")).toBe(index + 1);
+      await expect.poll(() => count("Terminate called")).toBe(index + 1);
+    }
+  });
+
+  test("reset seeds each SCO's own total time when advancing and revisiting", async ({ page }) => {
+    const setSessionTime = async (duration: string) => {
+      const result = await page.evaluate(
+        (value) => (window as any).API_1484_11.SetValue("cmi.session_time", value),
+        duration,
+      );
+      expect(result).toBe("true");
+    };
+    const totalTime = () =>
+      page.evaluate(() => (window as any).API_1484_11.GetValue("cmi.total_time"));
+
+    await setSessionTime("PT12S");
+    await page.frameLocator("#sco-frame").locator("#btn-next").click();
+    await expect(page.frameLocator("#sco-frame").locator("h1")).toContainText("Basics");
+    await expect.poll(totalTime).toBe("PT0S");
+
+    await setSessionTime("PT7S");
+    // Exercise player-driven navigation as well as SCO-driven Terminate.
+    await page.locator("#btn-prev").click();
+    await expect(page.frameLocator("#sco-frame").locator("h1")).toContainText("Introduction");
+    await expect.poll(totalTime).toBe("PT12S");
+
+    await setSessionTime("PT3S");
+    await page.frameLocator("#sco-frame").locator("#btn-next").click();
+    await expect(page.frameLocator("#sco-frame").locator("h1")).toContainText("Basics");
+    await expect.poll(totalTime).toBe("PT7S");
+
+    await page.locator("#btn-prev").click();
+    await expect(page.frameLocator("#sco-frame").locator("h1")).toContainText("Introduction");
+    await expect.poll(totalTime).toBe("PT15S");
+  });
+
   test("shows hierarchical menu structure", async ({ page }) => {
     // Verify parent items exist
     await expect(page.locator(".menu-item--parent")).toHaveCount(2); // module1, module2

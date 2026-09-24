@@ -3,7 +3,7 @@ import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { CMI } from "./cmi/scorm12/cmi";
 import { NAV } from "./cmi/scorm12/nav";
-import { CommitObject, CommitTrigger, ResultObject, Settings } from "./types";
+import { CommitObject, CommitTrigger, ResetOptions, ResultObject, Settings } from "./types";
 import { IHttpService } from "./interfaces";
 declare class Scorm12API extends BaseAPI {
     private static _globalLearnerPrefs;
@@ -20,7 +20,7 @@ declare class Scorm12API extends BaseAPI {
     LMSGetLastError: () => string;
     LMSGetErrorString: (CMIErrorCode: string) => string;
     LMSGetDiagnostic: (CMIErrorCode: string) => string;
-    reset(settings?: Settings): void;
+    reset(settings?: Settings, options?: ResetOptions): void;
     lmsInitialize(parameter?: string): string;
     lmsFinish(parameter?: string): string;
     lmsGetValue(CMIElement: string): string;

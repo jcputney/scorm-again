@@ -35,6 +35,7 @@ import {
   CommitObject,
   CommitTrigger,
   GlobalObjectiveMapEntry,
+  ResetOptions,
   ResultObject,
   RollupRulesSettings,
   SequencingCollectionSettings,
@@ -249,14 +250,18 @@ class Scorm2004API extends BaseAPI {
    * Called when the API needs to be reset
    *
    * @param {Settings} settings - Optional new settings to merge with existing settings
+   * @param {ResetOptions} options - Behavior for this reset only
    * @spec SCORM 2004 4th Ed. RTE 4.4 (adl.nav.request_valid) - navigation validity is LMS-determined, not per-SCO run-time data.
    * @spec SN Book: NB.2.1 (Navigation Request Process) - refresh validity for the current sequencing activity after a SCO reset.
    */
-  reset(settings?: Settings) {
-    this.commonReset(settings);
+  reset(settings?: Settings, options?: ResetOptions) {
+    this.commonReset(settings, options);
     this._runtimeSetCMIElements.clear();
 
     this.cmi?.reset();
+    if (options?.resetTotalTime === true) {
+      this.cmi.total_time = "PT0S";
+    }
     this.adl?.reset();
     this.applyCurrentActivityLaunchData();
 
