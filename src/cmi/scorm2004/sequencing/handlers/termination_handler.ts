@@ -459,6 +459,7 @@ export class TerminationHandler {
    * Handle Suspend All Request
    * Implements TB.2.3 steps 5.1-5.6 from SCORM 2004 reference
    * Suspends all activities in the path from current activity to root
+   * @spec SN Book: TB.2.3 (Termination Request Process) step 5.1
    * @param {Activity} currentActivity - Current activity to suspend
    * @return {TerminationResult} - Result with validation status
    */
@@ -497,6 +498,24 @@ export class TerminationHandler {
         exception: "TB.2.3-3",
         valid: false,
       };
+    }
+
+    // @spec SN Book: TB.2.3 (Termination Request Process) step 5.1.1
+    // @spec SCORM 2004 SN 4th Ed. UP.4 End Attempt Process
+    // Transfer the active SCO's reported data without UP.4's attempt-ending defaults.
+    // Assets and early closes have no initialized RTE data to transfer.
+    if (currentActivity.isActive && currentActivity.children.length === 0 && this.getCMIData?.()) {
+      this._rteDataTransferService.transferRteData(currentActivity);
+
+      // @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map write timing
+      // Publish the terminating SCO's objective values before ancestor rollup reads them.
+      this.rollupProcess.syncTerminatedActivityObjectives(currentActivity, this.globalObjectiveMap);
+    }
+
+    // @spec SN Book: TB.2.3 (Termination Request Process) step 5.1.1
+    // Roll up before recording suspension, without ending the resumable attempt.
+    if (currentActivity.isActive || currentActivity.isSuspended) {
+      this.rollupProcess.overallRollupProcess(currentActivity, this.globalObjectiveMap);
     }
 
     // TB.2.3 5.1-5.2: Set the suspended activity reference
