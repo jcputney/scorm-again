@@ -12205,6 +12205,7 @@ class TerminationHandler {
    * Handle Suspend All Request
    * Implements TB.2.3 steps 5.1-5.6 from SCORM 2004 reference
    * Suspends all activities in the path from current activity to root
+   * @spec SN Book: TB.2.3 (Termination Request Process) step 5.1
    * @param {Activity} currentActivity - Current activity to suspend
    * @return {TerminationResult} - Result with validation status
    */
@@ -12235,6 +12236,13 @@ class TerminationHandler {
         exception: "TB.2.3-3",
         valid: false
       };
+    }
+    if (currentActivity.isActive && currentActivity.children.length === 0 && this.getCMIData?.()) {
+      this._rteDataTransferService.transferRteData(currentActivity);
+      this.rollupProcess.syncTerminatedActivityObjectives(currentActivity, this.globalObjectiveMap);
+    }
+    if (currentActivity.isActive || currentActivity.isSuspended) {
+      this.rollupProcess.overallRollupProcess(currentActivity, this.globalObjectiveMap);
     }
     this.activityTree.suspendedActivity = currentActivity;
     const suspendedActivity = currentActivity;
@@ -16160,6 +16168,7 @@ class SequencingService {
   /**
    * Create sequencing processes
    * Called from constructor to enable navigation before SCO Initialize
+   * @spec SCORM 2004 4th Ed. SN OP.1; RTE 3.1.6 - sequencing can precede Initialize.
    */
   createSequencingProcesses() {
     try {
@@ -16193,7 +16202,7 @@ class SequencingService {
             })
           );
         }
-        overallOptions.getCMIData = () => this.getCMIDataForTransfer();
+        overallOptions.getCMIData = () => this.cmi.initialized ? this.getCMIDataForTransfer() : null;
         this.overallSequencingProcess = new OverallSequencingProcess(
           this.sequencing.activityTree,
           this.sequencingProcess,

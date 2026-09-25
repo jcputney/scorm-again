@@ -17402,10 +17402,12 @@
      * Handle Suspend All Request
      * Implements TB.2.3 steps 5.1-5.6 from SCORM 2004 reference
      * Suspends all activities in the path from current activity to root
+     * @spec SN Book: TB.2.3 (Termination Request Process) step 5.1
      * @param {Activity} currentActivity - Current activity to suspend
      * @return {TerminationResult} - Result with validation status
      */ key: "processSuspendAllRequest",
               value: function processSuspendAllRequest(currentActivity) {
+                  var _this_getCMIData, _this;
                   var rootActivity = this.activityTree.root;
                   if (!currentActivity || !rootActivity) {
                       this.fireEvent("onSuspendError", {
@@ -17432,6 +17434,13 @@
                           exception: "TB.2.3-3",
                           valid: false
                       };
+                  }
+                  if (currentActivity.isActive && currentActivity.children.length === 0 && ((_this_getCMIData = (_this = this).getCMIData) === null || _this_getCMIData === void 0 ? void 0 : _this_getCMIData.call(_this))) {
+                      this._rteDataTransferService.transferRteData(currentActivity);
+                      this.rollupProcess.syncTerminatedActivityObjectives(currentActivity, this.globalObjectiveMap);
+                  }
+                  if (currentActivity.isActive || currentActivity.isSuspended) {
+                      this.rollupProcess.overallRollupProcess(currentActivity, this.globalObjectiveMap);
                   }
                   this.activityTree.suspendedActivity = currentActivity;
                   var suspendedActivity = currentActivity;
@@ -23376,6 +23385,7 @@
               /**
      * Create sequencing processes
      * Called from constructor to enable navigation before SCO Initialize
+     * @spec SCORM 2004 4th Ed. SN OP.1; RTE 3.1.6 - sequencing can precede Initialize.
      */ key: "createSequencingProcesses",
               value: function createSequencingProcesses() {
                   var _this = this;
@@ -23403,7 +23413,7 @@
                               });
                           }
                           overallOptions.getCMIData = function() {
-                              return _this.getCMIDataForTransfer();
+                              return _this.cmi.initialized ? _this.getCMIDataForTransfer() : null;
                           };
                           this.overallSequencingProcess = new OverallSequencingProcess(this.sequencing.activityTree, this.sequencingProcess, this.rollupProcess, this.adl.nav, function(eventType, data) {
                               return _this.handleSequencingProcessEvent(eventType, data);
