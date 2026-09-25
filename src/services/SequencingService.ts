@@ -128,6 +128,7 @@ export class SequencingService {
   /**
    * Create sequencing processes
    * Called from constructor to enable navigation before SCO Initialize
+   * @spec SCORM 2004 4th Ed. SN OP.1; RTE 3.1.6 - sequencing can precede Initialize.
    */
   private createSequencingProcesses(): void {
     try {
@@ -181,8 +182,10 @@ export class SequencingService {
           );
         }
 
-        // Provide CMI data callback for RTE data transfer
-        overallOptions.getCMIData = () => this.getCMIDataForTransfer();
+        // @spec SCORM 2004 4th Ed. RTE 3.1.6 - transfer only initialized SCO data;
+        // asset delivery and an early Suspend All may have no RTE session.
+        overallOptions.getCMIData = () =>
+          this.cmi.initialized ? this.getCMIDataForTransfer() : null;
 
         this.overallSequencingProcess = new OverallSequencingProcess(
           this.sequencing.activityTree,
