@@ -340,14 +340,9 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.targetActivity).toBe(lesson2_1);
     });
 
-    it("should end only the active path below the common ancestor", () => {
+    it("should leave the active path unchanged until the chosen activity is delivered", () => {
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      const endedActivities: string[] = [];
-      sequencingProcess.setEndAttemptCallback((activity) => {
-        endedActivities.push(activity.id);
-        activity.isActive = false;
-      });
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
@@ -355,9 +350,8 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(endedActivities).toEqual(["module1"]);
       expect(root.isActive).toBe(true);
-      expect(module1.isActive).toBe(false);
+      expect(module1.isActive).toBe(true);
       expect(module2.isActive).toBe(false);
       expect(lesson2_1.isActive).toBe(false);
     });

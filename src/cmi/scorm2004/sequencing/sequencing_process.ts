@@ -69,7 +69,9 @@ export class SequencingProcess {
   private constraintValidator: ChoiceConstraintValidator;
   private ruleEngine: RuleEvaluationEngine;
   private traversalService: FlowTraversalService;
-  private endAttemptCallback: ((activity: Activity) => void) | null = null;
+  private activityEvaluationCallback:
+    | ((activity: Activity, target: Activity) => Activity)
+    | null = null;
 
   // Request handlers
   private flowHandler: FlowRequestHandler;
@@ -402,18 +404,17 @@ export class SequencingProcess {
     return this.traversalService;
   }
 
-  /**
-   * Connect flow traversal to the utility end-attempt process owned by the
-   * overall sequencing coordinator.
-   */
-  public setEndAttemptCallback(callback: (activity: Activity) => void): void {
-    this.endAttemptCallback = callback;
+  /** @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 / SM.7 - candidate evaluation uses a disposable objective view. */
+  public setActivityEvaluationCallback(
+    callback: (activity: Activity, target: Activity) => Activity,
+  ): void {
+    this.activityEvaluationCallback = callback;
     this.applyTraversalCallbacks();
   }
 
   private applyTraversalCallbacks(): void {
-    if (this.endAttemptCallback) {
-      this.traversalService.setEndAttemptCallback(this.endAttemptCallback);
+    if (this.activityEvaluationCallback) {
+      this.traversalService.setActivityEvaluationCallback(this.activityEvaluationCallback);
     }
   }
 }

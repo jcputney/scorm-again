@@ -1,4 +1,5 @@
 import { Activity } from "../activity";
+import { ActivityTreeQueries } from "../utils/activity_tree_queries";
 import { ActivityTree } from "../activity_tree";
 import { RollupProcess } from "../rollup_process";
 import { SelectionRandomization } from "../selection_randomization";
@@ -78,7 +79,8 @@ export class DeliveryHandler {
   private defaultAuxiliaryResources: AuxiliaryResource[];
   private _deliveryInProgress: boolean = false;
   private contentDelivered: boolean = false;
-  private checkActivityCallback: ((activity: Activity) => boolean) | null = null;
+  private endAttemptCallback: ((activity: Activity) => void) | null = null;
+  private checkActivityCallback: ((activity: Activity, target: Activity) => boolean) | null = null;
   private invalidateCacheCallback: (() => void) | null = null;
   private updateNavigationValidityCallback: (() => void) | null = null;
   private clearSuspendedActivityCallback: (() => void) | null = null;
@@ -103,10 +105,43 @@ export class DeliveryHandler {
       : [];
   }
 
+  /** @spec SCORM 2004 SN 4th Ed. DB.2 / UP.4 - commit departed attempts through the coordinator. */
+  public setEndAttemptCallback(callback: (activity: Activity) => void): void {
+    this.endAttemptCallback = callback;
+  }
+
+  /**
+   * End active attempts on the path from current to common ancestor, exclusive.
+   * @spec SCORM 2004 SN 4th Ed. UP.3 - end the old path bottom-up, excluding the common ancestor.
+   * @param {Activity} currentActivity - The already-terminated current activity
+   * @param {Activity} commonAncestor - The ancestor whose attempt remains active
+   */
+  private terminateDescendentAttemptsProcess(
+    currentActivity: Activity,
+    commonAncestor: Activity | null,
+  ): void {
+    if (currentActivity === commonAncestor) {
+      return;
+    }
+
+    let activity = currentActivity.parent;
+    while (activity && activity !== commonAncestor) {
+      const parent = activity.parent;
+      if (activity.isActive) {
+        if (this.endAttemptCallback) {
+          this.endAttemptCallback(activity);
+        } else {
+          activity.isActive = false;
+        }
+      }
+      activity = parent;
+    }
+  }
+
   /**
    * Set callback to check activity validity
    */
-  public setCheckActivityCallback(callback: (activity: Activity) => boolean): void {
+  public setCheckActivityCallback(callback: (activity: Activity, target: Activity) => boolean): void {
     this.checkActivityCallback = callback;
   }
 
@@ -196,7 +231,7 @@ export class DeliveryHandler {
     for (const pathActivity of activityPath) {
       // Check Activity Process returns true if activity is VALID
       const checkResult = this.checkActivityCallback
-        ? this.checkActivityCallback(pathActivity)
+        ? this.checkActivityCallback(pathActivity, activity)
         : true;
       if (!checkResult) {
         // Activity check failed - cannot deliver
@@ -221,6 +256,17 @@ export class DeliveryHandler {
     this._deliveryInProgress = true;
 
     try {
+      // @spec SCORM 2004 SN 4th Ed. DB.2 / UP.3 - end the departed branch only after DB.1.1 succeeds.
+      const currentActivity = this.activityTree.currentActivity;
+      if (currentActivity) {
+        const commonAncestor = new ActivityTreeQueries(this.activityTree).findCommonAncestor(
+          currentActivity,
+          activity,
+        );
+        this.terminateDescendentAttemptsProcess(currentActivity, commonAncestor);
+      }
+      this.rollupProcess?.processGlobalObjectiveMapping(activity, this.globalObjectiveMap);
+
       // Step 1: Check if we're resuming before clearing suspended state
       // Capture suspended state of delivered activity BEFORE clearSuspendedActivitySubprocess
       const isResuming = activity.isSuspended;

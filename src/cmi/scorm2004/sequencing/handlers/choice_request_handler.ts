@@ -64,26 +64,19 @@ export class ChoiceRequestHandler {
       return result;
     }
 
-    // Find common ancestor
-    const commonAncestor = this.treeQueries.findCommonAncestor(currentActivity, targetActivity);
-
-    // End the active path between the already-terminated current activity and
-    // the common ancestor, excluding both endpoints. Ending the common ancestor
-    // would make delivery start a new parent attempt and discard the tracking
-    // data that Choice is meant to preserve within that branch.
-    // @spec SCORM 2004 4th Ed. SN UP.3 Terminate Descendent Attempts Process
-    if (currentActivity) {
-      const ancestor = commonAncestor || this.activityTree.root!;
-      this.terminateDescendentAttemptsProcess(currentActivity, ancestor);
-    }
-
+    // @spec SCORM 2004 SN 4th Ed. SB.2.9 / DB.2 - defer UP.3 until delivery succeeds.
     // @spec SCORM 2004 SN 4th Ed. SB.2.9 steps 3-4: the root-to-target path
     // is checked only for Hide from Choice rules. Skip rules apply to flow,
     // not to a learner explicitly choosing a descendant activity.
     for (const pathActivity of this.treeQueries.getPathToRoot(targetActivity)) {
+      const evaluationActivity = this.traversalService.getActivityForEvaluation(
+        pathActivity,
+        targetActivity,
+      );
       const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
         (rule) =>
-          rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(pathActivity) === true,
+          rule.action === RuleActionType.HIDE_FROM_CHOICE &&
+          rule.evaluate(evaluationActivity) === true,
       );
       if (hiddenByRule) {
         result.exception = "SB.2.9-4";
@@ -287,26 +280,5 @@ export class ChoiceRequestHandler {
     }
 
     return new ChoiceTraversalResult(null, null);
-  }
-
-  /**
-   * End active attempts on the path from current to common ancestor, exclusive.
-   * @param {Activity} currentActivity - The already-terminated current activity
-   * @param {Activity} commonAncestor - The ancestor whose attempt remains active
-   */
-  private terminateDescendentAttemptsProcess(
-    currentActivity: Activity,
-    commonAncestor: Activity,
-  ): void {
-    if (currentActivity === commonAncestor) {
-      return;
-    }
-
-    let activity = currentActivity.parent;
-    while (activity && activity !== commonAncestor) {
-      const parent = activity.parent;
-      this.traversalService.endActiveAttempt(activity);
-      activity = parent;
-    }
   }
 }

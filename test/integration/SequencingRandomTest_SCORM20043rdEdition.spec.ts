@@ -1130,6 +1130,76 @@ wrappers.forEach((wrapper) => {
      * - posttest_item has postConditionRule: retry if not satisfied and not attemptLimitExceeded
      * - After a failed test, learner immediately retries another test
      */
+    test("previews an unsubmitted post test, retries once, then exits at the attempt limit", async ({
+      page,
+    }) => {
+      await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
+      await waitForPageReady(page);
+      await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
+      await ensureApiInitialized(page);
+
+      // @spec SCORM 2004 SN 4th Ed. TB.2.3 / TB.2.2 / SB.2.10 - preview the
+      // host's Continue before submitting adl.nav.request through Terminate.
+      const result = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const sessionEnds: string[] = [];
+        api.setSequencingEventListeners({
+          onSequencingSessionEnd: (event: { reason: string }) => sessionEnds.push(event.reason),
+        });
+        const advances: any[] = [];
+        const advance = () => {
+          const preview = api.previewNavigationRequest("continue");
+          if (preview.outcome === "blocked") {
+            advances.push({ preview });
+            return false;
+          }
+          const requested = api.SetValue("adl.nav.request", "continue");
+          const terminated = api.Terminate("");
+          const state = api.getSequencingState();
+          const posttest = state.rootActivity.children.find(
+            (child: any) => child.id === "posttest_item",
+          );
+          advances.push({
+            preview,
+            requested,
+            terminated,
+            exception: state.lastSequencingResult?.exception ?? null,
+            currentId: state.currentActivity?.id ?? null,
+            parentId: state.currentActivity?.parent?.id ?? null,
+            posttestAttempt: posttest.attemptCount,
+          });
+          if (state.lastSequencingResult?.exception) return false;
+          if (state.currentActivity) {
+            api.reset();
+            api.Initialize("");
+          }
+          return true;
+        };
+        for (let i = 0; i < 4; i++) {
+          api.SetValue("cmi.completion_status", "completed");
+          if (!advance()) return { advances, sessionEnds };
+        }
+        for (let i = 0; i < 2; i++) {
+          api.SetValue("cmi.completion_status", "incomplete");
+          api.SetValue("cmi.success_status", "unknown");
+          if (!advance()) return { advances, sessionEnds };
+        }
+        return { advances, sessionEnds };
+      });
+
+      expect(result.advances).toHaveLength(6);
+      for (const advance of result.advances) {
+        expect(advance.preview.outcome).not.toBe("blocked");
+        expect(advance.requested).toBe("true");
+        expect(advance.terminated).toBe("true");
+        expect(advance.exception).toBeNull();
+      }
+      expect(result.advances[3]).toMatchObject({ parentId: "posttest_item", posttestAttempt: 1 });
+      expect(result.advances[4]).toMatchObject({ parentId: "posttest_item", posttestAttempt: 2 });
+      expect(result.advances[5]).toMatchObject({ currentId: null, posttestAttempt: 2 });
+      expect(result.sessionEnds).toEqual(["exit_all"]);
+    });
+
     test("should configure retry logic per SCORM 2004 SN Book SB.2.3", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
       await waitForPageReady(page);
