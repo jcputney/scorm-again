@@ -77,13 +77,8 @@ describe("FlowTraversalService", () => {
         expect(result.endSequencingSession).toBe(false);
       });
 
-      it("should end an active cluster before returning its next sibling", () => {
-        const endedActivities: string[] = [];
+      it("should preserve an active cluster while returning its next sibling", () => {
         chapter1.isActive = true;
-        service.setEndAttemptCallback((activity) => {
-          endedActivities.push(activity.id);
-          activity.isActive = false;
-        });
 
         const result = service.flowTreeTraversalSubprocess(
           lesson2,
@@ -92,8 +87,7 @@ describe("FlowTraversalService", () => {
         );
 
         expect(result.activity).toBe(chapter2);
-        expect(endedActivities).toEqual(["chapter1"]);
-        expect(chapter1.isActive).toBe(false);
+        expect(chapter1.isActive).toBe(true);
       });
 
       it("should set endSequencingSession when at last activity", () => {

@@ -1,3 +1,4 @@
+import { ObjectiveEvaluationContext } from "./objectives/objective_evaluation_context";
 import { Activity } from "./activity";
 import { ActivityTree } from "./activity_tree";
 import {
@@ -215,13 +216,23 @@ export class OverallSequencingProcess {
     this.terminationHandler.setInvalidateCacheCallback(() => {
       this.navigationLookAhead.invalidateCache();
     });
-    this.sequencingProcess?.setEndAttemptCallback((activity) => {
-      this.terminationHandler.endAttempt(activity);
-    });
+
+    // @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 / DB.1.1 / SM.7 - project mapped objectives until delivery is accepted.
+    const evaluationContext = new ObjectiveEvaluationContext(
+      this.activityTree,
+      this.globalObjectiveService.getMap(),
+    );
+    this.sequencingProcess?.setActivityEvaluationCallback((activity, target) =>
+      evaluationContext.project(activity, target),
+    );
 
     // Set up delivery handler callbacks
-    this.deliveryHandler.setCheckActivityCallback((activity) =>
-      this.deliveryValidator.checkActivity(activity),
+    // @spec SCORM 2004 SN 4th Ed. DB.2 / UP.3 / UP.4 - commit old branch attempts once delivery succeeds.
+    this.deliveryHandler.setEndAttemptCallback((activity) =>
+      this.terminationHandler.endAttempt(activity),
+    );
+    this.deliveryHandler.setCheckActivityCallback((activity, target) =>
+      this.deliveryValidator.checkActivity(evaluationContext.project(activity, target)),
     );
     this.deliveryHandler.setInvalidateCacheCallback(() => {
       this.navigationLookAhead.invalidateCache();
@@ -449,12 +460,7 @@ export class OverallSequencingProcess {
         }
       }
 
-      // INTEGRATION: Process global objective mapping before delivery
-      this.rollupProcess.processGlobalObjectiveMapping(
-        seqResult.targetActivity,
-        this.globalObjectiveService.getMap(),
-      );
-
+      // @spec SCORM 2004 SN 4th Ed. DB.1.1 / DB.2 - keep live objective mapping inside accepted delivery.
       // Step 4: Delivery Request Process (DB.1.1)
       return this.processDelivery(seqResult.targetActivity);
     }

@@ -31,7 +31,9 @@ export interface FlowTreeTraversalResult {
  * - Finding the first deliverable activity from a cluster
  */
 export class FlowTraversalService {
-  private endAttemptCallback: ((activity: Activity) => void) | null = null;
+  private activityEvaluationCallback:
+    | ((activity: Activity, target: Activity) => Activity)
+    | null = null;
 
   constructor(
     private activityTree: ActivityTree,
@@ -39,26 +41,18 @@ export class FlowTraversalService {
   ) {}
 
   /**
-   * Set the callback used when forward flow exits an active cluster attempt.
+   * Supply a disposable objective view for candidate preconditions.
+   * @spec SCORM 2004 SN 4th Ed. SB.2.2 / SM.7 - evaluate mapped objectives without ending attempts.
    */
-  public setEndAttemptCallback(callback: (activity: Activity) => void): void {
-    this.endAttemptCallback = callback;
+  public setActivityEvaluationCallback(
+    callback: (activity: Activity, target: Activity) => Activity,
+  ): void {
+    this.activityEvaluationCallback = callback;
   }
 
-  /**
-   * End one active attempt through the coordinator-owned UP.4 process.
-   * SequencingProcess can also be used without the overall coordinator in
-   * focused callers, so retain the state-only fallback for that case.
-   */
-  public endActiveAttempt(activity: Activity): void {
-    if (!activity.isActive) {
-      return;
-    }
-    if (this.endAttemptCallback) {
-      this.endAttemptCallback(activity);
-    } else {
-      activity.isActive = false;
-    }
+  /** @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 - speculative rules use projected objective state. */
+  public getActivityForEvaluation(activity: Activity, target: Activity = activity): Activity {
+    return this.activityEvaluationCallback?.(activity, target) ?? activity;
   }
 
   /**
@@ -109,6 +103,7 @@ export class FlowTraversalService {
    * @param {boolean} skipChildren - Whether to skip children
    * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {FlowTreeTraversalResult}
+   * @spec SCORM 2004 SN 4th Ed. SB.2.1 / SB.2.2 - candidate traversal preserves attempts until DB.2 accepts delivery.
    * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - a reversed Forward traversal from a forwardOnly cluster remains within that cluster.
    */
   private traverseForward(
@@ -146,7 +141,6 @@ export class FlowTraversalService {
     while (current) {
       const nextSibling = this.activityTree.getNextSibling(current);
       if (nextSibling) {
-        this.endActiveClusterAttempt(current);
         return { activity: nextSibling, endSequencingSession: false };
       }
       if (
@@ -155,7 +149,6 @@ export class FlowTraversalService {
       ) {
         return { activity: null, endSequencingSession: false };
       }
-      this.endActiveClusterAttempt(current);
       current = current.parent;
     }
 
@@ -164,24 +157,6 @@ export class FlowTraversalService {
       this.terminateDescendentAttempts(this.activityTree.root);
     }
     return { activity: null, endSequencingSession: true };
-  }
-
-  /**
-   * End a cluster attempt as soon as flow leaves its subtree. This must happen
-   * before the next sibling's preconditions are evaluated so its read-mapped
-   * objectives see the terminating cluster's final write-map values.
-   *
-   * @spec SCORM 2004 SN 4th Ed. SB.2.1 Flow Tree Traversal Subprocess
-   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
-   */
-  private endActiveClusterAttempt(activity: Activity): void {
-    if (
-      activity.parent &&
-      activity.children.length > 0 &&
-      activity.isActive
-    ) {
-      this.endActiveAttempt(activity);
-    }
   }
 
   /**
@@ -418,7 +393,8 @@ export class FlowTraversalService {
       (rule) => rule.action === RuleActionType.SKIP,
     );
     const wasSkipped =
-      this.ruleEngine.checkSequencingRules(activity, skippedRules) === RuleActionType.SKIP;
+      this.ruleEngine.checkSequencingRules(this.getActivityForEvaluation(activity), skippedRules) ===
+      RuleActionType.SKIP;
 
     activity.wasSkipped = wasSkipped;
 
@@ -443,7 +419,9 @@ export class FlowTraversalService {
     }
 
     // Check pre-condition rules
-    const deliveryCheck = this.ruleEngine.canDeliverActivity(activity);
+    const deliveryCheck = this.ruleEngine.canDeliverActivity(
+      this.getActivityForEvaluation(activity),
+    );
     activity.wasSkipped = deliveryCheck.wasSkipped;
 
     return deliveryCheck.canDeliver;

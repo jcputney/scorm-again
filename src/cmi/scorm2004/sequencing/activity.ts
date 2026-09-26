@@ -2099,6 +2099,22 @@ export class Activity extends BaseCMI {
     return objectives.concat(additionalObjectives);
   }
 
+  /**
+   * Copy only the state that objective read maps can change during rule evaluation.
+   * Tree links and rule definitions remain shared and read-only in this view.
+   * @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 / SM.7 - speculative reads must not change live tracking or dirty flags.
+   */
+  public createObjectiveEvaluationView(): Activity {
+    const view: Activity = Object.assign(Object.create(Activity.prototype), this);
+    const copyObjective = (objective: ActivityObjective): ActivityObjective =>
+      Object.assign(Object.create(ActivityObjective.prototype), objective);
+    view._primaryObjective = this._primaryObjective ? copyObjective(this._primaryObjective) : null;
+    view._objectives = this._objectives.map((objective) =>
+      objective === this._primaryObjective ? view._primaryObjective! : copyObjective(objective),
+    );
+    return view;
+  }
+
   private updatePrimaryObjectiveFromActivity(): void {
     if (this._primaryObjective) {
       this._primaryObjective.updateFromActivity(this);
