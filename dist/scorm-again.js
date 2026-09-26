@@ -384,10 +384,10 @@
       derived = _get_prototype_of$y(derived);
       return _possible_constructor_return$y(_this, _is_native_reflect_construct$y() ? Reflect.construct(derived, args || [], _get_prototype_of$y(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$1k(instance, Constructor) {
+  function _class_call_check$1l(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1h(target, props) {
+  function _defineProperties$1i(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -396,8 +396,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1h(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1h(Constructor.prototype, protoProps);
+  function _create_class$1i(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1i(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$y(o) {
@@ -428,7 +428,7 @@
       })();
   }
   function _possible_constructor_return$y(self, call) {
-      if (call && (_type_of$1h(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1i(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$y(self);
   }
   function _set_prototype_of$y(o, p) {
@@ -438,35 +438,35 @@
       };
       return _set_prototype_of$y(o, p);
   }
-  function _type_of$1h(obj) {
+  function _type_of$1i(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$1d = Object.defineProperty;
-  var __defNormalProp$1d = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$1d(obj, key, {
+  var __defProp$1e = Object.defineProperty;
+  var __defNormalProp$1e = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$1e(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$1d = function __publicField(obj, key, value) {
-      return __defNormalProp$1d(obj, (typeof key === "undefined" ? "undefined" : _type_of$1h(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$1e = function __publicField(obj, key, value) {
+      return __defNormalProp$1e(obj, (typeof key === "undefined" ? "undefined" : _type_of$1i(key)) !== "symbol" ? key + "" : key, value);
   };
   var BaseCMI = /*#__PURE__*/ function() {
       function BaseCMI(cmi_element) {
-          _class_call_check$1k(this, BaseCMI);
+          _class_call_check$1l(this, BaseCMI);
           /**
        * Flag used during JSON serialization to allow getter access without initialization checks.
        * When true, getters can be accessed before the API is initialized, which is necessary
        * for serializing the CMI data structure to JSON format.
-       */ __publicField$1d(this, "jsonString", false);
-          __publicField$1d(this, "_cmi_element");
-          __publicField$1d(this, "_initialized", false);
+       */ __publicField$1e(this, "jsonString", false);
+          __publicField$1e(this, "_cmi_element");
+          __publicField$1e(this, "_initialized", false);
           this._cmi_element = cmi_element;
       }
-      _create_class$1h(BaseCMI, [
+      _create_class$1i(BaseCMI, [
           {
               key: "initialized",
               get: /**
@@ -490,13 +490,13 @@
   var BaseRootCMI = /*#__PURE__*/ function(BaseCMI) {
       _inherits$y(BaseRootCMI, BaseCMI);
       function BaseRootCMI() {
-          _class_call_check$1k(this, BaseRootCMI);
+          _class_call_check$1l(this, BaseRootCMI);
           var _this;
           _this = _call_super$y(this, BaseRootCMI, arguments);
-          __publicField$1d(_this, "_start_time");
+          __publicField$1e(_this, "_start_time");
           return _this;
       }
-      _create_class$1h(BaseRootCMI, [
+      _create_class$1i(BaseRootCMI, [
           {
               key: "start_time",
               get: /**
@@ -531,7 +531,7 @@
       derived = _get_prototype_of$x(derived);
       return _possible_constructor_return$x(_this, _is_native_reflect_construct$x() ? Reflect.construct(derived, args || [], _get_prototype_of$x(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$1j(instance, Constructor) {
+  function _class_call_check$1k(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _construct(Parent, args, Class) {
@@ -550,7 +550,7 @@
       }
       return _construct.apply(null, arguments);
   }
-  function _defineProperties$1g(target, props) {
+  function _defineProperties$1h(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -559,8 +559,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1g(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1g(Constructor.prototype, protoProps);
+  function _create_class$1h(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1h(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$x(o) {
@@ -594,7 +594,7 @@
       })();
   }
   function _possible_constructor_return$x(self, call) {
-      if (call && (_type_of$1g(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1h(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$x(self);
   }
   function _set_prototype_of$x(o, p) {
@@ -604,7 +604,7 @@
       };
       return _set_prototype_of$x(o, p);
   }
-  function _type_of$1g(obj) {
+  function _type_of$1h(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -632,32 +632,32 @@
       };
       return _wrap_native_super(Class);
   }
-  var __defProp$1c = Object.defineProperty;
-  var __defNormalProp$1c = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$1c(obj, key, {
+  var __defProp$1d = Object.defineProperty;
+  var __defNormalProp$1d = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$1d(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$1c = function __publicField(obj, key, value) {
-      return __defNormalProp$1c(obj, (typeof key === "undefined" ? "undefined" : _type_of$1g(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$1d = function __publicField(obj, key, value) {
+      return __defNormalProp$1d(obj, (typeof key === "undefined" ? "undefined" : _type_of$1h(key)) !== "symbol" ? key + "" : key, value);
   };
   var BaseScormValidationError = /*#__PURE__*/ function(Error1) {
       _inherits$x(BaseScormValidationError, Error1);
       function BaseScormValidationError(CMIElement, errorCode) {
-          _class_call_check$1j(this, BaseScormValidationError);
+          _class_call_check$1k(this, BaseScormValidationError);
           var _this;
           _this = _call_super$x(this, BaseScormValidationError, [
               "".concat(CMIElement, " : ").concat(errorCode.toString())
           ]);
-          __publicField$1c(_this, "_errorCode");
+          __publicField$1d(_this, "_errorCode");
           _this._errorCode = errorCode;
           Object.setPrototypeOf(_this, BaseScormValidationError.prototype);
           return _this;
       }
-      _create_class$1g(BaseScormValidationError, [
+      _create_class$1h(BaseScormValidationError, [
           {
               key: "errorCode",
               get: /**
@@ -673,14 +673,14 @@
   var ValidationError = /*#__PURE__*/ function(BaseScormValidationError) {
       _inherits$x(ValidationError, BaseScormValidationError);
       function ValidationError(CMIElement, errorCode, errorMessage, detailedMessage) {
-          _class_call_check$1j(this, ValidationError);
+          _class_call_check$1k(this, ValidationError);
           var _this;
           _this = _call_super$x(this, ValidationError, [
               CMIElement,
               errorCode
           ]);
-          __publicField$1c(_this, "_errorMessage");
-          __publicField$1c(_this, "_detailedMessage", "");
+          __publicField$1d(_this, "_errorMessage");
+          __publicField$1d(_this, "_detailedMessage", "");
           _this.message = "".concat(CMIElement, " : ").concat(errorMessage);
           _this._errorMessage = errorMessage;
           if (detailedMessage) {
@@ -689,7 +689,7 @@
           Object.setPrototypeOf(_this, ValidationError.prototype);
           return _this;
       }
-      _create_class$1g(ValidationError, [
+      _create_class$1h(ValidationError, [
           {
               key: "errorMessage",
               get: /**
@@ -910,7 +910,7 @@
       derived = _get_prototype_of$w(derived);
       return _possible_constructor_return$w(_this, _is_native_reflect_construct$w() ? Reflect.construct(derived, args || [], _get_prototype_of$w(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$1i(instance, Constructor) {
+  function _class_call_check$1j(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _get_prototype_of$w(o) {
@@ -941,7 +941,7 @@
       })();
   }
   function _possible_constructor_return$w(self, call) {
-      if (call && (_type_of$1f(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1g(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$w(self);
   }
   function _set_prototype_of$w(o, p) {
@@ -951,7 +951,7 @@
       };
       return _set_prototype_of$w(o, p);
   }
-  function _type_of$1f(obj) {
+  function _type_of$1g(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -959,7 +959,7 @@
   var Scorm12ValidationError = /*#__PURE__*/ function(ValidationError) {
       _inherits$w(Scorm12ValidationError, ValidationError);
       function Scorm12ValidationError(CMIElement, errorCode) {
-          _class_call_check$1i(this, Scorm12ValidationError);
+          _class_call_check$1j(this, Scorm12ValidationError);
           var _this;
           if (({}).hasOwnProperty.call(scorm12_errors$1, String(errorCode))) {
               var _scorm12_errors_String, _scorm12_errors_String1;
@@ -993,7 +993,7 @@
       derived = _get_prototype_of$v(derived);
       return _possible_constructor_return$v(_this, _is_native_reflect_construct$v() ? Reflect.construct(derived, args || [], _get_prototype_of$v(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$1h(instance, Constructor) {
+  function _class_call_check$1i(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
   function _get_prototype_of$v(o) {
@@ -1024,7 +1024,7 @@
       })();
   }
   function _possible_constructor_return$v(self, call) {
-      if (call && (_type_of$1e(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1f(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$v(self);
   }
   function _set_prototype_of$v(o, p) {
@@ -1034,7 +1034,7 @@
       };
       return _set_prototype_of$v(o, p);
   }
-  function _type_of$1e(obj) {
+  function _type_of$1f(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -1042,7 +1042,7 @@
   var Scorm2004ValidationError = /*#__PURE__*/ function(ValidationError) {
       _inherits$v(Scorm2004ValidationError, ValidationError);
       function Scorm2004ValidationError(CMIElement, errorCode) {
-          _class_call_check$1h(this, Scorm2004ValidationError);
+          _class_call_check$1i(this, Scorm2004ValidationError);
           var _this;
           if (({}).hasOwnProperty.call(scorm2004_errors$1, String(errorCode))) {
               var _scorm2004_errors_String, _scorm2004_errors_String1;
@@ -1067,7 +1067,7 @@
       return Scorm2004ValidationError;
   }(ValidationError);
 
-  function _define_property$j(obj, key, value) {
+  function _define_property$k(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -1078,7 +1078,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$j(target) {
+  function _object_spread$k(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -1088,7 +1088,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$j(target, key, source[key]);
+              _define_property$k(target, key, source[key]);
           });
       }
       return target;
@@ -1141,7 +1141,7 @@
       VALUE_OUT_OF_RANGE: 101,
       DEPENDENCY_NOT_ESTABLISHED: 101
   };
-  var scorm12_errors = _object_spread_props$a(_object_spread$j({}, global_errors), {
+  var scorm12_errors = _object_spread_props$a(_object_spread$k({}, global_errors), {
       TERMINATION_BEFORE_INIT: 301,
       RETRIEVE_BEFORE_INIT: 301,
       STORE_BEFORE_INIT: 301,
@@ -1162,7 +1162,7 @@
       VALUE_OUT_OF_RANGE: 405,
       DEPENDENCY_NOT_ESTABLISHED: 408
   });
-  var scorm2004_errors = _object_spread_props$a(_object_spread$j({}, global_errors), {
+  var scorm2004_errors = _object_spread_props$a(_object_spread$k({}, global_errors), {
       INITIALIZATION_FAILED: 102,
       INITIALIZED: 103,
       TERMINATED: 104,
@@ -1198,10 +1198,10 @@
       derived = _get_prototype_of$u(derived);
       return _possible_constructor_return$u(_this, _is_native_reflect_construct$u() ? Reflect.construct(derived, args || [], _get_prototype_of$u(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$1g(instance, Constructor) {
+  function _class_call_check$1h(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1f(target, props) {
+  function _defineProperties$1g(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -1210,8 +1210,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1f(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1f(Constructor.prototype, protoProps);
+  function _create_class$1g(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1g(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$u(o) {
@@ -1242,7 +1242,7 @@
       })();
   }
   function _possible_constructor_return$u(self, call) {
-      if (call && (_type_of$1d(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1e(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$u(self);
   }
   function _set_prototype_of$u(o, p) {
@@ -1252,42 +1252,42 @@
       };
       return _set_prototype_of$u(o, p);
   }
-  function _type_of$1d(obj) {
+  function _type_of$1e(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$1b = Object.defineProperty;
-  var __defNormalProp$1b = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$1b(obj, key, {
+  var __defProp$1c = Object.defineProperty;
+  var __defNormalProp$1c = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$1c(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$1b = function __publicField(obj, key, value) {
-      return __defNormalProp$1b(obj, (typeof key === "undefined" ? "undefined" : _type_of$1d(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$1c = function __publicField(obj, key, value) {
+      return __defNormalProp$1c(obj, (typeof key === "undefined" ? "undefined" : _type_of$1e(key)) !== "symbol" ? key + "" : key, value);
   };
   var CMIArray = /*#__PURE__*/ function(BaseCMI) {
       _inherits$u(CMIArray, BaseCMI);
       function CMIArray(params) {
-          _class_call_check$1g(this, CMIArray);
+          _class_call_check$1h(this, CMIArray);
           var _this;
           var _params_errorCode;
           _this = _call_super$u(this, CMIArray, [
               params.CMIElement
           ]);
-          __publicField$1b(_this, "_errorCode");
-          __publicField$1b(_this, "_errorClass");
-          __publicField$1b(_this, "__children");
-          __publicField$1b(_this, "childArray");
+          __publicField$1c(_this, "_errorCode");
+          __publicField$1c(_this, "_errorClass");
+          __publicField$1c(_this, "__children");
+          __publicField$1c(_this, "childArray");
           _this.__children = params.children;
           _this._errorCode = (_params_errorCode = params.errorCode) !== null && _params_errorCode !== void 0 ? _params_errorCode : scorm12_errors.GENERAL;
           _this._errorClass = params.errorClass || BaseScormValidationError;
           _this.childArray = [];
           return _this;
       }
-      _create_class$1f(CMIArray, [
+      _create_class$1g(CMIArray, [
           {
               /**
      * Called when the API has been reset
@@ -2044,7 +2044,7 @@
       }
   };
 
-  function _define_property$i(obj, key, value) {
+  function _define_property$j(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -2055,7 +2055,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$i(target) {
+  function _object_spread$j(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -2065,7 +2065,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$i(target, key, source[key]);
+              _define_property$j(target, key, source[key]);
           });
       }
       return target;
@@ -2161,7 +2161,7 @@
   var SuspendExceptions = {
       "SB.2.15-1": "Cannot suspend root"
   };
-  _object_spread$i({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
+  _object_spread$j({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
 
   var ValidLanguages = [
       "aa",
@@ -2557,10 +2557,10 @@
       "zul"
   ];
 
-  function _class_call_check$1f(instance, Constructor) {
+  function _class_call_check$1g(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1e(target, props) {
+  function _defineProperties$1f(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -2569,38 +2569,38 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1e(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1e(Constructor.prototype, protoProps);
+  function _create_class$1f(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1f(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$1c(obj) {
+  function _type_of$1d(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$1a = Object.defineProperty;
-  var __defNormalProp$1a = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$1a(obj, key, {
+  var __defProp$1b = Object.defineProperty;
+  var __defNormalProp$1b = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$1b(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$1a = function __publicField(obj, key, value) {
-      return __defNormalProp$1a(obj, (typeof key === "undefined" ? "undefined" : _type_of$1c(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$1b = function __publicField(obj, key, value) {
+      return __defNormalProp$1b(obj, (typeof key === "undefined" ? "undefined" : _type_of$1d(key)) !== "symbol" ? key + "" : key, value);
   };
   var ScheduledCommit = /*#__PURE__*/ function() {
       function ScheduledCommit(API, when, callback) {
-          _class_call_check$1f(this, ScheduledCommit);
-          __publicField$1a(this, "_API");
-          __publicField$1a(this, "_cancelled", false);
-          __publicField$1a(this, "_timeout");
-          __publicField$1a(this, "_callback");
+          _class_call_check$1g(this, ScheduledCommit);
+          __publicField$1b(this, "_API");
+          __publicField$1b(this, "_cancelled", false);
+          __publicField$1b(this, "_timeout");
+          __publicField$1b(this, "_callback");
           this._API = API;
           this._timeout = setTimeout(this.wrapper.bind(this), when);
           this._callback = callback;
       }
-      _create_class$1e(ScheduledCommit, [
+      _create_class$1f(ScheduledCommit, [
           {
               /**
      * Cancel any currently scheduled commit
@@ -2646,10 +2646,10 @@
       derived = _get_prototype_of$t(derived);
       return _possible_constructor_return$t(_this, _is_native_reflect_construct$t() ? Reflect.construct(derived, args || [], _get_prototype_of$t(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$1e(instance, Constructor) {
+  function _class_call_check$1f(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1d(target, props) {
+  function _defineProperties$1e(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -2658,9 +2658,9 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1d(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1d(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$1d(Constructor, staticProps);
+  function _create_class$1e(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1e(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$1e(Constructor, staticProps);
       return Constructor;
   }
   function _get_prototype_of$t(o) {
@@ -2697,7 +2697,7 @@
       })();
   }
   function _possible_constructor_return$t(self, call) {
-      if (call && (_type_of$1b(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$1c(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$t(self);
   }
   function _set_prototype_of$t(o, p) {
@@ -2707,21 +2707,21 @@
       };
       return _set_prototype_of$t(o, p);
   }
-  function _type_of$1b(obj) {
+  function _type_of$1c(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$19 = Object.defineProperty;
-  var __defNormalProp$19 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$19(obj, key, {
+  var __defProp$1a = Object.defineProperty;
+  var __defNormalProp$1a = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$1a(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$19 = function __publicField(obj, key, value) {
-      return __defNormalProp$19(obj, (typeof key === "undefined" ? "undefined" : _type_of$1b(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$1a = function __publicField(obj, key, value) {
+      return __defNormalProp$1a(obj, (typeof key === "undefined" ? "undefined" : _type_of$1c(key)) !== "symbol" ? key + "" : key, value);
   };
   var RuleActionType = /* @__PURE__ */ function(RuleActionType2) {
       RuleActionType2["SKIP"] = "skip";
@@ -2825,21 +2825,21 @@
       _inherits$t(_RuleCondition, BaseCMI);
       function _RuleCondition() {
           var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", operator = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, parameters = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : /* @__PURE__ */ new Map();
-          _class_call_check$1e(this, _RuleCondition);
+          _class_call_check$1f(this, _RuleCondition);
           var _this;
           _this = _call_super$t(this, _RuleCondition, [
               "ruleCondition"
           ]);
-          __publicField$19(_this, "_condition", "always" /* ALWAYS */ );
-          __publicField$19(_this, "_operator", null);
-          __publicField$19(_this, "_parameters", /* @__PURE__ */ new Map());
-          __publicField$19(_this, "_referencedObjective", null);
+          __publicField$1a(_this, "_condition", "always" /* ALWAYS */ );
+          __publicField$1a(_this, "_operator", null);
+          __publicField$1a(_this, "_parameters", /* @__PURE__ */ new Map());
+          __publicField$1a(_this, "_referencedObjective", null);
           _this._condition = condition;
           _this._operator = operator;
           _this._parameters = parameters;
           return _this;
       }
-      _create_class$1d(_RuleCondition, [
+      _create_class$1e(_RuleCondition, [
           {
               /**
      * Called when the API needs to be reset
@@ -3162,29 +3162,29 @@
       return _RuleCondition;
   }(BaseCMI);
   // Optional, overridable provider for current time (LMS may set via SequencingService)
-  __publicField$19(_RuleCondition, "_now", function() {
+  __publicField$1a(_RuleCondition, "_now", function() {
       return /* @__PURE__ */ new Date();
   });
   // Optional, overridable hook for getting elapsed seconds
-  __publicField$19(_RuleCondition, "_getElapsedSecondsHook");
+  __publicField$1a(_RuleCondition, "_getElapsedSecondsHook");
   var RuleCondition = _RuleCondition;
   var SequencingRule = /*#__PURE__*/ function(BaseCMI) {
       _inherits$t(SequencingRule, BaseCMI);
       function SequencingRule() {
           var action = arguments.length > 0 && arguments[0] !== void 0 /* SKIP */  ? arguments[0] : "skip", conditionCombination = arguments.length > 1 && arguments[1] !== void 0 /* AND */  ? arguments[1] : "and";
-          _class_call_check$1e(this, SequencingRule);
+          _class_call_check$1f(this, SequencingRule);
           var _this;
           _this = _call_super$t(this, SequencingRule, [
               "sequencingRule"
           ]);
-          __publicField$19(_this, "_conditions", []);
-          __publicField$19(_this, "_action", "skip" /* SKIP */ );
-          __publicField$19(_this, "_conditionCombination", "and" /* AND */ );
+          __publicField$1a(_this, "_conditions", []);
+          __publicField$1a(_this, "_action", "skip" /* SKIP */ );
+          __publicField$1a(_this, "_conditionCombination", "and" /* AND */ );
           _this._action = action;
           _this._conditionCombination = conditionCombination;
           return _this;
       }
-      _create_class$1d(SequencingRule, [
+      _create_class$1e(SequencingRule, [
           {
               /**
      * Called when the API needs to be reset
@@ -3301,17 +3301,17 @@
   var SequencingRules = /*#__PURE__*/ function(BaseCMI) {
       _inherits$t(SequencingRules, BaseCMI);
       function SequencingRules() {
-          _class_call_check$1e(this, SequencingRules);
+          _class_call_check$1f(this, SequencingRules);
           var _this;
           _this = _call_super$t(this, SequencingRules, [
               "sequencingRules"
           ]);
-          __publicField$19(_this, "_preConditionRules", []);
-          __publicField$19(_this, "_exitConditionRules", []);
-          __publicField$19(_this, "_postConditionRules", []);
+          __publicField$1a(_this, "_preConditionRules", []);
+          __publicField$1a(_this, "_exitConditionRules", []);
+          __publicField$1a(_this, "_postConditionRules", []);
           return _this;
       }
-      _create_class$1d(SequencingRules, [
+      _create_class$1e(SequencingRules, [
           {
               /**
      * Called when the API needs to be reset
@@ -3502,10 +3502,10 @@
       return SequencingRules;
   }(BaseCMI);
 
-  function _class_call_check$1d(instance, Constructor) {
+  function _class_call_check$1e(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1c(target, props) {
+  function _defineProperties$1d(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -3514,32 +3514,32 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1c(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1c(Constructor.prototype, protoProps);
+  function _create_class$1d(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1d(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$1a(obj) {
+  function _type_of$1b(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$18 = Object.defineProperty;
-  var __defNormalProp$18 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$18(obj, key, {
+  var __defProp$19 = Object.defineProperty;
+  var __defNormalProp$19 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$19(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$18 = function __publicField(obj, key, value) {
-      return __defNormalProp$18(obj, (_type_of$1a(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$19 = function __publicField(obj, key, value) {
+      return __defNormalProp$19(obj, (_type_of$1b(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityTreeQueries = /*#__PURE__*/ function() {
       function ActivityTreeQueries(activityTree) {
-          _class_call_check$1d(this, ActivityTreeQueries);
-          __publicField$18(this, "activityTree", activityTree);
+          _class_call_check$1e(this, ActivityTreeQueries);
+          __publicField$19(this, "activityTree", activityTree);
       }
-      _create_class$1c(ActivityTreeQueries, [
+      _create_class$1d(ActivityTreeQueries, [
           {
               /**
      * Check if activity is in the activity tree
@@ -3800,10 +3800,10 @@
       return ActivityTreeQueries;
   }();
 
-  function _class_call_check$1c(instance, Constructor) {
+  function _class_call_check$1d(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1b(target, props) {
+  function _defineProperties$1c(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -3812,33 +3812,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1b(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1b(Constructor.prototype, protoProps);
+  function _create_class$1c(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1c(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$19(obj) {
+  function _type_of$1a(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$17 = Object.defineProperty;
-  var __defNormalProp$17 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$17(obj, key, {
+  var __defProp$18 = Object.defineProperty;
+  var __defNormalProp$18 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$18(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$17 = function __publicField(obj, key, value) {
-      return __defNormalProp$17(obj, (typeof key === "undefined" ? "undefined" : _type_of$19(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$18 = function __publicField(obj, key, value) {
+      return __defNormalProp$18(obj, (typeof key === "undefined" ? "undefined" : _type_of$1a(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceConstraintValidator = /*#__PURE__*/ function() {
       function ChoiceConstraintValidator(activityTree, treeQueries) {
-          _class_call_check$1c(this, ChoiceConstraintValidator);
-          __publicField$17(this, "activityTree", activityTree);
-          __publicField$17(this, "treeQueries", treeQueries);
+          _class_call_check$1d(this, ChoiceConstraintValidator);
+          __publicField$18(this, "activityTree", activityTree);
+          __publicField$18(this, "treeQueries", treeQueries);
       }
-      _create_class$1b(ChoiceConstraintValidator, [
+      _create_class$1c(ChoiceConstraintValidator, [
           {
               /**
      * Main entry point - consolidates ALL constraint validation for choice navigation
@@ -4333,24 +4333,24 @@
       return ChoiceConstraintValidator;
   }();
 
-  function _class_call_check$1b(instance, Constructor) {
+  function _class_call_check$1c(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _type_of$18(obj) {
+  function _type_of$19(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$16 = Object.defineProperty;
-  var __defNormalProp$16 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$16(obj, key, {
+  var __defProp$17 = Object.defineProperty;
+  var __defNormalProp$17 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$17(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$16 = function __publicField(obj, key, value) {
-      return __defNormalProp$16(obj, (typeof key === "undefined" ? "undefined" : _type_of$18(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$17 = function __publicField(obj, key, value) {
+      return __defNormalProp$17(obj, (typeof key === "undefined" ? "undefined" : _type_of$19(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingRequestType = /* @__PURE__ */ function(SequencingRequestType2) {
       SequencingRequestType2["START"] = "start";
@@ -4376,11 +4376,11 @@
   }(DeliveryRequestType || {});
   var SequencingResult = function SequencingResult() {
       var deliveryRequest = arguments.length > 0 && arguments[0] !== void 0 /* DO_NOT_DELIVER */  ? arguments[0] : "doNotDeliver", targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
-      _class_call_check$1b(this, SequencingResult);
-      __publicField$16(this, "deliveryRequest");
-      __publicField$16(this, "targetActivity");
-      __publicField$16(this, "exception");
-      __publicField$16(this, "endSequencingSession");
+      _class_call_check$1c(this, SequencingResult);
+      __publicField$17(this, "deliveryRequest");
+      __publicField$17(this, "targetActivity");
+      __publicField$17(this, "exception");
+      __publicField$17(this, "endSequencingSession");
       this.deliveryRequest = deliveryRequest;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -4388,11 +4388,11 @@
   };
   var FlowSubprocessResult = function FlowSubprocessResult(identifiedActivity, deliverable) {
       var exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
-      _class_call_check$1b(this, FlowSubprocessResult);
-      __publicField$16(this, "identifiedActivity");
-      __publicField$16(this, "deliverable");
-      __publicField$16(this, "exception");
-      __publicField$16(this, "endSequencingSession");
+      _class_call_check$1c(this, FlowSubprocessResult);
+      __publicField$17(this, "identifiedActivity");
+      __publicField$17(this, "deliverable");
+      __publicField$17(this, "exception");
+      __publicField$17(this, "endSequencingSession");
       this.identifiedActivity = identifiedActivity;
       this.deliverable = deliverable;
       this.exception = exception;
@@ -4400,9 +4400,9 @@
   };
   var ChoiceTraversalResult = function ChoiceTraversalResult(activity) {
       var exception = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null;
-      _class_call_check$1b(this, ChoiceTraversalResult);
-      __publicField$16(this, "activity");
-      __publicField$16(this, "exception");
+      _class_call_check$1c(this, ChoiceTraversalResult);
+      __publicField$17(this, "activity");
+      __publicField$17(this, "exception");
       this.activity = activity;
       this.exception = exception;
   };
@@ -4412,10 +4412,10 @@
       return FlowSubprocessMode2;
   }(FlowSubprocessMode || {});
 
-  function _class_call_check$1a(instance, Constructor) {
+  function _class_call_check$1b(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1a(target, props) {
+  function _defineProperties$1b(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -4424,38 +4424,38 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1a(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1a(Constructor.prototype, protoProps);
+  function _create_class$1b(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1b(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$17(obj) {
+  function _type_of$18(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$15 = Object.defineProperty;
-  var __defNormalProp$15 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$15(obj, key, {
+  var __defProp$16 = Object.defineProperty;
+  var __defNormalProp$16 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$16(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$15 = function __publicField(obj, key, value) {
-      return __defNormalProp$15(obj, (typeof key === "undefined" ? "undefined" : _type_of$17(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$16 = function __publicField(obj, key, value) {
+      return __defNormalProp$16(obj, (typeof key === "undefined" ? "undefined" : _type_of$18(key)) !== "symbol" ? key + "" : key, value);
   };
   var RuleEvaluationEngine = /*#__PURE__*/ function() {
       function RuleEvaluationEngine() {
           var options = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
-          _class_call_check$1a(this, RuleEvaluationEngine);
-          __publicField$15(this, "now");
-          __publicField$15(this, "getAttemptElapsedSecondsHook");
+          _class_call_check$1b(this, RuleEvaluationEngine);
+          __publicField$16(this, "now");
+          __publicField$16(this, "getAttemptElapsedSecondsHook");
           this.now = options.now || function() {
               return /* @__PURE__ */ new Date();
           };
           this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
       }
-      _create_class$1a(RuleEvaluationEngine, [
+      _create_class$1b(RuleEvaluationEngine, [
           {
               /**
      * Sequencing Rules Check Process (UP.2)
@@ -4774,10 +4774,10 @@
       derived = _get_prototype_of$s(derived);
       return _possible_constructor_return$s(_this, _is_native_reflect_construct$s() ? Reflect.construct(derived, args || [], _get_prototype_of$s(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$19(instance, Constructor) {
+  function _class_call_check$1a(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$19(target, props) {
+  function _defineProperties$1a(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -4786,8 +4786,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$19(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$19(Constructor.prototype, protoProps);
+  function _create_class$1a(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1a(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$s(o) {
@@ -4818,7 +4818,7 @@
       })();
   }
   function _possible_constructor_return$s(self, call) {
-      if (call && (_type_of$16(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$17(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$s(self);
   }
   function _set_prototype_of$s(o, p) {
@@ -4828,21 +4828,21 @@
       };
       return _set_prototype_of$s(o, p);
   }
-  function _type_of$16(obj) {
+  function _type_of$17(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$14 = Object.defineProperty;
-  var __defNormalProp$14 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$14(obj, key, {
+  var __defProp$15 = Object.defineProperty;
+  var __defNormalProp$15 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$15(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$14 = function __publicField(obj, key, value) {
-      return __defNormalProp$14(obj, (typeof key === "undefined" ? "undefined" : _type_of$16(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$15 = function __publicField(obj, key, value) {
+      return __defNormalProp$15(obj, (typeof key === "undefined" ? "undefined" : _type_of$17(key)) !== "symbol" ? key + "" : key, value);
   };
   var SelectionTiming = /* @__PURE__ */ function(SelectionTiming2) {
       SelectionTiming2["NEVER"] = "never";
@@ -4859,45 +4859,45 @@
   var SequencingControls = /*#__PURE__*/ function(BaseCMI) {
       _inherits$s(SequencingControls, BaseCMI);
       function SequencingControls() {
-          _class_call_check$19(this, SequencingControls);
+          _class_call_check$1a(this, SequencingControls);
           var _this;
           _this = _call_super$s(this, SequencingControls, [
               "sequencingControls"
           ]);
           // Sequencing Control Modes
-          __publicField$14(_this, "_enabled", true);
-          __publicField$14(_this, "_choice", true);
-          __publicField$14(_this, "_choiceExit", true);
+          __publicField$15(_this, "_enabled", true);
+          __publicField$15(_this, "_choice", true);
+          __publicField$15(_this, "_choiceExit", true);
           // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
-          __publicField$14(_this, "_flow", true);
-          __publicField$14(_this, "_forwardOnly", false);
-          __publicField$14(_this, "_useCurrentAttemptObjectiveInfo", true);
-          __publicField$14(_this, "_useCurrentAttemptProgressInfo", true);
+          __publicField$15(_this, "_flow", true);
+          __publicField$15(_this, "_forwardOnly", false);
+          __publicField$15(_this, "_useCurrentAttemptObjectiveInfo", true);
+          __publicField$15(_this, "_useCurrentAttemptProgressInfo", true);
           // Constrain Choice Controls
-          __publicField$14(_this, "_preventActivation", false);
-          __publicField$14(_this, "_constrainChoice", false);
+          __publicField$15(_this, "_preventActivation", false);
+          __publicField$15(_this, "_constrainChoice", false);
           // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
-          __publicField$14(_this, "_stopForwardTraversal", false);
+          __publicField$15(_this, "_stopForwardTraversal", false);
           // Rollup Controls
-          __publicField$14(_this, "_rollupObjectiveSatisfied", true);
-          __publicField$14(_this, "_rollupProgressCompletion", true);
-          __publicField$14(_this, "_objectiveMeasureWeight", 1);
+          __publicField$15(_this, "_rollupObjectiveSatisfied", true);
+          __publicField$15(_this, "_rollupProgressCompletion", true);
+          __publicField$15(_this, "_objectiveMeasureWeight", 1);
           // Selection Controls
-          __publicField$14(_this, "_selectionTiming", "never" /* NEVER */ );
-          __publicField$14(_this, "_selectCount", null);
-          __publicField$14(_this, "_selectionCountStatus", false);
-          __publicField$14(_this, "_randomizeChildren", false);
+          __publicField$15(_this, "_selectionTiming", "never" /* NEVER */ );
+          __publicField$15(_this, "_selectCount", null);
+          __publicField$15(_this, "_selectionCountStatus", false);
+          __publicField$15(_this, "_randomizeChildren", false);
           // Randomization Controls
-          __publicField$14(_this, "_randomizationTiming", "never" /* NEVER */ );
-          __publicField$14(_this, "_reorderChildren", false);
+          __publicField$15(_this, "_randomizationTiming", "never" /* NEVER */ );
+          __publicField$15(_this, "_reorderChildren", false);
           // Auto-completion/satisfaction controls
-          __publicField$14(_this, "_completionSetByContent", false);
-          __publicField$14(_this, "_objectiveSetByContent", false);
+          __publicField$15(_this, "_completionSetByContent", false);
+          __publicField$15(_this, "_objectiveSetByContent", false);
           // Delivery Controls
-          __publicField$14(_this, "_tracked", true);
+          __publicField$15(_this, "_tracked", true);
           return _this;
       }
-      _create_class$19(SequencingControls, [
+      _create_class$1a(SequencingControls, [
           {
               /**
      * Reset the sequencing controls to their default values
@@ -5345,10 +5345,10 @@
   function _array_without_holes$a(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$i(arr);
   }
-  function _class_call_check$18(instance, Constructor) {
+  function _class_call_check$19(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$18(target, props) {
+  function _defineProperties$19(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5357,8 +5357,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$18(Constructor, protoProps, staticProps) {
-      if (staticProps) _defineProperties$18(Constructor, staticProps);
+  function _create_class$19(Constructor, protoProps, staticProps) {
+      if (staticProps) _defineProperties$19(Constructor, staticProps);
       return Constructor;
   }
   function _iterable_to_array$a(iter) {
@@ -5382,9 +5382,9 @@
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
-          _class_call_check$18(this, SelectionRandomization);
+          _class_call_check$19(this, SelectionRandomization);
       }
-      _create_class$18(SelectionRandomization, null, [
+      _create_class$19(SelectionRandomization, null, [
           {
               key: "selectChildrenProcess",
               value: /**
@@ -5597,10 +5597,10 @@
       return SelectionRandomization;
   }();
 
-  function _class_call_check$17(instance, Constructor) {
+  function _class_call_check$18(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$17(target, props) {
+  function _defineProperties$18(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5609,57 +5609,50 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$17(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$17(Constructor.prototype, protoProps);
+  function _create_class$18(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$18(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$15(obj) {
+  function _type_of$16(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$13 = Object.defineProperty;
-  var __defNormalProp$13 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$13(obj, key, {
+  var __defProp$14 = Object.defineProperty;
+  var __defNormalProp$14 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$14(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$13 = function __publicField(obj, key, value) {
-      return __defNormalProp$13(obj, (typeof key === "undefined" ? "undefined" : _type_of$15(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$14 = function __publicField(obj, key, value) {
+      return __defNormalProp$14(obj, (typeof key === "undefined" ? "undefined" : _type_of$16(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowTraversalService = /*#__PURE__*/ function() {
       function FlowTraversalService(activityTree, ruleEngine) {
-          _class_call_check$17(this, FlowTraversalService);
-          __publicField$13(this, "activityTree", activityTree);
-          __publicField$13(this, "ruleEngine", ruleEngine);
-          __publicField$13(this, "endAttemptCallback", null);
+          _class_call_check$18(this, FlowTraversalService);
+          __publicField$14(this, "activityTree", activityTree);
+          __publicField$14(this, "ruleEngine", ruleEngine);
+          __publicField$14(this, "activityEvaluationCallback", null);
       }
-      _create_class$17(FlowTraversalService, [
+      _create_class$18(FlowTraversalService, [
           {
               /**
-     * Set the callback used when forward flow exits an active cluster attempt.
-     */ key: "setEndAttemptCallback",
-              value: function setEndAttemptCallback(callback) {
-                  this.endAttemptCallback = callback;
+     * Supply a disposable objective view for candidate preconditions.
+     * @spec SCORM 2004 SN 4th Ed. SB.2.2 / SM.7 - evaluate mapped objectives without ending attempts.
+     */ key: "setActivityEvaluationCallback",
+              value: function setActivityEvaluationCallback(callback) {
+                  this.activityEvaluationCallback = callback;
               }
           },
           {
-              /**
-     * End one active attempt through the coordinator-owned UP.4 process.
-     * SequencingProcess can also be used without the overall coordinator in
-     * focused callers, so retain the state-only fallback for that case.
-     */ key: "endActiveAttempt",
-              value: function endActiveAttempt(activity) {
-                  if (!activity.isActive) {
-                      return;
-                  }
-                  if (this.endAttemptCallback) {
-                      this.endAttemptCallback(activity);
-                  } else {
-                      activity.isActive = false;
-                  }
+              /** @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 - speculative rules use projected objective state. */ key: "getActivityForEvaluation",
+              value: function getActivityForEvaluation(activity) {
+                  var target = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : activity;
+                  var _ref;
+                  var _this_activityEvaluationCallback, _this;
+                  return (_ref = (_this_activityEvaluationCallback = (_this = this).activityEvaluationCallback) === null || _this_activityEvaluationCallback === void 0 ? void 0 : _this_activityEvaluationCallback.call(_this, activity, target)) !== null && _ref !== void 0 ? _ref : activity;
               }
           },
           {
@@ -5706,6 +5699,7 @@
      * @param {boolean} skipChildren - Whether to skip children
      * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
      * @return {FlowTreeTraversalResult}
+     * @spec SCORM 2004 SN 4th Ed. SB.2.1 / SB.2.2 - candidate traversal preserves attempts until DB.2 accepts delivery.
      * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - a reversed Forward traversal from a forwardOnly cluster remains within that cluster.
      */ key: "traverseForward",
               value: function traverseForward(fromActivity, skipChildren) {
@@ -5739,7 +5733,6 @@
                   while(current){
                       var nextSibling = this.activityTree.getNextSibling(current);
                       if (nextSibling) {
-                          this.endActiveClusterAttempt(current);
                           return {
                               activity: nextSibling,
                               endSequencingSession: false
@@ -5751,7 +5744,6 @@
                               endSequencingSession: false
                           };
                       }
-                      this.endActiveClusterAttempt(current);
                       current = current.parent;
                   }
                   if (this.activityTree.root) {
@@ -5761,21 +5753,6 @@
                       activity: null,
                       endSequencingSession: true
                   };
-              }
-          },
-          {
-              /**
-     * End a cluster attempt as soon as flow leaves its subtree. This must happen
-     * before the next sibling's preconditions are evaluated so its read-mapped
-     * objectives see the terminating cluster's final write-map values.
-     *
-     * @spec SCORM 2004 SN 4th Ed. SB.2.1 Flow Tree Traversal Subprocess
-     * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
-     */ key: "endActiveClusterAttempt",
-              value: function endActiveClusterAttempt(activity) {
-                  if (activity.parent && activity.children.length > 0 && activity.isActive) {
-                      this.endActiveAttempt(activity);
-                  }
               }
           },
           {
@@ -5959,7 +5936,7 @@
                   var skippedRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
                       return rule.action === RuleActionType.SKIP;
                   });
-                  var wasSkipped = this.ruleEngine.checkSequencingRules(activity, skippedRules) === RuleActionType.SKIP;
+                  var wasSkipped = this.ruleEngine.checkSequencingRules(this.getActivityForEvaluation(activity), skippedRules) === RuleActionType.SKIP;
                   activity.wasSkipped = wasSkipped;
                   return wasSkipped;
               }
@@ -5978,7 +5955,7 @@
                   if (this.ruleEngine.checkLimitConditions(activity)) {
                       return false;
                   }
-                  var deliveryCheck = this.ruleEngine.canDeliverActivity(activity);
+                  var deliveryCheck = this.ruleEngine.canDeliverActivity(this.getActivityForEvaluation(activity));
                   activity.wasSkipped = deliveryCheck.wasSkipped;
                   return deliveryCheck.canDeliver;
               }
@@ -6090,10 +6067,10 @@
       return FlowTraversalService;
   }();
 
-  function _class_call_check$16(instance, Constructor) {
+  function _class_call_check$17(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$16(target, props) {
+  function _defineProperties$17(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6102,33 +6079,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$16(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$16(Constructor.prototype, protoProps);
+  function _create_class$17(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$17(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$14(obj) {
+  function _type_of$15(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$12 = Object.defineProperty;
-  var __defNormalProp$12 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$12(obj, key, {
+  var __defProp$13 = Object.defineProperty;
+  var __defNormalProp$13 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$13(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$12 = function __publicField(obj, key, value) {
-      return __defNormalProp$12(obj, (typeof key === "undefined" ? "undefined" : _type_of$14(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$13 = function __publicField(obj, key, value) {
+      return __defNormalProp$13(obj, (typeof key === "undefined" ? "undefined" : _type_of$15(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowRequestHandler = /*#__PURE__*/ function() {
       function FlowRequestHandler(activityTree, traversalService) {
-          _class_call_check$16(this, FlowRequestHandler);
-          __publicField$12(this, "activityTree", activityTree);
-          __publicField$12(this, "traversalService", traversalService);
+          _class_call_check$17(this, FlowRequestHandler);
+          __publicField$13(this, "activityTree", activityTree);
+          __publicField$13(this, "traversalService", traversalService);
       }
-      _create_class$16(FlowRequestHandler, [
+      _create_class$17(FlowRequestHandler, [
           {
               /**
      * Start Sequencing Request Process (SB.2.5)
@@ -6258,10 +6235,10 @@
       return FlowRequestHandler;
   }();
 
-  function _class_call_check$15(instance, Constructor) {
+  function _class_call_check$16(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$15(target, props) {
+  function _defineProperties$16(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6270,35 +6247,35 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$15(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$15(Constructor.prototype, protoProps);
+  function _create_class$16(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$16(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$13(obj) {
+  function _type_of$14(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$11 = Object.defineProperty;
-  var __defNormalProp$11 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$11(obj, key, {
+  var __defProp$12 = Object.defineProperty;
+  var __defNormalProp$12 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$12(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$11 = function __publicField(obj, key, value) {
-      return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$13(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$12 = function __publicField(obj, key, value) {
+      return __defNormalProp$12(obj, (typeof key === "undefined" ? "undefined" : _type_of$14(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceRequestHandler = /*#__PURE__*/ function() {
       function ChoiceRequestHandler(activityTree, constraintValidator, traversalService, treeQueries) {
-          _class_call_check$15(this, ChoiceRequestHandler);
-          __publicField$11(this, "activityTree", activityTree);
-          __publicField$11(this, "constraintValidator", constraintValidator);
-          __publicField$11(this, "traversalService", traversalService);
-          __publicField$11(this, "treeQueries", treeQueries);
+          _class_call_check$16(this, ChoiceRequestHandler);
+          __publicField$12(this, "activityTree", activityTree);
+          __publicField$12(this, "constraintValidator", constraintValidator);
+          __publicField$12(this, "traversalService", traversalService);
+          __publicField$12(this, "treeQueries", treeQueries);
       }
-      _create_class$15(ChoiceRequestHandler, [
+      _create_class$16(ChoiceRequestHandler, [
           {
               /**
      * Choice Sequencing Request Process (SB.2.9)
@@ -6325,17 +6302,13 @@
                       result.exception = validation.exception;
                       return result;
                   }
-                  var commonAncestor = this.treeQueries.findCommonAncestor(currentActivity, targetActivity);
-                  if (currentActivity) {
-                      var ancestor = commonAncestor || this.activityTree.root;
-                      this.terminateDescendentAttemptsProcess(currentActivity, ancestor);
-                  }
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
-                      var _loop = function() {
+                      var _this, _loop = function() {
                           var pathActivity = _step.value;
+                          var evaluationActivity = _this.traversalService.getActivityForEvaluation(pathActivity, targetActivity);
                           var hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(function(rule) {
-                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(pathActivity) === true;
+                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity) === true;
                           });
                           if (hiddenByRule) {
                               result.exception = "SB.2.9-4";
@@ -6345,8 +6318,8 @@
                           }
                       };
                       for(var _iterator = this.treeQueries.getPathToRoot(targetActivity)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var _ret = _loop();
-                          if (_type_of$13(_ret) === "object") return _ret.v;
+                          var _ret = (_this = this, _loop());
+                          if (_type_of$14(_ret) === "object") return _ret.v;
                       }
                   } catch (err) {
                       _didIteratorError = true;
@@ -6545,33 +6518,15 @@
                   }
                   return new ChoiceTraversalResult(null, null);
               }
-          },
-          {
-              /**
-     * End active attempts on the path from current to common ancestor, exclusive.
-     * @param {Activity} currentActivity - The already-terminated current activity
-     * @param {Activity} commonAncestor - The ancestor whose attempt remains active
-     */ key: "terminateDescendentAttemptsProcess",
-              value: function terminateDescendentAttemptsProcess(currentActivity, commonAncestor) {
-                  if (currentActivity === commonAncestor) {
-                      return;
-                  }
-                  var activity = currentActivity.parent;
-                  while(activity && activity !== commonAncestor){
-                      var parent = activity.parent;
-                      this.traversalService.endActiveAttempt(activity);
-                      activity = parent;
-                  }
-              }
           }
       ]);
       return ChoiceRequestHandler;
   }();
 
-  function _class_call_check$14(instance, Constructor) {
+  function _class_call_check$15(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$14(target, props) {
+  function _defineProperties$15(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6580,33 +6535,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$14(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$14(Constructor.prototype, protoProps);
+  function _create_class$15(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$15(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$12(obj) {
+  function _type_of$13(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$10 = Object.defineProperty;
-  var __defNormalProp$10 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$10(obj, key, {
+  var __defProp$11 = Object.defineProperty;
+  var __defNormalProp$11 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$11(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$10 = function __publicField(obj, key, value) {
-      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$11 = function __publicField(obj, key, value) {
+      return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$13(key)) !== "symbol" ? key + "" : key, value);
   };
   var ExitRequestHandler = /*#__PURE__*/ function() {
       function ExitRequestHandler(activityTree, ruleEngine) {
-          _class_call_check$14(this, ExitRequestHandler);
-          __publicField$10(this, "activityTree", activityTree);
-          __publicField$10(this, "ruleEngine", ruleEngine);
+          _class_call_check$15(this, ExitRequestHandler);
+          __publicField$11(this, "activityTree", activityTree);
+          __publicField$11(this, "ruleEngine", ruleEngine);
       }
-      _create_class$14(ExitRequestHandler, [
+      _create_class$15(ExitRequestHandler, [
           {
               /**
      * Exit Sequencing Request Process (SB.2.11)
@@ -6753,10 +6708,10 @@
       return ExitRequestHandler;
   }();
 
-  function _class_call_check$13(instance, Constructor) {
+  function _class_call_check$14(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$13(target, props) {
+  function _defineProperties$14(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6765,33 +6720,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$13(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$13(Constructor.prototype, protoProps);
+  function _create_class$14(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$14(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$11(obj) {
+  function _type_of$12(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$$ = Object.defineProperty;
-  var __defNormalProp$$ = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$$(obj, key, {
+  var __defProp$10 = Object.defineProperty;
+  var __defNormalProp$10 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$10(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$$ = function __publicField(obj, key, value) {
-      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$10 = function __publicField(obj, key, value) {
+      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
   };
   var RetryRequestHandler = /*#__PURE__*/ function() {
       function RetryRequestHandler(activityTree, traversalService) {
-          _class_call_check$13(this, RetryRequestHandler);
-          __publicField$$(this, "activityTree", activityTree);
-          __publicField$$(this, "traversalService", traversalService);
+          _class_call_check$14(this, RetryRequestHandler);
+          __publicField$10(this, "activityTree", activityTree);
+          __publicField$10(this, "traversalService", traversalService);
       }
-      _create_class$13(RetryRequestHandler, [
+      _create_class$14(RetryRequestHandler, [
           {
               /**
      * Retry Sequencing Request Process (SB.2.10)
@@ -6879,10 +6834,10 @@
       return RetryRequestHandler;
   }();
 
-  function _class_call_check$12(instance, Constructor) {
+  function _class_call_check$13(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$12(target, props) {
+  function _defineProperties$13(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6891,45 +6846,45 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$12(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$12(Constructor.prototype, protoProps);
+  function _create_class$13(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$13(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$10(obj) {
+  function _type_of$11(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$_ = Object.defineProperty;
-  var __defNormalProp$_ = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$_(obj, key, {
+  var __defProp$$ = Object.defineProperty;
+  var __defNormalProp$$ = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$$(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$_ = function __publicField(obj, key, value) {
-      return __defNormalProp$_(obj, (typeof key === "undefined" ? "undefined" : _type_of$10(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$$ = function __publicField(obj, key, value) {
+      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingProcess = /*#__PURE__*/ function() {
       function SequencingProcess(activityTree, _sequencingRules, _sequencingControls) {
           var options = arguments.length > 4 ? arguments[4] : void 0;
-          _class_call_check$12(this, SequencingProcess);
-          __publicField$_(this, "activityTree");
+          _class_call_check$13(this, SequencingProcess);
+          __publicField$$(this, "activityTree");
           // Extracted services
-          __publicField$_(this, "treeQueries");
-          __publicField$_(this, "constraintValidator");
-          __publicField$_(this, "ruleEngine");
-          __publicField$_(this, "traversalService");
-          __publicField$_(this, "endAttemptCallback", null);
+          __publicField$$(this, "treeQueries");
+          __publicField$$(this, "constraintValidator");
+          __publicField$$(this, "ruleEngine");
+          __publicField$$(this, "traversalService");
+          __publicField$$(this, "activityEvaluationCallback", null);
           // Request handlers
-          __publicField$_(this, "flowHandler");
-          __publicField$_(this, "choiceHandler");
-          __publicField$_(this, "exitHandler");
-          __publicField$_(this, "retryHandler");
+          __publicField$$(this, "flowHandler");
+          __publicField$$(this, "choiceHandler");
+          __publicField$$(this, "exitHandler");
+          __publicField$$(this, "retryHandler");
           // Time function (exposed for testing)
-          __publicField$_(this, "_now");
-          __publicField$_(this, "_getAttemptElapsedSecondsHook");
+          __publicField$$(this, "_now");
+          __publicField$$(this, "_getAttemptElapsedSecondsHook");
           this.activityTree = activityTree;
           this._now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
@@ -6947,7 +6902,7 @@
           this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
           this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
       }
-      _create_class$12(SequencingProcess, [
+      _create_class$13(SequencingProcess, [
           {
               key: "now",
               get: /**
@@ -7225,20 +7180,17 @@
               }
           },
           {
-              /**
-     * Connect flow traversal to the utility end-attempt process owned by the
-     * overall sequencing coordinator.
-     */ key: "setEndAttemptCallback",
-              value: function setEndAttemptCallback(callback) {
-                  this.endAttemptCallback = callback;
+              /** @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 / SM.7 - candidate evaluation uses a disposable objective view. */ key: "setActivityEvaluationCallback",
+              value: function setActivityEvaluationCallback(callback) {
+                  this.activityEvaluationCallback = callback;
                   this.applyTraversalCallbacks();
               }
           },
           {
               key: "applyTraversalCallbacks",
               value: function applyTraversalCallbacks() {
-                  if (this.endAttemptCallback) {
-                      this.traversalService.setEndAttemptCallback(this.endAttemptCallback);
+                  if (this.activityEvaluationCallback) {
+                      this.traversalService.setActivityEvaluationCallback(this.activityEvaluationCallback);
                   }
               }
           }
@@ -7246,10 +7198,10 @@
       return SequencingProcess;
   }();
 
-  function _class_call_check$11(instance, Constructor) {
+  function _class_call_check$12(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$11(target, props) {
+  function _defineProperties$12(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -7258,11 +7210,11 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$11(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$11(Constructor.prototype, protoProps);
+  function _create_class$12(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$12(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$h(obj, key, value) {
+  function _define_property$i(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -7273,7 +7225,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$h(target) {
+  function _object_spread$i(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -7283,42 +7235,42 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$h(target, key, source[key]);
+              _define_property$i(target, key, source[key]);
           });
       }
       return target;
   }
-  function _type_of$$(obj) {
+  function _type_of$10(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Z = Object.defineProperty;
-  var __defNormalProp$Z = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Z(obj, key, {
+  var __defProp$_ = Object.defineProperty;
+  var __defNormalProp$_ = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$_(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Z = function __publicField(obj, key, value) {
-      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$_ = function __publicField(obj, key, value) {
+      return __defNormalProp$_(obj, (typeof key === "undefined" ? "undefined" : _type_of$10(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityDeliveryService = /*#__PURE__*/ function() {
       function ActivityDeliveryService(eventService, loggingService) {
           var callbacks = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
-          _class_call_check$11(this, ActivityDeliveryService);
-          __publicField$Z(this, "eventService");
-          __publicField$Z(this, "loggingService");
-          __publicField$Z(this, "callbacks");
-          __publicField$Z(this, "currentDeliveredActivity", null);
-          __publicField$Z(this, "currentDeliveredAttemptCount", null);
-          __publicField$Z(this, "pendingDelivery", null);
+          _class_call_check$12(this, ActivityDeliveryService);
+          __publicField$_(this, "eventService");
+          __publicField$_(this, "loggingService");
+          __publicField$_(this, "callbacks");
+          __publicField$_(this, "currentDeliveredActivity", null);
+          __publicField$_(this, "currentDeliveredAttemptCount", null);
+          __publicField$_(this, "pendingDelivery", null);
           this.eventService = eventService;
           this.loggingService = loggingService;
           this.callbacks = callbacks;
       }
-      _create_class$11(ActivityDeliveryService, [
+      _create_class$12(ActivityDeliveryService, [
           {
               /**
      * Process a sequencing result and handle activity delivery
@@ -7401,7 +7353,7 @@
      * @param {ActivityDeliveryCallbacks} callbacks - The new callbacks
      */ key: "updateCallbacks",
               value: function updateCallbacks(callbacks) {
-                  this.callbacks = _object_spread$h({}, this.callbacks, callbacks);
+                  this.callbacks = _object_spread$i({}, this.callbacks, callbacks);
               }
           },
           {
@@ -7447,10 +7399,10 @@
           });
       };
   }
-  function _class_call_check$10(instance, Constructor) {
+  function _class_call_check$11(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$10(target, props) {
+  function _defineProperties$11(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -7459,11 +7411,11 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$10(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$10(Constructor.prototype, protoProps);
+  function _create_class$11(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$11(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$g(obj, key, value) {
+  function _define_property$h(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -7480,7 +7432,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _object_spread$g(target) {
+  function _object_spread$h(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -7490,7 +7442,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$g(target, key, source[key]);
+              _define_property$h(target, key, source[key]);
           });
       }
       return target;
@@ -7612,32 +7564,32 @@
           };
       }
   }
-  function _type_of$_(obj) {
+  function _type_of$$(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Y = Object.defineProperty;
-  var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Y(obj, key, {
+  var __defProp$Z = Object.defineProperty;
+  var __defNormalProp$Z = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Z(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Y = function __publicField(obj, key, value) {
-      return __defNormalProp$Y(obj, (typeof key === "undefined" ? "undefined" : _type_of$_(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Z = function __publicField(obj, key, value) {
+      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
   };
   var AsynchronousHttpService = /*#__PURE__*/ function() {
       function AsynchronousHttpService(settings, error_codes) {
-          _class_call_check$10(this, AsynchronousHttpService);
-          __publicField$Y(this, "reportsRequestCompletion", true);
-          __publicField$Y(this, "settings");
-          __publicField$Y(this, "error_codes");
+          _class_call_check$11(this, AsynchronousHttpService);
+          __publicField$Z(this, "reportsRequestCompletion", true);
+          __publicField$Z(this, "settings");
+          __publicField$Z(this, "error_codes");
           this.settings = settings;
           this.error_codes = error_codes;
       }
-      _create_class$10(AsynchronousHttpService, [
+      _create_class$11(AsynchronousHttpService, [
           {
               /**
      * Sends HTTP requests asynchronously to the LMS
@@ -7791,7 +7743,7 @@
                               method: "POST",
                               mode: this.settings.fetchMode,
                               body: body,
-                              headers: _object_spread_props$9(_object_spread$g({}, this.settings.xhrHeaders), {
+                              headers: _object_spread_props$9(_object_spread$h({}, this.settings.xhrHeaders), {
                                   "Content-Type": contentType
                               }),
                               keepalive: true
@@ -7953,7 +7905,7 @@
                                       result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391;
                                   }
                                   if (!this._isSuccessResponse(response, result)) {
-                                      result.errorDetails = _object_spread$g({
+                                      result.errorDetails = _object_spread$h({
                                           status: response.status,
                                           statusText: response.statusText,
                                           url: response.url
@@ -7994,10 +7946,10 @@
       return AsynchronousHttpService;
   }();
 
-  function _class_call_check$$(instance, Constructor) {
+  function _class_call_check$10(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$$(target, props) {
+  function _defineProperties$10(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8006,8 +7958,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$$(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$$(Constructor.prototype, protoProps);
+  function _create_class$10(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$10(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$f(left, right) {
@@ -8016,21 +7968,21 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$Z(obj) {
+  function _type_of$_(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$X = Object.defineProperty;
-  var __defNormalProp$X = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$X(obj, key, {
+  var __defProp$Y = Object.defineProperty;
+  var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Y(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$X = function __publicField(obj, key, value) {
-      return __defNormalProp$X(obj, (_type_of$Z(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Y = function __publicField(obj, key, value) {
+      return __defNormalProp$Y(obj, (_type_of$_(key)) !== "symbol" ? key + "" : key, value);
   };
   var TARGET_ATTRIBUTE_PREFIX = "{target=";
   function getErrorCode(errorCodes, key) {
@@ -8046,11 +7998,11 @@
   }
   var CMIValueAccessService = /*#__PURE__*/ function() {
       function CMIValueAccessService(context) {
-          _class_call_check$$(this, CMIValueAccessService);
-          __publicField$X(this, "context");
+          _class_call_check$10(this, CMIValueAccessService);
+          __publicField$Y(this, "context");
           this.context = context;
       }
-      _create_class$$(CMIValueAccessService, [
+      _create_class$10(CMIValueAccessService, [
           {
               /**
      * Gets the appropriate error code for undefined data model elements.
@@ -8432,10 +8384,10 @@
       return CMIValueAccessService;
   }();
 
-  function _class_call_check$_(instance, Constructor) {
+  function _class_call_check$$(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$_(target, props) {
+  function _defineProperties$$(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8444,35 +8396,35 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$_(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$_(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$_(Constructor, staticProps);
+  function _create_class$$(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$$(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$$(Constructor, staticProps);
       return Constructor;
   }
-  function _type_of$Y(obj) {
+  function _type_of$Z(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$W = Object.defineProperty;
-  var __defNormalProp$W = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$W(obj, key, {
+  var __defProp$X = Object.defineProperty;
+  var __defNormalProp$X = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$X(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$W = function __publicField(obj, key, value) {
-      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$X = function __publicField(obj, key, value) {
+      return __defNormalProp$X(obj, (typeof key === "undefined" ? "undefined" : _type_of$Z(key)) !== "symbol" ? key + "" : key, value);
   };
   var _LoggingService = /*#__PURE__*/ function() {
       function _LoggingService() {
-          _class_call_check$_(this, _LoggingService);
-          __publicField$W(this, "_logLevel", LogLevelEnum.ERROR);
-          __publicField$W(this, "_logHandler");
+          _class_call_check$$(this, _LoggingService);
+          __publicField$X(this, "_logLevel", LogLevelEnum.ERROR);
+          __publicField$X(this, "_logHandler");
           this._logHandler = defaultLogHandler;
       }
-      _create_class$_(_LoggingService, [
+      _create_class$$(_LoggingService, [
           {
               /**
      * Set the log level
@@ -8645,16 +8597,16 @@
       ]);
       return _LoggingService;
   }();
-  __publicField$W(_LoggingService, "_instance");
+  __publicField$X(_LoggingService, "_instance");
   var LoggingService = _LoggingService;
   function getLoggingService() {
       return LoggingService.getInstance();
   }
 
-  function _class_call_check$Z(instance, Constructor) {
+  function _class_call_check$_(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Z(target, props) {
+  function _defineProperties$_(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8663,8 +8615,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Z(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Z(Constructor.prototype, protoProps);
+  function _create_class$_(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$_(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$e(left, right) {
@@ -8673,37 +8625,37 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$X(obj) {
+  function _type_of$Y(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$V = Object.defineProperty;
-  var __defNormalProp$V = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$V(obj, key, {
+  var __defProp$W = Object.defineProperty;
+  var __defNormalProp$W = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$W(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$V = function __publicField(obj, key, value) {
-      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$W = function __publicField(obj, key, value) {
+      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
   };
   var ErrorHandlingService = /*#__PURE__*/ function() {
       function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
-          _class_call_check$Z(this, ErrorHandlingService);
-          __publicField$V(this, "_lastErrorCode", "0");
-          __publicField$V(this, "_lastDiagnostic", "");
-          __publicField$V(this, "_errorCodes");
-          __publicField$V(this, "_apiLog");
-          __publicField$V(this, "_getLmsErrorMessageDetails");
-          __publicField$V(this, "_loggingService");
+          _class_call_check$_(this, ErrorHandlingService);
+          __publicField$W(this, "_lastErrorCode", "0");
+          __publicField$W(this, "_lastDiagnostic", "");
+          __publicField$W(this, "_errorCodes");
+          __publicField$W(this, "_apiLog");
+          __publicField$W(this, "_getLmsErrorMessageDetails");
+          __publicField$W(this, "_loggingService");
           this._errorCodes = errorCodes;
           this._apiLog = apiLog;
           this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
           this._loggingService = loggingService || getLoggingService();
       }
-      _create_class$Z(ErrorHandlingService, [
+      _create_class$_(ErrorHandlingService, [
           {
               key: "lastErrorCode",
               get: /**
@@ -8853,10 +8805,10 @@
       return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
   }
 
-  function _class_call_check$Y(instance, Constructor) {
+  function _class_call_check$Z(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Y(target, props) {
+  function _defineProperties$Z(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8865,38 +8817,38 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Y(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Y(Constructor.prototype, protoProps);
+  function _create_class$Z(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Z(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$W(obj) {
+  function _type_of$X(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$U = Object.defineProperty;
-  var __defNormalProp$U = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$U(obj, key, {
+  var __defProp$V = Object.defineProperty;
+  var __defNormalProp$V = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$V(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$U = function __publicField(obj, key, value) {
-      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$V = function __publicField(obj, key, value) {
+      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
   };
   var EventService = /*#__PURE__*/ function() {
       function EventService(apiLog) {
-          _class_call_check$Y(this, EventService);
+          _class_call_check$Z(this, EventService);
           // Map of function names to listeners for faster lookups
-          __publicField$U(this, "listenerMap", /* @__PURE__ */ new Map());
+          __publicField$V(this, "listenerMap", /* @__PURE__ */ new Map());
           // Total count of listeners for logging
-          __publicField$U(this, "listenerCount", 0);
+          __publicField$V(this, "listenerCount", 0);
           // Function to log API messages
-          __publicField$U(this, "apiLog");
+          __publicField$V(this, "apiLog");
           this.apiLog = apiLog;
       }
-      _create_class$Y(EventService, [
+      _create_class$Z(EventService, [
           {
               /**
      * Parses a listener name into its components
@@ -9163,10 +9115,10 @@
           });
       };
   }
-  function _class_call_check$X(instance, Constructor) {
+  function _class_call_check$Y(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$X(target, props) {
+  function _defineProperties$Y(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -9175,11 +9127,11 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$X(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$X(Constructor.prototype, protoProps);
+  function _create_class$Y(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Y(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$f(obj, key, value) {
+  function _define_property$g(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -9196,7 +9148,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _object_spread$f(target) {
+  function _object_spread$g(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -9206,7 +9158,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$f(target, key, source[key]);
+              _define_property$g(target, key, source[key]);
           });
       }
       return target;
@@ -9328,34 +9280,34 @@
           };
       }
   }
-  function _type_of$V(obj) {
+  function _type_of$W(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$T = Object.defineProperty;
-  var __defNormalProp$T = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$T(obj, key, {
+  var __defProp$U = Object.defineProperty;
+  var __defNormalProp$U = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$U(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$T = function __publicField(obj, key, value) {
-      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$V(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$U = function __publicField(obj, key, value) {
+      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
   };
   var OfflineStorageService = /*#__PURE__*/ function() {
       function OfflineStorageService(settings, error_codes, apiLog) {
-          _class_call_check$X(this, OfflineStorageService);
-          __publicField$T(this, "apiLog", apiLog);
-          __publicField$T(this, "settings");
-          __publicField$T(this, "error_codes");
-          __publicField$T(this, "storeName", "scorm_again_offline_data");
-          __publicField$T(this, "syncQueue", "scorm_again_sync_queue");
-          __publicField$T(this, "isOnline", navigator.onLine);
-          __publicField$T(this, "syncInProgress", false);
-          __publicField$T(this, "boundOnlineStatusChangeHandler");
-          __publicField$T(this, "boundCustomNetworkStatusHandler");
+          _class_call_check$Y(this, OfflineStorageService);
+          __publicField$U(this, "apiLog", apiLog);
+          __publicField$U(this, "settings");
+          __publicField$U(this, "error_codes");
+          __publicField$U(this, "storeName", "scorm_again_offline_data");
+          __publicField$U(this, "syncQueue", "scorm_again_sync_queue");
+          __publicField$U(this, "isOnline", navigator.onLine);
+          __publicField$U(this, "syncInProgress", false);
+          __publicField$U(this, "boundOnlineStatusChangeHandler");
+          __publicField$U(this, "boundCustomNetworkStatusHandler");
           this.settings = settings;
           this.error_codes = error_codes;
           this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -9364,7 +9316,7 @@
           window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
           window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
       }
-      _create_class$X(OfflineStorageService, [
+      _create_class$Y(OfflineStorageService, [
           {
               /**
      * Handle changes in online status
@@ -9435,7 +9387,7 @@
      */ key: "storeOffline",
               value: function storeOffline(courseId, commitData, metadata) {
                   try {
-                      var queueItem = _object_spread$f({
+                      var queueItem = _object_spread$g({
                           id: "".concat(courseId, "_").concat(Date.now(), "_").concat(Math.random().toString(36).substring(2, 9)),
                           courseId: courseId,
                           timestamp: Date.now(),
@@ -9568,7 +9520,7 @@
                                   ]);
                                   return [
                                       4,
-                                      this.sendDataToLMS(item.data, _object_spread$f({}, item.isTerminateCommit !== void 0 ? {
+                                      this.sendDataToLMS(item.data, _object_spread$g({}, item.isTerminateCommit !== void 0 ? {
                                           isTerminateCommit: item.isTerminateCommit
                                       } : {}, item.sequence !== void 0 ? {
                                           sequence: item.sequence
@@ -9685,7 +9637,7 @@
                                       8
                                   ]);
                                   lmsCommitUrl = String(configuredCommitUrl);
-                                  processedData = this.settings.requestHandler(data, _object_spread$f({
+                                  processedData = this.settings.requestHandler(data, _object_spread$g({
                                       isTerminateCommit: (_ref = metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) !== null && _ref !== void 0 ? _ref : false,
                                       trigger: "offline-replay"
                                   }, (metadata === null || metadata === void 0 ? void 0 : metadata.sequence) !== void 0 ? {
@@ -9696,7 +9648,7 @@
                                       method: "POST",
                                       mode: this.settings.fetchMode,
                                       body: JSON.stringify(processedData),
-                                      headers: _object_spread_props$8(_object_spread$f({}, this.settings.xhrHeaders), {
+                                      headers: _object_spread_props$8(_object_spread$g({}, this.settings.xhrHeaders), {
                                           "Content-Type": this.settings.commitRequestDataType
                                       })
                                   };
@@ -9863,7 +9815,7 @@
       return OfflineStorageService;
   }();
 
-  function _type_of$U(obj) {
+  function _type_of$V(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -9883,7 +9835,7 @@
   }, // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   function(CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$U(value), "]");
+      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$V(value), "]");
       return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
   }, // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
   {
@@ -9930,10 +9882,10 @@
       derived = _get_prototype_of$r(derived);
       return _possible_constructor_return$r(_this, _is_native_reflect_construct$r() ? Reflect.construct(derived, args || [], _get_prototype_of$r(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$W(instance, Constructor) {
+  function _class_call_check$X(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$W(target, props) {
+  function _defineProperties$X(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -9942,8 +9894,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$W(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
+  function _create_class$X(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$X(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$r(o) {
@@ -9980,7 +9932,7 @@
       })();
   }
   function _possible_constructor_return$r(self, call) {
-      if (call && (_type_of$T(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$U(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$r(self);
   }
   function _set_prototype_of$r(o, p) {
@@ -9990,21 +9942,21 @@
       };
       return _set_prototype_of$r(o, p);
   }
-  function _type_of$T(obj) {
+  function _type_of$U(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$S = Object.defineProperty;
-  var __defNormalProp$S = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$S(obj, key, {
+  var __defProp$T = Object.defineProperty;
+  var __defNormalProp$T = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$T(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$S = function __publicField(obj, key, value) {
-      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$T = function __publicField(obj, key, value) {
+      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$U(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupActionType = /* @__PURE__ */ function(RollupActionType2) {
       RollupActionType2["SATISFIED"] = "satisfied";
@@ -10030,20 +9982,20 @@
       _inherits$r(RollupCondition, BaseCMI);
       function RollupCondition() {
           var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", parameters = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : /* @__PURE__ */ new Map(), operator = arguments.length > 2 && arguments[2] !== void 0 /* NO_OP */  ? arguments[2] : "noOp";
-          _class_call_check$W(this, RollupCondition);
+          _class_call_check$X(this, RollupCondition);
           var _this;
           _this = _call_super$r(this, RollupCondition, [
               "rollupCondition"
           ]);
-          __publicField$S(_this, "_condition", "always" /* ALWAYS */ );
-          __publicField$S(_this, "_parameters", /* @__PURE__ */ new Map());
-          __publicField$S(_this, "_operator", "noOp" /* NO_OP */ );
+          __publicField$T(_this, "_condition", "always" /* ALWAYS */ );
+          __publicField$T(_this, "_parameters", /* @__PURE__ */ new Map());
+          __publicField$T(_this, "_operator", "noOp" /* NO_OP */ );
           _this._condition = condition;
           _this._parameters = parameters;
           _this._operator = operator;
           return _this;
       }
-      _create_class$W(RollupCondition, [
+      _create_class$X(RollupCondition, [
           {
               /**
      * Called when the API needs to be reset
@@ -10176,17 +10128,17 @@
       _inherits$r(RollupRule, BaseCMI);
       function RollupRule() {
           var action = arguments.length > 0 && arguments[0] !== void 0 /* SATISFIED */  ? arguments[0] : "satisfied", consideration = arguments.length > 1 && arguments[1] !== void 0 /* ALL */  ? arguments[1] : "all", minimumCount = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0, minimumPercent = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : 0, conditionCombination = arguments.length > 4 && arguments[4] !== void 0 /* ANY */  ? arguments[4] : "any";
-          _class_call_check$W(this, RollupRule);
+          _class_call_check$X(this, RollupRule);
           var _this;
           _this = _call_super$r(this, RollupRule, [
               "rollupRule"
           ]);
-          __publicField$S(_this, "_conditions", []);
-          __publicField$S(_this, "_action", "satisfied" /* SATISFIED */ );
-          __publicField$S(_this, "_consideration", "all" /* ALL */ );
-          __publicField$S(_this, "_minimumCount", 0);
-          __publicField$S(_this, "_minimumPercent", 0);
-          __publicField$S(_this, "conditionCombination", "any" /* ANY */ );
+          __publicField$T(_this, "_conditions", []);
+          __publicField$T(_this, "_action", "satisfied" /* SATISFIED */ );
+          __publicField$T(_this, "_consideration", "all" /* ALL */ );
+          __publicField$T(_this, "_minimumCount", 0);
+          __publicField$T(_this, "_minimumPercent", 0);
+          __publicField$T(_this, "conditionCombination", "any" /* ANY */ );
           _this._action = action;
           _this._consideration = consideration;
           _this._minimumCount = minimumCount;
@@ -10194,7 +10146,7 @@
           _this.conditionCombination = conditionCombination;
           return _this;
       }
-      _create_class$W(RollupRule, [
+      _create_class$X(RollupRule, [
           {
               /**
      * Called when the API needs to be reset
@@ -10369,15 +10321,15 @@
   var RollupRules = /*#__PURE__*/ function(BaseCMI) {
       _inherits$r(RollupRules, BaseCMI);
       function RollupRules() {
-          _class_call_check$W(this, RollupRules);
+          _class_call_check$X(this, RollupRules);
           var _this;
           _this = _call_super$r(this, RollupRules, [
               "rollupRules"
           ]);
-          __publicField$S(_this, "_rules", []);
+          __publicField$T(_this, "_rules", []);
           return _this;
       }
-      _create_class$W(RollupRules, [
+      _create_class$X(RollupRules, [
           {
               /**
      * Called when the API needs to be reset
@@ -10641,10 +10593,10 @@
       derived = _get_prototype_of$q(derived);
       return _possible_constructor_return$q(_this, _is_native_reflect_construct$q() ? Reflect.construct(derived, args || [], _get_prototype_of$q(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$V(instance, Constructor) {
+  function _class_call_check$W(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$V(target, props) {
+  function _defineProperties$W(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -10653,12 +10605,12 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$V(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$V(Constructor, staticProps);
+  function _create_class$W(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$W(Constructor, staticProps);
       return Constructor;
   }
-  function _define_property$e(obj, key, value) {
+  function _define_property$f(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -10723,7 +10675,7 @@
   function _non_iterable_spread$9() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _object_spread$e(target) {
+  function _object_spread$f(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -10733,13 +10685,13 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$e(target, key, source[key]);
+              _define_property$f(target, key, source[key]);
           });
       }
       return target;
   }
   function _possible_constructor_return$q(self, call) {
-      if (call && (_type_of$S(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$T(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$q(self);
   }
   function _set_prototype_of$q(o, p) {
@@ -10759,7 +10711,7 @@
   function _to_consumable_array$9(arr) {
       return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$9();
   }
-  function _type_of$S(obj) {
+  function _type_of$T(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -10771,53 +10723,53 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
   }
-  var __defProp$R = Object.defineProperty;
-  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$R(obj, key, {
+  var __defProp$S = Object.defineProperty;
+  var __defNormalProp$S = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$S(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$R = function __publicField(obj, key, value) {
-      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$S(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$S = function __publicField(obj, key, value) {
+      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityObjective = /*#__PURE__*/ function() {
       function ActivityObjective(id) {
           var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-          _class_call_check$V(this, ActivityObjective);
+          _class_call_check$W(this, ActivityObjective);
           var _options_description, _options_satisfiedByMeasure, _options_minNormalizedMeasure, _options_isPrimary;
-          __publicField$R(this, "_id");
-          __publicField$R(this, "_description");
-          __publicField$R(this, "_satisfiedByMeasure");
-          __publicField$R(this, "_minNormalizedMeasure");
-          __publicField$R(this, "_mapInfo");
-          __publicField$R(this, "_isPrimary");
-          __publicField$R(this, "_satisfiedStatus", false);
-          __publicField$R(this, "_satisfiedStatusKnown", false);
+          __publicField$S(this, "_id");
+          __publicField$S(this, "_description");
+          __publicField$S(this, "_satisfiedByMeasure");
+          __publicField$S(this, "_minNormalizedMeasure");
+          __publicField$S(this, "_mapInfo");
+          __publicField$S(this, "_isPrimary");
+          __publicField$S(this, "_satisfiedStatus", false);
+          __publicField$S(this, "_satisfiedStatusKnown", false);
           // Note: measureStatus has no dirty flag because it is not synchronized to global
           // objectives. It serves as a validity gate for other synced properties.
-          __publicField$R(this, "_measureStatus", false);
-          __publicField$R(this, "_normalizedMeasure", 0);
-          __publicField$R(this, "_rawScore", "");
-          __publicField$R(this, "_rawScoreKnown", false);
-          __publicField$R(this, "_minScore", "");
-          __publicField$R(this, "_minScoreKnown", false);
-          __publicField$R(this, "_maxScore", "");
-          __publicField$R(this, "_maxScoreKnown", false);
-          __publicField$R(this, "_progressMeasure", 0);
-          __publicField$R(this, "_progressMeasureStatus", false);
-          __publicField$R(this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$R(this, "_progressStatus", false);
+          __publicField$S(this, "_measureStatus", false);
+          __publicField$S(this, "_normalizedMeasure", 0);
+          __publicField$S(this, "_rawScore", "");
+          __publicField$S(this, "_rawScoreKnown", false);
+          __publicField$S(this, "_minScore", "");
+          __publicField$S(this, "_minScoreKnown", false);
+          __publicField$S(this, "_maxScore", "");
+          __publicField$S(this, "_maxScoreKnown", false);
+          __publicField$S(this, "_progressMeasure", 0);
+          __publicField$S(this, "_progressMeasureStatus", false);
+          __publicField$S(this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$S(this, "_progressStatus", false);
           // Dirty flags for tracking which properties have been modified locally
-          __publicField$R(this, "_satisfiedStatusDirty", false);
-          __publicField$R(this, "_normalizedMeasureDirty", false);
-          __publicField$R(this, "_completionStatusDirty", false);
-          __publicField$R(this, "_progressMeasureDirty", false);
-          __publicField$R(this, "_rawScoreDirty", false);
-          __publicField$R(this, "_minScoreDirty", false);
-          __publicField$R(this, "_maxScoreDirty", false);
+          __publicField$S(this, "_satisfiedStatusDirty", false);
+          __publicField$S(this, "_normalizedMeasureDirty", false);
+          __publicField$S(this, "_completionStatusDirty", false);
+          __publicField$S(this, "_progressMeasureDirty", false);
+          __publicField$S(this, "_rawScoreDirty", false);
+          __publicField$S(this, "_minScoreDirty", false);
+          __publicField$S(this, "_maxScoreDirty", false);
           this._id = id;
           this._description = (_options_description = options.description) !== null && _options_description !== void 0 ? _options_description : null;
           this._satisfiedByMeasure = (_options_satisfiedByMeasure = options.satisfiedByMeasure) !== null && _options_satisfiedByMeasure !== void 0 ? _options_satisfiedByMeasure : false;
@@ -10825,7 +10777,7 @@
           this._mapInfo = options.mapInfo ? _to_consumable_array$9(options.mapInfo) : [];
           this._isPrimary = (_options_isPrimary = options.isPrimary) !== null && _options_isPrimary !== void 0 ? _options_isPrimary : false;
       }
-      _create_class$V(ActivityObjective, [
+      _create_class$W(ActivityObjective, [
           {
               key: "id",
               get: function get() {
@@ -11348,94 +11300,94 @@
       _inherits$q(Activity, BaseCMI);
       function Activity() {
           var id = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : "", title = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "";
-          _class_call_check$V(this, Activity);
+          _class_call_check$W(this, Activity);
           var _this;
           _this = _call_super$q(this, Activity, [
               "activity"
           ]);
-          __publicField$R(_this, "_id", "");
-          __publicField$R(_this, "_title", "");
-          __publicField$R(_this, "_children", []);
-          __publicField$R(_this, "_parent", null);
-          __publicField$R(_this, "_isVisible", true);
-          __publicField$R(_this, "_isActive", false);
-          __publicField$R(_this, "_isSuspended", false);
+          __publicField$S(_this, "_id", "");
+          __publicField$S(_this, "_title", "");
+          __publicField$S(_this, "_children", []);
+          __publicField$S(_this, "_parent", null);
+          __publicField$S(_this, "_isVisible", true);
+          __publicField$S(_this, "_isActive", false);
+          __publicField$S(_this, "_isSuspended", false);
           // Transient delivery context. This is deliberately excluded from persisted activity state.
-          __publicField$R(_this, "_deliveryWasResumed", false);
-          __publicField$R(_this, "_isCompleted", false);
-          __publicField$R(_this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$R(_this, "_successStatus", SuccessStatus.UNKNOWN);
-          __publicField$R(_this, "_attemptCount", 0);
-          __publicField$R(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
-          __publicField$R(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
-          __publicField$R(_this, "_attemptCompletionAmount", 0);
-          __publicField$R(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
-          __publicField$R(_this, "_attemptExperiencedDuration", "PT0H0M0S");
-          __publicField$R(_this, "_activityAbsoluteDuration", "PT0H0M0S");
-          __publicField$R(_this, "_activityExperiencedDuration", "PT0H0M0S");
+          __publicField$S(_this, "_deliveryWasResumed", false);
+          __publicField$S(_this, "_isCompleted", false);
+          __publicField$S(_this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$S(_this, "_successStatus", SuccessStatus.UNKNOWN);
+          __publicField$S(_this, "_attemptCount", 0);
+          __publicField$S(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
+          __publicField$S(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
+          __publicField$S(_this, "_attemptCompletionAmount", 0);
+          __publicField$S(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
+          __publicField$S(_this, "_attemptExperiencedDuration", "PT0H0M0S");
+          __publicField$S(_this, "_activityAbsoluteDuration", "PT0H0M0S");
+          __publicField$S(_this, "_activityExperiencedDuration", "PT0H0M0S");
           // Duration tracking fields (separate from limits) - actual calculated values
-          __publicField$R(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$R(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
-          __publicField$R(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$R(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
+          __publicField$S(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$S(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
+          __publicField$S(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$S(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
           // Timestamp tracking for duration calculation
-          __publicField$R(_this, "_activityStartTimestampUtc", null);
-          __publicField$R(_this, "_attemptStartTimestampUtc", null);
-          __publicField$R(_this, "_activityEndedDate", null);
-          __publicField$R(_this, "_objectiveSatisfiedStatus", false);
-          __publicField$R(_this, "_objectiveSatisfiedStatusKnown", false);
-          __publicField$R(_this, "_objectiveMeasureStatus", false);
-          __publicField$R(_this, "_objectiveNormalizedMeasure", 0);
-          __publicField$R(_this, "_scaledPassingScore", 1);
+          __publicField$S(_this, "_activityStartTimestampUtc", null);
+          __publicField$S(_this, "_attemptStartTimestampUtc", null);
+          __publicField$S(_this, "_activityEndedDate", null);
+          __publicField$S(_this, "_objectiveSatisfiedStatus", false);
+          __publicField$S(_this, "_objectiveSatisfiedStatusKnown", false);
+          __publicField$S(_this, "_objectiveMeasureStatus", false);
+          __publicField$S(_this, "_objectiveNormalizedMeasure", 0);
+          __publicField$S(_this, "_scaledPassingScore", 1);
           // SCORM default minimum normalized measure
           // Dirty flags for tracking which activity-level objective properties have been modified locally
-          __publicField$R(_this, "_objectiveSatisfiedStatusDirty", false);
-          __publicField$R(_this, "_objectiveNormalizedMeasureDirty", false);
-          __publicField$R(_this, "_objectiveMeasureStatusDirty", false);
-          __publicField$R(_this, "_progressMeasure", 0);
-          __publicField$R(_this, "_progressMeasureStatus", false);
-          __publicField$R(_this, "_location", "");
-          __publicField$R(_this, "_attemptAbsoluteStartTime", "");
-          __publicField$R(_this, "_learnerPrefs", null);
-          __publicField$R(_this, "_activityAttemptActive", false);
-          __publicField$R(_this, "_isHiddenFromChoice", false);
-          __publicField$R(_this, "_isAvailable", true);
-          __publicField$R(_this, "_hideLmsUi", []);
-          __publicField$R(_this, "_auxiliaryResources", []);
-          __publicField$R(_this, "_sharedDataMaps", []);
-          __publicField$R(_this, "_attemptLimit", null);
-          __publicField$R(_this, "_attemptAbsoluteDurationLimit", null);
-          __publicField$R(_this, "_activityAbsoluteDurationLimit", null);
-          __publicField$R(_this, "_timeLimitAction", null);
-          __publicField$R(_this, "_timeLimitDuration", null);
-          __publicField$R(_this, "_beginTimeLimit", null);
-          __publicField$R(_this, "_endTimeLimit", null);
-          __publicField$R(_this, "_launchData", "");
-          __publicField$R(_this, "_credit", "credit");
-          __publicField$R(_this, "_maxTimeAllowed", "");
-          __publicField$R(_this, "_completionThreshold", "");
-          __publicField$R(_this, "_sequencingControls");
-          __publicField$R(_this, "_sequencingRules");
-          __publicField$R(_this, "_rollupRules");
-          __publicField$R(_this, "_processedChildren", null);
-          __publicField$R(_this, "_isNewAttempt", false);
-          __publicField$R(_this, "_primaryObjective", null);
-          __publicField$R(_this, "_objectives", []);
-          __publicField$R(_this, "_rollupConsiderations", {
+          __publicField$S(_this, "_objectiveSatisfiedStatusDirty", false);
+          __publicField$S(_this, "_objectiveNormalizedMeasureDirty", false);
+          __publicField$S(_this, "_objectiveMeasureStatusDirty", false);
+          __publicField$S(_this, "_progressMeasure", 0);
+          __publicField$S(_this, "_progressMeasureStatus", false);
+          __publicField$S(_this, "_location", "");
+          __publicField$S(_this, "_attemptAbsoluteStartTime", "");
+          __publicField$S(_this, "_learnerPrefs", null);
+          __publicField$S(_this, "_activityAttemptActive", false);
+          __publicField$S(_this, "_isHiddenFromChoice", false);
+          __publicField$S(_this, "_isAvailable", true);
+          __publicField$S(_this, "_hideLmsUi", []);
+          __publicField$S(_this, "_auxiliaryResources", []);
+          __publicField$S(_this, "_sharedDataMaps", []);
+          __publicField$S(_this, "_attemptLimit", null);
+          __publicField$S(_this, "_attemptAbsoluteDurationLimit", null);
+          __publicField$S(_this, "_activityAbsoluteDurationLimit", null);
+          __publicField$S(_this, "_timeLimitAction", null);
+          __publicField$S(_this, "_timeLimitDuration", null);
+          __publicField$S(_this, "_beginTimeLimit", null);
+          __publicField$S(_this, "_endTimeLimit", null);
+          __publicField$S(_this, "_launchData", "");
+          __publicField$S(_this, "_credit", "credit");
+          __publicField$S(_this, "_maxTimeAllowed", "");
+          __publicField$S(_this, "_completionThreshold", "");
+          __publicField$S(_this, "_sequencingControls");
+          __publicField$S(_this, "_sequencingRules");
+          __publicField$S(_this, "_rollupRules");
+          __publicField$S(_this, "_processedChildren", null);
+          __publicField$S(_this, "_isNewAttempt", false);
+          __publicField$S(_this, "_primaryObjective", null);
+          __publicField$S(_this, "_objectives", []);
+          __publicField$S(_this, "_rollupConsiderations", {
               requiredForSatisfied: "always",
               requiredForNotSatisfied: "always",
               requiredForCompleted: "always",
               requiredForIncomplete: "always",
               measureSatisfactionIfActive: true
           });
-          __publicField$R(_this, "_wasSkipped", false);
-          __publicField$R(_this, "_attemptProgressStatus", false);
-          __publicField$R(_this, "_wasAutoCompleted", false);
-          __publicField$R(_this, "_wasAutoSatisfied", false);
-          __publicField$R(_this, "_completedByMeasure", false);
-          __publicField$R(_this, "_minProgressMeasure", 1);
-          __publicField$R(_this, "_progressWeight", 1);
-          __publicField$R(_this, "_attemptCompletionAmountStatus", false);
+          __publicField$S(_this, "_wasSkipped", false);
+          __publicField$S(_this, "_attemptProgressStatus", false);
+          __publicField$S(_this, "_wasAutoCompleted", false);
+          __publicField$S(_this, "_wasAutoSatisfied", false);
+          __publicField$S(_this, "_completedByMeasure", false);
+          __publicField$S(_this, "_minProgressMeasure", 1);
+          __publicField$S(_this, "_progressWeight", 1);
+          __publicField$S(_this, "_attemptCompletionAmountStatus", false);
           _this._id = id;
           _this._title = title;
           _this._sequencingControls = new SequencingControls();
@@ -11445,7 +11397,7 @@
           _this._objectives = [];
           return _this;
       }
-      _create_class$V(Activity, [
+      _create_class$W(Activity, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
@@ -12562,16 +12514,16 @@
           {
               key: "rollupConsiderations",
               get: function get() {
-                  return _object_spread$e({}, this._rollupConsiderations);
+                  return _object_spread$f({}, this._rollupConsiderations);
               },
               set: function set(config) {
-                  this._rollupConsiderations = _object_spread$e({}, config);
+                  this._rollupConsiderations = _object_spread$f({}, config);
               }
           },
           {
               key: "applyRollupConsiderations",
               value: function applyRollupConsiderations(settings) {
-                  this._rollupConsiderations = _object_spread$e({}, this._rollupConsiderations, settings);
+                  this._rollupConsiderations = _object_spread$f({}, this._rollupConsiderations, settings);
               }
           },
           {
@@ -12815,6 +12767,25 @@
                       return obj !== _this._primaryObjective && obj.id !== ((_this__primaryObjective = _this._primaryObjective) === null || _this__primaryObjective === void 0 ? void 0 : _this__primaryObjective.id);
                   });
                   return objectives.concat(additionalObjectives);
+              }
+          },
+          {
+              /**
+     * Copy only the state that objective read maps can change during rule evaluation.
+     * Tree links and rule definitions remain shared and read-only in this view.
+     * @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 / SM.7 - speculative reads must not change live tracking or dirty flags.
+     */ key: "createObjectiveEvaluationView",
+              value: function createObjectiveEvaluationView() {
+                  var _this = this;
+                  var view = Object.assign(Object.create(Activity.prototype), this);
+                  var copyObjective = function copyObjective(objective) {
+                      return Object.assign(Object.create(ActivityObjective.prototype), objective);
+                  };
+                  view._primaryObjective = this._primaryObjective ? copyObjective(this._primaryObjective) : null;
+                  view._objectives = this._objectives.map(function(objective) {
+                      return objective === _this._primaryObjective ? view._primaryObjective : copyObjective(objective);
+                  });
+                  return view;
               }
           },
           {
@@ -13185,7 +13156,7 @@
                       isHiddenFromChoice: this._isHiddenFromChoice,
                       isAvailable: this._isAvailable,
                       sharedDataMaps: this.sharedDataMaps,
-                      rollupConsiderations: _object_spread$e({}, this._rollupConsiderations),
+                      rollupConsiderations: _object_spread$f({}, this._rollupConsiderations),
                       wasSkipped: this._wasSkipped,
                       attemptProgressStatus: this._attemptProgressStatus,
                       wasAutoCompleted: this._wasAutoCompleted,
@@ -13293,7 +13264,7 @@
                   this._isHiddenFromChoice = (_state_isHiddenFromChoice = state.isHiddenFromChoice) !== null && _state_isHiddenFromChoice !== void 0 ? _state_isHiddenFromChoice : this._isHiddenFromChoice;
                   this._isAvailable = (_state_isAvailable = state.isAvailable) !== null && _state_isAvailable !== void 0 ? _state_isAvailable : this._isAvailable;
                   if (state.rollupConsiderations) {
-                      this._rollupConsiderations = _object_spread$e({}, state.rollupConsiderations);
+                      this._rollupConsiderations = _object_spread$f({}, state.rollupConsiderations);
                   }
                   this._wasSkipped = (_state_wasSkipped = state.wasSkipped) !== null && _state_wasSkipped !== void 0 ? _state_wasSkipped : this._wasSkipped;
                   this._attemptProgressStatus = (_state_attemptProgressStatus = state.attemptProgressStatus) !== null && _state_attemptProgressStatus !== void 0 ? _state_attemptProgressStatus : this._attemptProgressStatus;
@@ -13451,7 +13422,7 @@
                       objectiveSatisfiedStatusKnown: this._objectiveSatisfiedStatusKnown,
                       objectiveMeasureStatus: this._objectiveMeasureStatus,
                       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
-                      rollupConsiderations: _object_spread$e({}, this._rollupConsiderations),
+                      rollupConsiderations: _object_spread$f({}, this._rollupConsiderations),
                       wasSkipped: this._wasSkipped,
                       completedByMeasure: this._completedByMeasure,
                       minProgressMeasure: this._minProgressMeasure,
@@ -13459,7 +13430,7 @@
                       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
                       hideLmsUi: _to_consumable_array$9(this._hideLmsUi),
                       auxiliaryResources: this._auxiliaryResources.map(function(resource) {
-                          return _object_spread$e({}, resource);
+                          return _object_spread$f({}, resource);
                       }),
                       sharedDataMaps: this.sharedDataMaps,
                       children: this._children.map(function(child) {
@@ -13474,7 +13445,7 @@
               key: "auxiliaryResources",
               get: function get() {
                   return this._auxiliaryResources.map(function(resource) {
-                      return _object_spread$e({}, resource);
+                      return _object_spread$f({}, resource);
                   });
               },
               set: function set(resources) {
@@ -13517,7 +13488,7 @@
               key: "sharedDataMaps",
               get: /** SCORM 2004 shared-data bucket mappings for this activity. */ function get() {
                   return this._sharedDataMaps.map(function(map) {
-                      return _object_spread$e({}, map);
+                      return _object_spread$f({}, map);
                   });
               },
               set: function set(maps) {
@@ -13616,10 +13587,10 @@
       return Activity;
   }(BaseCMI);
 
-  function _class_call_check$U(instance, Constructor) {
+  function _class_call_check$V(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$U(target, props) {
+  function _defineProperties$V(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13628,15 +13599,15 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$U(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
+  function _create_class$V(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
       return Constructor;
   }
   var RollupChildFilter = /*#__PURE__*/ function() {
       function RollupChildFilter() {
-          _class_call_check$U(this, RollupChildFilter);
+          _class_call_check$V(this, RollupChildFilter);
       }
-      _create_class$U(RollupChildFilter, [
+      _create_class$V(RollupChildFilter, [
           {
               /**
      * Check Child For Rollup Subprocess
@@ -13865,10 +13836,10 @@
       return RollupChildFilter;
   }();
 
-  function _class_call_check$T(instance, Constructor) {
+  function _class_call_check$U(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$T(target, props) {
+  function _defineProperties$U(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13877,33 +13848,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$T(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
+  function _create_class$U(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$R(obj) {
+  function _type_of$S(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Q = Object.defineProperty;
-  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Q(obj, key, {
+  var __defProp$R = Object.defineProperty;
+  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$R(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Q = function __publicField(obj, key, value) {
-      return __defNormalProp$Q(obj, (_type_of$R(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$R = function __publicField(obj, key, value) {
+      return __defNormalProp$R(obj, (_type_of$S(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupRuleEvaluator = /*#__PURE__*/ function() {
       function RollupRuleEvaluator(childFilter) {
-          _class_call_check$T(this, RollupRuleEvaluator);
-          __publicField$Q(this, "childFilter");
+          _class_call_check$U(this, RollupRuleEvaluator);
+          __publicField$R(this, "childFilter");
           this.childFilter = childFilter;
       }
-      _create_class$T(RollupRuleEvaluator, [
+      _create_class$U(RollupRuleEvaluator, [
           {
               /**
      * Evaluate a rollup rule
@@ -14044,10 +14015,10 @@
       return RollupRuleEvaluator;
   }();
 
-  function _class_call_check$S(instance, Constructor) {
+  function _class_call_check$T(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$S(target, props) {
+  function _defineProperties$T(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14056,35 +14027,35 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$S(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
+  function _create_class$T(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$Q(obj) {
+  function _type_of$R(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$P = Object.defineProperty;
-  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$P(obj, key, {
+  var __defProp$Q = Object.defineProperty;
+  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Q(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$P = function __publicField(obj, key, value) {
-      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Q = function __publicField(obj, key, value) {
+      return __defNormalProp$Q(obj, (typeof key === "undefined" ? "undefined" : _type_of$R(key)) !== "symbol" ? key + "" : key, value);
   };
   var MeasureRollupProcessor = /*#__PURE__*/ function() {
       function MeasureRollupProcessor(childFilter, eventCallback) {
-          _class_call_check$S(this, MeasureRollupProcessor);
-          __publicField$P(this, "childFilter");
-          __publicField$P(this, "eventCallback");
+          _class_call_check$T(this, MeasureRollupProcessor);
+          __publicField$Q(this, "childFilter");
+          __publicField$Q(this, "eventCallback");
           this.childFilter = childFilter;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$S(MeasureRollupProcessor, [
+      _create_class$T(MeasureRollupProcessor, [
           {
               /**
      * Measure Rollup Process
@@ -14318,10 +14289,10 @@
       return MeasureRollupProcessor;
   }();
 
-  function _class_call_check$R(instance, Constructor) {
+  function _class_call_check$S(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$R(target, props) {
+  function _defineProperties$S(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14330,37 +14301,37 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$R(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
+  function _create_class$S(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$P(obj) {
+  function _type_of$Q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$O = Object.defineProperty;
-  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$O(obj, key, {
+  var __defProp$P = Object.defineProperty;
+  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$P(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$O = function __publicField(obj, key, value) {
-      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$P = function __publicField(obj, key, value) {
+      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveRollupProcessor = /*#__PURE__*/ function() {
       function ObjectiveRollupProcessor(childFilter, ruleEvaluator, eventCallback) {
-          _class_call_check$R(this, ObjectiveRollupProcessor);
-          __publicField$O(this, "childFilter");
-          __publicField$O(this, "ruleEvaluator");
-          __publicField$O(this, "eventCallback");
+          _class_call_check$S(this, ObjectiveRollupProcessor);
+          __publicField$P(this, "childFilter");
+          __publicField$P(this, "ruleEvaluator");
+          __publicField$P(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$R(ObjectiveRollupProcessor, [
+      _create_class$S(ObjectiveRollupProcessor, [
           {
               /**
      * Objective Rollup Process
@@ -14571,10 +14542,10 @@
       return ObjectiveRollupProcessor;
   }();
 
-  function _class_call_check$Q(instance, Constructor) {
+  function _class_call_check$R(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Q(target, props) {
+  function _defineProperties$R(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14583,39 +14554,39 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Q(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
+  function _create_class$R(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$O(obj) {
+  function _type_of$P(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$N = Object.defineProperty;
-  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$N(obj, key, {
+  var __defProp$O = Object.defineProperty;
+  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$O(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$N = function __publicField(obj, key, value) {
-      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$O = function __publicField(obj, key, value) {
+      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
   };
   var ProgressRollupProcessor = /*#__PURE__*/ function() {
       function ProgressRollupProcessor(childFilter, ruleEvaluator, objectiveProcessor, eventCallback) {
-          _class_call_check$Q(this, ProgressRollupProcessor);
-          __publicField$N(this, "childFilter");
-          __publicField$N(this, "ruleEvaluator");
-          __publicField$N(this, "objectiveProcessor");
-          __publicField$N(this, "eventCallback");
+          _class_call_check$R(this, ProgressRollupProcessor);
+          __publicField$O(this, "childFilter");
+          __publicField$O(this, "ruleEvaluator");
+          __publicField$O(this, "objectiveProcessor");
+          __publicField$O(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.objectiveProcessor = objectiveProcessor;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$Q(ProgressRollupProcessor, [
+      _create_class$R(ProgressRollupProcessor, [
           {
               /**
      * Activity Progress Rollup Process
@@ -14765,10 +14736,10 @@
       return ProgressRollupProcessor;
   }();
 
-  function _class_call_check$P(instance, Constructor) {
+  function _class_call_check$Q(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$P(target, props) {
+  function _defineProperties$Q(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14777,33 +14748,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$P(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
+  function _create_class$Q(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$N(obj) {
+  function _type_of$O(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$M = Object.defineProperty;
-  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$M(obj, key, {
+  var __defProp$N = Object.defineProperty;
+  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$N(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$M = function __publicField(obj, key, value) {
-      return __defNormalProp$M(obj, (_type_of$N(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$N = function __publicField(obj, key, value) {
+      return __defNormalProp$N(obj, (_type_of$O(key)) !== "symbol" ? key + "" : key, value);
   };
   var DurationRollupProcessor = /*#__PURE__*/ function() {
       function DurationRollupProcessor(eventCallback) {
-          _class_call_check$P(this, DurationRollupProcessor);
-          __publicField$M(this, "eventCallback");
+          _class_call_check$Q(this, DurationRollupProcessor);
+          __publicField$N(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$P(DurationRollupProcessor, [
+      _create_class$Q(DurationRollupProcessor, [
           {
               /**
      * Duration Rollup Process
@@ -14914,10 +14885,10 @@
       return DurationRollupProcessor;
   }();
 
-  function _class_call_check$O(instance, Constructor) {
+  function _class_call_check$P(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$O(target, props) {
+  function _defineProperties$P(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14926,8 +14897,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$O(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
+  function _create_class$P(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$a(left, right) {
@@ -14936,37 +14907,37 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$M(obj) {
+  function _type_of$N(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$L = Object.defineProperty;
-  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$L(obj, key, {
+  var __defProp$M = Object.defineProperty;
+  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$M(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$L = function __publicField(obj, key, value) {
-      return __defNormalProp$L(obj, (typeof key === "undefined" ? "undefined" : _type_of$M(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$M = function __publicField(obj, key, value) {
+      return __defNormalProp$M(obj, (typeof key === "undefined" ? "undefined" : _type_of$N(key)) !== "symbol" ? key + "" : key, value);
   };
   var MAX_CLUSTER_DEPTH = 10;
   var CrossClusterProcessor = /*#__PURE__*/ function() {
       function CrossClusterProcessor(measureProcessor, objectiveProcessor, progressProcessor, eventCallback) {
-          _class_call_check$O(this, CrossClusterProcessor);
-          __publicField$L(this, "measureProcessor");
-          __publicField$L(this, "objectiveProcessor");
-          __publicField$L(this, "progressProcessor");
-          __publicField$L(this, "eventCallback");
-          __publicField$L(this, "processingClusters", /* @__PURE__ */ new Set());
+          _class_call_check$P(this, CrossClusterProcessor);
+          __publicField$M(this, "measureProcessor");
+          __publicField$M(this, "objectiveProcessor");
+          __publicField$M(this, "progressProcessor");
+          __publicField$M(this, "eventCallback");
+          __publicField$M(this, "processingClusters", /* @__PURE__ */ new Set());
           this.measureProcessor = measureProcessor;
           this.objectiveProcessor = objectiveProcessor;
           this.progressProcessor = progressProcessor;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$O(CrossClusterProcessor, [
+      _create_class$P(CrossClusterProcessor, [
           {
               /**
      * Handle cross-cluster dependencies in rollup
@@ -15208,10 +15179,10 @@
       return CrossClusterProcessor;
   }();
 
-  function _class_call_check$N(instance, Constructor) {
+  function _class_call_check$O(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$N(target, props) {
+  function _defineProperties$O(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15220,9 +15191,9 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$N(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$N(Constructor, staticProps);
+  function _create_class$O(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$O(Constructor, staticProps);
       return Constructor;
   }
   function _instanceof$9(left, right) {
@@ -15231,29 +15202,29 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$L(obj) {
+  function _type_of$M(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$K = Object.defineProperty;
-  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$K(obj, key, {
+  var __defProp$L = Object.defineProperty;
+  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$L(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$K = function __publicField(obj, key, value) {
-      return __defNormalProp$K(obj, (_type_of$L(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$L = function __publicField(obj, key, value) {
+      return __defNormalProp$L(obj, (_type_of$M(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveSynchronizer = /*#__PURE__*/ function() {
       function GlobalObjectiveSynchronizer(eventCallback) {
-          _class_call_check$N(this, GlobalObjectiveSynchronizer);
-          __publicField$K(this, "eventCallback");
+          _class_call_check$O(this, GlobalObjectiveSynchronizer);
+          __publicField$L(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$N(GlobalObjectiveSynchronizer, [
+      _create_class$O(GlobalObjectiveSynchronizer, [
           {
               /**
      * Process global objective mapping for shared objectives
@@ -16106,10 +16077,10 @@
   function _array_without_holes$8(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
-  function _class_call_check$M(instance, Constructor) {
+  function _class_call_check$N(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$M(target, props) {
+  function _defineProperties$N(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16118,8 +16089,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$M(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
+  function _create_class$N(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$8(left, right) {
@@ -16139,7 +16110,7 @@
   function _to_consumable_array$8(arr) {
       return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$8();
   }
-  function _type_of$K(obj) {
+  function _type_of$L(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -16151,28 +16122,28 @@
       if (n === "Map" || n === "Set") return Array.from(n);
       if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
   }
-  var __defProp$J = Object.defineProperty;
-  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$J(obj, key, {
+  var __defProp$K = Object.defineProperty;
+  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$K(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$J = function __publicField(obj, key, value) {
-      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$K(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$K = function __publicField(obj, key, value) {
+      return __defNormalProp$K(obj, (typeof key === "undefined" ? "undefined" : _type_of$L(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupStateValidator = /*#__PURE__*/ function() {
       function RollupStateValidator(childFilter, eventCallback) {
-          _class_call_check$M(this, RollupStateValidator);
-          __publicField$J(this, "rollupStateLog", []);
-          __publicField$J(this, "childFilter");
-          __publicField$J(this, "eventCallback");
+          _class_call_check$N(this, RollupStateValidator);
+          __publicField$K(this, "rollupStateLog", []);
+          __publicField$K(this, "childFilter");
+          __publicField$K(this, "eventCallback");
           this.childFilter = childFilter;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$M(RollupStateValidator, [
+      _create_class$N(RollupStateValidator, [
           {
               /**
      * Validate rollup state consistency across the activity tree
@@ -16316,10 +16287,10 @@
       return RollupStateValidator;
   }();
 
-  function _class_call_check$L(instance, Constructor) {
+  function _class_call_check$M(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$L(target, props) {
+  function _defineProperties$M(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16328,44 +16299,44 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$L(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
+  function _create_class$M(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$J(obj) {
+  function _type_of$K(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$I = Object.defineProperty;
-  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$I(obj, key, {
+  var __defProp$J = Object.defineProperty;
+  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$J(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$I = function __publicField(obj, key, value) {
-      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$J = function __publicField(obj, key, value) {
+      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$K(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupProcess = /*#__PURE__*/ function() {
       function RollupProcess(eventCallback) {
-          _class_call_check$L(this, RollupProcess);
+          _class_call_check$M(this, RollupProcess);
           /**
        * Capability flag for hosts that supported older rollup behavior with a compatibility layer.
        * Rollup contribution controls belong to an activity as a child of its parent; they do not gate
        * calculation of the activity's own rolled-up state.
-       */ __publicField$I(this, "childContributionControlsApplyToParent", true);
-          __publicField$I(this, "childFilter");
-          __publicField$I(this, "ruleEvaluator");
-          __publicField$I(this, "measureProcessor");
-          __publicField$I(this, "objectiveProcessor");
-          __publicField$I(this, "progressProcessor");
-          __publicField$I(this, "durationProcessor");
-          __publicField$I(this, "globalObjectiveSynchronizer");
-          __publicField$I(this, "stateValidator");
-          __publicField$I(this, "crossClusterProcessor");
-          __publicField$I(this, "eventCallback");
+       */ __publicField$J(this, "childContributionControlsApplyToParent", true);
+          __publicField$J(this, "childFilter");
+          __publicField$J(this, "ruleEvaluator");
+          __publicField$J(this, "measureProcessor");
+          __publicField$J(this, "objectiveProcessor");
+          __publicField$J(this, "progressProcessor");
+          __publicField$J(this, "durationProcessor");
+          __publicField$J(this, "globalObjectiveSynchronizer");
+          __publicField$J(this, "stateValidator");
+          __publicField$J(this, "crossClusterProcessor");
+          __publicField$J(this, "eventCallback");
           this.eventCallback = eventCallback || null;
           this.childFilter = new RollupChildFilter();
           this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter);
@@ -16377,7 +16348,7 @@
           this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
           this.crossClusterProcessor = new CrossClusterProcessor(this.measureProcessor, this.objectiveProcessor, this.progressProcessor, eventCallback);
       }
-      _create_class$L(RollupProcess, [
+      _create_class$M(RollupProcess, [
           {
               /**
      * Overall Rollup Process
@@ -16635,6 +16606,165 @@
           }
       ]);
       return RollupProcess;
+  }();
+
+  function _class_call_check$L(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$L(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$L(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _define_property$e(obj, key, value) {
+      if (key in obj) {
+          Object.defineProperty(obj, key, {
+              value: value,
+              enumerable: true,
+              configurable: true,
+              writable: true
+          });
+      } else obj[key] = value;
+      return obj;
+  }
+  function _object_spread$e(target) {
+      for(var i = 1; i < arguments.length; i++){
+          var source = arguments[i] != null ? arguments[i] : {};
+          var ownKeys = Object.keys(source);
+          if (typeof Object.getOwnPropertySymbols === "function") {
+              ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function(sym) {
+                  return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+              }));
+          }
+          ownKeys.forEach(function(key) {
+              _define_property$e(target, key, source[key]);
+          });
+      }
+      return target;
+  }
+  function _type_of$J(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$I = Object.defineProperty;
+  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$I(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$I = function __publicField(obj, key, value) {
+      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var ObjectiveEvaluationContext = /*#__PURE__*/ function() {
+      function ObjectiveEvaluationContext(activityTree, globalObjectives) {
+          _class_call_check$L(this, ObjectiveEvaluationContext);
+          __publicField$I(this, "activityTree", activityTree);
+          __publicField$I(this, "globalObjectives", globalObjectives);
+          __publicField$I(this, "synchronizer", new GlobalObjectiveSynchronizer());
+          __publicField$I(this, "treeQueries");
+          this.treeQueries = new ActivityTreeQueries(activityTree);
+      }
+      _create_class$L(ObjectiveEvaluationContext, [
+          {
+              /**
+     * Overlay the old branch's write maps on copied global entries, then read them
+     * into a disposable candidate. No end-attempt, rollup or live writer runs here.
+     * @spec SCORM 2004 SN 4th Ed. UP.3 / SM.7 - exclude the common ancestor and preserve live attempt state.
+     */ key: "project",
+              value: function project(activity) {
+                  var target = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : activity;
+                  var current = this.activityTree.currentActivity;
+                  var commonAncestor = this.treeQueries.findCommonAncestor(current, target);
+                  if (!current || current === commonAncestor) {
+                      return activity;
+                  }
+                  var leaving = [];
+                  var ancestor = current.parent;
+                  while(ancestor && ancestor !== commonAncestor){
+                      if (ancestor.isActive) leaving.push(ancestor);
+                      ancestor = ancestor.parent;
+                  }
+                  if (leaving.length === 0) return activity;
+                  var projectedGlobals = new Map(this.globalObjectives);
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = leaving[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var cluster = _step.value;
+                          var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                          try {
+                              for(var _iterator1 = cluster.getAllObjectives()[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                                  var objective = _step1.value;
+                                  var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                                  try {
+                                      for(var _iterator2 = objective.mapInfo[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                                          var map = _step2.value;
+                                          var targetId = map.targetObjectiveID || objective.id;
+                                          var entry = projectedGlobals.get(targetId);
+                                          if (entry) projectedGlobals.set(targetId, _object_spread$e({}, entry));
+                                      }
+                                  } catch (err) {
+                                      _didIteratorError2 = true;
+                                      _iteratorError2 = err;
+                                  } finally{
+                                      try {
+                                          if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                              _iterator2.return();
+                                          }
+                                      } finally{
+                                          if (_didIteratorError2) {
+                                              throw _iteratorError2;
+                                          }
+                                      }
+                                  }
+                              }
+                          } catch (err) {
+                              _didIteratorError1 = true;
+                              _iteratorError1 = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                      _iterator1.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError1) {
+                                      throw _iteratorError1;
+                                  }
+                              }
+                          }
+                          this.synchronizer.syncTerminatedActivityWritePhase(cluster.createObjectiveEvaluationView(), projectedGlobals);
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  var view = activity.createObjectiveEvaluationView();
+                  this.synchronizer.syncGlobalObjectivesReadPhase(view, projectedGlobals);
+                  return view;
+              }
+          }
+      ]);
+      return ObjectiveEvaluationContext;
   }();
 
   function evaluateCompletionStatusFromThreshold(param) {
@@ -18095,6 +18225,7 @@
           __publicField$F(this, "defaultAuxiliaryResources");
           __publicField$F(this, "_deliveryInProgress", false);
           __publicField$F(this, "contentDelivered", false);
+          __publicField$F(this, "endAttemptCallback", null);
           __publicField$F(this, "checkActivityCallback", null);
           __publicField$F(this, "invalidateCacheCallback", null);
           __publicField$F(this, "updateNavigationValidityCallback", null);
@@ -18113,6 +18244,37 @@
           }) : [];
       }
       _create_class$I(_DeliveryHandler, [
+          {
+              /** @spec SCORM 2004 SN 4th Ed. DB.2 / UP.4 - commit departed attempts through the coordinator. */ key: "setEndAttemptCallback",
+              value: function setEndAttemptCallback(callback) {
+                  this.endAttemptCallback = callback;
+              }
+          },
+          {
+              /**
+     * End active attempts on the path from current to common ancestor, exclusive.
+     * @spec SCORM 2004 SN 4th Ed. UP.3 - end the old path bottom-up, excluding the common ancestor.
+     * @param {Activity} currentActivity - The already-terminated current activity
+     * @param {Activity} commonAncestor - The ancestor whose attempt remains active
+     */ key: "terminateDescendentAttemptsProcess",
+              value: function terminateDescendentAttemptsProcess(currentActivity, commonAncestor) {
+                  if (currentActivity === commonAncestor) {
+                      return;
+                  }
+                  var activity = currentActivity.parent;
+                  while(activity && activity !== commonAncestor){
+                      var parent = activity.parent;
+                      if (activity.isActive) {
+                          if (this.endAttemptCallback) {
+                              this.endAttemptCallback(activity);
+                          } else {
+                              activity.isActive = false;
+                          }
+                      }
+                      activity = parent;
+                  }
+              }
+          },
           {
               /**
      * Set callback to check activity validity
@@ -18203,7 +18365,7 @@
                   try {
                       for(var _iterator = activityPath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var pathActivity = _step.value;
-                          var checkResult = this.checkActivityCallback ? this.checkActivityCallback(pathActivity) : true;
+                          var checkResult = this.checkActivityCallback ? this.checkActivityCallback(pathActivity, activity) : true;
                           if (!checkResult) {
                               return new DeliveryRequest(false, null, "DB.1.1-3");
                           }
@@ -18235,6 +18397,13 @@
               value: function contentDeliveryEnvironmentProcess(activity) {
                   this._deliveryInProgress = true;
                   try {
+                      var _this_rollupProcess;
+                      var currentActivity = this.activityTree.currentActivity;
+                      if (currentActivity) {
+                          var commonAncestor = new ActivityTreeQueries(this.activityTree).findCommonAncestor(currentActivity, activity);
+                          this.terminateDescendentAttemptsProcess(currentActivity, commonAncestor);
+                      }
+                      (_this_rollupProcess = this.rollupProcess) === null || _this_rollupProcess === void 0 ? void 0 : _this_rollupProcess.processGlobalObjectiveMapping(activity, this.globalObjectiveMap);
                       var isResuming = activity.isSuspended;
                       var activityPath = this.getActivityPath(activity, true);
                       var suspendedPathActivities = new Set(activityPath.filter(function(pathActivity) {
@@ -18309,8 +18478,8 @@
                       try {
                           for(var _iterator2 = newAttemptActivities[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
                               var pathActivity1 = _step2.value;
-                              var _this_rollupProcess;
-                              (_this_rollupProcess = this.rollupProcess) === null || _this_rollupProcess === void 0 ? void 0 : _this_rollupProcess.syncActivityObjectivesFromGlobals(pathActivity1, this.globalObjectiveMap);
+                              var _this_rollupProcess1;
+                              (_this_rollupProcess1 = this.rollupProcess) === null || _this_rollupProcess1 === void 0 ? void 0 : _this_rollupProcess1.syncActivityObjectivesFromGlobals(pathActivity1, this.globalObjectiveMap);
                           }
                       } catch (err) {
                           _didIteratorError2 = true;
@@ -21992,11 +22161,15 @@
                   this.terminationHandler.setInvalidateCacheCallback(function() {
                       _this.navigationLookAhead.invalidateCache();
                   });
-                  (_this_sequencingProcess = this.sequencingProcess) === null || _this_sequencingProcess === void 0 ? void 0 : _this_sequencingProcess.setEndAttemptCallback(function(activity) {
-                      _this.terminationHandler.endAttempt(activity);
+                  var evaluationContext = new ObjectiveEvaluationContext(this.activityTree, this.globalObjectiveService.getMap());
+                  (_this_sequencingProcess = this.sequencingProcess) === null || _this_sequencingProcess === void 0 ? void 0 : _this_sequencingProcess.setActivityEvaluationCallback(function(activity, target) {
+                      return evaluationContext.project(activity, target);
                   });
-                  this.deliveryHandler.setCheckActivityCallback(function(activity) {
-                      return _this.deliveryValidator.checkActivity(activity);
+                  this.deliveryHandler.setEndAttemptCallback(function(activity) {
+                      return _this.terminationHandler.endAttempt(activity);
+                  });
+                  this.deliveryHandler.setCheckActivityCallback(function(activity, target) {
+                      return _this.deliveryValidator.checkActivity(evaluationContext.project(activity, target));
                   });
                   this.deliveryHandler.setInvalidateCacheCallback(function() {
                       _this.navigationLookAhead.invalidateCache();
@@ -22153,7 +22326,6 @@
                               });
                           }
                       }
-                      this.rollupProcess.processGlobalObjectiveMapping(seqResult.targetActivity, this.globalObjectiveService.getMap());
                       return this.processDelivery(seqResult.targetActivity);
                   }
                   return new DeliveryRequest(false, null, "OP.1-1");

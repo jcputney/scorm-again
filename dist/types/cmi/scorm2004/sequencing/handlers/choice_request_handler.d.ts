@@ -16,6 +16,5 @@ export declare class ChoiceRequestHandler {
     private choiceFlowSubprocess;
     private choiceFlowTreeTraversal;
     private enhancedChoiceTraversal;
-    private terminateDescendentAttemptsProcess;
 }
 //# sourceMappingURL=choice_request_handler.d.ts.map

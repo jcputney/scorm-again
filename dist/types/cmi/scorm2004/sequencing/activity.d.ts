@@ -379,6 +379,7 @@ export declare class Activity extends BaseCMI {
         isPrimary: boolean;
     } | null;
     getAllObjectives(): ActivityObjective[];
+    createObjectiveEvaluationView(): Activity;
     private updatePrimaryObjectiveFromActivity;
     isObjectiveDirty(property: "satisfiedStatus" | "normalizedMeasure" | "measureStatus"): boolean;
     clearObjectiveDirty(property: "satisfiedStatus" | "normalizedMeasure" | "measureStatus"): void;

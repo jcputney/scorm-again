@@ -36,12 +36,15 @@ export declare class DeliveryHandler {
     private defaultAuxiliaryResources;
     private _deliveryInProgress;
     private contentDelivered;
+    private endAttemptCallback;
     private checkActivityCallback;
     private invalidateCacheCallback;
     private updateNavigationValidityCallback;
     private clearSuspendedActivityCallback;
     constructor(activityTree: ActivityTree, rollupProcess: RollupProcess, globalObjectiveMap: Map<string, any>, adlNav?: ADLNav | null, eventCallback?: ((eventType: string, data?: any) => void) | null, options?: DeliveryHandlerOptions);
-    setCheckActivityCallback(callback: (activity: Activity) => boolean): void;
+    setEndAttemptCallback(callback: (activity: Activity) => void): void;
+    private terminateDescendentAttemptsProcess;
+    setCheckActivityCallback(callback: (activity: Activity, target: Activity) => boolean): void;
     setInvalidateCacheCallback(callback: () => void): void;
     setUpdateNavigationValidityCallback(callback: () => void): void;
     setClearSuspendedActivityCallback(callback: () => void): void;

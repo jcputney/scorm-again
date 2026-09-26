@@ -3992,27 +3992,17 @@ class FlowTraversalService {
   }
   activityTree;
   ruleEngine;
-  endAttemptCallback = null;
+  activityEvaluationCallback = null;
   /**
-   * Set the callback used when forward flow exits an active cluster attempt.
+   * Supply a disposable objective view for candidate preconditions.
+   * @spec SCORM 2004 SN 4th Ed. SB.2.2 / SM.7 - evaluate mapped objectives without ending attempts.
    */
-  setEndAttemptCallback(callback) {
-    this.endAttemptCallback = callback;
+  setActivityEvaluationCallback(callback) {
+    this.activityEvaluationCallback = callback;
   }
-  /**
-   * End one active attempt through the coordinator-owned UP.4 process.
-   * SequencingProcess can also be used without the overall coordinator in
-   * focused callers, so retain the state-only fallback for that case.
-   */
-  endActiveAttempt(activity) {
-    if (!activity.isActive) {
-      return;
-    }
-    if (this.endAttemptCallback) {
-      this.endAttemptCallback(activity);
-    } else {
-      activity.isActive = false;
-    }
+  /** @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 - speculative rules use projected objective state. */
+  getActivityForEvaluation(activity, target = activity) {
+    return this.activityEvaluationCallback?.(activity, target) ?? activity;
   }
   /**
    * Flow Subprocess (SB.2.3)
@@ -4052,6 +4042,7 @@ class FlowTraversalService {
    * @param {boolean} skipChildren - Whether to skip children
    * @param {Activity | null} forwardTraversalBoundary - Cluster boundary for an SB.2.1 forwardOnly direction reversal
    * @return {FlowTreeTraversalResult}
+   * @spec SCORM 2004 SN 4th Ed. SB.2.1 / SB.2.2 - candidate traversal preserves attempts until DB.2 accepts delivery.
    * @spec SN Book: SB.2.1 (Flow Tree Traversal Subprocess) - a reversed Forward traversal from a forwardOnly cluster remains within that cluster.
    */
   traverseForward(fromActivity, skipChildren, forwardTraversalBoundary = null) {
@@ -4075,32 +4066,17 @@ class FlowTraversalService {
     while (current) {
       const nextSibling = this.activityTree.getNextSibling(current);
       if (nextSibling) {
-        this.endActiveClusterAttempt(current);
         return { activity: nextSibling, endSequencingSession: false };
       }
       if (forwardTraversalBoundary && (current === forwardTraversalBoundary || current.parent === forwardTraversalBoundary)) {
         return { activity: null, endSequencingSession: false };
       }
-      this.endActiveClusterAttempt(current);
       current = current.parent;
     }
     if (this.activityTree.root) {
       this.terminateDescendentAttempts(this.activityTree.root);
     }
     return { activity: null, endSequencingSession: true };
-  }
-  /**
-   * End a cluster attempt as soon as flow leaves its subtree. This must happen
-   * before the next sibling's preconditions are evaluated so its read-mapped
-   * objectives see the terminating cluster's final write-map values.
-   *
-   * @spec SCORM 2004 SN 4th Ed. SB.2.1 Flow Tree Traversal Subprocess
-   * @spec SCORM 2004 SN 4th Ed. SM.7 Objective Map
-   */
-  endActiveClusterAttempt(activity) {
-    if (activity.parent && activity.children.length > 0 && activity.isActive) {
-      this.endActiveAttempt(activity);
-    }
   }
   /**
    * Traverse backward in the activity tree
@@ -4282,7 +4258,7 @@ class FlowTraversalService {
     const skippedRules = activity.sequencingRules.preConditionRules.filter(
       (rule) => rule.action === RuleActionType.SKIP
     );
-    const wasSkipped = this.ruleEngine.checkSequencingRules(activity, skippedRules) === RuleActionType.SKIP;
+    const wasSkipped = this.ruleEngine.checkSequencingRules(this.getActivityForEvaluation(activity), skippedRules) === RuleActionType.SKIP;
     activity.wasSkipped = wasSkipped;
     return wasSkipped;
   }
@@ -4299,7 +4275,9 @@ class FlowTraversalService {
     if (this.ruleEngine.checkLimitConditions(activity)) {
       return false;
     }
-    const deliveryCheck = this.ruleEngine.canDeliverActivity(activity);
+    const deliveryCheck = this.ruleEngine.canDeliverActivity(
+      this.getActivityForEvaluation(activity)
+    );
     activity.wasSkipped = deliveryCheck.wasSkipped;
     return deliveryCheck.canDeliver;
   }
@@ -4546,14 +4524,13 @@ class ChoiceRequestHandler {
       result.exception = validation.exception;
       return result;
     }
-    const commonAncestor = this.treeQueries.findCommonAncestor(currentActivity, targetActivity);
-    if (currentActivity) {
-      const ancestor = commonAncestor || this.activityTree.root;
-      this.terminateDescendentAttemptsProcess(currentActivity, ancestor);
-    }
     for (const pathActivity of this.treeQueries.getPathToRoot(targetActivity)) {
+      const evaluationActivity = this.traversalService.getActivityForEvaluation(
+        pathActivity,
+        targetActivity
+      );
       const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
-        (rule) => rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(pathActivity) === true
+        (rule) => rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity) === true
       );
       if (hiddenByRule) {
         result.exception = "SB.2.9-4";
@@ -4696,22 +4673,6 @@ class ChoiceRequestHandler {
       return new ChoiceTraversalResult(flowResult, null);
     }
     return new ChoiceTraversalResult(null, null);
-  }
-  /**
-   * End active attempts on the path from current to common ancestor, exclusive.
-   * @param {Activity} currentActivity - The already-terminated current activity
-   * @param {Activity} commonAncestor - The ancestor whose attempt remains active
-   */
-  terminateDescendentAttemptsProcess(currentActivity, commonAncestor) {
-    if (currentActivity === commonAncestor) {
-      return;
-    }
-    let activity = currentActivity.parent;
-    while (activity && activity !== commonAncestor) {
-      const parent = activity.parent;
-      this.traversalService.endActiveAttempt(activity);
-      activity = parent;
-    }
   }
 }
 
@@ -4913,7 +4874,7 @@ class SequencingProcess {
   constraintValidator;
   ruleEngine;
   traversalService;
-  endAttemptCallback = null;
+  activityEvaluationCallback = null;
   // Request handlers
   flowHandler;
   choiceHandler;
@@ -5176,17 +5137,14 @@ class SequencingProcess {
   getTraversalService() {
     return this.traversalService;
   }
-  /**
-   * Connect flow traversal to the utility end-attempt process owned by the
-   * overall sequencing coordinator.
-   */
-  setEndAttemptCallback(callback) {
-    this.endAttemptCallback = callback;
+  /** @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 / SM.7 - candidate evaluation uses a disposable objective view. */
+  setActivityEvaluationCallback(callback) {
+    this.activityEvaluationCallback = callback;
     this.applyTraversalCallbacks();
   }
   applyTraversalCallbacks() {
-    if (this.endAttemptCallback) {
-      this.traversalService.setEndAttemptCallback(this.endAttemptCallback);
+    if (this.activityEvaluationCallback) {
+      this.traversalService.setActivityEvaluationCallback(this.activityEvaluationCallback);
     }
   }
 }
@@ -9147,6 +9105,20 @@ class Activity extends BaseCMI {
     );
     return objectives.concat(additionalObjectives);
   }
+  /**
+   * Copy only the state that objective read maps can change during rule evaluation.
+   * Tree links and rule definitions remain shared and read-only in this view.
+   * @spec SCORM 2004 SN 4th Ed. SB.2.2 / SB.2.9 / SM.7 - speculative reads must not change live tracking or dirty flags.
+   */
+  createObjectiveEvaluationView() {
+    const view = Object.assign(Object.create(Activity.prototype), this);
+    const copyObjective = (objective) => Object.assign(Object.create(ActivityObjective.prototype), objective);
+    view._primaryObjective = this._primaryObjective ? copyObjective(this._primaryObjective) : null;
+    view._objectives = this._objectives.map(
+      (objective) => objective === this._primaryObjective ? view._primaryObjective : copyObjective(objective)
+    );
+    return view;
+  }
   updatePrimaryObjectiveFromActivity() {
     if (this._primaryObjective) {
       this._primaryObjective.updateFromActivity(this);
@@ -11840,6 +11812,54 @@ class RollupProcess {
   }
 }
 
+class ObjectiveEvaluationContext {
+  constructor(activityTree, globalObjectives) {
+    this.activityTree = activityTree;
+    this.globalObjectives = globalObjectives;
+    this.treeQueries = new ActivityTreeQueries(activityTree);
+  }
+  activityTree;
+  globalObjectives;
+  synchronizer = new GlobalObjectiveSynchronizer();
+  treeQueries;
+  /**
+   * Overlay the old branch's write maps on copied global entries, then read them
+   * into a disposable candidate. No end-attempt, rollup or live writer runs here.
+   * @spec SCORM 2004 SN 4th Ed. UP.3 / SM.7 - exclude the common ancestor and preserve live attempt state.
+   */
+  project(activity, target = activity) {
+    const current = this.activityTree.currentActivity;
+    const commonAncestor = this.treeQueries.findCommonAncestor(current, target);
+    if (!current || current === commonAncestor) {
+      return activity;
+    }
+    const leaving = [];
+    let ancestor = current.parent;
+    while (ancestor && ancestor !== commonAncestor) {
+      if (ancestor.isActive) leaving.push(ancestor);
+      ancestor = ancestor.parent;
+    }
+    if (leaving.length === 0) return activity;
+    const projectedGlobals = new Map(this.globalObjectives);
+    for (const cluster of leaving) {
+      for (const objective of cluster.getAllObjectives()) {
+        for (const map of objective.mapInfo) {
+          const targetId = map.targetObjectiveID || objective.id;
+          const entry = projectedGlobals.get(targetId);
+          if (entry) projectedGlobals.set(targetId, { ...entry });
+        }
+      }
+      this.synchronizer.syncTerminatedActivityWritePhase(
+        cluster.createObjectiveEvaluationView(),
+        projectedGlobals
+      );
+    }
+    const view = activity.createObjectiveEvaluationView();
+    this.synchronizer.syncGlobalObjectivesReadPhase(view, projectedGlobals);
+    return view;
+  }
+}
+
 function evaluateCompletionStatusFromThreshold({
   completionThreshold,
   progressMeasure,
@@ -12862,6 +12882,7 @@ class DeliveryHandler {
   defaultAuxiliaryResources;
   _deliveryInProgress = false;
   contentDelivered = false;
+  endAttemptCallback = null;
   checkActivityCallback = null;
   invalidateCacheCallback = null;
   updateNavigationValidityCallback = null;
@@ -12875,6 +12896,33 @@ class DeliveryHandler {
     this.now = options?.now || (() => /* @__PURE__ */ new Date());
     this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
     this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource })) : [];
+  }
+  /** @spec SCORM 2004 SN 4th Ed. DB.2 / UP.4 - commit departed attempts through the coordinator. */
+  setEndAttemptCallback(callback) {
+    this.endAttemptCallback = callback;
+  }
+  /**
+   * End active attempts on the path from current to common ancestor, exclusive.
+   * @spec SCORM 2004 SN 4th Ed. UP.3 - end the old path bottom-up, excluding the common ancestor.
+   * @param {Activity} currentActivity - The already-terminated current activity
+   * @param {Activity} commonAncestor - The ancestor whose attempt remains active
+   */
+  terminateDescendentAttemptsProcess(currentActivity, commonAncestor) {
+    if (currentActivity === commonAncestor) {
+      return;
+    }
+    let activity = currentActivity.parent;
+    while (activity && activity !== commonAncestor) {
+      const parent = activity.parent;
+      if (activity.isActive) {
+        if (this.endAttemptCallback) {
+          this.endAttemptCallback(activity);
+        } else {
+          activity.isActive = false;
+        }
+      }
+      activity = parent;
+    }
   }
   /**
    * Set callback to check activity validity
@@ -12946,7 +12994,7 @@ class DeliveryHandler {
       return new DeliveryRequest(false, null, "DB.1.1-2");
     }
     for (const pathActivity of activityPath) {
-      const checkResult = this.checkActivityCallback ? this.checkActivityCallback(pathActivity) : true;
+      const checkResult = this.checkActivityCallback ? this.checkActivityCallback(pathActivity, activity) : true;
       if (!checkResult) {
         return new DeliveryRequest(false, null, "DB.1.1-3");
       }
@@ -12962,6 +13010,15 @@ class DeliveryHandler {
   contentDeliveryEnvironmentProcess(activity) {
     this._deliveryInProgress = true;
     try {
+      const currentActivity = this.activityTree.currentActivity;
+      if (currentActivity) {
+        const commonAncestor = new ActivityTreeQueries(this.activityTree).findCommonAncestor(
+          currentActivity,
+          activity
+        );
+        this.terminateDescendentAttemptsProcess(currentActivity, commonAncestor);
+      }
+      this.rollupProcess?.processGlobalObjectiveMapping(activity, this.globalObjectiveMap);
       const isResuming = activity.isSuspended;
       const activityPath = this.getActivityPath(activity, true);
       const suspendedPathActivities = new Set(
@@ -15501,11 +15558,18 @@ class OverallSequencingProcess {
     this.terminationHandler.setInvalidateCacheCallback(() => {
       this.navigationLookAhead.invalidateCache();
     });
-    this.sequencingProcess?.setEndAttemptCallback((activity) => {
-      this.terminationHandler.endAttempt(activity);
-    });
+    const evaluationContext = new ObjectiveEvaluationContext(
+      this.activityTree,
+      this.globalObjectiveService.getMap()
+    );
+    this.sequencingProcess?.setActivityEvaluationCallback(
+      (activity, target) => evaluationContext.project(activity, target)
+    );
+    this.deliveryHandler.setEndAttemptCallback(
+      (activity) => this.terminationHandler.endAttempt(activity)
+    );
     this.deliveryHandler.setCheckActivityCallback(
-      (activity) => this.deliveryValidator.checkActivity(activity)
+      (activity, target) => this.deliveryValidator.checkActivity(evaluationContext.project(activity, target))
     );
     this.deliveryHandler.setInvalidateCacheCallback(() => {
       this.navigationLookAhead.invalidateCache();
@@ -15671,10 +15735,6 @@ class OverallSequencingProcess {
           });
         }
       }
-      this.rollupProcess.processGlobalObjectiveMapping(
-        seqResult.targetActivity,
-        this.globalObjectiveService.getMap()
-      );
       return this.processDelivery(seqResult.targetActivity);
     }
     return new DeliveryRequest(false, null, "OP.1-1");
