@@ -1,4 +1,4 @@
-import CrossFrameAPI from "../CrossFrameAPI";
+import CrossFrameAPI from "../CrossFrameAPI.js";
 export { CrossFrameAPI };
 export type {
   CrossFrameAPIOptions,
@@ -6,4 +6,4 @@ export type {
   CrossFrameEventCallback,
   MessageData,
   MessageResponse,
-} from "../types/CrossFrame";
+} from "../types/CrossFrame.js";
