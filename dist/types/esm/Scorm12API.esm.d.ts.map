@@ -1,1 +1,1 @@
-{"version":3,"file":"Scorm12API.esm.d.ts","sourceRoot":"","sources":["../../../src/esm/Scorm12API.esm.ts"],"names":[],"mappings":"AAAA,OAAO,UAAU,MAAM,eAAe,CAAC;AAEvC,OAAO,EAAE,UAAU,EAAE,CAAC"}
+{"version":3,"file":"Scorm12API.esm.d.ts","sourceRoot":"","sources":["../../../src/esm/Scorm12API.esm.ts"],"names":[],"mappings":"AAAA,OAAO,UAAU,MAAM,kBAAkB,CAAC;AAE1C,OAAO,EAAE,UAAU,EAAE,CAAC"}

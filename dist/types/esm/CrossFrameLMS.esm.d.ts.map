@@ -1,1 +1,1 @@
-{"version":3,"file":"CrossFrameLMS.esm.d.ts","sourceRoot":"","sources":["../../../src/esm/CrossFrameLMS.esm.ts"],"names":[],"mappings":"AAAA,OAAO,aAAa,MAAM,kBAAkB,CAAC;AAC7C,OAAO,EAAE,aAAa,EAAE,CAAC;AACzB,YAAY,EAAE,oBAAoB,EAAE,WAAW,EAAE,eAAe,EAAE,MAAM,qBAAqB,CAAC"}
+{"version":3,"file":"CrossFrameLMS.esm.d.ts","sourceRoot":"","sources":["../../../src/esm/CrossFrameLMS.esm.ts"],"names":[],"mappings":"AAAA,OAAO,aAAa,MAAM,qBAAqB,CAAC;AAChD,OAAO,EAAE,aAAa,EAAE,CAAC;AACzB,YAAY,EAAE,oBAAoB,EAAE,WAAW,EAAE,eAAe,EAAE,MAAM,wBAAwB,CAAC"}
