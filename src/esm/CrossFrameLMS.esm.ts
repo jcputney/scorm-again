@@ -1,3 +1,4 @@
-import CrossFrameLMS from "../CrossFrameLMS.js";
+import CrossFrameLMS from "../CrossFrameLMS";
 export { CrossFrameLMS };
-export type { CrossFrameLMSOptions, MessageData, MessageResponse } from "../types/CrossFrame.js";
+export default CrossFrameLMS;
+export type { CrossFrameLMSOptions, MessageData, MessageResponse } from "../types/CrossFrame";

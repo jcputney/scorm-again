@@ -138,7 +138,7 @@
     "build:all:prod": "npm run build:prod && npm run build:types",
     "build:fast": "npm run clean && SKIP_MINIFIED=true rollup -c && npm run check:es5",
     "build:prod": "npm run clean && NODE_ENV=production rollup -c && npm run check:es5",
-    "build:types": "tsc --project tsconfig.types.json",
+    "build:types": "tsc --project tsconfig.types.json && node scripts/fix-dts-extensions.mjs",
     "check:es5": "es-check es5 'dist/*.js'",
     "clean": "rm -rf dist && mkdir -p dist",
     "compile:dev": "SKIP_MINIFIED=true rollup -c -w",
