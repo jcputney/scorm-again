@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 let filesChanged = 0;
 let specifiersRewritten = 0;
@@ -46,7 +47,7 @@ function walk(directory) {
   }
 }
 
-walk("dist/types");
+walk(fileURLToPath(new URL("../dist/types", import.meta.url)));
 console.log(
   `fix-dts-extensions: ${filesChanged} files changed, ${specifiersRewritten} specifiers rewritten, ${warnings} warnings`,
 );
