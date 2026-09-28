@@ -1,9 +1,9 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { ActivityTreeQueries } from "../utils/activity_tree_queries";
-import { ChoiceConstraintValidator } from "../validators/choice_constraint_validator";
-import { FlowTraversalService } from "../traversal/flow_traversal_service";
-import { SequencingResult } from "../rules/sequencing_request_types";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { ActivityTreeQueries } from "../utils/activity_tree_queries.js";
+import { ChoiceConstraintValidator } from "../validators/choice_constraint_validator.js";
+import { FlowTraversalService } from "../traversal/flow_traversal_service.js";
+import { SequencingResult } from "../rules/sequencing_request_types.js";
 export declare class ChoiceRequestHandler {
     private activityTree;
     private constraintValidator;

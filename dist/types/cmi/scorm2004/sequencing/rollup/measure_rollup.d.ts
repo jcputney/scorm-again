@@ -1,5 +1,5 @@
-import { Activity } from "../activity";
-import { RollupChildFilter } from "./rollup_child_filter";
+import { Activity } from "../activity.js";
+import { RollupChildFilter } from "./rollup_child_filter.js";
 export interface MeasureRollupOptions {
     enableThresholdBias?: boolean;
 }

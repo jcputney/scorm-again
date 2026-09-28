@@ -1,6 +1,6 @@
-import { Activity } from "../cmi/scorm2004/sequencing/activity";
-import { SequencingResult } from "../cmi/scorm2004/sequencing/sequencing_process";
-import { IEventService, ILoggingService } from "../interfaces/services";
+import { Activity } from "../cmi/scorm2004/sequencing/activity.js";
+import { SequencingResult } from "../cmi/scorm2004/sequencing/sequencing_process.js";
+import { IEventService, ILoggingService } from "../interfaces/services.js";
 export interface ActivityDeliveryCallbacks {
     onDeliverActivity?: (activity: Activity) => void;
     onUnloadActivity?: (activity: Activity) => void;

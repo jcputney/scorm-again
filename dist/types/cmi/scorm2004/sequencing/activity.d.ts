@@ -1,9 +1,9 @@
-import { BaseCMI } from "../../common/base_cmi";
-import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
-import { SequencingControls } from "./sequencing_controls";
-import { SequencingRules } from "./sequencing_rules";
-import { RollupRules } from "./rollup_rules";
-import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
+import { BaseCMI } from "../../common/base_cmi.js";
+import { CompletionStatus, SuccessStatus } from "../../../constants/enums.js";
+import { SequencingControls } from "./sequencing_controls.js";
+import { SequencingRules } from "./sequencing_rules.js";
+import { RollupRules } from "./rollup_rules.js";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types.js";
 export interface ObjectiveMapInfo {
     targetObjectiveID: string;
     readSatisfiedStatus?: boolean;

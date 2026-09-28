@@ -1,14 +1,14 @@
-import { Activity } from "./activity";
-import { ActivityTree } from "./activity_tree";
-import { SequencingRules } from "./sequencing_rules";
-import { SequencingControls } from "./sequencing_controls";
-import { ADLNav } from "../adl";
-import { ActivityTreeQueries } from "./utils/activity_tree_queries";
-import { ChoiceConstraintValidator } from "./validators/choice_constraint_validator";
-import { RuleEvaluationEngine } from "./rules/rule_evaluation_engine";
-import type { PostConditionResult } from "./rules/rule_evaluation_engine";
-import { FlowTraversalService } from "./traversal/flow_traversal_service";
-import { SequencingRequestType, DeliveryRequestType, SequencingResult } from "./rules/sequencing_request_types";
+import { Activity } from "./activity.js";
+import { ActivityTree } from "./activity_tree.js";
+import { SequencingRules } from "./sequencing_rules.js";
+import { SequencingControls } from "./sequencing_controls.js";
+import { ADLNav } from "../adl.js";
+import { ActivityTreeQueries } from "./utils/activity_tree_queries.js";
+import { ChoiceConstraintValidator } from "./validators/choice_constraint_validator.js";
+import { RuleEvaluationEngine } from "./rules/rule_evaluation_engine.js";
+import type { PostConditionResult } from "./rules/rule_evaluation_engine.js";
+import { FlowTraversalService } from "./traversal/flow_traversal_service.js";
+import { SequencingRequestType, DeliveryRequestType, SequencingResult } from "./rules/sequencing_request_types.js";
 export { SequencingRequestType, DeliveryRequestType, SequencingResult };
 export type { PostConditionResult };
 export interface SequencingProcessOptions {

@@ -1,5 +1,5 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
 export interface StateConsistencyResult {
     consistent: boolean;
     exception: string | null;

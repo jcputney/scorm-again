@@ -1,6 +1,6 @@
-import { Activity } from "../activity";
-import { SequencingRule, RuleActionType } from "../sequencing_rules";
-import { SequencingRequestType } from "./sequencing_request_types";
+import { Activity } from "../activity.js";
+import { SequencingRule, RuleActionType } from "../sequencing_rules.js";
+import { SequencingRequestType } from "./sequencing_request_types.js";
 export { SequencingRequestType };
 export interface PostConditionResult {
     sequencingRequest: SequencingRequestType | null;

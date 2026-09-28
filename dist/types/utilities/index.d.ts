@@ -1,5 +1,5 @@
-export * from "./core";
-export { appendQueryParam } from "./url";
-export { PlayerEventAdapter } from "./PlayerEventAdapter";
-export type { NavigationState, ScoStatus, CourseProgress, ScoDelivery, SessionEndReason, SessionEndData, PlayerEventAdapterCallbacks, PlayerEventAdapterConfig, } from "./PlayerEventAdapter";
+export * from "./core.js";
+export { appendQueryParam } from "./url.js";
+export { PlayerEventAdapter } from "./PlayerEventAdapter.js";
+export type { NavigationState, ScoStatus, CourseProgress, ScoDelivery, SessionEndReason, SessionEndData, PlayerEventAdapterCallbacks, PlayerEventAdapterConfig, } from "./PlayerEventAdapter.js";
 //# sourceMappingURL=index.d.ts.map

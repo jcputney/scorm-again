@@ -1,4 +1,4 @@
-import { BaseCMI } from "../common/base_cmi";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMIStudentData extends BaseCMI {
     private readonly __children;
     private _mastery_score;

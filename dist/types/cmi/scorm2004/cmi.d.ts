@@ -1,9 +1,9 @@
-import { BaseRootCMI } from "../common/base_cmi";
-import { CMILearnerPreference } from "./learner_preference";
-import { CMIInteractions } from "./interactions";
-import { Scorm2004CMIScore } from "./score";
-import { CMICommentsFromLearner, CMICommentsFromLMS } from "./comments";
-import { CMIObjectives } from "./objectives";
+import { BaseRootCMI } from "../common/base_cmi.js";
+import { CMILearnerPreference } from "./learner_preference.js";
+import { CMIInteractions } from "./interactions.js";
+import { Scorm2004CMIScore } from "./score.js";
+import { CMICommentsFromLearner, CMICommentsFromLMS } from "./comments.js";
+import { CMIObjectives } from "./objectives.js";
 export declare class CMI extends BaseRootCMI {
     constructor(initialized?: boolean);
     private metadata;

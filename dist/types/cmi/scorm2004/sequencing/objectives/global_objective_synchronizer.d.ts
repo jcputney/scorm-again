@@ -1,5 +1,5 @@
-import { Activity, ActivityObjective, ActivityObjectiveReadState, ObjectiveMapInfo } from "../activity";
-import { CompletionStatus } from "../../../../constants/enums";
+import { Activity, ActivityObjective, ActivityObjectiveReadState, ObjectiveMapInfo } from "../activity.js";
+import { CompletionStatus } from "../../../../constants/enums.js";
 export type EventCallback = (eventType: string, data?: unknown) => void;
 export interface GlobalObjective {
     id: string;

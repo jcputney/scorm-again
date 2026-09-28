@@ -1,8 +1,8 @@
-import { SequencingControls } from "../cmi/scorm2004/sequencing/sequencing_controls";
-import { SequencingRule, SequencingRules } from "../cmi/scorm2004/sequencing/sequencing_rules";
-import { RollupRule, RollupRules } from "../cmi/scorm2004/sequencing/rollup_rules";
-import { AuxiliaryResource, AuxiliaryResourceSettings, HideLmsUiItem, RollupRuleSettings, RollupRulesSettings, SelectionRandomizationStateSettings, SequencingCollectionSettings, SequencingControlsSettings, SequencingRuleSettings, SequencingRulesSettings } from "../types/sequencing_types";
-import { Activity } from "../cmi/scorm2004/sequencing/activity";
+import { SequencingControls } from "../cmi/scorm2004/sequencing/sequencing_controls.js";
+import { SequencingRule, SequencingRules } from "../cmi/scorm2004/sequencing/sequencing_rules.js";
+import { RollupRule, RollupRules } from "../cmi/scorm2004/sequencing/rollup_rules.js";
+import { AuxiliaryResource, AuxiliaryResourceSettings, HideLmsUiItem, RollupRuleSettings, RollupRulesSettings, SelectionRandomizationStateSettings, SequencingCollectionSettings, SequencingControlsSettings, SequencingRuleSettings, SequencingRulesSettings } from "../types/sequencing_types.js";
+import { Activity } from "../cmi/scorm2004/sequencing/activity.js";
 export declare class SequencingConfigurationBuilder {
     applySequencingControlsSettings(target: SequencingControls, settings: SequencingControlsSettings): void;
     applySequencingRulesSettings(target: SequencingRules, settings: SequencingRulesSettings): void;

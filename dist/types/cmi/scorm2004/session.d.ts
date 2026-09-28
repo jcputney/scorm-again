@@ -1,4 +1,4 @@
-import { BaseCMI } from "../common/base_cmi";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMISession extends BaseCMI {
     private _entry;
     private _exit;

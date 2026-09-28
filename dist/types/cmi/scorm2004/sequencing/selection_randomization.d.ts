@@ -1,4 +1,4 @@
-import { Activity } from "./activity";
+import { Activity } from "./activity.js";
 export declare class SelectionRandomization {
     static selectChildrenProcess(activity: Activity): Activity[];
     static randomizeChildrenProcess(activity: Activity): Activity[];

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 const global_errors = {
   GENERAL: 101};
 
@@ -311,4 +313,5 @@ class CrossFrameAPI {
 }
 
 exports.CrossFrameAPI = CrossFrameAPI;
+exports.default = CrossFrameAPI;
 //# sourceMappingURL=cross-frame-api.cjs.map

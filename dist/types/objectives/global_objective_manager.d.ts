@@ -1,10 +1,10 @@
-import { CMIObjectivesObject } from "../cmi/scorm2004/objectives";
-import { CMI } from "../cmi/scorm2004/cmi";
-import { OverallSequencingProcess } from "../cmi/scorm2004/sequencing/overall_sequencing_process";
-import { GlobalObjectiveMapEntry, ScoreObject, Settings } from "../types/api_types";
-import { SequencingService } from "../services/SequencingService";
-import { CompletionStatus, SuccessStatus } from "../constants/enums";
-import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing";
+import { CMIObjectivesObject } from "../cmi/scorm2004/objectives.js";
+import { CMI } from "../cmi/scorm2004/cmi.js";
+import { OverallSequencingProcess } from "../cmi/scorm2004/sequencing/overall_sequencing_process.js";
+import { GlobalObjectiveMapEntry, ScoreObject, Settings } from "../types/api_types.js";
+import { SequencingService } from "../services/SequencingService.js";
+import { CompletionStatus, SuccessStatus } from "../constants/enums.js";
+import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing.js";
 export type CommonSetCMIValueFn = (methodName: string, throwError: boolean, CMIElement: string, value: any) => string;
 export interface GlobalObjectiveContext {
     getSettings: () => Settings;

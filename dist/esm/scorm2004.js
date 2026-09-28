@@ -26028,5 +26028,5 @@ class Scorm2004API extends BaseAPI {
   }
 }
 
-export { Scorm2004API };
+export { Scorm2004API, Scorm2004API as default };
 //# sourceMappingURL=scorm2004.js.map

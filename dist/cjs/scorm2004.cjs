@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 const SECONDS_PER_SECOND = 1;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
@@ -26031,4 +26033,5 @@ class Scorm2004API extends BaseAPI {
 }
 
 exports.Scorm2004API = Scorm2004API;
+exports.default = Scorm2004API;
 //# sourceMappingURL=scorm2004.cjs.map

@@ -1,6 +1,6 @@
-import { ResultObject } from "../types/api_types";
-import { BaseCMI } from "../cmi/common/base_cmi";
-import { StringKeyMap } from "../utilities";
+import { ResultObject } from "../types/api_types.js";
+import { BaseCMI } from "../cmi/common/base_cmi.js";
+import { StringKeyMap } from "../utilities/index.js";
 export interface IBaseAPI {
     cmi: BaseCMI;
     startingData?: StringKeyMap;

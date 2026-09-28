@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 class CrossFrameLMS {
   _api;
   _origin;
@@ -170,4 +172,5 @@ class CrossFrameLMS {
 }
 
 exports.CrossFrameLMS = CrossFrameLMS;
+exports.default = CrossFrameLMS;
 //# sourceMappingURL=cross-frame-lms.cjs.map

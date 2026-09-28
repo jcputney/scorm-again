@@ -167,5 +167,5 @@ class CrossFrameLMS {
   }
 }
 
-export { CrossFrameLMS };
+export { CrossFrameLMS, CrossFrameLMS as default };
 //# sourceMappingURL=cross-frame-lms.js.map

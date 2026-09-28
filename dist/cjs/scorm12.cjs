@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
 const CORS_SAFELISTED_CONTENT_TYPES = [
@@ -6405,4 +6407,5 @@ class Scorm12API extends BaseAPI {
 }
 
 exports.Scorm12API = Scorm12API;
+exports.default = Scorm12API;
 //# sourceMappingURL=scorm12.cjs.map

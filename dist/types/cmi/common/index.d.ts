@@ -1,5 +1,5 @@
-export * from "./array";
-export * from "./base_cmi";
-export * from "./score";
-export * from "./validation";
+export * from "./array.js";
+export * from "./base_cmi.js";
+export * from "./score.js";
+export * from "./validation.js";
 //# sourceMappingURL=index.d.ts.map

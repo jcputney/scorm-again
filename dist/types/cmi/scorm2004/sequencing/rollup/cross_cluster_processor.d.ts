@@ -1,7 +1,7 @@
-import { Activity } from "../activity";
-import { MeasureRollupProcessor } from "./measure_rollup";
-import { ObjectiveRollupProcessor } from "./objective_rollup";
-import { ProgressRollupProcessor } from "./progress_rollup";
+import { Activity } from "../activity.js";
+import { MeasureRollupProcessor } from "./measure_rollup.js";
+import { ObjectiveRollupProcessor } from "./objective_rollup.js";
+import { ProgressRollupProcessor } from "./progress_rollup.js";
 export type EventCallback = (eventType: string, data?: unknown) => void;
 export declare class CrossClusterProcessor {
     private measureProcessor;

@@ -1,4 +1,4 @@
-import { Activity } from "../activity";
+import { Activity } from "../activity.js";
 export interface CMIDataForTransfer {
     completion_status?: string;
     completion_status_was_set?: boolean;

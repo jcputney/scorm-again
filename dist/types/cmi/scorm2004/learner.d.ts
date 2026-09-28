@@ -1,4 +1,4 @@
-import { BaseCMI } from "../common/base_cmi";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMILearner extends BaseCMI {
     private _learner_id;
     private _learner_name;

@@ -1,9 +1,9 @@
-export * from "./cmi";
-export * from "./core";
-export * from "./interactions";
-export * from "./nav";
-export * from "./objectives";
-export * from "./student_data";
-export * from "./student_preference";
-export * from "./validation";
+export * from "./cmi.js";
+export * from "./core.js";
+export * from "./interactions.js";
+export * from "./nav.js";
+export * from "./objectives.js";
+export * from "./student_data.js";
+export * from "./student_preference.js";
+export * from "./validation.js";
 //# sourceMappingURL=index.d.ts.map

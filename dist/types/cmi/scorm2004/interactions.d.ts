@@ -1,5 +1,5 @@
-import { BaseCMI } from "../common/base_cmi";
-import { CMIArray } from "../common/array";
+import { BaseCMI } from "../common/base_cmi.js";
+import { CMIArray } from "../common/array.js";
 export declare class CMIInteractions extends CMIArray {
     constructor();
 }

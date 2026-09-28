@@ -1,5 +1,5 @@
-import { CMIArray } from "../common/array";
-import { BaseCMI } from "../common/base_cmi";
+import { CMIArray } from "../common/array.js";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMICommentsFromLMS extends CMIArray {
     constructor();
 }

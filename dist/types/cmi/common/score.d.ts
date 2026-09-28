@@ -1,6 +1,6 @@
-import { BaseCMI } from "./base_cmi";
-import { BaseScormValidationError } from "../../exceptions";
-import { ScoreObject } from "../../types";
+import { BaseCMI } from "./base_cmi.js";
+import { BaseScormValidationError } from "../../exceptions/index.js";
+import { ScoreObject } from "../../types/index.js";
 export declare class CMIScore extends BaseCMI {
     private readonly __children;
     private readonly __score_range;

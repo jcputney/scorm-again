@@ -1,7 +1,7 @@
-import { Activity } from "../activity";
-import { RollupRule } from "../rollup_rules";
-import { RollupChildFilter } from "./rollup_child_filter";
-import { RollupRuleEvaluator } from "./rollup_rule_evaluator";
+import { Activity } from "../activity.js";
+import { RollupRule } from "../rollup_rules.js";
+import { RollupChildFilter } from "./rollup_child_filter.js";
+import { RollupRuleEvaluator } from "./rollup_rule_evaluator.js";
 export type EventCallback = (eventType: string, data?: unknown) => void;
 export declare class ObjectiveRollupProcessor {
     private childFilter;

@@ -1,9 +1,9 @@
-import { CMI } from "../cmi/scorm2004/cmi";
-import { CommitObject, Settings } from "../types/api_types";
-import { StringKeyMap } from "../utilities";
-import { SequencingService } from "../services/SequencingService";
-import { GlobalObjectiveManager } from "../objectives/global_objective_manager";
-import { ADL } from "../cmi/scorm2004/adl";
+import { CMI } from "../cmi/scorm2004/cmi.js";
+import { CommitObject, Settings } from "../types/api_types.js";
+import { StringKeyMap } from "../utilities/index.js";
+import { SequencingService } from "../services/SequencingService.js";
+import { GlobalObjectiveManager } from "../objectives/global_objective_manager.js";
+import { ADL } from "../cmi/scorm2004/adl.js";
 export type RenderCMIToJSONFn = () => StringKeyMap;
 export interface DataSerializerContext {
     getSettings: () => Settings;

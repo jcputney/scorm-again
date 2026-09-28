@@ -1,4 +1,4 @@
-import BaseAPI from "../BaseAPI";
+import BaseAPI from "../BaseAPI.js";
 export declare class ScheduledCommit {
     private _API;
     private _cancelled;

@@ -1,6 +1,6 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { GlobalObjective } from "./global_objective_synchronizer";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { GlobalObjective } from "./global_objective_synchronizer.js";
 export declare class ObjectiveEvaluationContext {
     private activityTree;
     private globalObjectives;

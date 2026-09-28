@@ -1,8 +1,8 @@
-import { SequencingStateMetadata, Settings } from "../types/api_types";
-import { ADL } from "../cmi/scorm2004/adl";
-import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing";
-import { GlobalObjectiveManager } from "../objectives/global_objective_manager";
-import { SequencingService } from "../services/SequencingService";
+import { SequencingStateMetadata, Settings } from "../types/api_types.js";
+import { ADL } from "../cmi/scorm2004/adl.js";
+import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing.js";
+import { GlobalObjectiveManager } from "../objectives/global_objective_manager.js";
+import { SequencingService } from "../services/SequencingService.js";
 export type ApiLogFn = (method: string, message: string, level: number) => void;
 export interface PersistenceContext {
     getSettings: () => Settings;

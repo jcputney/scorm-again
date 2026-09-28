@@ -1,8 +1,8 @@
-import { BaseCMI } from "../common/base_cmi";
-import { CMIArray } from "../common/array";
-import { Sequencing } from "./sequencing/sequencing";
-import type { SharedDataMapInfo } from "./sequencing/activity";
-import { NAVBoolean } from "../../constants";
+import { BaseCMI } from "../common/base_cmi.js";
+import { CMIArray } from "../common/array.js";
+import { Sequencing } from "./sequencing/sequencing.js";
+import type { SharedDataMapInfo } from "./sequencing/activity.js";
+import { NAVBoolean } from "../../constants/index.js";
 export declare class ADL extends BaseCMI {
     constructor();
     nav: ADLNav;

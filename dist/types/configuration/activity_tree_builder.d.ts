@@ -1,6 +1,6 @@
-import { Activity, ActivityObjective } from "../cmi/scorm2004/sequencing/activity";
-import { ActivitySettings, ObjectiveSettings, SequencingCollectionSettings } from "../types/sequencing_types";
-import { SequencingConfigurationBuilder } from "./sequencing_configuration_builder";
+import { Activity, ActivityObjective } from "../cmi/scorm2004/sequencing/activity.js";
+import { ActivitySettings, ObjectiveSettings, SequencingCollectionSettings } from "../types/sequencing_types.js";
+import { SequencingConfigurationBuilder } from "./sequencing_configuration_builder.js";
 export declare class ActivityTreeBuilder {
     private sequencingCollections;
     private sequencingConfigBuilder;

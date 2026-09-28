@@ -308,5 +308,5 @@ class CrossFrameAPI {
   }
 }
 
-export { CrossFrameAPI };
+export { CrossFrameAPI, CrossFrameAPI as default };
 //# sourceMappingURL=cross-frame-api.js.map

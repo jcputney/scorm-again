@@ -1,11 +1,11 @@
-import { Activity } from "../cmi/scorm2004/sequencing/activity";
-import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing";
-import { OverallSequencingProcess, type PreparedNavigationRequest, type SequencingState } from "../cmi/scorm2004/sequencing/overall_sequencing_process";
-import { SequencingResult } from "../cmi/scorm2004/sequencing/sequencing_process";
-import { IEventService, ILoggingService } from "../interfaces/services";
-import { CMI } from "../cmi/scorm2004/cmi";
-import { ADL } from "../cmi/scorm2004/adl";
-import { SequencingEventListeners, NavigationPreview } from "../types/sequencing_types";
+import { Activity } from "../cmi/scorm2004/sequencing/activity.js";
+import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing.js";
+import { OverallSequencingProcess, type PreparedNavigationRequest, type SequencingState } from "../cmi/scorm2004/sequencing/overall_sequencing_process.js";
+import { SequencingResult } from "../cmi/scorm2004/sequencing/sequencing_process.js";
+import { IEventService, ILoggingService } from "../interfaces/services.js";
+import { CMI } from "../cmi/scorm2004/cmi.js";
+import { ADL } from "../cmi/scorm2004/adl.js";
+import { SequencingEventListeners, NavigationPreview } from "../types/sequencing_types.js";
 export interface SequencingConfiguration {
     autoRollupOnCMIChange?: boolean;
     autoProgressOnCompletion?: boolean;

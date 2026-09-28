@@ -1,12 +1,12 @@
-import { BaseCMI } from "../../common/base_cmi";
-import { Activity } from "./activity";
-import { ActivityTree } from "./activity_tree";
-import { SequencingRules } from "./sequencing_rules";
-import { SequencingControls } from "./sequencing_controls";
-import { RollupRules } from "./rollup_rules";
-import { ADLNav } from "../adl";
-import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
-import type { OverallSequencingProcess } from "./overall_sequencing_process";
+import { BaseCMI } from "../../common/base_cmi.js";
+import { Activity } from "./activity.js";
+import { ActivityTree } from "./activity_tree.js";
+import { SequencingRules } from "./sequencing_rules.js";
+import { SequencingControls } from "./sequencing_controls.js";
+import { RollupRules } from "./rollup_rules.js";
+import { ADLNav } from "../adl.js";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types.js";
+import type { OverallSequencingProcess } from "./overall_sequencing_process.js";
 export declare class Sequencing extends BaseCMI {
     private _activityTree;
     private _sequencingRules;

@@ -1,4 +1,4 @@
-import { BaseCMI } from "../common/base_cmi";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMIStatus extends BaseCMI {
     private _completion_status;
     private _success_status;

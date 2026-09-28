@@ -28230,6 +28230,11 @@ class Scorm2004API extends BaseAPI {
   }
 }
 
+if (typeof window !== "undefined") {
+  window.Scorm12API = Scorm12API;
+  window.Scorm2004API = Scorm2004API;
+}
+
 class CrossFrameAPI {
   _cache = /* @__PURE__ */ new Map();
   _cacheTimestamps = /* @__PURE__ */ new Map();

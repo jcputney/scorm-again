@@ -1,6 +1,6 @@
-import { BaseCMI } from "../../cmi/common/base_cmi";
-import { CMI } from "../../cmi/scorm2004/cmi";
-import { Scorm2004ResponseValidator } from "./response_validator";
+import { BaseCMI } from "../../cmi/common/base_cmi.js";
+import { CMI } from "../../cmi/scorm2004/cmi.js";
+import { Scorm2004ResponseValidator } from "./response_validator.js";
 export interface CMIHandlerContext {
     cmi: CMI;
     isInitialized: () => boolean;

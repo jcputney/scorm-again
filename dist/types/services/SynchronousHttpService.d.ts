@@ -1,7 +1,7 @@
-import { CommitMetadata, CommitObject, InternalSettings, ResultObject } from "../types/api_types";
-import { IHttpService } from "../interfaces/services";
-import { ErrorCode } from "../constants/error_codes";
-import { StringKeyMap } from "../utilities";
+import { CommitMetadata, CommitObject, InternalSettings, ResultObject } from "../types/api_types.js";
+import { IHttpService } from "../interfaces/services.js";
+import { ErrorCode } from "../constants/error_codes.js";
+import { StringKeyMap } from "../utilities/index.js";
 export declare class SynchronousHttpService implements IHttpService {
     private settings;
     private error_codes;

@@ -1,4 +1,4 @@
-import { ValidationError } from "./base_exceptions";
+import { ValidationError } from "./base_exceptions.js";
 export declare class Scorm2004ValidationError extends ValidationError {
     constructor(CMIElement: string, errorCode: number);
 }

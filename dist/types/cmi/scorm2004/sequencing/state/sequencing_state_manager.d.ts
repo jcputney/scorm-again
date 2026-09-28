@@ -1,9 +1,9 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { GlobalObjectiveService } from "../services/global_objective_service";
-import { RollupProcess } from "../rollup_process";
-import { ADLNav } from "../../adl";
-import { HideLmsUiItem, AuxiliaryResource } from "../../../../types/sequencing_types";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { GlobalObjectiveService } from "../services/global_objective_service.js";
+import { RollupProcess } from "../rollup_process.js";
+import { ADLNav } from "../../adl.js";
+import { HideLmsUiItem, AuxiliaryResource } from "../../../../types/sequencing_types.js";
 export interface ActivityStateData {
     id: string;
     title: string;

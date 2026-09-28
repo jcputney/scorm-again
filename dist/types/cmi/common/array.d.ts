@@ -1,5 +1,5 @@
-import { BaseCMI } from "./base_cmi";
-import { BaseScormValidationError } from "../../exceptions";
+import { BaseCMI } from "./base_cmi.js";
+import { BaseScormValidationError } from "../../exceptions/index.js";
 export declare class CMIArray extends BaseCMI {
     private readonly _errorCode;
     private readonly _errorClass;

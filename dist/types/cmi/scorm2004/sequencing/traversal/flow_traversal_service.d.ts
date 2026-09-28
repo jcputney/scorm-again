@@ -1,7 +1,7 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { RuleEvaluationEngine } from "../rules/rule_evaluation_engine";
-import { FlowSubprocessResult, FlowSubprocessMode } from "../rules/sequencing_request_types";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { RuleEvaluationEngine } from "../rules/rule_evaluation_engine.js";
+import { FlowSubprocessResult, FlowSubprocessMode } from "../rules/sequencing_request_types.js";
 export interface FlowTreeTraversalResult {
     activity: Activity | null;
     endSequencingSession: boolean;

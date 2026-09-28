@@ -1,6 +1,6 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { ActivityTreeQueries } from "../utils/activity_tree_queries";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { ActivityTreeQueries } from "../utils/activity_tree_queries.js";
 export interface ConstraintValidationResult {
     valid: boolean;
     exception: string | null;

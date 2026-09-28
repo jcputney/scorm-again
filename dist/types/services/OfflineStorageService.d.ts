@@ -1,6 +1,6 @@
-import { CommitObject, InternalSettings, ResultObject } from "../types/api_types";
-import { LogLevelEnum } from "../constants/enums";
-import { ErrorCode } from "../constants/error_codes";
+import { CommitObject, InternalSettings, ResultObject } from "../types/api_types.js";
+import { LogLevelEnum } from "../constants/enums.js";
+import { ErrorCode } from "../constants/error_codes.js";
 type OfflineCommitMetadata = {
     isTerminateCommit?: boolean;
     sequence?: number;

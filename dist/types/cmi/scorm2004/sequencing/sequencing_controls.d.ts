@@ -1,4 +1,4 @@
-import { BaseCMI } from "../../common/base_cmi";
+import { BaseCMI } from "../../common/base_cmi.js";
 export declare enum SelectionTiming {
     NEVER = "never",
     ONCE = "once",

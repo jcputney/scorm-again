@@ -1,5 +1,5 @@
-import { CommitEventContext, LogLevel } from "../types/api_types";
-import { IEventService, ScormEventCallback } from "../interfaces/services";
+import { CommitEventContext, LogLevel } from "../types/api_types.js";
+import { IEventService, ScormEventCallback } from "../interfaces/services.js";
 export declare class EventService implements IEventService {
     private listenerMap;
     private listenerCount;

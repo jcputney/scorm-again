@@ -1,9 +1,9 @@
-import { BaseRootCMI } from "../common/base_cmi";
-import { CMICore } from "./core";
-import { CMIObjectives } from "./objectives";
-import { CMIStudentData } from "./student_data";
-import { CMIStudentPreference } from "./student_preference";
-import { CMIInteractions } from "./interactions";
+import { BaseRootCMI } from "../common/base_cmi.js";
+import { CMICore } from "./core.js";
+import { CMIObjectives } from "./objectives.js";
+import { CMIStudentData } from "./student_data.js";
+import { CMIStudentPreference } from "./student_preference.js";
+import { CMIInteractions } from "./interactions.js";
 export declare class CMI extends BaseRootCMI {
     private readonly __children;
     private __version;

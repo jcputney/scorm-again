@@ -1,2 +1,2 @@
-export { GlobalObjectiveSynchronizer, GlobalObjective, LocalObjectiveState, EventCallback as GlobalObjectiveEventCallback, } from "./global_objective_synchronizer";
+export { GlobalObjectiveSynchronizer, GlobalObjective, LocalObjectiveState, EventCallback as GlobalObjectiveEventCallback, } from "./global_objective_synchronizer.js";
 //# sourceMappingURL=index.d.ts.map

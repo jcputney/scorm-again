@@ -1,8 +1,8 @@
-import { CommitMetadata, CommitObject, InternalSettings, ResultObject } from "../types/api_types";
-import { LogLevelEnum } from "../constants/enums";
-import { IHttpService } from "../interfaces/services";
-import { ErrorCode } from "../constants/error_codes";
-import { StringKeyMap } from "../utilities";
+import { CommitMetadata, CommitObject, InternalSettings, ResultObject } from "../types/api_types.js";
+import { LogLevelEnum } from "../constants/enums.js";
+import { IHttpService } from "../interfaces/services.js";
+import { ErrorCode } from "../constants/error_codes.js";
+import { StringKeyMap } from "../utilities/index.js";
 export declare class AsynchronousHttpService implements IHttpService {
     readonly reportsRequestCompletion = true;
     private settings;

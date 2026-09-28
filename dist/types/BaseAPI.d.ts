@@ -1,8 +1,8 @@
-import { StringKeyMap } from "./utilities";
-import { BaseCMI } from "./cmi/common/base_cmi";
-import { ErrorCode } from "./constants";
-import { CommitEventContext, CommitObject, CommitTrigger, InternalSettings, LogLevel, ResetOptions, ResultObject, Settings } from "./types";
-import { IBaseAPI, ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService, ScormEventCallback } from "./interfaces";
+import { StringKeyMap } from "./utilities/index.js";
+import { BaseCMI } from "./cmi/common/base_cmi.js";
+import { ErrorCode } from "./constants/index.js";
+import { CommitEventContext, CommitObject, CommitTrigger, InternalSettings, LogLevel, ResetOptions, ResultObject, Settings } from "./types/index.js";
+import { IBaseAPI, ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService, ScormEventCallback } from "./interfaces/index.js";
 export default abstract class BaseAPI implements IBaseAPI {
     private _timeout?;
     protected readonly _error_codes: ErrorCode;

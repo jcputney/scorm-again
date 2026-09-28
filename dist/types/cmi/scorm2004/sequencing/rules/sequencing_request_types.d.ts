@@ -1,4 +1,4 @@
-import { Activity } from "../activity";
+import { Activity } from "../activity.js";
 export declare enum SequencingRequestType {
     START = "start",
     RESUME_ALL = "resumeAll",

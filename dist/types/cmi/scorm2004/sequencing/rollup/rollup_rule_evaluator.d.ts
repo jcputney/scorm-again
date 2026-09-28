@@ -1,6 +1,6 @@
-import { Activity } from "../activity";
-import { RollupActionType, RollupRule } from "../rollup_rules";
-import { RollupChildFilter } from "./rollup_child_filter";
+import { Activity } from "../activity.js";
+import { RollupActionType, RollupRule } from "../rollup_rules.js";
+import { RollupChildFilter } from "./rollup_child_filter.js";
 export declare class RollupRuleEvaluator {
     private childFilter;
     constructor(childFilter: RollupChildFilter);

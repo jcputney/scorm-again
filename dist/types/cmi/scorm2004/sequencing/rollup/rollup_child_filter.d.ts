@@ -1,4 +1,4 @@
-import { Activity, RollupConsiderationsConfig } from "../activity";
+import { Activity, RollupConsiderationsConfig } from "../activity.js";
 export type RollupType = "measure" | "objective" | "progress";
 export type RollupAction = "satisfied" | "notSatisfied" | "completed" | "incomplete";
 export declare class RollupChildFilter {

@@ -1,4 +1,4 @@
-import { CrossFrameAPIOptions, CrossFrameEventCallback } from "./types/CrossFrame";
+import { CrossFrameAPIOptions, CrossFrameEventCallback } from "./types/CrossFrame.js";
 export default class CrossFrameAPI {
     private _cache;
     private _cacheTimestamps;

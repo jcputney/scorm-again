@@ -1,4 +1,4 @@
-import { BaseCMI } from "../common/base_cmi";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMIStudentPreference extends BaseCMI {
     private readonly __children;
     constructor(student_preference_children?: string);

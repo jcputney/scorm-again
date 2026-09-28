@@ -1,4 +1,4 @@
-import { BaseScormValidationError } from "../exceptions";
+import { BaseScormValidationError } from "../exceptions/index.js";
 export declare class ValidationService {
     validateScore(CMIElement: string, value: string, decimalRegex: string, scoreRange: string | false, invalidTypeCode: number, invalidRangeCode: number, errorClass: typeof BaseScormValidationError, allowEmptyString?: boolean): boolean;
     validateScorm12Audio(CMIElement: string, value: string): boolean;

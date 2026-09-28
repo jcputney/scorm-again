@@ -1,9 +1,9 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { SequencingProcess, SequencingRequestType, PostConditionResult } from "../sequencing_process";
-import { RollupProcess } from "../rollup_process";
-import type { CMIDataForTransfer } from "./rte_data_transfer";
-export type { CMIDataForTransfer } from "./rte_data_transfer";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { SequencingProcess, SequencingRequestType, PostConditionResult } from "../sequencing_process.js";
+import { RollupProcess } from "../rollup_process.js";
+import type { CMIDataForTransfer } from "./rte_data_transfer.js";
+export type { CMIDataForTransfer } from "./rte_data_transfer.js";
 export interface TerminationResult {
     terminationRequest: SequencingRequestType;
     sequencingRequest: SequencingRequestType | null;

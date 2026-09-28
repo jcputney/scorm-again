@@ -1,5 +1,5 @@
-import { LogLevel } from "../types/api_types";
-import { ILoggingService } from "../interfaces/services";
+import { LogLevel } from "../types/api_types.js";
+import { ILoggingService } from "../interfaces/services.js";
 export declare class LoggingService implements ILoggingService {
     private static _instance;
     private _logLevel;

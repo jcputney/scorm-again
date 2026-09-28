@@ -1,5 +1,5 @@
-import { ActivityTree } from "./activity_tree";
-import { SequencingProcess } from "./sequencing_process";
+import { ActivityTree } from "./activity_tree.js";
+import { SequencingProcess } from "./sequencing_process.js";
 export interface NavigationPredictions {
     continueEnabled: boolean;
     previousEnabled: boolean;

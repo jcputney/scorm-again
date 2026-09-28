@@ -1,5 +1,5 @@
-import { Activity } from "../activity";
-import { RollupProcess } from "../rollup_process";
+import { Activity } from "../activity.js";
+import { RollupProcess } from "../rollup_process.js";
 export declare class GlobalObjectiveService {
     private globalObjectiveMap;
     private eventCallback;

@@ -1,6 +1,6 @@
-import Scorm12API from "../Scorm12API";
-import Scorm2004API from "../Scorm2004API";
-import { NavigationValidityUpdate } from "../types/sequencing_types";
+import Scorm12API from "../Scorm12API.js";
+import Scorm2004API from "../Scorm2004API.js";
+import { NavigationValidityUpdate } from "../types/sequencing_types.js";
 export interface NavigationState {
     canPrevious: boolean;
     canNext: boolean;

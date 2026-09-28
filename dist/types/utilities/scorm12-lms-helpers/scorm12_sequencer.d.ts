@@ -1,5 +1,5 @@
-import { ScoDefinition, NavigationSuggestion, ExitAction } from "./types";
-import { ScoStateTracker } from "./sco_state_tracker";
+import { ScoDefinition, NavigationSuggestion, ExitAction } from "./types.js";
+import { ScoStateTracker } from "./sco_state_tracker.js";
 export type ScoAvailabilityFilter = (sco: ScoDefinition, tracker: ScoStateTracker) => boolean;
 export declare class Scorm12Sequencer {
     private _scoList;

@@ -1,4 +1,4 @@
-import { ScoState, ScoStateChangeEvent } from "./types";
+import { ScoState, ScoStateChangeEvent } from "./types.js";
 export type StateChangeListener = (event: ScoStateChangeEvent) => void;
 export declare class ScoStateTracker {
     private _states;

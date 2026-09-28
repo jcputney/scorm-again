@@ -1,7 +1,7 @@
-import { BaseCMI } from "../cmi/common/base_cmi";
-import { LogLevelEnum } from "../constants";
-import { StringKeyMap } from "../utilities";
-import { ErrorCode } from "../constants/error_codes";
+import { BaseCMI } from "../cmi/common/base_cmi.js";
+import { LogLevelEnum } from "../constants/index.js";
+import { StringKeyMap } from "../utilities/index.js";
+import { ErrorCode } from "../constants/error_codes.js";
 export interface CMIValueAccessContext {
     readonly errorCodes: ErrorCode;
     getLastErrorCode: () => string;

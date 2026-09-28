@@ -1,5 +1,5 @@
-import { CompletionStatus, SuccessStatus } from "../constants/enums";
-import type { SharedDataMapSettings } from "./sequencing_types";
+import { CompletionStatus, SuccessStatus } from "../constants/enums.js";
+import type { SharedDataMapSettings } from "./sequencing_types.js";
 export interface IActivity {
     readonly id: string;
     readonly title: string;

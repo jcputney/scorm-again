@@ -1,5 +1,5 @@
-import { RollupOptions, CourseRollupResult } from "./types";
-import { ScoStateTracker } from "./sco_state_tracker";
+import { RollupOptions, CourseRollupResult } from "./types.js";
+import { ScoStateTracker } from "./sco_state_tracker.js";
 export declare class CourseRollupCalculator {
     private _stateTracker;
     private _options;

@@ -1,13 +1,13 @@
-import BaseAPI from "./BaseAPI";
-import { StringKeyMap } from "./utilities";
-import { BaseCMI } from "./cmi/common/base_cmi";
-import { CMI } from "./cmi/scorm2004/cmi";
-import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
-import { ADL } from "./cmi/scorm2004/adl";
-import { CommitObject, CommitTrigger, GlobalObjectiveMapEntry, ResetOptions, ResultObject, SequencingStateMetadata, Settings } from "./types";
-import { IHttpService } from "./interfaces";
-import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
-import type { NavigationPreview } from "./types/sequencing_types";
+import BaseAPI from "./BaseAPI.js";
+import { StringKeyMap } from "./utilities/index.js";
+import { BaseCMI } from "./cmi/common/base_cmi.js";
+import { CMI } from "./cmi/scorm2004/cmi.js";
+import { CMIObjectivesObject } from "./cmi/scorm2004/objectives.js";
+import { ADL } from "./cmi/scorm2004/adl.js";
+import { CommitObject, CommitTrigger, GlobalObjectiveMapEntry, ResetOptions, ResultObject, SequencingStateMetadata, Settings } from "./types/index.js";
+import { IHttpService } from "./interfaces/index.js";
+import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services/index.js";
+import type { NavigationPreview } from "./types/sequencing_types.js";
 declare class Scorm2004API extends BaseAPI {
     private _version;
     private readonly _sequencing;

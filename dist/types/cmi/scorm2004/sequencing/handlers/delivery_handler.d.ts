@@ -1,8 +1,8 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { RollupProcess } from "../rollup_process";
-import { ADLNav } from "../../adl";
-import { AuxiliaryResource, HideLmsUiItem } from "../../../../types/sequencing_types";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { RollupProcess } from "../rollup_process.js";
+import { ADLNav } from "../../adl.js";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../../types/sequencing_types.js";
 export declare class DeliveryRequest {
     valid: boolean;
     targetActivity: Activity | null;

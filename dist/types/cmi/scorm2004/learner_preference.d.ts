@@ -1,4 +1,4 @@
-import { BaseCMI } from "../common/base_cmi";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMILearnerPreference extends BaseCMI {
     private __children;
     private _audio_level;

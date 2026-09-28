@@ -1,5 +1,5 @@
-import { CrossFrameLMSOptions } from "./types/CrossFrame";
-import { IBaseAPI } from "./interfaces/IBaseAPI";
+import { CrossFrameLMSOptions } from "./types/CrossFrame.js";
+import { IBaseAPI } from "./interfaces/IBaseAPI.js";
 export default class CrossFrameLMS {
     private readonly _api;
     private readonly _origin;

@@ -1,4 +1,4 @@
-import { Activity } from "../activity";
+import { Activity } from "../activity.js";
 export type EventCallback = (eventType: string, data?: unknown) => void;
 export declare class DurationRollupProcessor {
     private eventCallback;

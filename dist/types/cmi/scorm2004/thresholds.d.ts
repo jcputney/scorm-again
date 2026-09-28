@@ -1,4 +1,4 @@
-import { BaseCMI } from "../common/base_cmi";
+import { BaseCMI } from "../common/base_cmi.js";
 export declare class CMIThresholds extends BaseCMI {
     private _scaled_passing_score;
     private _completion_threshold;

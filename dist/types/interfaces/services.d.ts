@@ -1,8 +1,8 @@
-import { CommitEventContext, CommitMetadata, CommitObject, LogLevel, ResultObject, Settings } from "../types/api_types";
-import { ErrorCode } from "../constants/error_codes";
-import { LogLevelEnum } from "../constants/enums";
-import { BaseCMI } from "../cmi/common/base_cmi";
-import { StringKeyMap } from "../utilities";
+import { CommitEventContext, CommitMetadata, CommitObject, LogLevel, ResultObject, Settings } from "../types/api_types.js";
+import { ErrorCode } from "../constants/error_codes.js";
+import { LogLevelEnum } from "../constants/enums.js";
+import { BaseCMI } from "../cmi/common/base_cmi.js";
+import { StringKeyMap } from "../utilities/index.js";
 export interface IHttpService {
     readonly reportsRequestCompletion?: boolean;
     processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate: boolean, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void, processListeners: (functionName: string, CMIElement?: string, value?: any) => void, metadata?: CommitMetadata, onRequestComplete?: () => void): ResultObject;

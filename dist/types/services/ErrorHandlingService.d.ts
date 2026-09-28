@@ -1,6 +1,6 @@
-import { ErrorCode } from "../constants/error_codes";
-import { IErrorHandlingService, ILoggingService } from "../interfaces/services";
-import { LogLevel } from "../types/api_types";
+import { ErrorCode } from "../constants/error_codes.js";
+import { IErrorHandlingService, ILoggingService } from "../interfaces/services.js";
+import { LogLevel } from "../types/api_types.js";
 export declare class ErrorHandlingService implements IErrorHandlingService {
     private _lastErrorCode;
     private _lastDiagnostic;

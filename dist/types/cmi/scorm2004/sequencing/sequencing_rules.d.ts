@@ -1,5 +1,5 @@
-import { BaseCMI } from "../../common/base_cmi";
-import { Activity } from "./activity";
+import { BaseCMI } from "../../common/base_cmi.js";
+import { Activity } from "./activity.js";
 export declare enum RuleConditionOperator {
     NOT = "not",
     AND = "and",

@@ -1,6 +1,6 @@
-import { BaseCMI } from "../common/base_cmi";
-import { CMIScore } from "../common/score";
-import { CMIArray } from "../common/array";
+import { BaseCMI } from "../common/base_cmi.js";
+import { CMIScore } from "../common/score.js";
+import { CMIArray } from "../common/array.js";
 export declare class CMIObjectives extends CMIArray {
     constructor();
 }

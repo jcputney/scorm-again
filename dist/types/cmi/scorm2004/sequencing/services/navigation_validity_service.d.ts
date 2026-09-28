@@ -1,9 +1,9 @@
-import { Activity } from "../activity";
-import { ActivityTree } from "../activity_tree";
-import { SequencingProcess, SequencingRequestType } from "../sequencing_process";
-import { ADLNav } from "../../adl";
-import { NavigationLookAhead, NavigationPredictions } from "../navigation_look_ahead";
-import { AuxiliaryResource, HideLmsUiItem } from "../../../../types/sequencing_types";
+import { Activity } from "../activity.js";
+import { ActivityTree } from "../activity_tree.js";
+import { SequencingProcess, SequencingRequestType } from "../sequencing_process.js";
+import { ADLNav } from "../../adl.js";
+import { NavigationLookAhead, NavigationPredictions } from "../navigation_look_ahead.js";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../../types/sequencing_types.js";
 export declare enum NavigationRequestType {
     START = "start",
     RESUME_ALL = "resumeAll",

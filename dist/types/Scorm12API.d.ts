@@ -1,10 +1,10 @@
-import BaseAPI from "./BaseAPI";
-import { StringKeyMap } from "./utilities";
-import { BaseCMI } from "./cmi/common/base_cmi";
-import { CMI } from "./cmi/scorm12/cmi";
-import { NAV } from "./cmi/scorm12/nav";
-import { CommitObject, CommitTrigger, ResetOptions, ResultObject, Settings } from "./types";
-import { IHttpService } from "./interfaces";
+import BaseAPI from "./BaseAPI.js";
+import { StringKeyMap } from "./utilities/index.js";
+import { BaseCMI } from "./cmi/common/base_cmi.js";
+import { CMI } from "./cmi/scorm12/cmi.js";
+import { NAV } from "./cmi/scorm12/nav.js";
+import { CommitObject, CommitTrigger, ResetOptions, ResultObject, Settings } from "./types/index.js";
+import { IHttpService } from "./interfaces/index.js";
 declare class Scorm12API extends BaseAPI {
     private static _globalLearnerPrefs;
     static clearGlobalPreferences(): void;

@@ -1,5 +1,5 @@
-import { BaseCMI } from "../common/base_cmi";
-import { CMIScore } from "../common/score";
+import { BaseCMI } from "../common/base_cmi.js";
+import { CMIScore } from "../common/score.js";
 export declare class CMICore extends BaseCMI {
     constructor();
     readonly score: CMIScore;
