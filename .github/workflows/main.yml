@@ -140,6 +140,9 @@ jobs:
       - name: Build (prod)
         run: npm run build:all:prod
 
+      - name: Package smoke test
+        run: npm run test:package
+
       - name: Run oxlint
         run: npx oxlint ./src
 

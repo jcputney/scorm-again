@@ -169,6 +169,7 @@
     "test:integration:setup": "tsx test/integration/setup.ts",
     "test:integration:video": "npm run build:fast && RECORD_VIDEO=true npx playwright test",
     "test:min": "vitest run --reporter=default",
+    "test:package": "node scripts/package-smoke.mjs",
     "test:performance": "tsx test/performance/benchmark.ts",
     "test:ui": "vitest --ui"
   },
