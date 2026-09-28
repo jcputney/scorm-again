@@ -100,8 +100,8 @@
     "@swc/core": "^1.16.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@vitest/coverage-v8": "5.0.1",
-    "@vitest/ui": "5.0.1",
+    "@vitest/coverage-v8": "5.0.2",
+    "@vitest/ui": "5.0.2",
     "cors": "^2.8.6",
     "es-check": "^9.8.1",
     "esbuild": "0.28.2",
@@ -125,7 +125,7 @@
     "tsx": "4.23.15",
     "typescript": "7.0.2",
     "vite": "8.3.1",
-    "vitest": "5.0.1"
+    "vitest": "5.0.2"
   },
   "engines": {
     "node": ">=20.19.0"
