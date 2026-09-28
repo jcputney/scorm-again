@@ -17,7 +17,7 @@ function walk(directory) {
 
     const original = readFileSync(file, "utf8");
     const updated = original.replace(
-      /(\bfrom\s+|\bimport\s*\(\s*)(["'])(\.{1,2}\/[^"'\r\n]*)\2/g,
+      /(\bfrom\s+|\bimport\s*\(?\s*)(["'])(\.{1,2}\/[^"'\r\n]*)\2/g,
       (match, prefix, quote, specifier) => {
         if (specifier.endsWith(".js")) return match;
 
