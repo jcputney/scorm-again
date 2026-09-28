@@ -10,67 +10,69 @@
     ".": {
       "types": "./index.d.ts",
       "import": "./dist/esm/scorm-again.js",
-      "require": "./dist/scorm-again.js",
+      "require": "./dist/cjs/scorm-again.cjs",
       "default": "./dist/scorm-again.js"
     },
     "./scorm12": {
       "types": "./dist/types/Scorm12API.d.ts",
       "import": "./dist/esm/scorm12.js",
-      "require": "./dist/scorm12.js",
+      "require": "./dist/cjs/scorm12.cjs",
       "default": "./dist/scorm12.js"
     },
     "./scorm12/min": {
       "types": "./dist/types/Scorm12API.d.ts",
       "import": "./dist/esm/scorm12.min.js",
-      "require": "./dist/scorm12.min.js",
+      "require": "./dist/cjs/scorm12.min.cjs",
       "default": "./dist/scorm12.min.js"
     },
     "./scorm2004": {
       "types": "./dist/types/Scorm2004API.d.ts",
       "import": "./dist/esm/scorm2004.js",
-      "require": "./dist/scorm2004.js",
+      "require": "./dist/cjs/scorm2004.cjs",
       "default": "./dist/scorm2004.js"
     },
     "./scorm2004/min": {
       "types": "./dist/types/Scorm2004API.d.ts",
       "import": "./dist/esm/scorm2004.min.js",
-      "require": "./dist/scorm2004.min.js",
+      "require": "./dist/cjs/scorm2004.min.cjs",
       "default": "./dist/scorm2004.min.js"
     },
     "./cross-frame-api": {
       "types": "./dist/types/CrossFrameAPI.d.ts",
       "import": "./dist/esm/cross-frame-api.js",
-      "require": "./dist/cross-frame-api.js",
+      "require": "./dist/cjs/cross-frame-api.cjs",
       "default": "./dist/cross-frame-api.js"
     },
     "./cross-frame-api/min": {
       "types": "./dist/types/CrossFrameAPI.d.ts",
       "import": "./dist/esm/cross-frame-api.min.js",
-      "require": "./dist/cross-frame-api.min.js",
+      "require": "./dist/cjs/cross-frame-api.min.cjs",
       "default": "./dist/cross-frame-api.min.js"
     },
     "./cross-frame-lms": {
       "types": "./dist/types/CrossFrameLMS.d.ts",
       "import": "./dist/esm/cross-frame-lms.js",
-      "require": "./dist/cross-frame-lms.js",
+      "require": "./dist/cjs/cross-frame-lms.cjs",
       "default": "./dist/cross-frame-lms.js"
     },
     "./cross-frame-lms/min": {
       "types": "./dist/types/CrossFrameLMS.d.ts",
       "import": "./dist/esm/cross-frame-lms.min.js",
-      "require": "./dist/cross-frame-lms.min.js",
+      "require": "./dist/cjs/cross-frame-lms.min.cjs",
       "default": "./dist/cross-frame-lms.min.js"
     },
     "./min": {
       "types": "./index.d.ts",
       "import": "./dist/esm/scorm-again.min.js",
-      "require": "./dist/scorm-again.min.js",
+      "require": "./dist/cjs/scorm-again.min.cjs",
       "default": "./dist/scorm-again.min.js"
     }
   },
   "files": [
     "dist/**/*.js",
+    "dist/**/*.cjs",
     "dist/**/*.js.map",
+    "dist/**/*.cjs.map",
     "dist/**/*.d.ts",
     "index.d.ts"
   ],

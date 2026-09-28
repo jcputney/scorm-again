@@ -282,12 +282,21 @@ Object.entries(esmEntries).forEach(([name, input]) => {
   // ESM copies
   configs.push({
     input,
-    output: {
-      file: `dist/esm/${name}.js`,
-      format: "es",
-      sourcemap: generateSourceMap,
-      exports: "auto",
-    },
+    output: [
+      {
+        file: `dist/esm/${name}.js`,
+        format: "es",
+        sourcemap: generateSourceMap,
+        exports: "auto",
+      },
+      // CommonJS copy for the package's `require` export condition
+      {
+        file: `dist/cjs/${name}.cjs`,
+        format: "cjs",
+        sourcemap: generateSourceMap,
+        exports: "named",
+      },
+    ],
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
@@ -303,12 +312,21 @@ Object.entries(esmEntries).forEach(([name, input]) => {
   if (!skipMinified) {
     configs.push({
       input,
-      output: {
-        file: `dist/esm/${name}.min.js`,
-        format: "es",
-        sourcemap: generateSourceMap,
-        exports: "auto",
-      },
+      output: [
+        {
+          file: `dist/esm/${name}.min.js`,
+          format: "es",
+          sourcemap: generateSourceMap,
+          exports: "auto",
+        },
+        // CommonJS copy for the package's `require` export condition
+        {
+          file: `dist/cjs/${name}.min.cjs`,
+          format: "cjs",
+          sourcemap: generateSourceMap,
+          exports: "named",
+        },
+      ],
       external: ["window.API", "window.API_1484_11"],
       plugins: [
         cache(),
