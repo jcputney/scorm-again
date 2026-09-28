@@ -172,6 +172,10 @@ const esmEntries = {
   "cross-frame-api": "src/esm/CrossFrameAPI.esm.ts",
   "cross-frame-lms": "src/esm/CrossFrameLMS.esm.ts",
 };
+const cjsEntries = {
+  ...esmEntries,
+  "scorm-again": "src/cjs/ScormAgain.cjs.ts",
+};
 
 // Determine if we're in production mode
 const isProduction = process.env.NODE_ENV === "production";
@@ -282,21 +286,12 @@ Object.entries(esmEntries).forEach(([name, input]) => {
   // ESM copies
   configs.push({
     input,
-    output: [
-      {
-        file: `dist/esm/${name}.js`,
-        format: "es",
-        sourcemap: generateSourceMap,
-        exports: "auto",
-      },
-      // CommonJS copy for the package's `require` export condition
-      {
-        file: `dist/cjs/${name}.cjs`,
-        format: "cjs",
-        sourcemap: generateSourceMap,
-        exports: "named",
-      },
-    ],
+    output: {
+      file: `dist/esm/${name}.js`,
+      format: "es",
+      sourcemap: generateSourceMap,
+      exports: "auto",
+    },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
@@ -312,21 +307,74 @@ Object.entries(esmEntries).forEach(([name, input]) => {
   if (!skipMinified) {
     configs.push({
       input,
-      output: [
-        {
-          file: `dist/esm/${name}.min.js`,
-          format: "es",
-          sourcemap: generateSourceMap,
-          exports: "auto",
-        },
-        // CommonJS copy for the package's `require` export condition
-        {
-          file: `dist/cjs/${name}.min.cjs`,
-          format: "cjs",
-          sourcemap: generateSourceMap,
-          exports: "named",
-        },
+      output: {
+        file: `dist/esm/${name}.min.js`,
+        format: "es",
+        sourcemap: generateSourceMap,
+        exports: "auto",
+      },
+      external: ["window.API", "window.API_1484_11"],
+      plugins: [
+        cache(),
+        esbuild({
+          tsconfig: "./tsconfig.json",
+          sourceMap: generateSourceMap,
+          target: "es2022",
+        }),
+        createTerserPlugin({
+          compress: {
+            passes: 2, // Reduced from 3 to 2 for faster builds
+            drop_console: false,
+            pure_getters: true,
+            unsafe: true,
+            unsafe_comps: true,
+            unsafe_math: true,
+            unsafe_methods: true,
+            unsafe_proto: true,
+          },
+          format: {
+            comments: false,
+          },
+          mangle: {
+            reserved: reservedWords,
+          },
+        }),
       ],
+    });
+  }
+});
+
+Object.entries(cjsEntries).forEach(([name, input]) => {
+  // CommonJS copies for the package's `require` export condition
+  configs.push({
+    input,
+    output: {
+      file: `dist/cjs/${name}.cjs`,
+      format: "cjs",
+      sourcemap: generateSourceMap,
+      exports: "named",
+    },
+    external: ["window.API", "window.API_1484_11"],
+    plugins: [
+      cache(),
+      esbuild({
+        tsconfig: "./tsconfig.json",
+        sourceMap: generateSourceMap,
+        target: "es2022",
+      }),
+    ],
+  });
+
+  // CommonJS minified copies (skip in dev for faster builds)
+  if (!skipMinified) {
+    configs.push({
+      input,
+      output: {
+        file: `dist/cjs/${name}.min.cjs`,
+        format: "cjs",
+        sourcemap: generateSourceMap,
+        exports: "named",
+      },
       external: ["window.API", "window.API_1484_11"],
       plugins: [
         cache(),

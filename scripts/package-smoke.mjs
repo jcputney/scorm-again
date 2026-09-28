@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,7 +28,8 @@ function run(command, args, cwd) {
     });
     return fs.readFileSync(stdout, "utf8");
   } catch (error) {
-    throw new Error(fs.readFileSync(stderr, "utf8").trim() || error.message);
+    const output = [stderr, stdout].map((file) => fs.readFileSync(file, "utf8").trim());
+    throw new Error(output.filter(Boolean).join("\n") || error.message);
   } finally {
     for (const fd of fds) fs.closeSync(fd);
   }
@@ -51,7 +53,75 @@ function check(consumer, subpath, source, expected, label = "keys") {
   }
 }
 
+function checkTypes(consumer, tsc) {
+  const imports = [
+    'import { Scorm12API, Scorm2004API, CrossFrameAPI, CrossFrameLMS } from "scorm-again";',
+  ];
+  const classes = Object.values(namedExports);
+  for (const [subpath, name] of Object.entries(namedExports)) {
+    if (consumer.kind === "CJS" && name !== "Scorm2004API") continue;
+    imports.push(`import { ${name} as ${name}Subpath } from "scorm-again${subpath.slice(1)}";`);
+    classes.push(`${name}Subpath`);
+  }
+  if (consumer.kind === "ESM") {
+    imports.push(
+      'import Scorm12Default from "scorm-again/scorm12";',
+      'import type S12Type from "scorm-again/scorm2004";',
+      "let t: S12Type | undefined; void t;",
+    );
+    classes.push("Scorm12Default");
+  }
+  const probes = classes.map((name) => {
+    const lms = name.startsWith("CrossFrameLMS");
+    return `{
+      const api = new ${name}(${lms ? "new Scorm12API()" : ""});
+      api.${lms ? "destroy()" : 'on("LMSInitialize", () => {})'};
+      // @ts-expect-error Instances must not become any.
+      const instance: number = api;
+      // @ts-expect-error CMI is typed (and absent on cross-frame facades).
+      const cmi: number = api.cmi;
+    }`;
+  });
+  const file = path.join(consumer.dir, consumer.kind === "CJS" ? "probe.cts" : "probe.ts");
+  fs.writeFileSync(file, [...imports, ...probes].join("\n"));
+  const resolutions = consumer.kind === "CJS" ? ["nodenext"] : ["nodenext", "bundler"];
+  for (const resolution of resolutions) {
+    try {
+      run(
+        process.execPath,
+        [
+          tsc,
+          "--noEmit",
+          "--strict",
+          "--skipLibCheck",
+          "--target",
+          "es2022",
+          "--module",
+          resolution === "bundler" ? "esnext" : "nodenext",
+          "--moduleResolution",
+          resolution,
+          file,
+        ],
+        consumer.dir,
+      );
+      console.log(`PASS types ${consumer.kind} ${resolution}`);
+    } catch (error) {
+      process.exitCode = 1;
+      console.log(`FAIL types ${consumer.kind} ${resolution}: ${error.message.trim()}`);
+    }
+  }
+}
+
 try {
+  const require = createRequire(import.meta.url);
+  let tsc;
+  try {
+    tsc = require.resolve("typescript/bin/tsc");
+  } catch (error) {
+    if (error.code !== "ERR_PACKAGE_PATH_NOT_EXPORTED") throw error;
+    // TypeScript 7 restricts exports but still ships the compiler in bin/tsc.
+    tsc = path.join(path.dirname(require.resolve("typescript/package.json")), "bin/tsc");
+  }
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
   const subpaths = Object.keys(pkg.exports).map((subpath) => {
     if (subpath === "." || subpath === "./min") {
@@ -59,7 +129,7 @@ try {
     }
     const mapping = Object.entries(namedExports).find(([prefix]) => subpath.startsWith(prefix));
     if (!mapping) throw new Error(`No expected exports mapped for ${subpath}`);
-    return [subpath, [mapping[1]]];
+    return [subpath, [mapping[1], "default"].sort()];
   });
   const [{ filename }] = JSON.parse(
     run("npm", ["pack", "--json", "--pack-destination", tmp], root),
@@ -100,6 +170,21 @@ try {
       "true",
       "result",
     );
+    if (kind === "CJS") {
+      for (const spec of [pkg.name, `${pkg.name}/min`]) {
+        check(
+          consumer,
+          `${spec} window globals`,
+          `globalThis.window = globalThis;
+           const mod = require(${JSON.stringify(spec)});
+           console.log(JSON.stringify([typeof window.Scorm12API, typeof window.Scorm2004API,
+             typeof mod.Scorm12API]));`,
+          ["function", "function", "function"],
+          "types",
+        );
+      }
+    }
+    checkTypes(consumer, tsc);
   }
 } catch (error) {
   process.exitCode = 1;
