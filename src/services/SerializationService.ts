@@ -116,7 +116,7 @@ export class SerializationService implements ISerializationService {
       if (a.field === "type") return -1;
       if (b.field === "type") return 1;
 
-      return a.field.localeCompare(b.field);
+      return a.field.localeCompare(b.field, undefined, { numeric: true });
     });
 
     // Sort objectives: first by index, then prioritize 'id' field
@@ -129,11 +129,11 @@ export class SerializationService implements ISerializationService {
       if (a.field === "id") return -1;
       if (b.field === "id") return 1;
 
-      return a.field.localeCompare(b.field);
+      return a.field.localeCompare(b.field, undefined, { numeric: true });
     });
 
-    // Sort other keys alphabetically
-    others.sort((a, b) => a.key.localeCompare(b.key));
+    // Sort other keys alphabetically, comparing numeric list indexes as numbers
+    others.sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
 
     // Process all items in the correct order
     const processItems = (items: { key: string; value: any }[]) => {

@@ -849,6 +849,33 @@ describe("SCORM 2004 API Tests", () => {
       scorm2004API.lmsInitialize();
       expect(scorm2004API.lmsGetValue("cmi.interactions.0.id")).toEqual("Question14_1");
     });
+
+    // Issue #1722: index 10+ sorted as text before index 2 and was refused
+    it("should load sub-list items with index 10 and above", (): void => {
+      const scorm2004API = api();
+      const json: StringKeyMap = {
+        "cmi.interactions.0.id": "q1",
+        "cmi.interactions.0.type": "fill-in",
+      };
+      for (let i = 0; i < 12; i++) {
+        json[`cmi.interactions.0.correct_responses.${i}.pattern`] = `answer-${i}`;
+        json[`cmi.interactions.0.objectives.${i}.id`] = `obj-${i}`;
+        json[`cmi.comments_from_learner.${i}.comment`] = `comment-${i}`;
+      }
+      scorm2004API.loadFromFlattenedJSON(json, "");
+      scorm2004API.lmsInitialize();
+
+      expect(scorm2004API.lmsGetValue("cmi.interactions.0.correct_responses._count")).toEqual("12");
+      expect(scorm2004API.lmsGetValue("cmi.interactions.0.correct_responses.10.pattern")).toEqual(
+        "answer-10",
+      );
+      expect(scorm2004API.lmsGetValue("cmi.interactions.0.objectives._count")).toEqual("12");
+      expect(scorm2004API.lmsGetValue("cmi.interactions.0.objectives.11.id")).toEqual("obj-11");
+      expect(scorm2004API.lmsGetValue("cmi.comments_from_learner._count")).toEqual("12");
+      expect(scorm2004API.lmsGetValue("cmi.comments_from_learner.10.comment")).toEqual(
+        "comment-10",
+      );
+    });
   });
 
   describe("renderCommitCMI()", () => {
