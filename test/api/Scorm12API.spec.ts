@@ -1324,6 +1324,21 @@ describe("SCORM 1.2 API Tests", () => {
   });
 
   describe("Test issues from users", () => {
+    it("Should load interaction sub-list items with index 10 and above (issue #1722)", () => {
+      const scorm12api = api();
+      const json: StringKeyMap = {
+        "cmi.interactions.0.id": "q1",
+        "cmi.interactions.0.type": "fill-in",
+      };
+      for (let i = 0; i < 12; i++) {
+        json[`cmi.interactions.0.correct_responses.${i}.pattern`] = `answer-${i}`;
+      }
+      scorm12api.loadFromFlattenedJSON(json, "");
+      scorm12api.lmsInitialize();
+
+      expect(scorm12api.lmsGetValue("cmi.interactions.0.correct_responses._count")).toEqual("12");
+    });
+
     it("Should be able to load the JSON data from issue #587", () => {
       const scorm12api = api({
         ...DefaultSettings,
