@@ -24575,7 +24575,9 @@
                       if (b.field === "id") return 1;
                       if (a.field === "type") return -1;
                       if (b.field === "type") return 1;
-                      return a.field.localeCompare(b.field);
+                      return a.field.localeCompare(b.field, void 0, {
+                          numeric: true
+                      });
                   });
                   objectives.sort(function(a, b) {
                       if (a.index !== b.index) {
@@ -24583,10 +24585,14 @@
                       }
                       if (a.field === "id") return -1;
                       if (b.field === "id") return 1;
-                      return a.field.localeCompare(b.field);
+                      return a.field.localeCompare(b.field, void 0, {
+                          numeric: true
+                      });
                   });
                   others.sort(function(a, b) {
-                      return a.key.localeCompare(b.key);
+                      return a.key.localeCompare(b.key, void 0, {
+                          numeric: true
+                      });
                   });
                   var processItems = function processItems(items) {
                       items.forEach(function(item) {

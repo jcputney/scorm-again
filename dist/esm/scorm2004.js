@@ -17103,7 +17103,7 @@ class SerializationService {
       if (b.field === "id") return 1;
       if (a.field === "type") return -1;
       if (b.field === "type") return 1;
-      return a.field.localeCompare(b.field);
+      return a.field.localeCompare(b.field, void 0, { numeric: true });
     });
     objectives.sort((a, b) => {
       if (a.index !== b.index) {
@@ -17111,9 +17111,9 @@ class SerializationService {
       }
       if (a.field === "id") return -1;
       if (b.field === "id") return 1;
-      return a.field.localeCompare(b.field);
+      return a.field.localeCompare(b.field, void 0, { numeric: true });
     });
-    others.sort((a, b) => a.key.localeCompare(b.key));
+    others.sort((a, b) => a.key.localeCompare(b.key, void 0, { numeric: true }));
     const processItems = (items) => {
       items.forEach((item) => {
         const obj = {};
