@@ -1,5 +1,4 @@
 import esbuild from "rollup-plugin-esbuild";
-import cache from "@mo36924/rollup-plugin-cache";
 import { swc } from "rollup-plugin-swc3";
 import { minify } from "terser";
 
@@ -220,7 +219,6 @@ Object.entries(entries).forEach(([name, input]) => {
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
-      cache(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: generateSourceMap,
@@ -248,7 +246,6 @@ Object.entries(entries).forEach(([name, input]) => {
       },
       external: ["window.API", "window.API_1484_11"],
       plugins: [
-        cache(),
         esbuild({
           tsconfig: "./tsconfig.json",
           sourceMap: generateSourceMap,
@@ -294,7 +291,6 @@ Object.entries(esmEntries).forEach(([name, input]) => {
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
-      cache(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: generateSourceMap,
@@ -315,7 +311,6 @@ Object.entries(esmEntries).forEach(([name, input]) => {
       },
       external: ["window.API", "window.API_1484_11"],
       plugins: [
-        cache(),
         esbuild({
           tsconfig: "./tsconfig.json",
           sourceMap: generateSourceMap,
@@ -356,7 +351,6 @@ Object.entries(cjsEntries).forEach(([name, input]) => {
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
-      cache(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: generateSourceMap,
@@ -377,7 +371,6 @@ Object.entries(cjsEntries).forEach(([name, input]) => {
       },
       external: ["window.API", "window.API_1484_11"],
       plugins: [
-        cache(),
         esbuild({
           tsconfig: "./tsconfig.json",
           sourceMap: generateSourceMap,
