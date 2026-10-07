@@ -614,6 +614,28 @@ describe("CrossFrameLMS", () => {
     expect(processSpy).toHaveBeenCalledWith(mockEvent.data, src);
   });
 
+  it("ignores message events from a different origin", () => {
+    // eslint-disable-next-line
+    // @ts-ignore
+    const processSpy = vi.spyOn(server, "_process").mockImplementation(() => {});
+
+    const mockEvent = {
+      data: {
+        messageId: "42",
+        method: "LMSGetValue",
+        params: ["cmi.core.lesson_status"],
+      },
+      origin: "http://evil.example.com",
+      source: src,
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"](mockEvent);
+
+    expect(processSpy).not.toHaveBeenCalled();
+  });
+
   it("ignores message events without messageId or method", () => {
     // Create a spy on the _process method
     // eslint-disable-next-line
