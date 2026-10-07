@@ -156,7 +156,11 @@ jobs:
       - name: TypeScript type checking
         run: npx tsc --noEmit
 
+      # Blocks master builds. On PRs it only reports: a new advisory against an
+      # existing dependency is not the PR's fault. OSV-Scanner's scan-pr job
+      # still fails PRs that add a vulnerable dependency.
       - name: Dependency vulnerability scanning
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
         run: npm audit --audit-level=moderate
 
       # Upload build artifacts for integration tests
