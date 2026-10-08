@@ -3,6 +3,9 @@ import {
   ActivityDeliveryCallbacks,
   ActivityDeliveryService,
 } from "../../src/services/ActivityDeliveryService";
+import { DeliveryHandler } from "../../src/cmi/scorm2004/sequencing/handlers/delivery_handler";
+import { RollupProcess } from "../../src/cmi/scorm2004/sequencing/rollup_process";
+import { ActivityTree } from "../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
 import {
   DeliveryRequestType,
@@ -183,6 +186,35 @@ describe("ActivityDeliveryService", () => {
       expect(callbacks.onDeliverActivity).not.toHaveBeenCalled();
       expect(callbacks.onUnloadActivity).not.toHaveBeenCalled();
       expect(activityDeliveryService.getCurrentDeliveredActivity()).toBe(activity);
+    });
+
+    /** @spec SCORM 2004 4th Ed. SN DB.2; SCORM 2004 4th Ed. RTE 4.2.7. */
+    it("should unload and redeliver a resumed DB.2 delivery once per generation", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      const tree = new ActivityTree();
+      tree.root = activity;
+      const handler = new DeliveryHandler(tree, new RollupProcess(), new Map());
+      const result: SequencingResult = {
+        deliveryRequest: DeliveryRequestType.DELIVER,
+        targetActivity: activity,
+        exception: null,
+      };
+      handler.contentDeliveryEnvironmentProcess(activity);
+      activityDeliveryService.processSequencingResult(result);
+      vi.mocked(callbacks.onDeliverActivity!).mockClear();
+      vi.mocked(callbacks.onUnloadActivity!).mockClear();
+      activity.isActive = false;
+      activity.isSuspended = true;
+      handler.contentDeliveryEnvironmentProcess(activity);
+      activityDeliveryService.processSequencingResult({ ...result });
+      activityDeliveryService.processSequencingResult(result);
+      expect(activity.attemptCount).toBe(1);
+      expect(activity.deliveryWasResumed).toBe(true);
+      expect(callbacks.onUnloadActivity).toHaveBeenCalledExactlyOnceWith(activity);
+      expect(callbacks.onDeliverActivity).toHaveBeenCalledExactlyOnceWith(activity);
+      expect(vi.mocked(callbacks.onUnloadActivity!).mock.invocationCallOrder[0]).toBeLessThan(
+        vi.mocked(callbacks.onDeliverActivity!).mock.invocationCallOrder[0],
+      );
     });
 
     it("should deliver activity again after it has been unloaded via reset", () => {

@@ -1,3 +1,4 @@
+import { getDeliveryGeneration } from "../cmi/scorm2004/sequencing/delivery_generation";
 import { Activity } from "../cmi/scorm2004/sequencing/activity";
 import {
   SequencingResult,
@@ -26,6 +27,7 @@ export class ActivityDeliveryService {
   private callbacks: ActivityDeliveryCallbacks;
   private currentDeliveredActivity: Activity | null = null;
   private currentDeliveredAttemptCount: number | null = null;
+  private currentDeliveredGeneration: number | null = null;
   private pendingDelivery: Activity | null = null;
 
   constructor(
@@ -63,22 +65,27 @@ export class ActivityDeliveryService {
   }
 
   /**
-   * Deliver an activity
+   * Unload the previous content and notify the host once per DB.2 delivery,
+   * including resumed deliveries of the same attempt. Duplicate processing is skipped.
    * @param {Activity} activity - The activity to deliver
    */
   private deliverActivity(activity: Activity): void {
-    // The delivery environment can legitimately start a later attempt of the same
-    // activity. Suppress only duplicate notifications for the current attempt.
-    // @spec SCORM 2004 4th Ed. SN DB.2: every new activity attempt is delivered.
+    const generation = getDeliveryGeneration(activity);
+    // @spec SCORM 2004 4th Ed. SN DB.2: every delivery launches content, including
+    // a resumed attempt (SCORM 2004 4th Ed. RTE 4.2.7: entry=resume). Only skip
+    // repeated processing when no new DB.2 delivery has occurred.
     if (
       this.currentDeliveredActivity === activity &&
-      this.currentDeliveredAttemptCount === activity.attemptCount
+      this.currentDeliveredAttemptCount === activity.attemptCount &&
+      this.currentDeliveredGeneration === generation
     ) {
       this.loggingService.info(`Skipping delivery - activity already delivered: ${activity.id}`);
       return;
     }
 
-    // If there's a different currently delivered activity, unload it first
+    // Host contract: release the previously delivered content before announcing the new
+    // delivery. This also applies when DB.2 resumes the same activity's attempt, because the
+    // host must relaunch its content (SCORM 2004 4th Ed. RTE 4.2.7: entry=resume).
     if (this.currentDeliveredActivity) {
       this.unloadActivity(this.currentDeliveredActivity);
     }
@@ -93,6 +100,7 @@ export class ActivityDeliveryService {
     // ActivityDelivery listeners may inspect both the activity and this service's state.
     this.currentDeliveredActivity = activity;
     this.currentDeliveredAttemptCount = activity.attemptCount;
+    this.currentDeliveredGeneration = generation;
     this.pendingDelivery = null;
     activity.isActive = true;
 
@@ -155,6 +163,7 @@ export class ActivityDeliveryService {
     }
     this.currentDeliveredActivity = null;
     this.currentDeliveredAttemptCount = null;
+    this.currentDeliveredGeneration = null;
     this.pendingDelivery = null;
   }
 }
