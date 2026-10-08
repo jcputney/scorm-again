@@ -1,4 +1,5 @@
 import { Activity } from "../activity";
+import { advanceDeliveryGeneration } from "../delivery_generation";
 import { ActivityTreeQueries } from "../utils/activity_tree_queries";
 import { ActivityTree } from "../activity_tree";
 import { RollupProcess } from "../rollup_process";
@@ -358,6 +359,10 @@ export class DeliveryHandler {
 
       // Step 6: Set up activity attempt tracking information
       this.setupAttemptTracking(activity);
+
+      // @spec SCORM 2004 4th Ed. SN DB.2: every accepted delivery launches content,
+      // including resumed attempts (SCORM 2004 4th Ed. RTE 4.2.7: entry=resume).
+      advanceDeliveryGeneration(activity);
 
       // Step 7: Mark that content has been delivered
       this.contentDelivered = true;
