@@ -1,6 +1,15 @@
 comment:
   layout: "header, diff, flags, components"  # show component info in the PR comment
 
+# Allow a small drop so a line or two of run-to-run jitter in the browser
+# integration coverage does not fail the project checks.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0.1%
+
 component_management:
   default_rules:
     statuses:
@@ -16,6 +25,7 @@ component_management:
       statuses: # the core component has its own statuses
         - type: project
           target: auto
+          threshold: 0.1%
         - type: patch
     - component_id: cmi_common
       name: cmi_common
