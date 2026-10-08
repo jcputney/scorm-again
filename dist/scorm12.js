@@ -1974,6 +1974,15 @@ this.Scorm12API = (function () {
       "suspendAll"
   ];
 
+  var deliveryGenerations = /* @__PURE__ */ new WeakMap();
+  function getDeliveryGeneration(activity) {
+      var _deliveryGenerations_get;
+      return (_deliveryGenerations_get = deliveryGenerations.get(activity)) !== null && _deliveryGenerations_get !== void 0 ? _deliveryGenerations_get : 0;
+  }
+  function advanceDeliveryGeneration(activity) {
+      deliveryGenerations.set(activity, getDeliveryGeneration(activity) + 1);
+  }
+
   function _assert_this_initialized$d(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -10526,6 +10535,7 @@ this.Scorm12API = (function () {
                       this.activityTree.currentActivity = activity;
                       this.initializeForDelivery(activity);
                       this.setupAttemptTracking(activity);
+                      advanceDeliveryGeneration(activity);
                       this.contentDelivered = true;
                       if (this.adlNav && this.updateNavigationValidityCallback) {
                           this.updateNavigationValidityCallback();

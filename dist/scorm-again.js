@@ -2638,6 +2638,15 @@
       "suspendAll"
   ];
 
+  var deliveryGenerations = /* @__PURE__ */ new WeakMap();
+  function getDeliveryGeneration(activity) {
+      var _deliveryGenerations_get;
+      return (_deliveryGenerations_get = deliveryGenerations.get(activity)) !== null && _deliveryGenerations_get !== void 0 ? _deliveryGenerations_get : 0;
+  }
+  function advanceDeliveryGeneration(activity) {
+      deliveryGenerations.set(activity, getDeliveryGeneration(activity) + 1);
+  }
+
   function _assert_this_initialized$t(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -7265,6 +7274,7 @@
           __publicField$_(this, "callbacks");
           __publicField$_(this, "currentDeliveredActivity", null);
           __publicField$_(this, "currentDeliveredAttemptCount", null);
+          __publicField$_(this, "currentDeliveredGeneration", null);
           __publicField$_(this, "pendingDelivery", null);
           this.eventService = eventService;
           this.loggingService = loggingService;
@@ -7294,12 +7304,14 @@
           },
           {
               /**
-     * Deliver an activity
+     * Unload the previous content and notify the host once per DB.2 delivery,
+     * including resumed deliveries of the same attempt. Duplicate processing is skipped.
      * @param {Activity} activity - The activity to deliver
      */ key: "deliverActivity",
               value: function deliverActivity(activity) {
                   var _this_callbacks_onDeliverActivity, _this_callbacks;
-                  if (this.currentDeliveredActivity === activity && this.currentDeliveredAttemptCount === activity.attemptCount) {
+                  var generation = getDeliveryGeneration(activity);
+                  if (this.currentDeliveredActivity === activity && this.currentDeliveredAttemptCount === activity.attemptCount && this.currentDeliveredGeneration === generation) {
                       this.loggingService.info("Skipping delivery - activity already delivered: ".concat(activity.id));
                       return;
                   }
@@ -7310,6 +7322,7 @@
                   this.loggingService.info("Delivering activity: ".concat(activity.id, " - ").concat(activity.title));
                   this.currentDeliveredActivity = activity;
                   this.currentDeliveredAttemptCount = activity.attemptCount;
+                  this.currentDeliveredGeneration = generation;
                   this.pendingDelivery = null;
                   activity.isActive = true;
                   (_this_callbacks_onDeliverActivity = (_this_callbacks = this.callbacks).onDeliverActivity) === null || _this_callbacks_onDeliverActivity === void 0 ? void 0 : _this_callbacks_onDeliverActivity.call(_this_callbacks, activity);
@@ -7366,6 +7379,7 @@
                   }
                   this.currentDeliveredActivity = null;
                   this.currentDeliveredAttemptCount = null;
+                  this.currentDeliveredGeneration = null;
                   this.pendingDelivery = null;
               }
           }
@@ -18498,6 +18512,7 @@
                       this.activityTree.currentActivity = activity;
                       this.initializeForDelivery(activity);
                       this.setupAttemptTracking(activity);
+                      advanceDeliveryGeneration(activity);
                       this.contentDelivered = true;
                       if (this.adlNav && this.updateNavigationValidityCallback) {
                           this.updateNavigationValidityCallback();

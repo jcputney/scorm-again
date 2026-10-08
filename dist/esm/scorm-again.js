@@ -1797,6 +1797,14 @@ const HIDE_LMS_UI_TOKENS = [
   "suspendAll"
 ];
 
+const deliveryGenerations = /* @__PURE__ */ new WeakMap();
+function getDeliveryGeneration(activity) {
+  return deliveryGenerations.get(activity) ?? 0;
+}
+function advanceDeliveryGeneration(activity) {
+  deliveryGenerations.set(activity, getDeliveryGeneration(activity) + 1);
+}
+
 var RuleActionType = /* @__PURE__ */ ((RuleActionType2) => {
   RuleActionType2["SKIP"] = "skip";
   RuleActionType2["DISABLED"] = "disabled";
@@ -5155,6 +5163,7 @@ class ActivityDeliveryService {
   callbacks;
   currentDeliveredActivity = null;
   currentDeliveredAttemptCount = null;
+  currentDeliveredGeneration = null;
   pendingDelivery = null;
   constructor(eventService, loggingService, callbacks = {}) {
     this.eventService = eventService;
@@ -5179,11 +5188,13 @@ class ActivityDeliveryService {
     this.callbacks.onSequencingComplete?.(result);
   }
   /**
-   * Deliver an activity
+   * Unload the previous content and notify the host once per DB.2 delivery,
+   * including resumed deliveries of the same attempt. Duplicate processing is skipped.
    * @param {Activity} activity - The activity to deliver
    */
   deliverActivity(activity) {
-    if (this.currentDeliveredActivity === activity && this.currentDeliveredAttemptCount === activity.attemptCount) {
+    const generation = getDeliveryGeneration(activity);
+    if (this.currentDeliveredActivity === activity && this.currentDeliveredAttemptCount === activity.attemptCount && this.currentDeliveredGeneration === generation) {
       this.loggingService.info(`Skipping delivery - activity already delivered: ${activity.id}`);
       return;
     }
@@ -5194,6 +5205,7 @@ class ActivityDeliveryService {
     this.loggingService.info(`Delivering activity: ${activity.id} - ${activity.title}`);
     this.currentDeliveredActivity = activity;
     this.currentDeliveredAttemptCount = activity.attemptCount;
+    this.currentDeliveredGeneration = generation;
     this.pendingDelivery = null;
     activity.isActive = true;
     this.callbacks.onDeliverActivity?.(activity);
@@ -5239,6 +5251,7 @@ class ActivityDeliveryService {
     }
     this.currentDeliveredActivity = null;
     this.currentDeliveredAttemptCount = null;
+    this.currentDeliveredGeneration = null;
     this.pendingDelivery = null;
   }
 }
@@ -13067,6 +13080,7 @@ class DeliveryHandler {
       this.activityTree.currentActivity = activity;
       this.initializeForDelivery(activity);
       this.setupAttemptTracking(activity);
+      advanceDeliveryGeneration(activity);
       this.contentDelivered = true;
       if (this.adlNav && this.updateNavigationValidityCallback) {
         this.updateNavigationValidityCallback();
