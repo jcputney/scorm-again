@@ -1,0 +1,155 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Reference: https://docs.coderabbit.ai/reference/configuration
+# Keys that would only restate CodeRabbit's defaults are left out.
+language: en-US
+
+reviews:
+  profile: chill
+  # Approve the PR once CodeRabbit's comments are resolved. The master ruleset requires only
+  # the CI Gate check, so a "changes requested" review from CodeRabbit never blocks a merge.
+  request_changes_workflow: true
+
+  auto_review:
+    # Re-review on every push, and never pause after a number of reviewed commits (default: 5).
+    auto_pause_after_reviewed_commits: 0
+    # Dependency bumps are covered by CI, and patch and minor bumps merge automatically.
+    ignore_usernames:
+      - "dependabot[bot]"
+
+  auto_apply_labels: true
+  # CodeRabbit picks labels only from this list. "automerge" is left out on purpose: only
+  # Dependabot PRs should carry it.
+  labeling_instructions:
+    - label: bug
+      instructions: Fixes incorrect behavior, a regression, or a SCORM conformance defect.
+    - label: enhancement
+      instructions: Adds a feature, or changes public behavior, settings, or events on purpose.
+    - label: documentation
+      instructions: >-
+        Changes documentation (docs-site, docs, README, or other Markdown) without changing
+        library code.
+    - label: dependencies
+      instructions: Changes dependency versions in package.json or a package-lock.json.
+    - label: javascript
+      instructions: Changes TypeScript or JavaScript source code.
+    - label: github_actions
+      instructions: Changes files under .github/workflows.
+    - label: security
+      instructions: >-
+        Fixes a security weakness, or changes cross-frame message handling, origin checks,
+        request or response hooks, or how learner data is stored or sent.
+
+  path_filters:
+    # Built by CI on master. The guard-dist job rejects PRs that change it.
+    - "!dist/**"
+    - "!**/package-lock.json"
+    # Decoded from the ADL test suite by generate-fixtures.ts and never edited by hand.
+    - "!test/conformance/adl/fixtures/generated/**"
+    # Output from a 2024 test run.
+    - "!results.json"
+
+  path_instructions:
+    - path: "src/**/*.ts"
+      instructions: |
+        - oxlint and Prettier enforce lint and formatting, so do not comment on formatting,
+          whitespace, or line wrapping.
+        - The published package has no runtime dependencies. Flag any import of an npm
+          package from library code.
+        - The APIs attach to `window` on purpose, because SCORM content looks for them there.
+          Do not flag that. Flag any other new global.
+        - SWC compiles the IIFE bundles down to ES5 and `npm run check:es5` verifies them.
+          Do not flag modern syntax or ES2015+ built-ins in source code.
+        - Collection indexes in CMI paths (for example `cmi.interactions.10.id`) are numbers.
+          Sort and compare them numerically, so index 10 comes after 9.
+        - When a fix lands in one standard (SCORM 1.2 or SCORM 2004), check whether the other
+          needs the same fix.
+        - A change to public behavior (exports, settings in `default_settings.ts`, events, or
+          API methods) needs matching tests and a docs update in the same pull request.
+    - path: "src/cmi/**"
+      instructions: |
+        - Data model elements must follow the run-time environment spec for their standard:
+          read and write permissions, vocabularies, data types, ranges, and size limits.
+        - Each failure must return the error code the standard defines for it. SCORM 1.2 and
+          SCORM 2004 number their codes differently; see `src/constants/error_codes.ts`.
+        - Check how empty strings and unset values are handled. The spec treats them
+          differently by element, and they are a common source of wrong error codes.
+    - path: "src/cmi/scorm2004/sequencing/**"
+      instructions: |
+        SCORM 2004 sequencing and navigation. Check changes against the ADL pseudo code in
+        `docs/scorm2004_sequencing_pseudo_code_diagram.txt`: navigation request processing,
+        the order of sequencing rule evaluation, rollup, the flow and choice subprocesses,
+        limit conditions, and how disabled or hidden activities are skipped. Flag behavior
+        that differs from the pseudo code unless a comment explains why.
+    - path: "src/services/SequencingService.ts"
+      instructions: |
+        Entry point to SCORM 2004 sequencing. Check changes against the ADL pseudo code in
+        `docs/scorm2004_sequencing_pseudo_code_diagram.txt`.
+    - path: "src/CrossFrame*.ts"
+      instructions: |
+        Messaging between a sandboxed content frame and the LMS frame. Every message handler
+        must compare `ev.origin` with the configured origin when one is set. The default
+        origin `"*"` is documented and logs a warning: keep the warning, and do not flag the
+        default itself. Flag any new message type or handler that skips the origin check.
+    - path: "package.json"
+      instructions: |
+        - The published package has no runtime dependencies. Flag any new `dependencies`
+          entry. Build and test tools belong in `devDependencies`.
+        - A change to `exports`, `main`, `module`, `types`, or `files` changes what consumers
+          resolve. Check that each entry points at a file the build produces, for both
+          `import` and `require`, and that `npm run test:package` covers it.
+    - path: "rollup.config.js"
+      instructions: |
+        The IIFE bundles target IE 11 and must stay ES5; `npm run check:es5` checks them after
+        every build. The ESM and CommonJS builds target ES2022.
+    - path: "test/**"
+      instructions: |
+        Focus on whether the assertions prove the behavior under test and whether edge cases
+        are covered. Be lenient on style in test code. Unit tests use Vitest with jsdom and
+        mirror the `src/` layout. Tests under `test/integration/` run in real browsers through
+        Playwright and need a build.
+    - path: "test/conformance/**"
+      instructions: |
+        ADL conformance tests. The hand-authored cases in `adl/fixtures/*.json` are taken
+        from the ADL test suite or the run-time environment spec. Flag any change to an
+        expected value or error code, and ask which part of the spec supports it. A change
+        that only makes a failing test pass needs a strong reason. Removing a
+        `knownDivergence` pin is correct when the same pull request fixes that divergence in
+        `src/`. A new pin needs a matching finding in `test/conformance/adl/README.md`.
+    - path: "docs-site/**"
+      instructions: |
+        VitePress documentation site. Check that examples, settings, defaults, and event names
+        match the library code.
+    - path: ".github/workflows/**"
+      instructions: |
+        - The master ruleset requires only the `CI Gate` check, which aggregates the other
+          jobs in main.yml through `needs`. A new job that must block merges has to be added
+          there.
+        - `DIST_COMMIT_TOKEN` can bypass the master ruleset. It must be used only in the final
+          push step. Flag it being passed to checkout or exposed to `npm install` or any other
+          step that runs third-party code.
+
+  pre_merge_checks:
+    title:
+      requirements: >-
+        Conventional Commits format, "type(scope)!: summary" with an optional scope and an
+        optional "!" for a breaking change, because
+        PRs are squash-merged and standard-version builds the version and changelog from the
+        type. Use one of: feat, fix, perf, refactor, docs, test, build, ci, chore. The summary
+        is a lowercase imperative phrase with no trailing period, for example "fix: load
+        flattened list items with index 10 and above in order".
+
+  tools:
+    # oxlint and Prettier already lint and format the code. Without a config file, Biome would
+    # apply its own default rules on top of them.
+    biome:
+      enabled: false
+
+knowledge_base:
+  # Contributor guides that state project rules CodeRabbit should follow.
+  code_guidelines:
+    filePatterns:
+      - "CLAUDE.md"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+      - "typescript_guidelines.md"
+      - "docs-site/docs/developer/contributing.md"
