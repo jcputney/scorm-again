@@ -5360,6 +5360,16 @@ class AsynchronousHttpService {
     if (this.settings.asyncModeBeaconBehavior === "always") {
       return this.performBeacon(url, params);
     }
+    return this._sendFetch(url, params);
+  }
+  /**
+   * Send the request to the LMS with fetch
+   * @param {string} url - The URL to send the request to
+   * @param {StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Promise<Response>} - The response from the LMS
+   * @private
+   */
+  _sendFetch(url, params) {
     const { body, contentType } = this._prepareRequestBody(params);
     const init = {
       method: "POST",
@@ -5384,6 +5394,9 @@ class AsynchronousHttpService {
    * @private
    */
   async performBeacon(url, params) {
+    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+      return this._sendFetch(url, params);
+    }
     const { body, contentType } = this._prepareRequestBody(params);
     const beaconContentType = Array.isArray(params) ? contentType : this.settings.terminationCommitContentType;
     this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
@@ -17535,7 +17548,7 @@ class SynchronousHttpService {
     return this._performSyncXHR(url, params, metadata);
   }
   /**
-   * Handles an immediate request using sendBeacon
+   * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
    * @param {string} url - The URL to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
    * @param {CommitMetadata} metadata - Metadata describing the captured commit
@@ -17543,6 +17556,9 @@ class SynchronousHttpService {
    * @private
    */
   _handleImmediateRequest(url, params, metadata) {
+    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+      return this._performSyncXHR(url, params, metadata);
+    }
     const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
     const requestPayload = handledPayload ?? params;
     const { body } = this._prepareRequestBody(requestPayload);

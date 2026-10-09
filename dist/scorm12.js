@@ -4319,7 +4319,6 @@ this.Scorm12API = (function () {
      * @private
      */ function performFetch(url, params) {
                   return _async_to_generator$1(function() {
-                      var _this__prepareRequestBody, body, contentType, init;
                       return _ts_generator$1(this, function(_state) {
                           if (this.settings.asyncModeBeaconBehavior === "always") {
                               return [
@@ -4327,25 +4326,37 @@ this.Scorm12API = (function () {
                                   this.performBeacon(url, params)
                               ];
                           }
-                          _this__prepareRequestBody = this._prepareRequestBody(params), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
-                          init = {
-                              method: "POST",
-                              mode: this.settings.fetchMode,
-                              body: body,
-                              headers: _object_spread_props$2(_object_spread$5({}, this.settings.xhrHeaders), {
-                                  "Content-Type": contentType
-                              }),
-                              keepalive: true
-                          };
-                          if (this.settings.xhrWithCredentials) {
-                              init.credentials = "include";
-                          }
                           return [
                               2,
-                              fetch(url, init)
+                              this._sendFetch(url, params)
                           ];
                       });
                   }).call(this);
+              }
+          },
+          {
+              /**
+     * Send the request to the LMS with fetch
+     * @param {string} url - The URL to send the request to
+     * @param {StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Promise<Response>} - The response from the LMS
+     * @private
+     */ key: "_sendFetch",
+              value: function _sendFetch(url, params) {
+                  var _this__prepareRequestBody = this._prepareRequestBody(params), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
+                  var init = {
+                      method: "POST",
+                      mode: this.settings.fetchMode,
+                      body: body,
+                      headers: _object_spread_props$2(_object_spread$5({}, this.settings.xhrHeaders), {
+                          "Content-Type": contentType
+                      }),
+                      keepalive: true
+                  };
+                  if (this.settings.xhrWithCredentials) {
+                      init.credentials = "include";
+                  }
+                  return fetch(url, init);
               }
           },
           {
@@ -4361,6 +4372,12 @@ this.Scorm12API = (function () {
                       var _this, _this__prepareRequestBody, body, contentType, beaconContentType, beaconSuccess;
                       return _ts_generator$1(this, function(_state) {
                           _this = this;
+                          if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+                              return [
+                                  2,
+                                  this._sendFetch(url, params)
+                              ];
+                          }
                           _this__prepareRequestBody = this._prepareRequestBody(params), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
                           beaconContentType = Array.isArray(params) ? contentType : this.settings.terminationCommitContentType;
                           this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
@@ -11734,7 +11751,7 @@ this.Scorm12API = (function () {
           },
           {
               /**
-     * Handles an immediate request using sendBeacon
+     * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
      * @param {string} url - The URL to send the request to
      * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
      * @param {CommitMetadata} metadata - Metadata describing the captured commit
@@ -11742,6 +11759,9 @@ this.Scorm12API = (function () {
      * @private
      */ key: "_handleImmediateRequest",
               value: function _handleImmediateRequest(url, params, metadata) {
+                  if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+                      return this._performSyncXHR(url, params, metadata);
+                  }
                   var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
                   var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
                   var body = this._prepareRequestBody(requestPayload).body;
