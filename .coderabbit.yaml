@@ -57,8 +57,12 @@ reviews:
           package from library code.
         - The APIs attach to `window` on purpose, because SCORM content looks for them there.
           Do not flag that. Flag any other new global.
-        - SWC compiles the IIFE bundles down to ES5 and `npm run check:es5` verifies them.
-          Do not flag modern syntax or ES2015+ built-ins in source code.
+        - SWC lowers syntax to ES5 for the IIFE bundles, and `npm run check:es5` checks
+          syntax only. The bundles ship no polyfills, so IE11 users must load polyfills for
+          ES2015+ built-ins themselves. Do not flag syntax that SWC lowers, or built-ins the
+          code already uses (such as `Array.from`, `includes`, `Object.entries`, `Promise`,
+          `Map`, and `Set`). Flag a newly introduced built-in that IE11 lacks and the
+          documented IE11 polyfill list does not cover.
         - Collection indexes in CMI paths (for example `cmi.interactions.10.id`) are numbers.
           Sort and compare them numerically, so index 10 comes after 9.
         - When a fix lands in one standard (SCORM 1.2 or SCORM 2004), check whether the other
@@ -99,8 +103,9 @@ reviews:
           `import` and `require`, and that `npm run test:package` covers it.
     - path: "rollup.config.js"
       instructions: |
-        The IIFE bundles target IE 11 and must stay ES5; `npm run check:es5` checks them after
-        every build. The ESM and CommonJS builds target ES2022.
+        The IIFE bundles target IE 11 and must stay ES5 syntax; `npm run check:es5` parses them
+        after every build. They include no polyfills. The ESM and CommonJS builds target
+        ES2022.
     - path: "test/**"
       instructions: |
         Focus on whether the assertions prove the behavior under test and whether edge cases
