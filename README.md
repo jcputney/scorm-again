@@ -78,7 +78,7 @@ There are two core pieces:
    - Caches the current state of the CMI object in the child frame, so that most calls are
      synchronous and accurate
    - Handles the `LMSInitialize` and `LMSFinish` calls to the LMS in the parent frame
-  - Falls back gracefully in all browsers (including IE11) without blocking the main thread
+  - Does not block the main thread. It needs `Proxy`, so it does not work in IE11
 
 Both constructors accept an optional **origin** parameter.
 `CrossFrameLMS(api, origin)` validates incoming messages against the child's
@@ -121,7 +121,8 @@ window.API.LMSCommit();
 
 - No SharedArrayBuffer or Atomics; everything is async under the hood, but sync from the SCORM
   module's perspective.
-- Works in modern browsers and IE11.
+- Works in modern browsers. `CrossFrameAPI` needs `Proxy`, which IE11 lacks and which cannot be
+  polyfilled, so cross-frame mode does not work in IE11.
 - For guaranteed Finish/Terminate delivery on unload, consider using `navigator.sendBeacon`.
 
 ## Offline Support
@@ -856,7 +857,9 @@ specific standard you need.
 scorm-again is compatible with:
 
 - **Browsers**: All modern browsers (Chrome, Firefox, Safari, Edge)
-- **IE11**: Requires a fetch polyfill
+- **IE11**: Requires ES2015+ polyfills (such as core-js) and a fetch polyfill, loaded before
+  scorm-again. Cross-frame mode is not supported. See
+  [Internet Explorer 11 support](https://jcputney.github.io/scorm-again/docs/getting-started/installation#internet-explorer-11-support)
 - **Node.js**: For server-side processing or testing
 - **LMS Systems**: Compatible with any LMS that supports SCORM 1.2 or SCORM 2004
 
