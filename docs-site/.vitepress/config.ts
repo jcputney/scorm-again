@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 import type { HeadConfig } from "vitepress";
 
 // The docs live under docs/ and the site root is docs-site/, so every page
-// keeps the URL it had under Docusaurus: /scorm-again/docs/<section>/<page>.
+// keeps a stable URL: /scorm-again/docs/<section>/<page>.
 // That is why the existing absolute /docs/... links in the markdown still
 // resolve without being rewritten.
 
@@ -162,7 +162,6 @@ export default defineConfig({
       text: "Edit this page on GitHub",
     },
 
-    // Replaces @easyops-cn/docusaurus-search-local, which is no longer a dependency.
     search: {
       provider: "local",
     },
