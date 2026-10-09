@@ -1,9 +1,8 @@
 /**
- * Brand palette, carried over from the Docusaurus (Infima) theme.
+ * Brand palette for the docs site.
  *
- * Light mode kept #2563eb and dark mode kept #60a5fa, so the site reads the
- * same as before. VitePress derives most of its UI from the three brand
- * steps plus the soft tint.
+ * Light mode uses #2563eb and dark mode uses #60a5fa. VitePress derives most
+ * of its UI from the three brand steps plus the soft tint.
  */
 :root {
   --vp-c-brand-1: #1d4ed8;
@@ -31,7 +30,7 @@
 }
 
 /* The homepage hero uses the wordmark logo rather than a stacked
-   title, matching the previous Docusaurus landing page. */
+   title. */
 .VPHero .image-src {
   max-height: 240px;
   filter: none;

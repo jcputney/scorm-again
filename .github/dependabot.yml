@@ -45,7 +45,7 @@ updates:
           - "patch"
 
   # Docs site build tooling. Auto-merged like the root deps: the "CI Gate" check
-  # runs the Docusaurus build (docs-build job) on docs-site PRs, so patch/minor
+  # runs the VitePress build (docs-build job) on docs-site PRs, so patch/minor
   # bumps merge automatically once that build is green.
   - package-ecosystem: "npm"
     directory: "/docs-site"
