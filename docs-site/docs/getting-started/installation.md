@@ -218,7 +218,11 @@ import { Scorm2004API } from 'scorm-again/scorm2004';
 ```
 
 When `navigator.sendBeacon` is missing, as in IE11, scorm-again sends the termination commit with a
-regular request instead, so you do not need a beacon polyfill.
+regular request instead, so you do not need a beacon polyfill. Use the default synchronous commits
+in IE11: the termination commit is then a synchronous request, which IE11 finishes before the page
+closes. With `useAsynchronousCommits: true`, it goes through the fetch polyfill instead. That
+polyfill cannot keep a request alive after the page closes, so the LMS may not receive the
+termination commit.
 
 Cross-frame communication does not work in IE11. `CrossFrameAPI` relies on `Proxy`, which IE11
 lacks and which cannot be polyfilled.
