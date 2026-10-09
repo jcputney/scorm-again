@@ -32,7 +32,7 @@ Run SCORM content in sandboxed iframes while maintaining communication with the 
 - Secure isolation of SCORM content
 - Support for cross-origin iframe communication
 - Synchronous API behavior with asynchronous cache updates
-- Compatibility with modern browsers and IE11
+- Compatibility with modern browsers (not IE11, which lacks `Proxy`)
 
 ### Offline Support
 Store and synchronize SCORM data when offline, perfect for mobile applications and remote learning scenarios:
@@ -84,7 +84,8 @@ scorm-again follows a modular architecture with clear separation of concerns:
 scorm-again is compatible with:
 
 - **Modern Browsers**: Chrome, Firefox, Safari, Edge (latest versions)
-- **Internet Explorer 11**: Requires a fetch polyfill
+- **Internet Explorer 11**: Requires ES2015+ and fetch polyfills, and cross-frame communication is
+  not supported. See [Internet Explorer 11 Support](/docs/getting-started/installation#internet-explorer-11-support)
 - **Node.js**: For server-side processing or testing
 - **Mobile Browsers**: iOS Safari, Chrome Mobile, Android Browser
 

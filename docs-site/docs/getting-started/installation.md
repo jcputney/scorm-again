@@ -182,24 +182,52 @@ if (contentType === 'scorm12') {
 
 ## Internet Explorer 11 Support
 
-If you need to support IE11, you'll need to include a fetch polyfill:
+The script builds in `dist/*.js` are compiled to ES5 syntax, but they do not include polyfills.
+IE11 lacks many built-ins that scorm-again uses, including `Promise`, `Symbol`, `Array.from`,
+`Array.prototype.includes`, `Object.entries`, and `Object.assign`. IE11's own `Map` and `Set` also
+ignore values passed to their constructors. Before scorm-again, load:
+
+- an ES2015+ polyfill set that replaces those built-ins, such as
+  [core-js](https://github.com/zloirock/core-js)
+- a fetch polyfill, such as [whatwg-fetch](https://github.com/JakeChampion/fetch)
 
 ```html
-<!-- Include polyfill before scorm-again -->
-<script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.2/dist/fetch.umd.js"></script>
+<!-- Load the polyfills before scorm-again -->
+<script
+  src="https://cdn.jsdelivr.net/npm/core-js-bundle@3.50.0/minified.js"
+  integrity="sha384-FFQ9vMUG5ncCF536DGix0yCvJeaR1Td99BfLaGw6OZDOA/jCgMOK3an7oNGZu4FJ"
+  crossorigin="anonymous"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.2/dist/fetch.umd.js"
+  integrity="sha384-f4g84XvA2ATeKmNi2159tY4jChaN8yA/BoQycHRLIH4K3aOTU0mxvAmPqUQkWk+X"
+  crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/scorm-again@latest/dist/scorm2004.min.js"></script>
 ```
 
-Or with npm:
+With npm, `import` resolves to the ES2022 build, so your bundler must also compile scorm-again to
+ES5 when it targets IE11:
 
 ```bash
-npm install whatwg-fetch
+npm install core-js whatwg-fetch
 ```
 
 ```javascript
+import 'core-js/stable';
 import 'whatwg-fetch';
 import { Scorm2004API } from 'scorm-again/scorm2004';
 ```
+
+When `navigator.sendBeacon` is missing, as in IE11, scorm-again sends the termination commit with a
+regular request instead, so you do not need a beacon polyfill. Use the default synchronous commits
+in IE11: the termination commit is then a synchronous request, which IE11 finishes before the page
+closes. With `useAsynchronousCommits: true`, it goes through the fetch polyfill instead. That
+polyfill cannot keep a request alive after the page closes, so the LMS may not receive the
+termination commit.
+
+Cross-frame communication does not work in IE11. `CrossFrameAPI` relies on `Proxy`, which IE11
+lacks and which cannot be polyfilled.
+
+IE11 is not part of the automated browser tests.
 
 ## Verification
 

@@ -60,6 +60,7 @@ describe("AsynchronousHttpService", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
   });
 
   describe("processHttpRequest", () => {
@@ -167,6 +168,66 @@ describe("AsynchronousHttpService", () => {
       expect(fetchStub).not.toHaveBeenCalled();
       expect(sendBeaconStub).toHaveBeenCalledOnce();
       expect(sendBeaconStub).toHaveBeenCalledWith(url, expect.any(Blob));
+    });
+
+    it("should fall back to fetch for immediate requests when sendBeacon is missing", async () => {
+      vi.stubGlobal("navigator", {});
+      const url = "https://example.com/api";
+      const params = { data: "test" };
+      fetchStub.mockImplementation(
+        () => new Response(JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 })),
+      );
+      settings.asyncModeBeaconBehavior = "on-terminate";
+      httpService.updateSettings(settings);
+
+      await new Promise<void>((resolve) => {
+        httpService.processHttpRequest(
+          url,
+          params,
+          true,
+          apiLogStub,
+          processListenersStub,
+          undefined,
+          resolve,
+        );
+      });
+
+      expect(fetchStub).toHaveBeenCalledOnce();
+      expect(fetchStub).toHaveBeenCalledWith(
+        url,
+        expect.objectContaining({ method: "POST", body: JSON.stringify(params), keepalive: true }),
+      );
+      expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
+    });
+
+    it("should fetch once when asyncModeBeaconBehavior is 'always' and sendBeacon is missing", async () => {
+      vi.stubGlobal("navigator", {});
+      const url = "https://example.com/api";
+      fetchStub.mockImplementation(
+        () => new Response(JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 })),
+      );
+      settings.asyncModeBeaconBehavior = "always";
+      httpService.updateSettings(settings);
+
+      await new Promise<void>((resolve) => {
+        httpService.processHttpRequest(
+          url,
+          { data: "test" },
+          false,
+          apiLogStub,
+          processListenersStub,
+          undefined,
+          resolve,
+        );
+      });
+
+      expect(fetchStub).toHaveBeenCalledOnce();
+      expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
+      expect(processListenersStub).not.toHaveBeenCalledWith(
+        "CommitError",
+        undefined,
+        expect.anything(),
+      );
     });
 
     it("should use the configured termination commit Content-Type for object params", async () => {

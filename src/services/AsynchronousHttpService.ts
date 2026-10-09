@@ -166,6 +166,17 @@ export class AsynchronousHttpService implements IHttpService {
       return this.performBeacon(url, params);
     }
 
+    return this._sendFetch(url, params);
+  }
+
+  /**
+   * Send the request to the LMS with fetch
+   * @param {string} url - The URL to send the request to
+   * @param {StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Promise<Response>} - The response from the LMS
+   * @private
+   */
+  private _sendFetch(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
     const { body, contentType } = this._prepareRequestBody(params);
     const init = {
       method: "POST",
@@ -193,6 +204,12 @@ export class AsynchronousHttpService implements IHttpService {
    * @private
    */
   private async performBeacon(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
+    // Browsers without sendBeacon (such as IE11) send the commit with fetch instead. This calls
+    // _sendFetch, not performFetch, which calls back here when asyncModeBeaconBehavior is "always".
+    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+      return this._sendFetch(url, params);
+    }
+
     const { body, contentType } = this._prepareRequestBody(params);
     const beaconContentType = Array.isArray(params)
       ? contentType

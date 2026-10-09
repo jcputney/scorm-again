@@ -236,6 +236,34 @@ describe("SynchronousHttpService", () => {
       expect(result.result).toBe("false");
       expect(result.errorCode).toBe(101);
     });
+
+    it("should fall back to sync XHR when sendBeacon is missing", () => {
+      vi.stubGlobal("navigator", {});
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+      const requestHandler = vi.fn((params) => params);
+      service.updateSettings({ ...DefaultSettings, requestHandler });
+
+      const result = service.processHttpRequest(
+        "http://test.com/commit",
+        { cmi: {} },
+        true,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(mockXHR.open).toHaveBeenCalledWith("POST", "http://test.com/commit", false);
+      expect(mockXHR.send).toHaveBeenCalledWith('{"cmi":{}}');
+      expect(requestHandler).toHaveBeenCalledOnce();
+      expect(result.result).toBe("true");
+      expect(result.errorCode).toBe(0);
+    });
   });
 
   describe("headers and credentials", () => {

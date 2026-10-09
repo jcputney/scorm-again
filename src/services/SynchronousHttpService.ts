@@ -70,7 +70,7 @@ export class SynchronousHttpService implements IHttpService {
   }
 
   /**
-   * Handles an immediate request using sendBeacon
+   * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
    * @param {string} url - The URL to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
    * @param {CommitMetadata} metadata - Metadata describing the captured commit
@@ -82,6 +82,11 @@ export class SynchronousHttpService implements IHttpService {
     params: CommitObject | StringKeyMap | Array<any>,
     metadata?: CommitMetadata,
   ): ResultObject {
+    // Browsers without sendBeacon (such as IE11) send the termination commit with a synchronous XHR.
+    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+      return this._performSyncXHR(url, params, metadata);
+    }
+
     const handledPayload =
       metadata === undefined
         ? this.settings.requestHandler(params)
