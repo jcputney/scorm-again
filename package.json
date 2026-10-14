@@ -112,7 +112,7 @@
     "monocart-coverage-reports": "^2.13.2",
     "monocart-reporter": "^2.14.1",
     "oxlint": "1.87.0",
-    "oxlint-tsgolint": "7.0.2003",
+    "oxlint-tsgolint": "7.0.2004",
     "playwright": "1.63.0",
     "prettier": "3.9.9",
     "rollup": "4.64.1",
