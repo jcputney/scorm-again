@@ -108,7 +108,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Create directories
         run: mkdir -p reports dist docs test-results coverage/unit coverage/e2e coverage/merged
@@ -194,7 +194,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Download build artifacts
         uses: actions/download-artifact@v8
@@ -261,7 +261,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Download unit test coverage
         uses: actions/download-artifact@v8
@@ -337,7 +337,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Download build artifacts
         uses: actions/download-artifact@v8
