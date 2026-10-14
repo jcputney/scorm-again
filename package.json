@@ -93,7 +93,7 @@
   },
   "devDependencies": {
     "@cyclonedx/cyclonedx-npm": "^6.0.1",
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.64.0",
     "@rollup/plugin-terser": "1.0.0",
     "@rollup/plugin-typescript": "12.3.0",
     "@swc/core": "^1.16.13",
@@ -113,9 +113,9 @@
     "monocart-reporter": "^2.14.1",
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2004",
-    "playwright": "1.63.0",
-    "prettier": "3.9.9",
-    "rollup": "4.64.1",
+    "playwright": "1.64.0",
+    "prettier": "3.9.10",
+    "rollup": "4.64.5",
     "rollup-plugin-esbuild": "6.2.1",
     "rollup-plugin-swc3": "^0.12.1",
     "standard-version": "9.5.0",
@@ -123,7 +123,7 @@
     "tslib": "2.8.1",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
-    "vite": "8.3.3",
+    "vite": "8.3.4",
     "vitest": "5.0.3"
   },
   "engines": {
