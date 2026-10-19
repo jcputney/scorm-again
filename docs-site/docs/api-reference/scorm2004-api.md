@@ -466,6 +466,9 @@ if (isValid === "true") {
 }
 ```
 
+A `choice` or `jump` target ID must not be empty and must not contain whitespace, `{` or `}`.
+`SetValue` rejects any other target with error 406.
+
 ### Sequencing Events
 
 When navigation requests are processed, corresponding events are fired:

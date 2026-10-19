@@ -507,6 +507,10 @@ console.log("Completed Modules:", parsedData.completedModules);
 
 ## Handling Interactions
 
+A correct-response pattern may repeat an item, for example `a[,]a` for a `sequencing`
+interaction. The exception is `choice`, where each item must be unique, so `a[,]a` is rejected
+with error 406. `numeric` patterns are a range (`min[:]max`) and are not checked for repeats.
+
 ### Recording a Multiple Choice Question
 
 ```javascript
