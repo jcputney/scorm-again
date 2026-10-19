@@ -747,7 +747,7 @@ const scorm12_regex = {
    * broad compatibility with legacy content.
    * Increased from 3 to 10 digits before decimal to match SCORM 2004 behavior.
    */
-  CMIDecimal: "^-?([0-9]{0,10})(\\.[0-9]*)?$",
+  CMIDecimal: "^-?(?=\\.?[0-9])([0-9]{0,10})(\\.[0-9]*)?$",
   /**
    * CMIIdentifier - Printable ASCII characters, max 255 chars (RTE A.7)
    *
@@ -817,7 +817,7 @@ const scorm12_regex = {
   /** CMIType - Interaction type vocabulary (RTE 3.4.2.7.2) */
   CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
   /** CMIResult - Interaction result vocabulary (RTE 3.4.2.7.6) */
-  CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
+  CMIResult: "^(correct|wrong|unanticipated|neutral|-?(?=\\.?[0-9])[0-9]{0,10}(?:\\.[0-9]*)?)$",
   /** NAVEvent - Navigation event vocabulary (SCORM 1.2 extension) */
   NAVEvent: "^(_?(previous|continue|start|resumeAll|exit|exitAll|abandon|abandonAll|suspendAll|retry|retryAll)|choice|jump|_none_)$",
   /** score_range - Valid score range 0-100 (RTE 3.4.2.2.2) */
@@ -826,7 +826,11 @@ const scorm12_regex = {
   audio_range: "-1#100",
   /** speed_range - Playback speed range -100 to 100 (RTE 3.4.2.3.2) */
   speed_range: "-100#100",
-  /** weighting_range - Interaction weighting range -100 to 100 (RTE 3.4.2.7.4) */
+  /**
+   * weighting_range - No longer used: SCORM 1.2 sets no range for
+   * cmi.interactions.n.weighting. Kept because scorm12_regex is public API.
+   * @deprecated
+   */
   weighting_range: "-100#100",
   /** text_range - Text display preference -1 to 1 (RTE 3.4.2.3.3) */
   text_range: "-1#1"
@@ -4773,6 +4777,9 @@ class CMICore extends BaseCMI {
    * @param {string} session_time
    */
   set session_time(session_time) {
+    if (session_time === "") {
+      return;
+    }
     if (check12ValidFormat(
       this._cmi_element + ".session_time",
       session_time,
@@ -5419,7 +5426,12 @@ class CMIInteractionsObject extends BaseCMI {
    * @param {string} weighting
    */
   set weighting(weighting) {
-    if (check12ValidFormat(this._cmi_element + ".weighting", weighting, scorm12_regex.CMIDecimal) && check12ValidRange(this._cmi_element + ".weighting", weighting, scorm12_regex.weighting_range)) {
+    if (check12ValidFormat(
+      this._cmi_element + ".weighting",
+      weighting,
+      scorm12_regex.CMIDecimal,
+      true
+    )) {
       this._weighting = weighting;
     }
   }
@@ -5481,7 +5493,9 @@ class CMIInteractionsObject extends BaseCMI {
     if (check12ValidFormat(
       this._cmi_element + ".result",
       normalizedResult,
-      scorm12_regex.CMIResult
+      scorm12_regex.CMIResult,
+      // ADL's 1.2 CTS checks the numeric form with checkDecimal, which accepts blank
+      true
     )) {
       this._result = normalizedResult;
     }

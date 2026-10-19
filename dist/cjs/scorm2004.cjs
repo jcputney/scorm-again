@@ -899,7 +899,7 @@ const scorm12_regex = {
    * broad compatibility with legacy content.
    * Increased from 3 to 10 digits before decimal to match SCORM 2004 behavior.
    */
-  CMIDecimal: "^-?([0-9]{0,10})(\\.[0-9]*)?$",
+  CMIDecimal: "^-?(?=\\.?[0-9])([0-9]{0,10})(\\.[0-9]*)?$",
   /** score_range - Valid score range 0-100 (RTE 3.4.2.2.2) */
   score_range: "0#100",
   /** audio_range - Audio level range -1 to 100 (RTE 3.4.2.3.1) */
