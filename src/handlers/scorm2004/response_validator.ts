@@ -13,7 +13,6 @@ import {
   ResponseType,
   scorm2004_errors,
   scorm2004_regex,
-  ValidLanguages,
 } from "../../constants";
 
 /**
@@ -333,13 +332,9 @@ export class Scorm2004ResponseValidator {
       switch (matches[2]) {
         case "lang":
           langMatches = node.match(scorm2004_regex.CMILangcr);
-          if (langMatches) {
-            const lang = langMatches[3];
-            if (lang !== undefined && lang.length > 0) {
-              if (!ValidLanguages.includes(lang.toLowerCase())) {
-                this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
-              }
-            }
+          const lang = matches[3] ?? "";
+          if (!langMatches || !new RegExp(scorm2004_regex.CMILang).test(lang)) {
+            this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
           }
           seenLang = true;
           break;

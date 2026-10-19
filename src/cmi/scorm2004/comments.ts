@@ -131,6 +131,7 @@ export class CMICommentsObject extends BaseCMI {
           this._cmi_element + ".location",
           location,
           scorm2004_regex.CMIString250,
+          true,
         )
       ) {
         this._location = location;

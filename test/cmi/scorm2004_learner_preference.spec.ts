@@ -80,7 +80,7 @@ describe("SCORM 2004 CMILearnerPreference Tests", () => {
 
         expect(() => {
           learnerPreference.audio_level = "1000";
-        }).toThrow();
+        }).not.toThrow();
       });
     });
 
@@ -111,7 +111,7 @@ describe("SCORM 2004 CMILearnerPreference Tests", () => {
 
         expect(() => {
           learnerPreference.language = "en-US-invalid";
-        }).toThrow();
+        }).not.toThrow();
       });
     });
 

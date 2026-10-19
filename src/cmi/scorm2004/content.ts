@@ -35,7 +35,7 @@ export class CMIContent extends BaseCMI {
    */
   set location(location: string) {
     if (
-      check2004ValidFormat(this._cmi_element + ".location", location, scorm2004_regex.CMIString1000)
+      check2004ValidFormat(this._cmi_element + ".location", location, scorm2004_regex.CMIString1000, true)
     ) {
       this._location = location;
     }

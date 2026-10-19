@@ -1413,11 +1413,11 @@ describe("SCORM 2004 API Tests", () => {
       expect(result).toBe("{unknown=true}correctResponse");
     });
 
-    it("should throw an error with an invalid language code", () => {
+    it("should accept a syntactically valid language code", () => {
       const scorm2004API = basicApi();
       const input = "{lang=xyz}correctResponse";
       scorm2004API["_responseValidator"].removeCorrectResponsePrefixes("api", input);
-      expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
+      expect(scorm2004API.lmsGetLastError()).toEqual("0");
     });
   });
 

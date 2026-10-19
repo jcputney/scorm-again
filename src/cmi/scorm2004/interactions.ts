@@ -639,10 +639,10 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
     ? splitDelimited(pattern, responseDef.delimiter, allowBare)
     : [pattern];
 
-  // Enforce uniqueness or disallow duplicates if required. Numeric is exempt:
+  // Enforce within-pattern uniqueness when required. Numeric is exempt:
   // its nodes are the min/max bounds of a range, and the spec uses identical
   // bounds (e.g. "3.14159[:]3.14159") to express an exact value.
-  if (type !== "numeric" && (responseDef.unique || responseDef.duplicate === false)) {
+  if (type !== "numeric" && responseDef.unique) {
     const seen = new Set(nodes);
     if (seen.size !== nodes.length) {
       throw new Scorm2004ValidationError(

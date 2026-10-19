@@ -890,8 +890,7 @@ class Scorm2004API extends BaseAPI {
       return "";
     }
 
-    const adlNavRequestRegex =
-      "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=([a-zA-Z0-9-_]+)}$";
+    const adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=([^{}\\s]+)}$";
     if (stringMatches(CMIElement, adlNavRequestRegex)) {
       const matches = CMIElement.match(adlNavRequestRegex);
       if (matches) {
