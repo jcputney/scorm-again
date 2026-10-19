@@ -148,6 +148,12 @@ export const scorm12_regex = {
   audio_range: "-1#100",
   /** speed_range - Playback speed range -100 to 100 (RTE 3.4.2.3.2) */
   speed_range: "-100#100",
+  /**
+   * weighting_range - No longer used: SCORM 1.2 sets no range for
+   * cmi.interactions.n.weighting. Kept because scorm12_regex is public API.
+   * @deprecated
+   */
+  weighting_range: "-100#100",
   /** text_range - Text display preference -1 to 1 (RTE 3.4.2.3.3) */
   text_range: "-1#1",
 };
