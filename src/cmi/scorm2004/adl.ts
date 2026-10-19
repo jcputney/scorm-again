@@ -502,6 +502,20 @@ class ADLNavRequestValidChoice {
   private _parentNav: ADLNav | null = null;
   private _staticValues: { [key: string]: NAVBoolean } = {};
 
+  getStaticValue(target: string): NAVBoolean | undefined {
+    return this._staticValues[`{target=${target}}`];
+  }
+
+  setStaticValue(key: string, value: string): void {
+    const element = "adl.nav.request_valid.choice." + key;
+    if (
+      check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) &&
+      check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)
+    ) {
+      this._staticValues[key] = value as NAVBoolean;
+    }
+  }
+
   setParentNav(nav: ADLNav): void {
     this._parentNav = nav;
   }
@@ -520,7 +534,7 @@ class ADLNavRequestValidChoice {
       }
     }
     // Fall back to static value if sequencing not available
-    const value = this._staticValues[target];
+    const value = this.getStaticValue(target);
     if (value === NAVBoolean.TRUE) {
       return "true";
     }
@@ -552,6 +566,20 @@ class ADLNavRequestValidJump {
   private _parentNav: ADLNav | null = null;
   private _staticValues: { [key: string]: NAVBoolean } = {};
 
+  getStaticValue(target: string): NAVBoolean | undefined {
+    return this._staticValues[`{target=${target}}`];
+  }
+
+  setStaticValue(key: string, value: string): void {
+    const element = "adl.nav.request_valid.jump." + key;
+    if (
+      check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) &&
+      check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)
+    ) {
+      this._staticValues[key] = value as NAVBoolean;
+    }
+  }
+
   setParentNav(nav: ADLNav): void {
     this._parentNav = nav;
   }
@@ -568,7 +596,7 @@ class ADLNavRequestValidJump {
       return activity ? "true" : "false";
     }
     // Fall back to static value if sequencing not available
-    const value = this._staticValues[target];
+    const value = this.getStaticValue(target);
     if (value === NAVBoolean.TRUE) return "true";
     if (value === NAVBoolean.FALSE) return "false";
     return "unknown";

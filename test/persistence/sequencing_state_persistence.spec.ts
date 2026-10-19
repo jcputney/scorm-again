@@ -366,6 +366,28 @@ describe("SequencingStatePersistence", () => {
   });
 
   describe("serializeSequencingState", () => {
+    it("round trips target-keyed choice and jump maps", () => {
+      const validity = mockContext.adl.nav.request_valid;
+      const values = {
+        "{target=act1}": "true",
+        "{target=act2}": "false",
+        "{target=act3}": "unknown",
+      };
+      validity.choice = values;
+      validity.jump = values;
+      const serialized = persistence.serializeSequencingState();
+      validity.choice = {};
+      validity.jump = {};
+      expect(persistence.deserializeSequencingState(serialized)).toBe(true);
+      expect(validity.choice.getAll()).toEqual(values);
+      expect(validity.jump.getAll()).toEqual(values);
+      for (const request of ["choice", "jump"] as const) {
+        expect(validity[request].getStaticValue("act1")).toBe("true");
+        expect(validity[request].getStaticValue("act2")).toBe("false");
+        expect(validity[request].getStaticValue("act3")).toBe("unknown");
+      }
+    });
+
     it("should serialize basic state", () => {
       const result = persistence.serializeSequencingState();
       const parsed = JSON.parse(result);

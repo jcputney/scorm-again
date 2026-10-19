@@ -333,7 +333,11 @@ export class CMIValueAccessService {
         );
         return global_constants.SCORM_FALSE;
       }
-      // Before initialization, target writes are allowed but no-op (targets are resolved during read)
+      // Request validity helpers accept validated LMS entries before initialization.
+      if ("setStaticValue" in refObject && typeof refObject.setStaticValue === "function") {
+        refObject.setStaticValue(attribute, value);
+      }
+      // Other target writes remain a no-op (targets are resolved during read).
       return global_constants.SCORM_TRUE;
     }
 
