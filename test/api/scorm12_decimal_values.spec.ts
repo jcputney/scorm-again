@@ -12,16 +12,25 @@ describe("SCORM 1.2 decimal values", () => {
     expect(api.LMSSetValue("cmi.interactions.0.id", "question-1")).toBe("true");
   });
 
-  it.each(["-1", "-0.5", "1000", "1234567890", ".5", "5.", "0", "correct", "wrong", "incorrect"])(
-    "accepts result %j",
-    (value) => {
-      expect(api.LMSSetValue("cmi.interactions.0.result", value)).toBe("true");
-      expect(api.LMSGetLastError()).toBe("0");
-      expect(api.cmi.interactions.childArray[0].toJSON().result).toBe(
-        value === "incorrect" ? "wrong" : value,
-      );
-    },
-  );
+  it.each([
+    "-1",
+    "-0.5",
+    "1000",
+    "1234567890",
+    ".5",
+    "5.",
+    "0",
+    "",
+    "correct",
+    "wrong",
+    "incorrect",
+  ])("accepts result %j", (value) => {
+    expect(api.LMSSetValue("cmi.interactions.0.result", value)).toBe("true");
+    expect(api.LMSGetLastError()).toBe("0");
+    expect(api.cmi.interactions.childArray[0].toJSON().result).toBe(
+      value === "incorrect" ? "wrong" : value,
+    );
+  });
 
   it.each([".", "-", "-.", "12345678901", "abc"])("rejects result %j with 405", (value) => {
     expect(api.LMSSetValue("cmi.interactions.0.result", value)).toBe("false");

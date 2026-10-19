@@ -2,11 +2,7 @@ import { CMIArray } from "../common/array";
 import { BaseCMI } from "../common/base_cmi";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat } from "./validation";
-import {
-  scorm12_constants,
-  scorm12_errors,
-  scorm12_regex,
-} from "../../constants";
+import { scorm12_constants, scorm12_errors, scorm12_regex } from "../../constants";
 import { getSecondsAsHHMMSS, getTimeAsSeconds } from "../../utilities";
 
 /**
@@ -279,6 +275,8 @@ export class CMIInteractionsObject extends BaseCMI {
         this._cmi_element + ".result",
         normalizedResult,
         scorm12_regex.CMIResult,
+        // ADL's 1.2 CTS checks the numeric form with checkDecimal, which accepts blank
+        true,
       )
     ) {
       this._result = normalizedResult;
