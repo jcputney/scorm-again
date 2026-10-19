@@ -805,7 +805,7 @@ const scorm12_regex = {
    *
    * Strict spec pattern would be: ^[\s\S]{0,255}$ with type-specific subpatterns
    */
-  CMIFeedback: "^.*$",
+  CMIFeedback: "^[\\s\\S]*$",
   /** CMIIndex - Pattern for array index extraction */
   CMIIndex: "[._](\\d+).",
   /** CMIStatus - Lesson status vocabulary (RTE 3.4.2.2.3) */
@@ -849,15 +849,15 @@ const scorm2004_regex = {
    */
   CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
   /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */
-  CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+  CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,250}$)?$",
   /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */
-  CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).*$)?$",
+  CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]*$)?$",
   /** CMILangcr - Language tag pattern with content */
-  CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
+  CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))([\\s\\S]*?)$",
   /** CMILangString250cr - String with optional language tag (carriage return variant) */
-  CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
+  CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?([\\s\\S]{0,250})?)?$",
   /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */
-  CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+  CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,4000}$)?$",
   /**
    * CMITime - ISO 8601 timestamp format (RTE C.1.4)
    * Year range expanded from 1970-2038 to 1970-9999 to support future dates
@@ -889,7 +889,7 @@ const scorm2004_regex = {
   /** CMILongIdentifier - Long identifier supporting URN format, max 4000 chars (RTE C.1.11) */
   CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
   /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */
-  CMIFeedback: "^.*$",
+  CMIFeedback: "^[\\s\\S]*$",
   /** CMIIndex - Pattern for array index extraction */
   CMIIndex: "[._](\\d+).",
   /** CMIIndexStore - Pattern for stored index notation */

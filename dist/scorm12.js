@@ -1704,7 +1704,7 @@ this.Scorm12API = (function () {
      * - cmi.interactions.n.correct_responses.n.pattern
      *
      * Strict spec pattern would be: ^[\s\S]{0,255}$ with type-specific subpatterns
-     */ CMIFeedback: "^.*$",
+     */ CMIFeedback: "^[\\s\\S]*$",
       /** CMIIndex - Pattern for array index extraction */ CMIIndex: "[._](\\d+).",
       /** CMIStatus - Lesson status vocabulary (RTE 3.4.2.2.3) */ CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
       /** CMIStatus2 - Extended status vocabulary with "not attempted" (RTE 3.4.2.6.2) */ CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
@@ -1729,11 +1729,11 @@ this.Scorm12API = (function () {
      * Primary tag: 1-8 characters (ISO 639-1: 2, ISO 639-2: 3, or i/x for IANA/private)
      * Subtag: 2-8 alphanumeric characters
      */ CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
-      /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */ CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
-      /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */ CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).*$)?$",
-      /** CMILangcr - Language tag pattern with content */ CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
-      /** CMILangString250cr - String with optional language tag (carriage return variant) */ CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
-      /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */ CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+      /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */ CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,250}$)?$",
+      /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */ CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]*$)?$",
+      /** CMILangcr - Language tag pattern with content */ CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))([\\s\\S]*?)$",
+      /** CMILangString250cr - String with optional language tag (carriage return variant) */ CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?([\\s\\S]{0,250})?)?$",
+      /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */ CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,4000}$)?$",
       /**
      * CMITime - ISO 8601 timestamp format (RTE C.1.4)
      * Year range expanded from 1970-2038 to 1970-9999 to support future dates
@@ -1756,7 +1756,7 @@ this.Scorm12API = (function () {
      */ CMIIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
       /** CMIShortIdentifier - Short identifier conforming to URI syntax, max 250 chars (RTE C.1.10) */ CMIShortIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
       /** CMILongIdentifier - Long identifier supporting URN format, max 4000 chars (RTE C.1.11) */ CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
-      /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */ CMIFeedback: "^.*$",
+      /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */ CMIFeedback: "^[\\s\\S]*$",
       /** CMIIndex - Pattern for array index extraction */ CMIIndex: "[._](\\d+).",
       /** CMIIndexStore - Pattern for stored index notation */ CMIIndexStore: ".N(\\d+).",
       /** CMICStatus - Completion status vocabulary (RTE 4.1.4) */ CMICStatus: "^(completed|incomplete|not attempted|unknown)$",

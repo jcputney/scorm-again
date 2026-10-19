@@ -1675,11 +1675,11 @@ this.Scorm2004API = (function () {
      * Primary tag: 1-8 characters (ISO 639-1: 2, ISO 639-2: 3, or i/x for IANA/private)
      * Subtag: 2-8 alphanumeric characters
      */ CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
-      /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */ CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
-      /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */ CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).*$)?$",
-      /** CMILangcr - Language tag pattern with content */ CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
-      /** CMILangString250cr - String with optional language tag (carriage return variant) */ CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
-      /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */ CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+      /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */ CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,250}$)?$",
+      /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */ CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]*$)?$",
+      /** CMILangcr - Language tag pattern with content */ CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))([\\s\\S]*?)$",
+      /** CMILangString250cr - String with optional language tag (carriage return variant) */ CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?([\\s\\S]{0,250})?)?$",
+      /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */ CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,4000}$)?$",
       /**
      * CMITime - ISO 8601 timestamp format (RTE C.1.4)
      * Year range expanded from 1970-2038 to 1970-9999 to support future dates
@@ -1702,7 +1702,7 @@ this.Scorm2004API = (function () {
      */ CMIIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
       /** CMIShortIdentifier - Short identifier conforming to URI syntax, max 250 chars (RTE C.1.10) */ CMIShortIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
       /** CMILongIdentifier - Long identifier supporting URN format, max 4000 chars (RTE C.1.11) */ CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
-      /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */ CMIFeedback: "^.*$",
+      /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */ CMIFeedback: "^[\\s\\S]*$",
       /** CMIIndex - Pattern for array index extraction */ CMIIndex: "[._](\\d+).",
       /** CMIIndexStore - Pattern for stored index notation */ CMIIndexStore: ".N(\\d+).",
       /** CMICStatus - Completion status vocabulary (RTE 4.1.4) */ CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
@@ -1739,7 +1739,9 @@ this.Scorm2004API = (function () {
           unique: true
       },
       "fill-in": {
-          format: scorm2004_regex.CMILangString250,
+          // No 250-char cap: the RTE SPM is a floor, and a learner's free-text
+          // answer may contain literal commas, so it is one item, not several.
+          format: scorm2004_regex.CMILangString,
           max: 10,
           delimiter: "[,]",
           unique: false
@@ -26583,6 +26585,9 @@ this.Scorm2004API = (function () {
       return CMILearnerPreference;
   }(BaseCMI);
 
+  function isSpecForm(value) {
+      return /\[[,.:]\]/.test(value);
+  }
   function stripBrackets(delim) {
       return delim.replace(/[[\]]/g, "");
   }
@@ -26590,6 +26595,7 @@ this.Scorm2004API = (function () {
       return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
   function splitDelimited(value, bracketed) {
+      var allowBare = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
       if (!bracketed) {
           return [
               value
@@ -26597,6 +26603,11 @@ this.Scorm2004API = (function () {
       }
       if (value.includes(bracketed)) {
           return value.split(bracketed);
+      }
+      if (!allowBare) {
+          return [
+              value
+          ];
       }
       var bare = stripBrackets(bracketed);
       if (!bare) {
@@ -26611,6 +26622,7 @@ this.Scorm2004API = (function () {
       });
   }
   function splitFirstDelimited(value, bracketed) {
+      var allowBare = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
       var _parts_;
       if (!bracketed) {
           return [
@@ -26622,6 +26634,11 @@ this.Scorm2004API = (function () {
           return [
               value.slice(0, idx),
               value.slice(idx + bracketed.length)
+          ];
+      }
+      if (!allowBare) {
+          return [
+              value
           ];
       }
       var bare = stripBrackets(bracketed);
@@ -26983,11 +27000,12 @@ this.Scorm2004API = (function () {
                   if (this.initialized && (this._type === "" || this._id === "")) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
                   } else {
+                      var allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
                       var nodes = [];
                       var response_type = LearnerResponses[this.type];
                       if (response_type) {
                           if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter) {
-                              nodes = splitDelimited(learner_response, response_type.delimiter);
+                              nodes = splitDelimited(learner_response, response_type.delimiter, allowBare);
                           } else {
                               nodes[0] = learner_response;
                           }
@@ -26997,7 +27015,7 @@ this.Scorm2004API = (function () {
                                   if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter2) {
                                       var _nodes_i;
                                       var node = (_nodes_i = nodes[i]) !== null && _nodes_i !== void 0 ? _nodes_i : "";
-                                      var values = this.type === "performance" ? splitFirstDelimited(node, response_type.delimiter2) : splitDelimited(node, response_type.delimiter2);
+                                      var values = this.type === "performance" ? splitFirstDelimited(node, response_type.delimiter2, allowBare) : splitDelimited(node, response_type.delimiter2, allowBare);
                                       if ((values === null || values === void 0 ? void 0 : values.length) === 2) {
                                           var _values_;
                                           if (this.type === "performance" && values[0] === "" && values[1] === "") {
@@ -27016,7 +27034,7 @@ this.Scorm2004API = (function () {
                                       }
                                   } else {
                                       var _nodes_i1;
-                                      if (!((_nodes_i1 = nodes[i]) === null || _nodes_i1 === void 0 ? void 0 : _nodes_i1.match(formatRegex))) {
+                                      if (!(this.type === "choice" && learner_response === "") && !((_nodes_i1 = nodes[i]) === null || _nodes_i1 === void 0 ? void 0 : _nodes_i1.match(formatRegex))) {
                                           throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors.TYPE_MISMATCH);
                                       } else {
                                           if (nodes[i] !== "" && response_type.unique) {
@@ -27211,17 +27229,23 @@ this.Scorm2004API = (function () {
       return result;
   }
   function validatePattern(type, pattern, responseDef) {
-      if (pattern.trim() !== pattern) {
+      var allowBare = !isSpecForm(pattern) && type !== "fill-in";
+      var freeText = [
+          "fill-in",
+          "long-fill-in",
+          "other"
+      ].includes(type);
+      if (!freeText && pattern.trim() !== pattern) {
           throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
       }
-      var rawNodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter) : [
+      var rawNodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter, allowBare) : [
           pattern
       ];
       var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
       try {
           for(var _iterator = rawNodes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
               var raw = _step.value;
-              if (raw.trim() !== raw) {
+              if (!freeText && raw.trim() !== raw) {
                   throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
               }
           }
@@ -27239,15 +27263,12 @@ this.Scorm2004API = (function () {
               }
           }
       }
-      if (type === "fill-in" && pattern === "") {
+      if ((type === "fill-in" || type === "choice") && pattern === "") {
           return;
       }
-      var nodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter) : [
+      var nodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter, allowBare) : [
           pattern
       ];
-      if (!responseDef.delimiter && pattern.includes(",")) {
-          throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
-      }
       if (type !== "numeric" && (responseDef.unique || responseDef.duplicate === false)) {
           var seen = new Set(nodes);
           if (seen.size !== nodes.length) {
@@ -27268,7 +27289,7 @@ this.Scorm2004API = (function () {
           if (!delimBracketed) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
           }
-          var parts = splitDelimited(value, delimBracketed);
+          var parts = splitDelimited(value, delimBracketed, allowBare);
           if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
           }
@@ -27293,6 +27314,26 @@ this.Scorm2004API = (function () {
                           checkSingle(node);
                           break;
                       }
+                  case "long-fill-in":
+                      {
+                          var text = node;
+                          var langTags = "";
+                          var seenCase = false;
+                          var prefix = void 0;
+                          while(prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/)){
+                              if (prefix[1] === "order_matters" || prefix[1] === "case_matters" && (seenCase || langTags !== "" || prefix[2] !== "true" && prefix[2] !== "false")) {
+                                  throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
+                              }
+                              if (prefix[1] === "case_matters") {
+                                  seenCase = true;
+                              } else if (prefix[1] === "lang") {
+                                  langTags += prefix[0];
+                              }
+                              text = text.slice(prefix[0].length);
+                          }
+                          checkSingle(langTags + text);
+                          break;
+                      }
                   case "performance":
                       {
                           var delimBracketed = responseDef.delimiter2;
@@ -27300,7 +27341,7 @@ this.Scorm2004API = (function () {
                               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
                           }
                           var record = stripResponsePrefixes(node);
-                          var parts = splitFirstDelimited(record, delimBracketed);
+                          var parts = splitFirstDelimited(record, delimBracketed, allowBare);
                           if (parts.length !== 2) {
                               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
                           }
@@ -27366,7 +27407,7 @@ this.Scorm2004API = (function () {
                   return this._pattern;
               },
               set: function set(pattern) {
-                  if (this._interactionType === "fill-in" && pattern === "") {
+                  if ((this._interactionType === "fill-in" || this._interactionType === "choice") && pattern === "") {
                       this._pattern = "";
                       return;
                   }
@@ -31866,7 +31907,7 @@ this.Scorm2004API = (function () {
               value: function checkValidResponseType(CMIElement, response_type, value, interaction_type) {
                   var nodes = [];
                   if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter) {
-                      nodes = splitDelimited(String(value), response_type.delimiter);
+                      nodes = splitDelimited(String(value), response_type.delimiter, !isSpecForm(String(value)) && interaction_type !== "fill-in");
                   } else {
                       nodes[0] = value;
                   }
@@ -31966,13 +32007,14 @@ this.Scorm2004API = (function () {
                       this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "Incorrect Response Type: ".concat(interaction_type));
                       return;
                   }
+                  var allowBare = !isSpecForm(String(value)) && interaction_type !== "fill-in";
                   var formatRegex = new RegExp(response.format);
                   for(var i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++){
                       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
                           nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
                       }
                       if (response === null || response === void 0 ? void 0 : response.delimiter2) {
-                          var values = interaction_type === "performance" ? splitFirstDelimited(nodes[i], response.delimiter2) : splitDelimited(nodes[i], response.delimiter2);
+                          var values = interaction_type === "performance" ? splitFirstDelimited(nodes[i], response.delimiter2, allowBare) : splitDelimited(nodes[i], response.delimiter2, allowBare);
                           if (values.length === 2) {
                               if (interaction_type === "performance" && values[0] === "" && values[1] === "") {
                                   this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "".concat(interaction_type, ": ").concat(value));
