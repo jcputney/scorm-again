@@ -250,10 +250,10 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
       }).toThrow(Scorm2004ValidationError);
     });
 
-    it("should reject empty patterns", () => {
+    it("should accept empty choice patterns", () => {
       expect(() => {
         correctResponse.pattern = "";
-      }).toThrow(Scorm2004ValidationError);
+      }).not.toThrow();
     });
   });
 

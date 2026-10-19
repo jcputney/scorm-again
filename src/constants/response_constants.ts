@@ -35,7 +35,9 @@ export const LearnerResponses: Responses = {
     unique: true,
   },
   "fill-in": {
-    format: scorm2004_regex.CMILangString250,
+    // No 250-char cap: the RTE SPM is a floor, and a learner's free-text
+    // answer may contain literal commas, so it is one item, not several.
+    format: scorm2004_regex.CMILangString,
     max: 10,
     delimiter: "[,]",
     unique: false,

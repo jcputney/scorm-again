@@ -166,6 +166,9 @@ export const scorm2004Values: Scorm2004Values = {
   validISO8601Durations: ["P1Y34DT23H45M15S", "PT1M45S", "P0S", "PT75M"],
   invalidISO8601Durations: ["00:08:45", "-P1H", "1y45D", "0"],
   validComment: [
+    "{lang=eng-98-9fhgj}{ learner comment",
+    "{learner comment",
+    "{lang=eng-98-9fhgj}{" + "x".repeat(3999),
     "{lang=en-98} learner comment",
     "{lang=eng-98-9} learner comment",
     "{lang=eng-98-9fhgj}" + "x".repeat(4000),
@@ -175,15 +178,11 @@ export const scorm2004Values: Scorm2004Values = {
     "{lang=i}",
     "",
   ],
-  invalidComment: [
-    "{lang=i-}",
-    "{lang=i-x}",
+  invalidComment: ["{lang=i-}", "{lang=i-x}", "{lang=eng-98-9fhgj}" + "x".repeat(4001)],
+  validDescription: [
     "{lang=eng-98-9fhgj}{ learner comment",
     "{learner comment",
-    "{lang=eng-98-9fhgj}" + "x".repeat(4001),
-    "{lang=eng-98-9fhgj}{" + "x".repeat(3999),
-  ],
-  validDescription: [
+    "{lang=eng-98-9fhgj}{" + "x".repeat(249),
     "{lang=en-98} learner comment",
     "{lang=eng-98-9} learner comment",
     "{lang=eng-98-9fhgj}" + "x".repeat(250),
@@ -194,13 +193,7 @@ export const scorm2004Values: Scorm2004Values = {
     "{lang=i}",
     "",
   ],
-  invalidDescription: [
-    "{lang=i-}",
-    "{lang=i-x}",
-    "{lang=eng-98-9fhgj}{ learner comment",
-    "{learner comment",
-    "{lang=eng-98-9fhgj}{" + "x".repeat(249),
-  ],
+  invalidDescription: ["{lang=i-}", "{lang=i-x}"],
   validNavRequest: [
     "previous",
     "continue",

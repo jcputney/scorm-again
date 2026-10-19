@@ -4,6 +4,7 @@ import {
   CMIInteractionsObject,
 } from "../../cmi/scorm2004/interactions";
 import {
+  isSpecForm,
   splitDelimited,
   splitFirstDelimited,
 } from "../../cmi/scorm2004/interaction_delimiters";
@@ -63,7 +64,11 @@ export class Scorm2004ResponseValidator {
     if (response_type?.delimiter) {
       // Split on the spec's bracketed token ("[,]" / "[:]") when present,
       // falling back to the bare character for legacy plain values.
-      nodes = splitDelimited(String(value), response_type.delimiter);
+      nodes = splitDelimited(
+        String(value),
+        response_type.delimiter,
+        !isSpecForm(String(value)) && interaction_type !== "fill-in",
+      );
     } else {
       nodes[0] = value;
     }
@@ -212,6 +217,7 @@ export class Scorm2004ResponseValidator {
       );
       return;
     }
+    const allowBare = !isSpecForm(String(value)) && interaction_type !== "fill-in";
     const formatRegex = new RegExp(response.format);
     for (let i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++) {
       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
@@ -224,8 +230,8 @@ export class Scorm2004ResponseValidator {
         // malformed 3-member record is rejected.
         const values =
           interaction_type === "performance"
-            ? splitFirstDelimited(nodes[i], response.delimiter2)
-            : splitDelimited(nodes[i], response.delimiter2);
+            ? splitFirstDelimited(nodes[i], response.delimiter2, allowBare)
+            : splitDelimited(nodes[i], response.delimiter2, allowBare);
         if (values.length === 2) {
           // A performance record must include at least one of
           // step_name / step_answer. Both step fields accept an empty string

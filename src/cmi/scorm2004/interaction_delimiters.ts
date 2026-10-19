@@ -17,9 +17,14 @@
  * rejected spec-compliant bracketed patterns (issue #1571) and could not
  * represent values that legitimately contain a literal "." or ":". To accept
  * the spec form without breaking legacy plain content, we split on the
- * bracketed token when the value contains it, and otherwise fall back to the
- * bare character.
+ * bracketed tokens throughout a value containing any reserved token. Bare
+ * fallback is allowed only for wholly legacy values, except fill-in items,
+ * where bare commas are always literal text.
  */
+
+export function isSpecForm(value: string): boolean {
+  return /\[[,.:]\]/.test(value);
+}
 
 /** Remove the square brackets from a reserved token: "[,]" -> "," */
 export function stripBrackets(delim: string): string {
@@ -36,18 +41,21 @@ function escapeRegex(s: string): string {
  *
  * - If `value` contains the bracketed token, split on the literal token
  *   (the spec form). Every occurrence is a separator.
- * - Otherwise split on the bare character, treating "\<char>" as an escaped
- *   literal (the legacy/back-compat form).
+ * - Otherwise, if allowed, split on the bare character, treating "\<char>" as an escaped
+ *   literal (the legacy/back-compat form); return [value] when disabled.
  *
  * @param value - the characterstring to split
  * @param bracketed - the bracketed delimiter token, e.g. "[,]" / "[.]" / "[:]"
  */
-export function splitDelimited(value: string, bracketed: string): string[] {
+export function splitDelimited(value: string, bracketed: string, allowBare = true): string[] {
   if (!bracketed) {
     return [value];
   }
   if (value.includes(bracketed)) {
     return value.split(bracketed);
+  }
+  if (!allowBare) {
+    return [value];
   }
   const bare = stripBrackets(bracketed);
   if (!bare) {
@@ -69,13 +77,16 @@ export function splitDelimited(value: string, bracketed: string): string[] {
  * @param value - the characterstring to split
  * @param bracketed - the bracketed delimiter token, e.g. "[.]"
  */
-export function splitFirstDelimited(value: string, bracketed: string): string[] {
+export function splitFirstDelimited(value: string, bracketed: string, allowBare = true): string[] {
   if (!bracketed) {
     return [value];
   }
   if (value.includes(bracketed)) {
     const idx = value.indexOf(bracketed);
     return [value.slice(0, idx), value.slice(idx + bracketed.length)];
+  }
+  if (!allowBare) {
+    return [value];
   }
   const bare = stripBrackets(bracketed);
   if (!bare) {

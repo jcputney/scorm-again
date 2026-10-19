@@ -472,11 +472,11 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
       });
 
       // Long-fill-in multiple
-      it("should reject multiple long-fill-in patterns", () => {
+      it("should accept commas in long-fill-in patterns", () => {
         const cr = new CMIInteractionsCorrectResponsesObject("long-fill-in");
         expect(() => {
           cr.pattern = "a,b";
-        }).toThrow();
+        }).not.toThrow();
       });
 
       it("should reject a pattern that's too long", () => {
@@ -610,11 +610,11 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
       });
 
       // Other multiple
-      it("should reject multiple other patterns", () => {
+      it("should accept commas in other patterns", () => {
         const cr = new CMIInteractionsCorrectResponsesObject("other");
         expect(() => {
           cr.pattern = "foo,bar";
-        }).toThrow();
+        }).not.toThrow();
       });
     });
 

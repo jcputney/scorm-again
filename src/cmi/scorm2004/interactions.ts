@@ -17,7 +17,7 @@ import { BaseCMI } from "../common/base_cmi";
 import { CMIArray } from "../common/array";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat } from "./validation";
-import { splitDelimited, splitFirstDelimited } from "./interaction_delimiters";
+import { isSpecForm, splitDelimited, splitFirstDelimited } from "./interaction_delimiters";
 import {
   CorrectResponses,
   LearnerResponses,
@@ -280,6 +280,7 @@ export class CMIInteractionsObject extends BaseCMI {
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
+      const allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
       let nodes = [];
       const response_type = LearnerResponses[this.type];
 
@@ -287,7 +288,7 @@ export class CMIInteractionsObject extends BaseCMI {
         if (response_type?.delimiter) {
           // Split on the spec's bracketed token ("[,]") when present, falling
           // back to the bare character for legacy plain responses.
-          nodes = splitDelimited(learner_response, response_type.delimiter);
+          nodes = splitDelimited(learner_response, response_type.delimiter, allowBare);
         } else {
           nodes[0] = learner_response;
         }
@@ -304,8 +305,8 @@ export class CMIInteractionsObject extends BaseCMI {
               const node = nodes[i] ?? "";
               const values =
                 this.type === "performance"
-                  ? splitFirstDelimited(node, response_type.delimiter2)
-                  : splitDelimited(node, response_type.delimiter2);
+                  ? splitFirstDelimited(node, response_type.delimiter2, allowBare)
+                  : splitDelimited(node, response_type.delimiter2, allowBare);
 
               if (values?.length === 2) {
                 // A performance record must include at least one of
@@ -340,7 +341,10 @@ export class CMIInteractionsObject extends BaseCMI {
                 );
               }
             } else {
-              if (!nodes[i]?.match(formatRegex)) {
+              if (
+                !(this.type === "choice" && learner_response === "") &&
+                !nodes[i]?.match(formatRegex)
+              ) {
                 throw new Scorm2004ValidationError(
                   this._cmi_element + ".learner_response",
                   scorm2004_errors.TYPE_MISMATCH as number,
@@ -601,8 +605,10 @@ function stripResponsePrefixes(node: string): string {
  * Helper: validate a `pattern` string against its SCORM definition
  */
 function validatePattern(type: string, pattern: string, responseDef: ResponseType) {
+  const allowBare = !isSpecForm(pattern) && type !== "fill-in";
+  const freeText = ["fill-in", "long-fill-in", "other"].includes(type);
   // Reject patterns with leading or trailing whitespace
-  if (pattern.trim() !== pattern) {
+  if (!freeText && pattern.trim() !== pattern) {
     throw new Scorm2004ValidationError(
       "cmi.interactions.n.correct_responses.n.pattern",
       scorm2004_errors.TYPE_MISMATCH as number,
@@ -611,10 +617,10 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
 
   // Reject any nodes with leading/trailing whitespace around tokens
   const rawNodes = responseDef.delimiter
-    ? splitDelimited(pattern, responseDef.delimiter)
+    ? splitDelimited(pattern, responseDef.delimiter, allowBare)
     : [pattern];
   for (const raw of rawNodes) {
-    if (raw.trim() !== raw) {
+    if (!freeText && raw.trim() !== raw) {
       throw new Scorm2004ValidationError(
         "cmi.interactions.n.correct_responses.n.pattern",
         scorm2004_errors.TYPE_MISMATCH as number,
@@ -622,24 +628,16 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
     }
   }
 
-  // Allow empty fill-in patterns
-  if (type === "fill-in" && pattern === "") {
+  // Allow empty fill-in and choice patterns
+  if ((type === "fill-in" || type === "choice") && pattern === "") {
     return;
   }
   // Split into nodes on the primary delimiter (if any). Uses the spec's
   // bracketed token ("[,]" / "[:]") when present, falling back to the bare
   // character for legacy plain patterns.
   const nodes: string[] = responseDef.delimiter
-    ? splitDelimited(pattern, responseDef.delimiter)
+    ? splitDelimited(pattern, responseDef.delimiter, allowBare)
     : [pattern];
-
-  // If no primary delimiter but pattern contains comma, reject multiple entries
-  if (!responseDef.delimiter && pattern.includes(",")) {
-    throw new Scorm2004ValidationError(
-      "cmi.interactions.n.correct_responses.n.pattern",
-      scorm2004_errors.TYPE_MISMATCH as number,
-    );
-  }
 
   // Enforce uniqueness or disallow duplicates if required. Numeric is exempt:
   // its nodes are the min/max bounds of a range, and the spec uses identical
@@ -681,7 +679,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
         scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
-    const parts = splitDelimited(value, delimBracketed);
+    const parts = splitDelimited(value, delimBracketed, allowBare);
     if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
       throw new Scorm2004ValidationError(
         "cmi.interactions.n.correct_responses.n.pattern",
@@ -710,9 +708,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
         // ":10" are invalid single values.
         if (node === "") {
           const bracketedRange =
-            nodes.length >= 2 &&
-            !!responseDef.delimiter &&
-            pattern.includes(responseDef.delimiter);
+            nodes.length >= 2 && !!responseDef.delimiter && pattern.includes(responseDef.delimiter);
           if (!bracketedRange) {
             throw new Scorm2004ValidationError(
               "cmi.interactions.n.correct_responses.n.pattern",
@@ -722,6 +718,36 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
           break;
         }
         checkSingle(node);
+        break;
+      }
+
+      case "long-fill-in": {
+        // Only {case_matters=<boolean>} and {lang=<language>} may prefix a
+        // long-fill-in pattern, with case_matters first. Drop case_matters and
+        // keep lang tags so the format regex still validates them.
+        let text = node;
+        let langTags = "";
+        let seenCase = false;
+        let prefix: RegExpMatchArray | null;
+        while ((prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/))) {
+          if (
+            prefix[1] === "order_matters" ||
+            (prefix[1] === "case_matters" &&
+              (seenCase || langTags !== "" || (prefix[2] !== "true" && prefix[2] !== "false")))
+          ) {
+            throw new Scorm2004ValidationError(
+              "cmi.interactions.n.correct_responses.n.pattern",
+              scorm2004_errors.TYPE_MISMATCH as number,
+            );
+          }
+          if (prefix[1] === "case_matters") {
+            seenCase = true;
+          } else if (prefix[1] === "lang") {
+            langTags += prefix[0];
+          }
+          text = text.slice(prefix[0].length);
+        }
+        checkSingle(langTags + text);
         break;
       }
 
@@ -747,7 +773,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
         const record = stripResponsePrefixes(node);
 
         // Split on the FIRST delimiter only -> [step_name, step_answer]
-        const parts = splitFirstDelimited(record, delimBracketed);
+        const parts = splitFirstDelimited(record, delimBracketed, allowBare);
 
         // A record must use the "[.]" field separator (exactly two parts)
         if (parts.length !== 2) {
@@ -833,8 +859,11 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   }
 
   set pattern(pattern: string) {
-    // Allow empty fill-in patterns
-    if (this._interactionType === "fill-in" && pattern === "") {
+    // Allow empty fill-in and choice patterns
+    if (
+      (this._interactionType === "fill-in" || this._interactionType === "choice") &&
+      pattern === ""
+    ) {
       this._pattern = "";
       return;
     }
