@@ -41,8 +41,8 @@ From manifest (read-only, set once):
 - Exit values: `""` (empty), `"suspend"`, `"logout"`, `"time-out"`
 - `session_time` is calculated by the library - only persist `total_time`
 - A blank `cmi.core.session_time` is accepted and keeps the session time already recorded
-- `cmi.interactions.n.weighting` accepts any decimal (SCORM 1.2 sets no range) or `""`
-- `cmi.interactions.n.result` accepts `correct`, `wrong`, `unanticipated`, `neutral`, a decimal (a minus sign is allowed), or `""`; `incorrect` is stored as `wrong`
+- `cmi.interactions.n.weighting` accepts a decimal with at least one digit and up to 10 integer digits (SCORM 1.2 sets no range), or `""`
+- `cmi.interactions.n.result` accepts `correct`, `wrong`, `unanticipated`, `neutral`, a decimal with at least one digit and up to 10 integer digits (a minus sign is allowed), or `""`; `incorrect` is stored as `wrong`
 
 ### Data the LMS Receives (Commit)
 
