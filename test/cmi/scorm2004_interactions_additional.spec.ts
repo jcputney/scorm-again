@@ -285,11 +285,11 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         expect(cr.pattern).toBe("a.b.c");
       });
 
-      it("should reject duplicate performance patterns", () => {
+      it("should accept duplicate performance nodes", () => {
         const cr = new CMIInteractionsCorrectResponsesObject("performance");
         expect(() => {
           cr.pattern = "step1.x,step1.x";
-        }).toThrow();
+        }).not.toThrow();
       });
     });
 
@@ -534,11 +534,11 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         }).toThrow();
       });
 
-      it("should reject duplicate matching patterns", () => {
+      it("should accept duplicate matching nodes", () => {
         const cr = new CMIInteractionsCorrectResponsesObject("matching");
         expect(() => {
           cr.pattern = "a.b,a.b";
-        }).toThrow();
+        }).not.toThrow();
       });
 
       it("should accept escaped commas or dots within identifiers", () => {

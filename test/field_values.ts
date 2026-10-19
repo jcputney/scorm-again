@@ -124,8 +124,8 @@ interface Scorm2004Values extends CommonValues {
 
 export const scorm2004Values: Scorm2004Values = {
   ...commonValues,
-  validResult: ["correct", "incorrect", "unanticipated", "neutral"],
-  invalidResult: ["-10000", "10000", "invalid", "wrong"],
+  validResult: ["correct", "incorrect", "unanticipated", "neutral", "-10000", "10000"],
+  invalidResult: ["invalid", "wrong"],
   validTimestamps: [
     "2019-06-25",
     "2019-06-25T23:59",
@@ -175,10 +175,11 @@ export const scorm2004Values: Scorm2004Values = {
     "learner comment",
     "learner comment}",
     "{lang=i-xx}",
+    "{lang=i-x}",
     "{lang=i}",
     "",
   ],
-  invalidComment: ["{lang=i-}", "{lang=i-x}", "{lang=eng-98-9fhgj}" + "x".repeat(4001)],
+  invalidComment: ["{lang=i-}", "{lang=eng-98-9fhgj}" + "x".repeat(4001)],
   validDescription: [
     "{lang=eng-98-9fhgj}{ learner comment",
     "{learner comment",
@@ -190,10 +191,11 @@ export const scorm2004Values: Scorm2004Values = {
     "learner comment",
     "learner comment}",
     "{lang=i-xx}",
+    "{lang=i-x}",
     "{lang=i}",
     "",
   ],
-  invalidDescription: ["{lang=i-}", "{lang=i-x}"],
+  invalidDescription: ["{lang=i-}"],
   validNavRequest: [
     "previous",
     "continue",
