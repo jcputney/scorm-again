@@ -199,11 +199,9 @@ describe("Regex Constants", () => {
         expect(regex.test("invalid")).toBe(false);
       });
 
-      it("should handle empty strings", () => {
-        // SCORM 1.2 regex allows {0,3} digits before decimal, which technically
-        // allows empty string. This is a quirk of the regex but empty values
-        // should be handled by validation logic, not regex alone.
-        expect(regex.test("")).toBe(true);
+      it("should reject empty strings", () => {
+        // Callers handle allowed blank values separately from decimal validation.
+        expect(regex.test("")).toBe(false);
       });
     });
   });

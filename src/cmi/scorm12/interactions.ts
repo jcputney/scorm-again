@@ -1,7 +1,7 @@
 import { CMIArray } from "../common/array";
 import { BaseCMI } from "../common/base_cmi";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
-import { check12ValidFormat, check12ValidRange } from "./validation";
+import { check12ValidFormat } from "./validation";
 import {
   scorm12_constants,
   scorm12_errors,
@@ -41,7 +41,7 @@ export class CMIInteractions extends CMIArray {
  * - Individual interaction record
  * - id: Unique identifier for the interaction (CMIIdentifier)
  * - type: Interaction type (true-false, choice, fill-in, matching, performance, sequencing, likert, numeric)
- * - weighting: Weight assigned to the interaction (CMIDecimal, -100 to 100)
+ * - weighting: Weight assigned to the interaction (CMIDecimal)
  * - student_response: Learner's response (format depends on type)
  * - result: Outcome (correct, wrong, unanticipated, neutral, or numeric score)
  * - latency: Time from presentation to response (CMITimespan)
@@ -198,8 +198,12 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set weighting(weighting: string) {
     if (
-      check12ValidFormat(this._cmi_element + ".weighting", weighting, scorm12_regex.CMIDecimal) &&
-      check12ValidRange(this._cmi_element + ".weighting", weighting, scorm12_regex.weighting_range)
+      check12ValidFormat(
+        this._cmi_element + ".weighting",
+        weighting,
+        scorm12_regex.CMIDecimal,
+        true,
+      )
     ) {
       this._weighting = weighting;
     }

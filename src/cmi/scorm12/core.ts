@@ -392,6 +392,11 @@ export class CMICore extends BaseCMI {
    * @param {string} session_time
    */
   set session_time(session_time: string) {
+    // ADL accepts blank timespans; preserve any previously recorded session time.
+    if (session_time === "") {
+      return;
+    }
+
     if (
       check12ValidFormat(
         this._cmi_element + ".session_time",

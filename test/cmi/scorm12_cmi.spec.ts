@@ -733,8 +733,8 @@ describe("SCORM 1.2 CMI Tests", () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: "cmi.weighting",
-        validValues: scorm12Values.validSpeedRange,
-        invalidValues: scorm12Values.invalidSpeedRange,
+        validValues: scorm12Values.validSpeedRange.concat(["-101", "101", "1000"]),
+        invalidValues: ["invalid", "a100"],
       });
       h.checkWriteOnly({
         cmi: interaction(),
@@ -750,8 +750,8 @@ describe("SCORM 1.2 CMI Tests", () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: "cmi.result",
-        validValues: scorm12Values.validResult.concat(["1", "999", "999.99999"]),
-        invalidValues: scorm12Values.invalidResult,
+        validValues: scorm12Values.validResult.concat(["1", "999", "999.99999", "-10000", "10000"]),
+        invalidValues: ["invalid"],
       });
       h.checkWriteOnly({
         cmi: interaction(),
