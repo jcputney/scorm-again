@@ -845,24 +845,24 @@ const scorm2004_regex = {
   /**
    * CMILang - Language code per RFC 1766/RFC 3066 (RTE C.1.2)
    * Primary tag: 1-8 characters (ISO 639-1: 2, ISO 639-2: 3, or i/x for IANA/private)
-   * Subtag: 2-8 alphanumeric characters
+   * Subtag: 1-8 alphanumeric characters
    */
-  CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
+  CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9]{1,8})*$|^$",
   /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */
-  CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,250}$)?$",
+  CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9]{1,8})*})?((?!\\{lang=)[\\s\\S]{0,250}$)?$",
   /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */
-  CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]*$)?$",
+  CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9]{1,8})*})?((?!\\{lang=)[\\s\\S]*$)?$",
   /** CMILangcr - Language tag pattern with content */
-  CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))([\\s\\S]*?)$",
+  CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9]{1,8})*}))([\\s\\S]*?)$",
   /** CMILangString250cr - String with optional language tag (carriage return variant) */
-  CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?([\\s\\S]{0,250})?)?$",
+  CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9]{1,8})*})?([\\s\\S]{0,250})?)?$",
   /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */
-  CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!\\{lang=)[\\s\\S]{0,4000}$)?$",
+  CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9]{1,8})*})?((?!\\{lang=)[\\s\\S]{0,4000}$)?$",
   /**
    * CMITime - ISO 8601 timestamp format (RTE C.1.4)
    * Year range expanded from 1970-2038 to 1970-9999 to support future dates
    */
-  CMITime: "^(19[7-9][0-9]|[2-9][0-9]{3})((-(0[1-9]|1[0-2]))((-(0[1-9]|[1-2][0-9]|3[0-1]))(T([0-1][0-9]|2[0-3])((:[0-5][0-9])((:[0-5][0-9])((\\.[0-9]{1,6})((Z|([+|-]([0-1][0-9]|2[0-3])))(:[0-5][0-9])?)?)?)?)?)?)?)?$",
+  CMITime: "^(19[7-9][0-9]|[2-9][0-9]{3})(?:-(0[1-9]|1[0-2])(?:-(0[1-9]|[1-2][0-9]|3[0-1])(?:T([0-1][0-9]|2[0-3])(?::[0-5][0-9](?::[0-5][0-9](?:\\.[0-9]{1,6})?)?(?:Z|[+-]([0-1][0-9]|2[0-3])(?::[0-5][0-9])?)?)?)?)?)?$",
   /** CMITimespan - ISO 8601 duration format (RTE C.1.5) */
   CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:(\\d+(?:\\.\\d{1,2})?)S)?)?$",
   /** CMIInteger - Non-negative integer (RTE C.1.6) */
@@ -903,19 +903,19 @@ const scorm2004_regex = {
   /** CMIType - Interaction type vocabulary (RTE 4.1.6.2) */
   CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
   /** CMIResult - Interaction result vocabulary (RTE 4.1.6.8) */
-  CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
+  CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,10})(\\.[0-9]{1,18})?)$",
   /** NAVEvent - Navigation event vocabulary (SN Book Table 4.4.2) */
-  NAVEvent: "^(_?(start|resumeAll|previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|retry|retryAll)|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
+  NAVEvent: "^(_?(start|resumeAll|previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|retry|retryAll)|_none_|(\\{target=(?<choice_target>[^{}\\s]+)})?choice|(\\{target=(?<jump_target>[^{}\\s]+)})?jump)$",
   /** NAVBoolean - Navigation boolean vocabulary (SN Book) */
   NAVBoolean: "^(unknown|true|false)$",
   /** NAVTarget - Navigation target pattern (SN Book) */
-  NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
+  NAVTarget: "^{target=[^{}\\s]+}$",
   /** scaled_range - Scaled score range -1 to 1 (RTE 4.1.10.1) */
   scaled_range: "-1#1",
-  /** audio_range - Audio level range 0 to 999.9999999 (RTE 4.1.7.1) */
-  audio_range: "0#999.9999999",
-  /** speed_range - Playback speed range 0 to 999.9999999 (RTE 4.1.7.4) */
-  speed_range: "0#999.9999999",
+  /** audio_range - Audio level range 0 to unbounded (RTE 4.1.7.1) */
+  audio_range: "0#*",
+  /** speed_range - Playback speed range 0 to unbounded (RTE 4.1.7.4) */
+  speed_range: "0#*",
   /** text_range - Text display preference -1 to 1 (RTE 4.1.7.5) */
   text_range: "-1#1",
   /** progress_range - Progress measure range 0 to 1 (RTE 4.1.8) */
