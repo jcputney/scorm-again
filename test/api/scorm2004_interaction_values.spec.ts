@@ -67,6 +67,7 @@ describe("SCORM 2004 interaction values", () => {
     ["long-fill-in", pattern, "{lang=en}{order_matters=true}Paris"],
     ["long-fill-in", pattern, "{case_matters=yes}Paris"],
     ["long-fill-in", pattern, "{case_matters=true}{case_matters=false}Paris"],
+    ["long-fill-in", pattern, "{lang=en}{case_matters=true}Paris"],
     // Records joined by a bare comma are not split once the value uses [.]
     ["matching", pattern, "1[.]a,2[.]b"],
     ["matching", "learner_response", "1[.]a,2[.]b"],
@@ -91,6 +92,7 @@ describe("SCORM 2004 interaction values", () => {
     "{order_matters=true}Paris",
     "{lang=en}{order_matters=true}Paris",
     "{case_matters=yes}Paris",
+    "{lang=en}{case_matters=true}Paris",
   ])("rejects long-fill-in pattern %j on the correct response object", (value) => {
     const correctResponse = new CMIInteractionsCorrectResponsesObject("long-fill-in");
     expect(() => {

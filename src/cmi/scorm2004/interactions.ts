@@ -723,8 +723,8 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
 
       case "long-fill-in": {
         // Only {case_matters=<boolean>} and {lang=<language>} may prefix a
-        // long-fill-in pattern. Drop case_matters and keep lang tags so the
-        // format regex still validates them.
+        // long-fill-in pattern, with case_matters first. Drop case_matters and
+        // keep lang tags so the format regex still validates them.
         let text = node;
         let langTags = "";
         let seenCase = false;
@@ -733,7 +733,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
           if (
             prefix[1] === "order_matters" ||
             (prefix[1] === "case_matters" &&
-              (seenCase || (prefix[2] !== "true" && prefix[2] !== "false")))
+              (seenCase || langTags !== "" || (prefix[2] !== "true" && prefix[2] !== "false")))
           ) {
             throw new Scorm2004ValidationError(
               "cmi.interactions.n.correct_responses.n.pattern",
