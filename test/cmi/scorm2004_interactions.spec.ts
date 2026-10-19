@@ -139,7 +139,7 @@ describe("SCORM 2004 Interactions Tests", () => {
         interaction.type = "fill-in";
 
         // Create a string with 11 responses (more than the max of 10)
-        const tooManyResponses = Array.from({ length: 11 }, (_, i) => `answer${i + 1}`).join(",");
+        const tooManyResponses = Array.from({ length: 11 }, (_, i) => `answer${i + 1}`).join("[,]");
 
         expect(() => {
           interaction.learner_response = tooManyResponses;
