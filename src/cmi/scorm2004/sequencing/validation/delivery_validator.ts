@@ -243,7 +243,7 @@ export class DeliveryValidator {
    * @param {Activity} activity - The activity to check
    * @return {boolean} - True if activity is valid (not disabled, limits not violated)
    */
-  public checkActivity(activity: Activity): boolean {
+  public checkActivity(activity: Activity, evaluationActivity = activity, emitEvent = true): boolean {
     // Retain the availability check in addition to the UP.5 rule checks.
     if (!activity.isAvailable) {
       return false;
@@ -253,12 +253,12 @@ export class DeliveryValidator {
     const disabledRules = activity.sequencingRules.preConditionRules.filter(
       (rule) => rule.action === RuleActionType.DISABLED
     );
-    if (this.ruleEngineProvider().checkSequencingRules(activity, disabledRules) !== null) {
+    if (this.ruleEngineProvider().checkSequencingRules(evaluationActivity, disabledRules) !== null) {
       return false;
     }
 
     // UP.5 Step 2: Check limit conditions (UP.1)
-    if (!this.checkLimitConditions(activity)) {
+    if (!this.checkLimitConditions(activity, emitEvent)) {
       return false;
     }
 
@@ -276,7 +276,7 @@ export class DeliveryValidator {
    * @param {Activity} activity - The activity to check limit conditions for
    * @return {boolean} - True if limit conditions are met, false if violated
    */
-  public checkLimitConditions(activity: Activity): boolean {
+  public checkLimitConditions(activity: Activity, emitEvent = true): boolean {
     let result = true;
     let failureReason = "";
 
@@ -284,7 +284,7 @@ export class DeliveryValidator {
     // limit conditions only apply to activities that will begin a new attempt, so they are not
     // violated by the attempt being continued (SB.2.6 Resume All, DB.2 step 5).
     if (activity.isSuspended) {
-      this.fireEvent("onLimitConditionCheck", {
+      if (emitEvent) this.fireEvent("onLimitConditionCheck", {
         activity: activity,
         result: true,
         failureReason: "",
@@ -362,7 +362,7 @@ export class DeliveryValidator {
     }
 
     // Fire limit condition check event
-    this.fireEvent("onLimitConditionCheck", {
+    if (emitEvent) this.fireEvent("onLimitConditionCheck", {
       activity: activity,
       result: result,
       failureReason: failureReason,

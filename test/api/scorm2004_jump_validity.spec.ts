@@ -83,13 +83,26 @@ describe("SCORM 2004 jump validity", () => {
     expect(jump(api, "quiz")).toBe("true");
     const quiz = tree.getActivity("quiz")!;
     quiz.attemptAbsoluteDurationLimit = "PT1S";
-    quiz.attemptExperiencedDuration = "PT2S";
+    vi.spyOn(quiz, "attemptAbsoluteDuration", "get").mockReturnValue("PT2S");
     expect(jump(api, "quiz")).toBe("false");
-    quiz.attemptExperiencedDuration = "PT0S";
+    vi.spyOn(quiz, "attemptAbsoluteDuration", "get").mockReturnValue("PT0S");
     expect(jump(api, "quiz")).toBe("true");
     tree.root!.attemptLimit = 1;
     tree.root!.attemptCount = 1;
     expect(jump(api, "quiz")).toBe("false");
+  });
+
+  it("predicts and delivers an unlimited jump without prediction events", () => {
+    const { api, tree, process, limit, delivery } = fixture();
+    const quiz = tree.getActivity("quiz")!;
+    quiz.attemptLimit = 0;
+    quiz.attemptCount = 5;
+    expect(jump(api, "quiz")).toBe("true");
+    expect(limit).not.toHaveBeenCalled();
+    expect(delivery).not.toHaveBeenCalled();
+    const result = process.processNavigationRequest(NavigationRequestType.JUMP, "quiz");
+    expect(result.valid).toBe(true);
+    expect(result.targetActivity).toBe(quiz);
   });
 
   it("rejects a leaf whose ancestor is unavailable", () => {

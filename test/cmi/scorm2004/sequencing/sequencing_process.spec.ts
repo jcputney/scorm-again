@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
@@ -9,6 +9,8 @@ import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
+  RuleCondition,
+  RuleConditionType,
   SequencingRule,
   SequencingRules
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
@@ -57,6 +59,57 @@ describe("SequencingProcess", () => {
       sequencingControls,
       adlNav
     );
+  });
+
+  describe("rule evaluation providers", () => {
+    afterEach(() => {
+      RuleCondition.setElapsedSecondsHook(undefined);
+      RuleCondition.setNowProvider(() => new Date());
+    });
+    it.each(["clock", "hook"])("updates exit rules after changing the %s", (provider) => {
+      const parent = activityTree.getActivity("child1")!;
+      const leaf = activityTree.getActivity("grandchild1")!;
+      leaf.timeLimitDuration = "PT10S";
+      leaf.attemptAbsoluteStartTime = "2026-01-01T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.EXIT_PARENT);
+      rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+      leaf.sequencingRules.exitConditionRules.push(rule);
+      sequencingProcess.now = () => new Date("2026-01-01T00:00:00Z");
+      if (provider === "clock") {
+        sequencingProcess.now = () => new Date("2026-01-01T00:00:20Z");
+      } else {
+        sequencingProcess.getAttemptElapsedSecondsHook = () => 20;
+      }
+      parent.isActive = true;
+      leaf.isActive = true;
+      activityTree.currentActivity = leaf;
+      sequencingProcess.sequencingRequestProcess(SequencingRequestType.EXIT);
+      expect(parent.isActive).toBe(false);
+    });
+
+    it("isolates choice clocks and absent hooks from another process", () => {
+      const leaf = activityTree.getActivity("grandchild1")!;
+      leaf.timeLimitDuration = "PT10S";
+      leaf.attemptAbsoluteStartTime = "2026-01-01T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.HIDE_FROM_CHOICE);
+      rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+      leaf.sequencingRules.preConditionRules.push(rule);
+      sequencingProcess.now = () => new Date("2026-01-01T00:00:01Z");
+      const other = new SequencingProcess(activityTree);
+      other.now = () => new Date("2026-01-01T00:00:20Z");
+      other.getAttemptElapsedSecondsHook = () => 20;
+      try {
+        expect(sequencingProcess.sequencingRequestProcess(SequencingRequestType.CHOICE, leaf.id).exception).toBeNull();
+        expect(other.sequencingRequestProcess(SequencingRequestType.CHOICE, leaf.id).exception).toBe("SB.2.9-4");
+        other.getAttemptElapsedSecondsHook = undefined;
+        other.now = () => new Date("2026-01-01T00:00:01Z");
+        sequencingProcess.getAttemptElapsedSecondsHook = () => 20;
+        expect(other.sequencingRequestProcess(SequencingRequestType.CHOICE, leaf.id).exception).toBeNull();
+      } finally {
+        RuleCondition.setElapsedSecondsHook(undefined);
+        RuleCondition.setNowProvider(() => new Date());
+      }
+    });
   });
 
   describe("sequencingRequestProcess", () => {

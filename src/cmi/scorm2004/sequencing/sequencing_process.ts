@@ -1,3 +1,4 @@
+import { DeliveryValidator } from "./validation/delivery_validator";
 import { Activity } from "./activity";
 import { ActivityTree } from "./activity_tree";
 import { SequencingRules, RuleActionType, RuleCondition } from "./sequencing_rules";
@@ -112,6 +113,7 @@ export class SequencingProcess {
       () => this.getAttemptElapsedSecondsHook,
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+    this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
   }
 
   private _getAttemptElapsedSecondsHook: ((activity: Activity) => number) | undefined;
@@ -146,6 +148,7 @@ export class SequencingProcess {
       () => this.getAttemptElapsedSecondsHook,
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+    this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
   }
 
   constructor(
@@ -384,24 +387,16 @@ export class SequencingProcess {
         if (jumpTarget.children.length > 0) {
           return { valid: false, exception: "DB.1.1-1" };
         }
-        // Predict UP.5 without delivery events or traversal state changes.
-        const path: Activity[] = [];
-        for (let node: Activity | null = jumpTarget; node; node = node.parent) {
-          path.unshift(node);
-        }
-        for (const activity of path) {
-          // UP.5 only looks at Disabled rules, so a matching Skip rule must not hide one.
-          const disabledRules = activity.sequencingRules.preConditionRules.filter(
-            (rule) => rule.action === RuleActionType.DISABLED,
-          );
-          if (
-            !activity.isAvailable ||
-            this.ruleEngine.checkLimitConditions(activity) ||
-            this.ruleEngine.checkSequencingRules(
-              this.traversalService.getActivityForEvaluation(activity, jumpTarget),
-              disabledRules,
-            ) === RuleActionType.DISABLED
-          ) {
+        // Reuse delivery checks without firing limit-check events during prediction.
+        const validator = new DeliveryValidator(
+          this.activityTree,
+          null,
+          { now: () => this.now() },
+          () => this.ruleEngine,
+        );
+        for (let activity: Activity | null = jumpTarget; activity; activity = activity.parent) {
+          const evaluationActivity = this.traversalService.getActivityForEvaluation(activity, jumpTarget);
+          if (!validator.checkActivity(activity, evaluationActivity, false)) {
             return { valid: false, exception: "DB.1.1-3" };
           }
         }

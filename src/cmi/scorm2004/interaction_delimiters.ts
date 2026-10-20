@@ -101,3 +101,8 @@ export function splitFirstDelimited(value: string, bracketed: string, allowBare 
   }
   return [first, parts.slice(1).join(bare).replace(unescapeRe, bare)];
 }
+
+/** Bare separators are supported only in legacy values outside fill-in text. */
+export function allowsBareDelimiters(value: string, type: string): boolean {
+  return !isSpecForm(value) && type !== "fill-in";
+}

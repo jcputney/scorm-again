@@ -78,7 +78,11 @@ export class ChoiceRequestHandler {
       const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
         (rule) =>
           rule.action === RuleActionType.HIDE_FROM_CHOICE &&
-          rule.evaluate(evaluationActivity, this.getNow?.(), this.getElapsedSeconds?.()) === true,
+          rule.evaluate(
+            evaluationActivity,
+            this.getNow?.() ?? (() => new Date()),
+            this.getElapsedSeconds?.() ?? null,
+          ) === true,
       );
       if (hiddenByRule) {
         result.exception = "SB.2.9-4";

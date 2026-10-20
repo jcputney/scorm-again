@@ -495,6 +495,22 @@ export class ADLDataObject extends BaseCMI {
   }
 }
 
+/** Validate and store an LMS-provided navigation validity entry. */
+function setStaticNavigationValue(
+  values: { [key: string]: NAVBoolean },
+  kind: "choice" | "jump",
+  key: string,
+  value: string,
+): void {
+  const element = `adl.nav.request_valid.${kind}.${key}`;
+  if (
+    check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) &&
+    check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)
+  ) {
+    values[key] = value as NAVBoolean;
+  }
+}
+
 /**
  * Helper class for adl.nav.request_valid.choice to support target validation
  */
@@ -507,13 +523,7 @@ class ADLNavRequestValidChoice {
   }
 
   setStaticValue(key: string, value: string): void {
-    const element = "adl.nav.request_valid.choice." + key;
-    if (
-      check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) &&
-      check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)
-    ) {
-      this._staticValues[key] = value as NAVBoolean;
-    }
+    setStaticNavigationValue(this._staticValues, "choice", key, value);
   }
 
   setParentNav(nav: ADLNav): void {
@@ -571,13 +581,7 @@ class ADLNavRequestValidJump {
   }
 
   setStaticValue(key: string, value: string): void {
-    const element = "adl.nav.request_valid.jump." + key;
-    if (
-      check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) &&
-      check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)
-    ) {
-      this._staticValues[key] = value as NAVBoolean;
-    }
+    setStaticNavigationValue(this._staticValues, "jump", key, value);
   }
 
   setParentNav(nav: ADLNav): void {

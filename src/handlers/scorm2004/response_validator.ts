@@ -5,7 +5,7 @@ import {
   stripCorrectResponsePrefixes,
 } from "../../cmi/scorm2004/interactions";
 import {
-  isSpecForm,
+  allowsBareDelimiters,
   splitDelimited,
   splitFirstDelimited,
 } from "../../cmi/scorm2004/interaction_delimiters";
@@ -62,7 +62,7 @@ export class Scorm2004ResponseValidator {
       nodes = splitDelimited(
         String(value),
         response_type.delimiter,
-        !isSpecForm(String(value)) && interaction_type !== "fill-in",
+        allowsBareDelimiters(String(value), interaction_type),
       );
     } else {
       nodes[0] = value;
@@ -214,7 +214,7 @@ export class Scorm2004ResponseValidator {
       );
       return;
     }
-    const allowBare = !isSpecForm(String(value)) && interaction_type !== "fill-in";
+    const allowBare = allowsBareDelimiters(String(value), interaction_type);
     const formatRegex = new RegExp(response.format);
     for (let i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++) {
       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
