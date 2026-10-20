@@ -369,6 +369,36 @@ export class SequencingProcess {
         if (!jumpTarget) {
           return { valid: false, exception: "SB.2.13-1" };
         }
+        if (!this.treeQueries.isInTree(jumpTarget)) {
+          return { valid: false, exception: "SB.2.13-2" };
+        }
+        if (!jumpTarget.isAvailable) {
+          return { valid: false, exception: "SB.2.13-3" };
+        }
+        if (jumpTarget.children.length > 0) {
+          return { valid: false, exception: "DB.1.1-1" };
+        }
+        // Predict UP.5 without delivery events or traversal state changes.
+        const path: Activity[] = [];
+        for (let node: Activity | null = jumpTarget; node; node = node.parent) {
+          path.unshift(node);
+        }
+        for (const activity of path) {
+          // UP.5 only looks at Disabled rules, so a matching Skip rule must not hide one.
+          const disabledRules = activity.sequencingRules.preConditionRules.filter(
+            (rule) => rule.action === RuleActionType.DISABLED,
+          );
+          if (
+            !activity.isAvailable ||
+            this.ruleEngine.checkLimitConditions(activity) ||
+            this.ruleEngine.checkSequencingRules(
+              this.traversalService.getActivityForEvaluation(activity, jumpTarget),
+              disabledRules,
+            ) === RuleActionType.DISABLED
+          ) {
+            return { valid: false, exception: "DB.1.1-3" };
+          }
+        }
         break;
       }
 

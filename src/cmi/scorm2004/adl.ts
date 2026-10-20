@@ -590,7 +590,10 @@ class ADLNavRequestValidJump {
    */
   _isTargetValid(target: string): string {
     // If sequencing is available, evaluate dynamically
-    // Note: Jump validation checks if target exists and is in the tree
+    const process = this._parentNav?.sequencing?.overallSequencingProcess;
+    if (process?.predictJumpEnabled) {
+      return process.predictJumpEnabled(target) ? "true" : "false";
+    }
     if (this._parentNav?.sequencing?.activityTree) {
       const activity = this._parentNav.sequencing.activityTree.getActivity(target);
       return activity ? "true" : "false";

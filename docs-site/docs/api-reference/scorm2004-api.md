@@ -453,7 +453,7 @@ window.API_1484_11.Terminate("");
 ### Checking Navigation Validity
 
 The LMS can supply choice and jump validity maps keyed by `{target=<id>}`, using direct assignment before `Initialize` or `loadFromJSON` under `adl.nav.request_valid`.
-`GetValue` checks `scoItemIdValidator` first, then live sequencing for choice, then the map, and finally `scoItemIds` (including IDs extracted from sequencing).
+`GetValue` checks `scoItemIdValidator` first, then live sequencing for choice and jump, then the map, and finally `scoItemIds` (including IDs extracted from sequencing). With sequencing, a jump target is valid only if it is an available leaf not blocked by a disabled precondition rule or a limit condition on it or any of its ancestors.
 A target absent from the map falls back as before.
 
 Before setting a navigation request, you can check if it's valid:
