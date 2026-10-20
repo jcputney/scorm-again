@@ -250,7 +250,7 @@ export class RuleCondition extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the condition for
    * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
-  evaluate(activity: Activity): RuleConditionEvaluation {
+  evaluate(activity: Activity, now: () => Date = RuleCondition._now): RuleConditionEvaluation {
     let result: RuleConditionEvaluation;
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
@@ -374,10 +374,10 @@ export class RuleCondition extends BaseCMI {
           result = activity.hasAttemptLimitExceeded();
           break;
         case RuleConditionType.TIME_LIMIT_EXCEEDED:
-          result = this.evaluateTimeLimitExceeded(activity);
+          result = this.evaluateTimeLimitExceeded(activity, now);
           break;
         case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
-          result = this.evaluateOutsideAvailableTimeRange(activity);
+          result = this.evaluateOutsideAvailableTimeRange(activity, now);
           break;
         case RuleConditionType.ALWAYS:
           result = true;
@@ -403,7 +403,7 @@ export class RuleCondition extends BaseCMI {
    * @return {boolean}
    * @private
    */
-  private evaluateTimeLimitExceeded(activity: Activity): boolean {
+  private evaluateTimeLimitExceeded(activity: Activity, now: () => Date): boolean {
     // Check timeLimitDuration (primary time limit)
     let limit = activity.timeLimitDuration;
 
@@ -454,7 +454,7 @@ export class RuleCondition extends BaseCMI {
     if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
       try {
         const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-        const nowMs = RuleCondition._now().getTime();
+        const nowMs = now().getTime();
 
         // Validate timestamps before calculating
         if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
@@ -475,7 +475,7 @@ export class RuleCondition extends BaseCMI {
    * @return {boolean}
    * @private
    */
-  private evaluateOutsideAvailableTimeRange(activity: Activity): boolean {
+  private evaluateOutsideAvailableTimeRange(activity: Activity, clock: () => Date): boolean {
     const beginTime = activity.beginTimeLimit;
     const endTime = activity.endTimeLimit;
 
@@ -483,7 +483,7 @@ export class RuleCondition extends BaseCMI {
       return false;
     }
 
-    const now = RuleCondition._now();
+    const now = clock();
 
     if (beginTime) {
       const beginDate = new Date(beginTime);
@@ -650,10 +650,10 @@ export class SequencingRule extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rule for
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
-  evaluate(activity: Activity): boolean {
+  evaluate(activity: Activity, now?: () => Date): boolean {
     return (
       combineRuleConditionResults(
-        this._conditions.map((condition) => condition.evaluate(activity)),
+        this._conditions.map((condition) => condition.evaluate(activity, now)),
         this._conditionCombination,
       ) === true
     );

@@ -137,7 +137,7 @@ export class OverallSequencingProcess {
       activityTree,
       eventCallback,
       deliveryValidatorOptions,
-      sequencingProcess?.getRuleEngine(),
+      () => sequencingProcess.getRuleEngine(),
     );
 
     // Initialize termination handler

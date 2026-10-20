@@ -65,7 +65,7 @@ export class DeliveryValidator {
     activityTree: ActivityTree,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
     options?: { now?: () => Date },
-    private ruleEngine: RuleEvaluationEngine = new RuleEvaluationEngine()
+    private ruleEngineProvider: () => RuleEvaluationEngine = () => new RuleEvaluationEngine()
   ) {
     this.activityTree = activityTree;
     this.eventCallback = eventCallback;
@@ -245,7 +245,7 @@ export class DeliveryValidator {
     const disabledRules = activity.sequencingRules.preConditionRules.filter(
       (rule) => rule.action === RuleActionType.DISABLED
     );
-    if (this.ruleEngine.checkSequencingRules(activity, disabledRules) !== null) {
+    if (this.ruleEngineProvider().checkSequencingRules(activity, disabledRules) !== null) {
       return false;
     }
 

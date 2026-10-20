@@ -1,3 +1,4 @@
+import { SequencingProcess } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DeliveryValidator
@@ -34,6 +35,32 @@ describe("DeliveryValidator", () => {
     eventCallback = vi.fn();
 
     validator = new DeliveryValidator(activityTree, eventCallback);
+  });
+
+  it("uses the current rule engine after the sequencing clock changes", () => {
+    RuleCondition.setNowProvider(() => new Date());
+    try {
+      const insideClock = () => new Date("2000-01-01T12:00:00Z");
+      const process = new SequencingProcess(activityTree, null, null, null, { now: insideClock });
+      validator = new DeliveryValidator(activityTree, eventCallback, { now: insideClock },
+        () => process.getRuleEngine());
+      grandchild1.beginTimeLimit = "2000-01-01T00:00:00Z";
+      grandchild1.endTimeLimit = "2000-01-02T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+      grandchild1.sequencingRules.preConditionRules.push(rule);
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+      eventCallback.mockClear();
+      process.now = () => new Date("2000-01-03T12:00:00Z");
+      // Keep the static clock inside the range to prove the engine supplies its own clock.
+      RuleCondition.setNowProvider(insideClock);
+      expect(validator.checkActivity(grandchild1)).toBe(false);
+      expect(eventCallback).not.toHaveBeenCalledWith("onLimitConditionCheck", expect.anything());
+      process.now = insideClock;
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+    } finally {
+      RuleCondition.setNowProvider(() => new Date());
+    }
   });
 
   describe("checkActivity Disabled rules", () => {
