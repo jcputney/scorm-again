@@ -69,6 +69,15 @@ export class NavigationLookAhead {
     return this.cache?.choiceEnabledMap.get(activityId) ?? false;
   }
 
+  /** Predict jump validity on demand because limit conditions can change over time. */
+  public predictJumpEnabled(activityId: string): boolean {
+    return this.sequencingProcess.validateNavigationRequest(
+      SequencingRequestType.JUMP,
+      activityId,
+      this.activityTree.currentActivity,
+    ).valid;
+  }
+
   /**
    * Get list of all activity IDs that can be chosen
    * @return {string[]} - Array of activity IDs that can be chosen
