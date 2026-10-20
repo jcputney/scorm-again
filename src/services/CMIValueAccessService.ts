@@ -124,7 +124,11 @@ export class CMIValueAccessService {
 
     this.context.setLastErrorCode("0");
 
-    const structure = CMIElement.split(".");
+    // A trailing target attribute may contain periods in its identifier.
+    const targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
+    const structure = targetPath
+      ? [...targetPath[1]!.split("."), targetPath[2]!]
+      : CMIElement.split(".");
     let refObject: StringKeyMap | BaseCMI = this.context.getDataModel();
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;

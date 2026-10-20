@@ -897,6 +897,7 @@ class Scorm2004API extends BaseAPI {
         const request = matches[1];
         const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
         if (request === "choice" || request === "jump") {
+          this.lastErrorCode = "0";
           const overallProcess = this._sequencing?.overallSequencingProcess;
 
           if (this.settings.scoItemIdValidator) {

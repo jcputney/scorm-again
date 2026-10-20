@@ -37,6 +37,38 @@ describe("SCORM 2004 LMS request validity maps", () => {
       expect(api.GetValue(path("act1"))).toBe("true");
     });
 
+    it.each(["validator", "map", "SCO IDs", "extracted SCO IDs"])(
+      "clears a previous error for " + request + " via %s",
+      (source) => {
+        const api = new Scorm2004API({
+          autocommit: false,
+          logLevel: 5,
+          ...(source === "validator" ? { scoItemIdValidator: () => false } : {}),
+          ...(source === "SCO IDs" ? { scoItemIds: ["act1"] } : {}),
+        });
+        if (source === "map") api.adl.nav.request_valid[request] = values;
+        api.Initialize("");
+        if (source === "extracted SCO IDs") {
+          Object.assign(api, { _extractedScoItemIds: ["act1"] });
+        }
+        expect(api.SetValue("cmi.bogus", "x")).toBe("false");
+        expect(api.GetLastError()).toBe("401");
+        expect(api.GetValue(`adl.nav.request_valid.${request}.{target=act1}`)).toBe(
+          source === "validator" ? "false" : "true",
+        );
+        expect(api.GetLastError()).toBe("0");
+      },
+    );
+
+    it("restores target IDs containing periods for " + request, () => {
+      const api = createAPI();
+      const entries = { "{target=unit.1}": "false", "{target=act1}": "false" };
+      api.loadFromJSON({ nav: { request_valid: { [request]: entries } } }, "adl");
+      expect(api.adl.nav.request_valid[request].getAll()).toEqual(entries);
+      api.Initialize("");
+      expect(api.GetValue(`adl.nav.request_valid.${request}.{target=unit.1}`)).toBe("false");
+    });
+
     it("rejects invalid JSON values for " + request, () => {
       const api = createAPI();
       expect(() =>
@@ -102,7 +134,10 @@ describe("SCORM 2004 LMS request validity maps", () => {
     const predictChoiceEnabled = vi.fn().mockReturnValue(false);
     // Stub only the process consumed by GetValue, after initialization.
     Object.assign(api, { _sequencing: { overallSequencingProcess: { predictChoiceEnabled } } });
+    expect(api.SetValue("cmi.bogus", "x")).toBe("false");
+    expect(api.GetLastError()).toBe("401");
     expect(api.GetValue("adl.nav.request_valid.choice.{target=act1}")).toBe("false");
+    expect(api.GetLastError()).toBe("0");
     expect(predictChoiceEnabled).toHaveBeenCalledWith("act1");
     expect(api.GetValue("adl.nav.request_valid.jump.{target=act1}")).toBe("true");
   });
