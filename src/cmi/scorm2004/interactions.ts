@@ -594,22 +594,38 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
   }
 }
 
-/**
- * Strip the optional leading property delimiter(s) from a correct_responses
- * record, e.g. `{order_matters=false}[.]drink coffee` -> `[.]drink coffee`.
- *
- * Mirrors the token shape stripped by
- * `Scorm2004ResponseValidator.removeCorrectResponsePrefixes`, which runs first
- * and is authoritative for validating the property value. This helper only
- * removes the prefix so the step_name/step_answer parse correctly.
- */
-const RESPONSE_PREFIX_RE = /^\{(?:lang|case_matters|order_matters)=[^}]+\}/;
-function stripResponsePrefixes(node: string): string {
-  let result = node;
-  while (RESPONSE_PREFIX_RE.test(result)) {
-    result = result.replace(RESPONSE_PREFIX_RE, "");
+/** Validate and strip leading correct-response properties without mutating CMI state. */
+export function stripCorrectResponsePrefixes(
+  node: string,
+  type?: string,
+  firstItem = true,
+): string {
+  let text = node;
+  const seen = new Set<string>();
+  let prefix: RegExpMatchArray | null;
+  while ((prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/))) {
+    const property = prefix[1]!;
+    const value = prefix[2]!;
+    const invalidValue =
+      property === "lang"
+        ? !new RegExp(scorm2004_regex.CMILang).test(value)
+        : value !== "true" && value !== "false";
+    const invalidPosition =
+      type !== undefined &&
+      (seen.has(property) ||
+        (property !== "lang" && (!firstItem || seen.has("lang"))) ||
+        (type === "long-fill-in" && property === "order_matters") ||
+        (type === "performance" && property !== "order_matters"));
+    if (invalidValue || invalidPosition) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
+    seen.add(property);
+    text = text.slice(prefix[0].length);
   }
-  return result;
+  return text;
 }
 
 /**
@@ -709,7 +725,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
     }
   };
 
-  for (const node of nodes) {
+  for (const [nodeIndex, node] of nodes.entries()) {
     switch (type) {
       case "numeric": {
         // `nodes` are the bounds produced by splitting on the "[:]" range
@@ -732,33 +748,9 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
         break;
       }
 
+      case "fill-in":
       case "long-fill-in": {
-        // Only {case_matters=<boolean>} and {lang=<language>} may prefix a
-        // long-fill-in pattern, with case_matters first. Drop case_matters and
-        // keep lang tags so the format regex still validates them.
-        let text = node;
-        let langTags = "";
-        let seenCase = false;
-        let prefix: RegExpMatchArray | null;
-        while ((prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/))) {
-          if (
-            prefix[1] === "order_matters" ||
-            (prefix[1] === "case_matters" &&
-              (seenCase || langTags !== "" || (prefix[2] !== "true" && prefix[2] !== "false")))
-          ) {
-            throw new Scorm2004ValidationError(
-              "cmi.interactions.n.correct_responses.n.pattern",
-              scorm2004_errors.TYPE_MISMATCH as number,
-            );
-          }
-          if (prefix[1] === "case_matters") {
-            seenCase = true;
-          } else if (prefix[1] === "lang") {
-            langTags += prefix[0];
-          }
-          text = text.slice(prefix[0].length);
-        }
-        checkSingle(langTags + text);
+        checkSingle(stripCorrectResponsePrefixes(node, type, nodeIndex === 0));
         break;
       }
 
@@ -779,9 +771,8 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
         }
 
         // Remove the optional leading property delimiter (e.g.
-        // "{order_matters=false}") before parsing the step fields. The
-        // response_validator runs first and validates the property value.
-        const record = stripResponsePrefixes(node);
+        // "{order_matters=false}") after validating its value and position.
+        const record = stripCorrectResponsePrefixes(node, type, nodeIndex === 0);
 
         // Split on the FIRST delimiter only -> [step_name, step_answer]
         const parts = splitFirstDelimited(record, delimBracketed, allowBare);

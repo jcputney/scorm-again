@@ -65,7 +65,6 @@ const accepted: [string, string, string][] = [
   ["numeric", pattern, "1:2"],
   // Free-text fill-in patterns keep accepting a lang tag the format regex can't parse
   ["fill-in", pattern, "{lang=en-GB-oxendict}Paris"],
-  ["fill-in", pattern, "{lang=en}{lang=fr}Paris"],
 ];
 
 function createAPI() {
@@ -128,6 +127,7 @@ describe("SCORM 2004 interaction values", () => {
 
   it.each([
     ...rejected,
+    ["fill-in", pattern, "{lang=en}{lang=fr}Paris"],
     ["long-fill-in", pattern, "{order_matters=true}Paris"],
     ["long-fill-in", pattern, "{lang=en}{order_matters=true}Paris"],
     ["long-fill-in", pattern, "{case_matters=yes}Paris"],

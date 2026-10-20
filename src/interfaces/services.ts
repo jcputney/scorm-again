@@ -144,6 +144,7 @@ export interface ISerializationService {
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
     setStartingData: (data: StringKeyMap) => void,
+    onInvalidValue?: (element: string, error: unknown) => void,
   ): void;
 
   /**
@@ -161,6 +162,7 @@ export interface ISerializationService {
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
     setStartingData: (data: StringKeyMap) => void,
+    onInvalidValue?: (element: string, error: unknown) => void,
   ): void;
 
   /**

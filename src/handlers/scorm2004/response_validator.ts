@@ -2,18 +2,14 @@ import { CMIArray } from "../../cmi/common/array";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
+  stripCorrectResponsePrefixes,
 } from "../../cmi/scorm2004/interactions";
 import {
   isSpecForm,
   splitDelimited,
   splitFirstDelimited,
 } from "../../cmi/scorm2004/interaction_delimiters";
-import {
-  CorrectResponses,
-  ResponseType,
-  scorm2004_errors,
-  scorm2004_regex,
-} from "../../constants";
+import { CorrectResponses, ResponseType, scorm2004_errors, scorm2004_regex } from "../../constants";
 
 /**
  * Context interface for error handling callbacks
@@ -103,10 +99,13 @@ export class Scorm2004ResponseValidator {
     if (interaction.type === "choice") {
       for (let i = 0; i < interaction_count && this.context.getLastErrorCode() === "0"; i++) {
         const response = interaction.correct_responses.childArray[i] as
-          | CMIInteractionsCorrectResponsesObject
-          | undefined;
+          CMIInteractionsCorrectResponsesObject | undefined;
         if (response?.pattern === value) {
-          this.context.throwSCORMError(CMIElement, scorm2004_errors.GENERAL_SET_FAILURE!, `${value}`);
+          this.context.throwSCORMError(
+            CMIElement,
+            scorm2004_errors.GENERAL_SET_FAILURE!,
+            `${value}`,
+          );
         }
       }
     }
@@ -118,7 +117,11 @@ export class Scorm2004ResponseValidator {
    * @param {CMIInteractionsObject} interaction - The interaction object
    * @param {*} value - The value to validate
    */
-  validateCorrectResponse(CMIElement: string, interaction: CMIInteractionsObject, value: any): void {
+  validateCorrectResponse(
+    CMIElement: string,
+    interaction: CMIInteractionsObject,
+    value: any,
+  ): void {
     const parts = CMIElement.split(".");
     const pattern_index = Number(parts[4]);
 
@@ -144,11 +147,7 @@ export class Scorm2004ResponseValidator {
       if (
         (this.context.getLastErrorCode() === "0" &&
           (!response_type.duplicate ||
-            !this.checkDuplicatedPattern(
-              interaction.correct_responses,
-              pattern_index,
-              value,
-            ))) ||
+            !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value))) ||
         (this.context.getLastErrorCode() === "0" && value === "")
       ) {
         // do nothing, we want the inverse
@@ -183,8 +182,7 @@ export class Scorm2004ResponseValidator {
     for (let i = 0; i < count && !found; i++) {
       if (i !== current_index) {
         const item = correct_response.childArray[i] as
-          | CMIInteractionsCorrectResponsesObject
-          | undefined;
+          CMIInteractionsCorrectResponsesObject | undefined;
         const existingPattern = item?.pattern;
         if (existingPattern === value) {
           found = true;
@@ -321,46 +319,11 @@ export class Scorm2004ResponseValidator {
    * @return {*} The node with prefixes removed
    */
   removeCorrectResponsePrefixes(CMIElement: string, node: string): any {
-    let seenOrder = false;
-    let seenCase = false;
-    let seenLang = false;
-
-    const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
-    let matches = node.match(prefixRegex);
-    let langMatches: RegExpMatchArray | null;
-    while (matches) {
-      switch (matches[2]) {
-        case "lang":
-          langMatches = node.match(scorm2004_regex.CMILangcr);
-          const lang = matches[3] ?? "";
-          if (!langMatches || !new RegExp(scorm2004_regex.CMILang).test(lang)) {
-            this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
-          }
-          seenLang = true;
-          break;
-        case "case_matters":
-          if (!seenLang && !seenOrder && !seenCase) {
-            if (matches[3] !== "true" && matches[3] !== "false") {
-              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
-            }
-          }
-
-          seenCase = true;
-          break;
-        case "order_matters":
-          if (!seenCase && !seenLang && !seenOrder) {
-            if (matches[3] !== "true" && matches[3] !== "false") {
-              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
-            }
-          }
-
-          seenOrder = true;
-          break;
-      }
-      node = node.substring(matches[1]?.length || 0);
-      matches = node.match(prefixRegex);
+    try {
+      return stripCorrectResponsePrefixes(node);
+    } catch {
+      this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
+      return node;
     }
-
-    return node;
   }
 }

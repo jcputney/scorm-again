@@ -515,6 +515,17 @@ An empty correct-response pattern is accepted for `choice`, `fill-in`, `long-fil
 `other`, and `sequencing`. An empty `learner_response` is accepted for those types
 and for `matching`.
 
+Only some types take `{...}` prefixes on a correct-response pattern, and each prefix may appear
+once:
+
+- `fill-in`: `{case_matters=true|false}` and `{order_matters=true|false}` at the start, then a
+  `{lang=<code>}` on each item.
+- `long-fill-in`: `{case_matters=true|false}` at the start, then `{lang=<code>}`.
+- `performance`: `{order_matters=true|false}` at the start only.
+
+Other types take no prefixes. The same rules apply to `SetValue` and `loadFromJSON`, and to a new
+pattern or one that replaces an existing pattern.
+
 ### Recording a Multiple Choice Question
 
 ```javascript

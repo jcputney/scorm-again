@@ -69,17 +69,24 @@ describe("SCORM 2004 LMS request validity maps", () => {
       expect(api.GetValue(`adl.nav.request_valid.${request}.{target=unit.1}`)).toBe("false");
     });
 
-    it("rejects invalid JSON values for " + request, () => {
+    it("skips invalid JSON values for " + request, () => {
       const api = createAPI();
+      const log = vi.spyOn(api, "apiLog");
       expect(() =>
         api.loadFromJSON(
           {
-            nav: { request_valid: { [request]: { "{target=bad}": "invalid" } } },
+            nav: {
+              request_valid: { [request]: { "{target=bad}": "invalid", "{target=act1}": "true" } },
+            },
           },
           "adl",
         ),
-      ).toThrow(Scorm2004ValidationError);
+      ).not.toThrow();
       expect(api.adl.nav.request_valid[request].getStaticValue("bad")).toBeUndefined();
+      expect(api.adl.nav.request_valid[request].getStaticValue("act1")).toBe("true");
+      expect(log.mock.calls.some((call) => String(call[1]).includes("Skipped invalid value"))).toBe(
+        true,
+      );
     });
 
     it("keeps bare keys invalid for " + request, () => {

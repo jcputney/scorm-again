@@ -1498,6 +1498,24 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
+   * Sets one value during loadFromJSON / loadFromFlattenedJSON. Throws when the
+   * value is rejected so the loader can skip it, and leaves lastErrorCode as it
+   * was before the call either way.
+   */
+  private loadCMIValue(CMIElement: string, value: any): void {
+    const previousErrorCode = this.lastErrorCode;
+    this.lastErrorCode = "0";
+    try {
+      this.setCMIValue(CMIElement, value);
+      if (this.lastErrorCode !== "0") {
+        throw new Error(`SCORM error ${this.lastErrorCode}`);
+      }
+    } finally {
+      this.lastErrorCode = previousErrorCode;
+    }
+  }
+
+  /**
    * Load the CMI from a flattened JSON object.
    * This method populates the CMI data model from a flattened JSON structure
    * where keys represent CMI element paths (e.g., "cmi.core.student_id").
@@ -1521,10 +1539,17 @@ export default abstract class BaseAPI implements IBaseAPI {
     this._serializationService.loadFromFlattenedJSON(
       json,
       CMIElement,
-      (CMIElement, value) => this.setCMIValue(CMIElement, value),
+      (CMIElement, value) => this.loadCMIValue(CMIElement, value),
       () => this.isNotInitialized(),
       (data: StringKeyMap) => {
         this.startingData = data;
+      },
+      (element, error) => {
+        this.apiLog(
+          "loadFromJSON",
+          `Skipped invalid value for ${element}: ${String(error)}`,
+          LogLevelEnum.WARN,
+        );
       },
     );
   }
@@ -1568,10 +1593,17 @@ export default abstract class BaseAPI implements IBaseAPI {
     this._serializationService.loadFromJSON(
       json,
       CMIElement,
-      (CMIElement, value) => this.setCMIValue(CMIElement, value),
+      (CMIElement, value) => this.loadCMIValue(CMIElement, value),
       () => this.isNotInitialized(),
       (data: StringKeyMap) => {
         this.startingData = data;
+      },
+      (element, error) => {
+        this.apiLog(
+          "loadFromJSON",
+          `Skipped invalid value for ${element}: ${String(error)}`,
+          LogLevelEnum.WARN,
+        );
       },
     );
   }

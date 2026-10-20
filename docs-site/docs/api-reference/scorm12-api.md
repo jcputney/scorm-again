@@ -310,6 +310,9 @@ Loads CMI data from a hierarchical JSON object.
 **Parameters:**
 - `json`: A JavaScript object containing CMI data in hierarchical format
 
+If a value is invalid, `loadFromJSON` skips it, logs a warning and loads the rest. It does not
+throw. `loadFromFlattenedJSON` behaves the same way.
+
 **Example:**
 
 ```javascript

@@ -51,6 +51,7 @@ export class SerializationService implements ISerializationService {
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
     setStartingData: (data: StringKeyMap) => void,
+    onInvalidValue?: (element: string, error: unknown) => void,
   ): void {
     if (!isNotInitialized()) {
       console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
@@ -146,6 +147,7 @@ export class SerializationService implements ISerializationService {
           setCMIValue,
           isNotInitialized,
           setStartingData,
+          onInvalidValue,
         );
       });
     };
@@ -206,6 +208,7 @@ export class SerializationService implements ISerializationService {
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
     setStartingData: (data: StringKeyMap) => void,
+    onInvalidValue?: (element: string, error: unknown) => void,
   ): void {
     if (!isNotInitialized()) {
       console.error("loadFromJSON can only be called before the call to lmsInitialize.");
@@ -215,6 +218,17 @@ export class SerializationService implements ISerializationService {
     CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
 
     setStartingData(json);
+
+    const setLeaf = (element: string, value: any) => {
+      try {
+        setCMIValue(element, value);
+      } catch (error) {
+        if (onInvalidValue === undefined) {
+          throw error;
+        }
+        onInvalidValue(element, error);
+      }
+    };
 
     // could this be refactored down to flatten(json) then setCMIValue on each?
     for (const key in json) {
@@ -235,9 +249,10 @@ export class SerializationService implements ISerializationService {
                   setCMIValue,
                   isNotInitialized,
                   setStartingData,
+                  onInvalidValue,
                 );
               } else {
-                setCMIValue(tempCMIElement, item);
+                setLeaf(tempCMIElement, item);
               }
             }
           }
@@ -248,9 +263,10 @@ export class SerializationService implements ISerializationService {
             setCMIValue,
             isNotInitialized,
             setStartingData,
+            onInvalidValue,
           );
         } else {
-          setCMIValue(currentCMIElement, value);
+          setLeaf(currentCMIElement, value);
         }
       }
     }

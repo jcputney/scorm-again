@@ -23,6 +23,51 @@ describe("SerializationService", () => {
     vi.clearAllMocks();
   });
 
+  describe.each(["loadFromJSON", "loadFromFlattenedJSON"] as const)(
+    "%s invalid values",
+    (method) => {
+      it("rethrows setter errors when no callback is supplied", () => {
+        const error = new Error("Invalid value");
+        const setCMIValue = vi.fn(() => {
+          throw error;
+        });
+        const json =
+          method === "loadFromJSON"
+            ? { core: { lesson_status: "bogus" } }
+            : { "core.lesson_status": "bogus" };
+
+        expect(() =>
+          serializationService[method](json, "cmi", setCMIValue, () => true, vi.fn()),
+        ).toThrow(error);
+      });
+
+      it("reports setter errors and continues when a callback is supplied", () => {
+        const error = new Error("Invalid value");
+        const setCMIValue = vi.fn((element: string) => {
+          if (element === "cmi.core.lesson_status") throw error;
+        });
+        const onInvalidValue = vi.fn();
+        const json =
+          method === "loadFromJSON"
+            ? { core: { lesson_status: "bogus", lesson_location: "next" } }
+            : { "core.lesson_status": "bogus", "core.lesson_location": "next" };
+
+        expect(() =>
+          serializationService[method](
+            json,
+            "cmi",
+            setCMIValue,
+            () => true,
+            vi.fn(),
+            onInvalidValue,
+          ),
+        ).not.toThrow();
+        expect(onInvalidValue).toHaveBeenCalledExactlyOnceWith("cmi.core.lesson_status", error);
+        expect(setCMIValue).toHaveBeenCalledWith("cmi.core.lesson_location", "next");
+      });
+    },
+  );
+
   describe("loadFromFlattenedJSON", () => {
     it("should call loadFromJSON with unflatten for each key-value pair", () => {
       const json: StringKeyMap = {
