@@ -912,7 +912,10 @@ export class NavigationValidityService {
       return null;
     }
 
-    const action = activity.sequencingRules.evaluatePreConditionRules(activity);
+    const action = activity.sequencingRules.evaluatePreConditionRules(
+      activity,
+      this.sequencingProcess.now,
+    );
     if (action) {
       return action;
     }

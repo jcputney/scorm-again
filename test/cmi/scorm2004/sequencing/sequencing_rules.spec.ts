@@ -550,3 +550,34 @@ describe("SequencingRules", () => {
     });
   });
 });
+
+describe("SequencingRules clocks", () => {
+  it.each([
+    ["evaluatePreConditionRules", "preConditionRules", RuleActionType.DISABLED],
+    ["evaluateExitConditionRules", "exitConditionRules", RuleActionType.EXIT_ALL],
+    ["evaluatePostConditionRules", "postConditionRules", RuleActionType.CONTINUE],
+  ] as const)(
+    "passes the optional clock through %s and preserves first match",
+    (evaluate, collection, action) => {
+      RuleCondition.setNowProvider(() => new Date());
+      try {
+        const activity = new Activity("clock", "Clock");
+        activity.beginTimeLimit = "2000-01-01T00:00:00Z";
+        activity.endTimeLimit = "2000-01-02T00:00:00Z";
+        const rules = new SequencingRules();
+        const timed = new SequencingRule(action);
+        timed.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+        const fallback = new SequencingRule(RuleActionType.EXIT);
+        fallback.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+        rules[collection].push(timed, fallback);
+        expect(rules[evaluate](activity, () => new Date("2000-01-01T12:00:00Z"))).toBe(
+          RuleActionType.EXIT,
+        );
+        expect(rules[evaluate](activity, () => new Date("2000-01-03T12:00:00Z"))).toBe(action);
+        expect(rules[evaluate](activity)).toBe(action);
+      } finally {
+        RuleCondition.setNowProvider(() => new Date());
+      }
+    },
+  );
+});

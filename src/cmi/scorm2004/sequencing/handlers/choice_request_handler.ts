@@ -26,6 +26,7 @@ export class ChoiceRequestHandler {
     private constraintValidator: ChoiceConstraintValidator,
     private traversalService: FlowTraversalService,
     private treeQueries: ActivityTreeQueries,
+    private getNow?: () => () => Date,
   ) {}
 
   /**
@@ -76,7 +77,7 @@ export class ChoiceRequestHandler {
       const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
         (rule) =>
           rule.action === RuleActionType.HIDE_FROM_CHOICE &&
-          rule.evaluate(evaluationActivity) === true,
+          rule.evaluate(evaluationActivity, this.getNow?.()) === true,
       );
       if (hiddenByRule) {
         result.exception = "SB.2.9-4";

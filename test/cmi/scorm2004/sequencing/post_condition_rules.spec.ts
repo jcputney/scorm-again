@@ -253,3 +253,33 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
     });
   });
 });
+
+it("uses the process clock independently of the static clock", () => {
+  RuleCondition.setNowProvider(() => new Date());
+  try {
+    const inside = () => new Date("2000-01-01T12:00:00Z");
+    const outside = () => new Date("2000-01-03T12:00:00Z");
+    const root = new Activity("clock-root", "Root");
+    const target = new Activity("clock-target", "Target");
+    root.addChild(target);
+    const tree = new ActivityTree(root);
+    const process = new SequencingProcess(tree, null, null, null, { now: inside });
+    target.beginTimeLimit = "2000-01-01T00:00:00Z";
+    target.endTimeLimit = "2000-01-02T00:00:00Z";
+    const rule = new SequencingRule(RuleActionType.CONTINUE);
+    rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+    target.sequencingRules.postConditionRules.push(rule);
+    expect(process.evaluatePostConditionRules(target).sequencingRequest).toBe(null);
+    expect(target.sequencingRules.evaluatePostConditionRules(target, inside)).toBe(null);
+    process.now = outside;
+    RuleCondition.setNowProvider(inside);
+    expect(process.evaluatePostConditionRules(target).sequencingRequest).toBe(
+      SequencingRequestType.CONTINUE,
+    );
+    expect(target.sequencingRules.evaluatePostConditionRules(target, process.now)).toBe(
+      RuleActionType.CONTINUE,
+    );
+  } finally {
+    RuleCondition.setNowProvider(() => new Date());
+  }
+});

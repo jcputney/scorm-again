@@ -326,7 +326,10 @@ export class NavigationLookAhead {
 
     // Previous targets have settled state, so their preconditions can be checked.
     // Continue is predicted before End Attempt, which can change its next target's state.
-    const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(activity);
+    const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(
+      activity,
+      this.sequencingProcess.now,
+    );
     if (
       preConditionResult === RuleActionType.SKIP ||
       preConditionResult === RuleActionType.DISABLED
