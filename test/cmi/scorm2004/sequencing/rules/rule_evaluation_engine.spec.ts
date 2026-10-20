@@ -22,6 +22,26 @@ describe("RuleEvaluationEngine", () => {
     activity = new Activity("test", "Test Activity");
   });
 
+  it("evaluates time-based Disabled rules with its injected clock", () => {
+    RuleCondition.setNowProvider(() => new Date());
+    try {
+      activity.beginTimeLimit = "2000-01-01T00:00:00Z";
+      activity.endTimeLimit = "2000-01-02T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+      activity.sequencingRules.preConditionRules.push(rule);
+      let currentTime = new Date("2000-01-01T12:00:00Z");
+      engine = new RuleEvaluationEngine({ now: () => currentTime });
+      expect(engine.canDeliverActivity(activity).canDeliver).toBe(true);
+      currentTime = new Date("1999-12-31T12:00:00Z");
+      expect(engine.canDeliverActivity(activity).canDeliver).toBe(false);
+      currentTime = new Date("2000-01-03T12:00:00Z");
+      expect(engine.canDeliverActivity(activity).canDeliver).toBe(false);
+    } finally {
+      RuleCondition.setNowProvider(() => new Date());
+    }
+  });
+
   describe("checkSequencingRules", () => {
     it("should return null when no rules provided", () => {
       const result = engine.checkSequencingRules(activity, []);

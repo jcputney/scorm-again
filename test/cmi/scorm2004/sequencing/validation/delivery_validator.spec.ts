@@ -1,9 +1,12 @@
+import { SequencingProcess } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DeliveryValidator
 } from "../../../../../src/cmi/scorm2004/sequencing/validation/delivery_validator";
 import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
+
+import { RuleActionType, RuleCondition, RuleConditionType, SequencingRule } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("DeliveryValidator", () => {
   let validator: DeliveryValidator;
@@ -32,6 +35,72 @@ describe("DeliveryValidator", () => {
     eventCallback = vi.fn();
 
     validator = new DeliveryValidator(activityTree, eventCallback);
+  });
+
+  it("uses the current rule engine after the sequencing clock changes", () => {
+    RuleCondition.setNowProvider(() => new Date());
+    try {
+      const insideClock = () => new Date("2000-01-01T12:00:00Z");
+      const process = new SequencingProcess(activityTree, null, null, null, { now: insideClock });
+      validator = new DeliveryValidator(activityTree, eventCallback, { now: insideClock },
+        () => process.getRuleEngine());
+      grandchild1.beginTimeLimit = "2000-01-01T00:00:00Z";
+      grandchild1.endTimeLimit = "2000-01-02T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+      grandchild1.sequencingRules.preConditionRules.push(rule);
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+      eventCallback.mockClear();
+      process.now = () => new Date("2000-01-03T12:00:00Z");
+      // Keep the static clock inside the range to prove the engine supplies its own clock.
+      RuleCondition.setNowProvider(insideClock);
+      expect(validator.checkActivity(grandchild1)).toBe(false);
+      expect(eventCallback).not.toHaveBeenCalledWith("onLimitConditionCheck", expect.anything());
+      process.now = insideClock;
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+    } finally {
+      RuleCondition.setNowProvider(() => new Date());
+    }
+  });
+
+  it("evaluates Disabled rules on options.now when no engine provider is given", () => {
+    RuleCondition.setNowProvider(() => new Date());
+    try {
+      validator = new DeliveryValidator(activityTree, eventCallback, {
+        now: () => new Date("2000-01-01T12:00:00Z"),
+      });
+      grandchild1.beginTimeLimit = "2000-01-01T00:00:00Z";
+      grandchild1.endTimeLimit = "2000-01-02T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+      grandchild1.sequencingRules.preConditionRules.push(rule);
+      // The wall clock is outside the range, so this only passes on options.now.
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+    } finally {
+      RuleCondition.setNowProvider(() => new Date());
+    }
+  });
+
+  describe("checkActivity Disabled rules", () => {
+    it("filters out Skip rules and stops before checking limits when disabled", () => {
+      const skip = new SequencingRule(RuleActionType.SKIP);
+      skip.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      const disabled = new SequencingRule(RuleActionType.DISABLED);
+      disabled.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      grandchild1.sequencingRules.preConditionRules.push(skip, disabled);
+      expect(validator.checkActivity(grandchild1)).toBe(false);
+      expect(eventCallback).not.toHaveBeenCalledWith("onLimitConditionCheck", expect.anything());
+    });
+
+    it("checks limits and preserves their event when Disabled does not apply", () => {
+      const disabled = new SequencingRule(RuleActionType.DISABLED);
+      disabled.addCondition(new RuleCondition(RuleConditionType.ATTEMPTED));
+      grandchild1.sequencingRules.preConditionRules.push(disabled);
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+      expect(eventCallback).toHaveBeenCalledWith("onLimitConditionCheck", expect.objectContaining({ result: true }));
+      grandchild1.attemptCount = 1;
+      expect(validator.checkActivity(grandchild1)).toBe(false);
+    });
   });
 
   describe("validateTreeConsistency", () => {
