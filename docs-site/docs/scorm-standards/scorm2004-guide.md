@@ -511,6 +511,10 @@ A correct-response pattern may repeat an item, for example `a[,]a` for a `sequen
 interaction. The exception is `choice`, where each item must be unique, so `a[,]a` is rejected
 with error 406. `numeric` patterns are a range (`min[:]max`) and are not checked for repeats.
 
+An empty correct-response pattern is accepted for `choice`, `fill-in`, `long-fill-in`,
+`other`, and `sequencing`. An empty `learner_response` is accepted for those types
+and for `matching`.
+
 ### Recording a Multiple Choice Question
 
 ```javascript
