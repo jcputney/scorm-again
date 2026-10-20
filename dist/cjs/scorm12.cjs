@@ -1235,7 +1235,8 @@ class CMIValueAccessService {
       return global_constants.SCORM_FALSE;
     }
     this.context.setLastErrorCode("0");
-    const structure = CMIElement.split(".");
+    const targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
+    const structure = targetPath ? [...targetPath[1].split("."), targetPath[2]] : CMIElement.split(".");
     let refObject = this.context.getDataModel();
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
@@ -1394,6 +1395,9 @@ class CMIValueAccessService {
           getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT")
         );
         return global_constants.SCORM_FALSE;
+      }
+      if ("setStaticValue" in refObject && typeof refObject.setStaticValue === "function") {
+        refObject.setStaticValue(attribute, value);
       }
       return global_constants.SCORM_TRUE;
     }

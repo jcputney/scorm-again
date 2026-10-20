@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  function _array_like_to_array$j(arr, len) {
+  function _array_like_to_array$k(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -9,10 +9,10 @@
   function _array_with_holes$b(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _array_without_holes$b(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$j(arr);
+  function _array_without_holes$d(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$k(arr);
   }
-  function _iterable_to_array$b(iter) {
+  function _iterable_to_array$d(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
@@ -44,22 +44,22 @@
   function _non_iterable_rest$b() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _non_iterable_spread$b() {
+  function _non_iterable_spread$d() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$b(arr, i) {
-      return _array_with_holes$b(arr) || _iterable_to_array_limit$b(arr, i) || _unsupported_iterable_to_array$j(arr, i) || _non_iterable_rest$b();
+      return _array_with_holes$b(arr) || _iterable_to_array_limit$b(arr, i) || _unsupported_iterable_to_array$k(arr, i) || _non_iterable_rest$b();
   }
-  function _to_consumable_array$b(arr) {
-      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$j(arr) || _non_iterable_spread$b();
+  function _to_consumable_array$d(arr) {
+      return _array_without_holes$d(arr) || _iterable_to_array$d(arr) || _unsupported_iterable_to_array$k(arr) || _non_iterable_spread$d();
   }
-  function _unsupported_iterable_to_array$j(o, minLen) {
+  function _unsupported_iterable_to_array$k(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$j(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$k(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$j(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$k(o, minLen);
   }
   var SECONDS_PER_SECOND = 1;
   var SECONDS_PER_MINUTE = 60;
@@ -293,12 +293,12 @@
           for(var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++){
               args[_key] = arguments[_key];
           }
-          var key = keyFn ? keyFn.apply(void 0, _to_consumable_array$b(args)) : JSON.stringify(args);
+          var key = keyFn ? keyFn.apply(void 0, _to_consumable_array$d(args)) : JSON.stringify(args);
           if ((options === null || options === void 0 ? void 0 : options.maxKeyLength) !== void 0 && key.length > options.maxKeyLength) {
-              return fn.apply(void 0, _to_consumable_array$b(args));
+              return fn.apply(void 0, _to_consumable_array$d(args));
           }
           return cache.has(key) ? cache.get(key) : function() {
-              var result = fn.apply(void 0, _to_consumable_array$b(args));
+              var result = fn.apply(void 0, _to_consumable_array$d(args));
               if ((options === null || options === void 0 ? void 0 : options.maxEntries) !== void 0 && cache.size >= options.maxEntries) {
                   cache.delete(cache.keys().next().value);
               }
@@ -4958,13 +4958,13 @@
       return SequencingControls;
   }(BaseCMI);
 
-  function _array_like_to_array$i(arr, len) {
+  function _array_like_to_array$j(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$a(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
+  function _array_without_holes$c(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$j(arr);
   }
   function _class_call_check$19(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -4982,24 +4982,24 @@
       if (staticProps) _defineProperties$19(Constructor, staticProps);
       return Constructor;
   }
-  function _iterable_to_array$a(iter) {
+  function _iterable_to_array$c(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$a() {
+  function _non_iterable_spread$c() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$a(arr) {
-      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$a();
+  function _to_consumable_array$c(arr) {
+      return _array_without_holes$c(arr) || _iterable_to_array$c(arr) || _unsupported_iterable_to_array$j(arr) || _non_iterable_spread$c();
   }
-  function _unsupported_iterable_to_array$i(o, minLen) {
+  function _unsupported_iterable_to_array$j(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$j(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$j(o, minLen);
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
@@ -5015,7 +5015,7 @@
      * @return {Activity[]} - The selected child activities
      */ function selectChildrenProcess(activity) {
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$a(activity.children);
+                  var children = _to_consumable_array$c(activity.children);
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       return children;
                   }
@@ -5084,7 +5084,7 @@
      */ function randomizeChildrenProcess(activity) {
                   var _activity_children;
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$a(activity.children);
+                  var children = _to_consumable_array$c(activity.children);
                   if (controls.randomizationTiming === RandomizationTiming.NEVER) {
                       return children;
                   }
@@ -5094,7 +5094,7 @@
                   if (!controls.randomizeChildren) {
                       return children;
                   }
-                  var randomizedChildren = _to_consumable_array$a(children);
+                  var randomizedChildren = _to_consumable_array$c(children);
                   for(var i = randomizedChildren.length - 1; i > 0; i--){
                       var j = Math.floor(Math.random() * (i + 1));
                       var tempI = randomizedChildren[i];
@@ -5108,7 +5108,7 @@
                       controls.reorderChildren = true;
                   }
                   activity.children.length = 0;
-                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$a(randomizedChildren));
+                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$c(randomizedChildren));
                   return randomizedChildren;
               }
           },
@@ -5132,10 +5132,10 @@
                           var processedIds = new Set(processedChildren2.map(function(child) {
                               return child.id;
                           }));
-                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$a(childIds).some(function(id) {
+                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$c(childIds).some(function(id) {
                               return !processedIds.has(id);
                           })) {
-                              activity.setProcessedChildren(_to_consumable_array$a(activity.children));
+                              activity.setProcessedChildren(_to_consumable_array$c(activity.children));
                           }
                       }
                       return activity.getAvailableChildren();
@@ -5167,7 +5167,7 @@
                   var processedChildren;
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       if (isNewAttempt || shouldApplyRandomization) {
-                          processedChildren = _to_consumable_array$a(activity.children);
+                          processedChildren = _to_consumable_array$c(activity.children);
                       } else {
                           processedChildren = activity.getAvailableChildren();
                       }
@@ -7589,6 +7589,14 @@
       return AsynchronousHttpService;
   }();
 
+  function _array_like_to_array$i(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_without_holes$b(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
+  }
   function _class_call_check$10(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
@@ -7611,9 +7619,28 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
+  function _iterable_to_array$b(iter) {
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
+  }
+  function _non_iterable_spread$b() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _to_consumable_array$b(arr) {
+      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$b();
+  }
   function _type_of$_(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$i(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
   }
   var __defProp$Y = Object.defineProperty;
   var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
@@ -7676,7 +7703,10 @@
                       return global_constants.SCORM_FALSE;
                   }
                   this.context.setLastErrorCode("0");
-                  var structure = CMIElement.split(".");
+                  var targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
+                  var structure = targetPath ? _to_consumable_array$b(targetPath[1].split(".")).concat([
+                      targetPath[2]
+                  ]) : CMIElement.split(".");
                   var refObject = this.context.getDataModel();
                   var returnValue = global_constants.SCORM_FALSE;
                   var foundFirstIndex = false;
@@ -7782,6 +7812,9 @@
                       if (this.context.isInitialized()) {
                           this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT"));
                           return global_constants.SCORM_FALSE;
+                      }
+                      if ("setStaticValue" in refObject && typeof refObject.setStaticValue === "function") {
+                          refObject.setStaticValue(attribute, value);
                       }
                       return global_constants.SCORM_TRUE;
                   }
@@ -10225,7 +10258,7 @@
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$9(arr) {
+  function _array_without_holes$a(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$h(arr);
   }
   function _assert_this_initialized$q(self) {
@@ -10310,12 +10343,12 @@
           return !!result;
       })();
   }
-  function _iterable_to_array$9(iter) {
+  function _iterable_to_array$a(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$9() {
+  function _non_iterable_spread$a() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$f(target) {
@@ -10351,8 +10384,8 @@
       }
       return object;
   }
-  function _to_consumable_array$9(arr) {
-      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$9();
+  function _to_consumable_array$a(arr) {
+      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$a();
   }
   function _type_of$T(obj) {
       "@swc/helpers - typeof";
@@ -10417,7 +10450,7 @@
           this._description = (_options_description = options.description) !== null && _options_description !== void 0 ? _options_description : null;
           this._satisfiedByMeasure = (_options_satisfiedByMeasure = options.satisfiedByMeasure) !== null && _options_satisfiedByMeasure !== void 0 ? _options_satisfiedByMeasure : false;
           this._minNormalizedMeasure = (_options_minNormalizedMeasure = options.minNormalizedMeasure) !== null && _options_minNormalizedMeasure !== void 0 ? _options_minNormalizedMeasure : null;
-          this._mapInfo = options.mapInfo ? _to_consumable_array$9(options.mapInfo) : [];
+          this._mapInfo = options.mapInfo ? _to_consumable_array$a(options.mapInfo) : [];
           this._isPrimary = (_options_isPrimary = options.isPrimary) !== null && _options_isPrimary !== void 0 ? _options_isPrimary : false;
       }
       _create_class$W(ActivityObjective, [
@@ -10457,7 +10490,7 @@
                   return this._mapInfo;
               },
               set: function set(mapInfo) {
-                  this._mapInfo = _to_consumable_array$9(mapInfo);
+                  this._mapInfo = _to_consumable_array$a(mapInfo);
               }
           },
           {
@@ -11287,7 +11320,7 @@
                       (_this__children = this._children).splice.apply(_this__children, [
                           0,
                           this._children.length
-                      ].concat(_to_consumable_array$9(reordered)));
+                      ].concat(_to_consumable_array$a(reordered)));
                   }
               }
           },
@@ -12326,7 +12359,7 @@
      * Replace objectives collection
      * @param {ActivityObjective[]} objectives
      */ function set(objectives) {
-                  this._objectives = _to_consumable_array$9(objectives);
+                  this._objectives = _to_consumable_array$a(objectives);
                   this.syncPrimaryObjectiveCollection();
               }
           },
@@ -12365,7 +12398,7 @@
                   }
                   this._objectives = [
                       this._primaryObjective
-                  ].concat(_to_consumable_array$9(this._objectives));
+                  ].concat(_to_consumable_array$a(this._objectives));
               }
           },
           {
@@ -13071,7 +13104,7 @@
                       minProgressMeasure: this._minProgressMeasure,
                       progressWeight: this._progressWeight,
                       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
-                      hideLmsUi: _to_consumable_array$9(this._hideLmsUi),
+                      hideLmsUi: _to_consumable_array$a(this._hideLmsUi),
                       auxiliaryResources: this._auxiliaryResources.map(function(resource) {
                           return _object_spread$f({}, resource);
                       }),
@@ -13149,7 +13182,7 @@
           {
               key: "addAuxiliaryResource",
               value: function addAuxiliaryResource(resource) {
-                  this.auxiliaryResources = _to_consumable_array$9(this._auxiliaryResources).concat([
+                  this.auxiliaryResources = _to_consumable_array$a(this._auxiliaryResources).concat([
                       resource
                   ]);
               }
@@ -13177,7 +13210,7 @@
      * Getter for hideLmsUi directives
      * @return {HideLmsUiItem[]}
      */ function get() {
-                  return _to_consumable_array$9(this._hideLmsUi);
+                  return _to_consumable_array$a(this._hideLmsUi);
               },
               set: /**
      * Setter for hideLmsUi directives
@@ -15717,7 +15750,7 @@
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$8(arr) {
+  function _array_without_holes$9(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
   function _class_call_check$N(instance, Constructor) {
@@ -15742,16 +15775,16 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array$8(iter) {
+  function _iterable_to_array$9(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$8() {
+  function _non_iterable_spread$9() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$8(arr) {
-      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$8();
+  function _to_consumable_array$9(arr) {
+      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$9();
   }
   function _type_of$L(obj) {
       "@swc/helpers - typeof";
@@ -15915,7 +15948,7 @@
      * @returns Array of rollup state log entries
      */ key: "getRollupStateLog",
               value: function getRollupStateLog() {
-                  return _to_consumable_array$8(this.rollupStateLog);
+                  return _to_consumable_array$9(this.rollupStateLog);
               }
           },
           {
@@ -17764,7 +17797,7 @@
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$7(arr) {
+  function _array_without_holes$8(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
   function _class_call_check$I(instance, Constructor) {
@@ -17794,12 +17827,12 @@
       } else obj[key] = value;
       return obj;
   }
-  function _iterable_to_array$7(iter) {
+  function _iterable_to_array$8(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$7() {
+  function _non_iterable_spread$8() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$c(target) {
@@ -17817,8 +17850,8 @@
       }
       return target;
   }
-  function _to_consumable_array$7(arr) {
-      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$7();
+  function _to_consumable_array$8(arr) {
+      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$8();
   }
   function _type_of$G(obj) {
       "@swc/helpers - typeof";
@@ -17881,7 +17914,7 @@
           this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
           };
-          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$7(options.defaultHideLmsUi) : [];
+          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$8(options.defaultHideLmsUi) : [];
           this.defaultAuxiliaryResources = (options === null || options === void 0 ? void 0 : options.defaultAuxiliaryResources) ? options.defaultAuxiliaryResources.map(function(resource) {
               return _object_spread$c({}, resource);
           }) : [];
@@ -18435,7 +18468,7 @@
       ]);
       return _DeliveryHandler;
   }();
-  __publicField$F(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$7(HIDE_LMS_UI_TOKENS));
+  __publicField$F(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$8(HIDE_LMS_UI_TOKENS));
   var DeliveryHandler = _DeliveryHandler;
 
   function _class_call_check$H(instance, Constructor) {
@@ -20722,7 +20755,7 @@
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$6(arr) {
+  function _array_without_holes$7(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$d(arr);
   }
   function _class_call_check$D(instance, Constructor) {
@@ -20741,16 +20774,16 @@
       if (protoProps) _defineProperties$D(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _iterable_to_array$6(iter) {
+  function _iterable_to_array$7(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$6() {
+  function _non_iterable_spread$7() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$6(arr) {
-      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$6();
+  function _to_consumable_array$7(arr) {
+      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$7();
   }
   function _type_of$B(obj) {
       "@swc/helpers - typeof";
@@ -21369,7 +21402,7 @@
                   }
                   if (activity.prerequisiteActivities) {
                       var _prerequisites;
-                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$6(activity.prerequisiteActivities));
+                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$7(activity.prerequisiteActivities));
                   }
                   return Array.from(new Set(prerequisites));
               }
@@ -21421,7 +21454,7 @@
                       }
                   }
                   if (activity.sequencingRules) {
-                      var allRules = _to_consumable_array$6(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$6(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$6(activity.sequencingRules.postConditionRules || []));
+                      var allRules = _to_consumable_array$7(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$7(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$7(activity.sequencingRules.postConditionRules || []));
                       var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
                       try {
                           for(var _iterator1 = allRules[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
@@ -23010,7 +23043,7 @@
   function _array_with_holes$8(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _array_without_holes$5(arr) {
+  function _array_without_holes$6(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$b(arr);
   }
   function _class_call_check$A(instance, Constructor) {
@@ -23040,7 +23073,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _iterable_to_array$5(iter) {
+  function _iterable_to_array$6(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
@@ -23072,7 +23105,7 @@
   function _non_iterable_rest$8() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _non_iterable_spread$5() {
+  function _non_iterable_spread$6() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$9(target) {
@@ -23111,8 +23144,8 @@
   function _sliced_to_array$8(arr, i) {
       return _array_with_holes$8(arr) || _iterable_to_array_limit$8(arr, i) || _unsupported_iterable_to_array$b(arr, i) || _non_iterable_rest$8();
   }
-  function _to_consumable_array$5(arr) {
-      return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$b(arr) || _non_iterable_spread$5();
+  function _to_consumable_array$6(arr) {
+      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$b(arr) || _non_iterable_spread$6();
   }
   function _type_of$x(obj) {
       "@swc/helpers - typeof";
@@ -23219,7 +23252,7 @@
                           this.sequencingProcess = new SequencingProcess(this.sequencing.activityTree, this.sequencing.sequencingRules, this.sequencing.sequencingControls, this.adl.nav, seqOptions);
                           var overallOptions = {};
                           if (this.configuration.now) overallOptions.now = this.configuration.now;
-                          overallOptions.defaultHideLmsUi = _to_consumable_array$5(this.sequencing.hideLmsUi);
+                          overallOptions.defaultHideLmsUi = _to_consumable_array$6(this.sequencing.hideLmsUi);
                           if (this.sequencing.auxiliaryResources.length > 0) {
                               overallOptions.defaultAuxiliaryResources = this.sequencing.auxiliaryResources.map(function(resource) {
                                   return {
@@ -23336,7 +23369,7 @@
                           if (controls.randomizeChildren && controls.randomizationTiming !== "never" || controls.selectCount !== null && controls.selectionTiming !== "never") {
                               return unknown;
                           }
-                          (_pending = pending).push.apply(_pending, _to_consumable_array$5(activity.children));
+                          (_pending = pending).push.apply(_pending, _to_consumable_array$6(activity.children));
                       }
                       var process = new SequencingProcess(tree, null, null, null, _object_spread$9({}, configuration.now ? {
                           now: configuration.now
@@ -23927,7 +23960,7 @@
                       var listener = this.eventListeners[eventType];
                       if (listener && typeof listener === "function") {
                           try {
-                              listener.apply(void 0, _to_consumable_array$5(args));
+                              listener.apply(void 0, _to_consumable_array$6(args));
                               this.log("debug", "Internal listener for ".concat(eventType, " executed successfully"));
                           } catch (listenerError) {
                               this.log("error", "Internal listener for ".concat(eventType, " failed: ").concat(listenerError));
@@ -23938,7 +23971,7 @@
                           (_this_eventService = this.eventService).processListeners.apply(_this_eventService, [
                               "Sequencing.".concat(eventType),
                               args[0]
-                          ].concat(_to_consumable_array$5(args.slice(1))));
+                          ].concat(_to_consumable_array$6(args.slice(1))));
                           this.log("debug", "Event service listeners for ".concat(eventType, " processed"));
                       } catch (eventServiceError) {
                           this.log("warn", "Event service failed for ".concat(eventType, ": ").concat(eventServiceError));
@@ -23948,7 +23981,7 @@
                               var globalListeners = window.scormSequencingEvents;
                               if (globalListeners[eventType] && typeof globalListeners[eventType] === "function") {
                                   var _globalListeners;
-                                  (_globalListeners = globalListeners)[eventType].apply(_globalListeners, _to_consumable_array$5(args));
+                                  (_globalListeners = globalListeners)[eventType].apply(_globalListeners, _to_consumable_array$6(args));
                                   this.log("debug", "Global listener for ".concat(eventType, " executed"));
                               }
                           }
@@ -24749,7 +24782,7 @@
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$4(arr) {
+  function _array_without_holes$5(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$9(arr);
   }
   function _class_call_check$w(instance, Constructor) {
@@ -24785,12 +24818,12 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array$4(iter) {
+  function _iterable_to_array$5(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$4() {
+  function _non_iterable_spread$5() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$8(target) {
@@ -24826,8 +24859,8 @@
       }
       return target;
   }
-  function _to_consumable_array$4(arr) {
-      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$9(arr) || _non_iterable_spread$4();
+  function _to_consumable_array$5(arr) {
+      return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$9(arr) || _non_iterable_spread$5();
   }
   function _type_of$v(obj) {
       "@swc/helpers - typeof";
@@ -25921,7 +25954,7 @@
                       if (immediate && this.settings.terminateCommitPayloadField) {
                           var field = this.settings.terminateCommitPayloadField;
                           if (Array.isArray(finalParams)) {
-                              finalParams = _to_consumable_array$4(finalParams).concat([
+                              finalParams = _to_consumable_array$5(finalParams).concat([
                                   "".concat(encodeURIComponent(field), "=true")
                               ]);
                           } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$v(finalParams)) === "object") {
@@ -25930,7 +25963,7 @@
                       }
                       if (this.settings.includeCommitSequence === true) {
                           if (Array.isArray(finalParams)) {
-                              finalParams = _to_consumable_array$4(finalParams).concat([
+                              finalParams = _to_consumable_array$5(finalParams).concat([
                                   "commitSequence=".concat(sequence)
                               ]);
                           } else if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$v(finalParams)) === "object") {
@@ -29496,6 +29529,9 @@
   function _array_with_holes$5(arr) {
       if (Array.isArray(arr)) return arr;
   }
+  function _array_without_holes$4(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$7(arr);
+  }
   function _assert_this_initialized$e(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -29560,6 +29596,11 @@
           return !!result;
       })();
   }
+  function _iterable_to_array$4(iter) {
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
+  }
   function _iterable_to_array_limit$5(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
@@ -29587,6 +29628,9 @@
   function _non_iterable_rest$5() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
+  function _non_iterable_spread$4() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
   function _possible_constructor_return$e(self, call) {
       if (call && (_type_of$k(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$e(self);
@@ -29607,6 +29651,9 @@
           if (object === null) break;
       }
       return object;
+  }
+  function _to_consumable_array$4(arr) {
+      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$7(arr) || _non_iterable_spread$4();
   }
   function _type_of$k(obj) {
       "@swc/helpers - typeof";
@@ -29632,6 +29679,16 @@
   var __publicField$k = function __publicField(obj, key, value) {
       return __defNormalProp$k(obj, (typeof key === "undefined" ? "undefined" : _type_of$k(key)) !== "symbol" ? key + "" : key, value);
   };
+  var EMPTY_CORRECT_PATTERN_TYPES = /* @__PURE__ */ new Set([
+      "choice",
+      "fill-in",
+      "long-fill-in",
+      "other",
+      "sequencing"
+  ]);
+  var EMPTY_LEARNER_RESPONSE_TYPES = /* @__PURE__ */ new Set(_to_consumable_array$4(EMPTY_CORRECT_PATTERN_TYPES).concat([
+      "matching"
+  ]));
   var CMIInteractions = /*#__PURE__*/ function(CMIArray) {
       _inherits$e(CMIInteractions, CMIArray);
       function CMIInteractions() {
@@ -29826,6 +29883,10 @@
                   if (this.initialized && (this._type === "" || this._id === "")) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
                   } else {
+                      if (learner_response === "" && EMPTY_LEARNER_RESPONSE_TYPES.has(this.type)) {
+                          this._learner_response = "";
+                          return;
+                      }
                       var allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
                       var nodes = [];
                       var response_type = LearnerResponses[this.type];
@@ -29860,7 +29921,7 @@
                                       }
                                   } else {
                                       var _nodes_i1;
-                                      if (!(this.type === "choice" && learner_response === "") && !((_nodes_i1 = nodes[i]) === null || _nodes_i1 === void 0 ? void 0 : _nodes_i1.match(formatRegex))) {
+                                      if (!((_nodes_i1 = nodes[i]) === null || _nodes_i1 === void 0 ? void 0 : _nodes_i1.match(formatRegex))) {
                                           throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors.TYPE_MISMATCH);
                                       } else {
                                           if (nodes[i] !== "" && response_type.unique) {
@@ -30089,7 +30150,7 @@
               }
           }
       }
-      if ((type === "fill-in" || type === "choice") && pattern === "") {
+      if (EMPTY_CORRECT_PATTERN_TYPES.has(type) && pattern === "") {
           return;
       }
       var nodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter, allowBare) : [
@@ -30233,7 +30294,8 @@
                   return this._pattern;
               },
               set: function set(pattern) {
-                  if ((this._interactionType === "fill-in" || this._interactionType === "choice") && pattern === "") {
+                  var _this__interactionType;
+                  if (EMPTY_CORRECT_PATTERN_TYPES.has((_this__interactionType = this._interactionType) !== null && _this__interactionType !== void 0 ? _this__interactionType : "") && pattern === "") {
                       this._pattern = "";
                       return;
                   }
@@ -33614,6 +33676,21 @@
       }
       _create_class$9(ADLNavRequestValidChoice, [
           {
+              key: "getStaticValue",
+              value: function getStaticValue(target) {
+                  return this._staticValues["{target=".concat(target, "}")];
+              }
+          },
+          {
+              key: "setStaticValue",
+              value: function setStaticValue(key, value) {
+                  var element = "adl.nav.request_valid.choice." + key;
+                  if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
+                      this._staticValues[key] = value;
+                  }
+              }
+          },
+          {
               key: "setParentNav",
               value: function setParentNav(nav) {
                   this._parentNav = nav;
@@ -33633,7 +33710,7 @@
                           return result;
                       }
                   }
-                  var value = this._staticValues[target];
+                  var value = this.getStaticValue(target);
                   if (value === NAVBoolean.TRUE) {
                       return "true";
                   }
@@ -33670,6 +33747,21 @@
       }
       _create_class$9(ADLNavRequestValidJump, [
           {
+              key: "getStaticValue",
+              value: function getStaticValue(target) {
+                  return this._staticValues["{target=".concat(target, "}")];
+              }
+          },
+          {
+              key: "setStaticValue",
+              value: function setStaticValue(key, value) {
+                  var element = "adl.nav.request_valid.jump." + key;
+                  if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
+                      this._staticValues[key] = value;
+                  }
+              }
+          },
+          {
               key: "setParentNav",
               value: function setParentNav(nav) {
                   this._parentNav = nav;
@@ -33686,7 +33778,7 @@
                       var activity = this._parentNav.sequencing.activityTree.getActivity(target);
                       return activity ? "true" : "false";
                   }
-                  var value = this._staticValues[target];
+                  var value = this.getStaticValue(target);
                   if (value === NAVBoolean.TRUE) return "true";
                   if (value === NAVBoolean.FALSE) return "false";
                   return "unknown";
@@ -38849,20 +38941,23 @@
                           var request = matches[1];
                           var target = ((_matches_ = matches[2]) === null || _matches_ === void 0 ? void 0 : _matches_.replace(/{target=/g, "").replace(/}/g, "")) || "";
                           if (request === "choice" || request === "jump") {
-                              var _this__sequencing;
+                              var _this__sequencing, _this_settings_scoItemIds, _this_settings;
+                              this.lastErrorCode = "0";
                               var overallProcess = (_this__sequencing = this._sequencing) === null || _this__sequencing === void 0 ? void 0 : _this__sequencing.overallSequencingProcess;
                               if (this.settings.scoItemIdValidator) {
                                   return String(this.settings.scoItemIdValidator(target));
                               }
                               if ((overallProcess === null || overallProcess === void 0 ? void 0 : overallProcess.predictChoiceEnabled) && request === "choice") {
                                   return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
-                              } else {
-                                  var _this_settings_scoItemIds, _this_settings;
-                                  if (this._extractedScoItemIds.length > 0) {
-                                      return String(this._extractedScoItemIds.includes(target));
-                                  }
-                                  return String((_this_settings = this.settings) === null || _this_settings === void 0 ? void 0 : (_this_settings_scoItemIds = _this_settings.scoItemIds) === null || _this_settings_scoItemIds === void 0 ? void 0 : _this_settings_scoItemIds.includes(target));
                               }
+                              var staticValue = this.adl.nav.request_valid[request].getStaticValue(target);
+                              if (staticValue !== void 0) {
+                                  return staticValue;
+                              }
+                              if (this._extractedScoItemIds.length > 0) {
+                                  return String(this._extractedScoItemIds.includes(target));
+                              }
+                              return String((_this_settings = this.settings) === null || _this_settings === void 0 ? void 0 : (_this_settings_scoItemIds = _this_settings.scoItemIds) === null || _this_settings_scoItemIds === void 0 ? void 0 : _this_settings_scoItemIds.includes(target));
                           }
                       }
                   }

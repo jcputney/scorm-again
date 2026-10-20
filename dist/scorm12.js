@@ -1,7 +1,7 @@
 this.Scorm12API = (function () {
   'use strict';
 
-  function _array_like_to_array$6(arr, len) {
+  function _array_like_to_array$7(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -9,10 +9,10 @@ this.Scorm12API = (function () {
   function _array_with_holes$2(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _array_without_holes$4(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$6(arr);
+  function _array_without_holes$5(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$7(arr);
   }
-  function _iterable_to_array$4(iter) {
+  function _iterable_to_array$5(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
@@ -44,22 +44,22 @@ this.Scorm12API = (function () {
   function _non_iterable_rest$2() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _non_iterable_spread$4() {
+  function _non_iterable_spread$5() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _sliced_to_array$2(arr, i) {
-      return _array_with_holes$2(arr) || _iterable_to_array_limit$2(arr, i) || _unsupported_iterable_to_array$6(arr, i) || _non_iterable_rest$2();
+      return _array_with_holes$2(arr) || _iterable_to_array_limit$2(arr, i) || _unsupported_iterable_to_array$7(arr, i) || _non_iterable_rest$2();
   }
-  function _to_consumable_array$4(arr) {
-      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$6(arr) || _non_iterable_spread$4();
+  function _to_consumable_array$5(arr) {
+      return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$7(arr) || _non_iterable_spread$5();
   }
-  function _unsupported_iterable_to_array$6(o, minLen) {
+  function _unsupported_iterable_to_array$7(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$6(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$7(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$7(o, minLen);
   }
   var SECONDS_PER_MINUTE = 60;
   var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
@@ -250,12 +250,12 @@ this.Scorm12API = (function () {
           for(var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++){
               args[_key] = arguments[_key];
           }
-          var key = keyFn ? keyFn.apply(void 0, _to_consumable_array$4(args)) : JSON.stringify(args);
+          var key = keyFn ? keyFn.apply(void 0, _to_consumable_array$5(args)) : JSON.stringify(args);
           if ((options === null || options === void 0 ? void 0 : options.maxKeyLength) !== void 0 && key.length > options.maxKeyLength) {
-              return fn.apply(void 0, _to_consumable_array$4(args));
+              return fn.apply(void 0, _to_consumable_array$5(args));
           }
           return cache.has(key) ? cache.get(key) : function() {
-              var result = fn.apply(void 0, _to_consumable_array$4(args));
+              var result = fn.apply(void 0, _to_consumable_array$5(args));
               if ((options === null || options === void 0 ? void 0 : options.maxEntries) !== void 0 && cache.size >= options.maxEntries) {
                   cache.delete(cache.keys().next().value);
               }
@@ -3706,13 +3706,13 @@ this.Scorm12API = (function () {
       return SequencingControls;
   }(BaseCMI);
 
-  function _array_like_to_array$5(arr, len) {
+  function _array_like_to_array$6(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$3(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$5(arr);
+  function _array_without_holes$4(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$6(arr);
   }
   function _class_call_check$n(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -3730,24 +3730,24 @@ this.Scorm12API = (function () {
       if (staticProps) _defineProperties$n(Constructor, staticProps);
       return Constructor;
   }
-  function _iterable_to_array$3(iter) {
+  function _iterable_to_array$4(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$3() {
+  function _non_iterable_spread$4() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$3(arr) {
-      return _array_without_holes$3(arr) || _iterable_to_array$3(arr) || _unsupported_iterable_to_array$5(arr) || _non_iterable_spread$3();
+  function _to_consumable_array$4(arr) {
+      return _array_without_holes$4(arr) || _iterable_to_array$4(arr) || _unsupported_iterable_to_array$6(arr) || _non_iterable_spread$4();
   }
-  function _unsupported_iterable_to_array$5(o, minLen) {
+  function _unsupported_iterable_to_array$6(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$5(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$6(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$5(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$6(o, minLen);
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
@@ -3763,7 +3763,7 @@ this.Scorm12API = (function () {
      * @return {Activity[]} - The selected child activities
      */ function selectChildrenProcess(activity) {
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$3(activity.children);
+                  var children = _to_consumable_array$4(activity.children);
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       return children;
                   }
@@ -3832,7 +3832,7 @@ this.Scorm12API = (function () {
      */ function randomizeChildrenProcess(activity) {
                   var _activity_children;
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$3(activity.children);
+                  var children = _to_consumable_array$4(activity.children);
                   if (controls.randomizationTiming === RandomizationTiming.NEVER) {
                       return children;
                   }
@@ -3842,7 +3842,7 @@ this.Scorm12API = (function () {
                   if (!controls.randomizeChildren) {
                       return children;
                   }
-                  var randomizedChildren = _to_consumable_array$3(children);
+                  var randomizedChildren = _to_consumable_array$4(children);
                   for(var i = randomizedChildren.length - 1; i > 0; i--){
                       var j = Math.floor(Math.random() * (i + 1));
                       var tempI = randomizedChildren[i];
@@ -3856,7 +3856,7 @@ this.Scorm12API = (function () {
                       controls.reorderChildren = true;
                   }
                   activity.children.length = 0;
-                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$3(randomizedChildren));
+                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$4(randomizedChildren));
                   return randomizedChildren;
               }
           },
@@ -3880,10 +3880,10 @@ this.Scorm12API = (function () {
                           var processedIds = new Set(processedChildren2.map(function(child) {
                               return child.id;
                           }));
-                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$3(childIds).some(function(id) {
+                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$4(childIds).some(function(id) {
                               return !processedIds.has(id);
                           })) {
-                              activity.setProcessedChildren(_to_consumable_array$3(activity.children));
+                              activity.setProcessedChildren(_to_consumable_array$4(activity.children));
                           }
                       }
                       return activity.getAvailableChildren();
@@ -3915,7 +3915,7 @@ this.Scorm12API = (function () {
                   var processedChildren;
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       if (isNewAttempt || shouldApplyRandomization) {
-                          processedChildren = _to_consumable_array$3(activity.children);
+                          processedChildren = _to_consumable_array$4(activity.children);
                       } else {
                           processedChildren = activity.getAvailableChildren();
                       }
@@ -4556,6 +4556,14 @@ this.Scorm12API = (function () {
       return AsynchronousHttpService;
   }();
 
+  function _array_like_to_array$5(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_without_holes$3(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$5(arr);
+  }
   function _class_call_check$l(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
@@ -4578,9 +4586,28 @@ this.Scorm12API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
+  function _iterable_to_array$3(iter) {
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
+  }
+  function _non_iterable_spread$3() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _to_consumable_array$3(arr) {
+      return _array_without_holes$3(arr) || _iterable_to_array$3(arr) || _unsupported_iterable_to_array$5(arr) || _non_iterable_spread$3();
+  }
   function _type_of$k(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$5(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$5(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$5(o, minLen);
   }
   var __defProp$j = Object.defineProperty;
   var __defNormalProp$j = function __defNormalProp(obj, key, value) {
@@ -4643,7 +4670,10 @@ this.Scorm12API = (function () {
                       return global_constants.SCORM_FALSE;
                   }
                   this.context.setLastErrorCode("0");
-                  var structure = CMIElement.split(".");
+                  var targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
+                  var structure = targetPath ? _to_consumable_array$3(targetPath[1].split(".")).concat([
+                      targetPath[2]
+                  ]) : CMIElement.split(".");
                   var refObject = this.context.getDataModel();
                   var returnValue = global_constants.SCORM_FALSE;
                   var foundFirstIndex = false;
@@ -4749,6 +4779,9 @@ this.Scorm12API = (function () {
                       if (this.context.isInitialized()) {
                           this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT"));
                           return global_constants.SCORM_FALSE;
+                      }
+                      if ("setStaticValue" in refObject && typeof refObject.setStaticValue === "function") {
+                          refObject.setStaticValue(attribute, value);
                       }
                       return global_constants.SCORM_TRUE;
                   }

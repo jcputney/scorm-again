@@ -5142,7 +5142,8 @@ class CMIValueAccessService {
       return global_constants.SCORM_FALSE;
     }
     this.context.setLastErrorCode("0");
-    const structure = CMIElement.split(".");
+    const targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
+    const structure = targetPath ? [...targetPath[1].split("."), targetPath[2]] : CMIElement.split(".");
     let refObject = this.context.getDataModel();
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
@@ -5301,6 +5302,9 @@ class CMIValueAccessService {
           getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT")
         );
         return global_constants.SCORM_FALSE;
+      }
+      if ("setStaticValue" in refObject && typeof refObject.setStaticValue === "function") {
+        refObject.setStaticValue(attribute, value);
       }
       return global_constants.SCORM_TRUE;
     }
@@ -20971,6 +20975,14 @@ function splitFirstDelimited(value, bracketed, allowBare = true) {
   return [first, parts.slice(1).join(bare).replace(unescapeRe, bare)];
 }
 
+const EMPTY_CORRECT_PATTERN_TYPES = /* @__PURE__ */ new Set([
+  "choice",
+  "fill-in",
+  "long-fill-in",
+  "other",
+  "sequencing"
+]);
+const EMPTY_LEARNER_RESPONSE_TYPES = /* @__PURE__ */ new Set([...EMPTY_CORRECT_PATTERN_TYPES, "matching"]);
 class CMIInteractions extends CMIArray {
   /**
    * Constructor for `cmi.interactions` Array
@@ -21176,6 +21188,10 @@ class CMIInteractionsObject extends BaseCMI {
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED
       );
     } else {
+      if (learner_response === "" && EMPTY_LEARNER_RESPONSE_TYPES.has(this.type)) {
+        this._learner_response = "";
+        return;
+      }
       const allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
       let nodes = [];
       const response_type = LearnerResponses[this.type];
@@ -21218,7 +21234,7 @@ class CMIInteractionsObject extends BaseCMI {
                 );
               }
             } else {
-              if (!(this.type === "choice" && learner_response === "") && !nodes[i]?.match(formatRegex)) {
+              if (!nodes[i]?.match(formatRegex)) {
                 throw new Scorm2004ValidationError(
                   this._cmi_element + ".learner_response",
                   scorm2004_errors.TYPE_MISMATCH
@@ -21437,7 +21453,7 @@ function validatePattern(type, pattern, responseDef) {
       );
     }
   }
-  if ((type === "fill-in" || type === "choice") && pattern === "") {
+  if (EMPTY_CORRECT_PATTERN_TYPES.has(type) && pattern === "") {
     return;
   }
   const nodes = responseDef.delimiter ? splitDelimited(pattern, responseDef.delimiter, allowBare) : [pattern];
@@ -21590,7 +21606,7 @@ class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     return this._pattern;
   }
   set pattern(pattern) {
-    if ((this._interactionType === "fill-in" || this._interactionType === "choice") && pattern === "") {
+    if (EMPTY_CORRECT_PATTERN_TYPES.has(this._interactionType ?? "") && pattern === "") {
       this._pattern = "";
       return;
     }
@@ -23638,6 +23654,15 @@ class ADLDataObject extends BaseCMI {
 class ADLNavRequestValidChoice {
   _parentNav = null;
   _staticValues = {};
+  getStaticValue(target) {
+    return this._staticValues[`{target=${target}}`];
+  }
+  setStaticValue(key, value) {
+    const element = "adl.nav.request_valid.choice." + key;
+    if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
+      this._staticValues[key] = value;
+    }
+  }
   setParentNav(nav) {
     this._parentNav = nav;
   }
@@ -23653,7 +23678,7 @@ class ADLNavRequestValidChoice {
         return result;
       }
     }
-    const value = this._staticValues[target];
+    const value = this.getStaticValue(target);
     if (value === NAVBoolean.TRUE) {
       return "true";
     }
@@ -23678,6 +23703,15 @@ class ADLNavRequestValidChoice {
 class ADLNavRequestValidJump {
   _parentNav = null;
   _staticValues = {};
+  getStaticValue(target) {
+    return this._staticValues[`{target=${target}}`];
+  }
+  setStaticValue(key, value) {
+    const element = "adl.nav.request_valid.jump." + key;
+    if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
+      this._staticValues[key] = value;
+    }
+  }
   setParentNav(nav) {
     this._parentNav = nav;
   }
@@ -23690,7 +23724,7 @@ class ADLNavRequestValidJump {
       const activity = this._parentNav.sequencing.activityTree.getActivity(target);
       return activity ? "true" : "false";
     }
-    const value = this._staticValues[target];
+    const value = this.getStaticValue(target);
     if (value === NAVBoolean.TRUE) return "true";
     if (value === NAVBoolean.FALSE) return "false";
     return "unknown";
@@ -27147,18 +27181,22 @@ class Scorm2004API extends BaseAPI {
         const request = matches[1];
         const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
         if (request === "choice" || request === "jump") {
+          this.lastErrorCode = "0";
           const overallProcess = this._sequencing?.overallSequencingProcess;
           if (this.settings.scoItemIdValidator) {
             return String(this.settings.scoItemIdValidator(target));
           }
           if (overallProcess?.predictChoiceEnabled && request === "choice") {
             return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
-          } else {
-            if (this._extractedScoItemIds.length > 0) {
-              return String(this._extractedScoItemIds.includes(target));
-            }
-            return String(this.settings?.scoItemIds?.includes(target));
           }
+          const staticValue = this.adl.nav.request_valid[request].getStaticValue(target);
+          if (staticValue !== void 0) {
+            return staticValue;
+          }
+          if (this._extractedScoItemIds.length > 0) {
+            return String(this._extractedScoItemIds.includes(target));
+          }
+          return String(this.settings?.scoItemIds?.includes(target));
         }
       }
     }

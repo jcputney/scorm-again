@@ -76,6 +76,8 @@ export declare class ADLDataObject extends BaseCMI {
 declare class ADLNavRequestValidChoice {
     private _parentNav;
     private _staticValues;
+    getStaticValue(target: string): NAVBoolean | undefined;
+    setStaticValue(key: string, value: string): void;
     setParentNav(nav: ADLNav): void;
     _isTargetValid(target: string): string;
     getAll(): {
@@ -88,6 +90,8 @@ declare class ADLNavRequestValidChoice {
 declare class ADLNavRequestValidJump {
     private _parentNav;
     private _staticValues;
+    getStaticValue(target: string): NAVBoolean | undefined;
+    setStaticValue(key: string, value: string): void;
     setParentNav(nav: ADLNav): void;
     _isTargetValid(target: string): string;
     getAll(): {
