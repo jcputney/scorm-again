@@ -75,6 +75,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     processListeners(functionName: string, CMIElement?: string, value?: any, context?: CommitEventContext): void;
     throwSCORMError(CMIElement: string | undefined, errorNumber: number | undefined, message?: string, messageLevel?: LogLevel): void;
     clearSCORMError(success: string): void;
+    private loadCMIValue;
     loadFromFlattenedJSON(json: StringKeyMap, CMIElement?: string): void;
     getFlattenedCMI(): StringKeyMap;
     loadFromJSON(json: StringKeyMap, CMIElement?: string): void;

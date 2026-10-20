@@ -11449,7 +11449,7 @@ this.Scorm12API = (function () {
      */ key: "loadFromFlattenedJSON",
               value: function loadFromFlattenedJSON(json) {
                   var _this = this;
-                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0;
+                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0, onInvalidValue = arguments.length > 5 ? arguments[5] : void 0;
                   if (!isNotInitialized()) {
                       console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
                       return;
@@ -11518,7 +11518,7 @@ this.Scorm12API = (function () {
                       items.forEach(function(item) {
                           var obj = {};
                           obj[item.key] = item.value;
-                          _this.loadFromJSON(unflatten(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
+                          _this.loadFromJSON(unflatten(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData, onInvalidValue);
                       });
                   };
                   processItems(interactions);
@@ -11572,13 +11572,23 @@ this.Scorm12API = (function () {
      * // }
      */ key: "loadFromJSON",
               value: function loadFromJSON(json) {
-                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0;
+                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0, onInvalidValue = arguments.length > 5 ? arguments[5] : void 0;
                   if (!isNotInitialized()) {
                       console.error("loadFromJSON can only be called before the call to lmsInitialize.");
                       return;
                   }
                   CMIElement = CMIElement !== void 0 ? CMIElement : "cmi";
                   setStartingData(json);
+                  var setLeaf = function setLeaf(element, value) {
+                      try {
+                          setCMIValue(element, value);
+                      } catch (error) {
+                          if (onInvalidValue === void 0) {
+                              throw error;
+                          }
+                          onInvalidValue(element, error);
+                      }
+                  };
                   for(var key in json){
                       if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
                           var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
@@ -11589,16 +11599,16 @@ this.Scorm12API = (function () {
                                       var item = value[i];
                                       var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
                                       if (item.constructor === Object) {
-                                          this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                                          this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData, onInvalidValue);
                                       } else {
-                                          setCMIValue(tempCMIElement, item);
+                                          setLeaf(tempCMIElement, item);
                                       }
                                   }
                               }
                           } else if (value.constructor === Object) {
-                              this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                              this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData, onInvalidValue);
                           } else {
-                              setCMIValue(currentCMIElement, value);
+                              setLeaf(currentCMIElement, value);
                           }
                       }
                   }
@@ -13060,6 +13070,25 @@ this.Scorm12API = (function () {
           },
           {
               /**
+     * Sets one value during loadFromJSON / loadFromFlattenedJSON. Throws when the
+     * value is rejected so the loader can skip it, and leaves lastErrorCode as it
+     * was before the call either way.
+     */ key: "loadCMIValue",
+              value: function loadCMIValue(CMIElement, value) {
+                  var previousErrorCode = this.lastErrorCode;
+                  this.lastErrorCode = "0";
+                  try {
+                      this.setCMIValue(CMIElement, value);
+                      if (this.lastErrorCode !== "0") {
+                          throw new Error("SCORM error ".concat(this.lastErrorCode));
+                      }
+                  } finally{
+                      this.lastErrorCode = previousErrorCode;
+                  }
+              }
+          },
+          {
+              /**
      * Load the CMI from a flattened JSON object.
      * This method populates the CMI data model from a flattened JSON structure
      * where keys represent CMI element paths (e.g., "cmi.core.student_id").
@@ -13080,11 +13109,13 @@ this.Scorm12API = (function () {
                       CMIElement = "";
                   }
                   this._serializationService.loadFromFlattenedJSON(json, CMIElement, function(CMIElement2, value) {
-                      return _this.setCMIValue(CMIElement2, value);
+                      return _this.loadCMIValue(CMIElement2, value);
                   }, function() {
                       return _this.isNotInitialized();
                   }, function(data) {
                       _this.startingData = data;
+                  }, function(element, error) {
+                      _this.apiLog("loadFromJSON", "Skipped invalid value for ".concat(element, ": ").concat(String(error)), LogLevelEnum.WARN);
                   });
               }
           },
@@ -13124,11 +13155,13 @@ this.Scorm12API = (function () {
                       CMIElement = "cmi";
                   }
                   this._serializationService.loadFromJSON(json, CMIElement, function(CMIElement2, value) {
-                      return _this.setCMIValue(CMIElement2, value);
+                      return _this.loadCMIValue(CMIElement2, value);
                   }, function() {
                       return _this.isNotInitialized();
                   }, function(data) {
                       _this.startingData = data;
+                  }, function(element, error) {
+                      _this.apiLog("loadFromJSON", "Skipped invalid value for ".concat(element, ": ").concat(String(error)), LogLevelEnum.WARN);
                   });
               }
           },

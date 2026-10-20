@@ -6757,6 +6757,56 @@
                                       exception: "SB.2.13-1"
                                   };
                               }
+                              if (!this.treeQueries.isInTree(jumpTarget)) {
+                                  return {
+                                      valid: false,
+                                      exception: "SB.2.13-2"
+                                  };
+                              }
+                              if (!jumpTarget.isAvailable) {
+                                  return {
+                                      valid: false,
+                                      exception: "SB.2.13-3"
+                                  };
+                              }
+                              if (jumpTarget.children.length > 0) {
+                                  return {
+                                      valid: false,
+                                      exception: "DB.1.1-1"
+                                  };
+                              }
+                              var path = [];
+                              for(var node = jumpTarget; node; node = node.parent){
+                                  path.unshift(node);
+                              }
+                              var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                              try {
+                                  for(var _iterator = path[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                                      var activity = _step.value;
+                                      var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
+                                          return rule.action === RuleActionType.DISABLED;
+                                      });
+                                      if (!activity.isAvailable || this.ruleEngine.checkLimitConditions(activity) || this.ruleEngine.checkSequencingRules(this.traversalService.getActivityForEvaluation(activity, jumpTarget), disabledRules) === RuleActionType.DISABLED) {
+                                          return {
+                                              valid: false,
+                                              exception: "DB.1.1-3"
+                                          };
+                                      }
+                                  }
+                              } catch (err) {
+                                  _didIteratorError = true;
+                                  _iteratorError = err;
+                              } finally{
+                                  try {
+                                      if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                          _iterator.return();
+                                      }
+                                  } finally{
+                                      if (_didIteratorError) {
+                                          throw _iteratorError;
+                                      }
+                                  }
+                              }
                               break;
                           }
                   }
@@ -18552,6 +18602,12 @@
               }
           },
           {
+              /** Predict jump validity on demand because limit conditions can change over time. */ key: "predictJumpEnabled",
+              value: function predictJumpEnabled(activityId) {
+                  return this.sequencingProcess.validateNavigationRequest(SequencingRequestType.JUMP, activityId, this.activityTree.currentActivity).valid;
+              }
+          },
+          {
               /**
      * Get list of all activity IDs that can be chosen
      * @return {string[]} - Array of activity IDs that can be chosen
@@ -19662,8 +19718,7 @@
                           var act = _step.value;
                           var choiceRes = this.validateRequest("choice" /* CHOICE */ , act.id);
                           choiceMap[act.id] = choiceRes.valid ? "true" : "false";
-                          var jumpRes = this.validateRequest("jump" /* JUMP */ , act.id);
-                          jumpMap[act.id] = jumpRes.valid ? "true" : "false";
+                          jumpMap[act.id] = this.predictJumpEnabled(act.id) ? "true" : "false";
                       }
                   } catch (err) {
                       _didIteratorError = true;
@@ -19679,12 +19734,6 @@
                           }
                       }
                   }
-                  try {
-                      this.adlNav.request_valid.choice = choiceMap;
-                  } catch (e) {}
-                  try {
-                      this.adlNav.request_valid.jump = jumpMap;
-                  } catch (e) {}
                   var hideLmsUi = this.getEffectiveHideLmsUiCallback ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity) : [];
                   var auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback ? this.getEffectiveAuxiliaryResourcesCallback(this.activityTree.currentActivity) : [];
                   var update = {
@@ -19724,6 +19773,12 @@
      */ key: "predictPreviousEnabled",
               value: function predictPreviousEnabled() {
                   return this.navigationLookAhead.predictPreviousEnabled();
+              }
+          },
+          {
+              /** Predict if jump to the target leaf would succeed. */ key: "predictJumpEnabled",
+              value: function predictJumpEnabled(activityId) {
+                  return this.navigationLookAhead.predictJumpEnabled(activityId);
               }
           },
           {
@@ -22196,6 +22251,12 @@
               }
           },
           {
+              /** Predict if jump to the target leaf would succeed. */ key: "predictJumpEnabled",
+              value: function predictJumpEnabled(activityId) {
+                  return this.navigationValidityService.predictJumpEnabled(activityId);
+              }
+          },
+          {
               /**
      * Predict if choice to specific activity would succeed
      * @param {string} activityId - Target activity ID
@@ -24206,7 +24267,7 @@
      */ key: "loadFromFlattenedJSON",
               value: function loadFromFlattenedJSON(json) {
                   var _this = this;
-                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0;
+                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0, onInvalidValue = arguments.length > 5 ? arguments[5] : void 0;
                   if (!isNotInitialized()) {
                       console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
                       return;
@@ -24275,7 +24336,7 @@
                       items.forEach(function(item) {
                           var obj = {};
                           obj[item.key] = item.value;
-                          _this.loadFromJSON(unflatten(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
+                          _this.loadFromJSON(unflatten(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData, onInvalidValue);
                       });
                   };
                   processItems(interactions);
@@ -24329,13 +24390,23 @@
      * // }
      */ key: "loadFromJSON",
               value: function loadFromJSON(json) {
-                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0;
+                  var CMIElement = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", setCMIValue = arguments.length > 2 ? arguments[2] : void 0, isNotInitialized = arguments.length > 3 ? arguments[3] : void 0, setStartingData = arguments.length > 4 ? arguments[4] : void 0, onInvalidValue = arguments.length > 5 ? arguments[5] : void 0;
                   if (!isNotInitialized()) {
                       console.error("loadFromJSON can only be called before the call to lmsInitialize.");
                       return;
                   }
                   CMIElement = CMIElement !== void 0 ? CMIElement : "cmi";
                   setStartingData(json);
+                  var setLeaf = function setLeaf(element, value) {
+                      try {
+                          setCMIValue(element, value);
+                      } catch (error) {
+                          if (onInvalidValue === void 0) {
+                              throw error;
+                          }
+                          onInvalidValue(element, error);
+                      }
+                  };
                   for(var key in json){
                       if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
                           var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
@@ -24346,16 +24417,16 @@
                                       var item = value[i];
                                       var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
                                       if (item.constructor === Object) {
-                                          this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                                          this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData, onInvalidValue);
                                       } else {
-                                          setCMIValue(tempCMIElement, item);
+                                          setLeaf(tempCMIElement, item);
                                       }
                                   }
                               }
                           } else if (value.constructor === Object) {
-                              this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                              this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData, onInvalidValue);
                           } else {
-                              setCMIValue(currentCMIElement, value);
+                              setLeaf(currentCMIElement, value);
                           }
                       }
                   }
@@ -25817,6 +25888,25 @@
           },
           {
               /**
+     * Sets one value during loadFromJSON / loadFromFlattenedJSON. Throws when the
+     * value is rejected so the loader can skip it, and leaves lastErrorCode as it
+     * was before the call either way.
+     */ key: "loadCMIValue",
+              value: function loadCMIValue(CMIElement, value) {
+                  var previousErrorCode = this.lastErrorCode;
+                  this.lastErrorCode = "0";
+                  try {
+                      this.setCMIValue(CMIElement, value);
+                      if (this.lastErrorCode !== "0") {
+                          throw new Error("SCORM error ".concat(this.lastErrorCode));
+                      }
+                  } finally{
+                      this.lastErrorCode = previousErrorCode;
+                  }
+              }
+          },
+          {
+              /**
      * Load the CMI from a flattened JSON object.
      * This method populates the CMI data model from a flattened JSON structure
      * where keys represent CMI element paths (e.g., "cmi.core.student_id").
@@ -25837,11 +25927,13 @@
                       CMIElement = "";
                   }
                   this._serializationService.loadFromFlattenedJSON(json, CMIElement, function(CMIElement2, value) {
-                      return _this.setCMIValue(CMIElement2, value);
+                      return _this.loadCMIValue(CMIElement2, value);
                   }, function() {
                       return _this.isNotInitialized();
                   }, function(data) {
                       _this.startingData = data;
+                  }, function(element, error) {
+                      _this.apiLog("loadFromJSON", "Skipped invalid value for ".concat(element, ": ").concat(String(error)), LogLevelEnum.WARN);
                   });
               }
           },
@@ -25881,11 +25973,13 @@
                       CMIElement = "cmi";
                   }
                   this._serializationService.loadFromJSON(json, CMIElement, function(CMIElement2, value) {
-                      return _this.setCMIValue(CMIElement2, value);
+                      return _this.loadCMIValue(CMIElement2, value);
                   }, function() {
                       return _this.isNotInitialized();
                   }, function(data) {
                       _this.startingData = data;
+                  }, function(element, error) {
+                      _this.apiLog("loadFromJSON", "Skipped invalid value for ".concat(element, ": ").concat(String(error)), LogLevelEnum.WARN);
                   });
               }
           },
@@ -30107,13 +30201,23 @@
       ]);
       return CMIInteractionsObjectivesObject;
   }(BaseCMI);
-  var RESPONSE_PREFIX_RE = /^\{(?:lang|case_matters|order_matters)=[^}]+\}/;
-  function stripResponsePrefixes(node) {
-      var result = node;
-      while(RESPONSE_PREFIX_RE.test(result)){
-          result = result.replace(RESPONSE_PREFIX_RE, "");
+  function stripCorrectResponsePrefixes(node, type) {
+      var firstItem = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
+      var text = node;
+      var seen = /* @__PURE__ */ new Set();
+      var prefix;
+      while(prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/)){
+          var property = prefix[1];
+          var value = prefix[2];
+          var invalidValue = property === "lang" ? !new RegExp(scorm2004_regex.CMILang).test(value) : value !== "true" && value !== "false";
+          var invalidPosition = type !== void 0 && (seen.has(property) || property !== "lang" && (!firstItem || seen.has("lang")) || type === "long-fill-in" && property === "order_matters" || type === "performance" && property !== "order_matters");
+          if (invalidValue || invalidPosition) {
+              throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
+          }
+          seen.add(property);
+          text = text.slice(prefix[0].length);
       }
-      return result;
+      return text;
   }
   function validatePattern(type, pattern, responseDef) {
       var allowBare = !isSpecForm(pattern) && type !== "fill-in";
@@ -30186,8 +30290,8 @@
       };
       var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
       try {
-          for(var _iterator1 = nodes[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-              var node = _step1.value;
+          for(var _iterator1 = nodes.entries()[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+              var _step_value = _sliced_to_array$5(_step1.value, 2), nodeIndex = _step_value[0], node = _step_value[1];
               switch(type){
                   case "numeric":
                       {
@@ -30201,24 +30305,10 @@
                           checkSingle(node);
                           break;
                       }
+                  case "fill-in":
                   case "long-fill-in":
                       {
-                          var text = node;
-                          var langTags = "";
-                          var seenCase = false;
-                          var prefix = void 0;
-                          while(prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/)){
-                              if (prefix[1] === "order_matters" || prefix[1] === "case_matters" && (seenCase || langTags !== "" || prefix[2] !== "true" && prefix[2] !== "false")) {
-                                  throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
-                              }
-                              if (prefix[1] === "case_matters") {
-                                  seenCase = true;
-                              } else if (prefix[1] === "lang") {
-                                  langTags += prefix[0];
-                              }
-                              text = text.slice(prefix[0].length);
-                          }
-                          checkSingle(langTags + text);
+                          checkSingle(stripCorrectResponsePrefixes(node, type, nodeIndex === 0));
                           break;
                       }
                   case "performance":
@@ -30227,7 +30317,7 @@
                           if (!delimBracketed) {
                               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
                           }
-                          var record = stripResponsePrefixes(node);
+                          var record = stripCorrectResponsePrefixes(node, type, nodeIndex === 0);
                           var parts = splitFirstDelimited(record, delimBracketed, allowBare);
                           if (parts.length !== 2) {
                               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors.TYPE_MISMATCH);
@@ -33773,8 +33863,12 @@
      * Called by BaseAPI when accessing adl.nav.request_valid.jump.{target=...}
      */ key: "_isTargetValid",
               value: function _isTargetValid(target) {
-                  var _this__parentNav_sequencing, _this__parentNav;
-                  if ((_this__parentNav = this._parentNav) === null || _this__parentNav === void 0 ? void 0 : (_this__parentNav_sequencing = _this__parentNav.sequencing) === null || _this__parentNav_sequencing === void 0 ? void 0 : _this__parentNav_sequencing.activityTree) {
+                  var _this__parentNav_sequencing, _this__parentNav, _this__parentNav_sequencing1, _this__parentNav1;
+                  var process = (_this__parentNav = this._parentNav) === null || _this__parentNav === void 0 ? void 0 : (_this__parentNav_sequencing = _this__parentNav.sequencing) === null || _this__parentNav_sequencing === void 0 ? void 0 : _this__parentNav_sequencing.overallSequencingProcess;
+                  if (process === null || process === void 0 ? void 0 : process.predictJumpEnabled) {
+                      return process.predictJumpEnabled(target) ? "true" : "false";
+                  }
+                  if ((_this__parentNav1 = this._parentNav) === null || _this__parentNav1 === void 0 ? void 0 : (_this__parentNav_sequencing1 = _this__parentNav1.sequencing) === null || _this__parentNav_sequencing1 === void 0 ? void 0 : _this__parentNav_sequencing1.activityTree) {
                       var activity = this._parentNav.sequencing.activityTree.getActivity(target);
                       return activity ? "true" : "false";
                   }
@@ -34743,45 +34837,12 @@
      * @return {*} The node with prefixes removed
      */ key: "removeCorrectResponsePrefixes",
               value: function removeCorrectResponsePrefixes(CMIElement, node) {
-                  var seenOrder = false;
-                  var seenCase = false;
-                  var seenLang = false;
-                  var prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
-                  var matches = node.match(prefixRegex);
-                  var langMatches;
-                  while(matches){
-                      var _matches_;
-                      switch(matches[2]){
-                          case "lang":
-                              var _matches_1;
-                              langMatches = node.match(scorm2004_regex.CMILangcr);
-                              var lang = (_matches_1 = matches[3]) !== null && _matches_1 !== void 0 ? _matches_1 : "";
-                              if (!langMatches || !new RegExp(scorm2004_regex.CMILang).test(lang)) {
-                                  this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "".concat(node));
-                              }
-                              seenLang = true;
-                              break;
-                          case "case_matters":
-                              if (!seenLang && !seenOrder && !seenCase) {
-                                  if (matches[3] !== "true" && matches[3] !== "false") {
-                                      this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "".concat(node));
-                                  }
-                              }
-                              seenCase = true;
-                              break;
-                          case "order_matters":
-                              if (!seenCase && !seenLang && !seenOrder) {
-                                  if (matches[3] !== "true" && matches[3] !== "false") {
-                                      this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "".concat(node));
-                                  }
-                              }
-                              seenOrder = true;
-                              break;
-                      }
-                      node = node.substring(((_matches_ = matches[1]) === null || _matches_ === void 0 ? void 0 : _matches_.length) || 0);
-                      matches = node.match(prefixRegex);
+                  try {
+                      return stripCorrectResponsePrefixes(node);
+                  } catch (unused) {
+                      this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "".concat(node));
+                      return node;
                   }
-                  return node;
               }
           }
       ]);
@@ -38949,6 +39010,9 @@
                               }
                               if ((overallProcess === null || overallProcess === void 0 ? void 0 : overallProcess.predictChoiceEnabled) && request === "choice") {
                                   return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
+                              }
+                              if ((overallProcess === null || overallProcess === void 0 ? void 0 : overallProcess.predictJumpEnabled) && request === "jump") {
+                                  return overallProcess.predictJumpEnabled(target) ? "true" : "false";
                               }
                               var staticValue = this.adl.nav.request_valid[request].getStaticValue(target);
                               if (staticValue !== void 0) {

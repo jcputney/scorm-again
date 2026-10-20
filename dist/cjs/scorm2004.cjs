@@ -928,8 +928,6 @@ const scorm2004_regex = {
   CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9]{1,8})*})?((?!\\{lang=)[\\s\\S]{0,250}$)?$",
   /** CMILangString - Optional language tag, no length cap; RTE C.1.3 SPM is a floor and is deliberately not enforced */
   CMILangString: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9]{1,8})*})?((?!\\{lang=)[\\s\\S]*$)?$",
-  /** CMILangcr - Language tag pattern with content */
-  CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9]{1,8})*}))([\\s\\S]*?)$",
   /** CMILangString250cr - String with optional language tag (carriage return variant) */
   CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9]{1,8})*})?([\\s\\S]{0,250})?)?$",
   /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */
@@ -4510,6 +4508,30 @@ class SequencingProcess {
         const jumpTarget = this.activityTree.getActivity(targetActivityId);
         if (!jumpTarget) {
           return { valid: false, exception: "SB.2.13-1" };
+        }
+        if (!this.treeQueries.isInTree(jumpTarget)) {
+          return { valid: false, exception: "SB.2.13-2" };
+        }
+        if (!jumpTarget.isAvailable) {
+          return { valid: false, exception: "SB.2.13-3" };
+        }
+        if (jumpTarget.children.length > 0) {
+          return { valid: false, exception: "DB.1.1-1" };
+        }
+        const path = [];
+        for (let node = jumpTarget; node; node = node.parent) {
+          path.unshift(node);
+        }
+        for (const activity of path) {
+          const disabledRules = activity.sequencingRules.preConditionRules.filter(
+            (rule) => rule.action === RuleActionType.DISABLED
+          );
+          if (!activity.isAvailable || this.ruleEngine.checkLimitConditions(activity) || this.ruleEngine.checkSequencingRules(
+            this.traversalService.getActivityForEvaluation(activity, jumpTarget),
+            disabledRules
+          ) === RuleActionType.DISABLED) {
+            return { valid: false, exception: "DB.1.1-3" };
+          }
         }
         break;
       }
@@ -12705,6 +12727,14 @@ class NavigationLookAhead {
     this.ensureCacheValid();
     return this.cache?.choiceEnabledMap.get(activityId) ?? false;
   }
+  /** Predict jump validity on demand because limit conditions can change over time. */
+  predictJumpEnabled(activityId) {
+    return this.sequencingProcess.validateNavigationRequest(
+      SequencingRequestType.JUMP,
+      activityId,
+      this.activityTree.currentActivity
+    ).valid;
+  }
   /**
    * Get list of all activity IDs that can be chosen
    * @return {string[]} - Array of activity IDs that can be chosen
@@ -13603,16 +13633,7 @@ class NavigationValidityService {
         act.id
       );
       choiceMap[act.id] = choiceRes.valid ? "true" : "false";
-      const jumpRes = this.validateRequest("jump" /* JUMP */, act.id);
-      jumpMap[act.id] = jumpRes.valid ? "true" : "false";
-    }
-    try {
-      this.adlNav.request_valid.choice = choiceMap;
-    } catch (e) {
-    }
-    try {
-      this.adlNav.request_valid.jump = jumpMap;
-    } catch (e) {
+      jumpMap[act.id] = this.predictJumpEnabled(act.id) ? "true" : "false";
     }
     const hideLmsUi = this.getEffectiveHideLmsUiCallback ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity) : [];
     const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback ? this.getEffectiveAuxiliaryResourcesCallback(this.activityTree.currentActivity) : [];
@@ -13647,6 +13668,10 @@ class NavigationValidityService {
    */
   predictPreviousEnabled() {
     return this.navigationLookAhead.predictPreviousEnabled();
+  }
+  /** Predict if jump to the target leaf would succeed. */
+  predictJumpEnabled(activityId) {
+    return this.navigationLookAhead.predictJumpEnabled(activityId);
   }
   /**
    * Predict if choice to specific activity would succeed
@@ -15312,6 +15337,10 @@ class OverallSequencingProcess {
   predictPreviousEnabled() {
     return this.navigationValidityService.predictPreviousEnabled();
   }
+  /** Predict if jump to the target leaf would succeed. */
+  predictJumpEnabled(activityId) {
+    return this.navigationValidityService.predictJumpEnabled(activityId);
+  }
   /**
    * Predict if choice to specific activity would succeed
    * @param {string} activityId - Target activity ID
@@ -16703,7 +16732,7 @@ class SerializationService {
    * //   "cmi.interactions.0.result": "correct"
    * // }
    */
-  loadFromFlattenedJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
+  loadFromFlattenedJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData, onInvalidValue) {
     if (!isNotInitialized()) {
       console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
       return;
@@ -16766,7 +16795,8 @@ class SerializationService {
           CMIElement,
           setCMIValue,
           isNotInitialized,
-          setStartingData
+          setStartingData,
+          onInvalidValue
         );
       });
     };
@@ -16818,13 +16848,23 @@ class SerializationService {
    * //   ]
    * // }
    */
-  loadFromJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
+  loadFromJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData, onInvalidValue) {
     if (!isNotInitialized()) {
       console.error("loadFromJSON can only be called before the call to lmsInitialize.");
       return;
     }
     CMIElement = CMIElement !== void 0 ? CMIElement : "cmi";
     setStartingData(json);
+    const setLeaf = (element, value) => {
+      try {
+        setCMIValue(element, value);
+      } catch (error) {
+        if (onInvalidValue === void 0) {
+          throw error;
+        }
+        onInvalidValue(element, error);
+      }
+    };
     for (const key in json) {
       if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
         const currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
@@ -16840,10 +16880,11 @@ class SerializationService {
                   tempCMIElement,
                   setCMIValue,
                   isNotInitialized,
-                  setStartingData
+                  setStartingData,
+                  onInvalidValue
                 );
               } else {
-                setCMIValue(tempCMIElement, item);
+                setLeaf(tempCMIElement, item);
               }
             }
           }
@@ -16853,10 +16894,11 @@ class SerializationService {
             currentCMIElement,
             setCMIValue,
             isNotInitialized,
-            setStartingData
+            setStartingData,
+            onInvalidValue
           );
         } else {
-          setCMIValue(currentCMIElement, value);
+          setLeaf(currentCMIElement, value);
         }
       }
     }
@@ -18013,6 +18055,23 @@ class BaseAPI {
     this._errorHandlingService.clearSCORMError(success);
   }
   /**
+   * Sets one value during loadFromJSON / loadFromFlattenedJSON. Throws when the
+   * value is rejected so the loader can skip it, and leaves lastErrorCode as it
+   * was before the call either way.
+   */
+  loadCMIValue(CMIElement, value) {
+    const previousErrorCode = this.lastErrorCode;
+    this.lastErrorCode = "0";
+    try {
+      this.setCMIValue(CMIElement, value);
+      if (this.lastErrorCode !== "0") {
+        throw new Error(`SCORM error ${this.lastErrorCode}`);
+      }
+    } finally {
+      this.lastErrorCode = previousErrorCode;
+    }
+  }
+  /**
    * Load the CMI from a flattened JSON object.
    * This method populates the CMI data model from a flattened JSON structure
    * where keys represent CMI element paths (e.g., "cmi.core.student_id").
@@ -18034,10 +18093,17 @@ class BaseAPI {
     this._serializationService.loadFromFlattenedJSON(
       json,
       CMIElement,
-      (CMIElement2, value) => this.setCMIValue(CMIElement2, value),
+      (CMIElement2, value) => this.loadCMIValue(CMIElement2, value),
       () => this.isNotInitialized(),
       (data) => {
         this.startingData = data;
+      },
+      (element, error) => {
+        this.apiLog(
+          "loadFromJSON",
+          `Skipped invalid value for ${element}: ${String(error)}`,
+          LogLevelEnum.WARN
+        );
       }
     );
   }
@@ -18074,10 +18140,17 @@ class BaseAPI {
     this._serializationService.loadFromJSON(
       json,
       CMIElement,
-      (CMIElement2, value) => this.setCMIValue(CMIElement2, value),
+      (CMIElement2, value) => this.loadCMIValue(CMIElement2, value),
       () => this.isNotInitialized(),
       (data) => {
         this.startingData = data;
+      },
+      (element, error) => {
+        this.apiLog(
+          "loadFromJSON",
+          `Skipped invalid value for ${element}: ${String(error)}`,
+          LogLevelEnum.WARN
+        );
       }
     );
   }
@@ -19021,13 +19094,25 @@ class CMIInteractionsObjectivesObject extends BaseCMI {
     return result;
   }
 }
-const RESPONSE_PREFIX_RE = /^\{(?:lang|case_matters|order_matters)=[^}]+\}/;
-function stripResponsePrefixes(node) {
-  let result = node;
-  while (RESPONSE_PREFIX_RE.test(result)) {
-    result = result.replace(RESPONSE_PREFIX_RE, "");
+function stripCorrectResponsePrefixes(node, type, firstItem = true) {
+  let text = node;
+  const seen = /* @__PURE__ */ new Set();
+  let prefix;
+  while (prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/)) {
+    const property = prefix[1];
+    const value = prefix[2];
+    const invalidValue = property === "lang" ? !new RegExp(scorm2004_regex.CMILang).test(value) : value !== "true" && value !== "false";
+    const invalidPosition = type !== void 0 && (seen.has(property) || property !== "lang" && (!firstItem || seen.has("lang")) || type === "long-fill-in" && property === "order_matters" || type === "performance" && property !== "order_matters");
+    if (invalidValue || invalidPosition) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH
+      );
+    }
+    seen.add(property);
+    text = text.slice(prefix[0].length);
   }
-  return result;
+  return text;
 }
 function validatePattern(type, pattern, responseDef) {
   const allowBare = !isSpecForm(pattern) && type !== "fill-in";
@@ -19097,7 +19182,7 @@ function validatePattern(type, pattern, responseDef) {
       );
     }
   };
-  for (const node of nodes) {
+  for (const [nodeIndex, node] of nodes.entries()) {
     switch (type) {
       case "numeric": {
         if (node === "") {
@@ -19113,26 +19198,9 @@ function validatePattern(type, pattern, responseDef) {
         checkSingle(node);
         break;
       }
+      case "fill-in":
       case "long-fill-in": {
-        let text = node;
-        let langTags = "";
-        let seenCase = false;
-        let prefix;
-        while (prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/)) {
-          if (prefix[1] === "order_matters" || prefix[1] === "case_matters" && (seenCase || langTags !== "" || prefix[2] !== "true" && prefix[2] !== "false")) {
-            throw new Scorm2004ValidationError(
-              "cmi.interactions.n.correct_responses.n.pattern",
-              scorm2004_errors.TYPE_MISMATCH
-            );
-          }
-          if (prefix[1] === "case_matters") {
-            seenCase = true;
-          } else if (prefix[1] === "lang") {
-            langTags += prefix[0];
-          }
-          text = text.slice(prefix[0].length);
-        }
-        checkSingle(langTags + text);
+        checkSingle(stripCorrectResponsePrefixes(node, type, nodeIndex === 0));
         break;
       }
       case "performance": {
@@ -19143,7 +19211,7 @@ function validatePattern(type, pattern, responseDef) {
             scorm2004_errors.TYPE_MISMATCH
           );
         }
-        const record = stripResponsePrefixes(node);
+        const record = stripCorrectResponsePrefixes(node, type, nodeIndex === 0);
         const parts = splitFirstDelimited(record, delimBracketed, allowBare);
         if (parts.length !== 2) {
           throw new Scorm2004ValidationError(
@@ -21508,6 +21576,10 @@ class ADLNavRequestValidJump {
    * Called by BaseAPI when accessing adl.nav.request_valid.jump.{target=...}
    */
   _isTargetValid(target) {
+    const process = this._parentNav?.sequencing?.overallSequencingProcess;
+    if (process?.predictJumpEnabled) {
+      return process.predictJumpEnabled(target) ? "true" : "false";
+    }
     if (this._parentNav?.sequencing?.activityTree) {
       const activity = this._parentNav.sequencing.activityTree.getActivity(target);
       return activity ? "true" : "false";
@@ -22137,7 +22209,11 @@ class Scorm2004ResponseValidator {
       for (let i = 0; i < interaction_count && this.context.getLastErrorCode() === "0"; i++) {
         const response = interaction.correct_responses.childArray[i];
         if (response?.pattern === value) {
-          this.context.throwSCORMError(CMIElement, scorm2004_errors.GENERAL_SET_FAILURE, `${value}`);
+          this.context.throwSCORMError(
+            CMIElement,
+            scorm2004_errors.GENERAL_SET_FAILURE,
+            `${value}`
+          );
         }
       }
     }
@@ -22164,11 +22240,7 @@ class Scorm2004ResponseValidator {
     const response_type = CorrectResponses[interaction.type];
     if (response_type && (typeof response_type.limit === "undefined" || interaction_count < response_type.limit)) {
       this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
-      if (this.context.getLastErrorCode() === "0" && (!response_type.duplicate || !this.checkDuplicatedPattern(
-        interaction.correct_responses,
-        pattern_index,
-        value
-      )) || this.context.getLastErrorCode() === "0" && value === "") ; else {
+      if (this.context.getLastErrorCode() === "0" && (!response_type.duplicate || !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value)) || this.context.getLastErrorCode() === "0" && value === "") ; else {
         if (this.context.getLastErrorCode() === "0") {
           this.context.throwSCORMError(
             CMIElement,
@@ -22307,43 +22379,12 @@ class Scorm2004ResponseValidator {
    * @return {*} The node with prefixes removed
    */
   removeCorrectResponsePrefixes(CMIElement, node) {
-    let seenOrder = false;
-    let seenCase = false;
-    let seenLang = false;
-    const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
-    let matches = node.match(prefixRegex);
-    let langMatches;
-    while (matches) {
-      switch (matches[2]) {
-        case "lang":
-          langMatches = node.match(scorm2004_regex.CMILangcr);
-          const lang = matches[3] ?? "";
-          if (!langMatches || !new RegExp(scorm2004_regex.CMILang).test(lang)) {
-            this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
-          }
-          seenLang = true;
-          break;
-        case "case_matters":
-          if (!seenLang && !seenOrder && !seenCase) {
-            if (matches[3] !== "true" && matches[3] !== "false") {
-              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
-            }
-          }
-          seenCase = true;
-          break;
-        case "order_matters":
-          if (!seenCase && !seenLang && !seenOrder) {
-            if (matches[3] !== "true" && matches[3] !== "false") {
-              this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
-            }
-          }
-          seenOrder = true;
-          break;
-      }
-      node = node.substring(matches[1]?.length || 0);
-      matches = node.match(prefixRegex);
+    try {
+      return stripCorrectResponsePrefixes(node);
+    } catch {
+      this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
+      return node;
     }
-    return node;
   }
 }
 
@@ -24976,6 +25017,9 @@ class Scorm2004API extends BaseAPI {
           }
           if (overallProcess?.predictChoiceEnabled && request === "choice") {
             return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
+          }
+          if (overallProcess?.predictJumpEnabled && request === "jump") {
+            return overallProcess.predictJumpEnabled(target) ? "true" : "false";
           }
           const staticValue = this.adl.nav.request_valid[request].getStaticValue(target);
           if (staticValue !== void 0) {

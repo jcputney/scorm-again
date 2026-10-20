@@ -2599,7 +2599,7 @@ class SerializationService {
    * //   "cmi.interactions.0.result": "correct"
    * // }
    */
-  loadFromFlattenedJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
+  loadFromFlattenedJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData, onInvalidValue) {
     if (!isNotInitialized()) {
       console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
       return;
@@ -2662,7 +2662,8 @@ class SerializationService {
           CMIElement,
           setCMIValue,
           isNotInitialized,
-          setStartingData
+          setStartingData,
+          onInvalidValue
         );
       });
     };
@@ -2714,13 +2715,23 @@ class SerializationService {
    * //   ]
    * // }
    */
-  loadFromJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
+  loadFromJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData, onInvalidValue) {
     if (!isNotInitialized()) {
       console.error("loadFromJSON can only be called before the call to lmsInitialize.");
       return;
     }
     CMIElement = CMIElement !== void 0 ? CMIElement : "cmi";
     setStartingData(json);
+    const setLeaf = (element, value) => {
+      try {
+        setCMIValue(element, value);
+      } catch (error) {
+        if (onInvalidValue === void 0) {
+          throw error;
+        }
+        onInvalidValue(element, error);
+      }
+    };
     for (const key in json) {
       if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
         const currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
@@ -2736,10 +2747,11 @@ class SerializationService {
                   tempCMIElement,
                   setCMIValue,
                   isNotInitialized,
-                  setStartingData
+                  setStartingData,
+                  onInvalidValue
                 );
               } else {
-                setCMIValue(tempCMIElement, item);
+                setLeaf(tempCMIElement, item);
               }
             }
           }
@@ -2749,10 +2761,11 @@ class SerializationService {
             currentCMIElement,
             setCMIValue,
             isNotInitialized,
-            setStartingData
+            setStartingData,
+            onInvalidValue
           );
         } else {
-          setCMIValue(currentCMIElement, value);
+          setLeaf(currentCMIElement, value);
         }
       }
     }
@@ -3909,6 +3922,23 @@ class BaseAPI {
     this._errorHandlingService.clearSCORMError(success);
   }
   /**
+   * Sets one value during loadFromJSON / loadFromFlattenedJSON. Throws when the
+   * value is rejected so the loader can skip it, and leaves lastErrorCode as it
+   * was before the call either way.
+   */
+  loadCMIValue(CMIElement, value) {
+    const previousErrorCode = this.lastErrorCode;
+    this.lastErrorCode = "0";
+    try {
+      this.setCMIValue(CMIElement, value);
+      if (this.lastErrorCode !== "0") {
+        throw new Error(`SCORM error ${this.lastErrorCode}`);
+      }
+    } finally {
+      this.lastErrorCode = previousErrorCode;
+    }
+  }
+  /**
    * Load the CMI from a flattened JSON object.
    * This method populates the CMI data model from a flattened JSON structure
    * where keys represent CMI element paths (e.g., "cmi.core.student_id").
@@ -3930,10 +3960,17 @@ class BaseAPI {
     this._serializationService.loadFromFlattenedJSON(
       json,
       CMIElement,
-      (CMIElement2, value) => this.setCMIValue(CMIElement2, value),
+      (CMIElement2, value) => this.loadCMIValue(CMIElement2, value),
       () => this.isNotInitialized(),
       (data) => {
         this.startingData = data;
+      },
+      (element, error) => {
+        this.apiLog(
+          "loadFromJSON",
+          `Skipped invalid value for ${element}: ${String(error)}`,
+          LogLevelEnum.WARN
+        );
       }
     );
   }
@@ -3970,10 +4007,17 @@ class BaseAPI {
     this._serializationService.loadFromJSON(
       json,
       CMIElement,
-      (CMIElement2, value) => this.setCMIValue(CMIElement2, value),
+      (CMIElement2, value) => this.loadCMIValue(CMIElement2, value),
       () => this.isNotInitialized(),
       (data) => {
         this.startingData = data;
+      },
+      (element, error) => {
+        this.apiLog(
+          "loadFromJSON",
+          `Skipped invalid value for ${element}: ${String(error)}`,
+          LogLevelEnum.WARN
+        );
       }
     );
   }

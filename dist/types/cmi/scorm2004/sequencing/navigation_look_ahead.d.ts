@@ -14,6 +14,7 @@ export declare class NavigationLookAhead {
     predictContinueEnabled(): boolean;
     predictPreviousEnabled(): boolean;
     predictChoiceEnabled(activityId: string): boolean;
+    predictJumpEnabled(activityId: string): boolean;
     getAvailableChoices(): string[];
     getAllPredictions(): NavigationPredictions;
     invalidateCache(): void;
