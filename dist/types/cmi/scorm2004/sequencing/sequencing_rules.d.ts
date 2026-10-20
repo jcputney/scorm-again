@@ -61,7 +61,7 @@ export declare class RuleCondition extends BaseCMI {
     get referencedObjective(): string | null;
     set referencedObjective(objectiveId: string | null);
     private resolveReferencedObjective;
-    evaluate(activity: Activity): RuleConditionEvaluation;
+    evaluate(activity: Activity, now?: () => Date): RuleConditionEvaluation;
     private evaluateTimeLimitExceeded;
     private evaluateOutsideAvailableTimeRange;
     private parseISO8601Duration;
@@ -80,7 +80,7 @@ export declare class SequencingRule extends BaseCMI {
     set action(action: RuleActionType);
     get conditionCombination(): string | RuleConditionOperator;
     set conditionCombination(conditionCombination: string | RuleConditionOperator);
-    evaluate(activity: Activity): boolean;
+    evaluate(activity: Activity, now?: () => Date): boolean;
     toJSON(): object;
 }
 export declare class SequencingRules extends BaseCMI {

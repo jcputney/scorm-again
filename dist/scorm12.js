@@ -2264,6 +2264,7 @@ this.Scorm12API = (function () {
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
      */ key: "evaluate",
               value: function evaluate(activity) {
+                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now;
                   var _activity_sequencingControls;
                   var result;
                   var hasReferencedObjective = this._referencedObjective !== null;
@@ -2344,10 +2345,10 @@ this.Scorm12API = (function () {
                           result = activity.hasAttemptLimitExceeded();
                           break;
                       case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */ :
-                          result = this.evaluateTimeLimitExceeded(activity);
+                          result = this.evaluateTimeLimitExceeded(activity, now);
                           break;
                       case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */ :
-                          result = this.evaluateOutsideAvailableTimeRange(activity);
+                          result = this.evaluateOutsideAvailableTimeRange(activity, now);
                           break;
                       case "always" /* ALWAYS */ :
                           result = true;
@@ -2372,7 +2373,7 @@ this.Scorm12API = (function () {
      * @return {boolean}
      * @private
      */ key: "evaluateTimeLimitExceeded",
-              value: function evaluateTimeLimitExceeded(activity) {
+              value: function evaluateTimeLimitExceeded(activity, now) {
                   var limit = activity.timeLimitDuration;
                   if (!limit && activity.attemptAbsoluteDurationLimit) {
                       limit = activity.attemptAbsoluteDurationLimit;
@@ -2404,7 +2405,7 @@ this.Scorm12API = (function () {
                   if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
                       try {
                           var start = new Date(activity.attemptAbsoluteStartTime).getTime();
-                          var nowMs = _RuleCondition._now().getTime();
+                          var nowMs = now().getTime();
                           if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
                               elapsedSeconds = (nowMs - start) / 1e3;
                           }
@@ -2422,13 +2423,13 @@ this.Scorm12API = (function () {
      * @return {boolean}
      * @private
      */ key: "evaluateOutsideAvailableTimeRange",
-              value: function evaluateOutsideAvailableTimeRange(activity) {
+              value: function evaluateOutsideAvailableTimeRange(activity, clock) {
                   var beginTime = activity.beginTimeLimit;
                   var endTime = activity.endTimeLimit;
                   if (!beginTime && !endTime) {
                       return false;
                   }
-                  var now = _RuleCondition._now();
+                  var now = clock();
                   if (beginTime) {
                       var beginDate = new Date(beginTime);
                       if (now < beginDate) {
@@ -2608,9 +2609,9 @@ this.Scorm12API = (function () {
      * @param {Activity} activity - The activity to evaluate the rule for
      * @return {boolean} - True if the rule conditions are met, false otherwise
      */ key: "evaluate",
-              value: function evaluate(activity) {
+              value: function evaluate(activity, now) {
                   return combineRuleConditionResults(this._conditions.map(function(condition) {
-                      return condition.evaluate(activity);
+                      return condition.evaluate(activity, now);
                   }), this._conditionCombination) === true;
               }
           },

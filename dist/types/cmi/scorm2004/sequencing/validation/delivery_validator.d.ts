@@ -1,5 +1,6 @@
 import { Activity } from "../activity.js";
 import { ActivityTree } from "../activity_tree.js";
+import { RuleEvaluationEngine } from "../rules/rule_evaluation_engine.js";
 export interface StateConsistencyResult {
     consistent: boolean;
     exception: string | null;
@@ -21,9 +22,10 @@ export declare class DeliveryValidator {
     private eventCallback;
     private now;
     private contentDeliveredGetter;
+    private ruleEngineProvider;
     constructor(activityTree: ActivityTree, eventCallback?: ((eventType: string, data?: any) => void) | null, options?: {
         now?: () => Date;
-    });
+    }, ruleEngineProvider?: () => RuleEvaluationEngine);
     setContentDeliveredGetter(getter: () => boolean): void;
     validateTreeConsistency(activity: Activity): StateConsistencyResult;
     validateResources(activity: Activity): ResourceConstraintResult;

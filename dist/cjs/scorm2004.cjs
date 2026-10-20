@@ -1365,7 +1365,7 @@ class RuleCondition extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the condition for
    * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
-  evaluate(activity) {
+  evaluate(activity, now = RuleCondition._now) {
     let result;
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
@@ -1444,10 +1444,10 @@ class RuleCondition extends BaseCMI {
           result = activity.hasAttemptLimitExceeded();
           break;
         case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
-          result = this.evaluateTimeLimitExceeded(activity);
+          result = this.evaluateTimeLimitExceeded(activity, now);
           break;
         case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
-          result = this.evaluateOutsideAvailableTimeRange(activity);
+          result = this.evaluateOutsideAvailableTimeRange(activity, now);
           break;
         case "always" /* ALWAYS */:
           result = true;
@@ -1470,7 +1470,7 @@ class RuleCondition extends BaseCMI {
    * @return {boolean}
    * @private
    */
-  evaluateTimeLimitExceeded(activity) {
+  evaluateTimeLimitExceeded(activity, now) {
     let limit = activity.timeLimitDuration;
     if (!limit && activity.attemptAbsoluteDurationLimit) {
       limit = activity.attemptAbsoluteDurationLimit;
@@ -1505,7 +1505,7 @@ class RuleCondition extends BaseCMI {
     if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
       try {
         const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-        const nowMs = RuleCondition._now().getTime();
+        const nowMs = now().getTime();
         if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
           elapsedSeconds = (nowMs - start) / 1e3;
         }
@@ -1521,13 +1521,13 @@ class RuleCondition extends BaseCMI {
    * @return {boolean}
    * @private
    */
-  evaluateOutsideAvailableTimeRange(activity) {
+  evaluateOutsideAvailableTimeRange(activity, clock) {
     const beginTime = activity.beginTimeLimit;
     const endTime = activity.endTimeLimit;
     if (!beginTime && !endTime) {
       return false;
     }
-    const now = RuleCondition._now();
+    const now = clock();
     if (beginTime) {
       const beginDate = new Date(beginTime);
       if (now < beginDate) {
@@ -1666,9 +1666,9 @@ class SequencingRule extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rule for
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
-  evaluate(activity) {
+  evaluate(activity, now) {
     return combineRuleConditionResults(
-      this._conditions.map((condition) => condition.evaluate(activity)),
+      this._conditions.map((condition) => condition.evaluate(activity, now)),
       this._conditionCombination
     ) === true;
   }
@@ -2503,7 +2503,7 @@ class RuleEvaluationEngine {
    * @return {boolean} - True only when the rule evaluates to definite true
    */
   checkRuleSubprocess(activity, rule) {
-    return rule.evaluate(activity);
+    return rule.evaluate(activity, this.now);
   }
   /**
    * Exit Action Rules Subprocess (TB.2.1)
@@ -14327,10 +14327,17 @@ class DeliveryValidator {
   eventCallback;
   now;
   contentDeliveredGetter = null;
-  constructor(activityTree, eventCallback = null, options) {
+  ruleEngineProvider;
+  constructor(activityTree, eventCallback = null, options, ruleEngineProvider) {
     this.activityTree = activityTree;
     this.eventCallback = eventCallback;
     this.now = options?.now || (() => /* @__PURE__ */ new Date());
+    if (ruleEngineProvider) {
+      this.ruleEngineProvider = ruleEngineProvider;
+    } else {
+      const ruleEngine = new RuleEvaluationEngine({ now: this.now });
+      this.ruleEngineProvider = () => ruleEngine;
+    }
   }
   /**
    * Set getter for content delivered flag
@@ -14468,6 +14475,12 @@ class DeliveryValidator {
    */
   checkActivity(activity) {
     if (!activity.isAvailable) {
+      return false;
+    }
+    const disabledRules = activity.sequencingRules.preConditionRules.filter(
+      (rule) => rule.action === RuleActionType.DISABLED
+    );
+    if (this.ruleEngineProvider().checkSequencingRules(activity, disabledRules) !== null) {
       return false;
     }
     if (!this.checkLimitConditions(activity)) {
@@ -14947,7 +14960,8 @@ class OverallSequencingProcess {
     this.deliveryValidator = new DeliveryValidator(
       activityTree,
       eventCallback,
-      deliveryValidatorOptions
+      deliveryValidatorOptions,
+      () => sequencingProcess.getRuleEngine()
     );
     const terminationOptions = {};
     if (options?.getCMIData) {

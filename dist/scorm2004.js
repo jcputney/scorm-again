@@ -2376,6 +2376,7 @@ this.Scorm2004API = (function () {
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
      */ key: "evaluate",
               value: function evaluate(activity) {
+                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now;
                   var _activity_sequencingControls;
                   var result;
                   var hasReferencedObjective = this._referencedObjective !== null;
@@ -2456,10 +2457,10 @@ this.Scorm2004API = (function () {
                           result = activity.hasAttemptLimitExceeded();
                           break;
                       case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */ :
-                          result = this.evaluateTimeLimitExceeded(activity);
+                          result = this.evaluateTimeLimitExceeded(activity, now);
                           break;
                       case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */ :
-                          result = this.evaluateOutsideAvailableTimeRange(activity);
+                          result = this.evaluateOutsideAvailableTimeRange(activity, now);
                           break;
                       case "always" /* ALWAYS */ :
                           result = true;
@@ -2484,7 +2485,7 @@ this.Scorm2004API = (function () {
      * @return {boolean}
      * @private
      */ key: "evaluateTimeLimitExceeded",
-              value: function evaluateTimeLimitExceeded(activity) {
+              value: function evaluateTimeLimitExceeded(activity, now) {
                   var limit = activity.timeLimitDuration;
                   if (!limit && activity.attemptAbsoluteDurationLimit) {
                       limit = activity.attemptAbsoluteDurationLimit;
@@ -2516,7 +2517,7 @@ this.Scorm2004API = (function () {
                   if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
                       try {
                           var start = new Date(activity.attemptAbsoluteStartTime).getTime();
-                          var nowMs = _RuleCondition._now().getTime();
+                          var nowMs = now().getTime();
                           if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
                               elapsedSeconds = (nowMs - start) / 1e3;
                           }
@@ -2534,13 +2535,13 @@ this.Scorm2004API = (function () {
      * @return {boolean}
      * @private
      */ key: "evaluateOutsideAvailableTimeRange",
-              value: function evaluateOutsideAvailableTimeRange(activity) {
+              value: function evaluateOutsideAvailableTimeRange(activity, clock) {
                   var beginTime = activity.beginTimeLimit;
                   var endTime = activity.endTimeLimit;
                   if (!beginTime && !endTime) {
                       return false;
                   }
-                  var now = _RuleCondition._now();
+                  var now = clock();
                   if (beginTime) {
                       var beginDate = new Date(beginTime);
                       if (now < beginDate) {
@@ -2720,9 +2721,9 @@ this.Scorm2004API = (function () {
      * @param {Activity} activity - The activity to evaluate the rule for
      * @return {boolean} - True if the rule conditions are met, false otherwise
      */ key: "evaluate",
-              value: function evaluate(activity) {
+              value: function evaluate(activity, now) {
                   return combineRuleConditionResults(this._conditions.map(function(condition) {
-                      return condition.evaluate(activity);
+                      return condition.evaluate(activity, now);
                   }), this._conditionCombination) === true;
               }
           },
@@ -3946,7 +3947,7 @@ this.Scorm2004API = (function () {
      * @return {boolean} - True only when the rule evaluates to definite true
      */ key: "checkRuleSubprocess",
               value: function checkRuleSubprocess(activity, rule) {
-                  return rule.evaluate(activity);
+                  return rule.evaluate(activity, this.now);
               }
           },
           {
@@ -20692,17 +20693,28 @@ this.Scorm2004API = (function () {
   };
   var DeliveryValidator = /*#__PURE__*/ function() {
       function DeliveryValidator(activityTree) {
-          var eventCallback = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, options = arguments.length > 2 ? arguments[2] : void 0;
+          var eventCallback = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, options = arguments.length > 2 ? arguments[2] : void 0, ruleEngineProvider = arguments.length > 3 ? arguments[3] : void 0;
           _class_call_check$v(this, DeliveryValidator);
           __publicField$s(this, "activityTree");
           __publicField$s(this, "eventCallback");
           __publicField$s(this, "now");
           __publicField$s(this, "contentDeliveredGetter", null);
+          __publicField$s(this, "ruleEngineProvider");
           this.activityTree = activityTree;
           this.eventCallback = eventCallback;
           this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
           };
+          if (ruleEngineProvider) {
+              this.ruleEngineProvider = ruleEngineProvider;
+          } else {
+              var ruleEngine = new RuleEvaluationEngine({
+                  now: this.now
+              });
+              this.ruleEngineProvider = function() {
+                  return ruleEngine;
+              };
+          }
       }
       _create_class$v(DeliveryValidator, [
           {
@@ -20921,6 +20933,12 @@ this.Scorm2004API = (function () {
      */ key: "checkActivity",
               value: function checkActivity(activity) {
                   if (!activity.isAvailable) {
+                      return false;
+                  }
+                  var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
+                      return rule.action === RuleActionType.DISABLED;
+                  });
+                  if (this.ruleEngineProvider().checkSequencingRules(activity, disabledRules) !== null) {
                       return false;
                   }
                   if (!this.checkLimitConditions(activity)) {
@@ -21683,7 +21701,9 @@ this.Scorm2004API = (function () {
           if (options === null || options === void 0 ? void 0 : options.now) {
               deliveryValidatorOptions.now = options.now;
           }
-          this.deliveryValidator = new DeliveryValidator(activityTree, eventCallback, deliveryValidatorOptions);
+          this.deliveryValidator = new DeliveryValidator(activityTree, eventCallback, deliveryValidatorOptions, function() {
+              return sequencingProcess.getRuleEngine();
+          });
           var terminationOptions = {};
           if (options === null || options === void 0 ? void 0 : options.getCMIData) {
               terminationOptions.getCMIData = options.getCMIData;
