@@ -338,6 +338,7 @@ export class NavigationLookAhead {
     const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(
       activity,
       this.sequencingProcess.now,
+      this.sequencingProcess.getAttemptElapsedSecondsHook,
     );
     if (
       preConditionResult === RuleActionType.SKIP ||

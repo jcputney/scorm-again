@@ -1077,3 +1077,29 @@ it("uses the process clock independently of the static clock", () => {
     RuleCondition.setNowProvider(() => new Date());
   }
 });
+
+it("uses the process elapsed hook at construction and after replacement", () => {
+  RuleCondition.setElapsedSecondsHook(() => 120);
+  try {
+    const inside = () => 30;
+    const outside = () => 120;
+    const root = new Activity("clock-root", "Root");
+    const target = new Activity("clock-target", "Target");
+    root.addChild(target);
+    const tree = new ActivityTree(root);
+    const process = new SequencingProcess(tree, null, null, null, { getAttemptElapsedSeconds: inside });
+    target.attemptAbsoluteDurationLimit = "PT60S";
+    const handler = new TerminationHandler(tree, process, new RollupProcess(), new Map());
+    const rule = new SequencingRule(RuleActionType.EXIT_ALL);
+    rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+    target.sequencingRules.exitConditionRules.push(rule);
+    expect(handler.evaluateExitRules(target).action).toBe(null);
+    expect(handler["exitActionRulesSubprocess"](target)).toBe(null);
+    process.getAttemptElapsedSecondsHook = outside;
+    RuleCondition.setElapsedSecondsHook(inside);
+    expect(handler.evaluateExitRules(target).action).toBe("EXIT_ALL");
+    expect(handler["exitActionRulesSubprocess"](target)).toBe("EXIT_ALL");
+  } finally {
+    RuleCondition.setElapsedSecondsHook(undefined);
+  }
+});

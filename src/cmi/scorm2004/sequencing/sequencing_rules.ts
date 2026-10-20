@@ -250,7 +250,7 @@ export class RuleCondition extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the condition for
    * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
-  evaluate(activity: Activity, now: () => Date = RuleCondition._now): RuleConditionEvaluation {
+  evaluate(activity: Activity, now: () => Date = RuleCondition._now, getElapsedSeconds: ((activity: Activity) => number) | undefined = RuleCondition._getElapsedSecondsHook): RuleConditionEvaluation {
     let result: RuleConditionEvaluation;
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
@@ -374,7 +374,7 @@ export class RuleCondition extends BaseCMI {
           result = activity.hasAttemptLimitExceeded();
           break;
         case RuleConditionType.TIME_LIMIT_EXCEEDED:
-          result = this.evaluateTimeLimitExceeded(activity, now);
+          result = this.evaluateTimeLimitExceeded(activity, now, getElapsedSeconds);
           break;
         case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
           result = this.evaluateOutsideAvailableTimeRange(activity, now);
@@ -403,7 +403,7 @@ export class RuleCondition extends BaseCMI {
    * @return {boolean}
    * @private
    */
-  private evaluateTimeLimitExceeded(activity: Activity, now: () => Date): boolean {
+  private evaluateTimeLimitExceeded(activity: Activity, now: () => Date, getElapsedSeconds?: (activity: Activity) => number): boolean {
     // Check timeLimitDuration (primary time limit)
     let limit = activity.timeLimitDuration;
 
@@ -428,9 +428,9 @@ export class RuleCondition extends BaseCMI {
     let elapsedSeconds = 0;
 
     // Strategy 1: Use hook if available (preferred for LMS integration)
-    if (RuleCondition._getElapsedSecondsHook) {
+    if (getElapsedSeconds) {
       try {
-        const hookResult = RuleCondition._getElapsedSecondsHook(activity);
+        const hookResult = getElapsedSeconds(activity);
         if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
           elapsedSeconds = hookResult;
         }
@@ -650,10 +650,10 @@ export class SequencingRule extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rule for
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
-  evaluate(activity: Activity, now?: () => Date): boolean {
+  evaluate(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): boolean {
     return (
       combineRuleConditionResults(
-        this._conditions.map((condition) => condition.evaluate(activity, now)),
+        this._conditions.map((condition) => condition.evaluate(activity, now, getElapsedSeconds)),
         this._conditionCombination,
       ) === true
     );
@@ -774,9 +774,9 @@ export class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluatePreConditionRules(activity: Activity, now?: () => Date): RuleActionType | null {
+  evaluatePreConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): RuleActionType | null {
     for (const rule of this._preConditionRules) {
-      if (rule.evaluate(activity, now)) {
+      if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
       }
     }
@@ -788,9 +788,9 @@ export class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluateExitConditionRules(activity: Activity, now?: () => Date): RuleActionType | null {
+  evaluateExitConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): RuleActionType | null {
     for (const rule of this._exitConditionRules) {
-      if (rule.evaluate(activity, now)) {
+      if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
       }
     }
@@ -802,9 +802,9 @@ export class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluatePostConditionRules(activity: Activity, now?: () => Date): RuleActionType | null {
+  evaluatePostConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): RuleActionType | null {
     for (const rule of this._postConditionRules) {
-      if (rule.evaluate(activity, now)) {
+      if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
       }
     }

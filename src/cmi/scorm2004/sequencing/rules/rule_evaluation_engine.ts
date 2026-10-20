@@ -79,7 +79,7 @@ export class RuleEvaluationEngine {
    * @return {boolean} - True only when the rule evaluates to definite true
    */
   public checkRuleSubprocess(activity: Activity, rule: SequencingRule): boolean {
-    return rule.evaluate(activity, this.now);
+    return rule.evaluate(activity, this.now, this.getAttemptElapsedSecondsHook ?? undefined);
   }
 
   /**

@@ -581,3 +581,42 @@ describe("SequencingRules clocks", () => {
     },
   );
 });
+
+ describe("elapsed seconds hooks", () => {
+  it("uses an explicit hook for conditions and rules, with the static hook as fallback", () => {
+    RuleCondition.setElapsedSecondsHook(() => 120);
+    try {
+      const activity = new Activity("elapsed", "Elapsed");
+      activity.attemptAbsoluteDurationLimit = "PT60S";
+      const condition = new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED);
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(condition);
+      expect(condition.evaluate(activity, undefined, () => 30)).toBe(false);
+      expect(rule.evaluate(activity, undefined, () => 30)).toBe(false);
+      expect(condition.evaluate(activity)).toBe(true);
+      expect(rule.evaluate(activity)).toBe(true);
+    } finally {
+      RuleCondition.setElapsedSecondsHook(undefined);
+    }
+  });
+
+  it.each([
+    ["evaluatePreConditionRules", "preConditionRules", RuleActionType.DISABLED],
+    ["evaluateExitConditionRules", "exitConditionRules", RuleActionType.EXIT_ALL],
+    ["evaluatePostConditionRules", "postConditionRules", RuleActionType.CONTINUE],
+  ] as const)("passes the hook through %s", (evaluate, collection, action) => {
+    RuleCondition.setElapsedSecondsHook(() => 120);
+    try {
+      const activity = new Activity("elapsed", "Elapsed");
+      activity.attemptAbsoluteDurationLimit = "PT60S";
+      const rules = new SequencingRules();
+      const rule = new SequencingRule(action);
+      rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+      rules[collection].push(rule);
+      expect(rules[evaluate](activity, undefined, () => 30)).toBe(null);
+      expect(rules[evaluate](activity)).toBe(action);
+    } finally {
+      RuleCondition.setElapsedSecondsHook(undefined);
+    }
+  });
+});

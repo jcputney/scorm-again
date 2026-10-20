@@ -594,7 +594,7 @@ export class TerminationHandler {
     const exitRules = activity.sequencingRules.exitConditionRules;
 
     for (const rule of exitRules) {
-      if (rule.evaluate(activity, this.sequencingProcess.now)) {
+      if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
         // Return the action to take with recursion tracking
         if (rule.action === RuleActionType.EXIT) {
           return { action: "EXIT", recursionDepth };
@@ -814,7 +814,7 @@ export class TerminationHandler {
     const exitRules = activity.sequencingRules.exitConditionRules;
 
     for (const rule of exitRules) {
-      if (rule.evaluate(activity, this.sequencingProcess.now)) {
+      if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
         // Return the action to take
         if (rule.action === RuleActionType.EXIT) {
           return "EXIT";

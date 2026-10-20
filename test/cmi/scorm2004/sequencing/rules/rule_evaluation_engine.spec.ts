@@ -464,3 +464,21 @@ describe("RuleEvaluationEngine", () => {
     });
   });
 });
+
+it("uses the constructor elapsed hook for timeLimitExceeded pre-conditions", () => {
+  RuleCondition.setElapsedSecondsHook(() => 120);
+  try {
+    const activity = new Activity("elapsed", "Elapsed");
+    activity.attemptAbsoluteDurationLimit = "PT60S";
+    const rule = new SequencingRule(RuleActionType.DISABLED);
+    rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+    activity.sequencingRules.preConditionRules.push(rule);
+    const engine = new RuleEvaluationEngine({ getAttemptElapsedSecondsHook: () => 30 });
+    expect(engine.checkSequencingRules(activity, activity.sequencingRules.preConditionRules)).toBe(null);
+    RuleCondition.setElapsedSecondsHook(() => 30);
+    const expired = new RuleEvaluationEngine({ getAttemptElapsedSecondsHook: () => 120 });
+    expect(expired.checkSequencingRules(activity, activity.sequencingRules.preConditionRules)).toBe(RuleActionType.DISABLED);
+  } finally {
+    RuleCondition.setElapsedSecondsHook(undefined);
+  }
+});

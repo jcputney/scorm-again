@@ -2,6 +2,7 @@
  * Types for SCORM 2004 sequencing configuration
  */
 
+import type { Activity } from "../cmi/scorm2004/sequencing/activity";
 import { IActivity } from "./activity_types";
 import {
   RuleActionType,
@@ -258,6 +259,7 @@ export type SequencingSettings = {
   collections?: Record<string, SequencingCollectionSettings> | SequencingCollectionSettings[];
 
   // Runtime sequencing configuration
+  getAttemptElapsedSeconds?: (activity: Activity) => number;
   autoRollupOnCMIChange?: boolean;
   autoProgressOnCompletion?: boolean;
   validateNavigationRequests?: boolean;
