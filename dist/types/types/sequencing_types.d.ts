@@ -1,3 +1,4 @@
+import type { Activity } from "../cmi/scorm2004/sequencing/activity.js";
 import { IActivity } from "./activity_types.js";
 import { RuleActionType, RuleConditionOperator, RuleConditionType } from "../cmi/scorm2004/sequencing/sequencing_rules.js";
 import { RollupActionType, RollupConditionCombination, RollupConditionOperator, RollupConditionType, RollupConsiderationType } from "../cmi/scorm2004/sequencing/rollup_rules.js";
@@ -173,6 +174,7 @@ export type SequencingSettings = {
     hideLmsUi?: HideLmsUiItem[];
     auxiliaryResources?: AuxiliaryResourceSettings[];
     collections?: Record<string, SequencingCollectionSettings> | SequencingCollectionSettings[];
+    getAttemptElapsedSeconds?: (activity: Activity) => number;
     autoRollupOnCMIChange?: boolean;
     autoProgressOnCompletion?: boolean;
     validateNavigationRequests?: boolean;

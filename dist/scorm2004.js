@@ -2376,7 +2376,7 @@ this.Scorm2004API = (function () {
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
      */ key: "evaluate",
               value: function evaluate(activity) {
-                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now;
+                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : _RuleCondition._getElapsedSecondsHook;
                   var _activity_sequencingControls;
                   var result;
                   var hasReferencedObjective = this._referencedObjective !== null;
@@ -2457,7 +2457,7 @@ this.Scorm2004API = (function () {
                           result = activity.hasAttemptLimitExceeded();
                           break;
                       case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */ :
-                          result = this.evaluateTimeLimitExceeded(activity, now);
+                          result = this.evaluateTimeLimitExceeded(activity, now, getElapsedSeconds);
                           break;
                       case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */ :
                           result = this.evaluateOutsideAvailableTimeRange(activity, now);
@@ -2485,7 +2485,7 @@ this.Scorm2004API = (function () {
      * @return {boolean}
      * @private
      */ key: "evaluateTimeLimitExceeded",
-              value: function evaluateTimeLimitExceeded(activity, now) {
+              value: function evaluateTimeLimitExceeded(activity, now, getElapsedSeconds) {
                   var limit = activity.timeLimitDuration;
                   if (!limit && activity.attemptAbsoluteDurationLimit) {
                       limit = activity.attemptAbsoluteDurationLimit;
@@ -2498,23 +2498,25 @@ this.Scorm2004API = (function () {
                       return false;
                   }
                   var elapsedSeconds = 0;
-                  if (_RuleCondition._getElapsedSecondsHook) {
+                  var hasHookValue = false;
+                  if (getElapsedSeconds) {
                       try {
-                          var hookResult = _RuleCondition._getElapsedSecondsHook(activity);
+                          var hookResult = getElapsedSeconds(activity);
                           if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
                               elapsedSeconds = hookResult;
+                              hasHookValue = true;
                           }
                       } catch (unused) {
                           elapsedSeconds = 0;
                       }
                   }
-                  if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+                  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
                       var attemptDurationSeconds = getDurationAsSeconds(activity.attemptExperiencedDuration, scorm2004_regex.CMITimespan);
                       if (attemptDurationSeconds > 0) {
                           elapsedSeconds = attemptDurationSeconds;
                       }
                   }
-                  if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+                  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
                       try {
                           var start = new Date(activity.attemptAbsoluteStartTime).getTime();
                           var nowMs = now().getTime();
@@ -2721,9 +2723,9 @@ this.Scorm2004API = (function () {
      * @param {Activity} activity - The activity to evaluate the rule for
      * @return {boolean} - True if the rule conditions are met, false otherwise
      */ key: "evaluate",
-              value: function evaluate(activity, now) {
+              value: function evaluate(activity, now, getElapsedSeconds) {
                   return combineRuleConditionResults(this._conditions.map(function(condition) {
-                      return condition.evaluate(activity, now);
+                      return condition.evaluate(activity, now, getElapsedSeconds);
                   }), this._conditionCombination) === true;
               }
           },
@@ -2840,12 +2842,12 @@ this.Scorm2004API = (function () {
      * @param {Activity} activity - The activity to evaluate the rules for
      * @return {RuleActionType | null} - The action to take, or null if no rules are met
      */ key: "evaluatePreConditionRules",
-              value: function evaluatePreConditionRules(activity) {
+              value: function evaluatePreConditionRules(activity, now, getElapsedSeconds) {
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = this._preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, now, getElapsedSeconds)) {
                               return rule.action;
                           }
                       }
@@ -2872,12 +2874,12 @@ this.Scorm2004API = (function () {
      * @param {Activity} activity - The activity to evaluate the rules for
      * @return {RuleActionType | null} - The action to take, or null if no rules are met
      */ key: "evaluateExitConditionRules",
-              value: function evaluateExitConditionRules(activity) {
+              value: function evaluateExitConditionRules(activity, now, getElapsedSeconds) {
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = this._exitConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, now, getElapsedSeconds)) {
                               return rule.action;
                           }
                       }
@@ -2904,12 +2906,12 @@ this.Scorm2004API = (function () {
      * @param {Activity} activity - The activity to evaluate the rules for
      * @return {RuleActionType | null} - The action to take, or null if no rules are met
      */ key: "evaluatePostConditionRules",
-              value: function evaluatePostConditionRules(activity) {
+              value: function evaluatePostConditionRules(activity, now, getElapsedSeconds) {
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = this._postConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, now, getElapsedSeconds)) {
                               return rule.action;
                           }
                       }
@@ -3947,7 +3949,8 @@ this.Scorm2004API = (function () {
      * @return {boolean} - True only when the rule evaluates to definite true
      */ key: "checkRuleSubprocess",
               value: function checkRuleSubprocess(activity, rule) {
-                  return rule.evaluate(activity, this.now);
+                  var _this_getAttemptElapsedSecondsHook;
+                  return rule.evaluate(activity, this.now, (_this_getAttemptElapsedSecondsHook = this.getAttemptElapsedSecondsHook) !== null && _this_getAttemptElapsedSecondsHook !== void 0 ? _this_getAttemptElapsedSecondsHook : void 0);
               }
           },
           {
@@ -5716,12 +5719,14 @@ this.Scorm2004API = (function () {
       return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceRequestHandler = /*#__PURE__*/ function() {
-      function ChoiceRequestHandler(activityTree, constraintValidator, traversalService, treeQueries) {
+      function ChoiceRequestHandler(activityTree, constraintValidator, traversalService, treeQueries, getNow, getElapsedSeconds) {
           _class_call_check$_(this, ChoiceRequestHandler);
           __publicField$W(this, "activityTree", activityTree);
           __publicField$W(this, "constraintValidator", constraintValidator);
           __publicField$W(this, "traversalService", traversalService);
           __publicField$W(this, "treeQueries", treeQueries);
+          __publicField$W(this, "getNow", getNow);
+          __publicField$W(this, "getElapsedSeconds", getElapsedSeconds);
       }
       _create_class$_(ChoiceRequestHandler, [
           {
@@ -5733,6 +5738,7 @@ this.Scorm2004API = (function () {
      * @return {SequencingResult}
      */ key: "handleChoice",
               value: function handleChoice(targetActivityId, currentActivity) {
+                  var _this = this;
                   var result = new SequencingResult();
                   var targetActivity = this.activityTree.getActivity(targetActivityId);
                   if (!targetActivity) {
@@ -5752,11 +5758,12 @@ this.Scorm2004API = (function () {
                   }
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
-                      var _this, _loop = function() {
+                      var _this1, _loop = function() {
                           var pathActivity = _step.value;
-                          var evaluationActivity = _this.traversalService.getActivityForEvaluation(pathActivity, targetActivity);
+                          var evaluationActivity = _this1.traversalService.getActivityForEvaluation(pathActivity, targetActivity);
                           var hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(function(rule) {
-                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity) === true;
+                              var _this_getNow, _this1, _this_getElapsedSeconds, _this2;
+                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity, (_this_getNow = (_this1 = _this).getNow) === null || _this_getNow === void 0 ? void 0 : _this_getNow.call(_this1), (_this_getElapsedSeconds = (_this2 = _this).getElapsedSeconds) === null || _this_getElapsedSeconds === void 0 ? void 0 : _this_getElapsedSeconds.call(_this2)) === true;
                           });
                           if (hiddenByRule) {
                               result.exception = "SB.2.9-4";
@@ -5766,7 +5773,7 @@ this.Scorm2004API = (function () {
                           }
                       };
                       for(var _iterator = this.treeQueries.getPathToRoot(targetActivity)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var _ret = (_this = this, _loop());
+                          var _ret = (_this1 = this, _loop());
                           if (_type_of$Y(_ret) === "object") return _ret.v;
                       }
                   } catch (err) {
@@ -6316,6 +6323,7 @@ this.Scorm2004API = (function () {
   };
   var SequencingProcess = /*#__PURE__*/ function() {
       function SequencingProcess(activityTree, _sequencingRules, _sequencingControls) {
+          var _this = this;
           var options = arguments.length > 4 ? arguments[4] : void 0;
           _class_call_check$X(this, SequencingProcess);
           __publicField$T(this, "activityTree");
@@ -6346,7 +6354,11 @@ this.Scorm2004API = (function () {
           this.constraintValidator = new ChoiceConstraintValidator(activityTree, this.treeQueries);
           this.traversalService = new FlowTraversalService(activityTree, this.ruleEngine);
           this.flowHandler = new FlowRequestHandler(activityTree, this.traversalService);
-          this.choiceHandler = new ChoiceRequestHandler(activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
+          this.choiceHandler = new ChoiceRequestHandler(activityTree, this.constraintValidator, this.traversalService, this.treeQueries, function() {
+              return _this.now;
+          }, function() {
+              return _this.getAttemptElapsedSecondsHook;
+          });
           this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
           this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
       }
@@ -6359,6 +6371,7 @@ this.Scorm2004API = (function () {
                   return this._now;
               },
               set: function set(fn) {
+                  var _this = this;
                   this._now = fn;
                   RuleCondition.setNowProvider(fn);
                   this.ruleEngine = new RuleEvaluationEngine({
@@ -6368,7 +6381,11 @@ this.Scorm2004API = (function () {
                   this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
                   this.applyTraversalCallbacks();
                   this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
-                  this.choiceHandler = new ChoiceRequestHandler(this.activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
+                  this.choiceHandler = new ChoiceRequestHandler(this.activityTree, this.constraintValidator, this.traversalService, this.treeQueries, function() {
+                      return _this.now;
+                  }, function() {
+                      return _this.getAttemptElapsedSecondsHook;
+                  });
                   this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
               }
           },
@@ -6380,6 +6397,7 @@ this.Scorm2004API = (function () {
                   return this._getAttemptElapsedSecondsHook;
               },
               set: function set(fn) {
+                  var _this = this;
                   this._getAttemptElapsedSecondsHook = fn;
                   RuleCondition.setElapsedSecondsHook(fn);
                   this.ruleEngine = new RuleEvaluationEngine({
@@ -6389,7 +6407,11 @@ this.Scorm2004API = (function () {
                   this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
                   this.applyTraversalCallbacks();
                   this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
-                  this.choiceHandler = new ChoiceRequestHandler(this.activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
+                  this.choiceHandler = new ChoiceRequestHandler(this.activityTree, this.constraintValidator, this.traversalService, this.treeQueries, function() {
+                      return _this.now;
+                  }, function() {
+                      return _this.getAttemptElapsedSecondsHook;
+                  });
                   this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
               }
           },
@@ -17200,7 +17222,7 @@ this.Scorm2004API = (function () {
                   try {
                       for(var _iterator = exitRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
                               if (rule.action === RuleActionType.EXIT) {
                                   return {
                                       action: "EXIT",
@@ -17494,7 +17516,7 @@ this.Scorm2004API = (function () {
                   try {
                       for(var _iterator = exitRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
                               if (rule.action === RuleActionType.EXIT) {
                                   return "EXIT";
                               } else if (rule.action === RuleActionType.EXIT_PARENT) {
@@ -18664,7 +18686,7 @@ this.Scorm2004API = (function () {
                   if (!activity.isAvailable) {
                       return false;
                   }
-                  var preConditionResult = activity.sequencingRules.evaluatePreConditionRules(activity);
+                  var preConditionResult = activity.sequencingRules.evaluatePreConditionRules(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook);
                   if (preConditionResult === RuleActionType.SKIP || preConditionResult === RuleActionType.DISABLED) {
                       return false;
                   }
@@ -19511,7 +19533,7 @@ this.Scorm2004API = (function () {
                   if (!activity.sequencingRules) {
                       return null;
                   }
-                  var action = activity.sequencingRules.evaluatePreConditionRules(activity);
+                  var action = activity.sequencingRules.evaluatePreConditionRules(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook);
                   if (action) {
                       return action;
                   }
@@ -36602,19 +36624,22 @@ this.Scorm2004API = (function () {
                   var _this = this;
                   try {
                       var _ref, _ref1, _ref2, _ref3, _ref4;
-                      var _settings_sequencing, _settings_sequencing1, _settings_sequencing2, _settings_sequencing3, _settings_sequencing4, _settings_sequencing5;
-                      var sequencingConfig = {
+                      var _settings_sequencing, _settings_sequencing1, _settings_sequencing2, _settings_sequencing3, _settings_sequencing4, _settings_sequencing5, _settings_sequencing6;
+                      var sequencingConfig = _object_spread_props(_object_spread({
                           autoRollupOnCMIChange: (_ref = settings === null || settings === void 0 ? void 0 : (_settings_sequencing = settings.sequencing) === null || _settings_sequencing === void 0 ? void 0 : _settings_sequencing.autoRollupOnCMIChange) !== null && _ref !== void 0 ? _ref : false,
                           autoProgressOnCompletion: (_ref1 = settings === null || settings === void 0 ? void 0 : (_settings_sequencing1 = settings.sequencing) === null || _settings_sequencing1 === void 0 ? void 0 : _settings_sequencing1.autoProgressOnCompletion) !== null && _ref1 !== void 0 ? _ref1 : false,
                           validateNavigationRequests: (_ref2 = settings === null || settings === void 0 ? void 0 : (_settings_sequencing2 = settings.sequencing) === null || _settings_sequencing2 === void 0 ? void 0 : _settings_sequencing2.validateNavigationRequests) !== null && _ref2 !== void 0 ? _ref2 : true,
                           enableEventSystem: (_ref3 = settings === null || settings === void 0 ? void 0 : (_settings_sequencing3 = settings.sequencing) === null || _settings_sequencing3 === void 0 ? void 0 : _settings_sequencing3.enableEventSystem) !== null && _ref3 !== void 0 ? _ref3 : true,
-                          logLevel: (_ref4 = settings === null || settings === void 0 ? void 0 : (_settings_sequencing4 = settings.sequencing) === null || _settings_sequencing4 === void 0 ? void 0 : _settings_sequencing4.logLevel) !== null && _ref4 !== void 0 ? _ref4 : "info",
+                          logLevel: (_ref4 = settings === null || settings === void 0 ? void 0 : (_settings_sequencing4 = settings.sequencing) === null || _settings_sequencing4 === void 0 ? void 0 : _settings_sequencing4.logLevel) !== null && _ref4 !== void 0 ? _ref4 : "info"
+                      }, (settings === null || settings === void 0 ? void 0 : (_settings_sequencing5 = settings.sequencing) === null || _settings_sequencing5 === void 0 ? void 0 : _settings_sequencing5.getAttemptElapsedSeconds) ? {
+                          getAttemptElapsedSeconds: settings.sequencing.getAttemptElapsedSeconds
+                      } : {}), {
                           wasCMIElementSetByContent: function wasCMIElementSetByContent(element) {
                               return _this._runtimeSetCMIElements.has(element);
                           }
-                      };
+                      });
                       this._sequencingService = new SequencingService(this._sequencing, this.cmi, this.adl, this.eventService || this, this.loggingService, sequencingConfig);
-                      this._sequencingService.setEventListeners(this.buildSequencingEventListeners(settings === null || settings === void 0 ? void 0 : (_settings_sequencing5 = settings.sequencing) === null || _settings_sequencing5 === void 0 ? void 0 : _settings_sequencing5.eventListeners));
+                      this._sequencingService.setEventListeners(this.buildSequencingEventListeners(settings === null || settings === void 0 ? void 0 : (_settings_sequencing6 = settings.sequencing) === null || _settings_sequencing6 === void 0 ? void 0 : _settings_sequencing6.eventListeners));
                       this._globalObjectiveManager.updateSequencingService(this._sequencingService);
                       this._dataSerializer.updateSequencingService(this._sequencingService);
                       if (settings === null || settings === void 0 ? void 0 : settings.sequencingStatePersistence) {

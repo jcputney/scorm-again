@@ -2264,7 +2264,7 @@ this.Scorm12API = (function () {
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
      */ key: "evaluate",
               value: function evaluate(activity) {
-                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now;
+                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : _RuleCondition._getElapsedSecondsHook;
                   var _activity_sequencingControls;
                   var result;
                   var hasReferencedObjective = this._referencedObjective !== null;
@@ -2345,7 +2345,7 @@ this.Scorm12API = (function () {
                           result = activity.hasAttemptLimitExceeded();
                           break;
                       case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */ :
-                          result = this.evaluateTimeLimitExceeded(activity, now);
+                          result = this.evaluateTimeLimitExceeded(activity, now, getElapsedSeconds);
                           break;
                       case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */ :
                           result = this.evaluateOutsideAvailableTimeRange(activity, now);
@@ -2373,7 +2373,7 @@ this.Scorm12API = (function () {
      * @return {boolean}
      * @private
      */ key: "evaluateTimeLimitExceeded",
-              value: function evaluateTimeLimitExceeded(activity, now) {
+              value: function evaluateTimeLimitExceeded(activity, now, getElapsedSeconds) {
                   var limit = activity.timeLimitDuration;
                   if (!limit && activity.attemptAbsoluteDurationLimit) {
                       limit = activity.attemptAbsoluteDurationLimit;
@@ -2386,23 +2386,25 @@ this.Scorm12API = (function () {
                       return false;
                   }
                   var elapsedSeconds = 0;
-                  if (_RuleCondition._getElapsedSecondsHook) {
+                  var hasHookValue = false;
+                  if (getElapsedSeconds) {
                       try {
-                          var hookResult = _RuleCondition._getElapsedSecondsHook(activity);
+                          var hookResult = getElapsedSeconds(activity);
                           if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
                               elapsedSeconds = hookResult;
+                              hasHookValue = true;
                           }
                       } catch (unused) {
                           elapsedSeconds = 0;
                       }
                   }
-                  if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+                  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
                       var attemptDurationSeconds = getDurationAsSeconds(activity.attemptExperiencedDuration, scorm2004_regex.CMITimespan);
                       if (attemptDurationSeconds > 0) {
                           elapsedSeconds = attemptDurationSeconds;
                       }
                   }
-                  if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+                  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
                       try {
                           var start = new Date(activity.attemptAbsoluteStartTime).getTime();
                           var nowMs = now().getTime();
@@ -2609,9 +2611,9 @@ this.Scorm12API = (function () {
      * @param {Activity} activity - The activity to evaluate the rule for
      * @return {boolean} - True if the rule conditions are met, false otherwise
      */ key: "evaluate",
-              value: function evaluate(activity, now) {
+              value: function evaluate(activity, now, getElapsedSeconds) {
                   return combineRuleConditionResults(this._conditions.map(function(condition) {
-                      return condition.evaluate(activity, now);
+                      return condition.evaluate(activity, now, getElapsedSeconds);
                   }), this._conditionCombination) === true;
               }
           },
@@ -2728,12 +2730,12 @@ this.Scorm12API = (function () {
      * @param {Activity} activity - The activity to evaluate the rules for
      * @return {RuleActionType | null} - The action to take, or null if no rules are met
      */ key: "evaluatePreConditionRules",
-              value: function evaluatePreConditionRules(activity) {
+              value: function evaluatePreConditionRules(activity, now, getElapsedSeconds) {
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = this._preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, now, getElapsedSeconds)) {
                               return rule.action;
                           }
                       }
@@ -2760,12 +2762,12 @@ this.Scorm12API = (function () {
      * @param {Activity} activity - The activity to evaluate the rules for
      * @return {RuleActionType | null} - The action to take, or null if no rules are met
      */ key: "evaluateExitConditionRules",
-              value: function evaluateExitConditionRules(activity) {
+              value: function evaluateExitConditionRules(activity, now, getElapsedSeconds) {
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = this._exitConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, now, getElapsedSeconds)) {
                               return rule.action;
                           }
                       }
@@ -2792,12 +2794,12 @@ this.Scorm12API = (function () {
      * @param {Activity} activity - The activity to evaluate the rules for
      * @return {RuleActionType | null} - The action to take, or null if no rules are met
      */ key: "evaluatePostConditionRules",
-              value: function evaluatePostConditionRules(activity) {
+              value: function evaluatePostConditionRules(activity, now, getElapsedSeconds) {
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = this._postConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var rule = _step.value;
-                          if (rule.evaluate(activity)) {
+                          if (rule.evaluate(activity, now, getElapsedSeconds)) {
                               return rule.action;
                           }
                       }

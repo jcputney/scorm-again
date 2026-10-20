@@ -61,7 +61,7 @@ export declare class RuleCondition extends BaseCMI {
     get referencedObjective(): string | null;
     set referencedObjective(objectiveId: string | null);
     private resolveReferencedObjective;
-    evaluate(activity: Activity, now?: () => Date): RuleConditionEvaluation;
+    evaluate(activity: Activity, now?: () => Date, getElapsedSeconds?: ((activity: Activity) => number) | undefined): RuleConditionEvaluation;
     private evaluateTimeLimitExceeded;
     private evaluateOutsideAvailableTimeRange;
     private parseISO8601Duration;
@@ -80,7 +80,7 @@ export declare class SequencingRule extends BaseCMI {
     set action(action: RuleActionType);
     get conditionCombination(): string | RuleConditionOperator;
     set conditionCombination(conditionCombination: string | RuleConditionOperator);
-    evaluate(activity: Activity, now?: () => Date): boolean;
+    evaluate(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): boolean;
     toJSON(): object;
 }
 export declare class SequencingRules extends BaseCMI {
@@ -95,9 +95,9 @@ export declare class SequencingRules extends BaseCMI {
     addExitConditionRule(rule: SequencingRule): void;
     get postConditionRules(): SequencingRule[];
     addPostConditionRule(rule: SequencingRule): void;
-    evaluatePreConditionRules(activity: Activity): RuleActionType | null;
-    evaluateExitConditionRules(activity: Activity): RuleActionType | null;
-    evaluatePostConditionRules(activity: Activity): RuleActionType | null;
+    evaluatePreConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): RuleActionType | null;
+    evaluateExitConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): RuleActionType | null;
+    evaluatePostConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: (activity: Activity) => number): RuleActionType | null;
     toJSON(): object;
 }
 //# sourceMappingURL=sequencing_rules.d.ts.map

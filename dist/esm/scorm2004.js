@@ -1361,7 +1361,7 @@ class RuleCondition extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the condition for
    * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
-  evaluate(activity, now = RuleCondition._now) {
+  evaluate(activity, now = RuleCondition._now, getElapsedSeconds = RuleCondition._getElapsedSecondsHook) {
     let result;
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
@@ -1440,7 +1440,7 @@ class RuleCondition extends BaseCMI {
           result = activity.hasAttemptLimitExceeded();
           break;
         case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
-          result = this.evaluateTimeLimitExceeded(activity, now);
+          result = this.evaluateTimeLimitExceeded(activity, now, getElapsedSeconds);
           break;
         case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
           result = this.evaluateOutsideAvailableTimeRange(activity, now);
@@ -1466,7 +1466,7 @@ class RuleCondition extends BaseCMI {
    * @return {boolean}
    * @private
    */
-  evaluateTimeLimitExceeded(activity, now) {
+  evaluateTimeLimitExceeded(activity, now, getElapsedSeconds) {
     let limit = activity.timeLimitDuration;
     if (!limit && activity.attemptAbsoluteDurationLimit) {
       limit = activity.attemptAbsoluteDurationLimit;
@@ -1479,17 +1479,19 @@ class RuleCondition extends BaseCMI {
       return false;
     }
     let elapsedSeconds = 0;
-    if (RuleCondition._getElapsedSecondsHook) {
+    let hasHookValue = false;
+    if (getElapsedSeconds) {
       try {
-        const hookResult = RuleCondition._getElapsedSecondsHook(activity);
+        const hookResult = getElapsedSeconds(activity);
         if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
           elapsedSeconds = hookResult;
+          hasHookValue = true;
         }
       } catch {
         elapsedSeconds = 0;
       }
     }
-    if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
       const attemptDurationSeconds = getDurationAsSeconds(
         activity.attemptExperiencedDuration,
         scorm2004_regex.CMITimespan
@@ -1498,7 +1500,7 @@ class RuleCondition extends BaseCMI {
         elapsedSeconds = attemptDurationSeconds;
       }
     }
-    if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
       try {
         const start = new Date(activity.attemptAbsoluteStartTime).getTime();
         const nowMs = now().getTime();
@@ -1662,9 +1664,9 @@ class SequencingRule extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rule for
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
-  evaluate(activity, now) {
+  evaluate(activity, now, getElapsedSeconds) {
     return combineRuleConditionResults(
-      this._conditions.map((condition) => condition.evaluate(activity, now)),
+      this._conditions.map((condition) => condition.evaluate(activity, now, getElapsedSeconds)),
       this._conditionCombination
     ) === true;
   }
@@ -1767,9 +1769,9 @@ class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluatePreConditionRules(activity) {
+  evaluatePreConditionRules(activity, now, getElapsedSeconds) {
     for (const rule of this._preConditionRules) {
-      if (rule.evaluate(activity)) {
+      if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
       }
     }
@@ -1780,9 +1782,9 @@ class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluateExitConditionRules(activity) {
+  evaluateExitConditionRules(activity, now, getElapsedSeconds) {
     for (const rule of this._exitConditionRules) {
-      if (rule.evaluate(activity)) {
+      if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
       }
     }
@@ -1793,9 +1795,9 @@ class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluatePostConditionRules(activity) {
+  evaluatePostConditionRules(activity, now, getElapsedSeconds) {
     for (const rule of this._postConditionRules) {
-      if (rule.evaluate(activity)) {
+      if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
       }
     }
@@ -2499,7 +2501,7 @@ class RuleEvaluationEngine {
    * @return {boolean} - True only when the rule evaluates to definite true
    */
   checkRuleSubprocess(activity, rule) {
-    return rule.evaluate(activity, this.now);
+    return rule.evaluate(activity, this.now, this.getAttemptElapsedSecondsHook ?? void 0);
   }
   /**
    * Exit Action Rules Subprocess (TB.2.1)
@@ -3882,16 +3884,20 @@ class FlowRequestHandler {
 }
 
 class ChoiceRequestHandler {
-  constructor(activityTree, constraintValidator, traversalService, treeQueries) {
+  constructor(activityTree, constraintValidator, traversalService, treeQueries, getNow, getElapsedSeconds) {
     this.activityTree = activityTree;
     this.constraintValidator = constraintValidator;
     this.traversalService = traversalService;
     this.treeQueries = treeQueries;
+    this.getNow = getNow;
+    this.getElapsedSeconds = getElapsedSeconds;
   }
   activityTree;
   constraintValidator;
   traversalService;
   treeQueries;
+  getNow;
+  getElapsedSeconds;
   /**
    * Choice Sequencing Request Process (SB.2.9)
    * Processes a choice navigation request to a specific activity
@@ -3923,7 +3929,7 @@ class ChoiceRequestHandler {
         targetActivity
       );
       const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
-        (rule) => rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity) === true
+        (rule) => rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity, this.getNow?.(), this.getElapsedSeconds?.()) === true
       );
       if (hiddenByRule) {
         result.exception = "SB.2.9-4";
@@ -4295,7 +4301,9 @@ class SequencingProcess {
       this.activityTree,
       this.constraintValidator,
       this.traversalService,
-      this.treeQueries
+      this.treeQueries,
+      () => this.now,
+      () => this.getAttemptElapsedSecondsHook
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
@@ -4320,7 +4328,9 @@ class SequencingProcess {
       this.activityTree,
       this.constraintValidator,
       this.traversalService,
-      this.treeQueries
+      this.treeQueries,
+      () => this.now,
+      () => this.getAttemptElapsedSecondsHook
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
@@ -4340,7 +4350,9 @@ class SequencingProcess {
       activityTree,
       this.constraintValidator,
       this.traversalService,
-      this.treeQueries
+      this.treeQueries,
+      () => this.now,
+      () => this.getAttemptElapsedSecondsHook
     );
     this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
     this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
@@ -11974,7 +11986,7 @@ class TerminationHandler {
     recursionDepth++;
     const exitRules = activity.sequencingRules.exitConditionRules;
     for (const rule of exitRules) {
-      if (rule.evaluate(activity)) {
+      if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
         if (rule.action === RuleActionType.EXIT) {
           return { action: "EXIT", recursionDepth };
         } else if (rule.action === RuleActionType.EXIT_PARENT) {
@@ -12140,7 +12152,7 @@ class TerminationHandler {
   exitActionRulesSubprocess(activity) {
     const exitRules = activity.sequencingRules.exitConditionRules;
     for (const rule of exitRules) {
-      if (rule.evaluate(activity)) {
+      if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
         if (rule.action === RuleActionType.EXIT) {
           return "EXIT";
         } else if (rule.action === RuleActionType.EXIT_PARENT) {
@@ -12919,7 +12931,11 @@ class NavigationLookAhead {
     if (!activity.isAvailable) {
       return false;
     }
-    const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(activity);
+    const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(
+      activity,
+      this.sequencingProcess.now,
+      this.sequencingProcess.getAttemptElapsedSecondsHook
+    );
     if (preConditionResult === RuleActionType.SKIP || preConditionResult === RuleActionType.DISABLED) {
       return false;
     }
@@ -13595,7 +13611,11 @@ class NavigationValidityService {
     if (!activity.sequencingRules) {
       return null;
     }
-    const action = activity.sequencingRules.evaluatePreConditionRules(activity);
+    const action = activity.sequencingRules.evaluatePreConditionRules(
+      activity,
+      this.sequencingProcess.now,
+      this.sequencingProcess.getAttemptElapsedSecondsHook
+    );
     if (action) {
       return action;
     }
@@ -25547,6 +25567,7 @@ class Scorm2004API extends BaseAPI {
         validateNavigationRequests: settings?.sequencing?.validateNavigationRequests ?? true,
         enableEventSystem: settings?.sequencing?.enableEventSystem ?? true,
         logLevel: settings?.sequencing?.logLevel ?? "info",
+        ...settings?.sequencing?.getAttemptElapsedSeconds ? { getAttemptElapsedSeconds: settings.sequencing.getAttemptElapsedSeconds } : {},
         wasCMIElementSetByContent: (element) => this._runtimeSetCMIElements.has(element)
       };
       this._sequencingService = new SequencingService(
