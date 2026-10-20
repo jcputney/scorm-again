@@ -1,12 +1,35 @@
 import { describe, expect, it } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
-import { CMIInteractionsCorrectResponsesObject } from "../../src/cmi/scorm2004/interactions";
+import {
+  CMIInteractionsObject,
+  CMIInteractionsCorrectResponsesObject,
+} from "../../src/cmi/scorm2004/interactions";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
 
 const pattern = "correct_responses.0.pattern";
 const newline = "line one\nline two";
 const crlf = "line one\r\nline two";
+const emptyPatterns = ["choice", "fill-in", "long-fill-in", "other", "sequencing"];
+const emptyLearnerResponses = [...emptyPatterns, "matching"];
+const rejected: [string, string, string][] = [
+  ...["true-false", "likert", "matching", "performance", "numeric"].map(
+    (type): [string, string, string] => [type, pattern, ""],
+  ),
+  ...["true-false", "likert", "performance"].map((type): [string, string, string] => [
+    type,
+    "learner_response",
+    "",
+  ]),
+  ...[pattern, "learner_response"].flatMap((element): [string, string, string][] => [
+    ["sequencing", element, "a[,][,]b"],
+    ["choice", element, "a[,][,]b"],
+    ["matching", element, "a[.]"],
+    ["matching", element, "[.]b"],
+  ]),
+];
 const accepted: [string, string, string][] = [
+  ...emptyPatterns.map((type): [string, string, string] => [type, pattern, ""]),
+  ...emptyLearnerResponses.map((type): [string, string, string] => [type, "learner_response", ""]),
   ...[
     "{case_matters=true}Paris",
     "{case_matters=false}Paris",
@@ -60,9 +83,51 @@ describe("SCORM 2004 interaction values", () => {
     expect(api.SetValue(path, value)).toBe("true");
     expect(api.GetLastError()).toBe("0");
     expect(api.GetValue(path)).toBe(value);
+    expect(api.GetLastError()).toBe("0");
+  });
+
+  it.each(emptyPatterns)("overwrites an existing %s pattern with empty text", (type) => {
+    const api = createAPI();
+    api.SetValue("cmi.interactions.0.id", "q1");
+    api.SetValue("cmi.interactions.0.type", type);
+    const path = `cmi.interactions.0.${pattern}`;
+    expect(api.SetValue(path, "a")).toBe("true");
+    expect(api.SetValue(path, "")).toBe("true");
+    expect(api.GetLastError()).toBe("0");
+    expect(api.GetValue(path)).toBe("");
+    expect(api.GetLastError()).toBe("0");
+  });
+
+  it.each(emptyPatterns)("accepts an empty %s pattern directly", (type) => {
+    const response = new CMIInteractionsCorrectResponsesObject(type);
+    response.pattern = "a";
+    response.pattern = "";
+    expect(response.pattern).toBe("");
+  });
+
+  it.each(emptyLearnerResponses)("accepts an empty %s learner response directly", (type) => {
+    const interaction = new CMIInteractionsObject();
+    interaction.id = "q1";
+    interaction.type = type;
+    interaction.learner_response = type === "matching" ? "a[.]b" : "a";
+    interaction.learner_response = "";
+    expect(interaction.learner_response).toBe("");
+  });
+
+  it.each(rejected)("rejects %s %s %j directly", (type, element, value) => {
+    expect(() => {
+      if (element === pattern) {
+        new CMIInteractionsCorrectResponsesObject(type).pattern = value;
+      } else {
+        const interaction = new CMIInteractionsObject();
+        interaction.type = type;
+        interaction.learner_response = value;
+      }
+    }).toThrow(Scorm2004ValidationError);
   });
 
   it.each([
+    ...rejected,
     ["long-fill-in", pattern, "{order_matters=true}Paris"],
     ["long-fill-in", pattern, "{lang=en}{order_matters=true}Paris"],
     ["long-fill-in", pattern, "{case_matters=yes}Paris"],

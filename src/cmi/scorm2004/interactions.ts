@@ -27,6 +27,16 @@ import {
   scorm2004_regex,
 } from "../../constants";
 
+// Whole-value emptiness is distinct from empty items inside a response.
+const EMPTY_CORRECT_PATTERN_TYPES = new Set([
+  "choice",
+  "fill-in",
+  "long-fill-in",
+  "other",
+  "sequencing",
+]);
+const EMPTY_LEARNER_RESPONSE_TYPES = new Set([...EMPTY_CORRECT_PATTERN_TYPES, "matching"]);
+
 export class CMIInteractions extends CMIArray {
   /**
    * Constructor for `cmi.interactions` Array
@@ -280,6 +290,10 @@ export class CMIInteractionsObject extends BaseCMI {
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
+      if (learner_response === "" && EMPTY_LEARNER_RESPONSE_TYPES.has(this.type)) {
+        this._learner_response = "";
+        return;
+      }
       const allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
       let nodes = [];
       const response_type = LearnerResponses[this.type];
@@ -341,10 +355,7 @@ export class CMIInteractionsObject extends BaseCMI {
                 );
               }
             } else {
-              if (
-                !(this.type === "choice" && learner_response === "") &&
-                !nodes[i]?.match(formatRegex)
-              ) {
+              if (!nodes[i]?.match(formatRegex)) {
                 throw new Scorm2004ValidationError(
                   this._cmi_element + ".learner_response",
                   scorm2004_errors.TYPE_MISMATCH as number,
@@ -628,8 +639,8 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
     }
   }
 
-  // Allow empty fill-in and choice patterns
-  if ((type === "fill-in" || type === "choice") && pattern === "") {
+  // Allow an empty whole pattern for types that permit zero items or empty text
+  if (EMPTY_CORRECT_PATTERN_TYPES.has(type) && pattern === "") {
     return;
   }
   // Split into nodes on the primary delimiter (if any). Uses the spec's
@@ -859,9 +870,9 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   }
 
   set pattern(pattern: string) {
-    // Allow empty fill-in and choice patterns
+    // Allow an empty whole pattern for types that permit zero items or empty text
     if (
-      (this._interactionType === "fill-in" || this._interactionType === "choice") &&
+      EMPTY_CORRECT_PATTERN_TYPES.has(this._interactionType ?? "") &&
       pattern === ""
     ) {
       this._pattern = "";
