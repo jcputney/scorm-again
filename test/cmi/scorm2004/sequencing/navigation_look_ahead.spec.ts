@@ -1,3 +1,4 @@
+import { NavigationValidityService } from "../../../../src/cmi/scorm2004/sequencing/services/navigation_validity_service";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
@@ -631,4 +632,37 @@ describe("NavigationLookAhead", () => {
       expect(newHash).not.toBe(initialHash);
     });
   });
+});
+
+it("uses the process clock independently of the static clock", () => {
+  RuleCondition.setNowProvider(() => new Date());
+  try {
+    const inside = () => new Date("2000-01-01T12:00:00Z");
+    const outside = () => new Date("2000-01-03T12:00:00Z");
+    const root = new Activity("clock-root", "Root");
+    const target = new Activity("clock-target", "Target");
+    root.addChild(target);
+    const tree = new ActivityTree(root);
+    const process = new SequencingProcess(tree, null, null, null, { now: inside });
+    target.beginTimeLimit = "2000-01-01T00:00:00Z";
+    target.endTimeLimit = "2000-01-02T00:00:00Z";
+    root.sequencingControls.flow = true;
+    const current = new Activity("clock-current", "Current");
+    root.addChild(current);
+    tree.currentActivity = current;
+    const rule = new SequencingRule(RuleActionType.DISABLED);
+    rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+    target.sequencingRules.preConditionRules.push(rule);
+    const lookAhead = new NavigationLookAhead(tree, process);
+    const validity = new NavigationValidityService(tree, process);
+    expect(lookAhead.predictPreviousEnabled()).toBe(true);
+    expect(validity.isActivityDisabled(target)).toBe(false);
+    process.now = outside;
+    RuleCondition.setNowProvider(inside);
+    lookAhead.invalidateCache();
+    expect(lookAhead.predictPreviousEnabled()).toBe(false);
+    expect(validity.isActivityDisabled(target)).toBe(true);
+  } finally {
+    RuleCondition.setNowProvider(() => new Date());
+  }
 });

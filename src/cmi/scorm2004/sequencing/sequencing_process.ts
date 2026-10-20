@@ -108,6 +108,8 @@ export class SequencingProcess {
       this.constraintValidator,
       this.traversalService,
       this.treeQueries,
+      () => this.now,
+      () => this.getAttemptElapsedSecondsHook,
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
@@ -140,6 +142,8 @@ export class SequencingProcess {
       this.constraintValidator,
       this.traversalService,
       this.treeQueries,
+      () => this.now,
+      () => this.getAttemptElapsedSecondsHook,
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
@@ -173,6 +177,8 @@ export class SequencingProcess {
       this.constraintValidator,
       this.traversalService,
       this.treeQueries,
+      () => this.now,
+      () => this.getAttemptElapsedSecondsHook,
     );
     this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
     this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);

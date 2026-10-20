@@ -548,3 +548,58 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
     });
   });
 });
+
+it("uses the process clock independently of the static clock", () => {
+  RuleCondition.setNowProvider(() => new Date());
+  try {
+    const inside = () => new Date("2000-01-01T12:00:00Z");
+    const outside = () => new Date("2000-01-03T12:00:00Z");
+    const root = new Activity("clock-root", "Root");
+    const target = new Activity("clock-target", "Target");
+    root.addChild(target);
+    const tree = new ActivityTree(root);
+    const process = new SequencingProcess(tree, null, null, null, { now: inside });
+    target.beginTimeLimit = "2000-01-01T00:00:00Z";
+    target.endTimeLimit = "2000-01-02T00:00:00Z";
+    const rule = new SequencingRule(RuleActionType.HIDE_FROM_CHOICE);
+    rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+    target.sequencingRules.preConditionRules.push(rule);
+    expect(
+      process.sequencingRequestProcess(SequencingRequestType.CHOICE, target.id).exception,
+    ).toBe(null);
+    process.now = outside;
+    RuleCondition.setNowProvider(inside);
+    expect(
+      process.sequencingRequestProcess(SequencingRequestType.CHOICE, target.id).exception,
+    ).toBe("SB.2.9-4");
+  } finally {
+    RuleCondition.setNowProvider(() => new Date());
+  }
+});
+
+it("uses the process elapsed hook at construction and after replacement", () => {
+  RuleCondition.setElapsedSecondsHook(() => 120);
+  try {
+    const inside = () => 30;
+    const outside = () => 120;
+    const root = new Activity("clock-root", "Root");
+    const target = new Activity("clock-target", "Target");
+    root.addChild(target);
+    const tree = new ActivityTree(root);
+    const process = new SequencingProcess(tree, null, null, null, { getAttemptElapsedSeconds: inside });
+    target.attemptAbsoluteDurationLimit = "PT60S";
+    const rule = new SequencingRule(RuleActionType.HIDE_FROM_CHOICE);
+    rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+    target.sequencingRules.preConditionRules.push(rule);
+    expect(
+      process.sequencingRequestProcess(SequencingRequestType.CHOICE, target.id).exception,
+    ).toBe(null);
+    process.getAttemptElapsedSecondsHook = outside;
+    RuleCondition.setElapsedSecondsHook(inside);
+    expect(
+      process.sequencingRequestProcess(SequencingRequestType.CHOICE, target.id).exception,
+    ).toBe("SB.2.9-4");
+  } finally {
+    RuleCondition.setElapsedSecondsHook(undefined);
+  }
+});

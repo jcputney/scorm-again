@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { RuleCondition } from "../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import Scorm2004API from "../../src/Scorm2004API";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { Settings } from "../../src/types/api_types";
@@ -547,3 +548,46 @@ describe("SCORM 2004 API Sequencing Configuration Tests", () => {
     });
   });
 });
+
+it.each([30, 120])(
+  "uses the configured elapsed hook (%s seconds) through API sequencing",
+  (elapsed) => {
+    RuleCondition.setElapsedSecondsHook(() => (elapsed === 30 ? 120 : 30));
+    try {
+      const apiInstance = api({
+        sequencing: {
+          getAttemptElapsedSeconds: (activity) => (activity.id === "elapsed-target" ? elapsed : 0),
+          activityTree: {
+            id: "elapsed-root",
+            title: "Root",
+            sequencingControls: { flow: true },
+            children: [
+              {
+                id: "elapsed-target",
+                title: "Target",
+                // Resume an existing attempt so UP.1 does not block delivery independently of the rule.
+                isSuspended: true,
+                attemptAbsoluteDurationLimit: "PT60S",
+                sequencingRules: {
+                  preConditionRules: [
+                    {
+                      action: "skip",
+                      conditions: [{ condition: "timeLimitExceeded" }],
+                    },
+                  ],
+                },
+              },
+              { id: "elapsed-fallback", title: "Fallback" },
+            ],
+          },
+        },
+      });
+      expect(apiInstance.lmsInitialize("")).toBe("true");
+      expect(apiInstance.getSequencingState().currentActivity?.id).toBe(
+        elapsed === 30 ? "elapsed-target" : "elapsed-fallback",
+      );
+    } finally {
+      RuleCondition.setElapsedSecondsHook(undefined);
+    }
+  },
+);

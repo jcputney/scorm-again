@@ -1,3 +1,4 @@
+import { TerminationHandler } from "../../../../src/cmi/scorm2004/sequencing/handlers/termination_handler";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NavigationRequestType,
@@ -1048,4 +1049,57 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(activityTree.currentActivity).toBe(grandchild1);
     });
   });
+});
+
+it("uses the process clock independently of the static clock", () => {
+  RuleCondition.setNowProvider(() => new Date());
+  try {
+    const inside = () => new Date("2000-01-01T12:00:00Z");
+    const outside = () => new Date("2000-01-03T12:00:00Z");
+    const root = new Activity("clock-root", "Root");
+    const target = new Activity("clock-target", "Target");
+    root.addChild(target);
+    const tree = new ActivityTree(root);
+    const process = new SequencingProcess(tree, null, null, null, { now: inside });
+    target.beginTimeLimit = "2000-01-01T00:00:00Z";
+    target.endTimeLimit = "2000-01-02T00:00:00Z";
+    const handler = new TerminationHandler(tree, process, new RollupProcess(), new Map());
+    const rule = new SequencingRule(RuleActionType.EXIT_ALL);
+    rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+    target.sequencingRules.exitConditionRules.push(rule);
+    expect(handler.evaluateExitRules(target).action).toBe(null);
+    expect(handler["exitActionRulesSubprocess"](target)).toBe(null);
+    process.now = outside;
+    RuleCondition.setNowProvider(inside);
+    expect(handler.evaluateExitRules(target).action).toBe("EXIT_ALL");
+    expect(handler["exitActionRulesSubprocess"](target)).toBe("EXIT_ALL");
+  } finally {
+    RuleCondition.setNowProvider(() => new Date());
+  }
+});
+
+it("uses the process elapsed hook at construction and after replacement", () => {
+  RuleCondition.setElapsedSecondsHook(() => 120);
+  try {
+    const inside = () => 30;
+    const outside = () => 120;
+    const root = new Activity("clock-root", "Root");
+    const target = new Activity("clock-target", "Target");
+    root.addChild(target);
+    const tree = new ActivityTree(root);
+    const process = new SequencingProcess(tree, null, null, null, { getAttemptElapsedSeconds: inside });
+    target.attemptAbsoluteDurationLimit = "PT60S";
+    const handler = new TerminationHandler(tree, process, new RollupProcess(), new Map());
+    const rule = new SequencingRule(RuleActionType.EXIT_ALL);
+    rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+    target.sequencingRules.exitConditionRules.push(rule);
+    expect(handler.evaluateExitRules(target).action).toBe(null);
+    expect(handler["exitActionRulesSubprocess"](target)).toBe(null);
+    process.getAttemptElapsedSecondsHook = outside;
+    RuleCondition.setElapsedSecondsHook(inside);
+    expect(handler.evaluateExitRules(target).action).toBe("EXIT_ALL");
+    expect(handler["exitActionRulesSubprocess"](target)).toBe("EXIT_ALL");
+  } finally {
+    RuleCondition.setElapsedSecondsHook(undefined);
+  }
 });

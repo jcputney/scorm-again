@@ -550,3 +550,89 @@ describe("SequencingRules", () => {
     });
   });
 });
+
+describe("SequencingRules clocks", () => {
+  it.each([
+    ["evaluatePreConditionRules", "preConditionRules", RuleActionType.DISABLED],
+    ["evaluateExitConditionRules", "exitConditionRules", RuleActionType.EXIT_ALL],
+    ["evaluatePostConditionRules", "postConditionRules", RuleActionType.CONTINUE],
+  ] as const)(
+    "passes the optional clock through %s and preserves first match",
+    (evaluate, collection, action) => {
+      RuleCondition.setNowProvider(() => new Date());
+      try {
+        const activity = new Activity("clock", "Clock");
+        activity.beginTimeLimit = "2000-01-01T00:00:00Z";
+        activity.endTimeLimit = "2000-01-02T00:00:00Z";
+        const rules = new SequencingRules();
+        const timed = new SequencingRule(action);
+        timed.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+        const fallback = new SequencingRule(RuleActionType.EXIT);
+        fallback.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+        rules[collection].push(timed, fallback);
+        expect(rules[evaluate](activity, () => new Date("2000-01-01T12:00:00Z"))).toBe(
+          RuleActionType.EXIT,
+        );
+        expect(rules[evaluate](activity, () => new Date("2000-01-03T12:00:00Z"))).toBe(action);
+        expect(rules[evaluate](activity)).toBe(action);
+      } finally {
+        RuleCondition.setNowProvider(() => new Date());
+      }
+    },
+  );
+});
+
+ describe("elapsed seconds hooks", () => {
+  it("uses an explicit hook for conditions and rules, with the static hook as fallback", () => {
+    RuleCondition.setElapsedSecondsHook(() => 120);
+    try {
+      const activity = new Activity("elapsed", "Elapsed");
+      activity.attemptAbsoluteDurationLimit = "PT60S";
+      const condition = new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED);
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(condition);
+      expect(condition.evaluate(activity, undefined, () => 30)).toBe(false);
+      expect(rule.evaluate(activity, undefined, () => 30)).toBe(false);
+      expect(condition.evaluate(activity)).toBe(true);
+      expect(rule.evaluate(activity)).toBe(true);
+    } finally {
+      RuleCondition.setElapsedSecondsHook(undefined);
+    }
+  });
+
+  it("trusts a zero from the hook over stored duration and start time", () => {
+    const activity = new Activity("elapsed", "Elapsed");
+    activity.attemptAbsoluteDurationLimit = "PT60S";
+    activity.attemptExperiencedDuration = "PT120S";
+    activity.attemptAbsoluteStartTime = "2000-01-01T00:00:00Z";
+    const condition = new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED);
+    const now = () => new Date("2000-01-01T00:05:00Z");
+    expect(condition.evaluate(activity, now, () => 0)).toBe(false);
+    expect(condition.evaluate(activity, now, () => -1)).toBe(true);
+    expect(
+      condition.evaluate(activity, now, () => {
+        throw new Error("unavailable");
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    ["evaluatePreConditionRules", "preConditionRules", RuleActionType.DISABLED],
+    ["evaluateExitConditionRules", "exitConditionRules", RuleActionType.EXIT_ALL],
+    ["evaluatePostConditionRules", "postConditionRules", RuleActionType.CONTINUE],
+  ] as const)("passes the hook through %s", (evaluate, collection, action) => {
+    RuleCondition.setElapsedSecondsHook(() => 120);
+    try {
+      const activity = new Activity("elapsed", "Elapsed");
+      activity.attemptAbsoluteDurationLimit = "PT60S";
+      const rules = new SequencingRules();
+      const rule = new SequencingRule(action);
+      rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+      rules[collection].push(rule);
+      expect(rules[evaluate](activity, undefined, () => 30)).toBe(null);
+      expect(rules[evaluate](activity)).toBe(action);
+    } finally {
+      RuleCondition.setElapsedSecondsHook(undefined);
+    }
+  });
+});

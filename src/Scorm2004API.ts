@@ -1553,6 +1553,9 @@ class Scorm2004API extends BaseAPI {
         validateNavigationRequests: settings?.sequencing?.validateNavigationRequests ?? true,
         enableEventSystem: settings?.sequencing?.enableEventSystem ?? true,
         logLevel: settings?.sequencing?.logLevel ?? "info",
+        ...(settings?.sequencing?.getAttemptElapsedSeconds
+          ? { getAttemptElapsedSeconds: settings.sequencing.getAttemptElapsedSeconds }
+          : {}),
         wasCMIElementSetByContent: (element) => this._runtimeSetCMIElements.has(element),
       };
 
