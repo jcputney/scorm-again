@@ -64,6 +64,7 @@ export declare class OverallSequencingProcess {
     getNavigationLookAhead(): NavigationPredictions;
     predictContinueEnabled(): boolean;
     predictPreviousEnabled(): boolean;
+    predictJumpEnabled(activityId: string): boolean;
     predictChoiceEnabled(activityId: string): boolean;
     getAvailableChoices(): string[];
     invalidateNavigationCache(): void;

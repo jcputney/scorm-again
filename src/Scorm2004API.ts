@@ -904,9 +904,13 @@ class Scorm2004API extends BaseAPI {
             return String(this.settings.scoItemIdValidator(target));
           }
 
-          // Only choice has a live sequencing predictor.
+          // Choice and jump have live sequencing predictors.
           if (overallProcess?.predictChoiceEnabled && request === "choice") {
             return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
+          }
+
+          if (overallProcess?.predictJumpEnabled && request === "jump") {
+            return overallProcess.predictJumpEnabled(target) ? "true" : "false";
           }
 
           const staticValue = this.adl.nav.request_valid[request].getStaticValue(target);

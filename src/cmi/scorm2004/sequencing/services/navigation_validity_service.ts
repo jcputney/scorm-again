@@ -961,21 +961,8 @@ export class NavigationValidityService {
         act.id
       );
       choiceMap[act.id] = choiceRes.valid ? "true" : "false";
-      const jumpRes = this.validateRequest(NavigationRequestType.JUMP, act.id);
-      jumpMap[act.id] = jumpRes.valid ? "true" : "false";
+      jumpMap[act.id] = this.predictJumpEnabled(act.id) ? "true" : "false";
     }
-    // Best-effort update of adl.nav.request_valid maps (may be RO post-init)
-    try {
-      this.adlNav.request_valid.choice = choiceMap;
-    } catch (e) {
-      // Ignore read-only constraints on nav request_valid during runtime
-    }
-    try {
-      this.adlNav.request_valid.jump = jumpMap;
-    } catch (e) {
-      // Ignore read-only constraints on nav request_valid during runtime
-    }
-
     // Get effective hideLmsUi
     const hideLmsUi = this.getEffectiveHideLmsUiCallback
       ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity)
@@ -1019,6 +1006,11 @@ export class NavigationValidityService {
    */
   public predictPreviousEnabled(): boolean {
     return this.navigationLookAhead.predictPreviousEnabled();
+  }
+
+  /** Predict if jump to the target leaf would succeed. */
+  public predictJumpEnabled(activityId: string): boolean {
+    return this.navigationLookAhead.predictJumpEnabled(activityId);
   }
 
   /**

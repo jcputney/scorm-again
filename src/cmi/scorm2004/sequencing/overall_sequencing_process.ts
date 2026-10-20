@@ -652,6 +652,11 @@ export class OverallSequencingProcess {
     return this.navigationValidityService.predictPreviousEnabled();
   }
 
+  /** Predict if jump to the target leaf would succeed. */
+  public predictJumpEnabled(activityId: string): boolean {
+    return this.navigationValidityService.predictJumpEnabled(activityId);
+  }
+
   /**
    * Predict if choice to specific activity would succeed
    * @param {string} activityId - Target activity ID

@@ -57,6 +57,7 @@ export declare class CMIInteractionsObjectivesObject extends BaseCMI {
         id: string;
     };
 }
+export declare function stripCorrectResponsePrefixes(node: string, type?: string, firstItem?: boolean): string;
 export declare class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     private _pattern;
     private readonly _interactionType?;
