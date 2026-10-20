@@ -63,6 +63,24 @@ describe("DeliveryValidator", () => {
     }
   });
 
+  it("evaluates Disabled rules on options.now when no engine provider is given", () => {
+    RuleCondition.setNowProvider(() => new Date());
+    try {
+      validator = new DeliveryValidator(activityTree, eventCallback, {
+        now: () => new Date("2000-01-01T12:00:00Z"),
+      });
+      grandchild1.beginTimeLimit = "2000-01-01T00:00:00Z";
+      grandchild1.endTimeLimit = "2000-01-02T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.DISABLED);
+      rule.addCondition(new RuleCondition(RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+      grandchild1.sequencingRules.preConditionRules.push(rule);
+      // The wall clock is outside the range, so this only passes on options.now.
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+    } finally {
+      RuleCondition.setNowProvider(() => new Date());
+    }
+  });
+
   describe("checkActivity Disabled rules", () => {
     it("filters out Skip rules and stops before checking limits when disabled", () => {
       const skip = new SequencingRule(RuleActionType.SKIP);

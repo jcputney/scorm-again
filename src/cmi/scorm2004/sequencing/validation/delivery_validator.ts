@@ -60,16 +60,24 @@ export class DeliveryValidator {
   private eventCallback: ((eventType: string, data?: any) => void) | null;
   private now: () => Date;
   private contentDeliveredGetter: (() => boolean) | null = null;
+  private ruleEngineProvider: () => RuleEvaluationEngine;
 
   constructor(
     activityTree: ActivityTree,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
     options?: { now?: () => Date },
-    private ruleEngineProvider: () => RuleEvaluationEngine = () => new RuleEvaluationEngine()
+    ruleEngineProvider?: () => RuleEvaluationEngine
   ) {
     this.activityTree = activityTree;
     this.eventCallback = eventCallback;
     this.now = options?.now || (() => new Date());
+    if (ruleEngineProvider) {
+      this.ruleEngineProvider = ruleEngineProvider;
+    } else {
+      // Without a provider, evaluate rules on the same clock as the limit checks.
+      const ruleEngine = new RuleEvaluationEngine({ now: this.now });
+      this.ruleEngineProvider = () => ruleEngine;
+    }
   }
 
   /**
