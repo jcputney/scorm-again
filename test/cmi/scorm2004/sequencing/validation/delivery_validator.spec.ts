@@ -5,6 +5,8 @@ import {
 import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 
+import { RuleActionType, RuleCondition, RuleConditionType, SequencingRule } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+
 describe("DeliveryValidator", () => {
   let validator: DeliveryValidator;
   let activityTree: ActivityTree;
@@ -32,6 +34,28 @@ describe("DeliveryValidator", () => {
     eventCallback = vi.fn();
 
     validator = new DeliveryValidator(activityTree, eventCallback);
+  });
+
+  describe("checkActivity Disabled rules", () => {
+    it("filters out Skip rules and stops before checking limits when disabled", () => {
+      const skip = new SequencingRule(RuleActionType.SKIP);
+      skip.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      const disabled = new SequencingRule(RuleActionType.DISABLED);
+      disabled.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      grandchild1.sequencingRules.preConditionRules.push(skip, disabled);
+      expect(validator.checkActivity(grandchild1)).toBe(false);
+      expect(eventCallback).not.toHaveBeenCalledWith("onLimitConditionCheck", expect.anything());
+    });
+
+    it("checks limits and preserves their event when Disabled does not apply", () => {
+      const disabled = new SequencingRule(RuleActionType.DISABLED);
+      disabled.addCondition(new RuleCondition(RuleConditionType.ATTEMPTED));
+      grandchild1.sequencingRules.preConditionRules.push(disabled);
+      expect(validator.checkActivity(grandchild1)).toBe(true);
+      expect(eventCallback).toHaveBeenCalledWith("onLimitConditionCheck", expect.objectContaining({ result: true }));
+      grandchild1.attemptCount = 1;
+      expect(validator.checkActivity(grandchild1)).toBe(false);
+    });
   });
 
   describe("validateTreeConsistency", () => {

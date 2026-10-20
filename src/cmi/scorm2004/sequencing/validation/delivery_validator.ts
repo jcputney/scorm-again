@@ -1,5 +1,7 @@
 import { Activity } from "../activity";
 import { ActivityTree } from "../activity_tree";
+import { RuleEvaluationEngine } from "../rules/rule_evaluation_engine";
+import { RuleActionType } from "../sequencing_rules";
 import { getDurationAsSeconds } from "../../../../utilities";
 import { scorm2004_regex } from "../../../../constants/regex";
 
@@ -62,7 +64,8 @@ export class DeliveryValidator {
   constructor(
     activityTree: ActivityTree,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
-    options?: { now?: () => Date }
+    options?: { now?: () => Date },
+    private ruleEngine: RuleEvaluationEngine = new RuleEvaluationEngine()
   ) {
     this.activityTree = activityTree;
     this.eventCallback = eventCallback;
@@ -233,13 +236,20 @@ export class DeliveryValidator {
    * @return {boolean} - True if activity is valid (not disabled, limits not violated)
    */
   public checkActivity(activity: Activity): boolean {
-    // UP.5 Step 1-2: Check if activity is disabled by sequencing rules
-    // In scorm-again, isAvailable serves as the proxy for disabled status
+    // Retain the availability check in addition to the UP.5 rule checks.
     if (!activity.isAvailable) {
       return false;
     }
 
-    // UP.5 Step 3-4: Check limit conditions (UP.1)
+    // UP.5 Step 1: Apply only Disabled rules so other actions cannot mask them.
+    const disabledRules = activity.sequencingRules.preConditionRules.filter(
+      (rule) => rule.action === RuleActionType.DISABLED
+    );
+    if (this.ruleEngine.checkSequencingRules(activity, disabledRules) !== null) {
+      return false;
+    }
+
+    // UP.5 Step 2: Check limit conditions (UP.1)
     if (!this.checkLimitConditions(activity)) {
       return false;
     }

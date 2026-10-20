@@ -1891,6 +1891,8 @@ const api = new Scorm2004API({
 
 ### Sequencing Rules
 
+Delivery rejects an activity when a disabled rule applies to it or to any ancestor.
+
 ```javascript
 {
   preConditionRules: [                 // Evaluated before delivery
