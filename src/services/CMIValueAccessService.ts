@@ -124,11 +124,7 @@ export class CMIValueAccessService {
 
     this.context.setLastErrorCode("0");
 
-    // A trailing target attribute may contain periods in its identifier.
-    const targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
-    const structure = targetPath
-      ? [...targetPath[1]!.split("."), targetPath[2]!]
-      : CMIElement.split(".");
+    const structure = splitCMIElement(CMIElement);
     let refObject: StringKeyMap | BaseCMI = this.context.getDataModel();
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
@@ -226,7 +222,7 @@ export class CMIValueAccessService {
     // failures below still set their own code via throwSCORMError.
     this.context.setLastErrorCode("0");
 
-    const structure = CMIElement.split(".");
+    const structure = splitCMIElement(CMIElement);
     let refObject: StringKeyMap = this.context.getDataModel();
     let attribute: string | null = null;
     let foundFirstIndex = false;
@@ -686,4 +682,10 @@ export class CMIValueAccessService {
       error: false,
     };
   }
+}
+
+/** Preserve periods within a trailing navigation target identifier. */
+function splitCMIElement(element: string): string[] {
+  const targetPath = element.match(/^(.*)\.(\{target=[^{}]*\})$/);
+  return targetPath ? [...targetPath[1]!.split("."), targetPath[2]!] : element.split(".");
 }

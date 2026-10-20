@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NavigationRequestType,
   OverallSequencingProcess,
@@ -1375,6 +1375,22 @@ describe("Overall Sequencing Process (OP.1)", () => {
   // =============================================================================
   describe("Phase 1: Navigation Request Process Gaps", () => {
     describe("JUMP navigation", () => {
+      it.each([
+        [0, 5, "PT0S", "PT100S", true],
+        [2, 2, "PT0S", "PT0S", false],
+        [0, 0, "PT20S", "PT0S", false],
+      ] as const)("agrees with delivery for limit %s, count %s, absolute %s, experienced %s", (limit, count, absolute, experienced, expected) => {
+        grandchild2.attemptLimit = limit;
+        grandchild2.attemptCount = count;
+        grandchild2.attemptAbsoluteDurationLimit = "PT10S";
+        vi.spyOn(grandchild2, "attemptAbsoluteDuration", "get").mockReturnValue(absolute);
+        grandchild2.attemptExperiencedDuration = experienced;
+        expect(overallProcess.predictJumpEnabled(grandchild2.id)).toBe(expected);
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.JUMP, grandchild2.id);
+        expect(result.valid).toBe(expected);
+        if (expected) expect(result.targetActivity).toBe(grandchild2);
+      });
+
       it("should successfully jump to target activity", () => {
         activityTree.currentActivity = grandchild1;
         grandchild1.isActive = true;

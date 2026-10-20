@@ -17,7 +17,7 @@ import { BaseCMI } from "../common/base_cmi";
 import { CMIArray } from "../common/array";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat } from "./validation";
-import { isSpecForm, splitDelimited, splitFirstDelimited } from "./interaction_delimiters";
+import { allowsBareDelimiters, splitDelimited, splitFirstDelimited } from "./interaction_delimiters";
 import {
   CorrectResponses,
   LearnerResponses,
@@ -294,7 +294,7 @@ export class CMIInteractionsObject extends BaseCMI {
         this._learner_response = "";
         return;
       }
-      const allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
+      const allowBare = allowsBareDelimiters(learner_response, this.type);
       let nodes = [];
       const response_type = LearnerResponses[this.type];
 
@@ -632,7 +632,7 @@ export function stripCorrectResponsePrefixes(
  * Helper: validate a `pattern` string against its SCORM definition
  */
 function validatePattern(type: string, pattern: string, responseDef: ResponseType) {
-  const allowBare = !isSpecForm(pattern) && type !== "fill-in";
+  const allowBare = allowsBareDelimiters(pattern, type);
   const freeText = ["fill-in", "long-fill-in", "other"].includes(type);
   // Reject patterns with leading or trailing whitespace
   if (!freeText && pattern.trim() !== pattern) {
