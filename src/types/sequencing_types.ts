@@ -259,6 +259,12 @@ export type SequencingSettings = {
   collections?: Record<string, SequencingCollectionSettings> | SequencingCollectionSettings[];
 
   // Runtime sequencing configuration
+  /**
+   * Returns the seconds elapsed in the activity's current attempt, as tracked by
+   * the LMS. timeLimitExceeded rule conditions and limit checks use this value,
+   * including 0, in place of attemptExperiencedDuration or attemptAbsoluteStartTime.
+   * A thrown error or a negative or non-numeric result falls back to those values.
+   */
   getAttemptElapsedSeconds?: (activity: Activity) => number;
   autoRollupOnCMIChange?: boolean;
   autoProgressOnCompletion?: boolean;

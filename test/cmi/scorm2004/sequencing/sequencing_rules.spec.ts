@@ -600,6 +600,22 @@ describe("SequencingRules clocks", () => {
     }
   });
 
+  it("trusts a zero from the hook over stored duration and start time", () => {
+    const activity = new Activity("elapsed", "Elapsed");
+    activity.attemptAbsoluteDurationLimit = "PT60S";
+    activity.attemptExperiencedDuration = "PT120S";
+    activity.attemptAbsoluteStartTime = "2000-01-01T00:00:00Z";
+    const condition = new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED);
+    const now = () => new Date("2000-01-01T00:05:00Z");
+    expect(condition.evaluate(activity, now, () => 0)).toBe(false);
+    expect(condition.evaluate(activity, now, () => -1)).toBe(true);
+    expect(
+      condition.evaluate(activity, now, () => {
+        throw new Error("unavailable");
+      }),
+    ).toBe(true);
+  });
+
   it.each([
     ["evaluatePreConditionRules", "preConditionRules", RuleActionType.DISABLED],
     ["evaluateExitConditionRules", "exitConditionRules", RuleActionType.EXIT_ALL],

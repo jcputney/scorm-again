@@ -426,6 +426,7 @@ export class RuleCondition extends BaseCMI {
     }
 
     let elapsedSeconds = 0;
+    let hasHookValue = false;
 
     // Strategy 1: Use hook if available (preferred for LMS integration)
     if (getElapsedSeconds) {
@@ -433,6 +434,7 @@ export class RuleCondition extends BaseCMI {
         const hookResult = getElapsedSeconds(activity);
         if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
           elapsedSeconds = hookResult;
+          hasHookValue = true;
         }
       } catch {
         elapsedSeconds = 0;
@@ -440,7 +442,7 @@ export class RuleCondition extends BaseCMI {
     }
 
     // Strategy 2: Try to use attemptExperiencedDuration if hook not available
-    if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
       const attemptDurationSeconds = getDurationAsSeconds(
         activity.attemptExperiencedDuration,
         scorm2004_regex.CMITimespan,
@@ -451,7 +453,7 @@ export class RuleCondition extends BaseCMI {
     }
 
     // Strategy 3: Calculate from attemptAbsoluteStartTime if duration not available
-    if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
       try {
         const start = new Date(activity.attemptAbsoluteStartTime).getTime();
         const nowMs = now().getTime();
