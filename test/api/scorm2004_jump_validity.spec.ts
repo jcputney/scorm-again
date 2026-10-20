@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
 import { NavigationRequestType } from "../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule,
+} from "../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 const disabled = {
   preConditionRules: [{ action: "disabled", conditions: [{ condition: "always" }] }],
@@ -83,6 +89,27 @@ describe("SCORM 2004 jump validity", () => {
     expect(jump(api, "quiz")).toBe("true");
     tree.root!.attemptLimit = 1;
     tree.root!.attemptCount = 1;
+    expect(jump(api, "quiz")).toBe("false");
+  });
+
+  it("rejects a leaf whose ancestor is unavailable", () => {
+    const { api, tree } = fixture();
+    const nested = tree.getActivity("nested")!;
+    nested.parent!.sequencingRules.preConditionRules.length = 0;
+    expect(jump(api, "nested")).toBe("true");
+    nested.parent!.isAvailable = false;
+    expect(jump(api, "nested")).toBe("false");
+  });
+
+  it("finds a Disabled rule listed after a matching Skip rule", () => {
+    const { api, tree } = fixture();
+    const quiz = tree.getActivity("quiz")!;
+    quiz.sequencingRules.preConditionRules.length = 0;
+    for (const action of [RuleActionType.SKIP, RuleActionType.DISABLED]) {
+      const rule = new SequencingRule(action);
+      rule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      quiz.sequencingRules.addPreConditionRule(rule);
+    }
     expect(jump(api, "quiz")).toBe("false");
   });
 

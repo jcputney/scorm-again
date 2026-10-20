@@ -384,11 +384,16 @@ export class SequencingProcess {
           path.unshift(node);
         }
         for (const activity of path) {
+          // UP.5 only looks at Disabled rules, so a matching Skip rule must not hide one.
+          const disabledRules = activity.sequencingRules.preConditionRules.filter(
+            (rule) => rule.action === RuleActionType.DISABLED,
+          );
           if (
+            !activity.isAvailable ||
             this.ruleEngine.checkLimitConditions(activity) ||
             this.ruleEngine.checkSequencingRules(
-              activity,
-              activity.sequencingRules.preConditionRules,
+              this.traversalService.getActivityForEvaluation(activity, jumpTarget),
+              disabledRules,
             ) === RuleActionType.DISABLED
           ) {
             return { valid: false, exception: "DB.1.1-3" };
