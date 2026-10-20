@@ -897,22 +897,27 @@ class Scorm2004API extends BaseAPI {
         const request = matches[1];
         const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
         if (request === "choice" || request === "jump") {
+          this.lastErrorCode = "0";
           const overallProcess = this._sequencing?.overallSequencingProcess;
 
           if (this.settings.scoItemIdValidator) {
             return String(this.settings.scoItemIdValidator(target));
           }
 
-          // There is no jump predictor on OverallSequencingProcess, so "jump"
-          // requests fall through to the extracted SCO item ID check below.
+          // Only choice has a live sequencing predictor.
           if (overallProcess?.predictChoiceEnabled && request === "choice") {
             return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
-          } else {
-            if (this._extractedScoItemIds.length > 0) {
-              return String(this._extractedScoItemIds.includes(target));
-            }
-            return String(this.settings?.scoItemIds?.includes(target));
           }
+
+          const staticValue = this.adl.nav.request_valid[request].getStaticValue(target);
+          if (staticValue !== undefined) {
+            return staticValue;
+          }
+
+          if (this._extractedScoItemIds.length > 0) {
+            return String(this._extractedScoItemIds.includes(target));
+          }
+          return String(this.settings?.scoItemIds?.includes(target));
         }
       }
     }

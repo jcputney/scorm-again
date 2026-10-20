@@ -124,7 +124,11 @@ export class CMIValueAccessService {
 
     this.context.setLastErrorCode("0");
 
-    const structure = CMIElement.split(".");
+    // A trailing target attribute may contain periods in its identifier.
+    const targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
+    const structure = targetPath
+      ? [...targetPath[1]!.split("."), targetPath[2]!]
+      : CMIElement.split(".");
     let refObject: StringKeyMap | BaseCMI = this.context.getDataModel();
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
@@ -333,7 +337,11 @@ export class CMIValueAccessService {
         );
         return global_constants.SCORM_FALSE;
       }
-      // Before initialization, target writes are allowed but no-op (targets are resolved during read)
+      // Request validity helpers accept validated LMS entries before initialization.
+      if ("setStaticValue" in refObject && typeof refObject.setStaticValue === "function") {
+        refObject.setStaticValue(attribute, value);
+      }
+      // Other target writes remain a no-op (targets are resolved during read).
       return global_constants.SCORM_TRUE;
     }
 

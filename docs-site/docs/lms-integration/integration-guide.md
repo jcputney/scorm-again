@@ -2078,7 +2078,7 @@ The `runtimeData` field contains the full CMI tree:
         request_valid: {
           continue: "true",
           previous: "true",
-          choice: { "sco-2": "true" }
+          choice: { "{target=sco-2}": "true" }
         }
       },
       data: {                          // Shared data across SCOs

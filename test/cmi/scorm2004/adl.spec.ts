@@ -467,7 +467,7 @@ describe("ADL Classes", () => {
       const choice = adlNav.request_valid.choice;
 
       // Set static value
-      (choice as any).setAll({ "target1": NAVBoolean.TRUE });
+      (choice as any).setAll({ "{target=target1}": NAVBoolean.TRUE });
 
       const result = (choice as any)._isTargetValid("target1");
       expect(result).toBe("true");
@@ -478,7 +478,7 @@ describe("ADL Classes", () => {
       const choice = adlNav.request_valid.choice;
 
       // Set static value
-      (choice as any).setAll({ "target1": NAVBoolean.FALSE });
+      (choice as any).setAll({ "{target=target1}": NAVBoolean.FALSE });
 
       const result = (choice as any)._isTargetValid("target1");
       expect(result).toBe("false");
@@ -507,7 +507,7 @@ describe("ADL Classes", () => {
       const choice = adlNav.request_valid.choice;
 
       // Set static value
-      (choice as any).setAll({ "target1": NAVBoolean.TRUE });
+      (choice as any).setAll({ "{target=target1}": NAVBoolean.TRUE });
 
       // No sequencing set, should use static value
       const result = (choice as any)._isTargetValid("target1");
@@ -552,7 +552,7 @@ describe("ADL Classes", () => {
       const adlNav = new ADLNav();
       const jump = adlNav.request_valid.jump;
 
-      (jump as any).setAll({ "target1": NAVBoolean.TRUE });
+      (jump as any).setAll({ "{target=target1}": NAVBoolean.TRUE });
 
       const result = (jump as any)._isTargetValid("target1");
       expect(result).toBe("true");
@@ -562,7 +562,7 @@ describe("ADL Classes", () => {
       const adlNav = new ADLNav();
       const jump = adlNav.request_valid.jump;
 
-      (jump as any).setAll({ "target1": NAVBoolean.FALSE });
+      (jump as any).setAll({ "{target=target1}": NAVBoolean.FALSE });
 
       const result = (jump as any)._isTargetValid("target1");
       expect(result).toBe("false");
@@ -607,7 +607,7 @@ describe("ADL Classes", () => {
       const adlNav = new ADLNav();
       const jump = adlNav.request_valid.jump;
 
-      (jump as any).setAll({ "target1": NAVBoolean.TRUE });
+      (jump as any).setAll({ "{target=target1}": NAVBoolean.TRUE });
 
       const result = (jump as any)._isTargetValid("target1");
       expect(result).toBe("true");
