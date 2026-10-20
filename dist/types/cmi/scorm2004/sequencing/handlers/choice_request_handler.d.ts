@@ -11,7 +11,7 @@ export declare class ChoiceRequestHandler {
     private treeQueries;
     private getNow?;
     private getElapsedSeconds?;
-    constructor(activityTree: ActivityTree, constraintValidator: ChoiceConstraintValidator, traversalService: FlowTraversalService, treeQueries: ActivityTreeQueries, getNow?: (() => () => Date) | undefined, getElapsedSeconds?: (() => ((activity: Activity) => number) | undefined) | undefined);
+    constructor(activityTree: ActivityTree, constraintValidator: ChoiceConstraintValidator, traversalService: FlowTraversalService, treeQueries: ActivityTreeQueries, getNow?: (() => () => Date) | undefined, getElapsedSeconds?: (() => ((activity: Activity) => number) | null | undefined) | undefined);
     handleChoice(targetActivityId: string, currentActivity: Activity | null): SequencingResult;
     handleJump(targetActivityId: string): SequencingResult;
     getAvailableChoices(): Activity[];

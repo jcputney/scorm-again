@@ -2548,7 +2548,8 @@
      * Evaluate the condition for an activity
      * @param {Activity} activity - The activity to evaluate the condition for
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
-     */ key: "evaluate",
+     */ // Explicit null suppresses the legacy static hook for per-process evaluation.
+              key: "evaluate",
               value: function evaluate(activity) {
                   var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : _RuleCondition._getElapsedSecondsHook;
                   var _activity_sequencingControls;
@@ -3129,19 +3130,6 @@
   function _class_call_check$1e(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1d(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$1d(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1d(Constructor.prototype, protoProps);
-      return Constructor;
-  }
   function _type_of$1b(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
@@ -3156,14 +3144,1465 @@
       }) : obj[key] = value;
   };
   var __publicField$19 = function __publicField(obj, key, value) {
-      return __defNormalProp$19(obj, (_type_of$1b(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$19(obj, (typeof key === "undefined" ? "undefined" : _type_of$1b(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var SequencingRequestType = /* @__PURE__ */ function(SequencingRequestType2) {
+      SequencingRequestType2["START"] = "start";
+      SequencingRequestType2["RESUME_ALL"] = "resumeAll";
+      SequencingRequestType2["CONTINUE"] = "continue";
+      SequencingRequestType2["PREVIOUS"] = "previous";
+      SequencingRequestType2["CHOICE"] = "choice";
+      SequencingRequestType2["JUMP"] = "jump";
+      SequencingRequestType2["EXIT"] = "exit";
+      SequencingRequestType2["EXIT_PARENT"] = "exitParent";
+      SequencingRequestType2["EXIT_ALL"] = "exitAll";
+      SequencingRequestType2["ABANDON"] = "abandon";
+      SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
+      SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
+      SequencingRequestType2["RETRY"] = "retry";
+      SequencingRequestType2["RETRY_ALL"] = "retryAll";
+      return SequencingRequestType2;
+  }(SequencingRequestType || {});
+  var DeliveryRequestType = /* @__PURE__ */ function(DeliveryRequestType2) {
+      DeliveryRequestType2["DELIVER"] = "deliver";
+      DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
+      return DeliveryRequestType2;
+  }(DeliveryRequestType || {});
+  var SequencingResult = function SequencingResult() {
+      var deliveryRequest = arguments.length > 0 && arguments[0] !== void 0 /* DO_NOT_DELIVER */  ? arguments[0] : "doNotDeliver", targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
+      _class_call_check$1e(this, SequencingResult);
+      __publicField$19(this, "deliveryRequest");
+      __publicField$19(this, "targetActivity");
+      __publicField$19(this, "exception");
+      __publicField$19(this, "endSequencingSession");
+      this.deliveryRequest = deliveryRequest;
+      this.targetActivity = targetActivity;
+      this.exception = exception;
+      this.endSequencingSession = endSequencingSession;
+  };
+  var FlowSubprocessResult = function FlowSubprocessResult(identifiedActivity, deliverable) {
+      var exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
+      _class_call_check$1e(this, FlowSubprocessResult);
+      __publicField$19(this, "identifiedActivity");
+      __publicField$19(this, "deliverable");
+      __publicField$19(this, "exception");
+      __publicField$19(this, "endSequencingSession");
+      this.identifiedActivity = identifiedActivity;
+      this.deliverable = deliverable;
+      this.exception = exception;
+      this.endSequencingSession = endSequencingSession;
+  };
+  var ChoiceTraversalResult = function ChoiceTraversalResult(activity) {
+      var exception = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null;
+      _class_call_check$1e(this, ChoiceTraversalResult);
+      __publicField$19(this, "activity");
+      __publicField$19(this, "exception");
+      this.activity = activity;
+      this.exception = exception;
+  };
+  var FlowSubprocessMode = /* @__PURE__ */ function(FlowSubprocessMode2) {
+      FlowSubprocessMode2["FORWARD"] = "forward";
+      FlowSubprocessMode2["BACKWARD"] = "backward";
+      return FlowSubprocessMode2;
+  }(FlowSubprocessMode || {});
+
+  function _class_call_check$1d(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$1d(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$1d(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1d(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _type_of$1a(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$18 = Object.defineProperty;
+  var __defNormalProp$18 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$18(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$18 = function __publicField(obj, key, value) {
+      return __defNormalProp$18(obj, (typeof key === "undefined" ? "undefined" : _type_of$1a(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var RuleEvaluationEngine = /*#__PURE__*/ function() {
+      function RuleEvaluationEngine() {
+          var options = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+          _class_call_check$1d(this, RuleEvaluationEngine);
+          __publicField$18(this, "now");
+          __publicField$18(this, "getAttemptElapsedSecondsHook");
+          this.now = options.now || function() {
+              return /* @__PURE__ */ new Date();
+          };
+          this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
+      }
+      _create_class$1d(RuleEvaluationEngine, [
+          {
+              /**
+     * Sequencing Rules Check Process (UP.2)
+     * General process for evaluating a set of sequencing rules
+     * @param {Activity} activity - The activity to evaluate rules for
+     * @param {SequencingRule[]} rules - The rules to evaluate
+     * @return {RuleActionType | null} - The action to take, or null if no rules apply
+     */ key: "checkSequencingRules",
+              value: function checkSequencingRules(activity, rules) {
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = rules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var rule = _step.value;
+                          if (this.checkRuleSubprocess(activity, rule)) {
+                              return rule.action;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return null;
+              }
+          },
+          {
+              /**
+     * Sequencing Rules Check Subprocess (UP.2.1)
+     * Evaluates individual sequencing rule conditions
+     * @param {Activity} activity - The activity to evaluate the rule for
+     * @param {SequencingRule} rule - The rule to evaluate
+     * @return {boolean} - True only when the rule evaluates to definite true
+     */ key: "checkRuleSubprocess",
+              value: function checkRuleSubprocess(activity, rule) {
+                  return rule.evaluate(activity, this.now, this.getAttemptElapsedSecondsHook);
+              }
+          },
+          {
+              /**
+     * Exit Action Rules Subprocess (TB.2.1)
+     * Evaluates the exit condition rules for an activity
+     * @param {Activity} activity - The activity to evaluate exit rules for
+     * @return {RuleActionType | null} - The exit action to process, if any
+     */ key: "evaluateExitRules",
+              value: function evaluateExitRules(activity) {
+                  var exitAction = this.checkSequencingRules(activity, activity.sequencingRules.exitConditionRules);
+                  if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
+                      return exitAction;
+                  }
+                  return null;
+              }
+          },
+          {
+              /**
+     * Post Condition Rules Subprocess (TB.2.2)
+     * Evaluates the post-condition rules for an activity after delivery
+     * @param {Activity} activity - The activity to evaluate post-condition rules for
+     * @return {RuleActionType | null} - The action to take, if any
+     */ key: "evaluatePostConditionAction",
+              value: function evaluatePostConditionAction(activity) {
+                  var postAction = this.checkSequencingRules(activity, activity.sequencingRules.postConditionRules);
+                  var validActions = [
+                      RuleActionType.EXIT_PARENT,
+                      RuleActionType.EXIT_ALL,
+                      RuleActionType.RETRY,
+                      RuleActionType.RETRY_ALL,
+                      RuleActionType.CONTINUE,
+                      RuleActionType.PREVIOUS,
+                      RuleActionType.STOP_FORWARD_TRAVERSAL
+                  ];
+                  if (postAction && validActions.includes(postAction)) {
+                      return postAction;
+                  }
+                  return null;
+              }
+          },
+          {
+              /**
+     * Evaluate post-condition rules and map to sequencing/termination requests
+     * @param {Activity} activity - The activity to evaluate
+     * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
+     */ key: "evaluatePostConditions",
+              value: function evaluatePostConditions(activity) {
+                  var postAction = this.evaluatePostConditionAction(activity);
+                  if (!postAction) {
+                      return {
+                          sequencingRequest: null,
+                          terminationRequest: null
+                      };
+                  }
+                  switch(postAction){
+                      case RuleActionType.EXIT_PARENT:
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: SequencingRequestType.EXIT_PARENT
+                          };
+                      case RuleActionType.EXIT_ALL:
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: SequencingRequestType.EXIT_ALL
+                          };
+                      case RuleActionType.RETRY:
+                          return {
+                              sequencingRequest: SequencingRequestType.RETRY,
+                              terminationRequest: null
+                          };
+                      case RuleActionType.RETRY_ALL:
+                          return {
+                              sequencingRequest: SequencingRequestType.RETRY,
+                              terminationRequest: SequencingRequestType.EXIT_ALL
+                          };
+                      case RuleActionType.CONTINUE:
+                          return {
+                              sequencingRequest: SequencingRequestType.CONTINUE,
+                              terminationRequest: null
+                          };
+                      case RuleActionType.PREVIOUS:
+                          return {
+                              sequencingRequest: SequencingRequestType.PREVIOUS,
+                              terminationRequest: null
+                          };
+                      case RuleActionType.STOP_FORWARD_TRAVERSAL:
+                          activity.sequencingControls.stopForwardTraversal = true;
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: null
+                          };
+                      default:
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: null
+                          };
+                  }
+              }
+          },
+          {
+              /**
+     * Limit Conditions Check Process (UP.1)
+     * Checks if an activity has exceeded its limit conditions
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if limit conditions are violated
+     */ key: "checkLimitConditions",
+              value: function checkLimitConditions(activity) {
+                  if (activity.isSuspended) {
+                      return false;
+                  }
+                  if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
+                      return true;
+                  }
+                  if (activity.attemptAbsoluteDurationLimit !== null) {
+                      var attemptLimitMs = this.parseDuration(activity.attemptAbsoluteDurationLimit);
+                      if (attemptLimitMs > 0) {
+                          var attemptDurationMs = this.parseDuration(activity.attemptExperiencedDuration);
+                          if (attemptDurationMs >= attemptLimitMs) {
+                              return true;
+                          }
+                      }
+                  }
+                  if (activity.activityAbsoluteDurationLimit !== null) {
+                      var activityLimitMs = this.parseDuration(activity.activityAbsoluteDurationLimit);
+                      if (activityLimitMs > 0) {
+                          var activityDurationMs = this.parseDuration(activity.activityExperiencedDuration);
+                          if (activityDurationMs >= activityLimitMs) {
+                              return true;
+                          }
+                      }
+                  }
+                  return false;
+              }
+          },
+          {
+              /**
+     * Parse ISO 8601 duration to milliseconds
+     * @param {string} duration - ISO 8601 duration string
+     * @return {number} - Duration in milliseconds
+     */ key: "parseDuration",
+              value: function parseDuration(duration) {
+                  if (!duration || typeof duration !== "string") {
+                      return 0;
+                  }
+                  var regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
+                  var matches = duration.match(regex);
+                  if (!matches || duration === "P" || duration.endsWith("T")) {
+                      return 0;
+                  }
+                  var years = parseFloat(matches[1] || "0");
+                  var months = parseFloat(matches[2] || "0");
+                  var weeks = parseFloat(matches[3] || "0");
+                  var days = parseFloat(matches[4] || "0");
+                  var hours = parseFloat(matches[5] || "0");
+                  var minutes = parseFloat(matches[6] || "0");
+                  var seconds = parseFloat(matches[7] || "0");
+                  var totalMs = 0;
+                  totalMs += years * 365.25 * 24 * 3600 * 1e3;
+                  totalMs += months * 30.44 * 24 * 3600 * 1e3;
+                  totalMs += weeks * 7 * 24 * 3600 * 1e3;
+                  totalMs += days * 24 * 3600 * 1e3;
+                  totalMs += hours * 3600 * 1e3;
+                  totalMs += minutes * 60 * 1e3;
+                  totalMs += seconds * 1e3;
+                  return totalMs;
+              }
+          },
+          {
+              /**
+     * Get elapsed attempt seconds for an activity
+     * @param {Activity} activity - The activity
+     * @return {number} - Elapsed seconds
+     */ key: "getElapsedSeconds",
+              value: function getElapsedSeconds(activity) {
+                  if (this.getAttemptElapsedSecondsHook) {
+                      try {
+                          return this.getAttemptElapsedSecondsHook(activity) || 0;
+                      } catch (unused) {
+                          return 0;
+                      }
+                  }
+                  if (activity.attemptAbsoluteStartTime) {
+                      var start = new Date(activity.attemptAbsoluteStartTime).getTime();
+                      var nowMs = this.now().getTime();
+                      if (!Number.isNaN(start) && nowMs > start) {
+                          return Math.max(0, (nowMs - start) / 1e3);
+                      }
+                  }
+                  return 0;
+              }
+          },
+          {
+              /**
+     * Check if time limit has been exceeded
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if time limit exceeded
+     */ key: "isTimeLimitExceeded",
+              value: function isTimeLimitExceeded(activity) {
+                  var limit = activity.timeLimitDuration;
+                  if (!limit && activity.attemptAbsoluteDurationLimit) {
+                      limit = activity.attemptAbsoluteDurationLimit;
+                  }
+                  if (!limit) {
+                      return false;
+                  }
+                  var limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+                  if (limitSeconds <= 0) {
+                      return false;
+                  }
+                  var elapsedSeconds = this.getElapsedSeconds(activity);
+                  return elapsedSeconds > limitSeconds;
+              }
+          },
+          {
+              /**
+     * Check if activity is outside available time range
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if outside time range
+     */ key: "isOutsideAvailableTimeRange",
+              value: function isOutsideAvailableTimeRange(activity) {
+                  var now = this.now();
+                  if (activity.beginTimeLimit) {
+                      try {
+                          var beginDate = new Date(activity.beginTimeLimit);
+                          if (!Number.isNaN(beginDate.getTime()) && now < beginDate) {
+                              return true;
+                          }
+                      } catch (unused) {}
+                  }
+                  if (activity.endTimeLimit) {
+                      try {
+                          var endDate = new Date(activity.endTimeLimit);
+                          if (!Number.isNaN(endDate.getTime()) && now > endDate) {
+                              return true;
+                          }
+                      } catch (unused) {}
+                  }
+                  return false;
+              }
+          },
+          {
+              /**
+     * Evaluate pre-condition rules and check if activity can be delivered
+     * @param {Activity} activity - The activity to check
+     * @return {{ canDeliver: boolean; wasSkipped: boolean }} - Delivery check result
+     */ key: "canDeliverActivity",
+              value: function canDeliverActivity(activity) {
+                  if (this.checkLimitConditions(activity)) {
+                      return {
+                          canDeliver: false,
+                          wasSkipped: false
+                      };
+                  }
+                  var preConditionResult = this.checkSequencingRules(activity, activity.sequencingRules.preConditionRules);
+                  var wasSkipped = preConditionResult === RuleActionType.SKIP;
+                  return {
+                      canDeliver: preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED,
+                      wasSkipped: wasSkipped
+                  };
+              }
+          }
+      ]);
+      return RuleEvaluationEngine;
+  }();
+
+  function _array_like_to_array$j(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_without_holes$c(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$j(arr);
+  }
+  function _class_call_check$1c(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$1c(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$1c(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1c(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _iterable_to_array$c(iter) {
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
+  }
+  function _non_iterable_spread$c() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _to_consumable_array$c(arr) {
+      return _array_without_holes$c(arr) || _iterable_to_array$c(arr) || _unsupported_iterable_to_array$j(arr) || _non_iterable_spread$c();
+  }
+  function _type_of$19(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$j(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$j(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$j(o, minLen);
+  }
+  var __defProp$17 = Object.defineProperty;
+  var __defNormalProp$17 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$17(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$17 = function __publicField(obj, key, value) {
+      return __defNormalProp$17(obj, (typeof key === "undefined" ? "undefined" : _type_of$19(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var DeliveryValidator = /*#__PURE__*/ function() {
+      function DeliveryValidator(activityTree) {
+          var eventCallback = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, options = arguments.length > 2 ? arguments[2] : void 0, ruleEngineProvider = arguments.length > 3 ? arguments[3] : void 0;
+          _class_call_check$1c(this, DeliveryValidator);
+          __publicField$17(this, "activityTree");
+          __publicField$17(this, "eventCallback");
+          __publicField$17(this, "now");
+          __publicField$17(this, "contentDeliveredGetter", null);
+          __publicField$17(this, "ruleEngineProvider");
+          this.activityTree = activityTree;
+          this.eventCallback = eventCallback;
+          this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
+              return /* @__PURE__ */ new Date();
+          };
+          if (ruleEngineProvider) {
+              this.ruleEngineProvider = ruleEngineProvider;
+          } else {
+              var ruleEngine = new RuleEvaluationEngine({
+                  now: this.now
+              });
+              this.ruleEngineProvider = function() {
+                  return ruleEngine;
+              };
+          }
+      }
+      _create_class$1c(DeliveryValidator, [
+          {
+              /**
+     * Set getter for content delivered flag
+     */ key: "setContentDeliveredGetter",
+              value: function setContentDeliveredGetter(getter) {
+                  this.contentDeliveredGetter = getter;
+              }
+          },
+          {
+              /**
+     * Validate Activity Tree State Consistency
+     * @param {Activity} activity - Activity to validate
+     * @return {StateConsistencyResult} - Consistency result
+     */ key: "validateTreeConsistency",
+              value: function validateTreeConsistency(activity) {
+                  if (!this.activityTree.root) {
+                      return {
+                          consistent: false,
+                          exception: "DB.1.1-4"
+                      };
+                  }
+                  if (!this.isActivityPartOfTree(activity, this.activityTree.root)) {
+                      return {
+                          consistent: false,
+                          exception: "DB.1.1-5"
+                      };
+                  }
+                  var activeActivities = this.getActiveActivities();
+                  if (activeActivities.length > 1) {
+                      this.fireEvent("onStateInconsistency", {
+                          activeActivities: activeActivities.map(function(a) {
+                              return a.id;
+                          }),
+                          targetActivity: activity.id
+                      });
+                      return {
+                          consistent: false,
+                          exception: "DB.1.1-6"
+                      };
+                  }
+                  var current = activity;
+                  while(current === null || current === void 0 ? void 0 : current.parent){
+                      if (!current.parent.children.includes(current)) {
+                          return {
+                              consistent: false,
+                              exception: "DB.1.1-7"
+                          };
+                      }
+                      current = current.parent;
+                  }
+                  return {
+                      consistent: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Validate Resource Constraints
+     * @param {Activity} activity - Activity to validate
+     * @return {ResourceConstraintResult} - Resource availability result
+     */ key: "validateResources",
+              value: function validateResources(activity) {
+                  var requiredResources = this.getRequiredResources(activity);
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = requiredResources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var resource = _step.value;
+                          if (!this.isResourceAvailable(resource)) {
+                              return {
+                                  available: false,
+                                  exception: "DB.1.1-8"
+                              };
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  var systemResourceCheck = this.checkSystemLimits();
+                  if (!systemResourceCheck.adequate) {
+                      return {
+                          available: false,
+                          exception: "DB.1.1-9"
+                      };
+                  }
+                  return {
+                      available: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Validate Concurrent Delivery Prevention
+     * @param {Activity} activity - Activity to validate
+     * @return {ConcurrentDeliveryResult} - Concurrency check result
+     */ key: "validateConcurrentDelivery",
+              value: function validateConcurrentDelivery(activity) {
+                  var contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
+                  if (contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
+                      return {
+                          allowed: false,
+                          exception: "DB.1.1-10"
+                      };
+                  }
+                  if (this.hasPendingDeliveryRequests()) {
+                      return {
+                          allowed: false,
+                          exception: "DB.1.1-11"
+                      };
+                  }
+                  if (this.isDeliveryLocked()) {
+                      return {
+                          allowed: false,
+                          exception: "DB.1.1-12"
+                      };
+                  }
+                  return {
+                      allowed: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Validate Activity Dependencies
+     * @param {Activity} activity - Activity to validate
+     * @return {DependencyResult} - Dependency check result
+     */ key: "validateDependencies",
+              value: function validateDependencies(activity) {
+                  var prerequisites = this.getPrerequisites(activity);
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = prerequisites[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var prerequisite = _step.value;
+                          if (!this.isPrerequisiteSatisfied(prerequisite, activity)) {
+                              return {
+                                  satisfied: false,
+                                  exception: "DB.1.1-13"
+                              };
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  var objectiveDependencies = this.getObjectiveDependencies(activity);
+                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                  try {
+                      for(var _iterator1 = objectiveDependencies[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                          var dependency = _step1.value;
+                          if (!this.isObjectiveDependencySatisfied(dependency)) {
+                              return {
+                                  satisfied: false,
+                                  exception: "DB.1.1-14"
+                              };
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError1 = true;
+                      _iteratorError1 = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                              _iterator1.return();
+                          }
+                      } finally{
+                          if (_didIteratorError1) {
+                              throw _iteratorError1;
+                          }
+                      }
+                  }
+                  var sequencingDependencies = this.getSequencingRuleDependencies(activity);
+                  if (!sequencingDependencies.satisfied) {
+                      return {
+                          satisfied: false,
+                          exception: "DB.1.1-15"
+                      };
+                  }
+                  return {
+                      satisfied: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Check Activity Process (UP.5)
+     * Validates if an activity can be delivered based on sequencing rules and limit conditions
+     * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if activity is valid (not disabled, limits not violated)
+     */ key: "checkActivity",
+              value: function checkActivity(activity) {
+                  var evaluationActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : activity, emitEvent = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
+                  if (!activity.isAvailable) {
+                      return false;
+                  }
+                  var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
+                      return rule.action === RuleActionType.DISABLED;
+                  });
+                  if (this.ruleEngineProvider().checkSequencingRules(evaluationActivity, disabledRules) !== null) {
+                      return false;
+                  }
+                  if (!this.checkLimitConditions(activity, emitEvent)) {
+                      return false;
+                  }
+                  return true;
+              }
+          },
+          {
+              /**
+     * Limit Conditions Check Process (UP.1)
+     * Checks if any limit conditions are violated for the activity
+     * @param {Activity} activity - The activity to check limit conditions for
+     * @return {boolean} - True if limit conditions are met, false if violated
+     */ key: "checkLimitConditions",
+              value: function checkLimitConditions(activity) {
+                  var emitEvent = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+                  var result = true;
+                  var failureReason = "";
+                  if (activity.isSuspended) {
+                      if (emitEvent) this.fireEvent("onLimitConditionCheck", {
+                          activity: activity,
+                          result: true,
+                          failureReason: "",
+                          attemptInProgress: true
+                      });
+                      return true;
+                  }
+                  if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
+                      if (activity.attemptCount >= activity.attemptLimit) {
+                          result = false;
+                          failureReason = "Attempt limit exceeded";
+                      }
+                  }
+                  if (result && activity.attemptAbsoluteDurationLimit) {
+                      var limitDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
+                      if (limitDuration > 0) {
+                          var currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+                          if (currentDuration >= limitDuration) {
+                              result = false;
+                              failureReason = "Attempt duration limit exceeded";
+                          }
+                      }
+                  }
+                  if (result && activity.activityAbsoluteDurationLimit) {
+                      var limitDuration1 = getDurationAsSeconds(activity.activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
+                      if (limitDuration1 > 0) {
+                          var currentDuration1 = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+                          if (currentDuration1 >= limitDuration1) {
+                              result = false;
+                              failureReason = "Activity duration limit exceeded";
+                          }
+                      }
+                  }
+                  if (result && activity.beginTimeLimit) {
+                      var currentTime = this.now();
+                      var beginTime = new Date(activity.beginTimeLimit);
+                      if (currentTime < beginTime) {
+                          result = false;
+                          failureReason = "Not yet time to begin";
+                      }
+                  }
+                  if (result && activity.endTimeLimit) {
+                      var currentTime1 = this.now();
+                      var endTime = new Date(activity.endTimeLimit);
+                      if (currentTime1 > endTime) {
+                          result = false;
+                          failureReason = "Time limit expired";
+                      }
+                  }
+                  if (emitEvent) this.fireEvent("onLimitConditionCheck", {
+                      activity: activity,
+                      result: result,
+                      failureReason: failureReason,
+                      checks: {
+                          attemptLimit: activity.attemptLimit,
+                          attemptCount: activity.attemptCount,
+                          attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
+                          activityDurationLimit: activity.activityAbsoluteDurationLimit,
+                          beginTimeLimit: activity.beginTimeLimit,
+                          endTimeLimit: activity.endTimeLimit
+                      }
+                  });
+                  return result;
+              }
+          },
+          {
+              /**
+     * Check if activity is part of tree
+     */ key: "isActivityPartOfTree",
+              value: function isActivityPartOfTree(activity, root) {
+                  if (activity === root) {
+                      return true;
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = root.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          if (this.isActivityPartOfTree(activity, child)) {
+                              return true;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return false;
+              }
+          },
+          {
+              /**
+     * Get all active activities in the tree
+     */ key: "getActiveActivities",
+              value: function getActiveActivities() {
+                  var activeActivities = [];
+                  if (this.activityTree.root) {
+                      this.collectActiveActivities(this.activityTree.root, activeActivities);
+                  }
+                  return activeActivities;
+              }
+          },
+          {
+              key: "collectActiveActivities",
+              value: function collectActiveActivities(activity, activeActivities) {
+                  if (activity.isActive) {
+                      activeActivities.push(activity);
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          this.collectActiveActivities(child, activeActivities);
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              /**
+     * Get required resources for activity
+     */ key: "getRequiredResources",
+              value: function getRequiredResources(activity) {
+                  var resources = [];
+                  var activityInfo = (activity.title + " " + activity.location).toLowerCase();
+                  if (activityInfo.includes("video") || activityInfo.includes("multimedia")) {
+                      resources.push("video-codec");
+                  }
+                  if (activityInfo.includes("audio") || activityInfo.includes("sound")) {
+                      resources.push("audio-codec");
+                  }
+                  if (activityInfo.includes("flash") || activityInfo.includes(".swf")) {
+                      resources.push("flash-plugin");
+                  }
+                  if (activityInfo.includes("java") || activityInfo.includes("applet")) {
+                      resources.push("java-runtime");
+                  }
+                  if (activity.children && activity.children.length > 0) {
+                      resources.push("high-bandwidth");
+                  }
+                  if (activity.attemptAbsoluteDurationLimit && this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
+                      resources.push("extended-storage");
+                  }
+                  if (activity.attemptLimit && activity.attemptLimit > 1) {
+                      resources.push("persistent-storage");
+                  }
+                  return resources;
+              }
+          },
+          {
+              /**
+     * Check if resource is available
+     */ key: "isResourceAvailable",
+              value: function isResourceAvailable(resource) {
+                  try {
+                      switch(resource){
+                          case "video-codec":
+                              return !!document.createElement("video").canPlayType;
+                          case "audio-codec":
+                              return !!document.createElement("audio").canPlayType;
+                          case "flash-plugin":
+                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
+                                  return plugin.name === "Shockwave Flash";
+                              });
+                          case "java-runtime":
+                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
+                                  return plugin.name === "Java";
+                              });
+                          case "high-bandwidth":
+                              if ("connection" in navigator) {
+                                  var connection = navigator.connection;
+                                  return connection.effectiveType === "4g" || connection.downlink > 5;
+                              }
+                              return true;
+                          // Assume available if can't detect
+                          case "extended-storage":
+                              return true;
+                          case "persistent-storage":
+                              return "localStorage" in window && "sessionStorage" in window;
+                          default:
+                              return true;
+                      }
+                  } catch (error) {
+                      return false;
+                  }
+              }
+          },
+          {
+              /**
+     * Check system resource limits
+     */ key: "checkSystemLimits",
+              value: function checkSystemLimits() {
+                  try {
+                      var adequate = true;
+                      if ("memory" in performance) {
+                          var memory = performance.memory;
+                          var memoryUsagePercent = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
+                          if (memoryUsagePercent > 0.8) {
+                              adequate = false;
+                          }
+                      }
+                      if ("deviceMemory" in navigator) {
+                          var deviceMemory = navigator.deviceMemory;
+                          if (deviceMemory < 2) {
+                              adequate = false;
+                          }
+                      }
+                      if ("hardwareConcurrency" in navigator) {
+                          var cores = navigator.hardwareConcurrency;
+                          if (cores < 2) {
+                              adequate = false;
+                          }
+                      }
+                      if ("connection" in navigator) {
+                          var connection = navigator.connection;
+                          if (connection.saveData || connection.effectiveType === "slow-2g") {
+                              adequate = false;
+                          }
+                      }
+                      return {
+                          adequate: adequate
+                      };
+                  } catch (error) {
+                      return {
+                          adequate: true
+                      };
+                  }
+              }
+          },
+          {
+              key: "hasPendingDeliveryRequests",
+              value: function hasPendingDeliveryRequests() {
+                  if (this.activityTree && this.activityTree.pendingRequests) {
+                      return this.activityTree.pendingRequests.length > 0;
+                  }
+                  if (typeof window !== "undefined" && window.pendingScormRequests) {
+                      return window.pendingScormRequests > 0;
+                  }
+                  return false;
+              }
+          },
+          {
+              key: "isDeliveryLocked",
+              value: function isDeliveryLocked() {
+                  if (this.activityTree && this.activityTree.navigationLocked) {
+                      return true;
+                  }
+                  if (this.activityTree && this.activityTree.terminationInProgress) {
+                      return true;
+                  }
+                  var resourceCheck = this.checkSystemLimits();
+                  if (!resourceCheck.adequate) {
+                      return true;
+                  }
+                  return !!(typeof window !== "undefined" && window.scormMaintenanceMode);
+              }
+          },
+          {
+              /**
+     * Get activity prerequisites
+     */ key: "getPrerequisites",
+              value: function getPrerequisites(activity) {
+                  var prerequisites = [];
+                  if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
+                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                      try {
+                          for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                              var rule = _step.value;
+                              if (rule.conditions && rule.conditions.length > 0) {
+                                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                                  try {
+                                      for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                                          var condition = _step1.value;
+                                          if (condition.referencedObjectiveID && condition.referencedObjectiveID !== activity.id) {
+                                              prerequisites.push(condition.referencedObjectiveID);
+                                          }
+                                      }
+                                  } catch (err) {
+                                      _didIteratorError1 = true;
+                                      _iteratorError1 = err;
+                                  } finally{
+                                      try {
+                                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                              _iterator1.return();
+                                          }
+                                      } finally{
+                                          if (_didIteratorError1) {
+                                              throw _iteratorError1;
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError = true;
+                          _iteratorError = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                  _iterator.return();
+                              }
+                          } finally{
+                              if (_didIteratorError) {
+                                  throw _iteratorError;
+                              }
+                          }
+                      }
+                  }
+                  if (activity.parent && activity.sequencingControls && !activity.sequencingControls.choiceExit) {
+                      var siblings = activity.parent.children;
+                      if (siblings) {
+                          var activityIndex = siblings.indexOf(activity);
+                          for(var i = 0; i < activityIndex; i++){
+                              var sibling = siblings[i];
+                              if (sibling) {
+                                  prerequisites.push(sibling.id);
+                              }
+                          }
+                      }
+                  }
+                  if (activity.prerequisiteActivities) {
+                      var _prerequisites;
+                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$c(activity.prerequisiteActivities));
+                  }
+                  return Array.from(new Set(prerequisites));
+              }
+          },
+          {
+              /**
+     * Check if prerequisite is satisfied
+     */ key: "isPrerequisiteSatisfied",
+              value: function isPrerequisiteSatisfied(prerequisiteId, _activity) {
+                  var prerequisite = this.activityTree.getActivity(prerequisiteId);
+                  if (!prerequisite) {
+                      return false;
+                  }
+                  return prerequisite.completionStatus === "completed";
+              }
+          },
+          {
+              /**
+     * Get objective dependencies
+     */ key: "getObjectiveDependencies",
+              value: function getObjectiveDependencies(activity) {
+                  var dependencies = [];
+                  var objectives = activity.objectives;
+                  if (objectives && objectives.length > 0) {
+                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                      try {
+                          for(var _iterator = objectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                              var objective = _step.value;
+                              if (objective.globalObjectiveID) {
+                                  dependencies.push(objective.globalObjectiveID);
+                              }
+                              if (!objective.satisfiedByMeasure && objective.readNormalizedMeasure) {
+                                  dependencies.push(objective.id + "_measure");
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError = true;
+                          _iteratorError = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                  _iterator.return();
+                              }
+                          } finally{
+                              if (_didIteratorError) {
+                                  throw _iteratorError;
+                              }
+                          }
+                      }
+                  }
+                  if (activity.sequencingRules) {
+                      var allRules = _to_consumable_array$c(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$c(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$c(activity.sequencingRules.postConditionRules || []));
+                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                      try {
+                          for(var _iterator1 = allRules[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                              var rule = _step1.value;
+                              if (rule.conditions && rule.conditions.length > 0) {
+                                  var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                                  try {
+                                      for(var _iterator2 = rule.conditions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                                          var condition = _step2.value;
+                                          if (condition.objectiveReference && condition.objectiveReference !== activity.id) {
+                                              dependencies.push(condition.objectiveReference);
+                                          }
+                                      }
+                                  } catch (err) {
+                                      _didIteratorError2 = true;
+                                      _iteratorError2 = err;
+                                  } finally{
+                                      try {
+                                          if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                              _iterator2.return();
+                                          }
+                                      } finally{
+                                          if (_didIteratorError2) {
+                                              throw _iteratorError2;
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError1 = true;
+                          _iteratorError1 = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                  _iterator1.return();
+                              }
+                          } finally{
+                              if (_didIteratorError1) {
+                                  throw _iteratorError1;
+                              }
+                          }
+                      }
+                  }
+                  return Array.from(new Set(dependencies));
+              }
+          },
+          {
+              /**
+     * Check if objective dependency is satisfied
+     */ key: "isObjectiveDependencySatisfied",
+              value: function isObjectiveDependencySatisfied(objectiveId) {
+                  if (this.activityTree && this.activityTree.globalObjectives) {
+                      var globalObjectives = this.activityTree.globalObjectives;
+                      var globalObjective = globalObjectives[objectiveId];
+                      if (globalObjective) {
+                          return globalObjective.satisfied === true && globalObjective.statusKnown === true;
+                      }
+                  }
+                  if (objectiveId.endsWith("_measure")) {
+                      var baseObjectiveId = objectiveId.replace("_measure", "");
+                      if (this.activityTree && this.activityTree.globalObjectives) {
+                          var globalObjectives1 = this.activityTree.globalObjectives;
+                          var globalObjective1 = globalObjectives1[baseObjectiveId];
+                          if (globalObjective1) {
+                              return globalObjective1.measureKnown === true && globalObjective1.normalizedMeasure >= 0;
+                          }
+                      }
+                  }
+                  var referencedActivity = this.activityTree.getActivity(objectiveId);
+                  if (referencedActivity) {
+                      return referencedActivity.objectiveSatisfiedStatus && referencedActivity.objectiveMeasureStatus;
+                  }
+                  return false;
+              }
+          },
+          {
+              key: "getSequencingRuleDependencies",
+              value: function getSequencingRuleDependencies(activity) {
+                  var satisfied = true;
+                  try {
+                      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
+                          var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                          try {
+                              for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                                  var rule = _step.value;
+                                  if (rule.conditions && rule.conditions.length > 0) {
+                                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                                      try {
+                                          for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                                              var condition = _step1.value;
+                                              var conditionType = condition.conditionType || condition.condition;
+                                              switch(conditionType){
+                                                  case "activityProgressKnown":
+                                                      if (!activity.progressMeasureStatus) satisfied = false;
+                                                      break;
+                                                  case "objectiveStatusKnown":
+                                                  case "objectiveSatisfied":
+                                                      {
+                                                          var objectiveId = condition.referencedObjectiveID || activity.id;
+                                                          if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
+                                                          break;
+                                                      }
+                                                  case "attemptLimitExceeded":
+                                                      if (activity.attemptLimit === null) satisfied = false;
+                                                      break;
+                                                  case "timeLimitExceeded":
+                                                      if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit) satisfied = false;
+                                                      break;
+                                                  case "always":
+                                                  case "never":
+                                                      break;
+                                                  default:
+                                                      satisfied = false;
+                                              }
+                                          }
+                                      } catch (err) {
+                                          _didIteratorError1 = true;
+                                          _iteratorError1 = err;
+                                      } finally{
+                                          try {
+                                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                                  _iterator1.return();
+                                              }
+                                          } finally{
+                                              if (_didIteratorError1) {
+                                                  throw _iteratorError1;
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          } catch (err) {
+                              _didIteratorError = true;
+                              _iteratorError = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                      _iterator.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError) {
+                                      throw _iteratorError;
+                                  }
+                              }
+                          }
+                      }
+                      if (activity.sequencingRules && activity.sequencingRules.exitConditionRules) {
+                          var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                          try {
+                              for(var _iterator2 = activity.sequencingRules.exitConditionRules[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                                  var rule1 = _step2.value;
+                                  if (rule1.conditions && rule1.conditions.length > 0) {
+                                      var _iteratorNormalCompletion3 = true, _didIteratorError3 = false, _iteratorError3 = undefined;
+                                      try {
+                                          for(var _iterator3 = rule1.conditions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true){
+                                              var condition1 = _step3.value;
+                                              var conditionType1 = condition1.conditionType || condition1.condition;
+                                              if ([
+                                                  "objectiveStatusKnown",
+                                                  "objectiveSatisfied"
+                                              ].includes(conditionType1)) {
+                                                  var objectiveId1 = condition1.referencedObjectiveID || activity.id;
+                                                  if (!this.isObjectiveDependencySatisfied(objectiveId1)) satisfied = false;
+                                              }
+                                          }
+                                      } catch (err) {
+                                          _didIteratorError3 = true;
+                                          _iteratorError3 = err;
+                                      } finally{
+                                          try {
+                                              if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
+                                                  _iterator3.return();
+                                              }
+                                          } finally{
+                                              if (_didIteratorError3) {
+                                                  throw _iteratorError3;
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          } catch (err) {
+                              _didIteratorError2 = true;
+                              _iteratorError2 = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                      _iterator2.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError2) {
+                                      throw _iteratorError2;
+                                  }
+                              }
+                          }
+                      }
+                      if (activity.rollupRules && activity.rollupRules.rules) {
+                          var _iteratorNormalCompletion4 = true, _didIteratorError4 = false, _iteratorError4 = undefined;
+                          try {
+                              for(var _iterator4 = activity.rollupRules.rules[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true){
+                                  var rule2 = _step4.value;
+                                  if (rule2.conditions && rule2.conditions.length > 0) {
+                                      if (activity.children && activity.children.length > 0) {
+                                          var _iteratorNormalCompletion5 = true, _didIteratorError5 = false, _iteratorError5 = undefined;
+                                          try {
+                                              for(var _iterator5 = activity.children[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true){
+                                                  var child = _step5.value;
+                                                  if (!child.isCompleted) {
+                                                      satisfied = false;
+                                                      break;
+                                                  }
+                                              }
+                                          } catch (err) {
+                                              _didIteratorError5 = true;
+                                              _iteratorError5 = err;
+                                          } finally{
+                                              try {
+                                                  if (!_iteratorNormalCompletion5 && _iterator5.return != null) {
+                                                      _iterator5.return();
+                                                  }
+                                              } finally{
+                                                  if (_didIteratorError5) {
+                                                      throw _iteratorError5;
+                                                  }
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          } catch (err) {
+                              _didIteratorError4 = true;
+                              _iteratorError4 = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion4 && _iterator4.return != null) {
+                                      _iterator4.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError4) {
+                                      throw _iteratorError4;
+                                  }
+                              }
+                          }
+                      }
+                  } catch (error) {
+                      satisfied = false;
+                  }
+                  return {
+                      satisfied: satisfied
+                  };
+              }
+          },
+          {
+              /**
+     * Helper method to parse ISO 8601 duration to minutes
+     */ key: "parseDurationToMinutes",
+              value: function parseDurationToMinutes(duration) {
+                  return getDurationAsSeconds(duration, scorm2004_regex.CMITimespan) / 60;
+              }
+          },
+          {
+              /**
+     * Fire a sequencing event
+     * @param {string} eventType - The type of event
+     * @param {any} data - Event data
+     */ key: "fireEvent",
+              value: function fireEvent(eventType, data) {
+                  try {
+                      if (this.eventCallback) {
+                          this.eventCallback(eventType, data);
+                      }
+                  } catch (error) {
+                      console.warn("Failed to fire delivery validator event ".concat(eventType, ": ").concat(error));
+                  }
+              }
+          }
+      ]);
+      return DeliveryValidator;
+  }();
+
+  function _class_call_check$1b(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$1b(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$1b(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1b(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _type_of$18(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$16 = Object.defineProperty;
+  var __defNormalProp$16 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$16(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$16 = function __publicField(obj, key, value) {
+      return __defNormalProp$16(obj, (_type_of$18(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityTreeQueries = /*#__PURE__*/ function() {
       function ActivityTreeQueries(activityTree) {
-          _class_call_check$1e(this, ActivityTreeQueries);
-          __publicField$19(this, "activityTree", activityTree);
+          _class_call_check$1b(this, ActivityTreeQueries);
+          __publicField$16(this, "activityTree", activityTree);
       }
-      _create_class$1d(ActivityTreeQueries, [
+      _create_class$1b(ActivityTreeQueries, [
           {
               /**
      * Check if activity is in the activity tree
@@ -3424,10 +4863,10 @@
       return ActivityTreeQueries;
   }();
 
-  function _class_call_check$1d(instance, Constructor) {
+  function _class_call_check$1a(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1c(target, props) {
+  function _defineProperties$1a(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -3436,33 +4875,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1c(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1c(Constructor.prototype, protoProps);
+  function _create_class$1a(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$1a(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$1a(obj) {
+  function _type_of$17(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$18 = Object.defineProperty;
-  var __defNormalProp$18 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$18(obj, key, {
+  var __defProp$15 = Object.defineProperty;
+  var __defNormalProp$15 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$15(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$18 = function __publicField(obj, key, value) {
-      return __defNormalProp$18(obj, (typeof key === "undefined" ? "undefined" : _type_of$1a(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$15 = function __publicField(obj, key, value) {
+      return __defNormalProp$15(obj, (typeof key === "undefined" ? "undefined" : _type_of$17(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceConstraintValidator = /*#__PURE__*/ function() {
       function ChoiceConstraintValidator(activityTree, treeQueries) {
-          _class_call_check$1d(this, ChoiceConstraintValidator);
-          __publicField$18(this, "activityTree", activityTree);
-          __publicField$18(this, "treeQueries", treeQueries);
+          _class_call_check$1a(this, ChoiceConstraintValidator);
+          __publicField$15(this, "activityTree", activityTree);
+          __publicField$15(this, "treeQueries", treeQueries);
       }
-      _create_class$1c(ChoiceConstraintValidator, [
+      _create_class$1a(ChoiceConstraintValidator, [
           {
               /**
      * Main entry point - consolidates ALL constraint validation for choice navigation
@@ -3957,440 +5396,6 @@
       return ChoiceConstraintValidator;
   }();
 
-  function _class_call_check$1c(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _type_of$19(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$17 = Object.defineProperty;
-  var __defNormalProp$17 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$17(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$17 = function __publicField(obj, key, value) {
-      return __defNormalProp$17(obj, (typeof key === "undefined" ? "undefined" : _type_of$19(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var SequencingRequestType = /* @__PURE__ */ function(SequencingRequestType2) {
-      SequencingRequestType2["START"] = "start";
-      SequencingRequestType2["RESUME_ALL"] = "resumeAll";
-      SequencingRequestType2["CONTINUE"] = "continue";
-      SequencingRequestType2["PREVIOUS"] = "previous";
-      SequencingRequestType2["CHOICE"] = "choice";
-      SequencingRequestType2["JUMP"] = "jump";
-      SequencingRequestType2["EXIT"] = "exit";
-      SequencingRequestType2["EXIT_PARENT"] = "exitParent";
-      SequencingRequestType2["EXIT_ALL"] = "exitAll";
-      SequencingRequestType2["ABANDON"] = "abandon";
-      SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
-      SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
-      SequencingRequestType2["RETRY"] = "retry";
-      SequencingRequestType2["RETRY_ALL"] = "retryAll";
-      return SequencingRequestType2;
-  }(SequencingRequestType || {});
-  var DeliveryRequestType = /* @__PURE__ */ function(DeliveryRequestType2) {
-      DeliveryRequestType2["DELIVER"] = "deliver";
-      DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
-      return DeliveryRequestType2;
-  }(DeliveryRequestType || {});
-  var SequencingResult = function SequencingResult() {
-      var deliveryRequest = arguments.length > 0 && arguments[0] !== void 0 /* DO_NOT_DELIVER */  ? arguments[0] : "doNotDeliver", targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
-      _class_call_check$1c(this, SequencingResult);
-      __publicField$17(this, "deliveryRequest");
-      __publicField$17(this, "targetActivity");
-      __publicField$17(this, "exception");
-      __publicField$17(this, "endSequencingSession");
-      this.deliveryRequest = deliveryRequest;
-      this.targetActivity = targetActivity;
-      this.exception = exception;
-      this.endSequencingSession = endSequencingSession;
-  };
-  var FlowSubprocessResult = function FlowSubprocessResult(identifiedActivity, deliverable) {
-      var exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
-      _class_call_check$1c(this, FlowSubprocessResult);
-      __publicField$17(this, "identifiedActivity");
-      __publicField$17(this, "deliverable");
-      __publicField$17(this, "exception");
-      __publicField$17(this, "endSequencingSession");
-      this.identifiedActivity = identifiedActivity;
-      this.deliverable = deliverable;
-      this.exception = exception;
-      this.endSequencingSession = endSequencingSession;
-  };
-  var ChoiceTraversalResult = function ChoiceTraversalResult(activity) {
-      var exception = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null;
-      _class_call_check$1c(this, ChoiceTraversalResult);
-      __publicField$17(this, "activity");
-      __publicField$17(this, "exception");
-      this.activity = activity;
-      this.exception = exception;
-  };
-  var FlowSubprocessMode = /* @__PURE__ */ function(FlowSubprocessMode2) {
-      FlowSubprocessMode2["FORWARD"] = "forward";
-      FlowSubprocessMode2["BACKWARD"] = "backward";
-      return FlowSubprocessMode2;
-  }(FlowSubprocessMode || {});
-
-  function _class_call_check$1b(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$1b(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$1b(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1b(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _type_of$18(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$16 = Object.defineProperty;
-  var __defNormalProp$16 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$16(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$16 = function __publicField(obj, key, value) {
-      return __defNormalProp$16(obj, (typeof key === "undefined" ? "undefined" : _type_of$18(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var RuleEvaluationEngine = /*#__PURE__*/ function() {
-      function RuleEvaluationEngine() {
-          var options = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
-          _class_call_check$1b(this, RuleEvaluationEngine);
-          __publicField$16(this, "now");
-          __publicField$16(this, "getAttemptElapsedSecondsHook");
-          this.now = options.now || function() {
-              return /* @__PURE__ */ new Date();
-          };
-          this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
-      }
-      _create_class$1b(RuleEvaluationEngine, [
-          {
-              /**
-     * Sequencing Rules Check Process (UP.2)
-     * General process for evaluating a set of sequencing rules
-     * @param {Activity} activity - The activity to evaluate rules for
-     * @param {SequencingRule[]} rules - The rules to evaluate
-     * @return {RuleActionType | null} - The action to take, or null if no rules apply
-     */ key: "checkSequencingRules",
-              value: function checkSequencingRules(activity, rules) {
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = rules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var rule = _step.value;
-                          if (this.checkRuleSubprocess(activity, rule)) {
-                              return rule.action;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return null;
-              }
-          },
-          {
-              /**
-     * Sequencing Rules Check Subprocess (UP.2.1)
-     * Evaluates individual sequencing rule conditions
-     * @param {Activity} activity - The activity to evaluate the rule for
-     * @param {SequencingRule} rule - The rule to evaluate
-     * @return {boolean} - True only when the rule evaluates to definite true
-     */ key: "checkRuleSubprocess",
-              value: function checkRuleSubprocess(activity, rule) {
-                  var _this_getAttemptElapsedSecondsHook;
-                  return rule.evaluate(activity, this.now, (_this_getAttemptElapsedSecondsHook = this.getAttemptElapsedSecondsHook) !== null && _this_getAttemptElapsedSecondsHook !== void 0 ? _this_getAttemptElapsedSecondsHook : void 0);
-              }
-          },
-          {
-              /**
-     * Exit Action Rules Subprocess (TB.2.1)
-     * Evaluates the exit condition rules for an activity
-     * @param {Activity} activity - The activity to evaluate exit rules for
-     * @return {RuleActionType | null} - The exit action to process, if any
-     */ key: "evaluateExitRules",
-              value: function evaluateExitRules(activity) {
-                  var exitAction = this.checkSequencingRules(activity, activity.sequencingRules.exitConditionRules);
-                  if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
-                      return exitAction;
-                  }
-                  return null;
-              }
-          },
-          {
-              /**
-     * Post Condition Rules Subprocess (TB.2.2)
-     * Evaluates the post-condition rules for an activity after delivery
-     * @param {Activity} activity - The activity to evaluate post-condition rules for
-     * @return {RuleActionType | null} - The action to take, if any
-     */ key: "evaluatePostConditionAction",
-              value: function evaluatePostConditionAction(activity) {
-                  var postAction = this.checkSequencingRules(activity, activity.sequencingRules.postConditionRules);
-                  var validActions = [
-                      RuleActionType.EXIT_PARENT,
-                      RuleActionType.EXIT_ALL,
-                      RuleActionType.RETRY,
-                      RuleActionType.RETRY_ALL,
-                      RuleActionType.CONTINUE,
-                      RuleActionType.PREVIOUS,
-                      RuleActionType.STOP_FORWARD_TRAVERSAL
-                  ];
-                  if (postAction && validActions.includes(postAction)) {
-                      return postAction;
-                  }
-                  return null;
-              }
-          },
-          {
-              /**
-     * Evaluate post-condition rules and map to sequencing/termination requests
-     * @param {Activity} activity - The activity to evaluate
-     * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
-     */ key: "evaluatePostConditions",
-              value: function evaluatePostConditions(activity) {
-                  var postAction = this.evaluatePostConditionAction(activity);
-                  if (!postAction) {
-                      return {
-                          sequencingRequest: null,
-                          terminationRequest: null
-                      };
-                  }
-                  switch(postAction){
-                      case RuleActionType.EXIT_PARENT:
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: SequencingRequestType.EXIT_PARENT
-                          };
-                      case RuleActionType.EXIT_ALL:
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: SequencingRequestType.EXIT_ALL
-                          };
-                      case RuleActionType.RETRY:
-                          return {
-                              sequencingRequest: SequencingRequestType.RETRY,
-                              terminationRequest: null
-                          };
-                      case RuleActionType.RETRY_ALL:
-                          return {
-                              sequencingRequest: SequencingRequestType.RETRY,
-                              terminationRequest: SequencingRequestType.EXIT_ALL
-                          };
-                      case RuleActionType.CONTINUE:
-                          return {
-                              sequencingRequest: SequencingRequestType.CONTINUE,
-                              terminationRequest: null
-                          };
-                      case RuleActionType.PREVIOUS:
-                          return {
-                              sequencingRequest: SequencingRequestType.PREVIOUS,
-                              terminationRequest: null
-                          };
-                      case RuleActionType.STOP_FORWARD_TRAVERSAL:
-                          activity.sequencingControls.stopForwardTraversal = true;
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: null
-                          };
-                      default:
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: null
-                          };
-                  }
-              }
-          },
-          {
-              /**
-     * Limit Conditions Check Process (UP.1)
-     * Checks if an activity has exceeded its limit conditions
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if limit conditions are violated
-     */ key: "checkLimitConditions",
-              value: function checkLimitConditions(activity) {
-                  if (activity.isSuspended) {
-                      return false;
-                  }
-                  if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
-                      return true;
-                  }
-                  if (activity.attemptAbsoluteDurationLimit !== null) {
-                      var attemptLimitMs = this.parseDuration(activity.attemptAbsoluteDurationLimit);
-                      if (attemptLimitMs > 0) {
-                          var attemptDurationMs = this.parseDuration(activity.attemptExperiencedDuration);
-                          if (attemptDurationMs >= attemptLimitMs) {
-                              return true;
-                          }
-                      }
-                  }
-                  if (activity.activityAbsoluteDurationLimit !== null) {
-                      var activityLimitMs = this.parseDuration(activity.activityAbsoluteDurationLimit);
-                      if (activityLimitMs > 0) {
-                          var activityDurationMs = this.parseDuration(activity.activityExperiencedDuration);
-                          if (activityDurationMs >= activityLimitMs) {
-                              return true;
-                          }
-                      }
-                  }
-                  return false;
-              }
-          },
-          {
-              /**
-     * Parse ISO 8601 duration to milliseconds
-     * @param {string} duration - ISO 8601 duration string
-     * @return {number} - Duration in milliseconds
-     */ key: "parseDuration",
-              value: function parseDuration(duration) {
-                  if (!duration || typeof duration !== "string") {
-                      return 0;
-                  }
-                  var regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
-                  var matches = duration.match(regex);
-                  if (!matches || duration === "P" || duration.endsWith("T")) {
-                      return 0;
-                  }
-                  var years = parseFloat(matches[1] || "0");
-                  var months = parseFloat(matches[2] || "0");
-                  var weeks = parseFloat(matches[3] || "0");
-                  var days = parseFloat(matches[4] || "0");
-                  var hours = parseFloat(matches[5] || "0");
-                  var minutes = parseFloat(matches[6] || "0");
-                  var seconds = parseFloat(matches[7] || "0");
-                  var totalMs = 0;
-                  totalMs += years * 365.25 * 24 * 3600 * 1e3;
-                  totalMs += months * 30.44 * 24 * 3600 * 1e3;
-                  totalMs += weeks * 7 * 24 * 3600 * 1e3;
-                  totalMs += days * 24 * 3600 * 1e3;
-                  totalMs += hours * 3600 * 1e3;
-                  totalMs += minutes * 60 * 1e3;
-                  totalMs += seconds * 1e3;
-                  return totalMs;
-              }
-          },
-          {
-              /**
-     * Get elapsed attempt seconds for an activity
-     * @param {Activity} activity - The activity
-     * @return {number} - Elapsed seconds
-     */ key: "getElapsedSeconds",
-              value: function getElapsedSeconds(activity) {
-                  if (this.getAttemptElapsedSecondsHook) {
-                      try {
-                          return this.getAttemptElapsedSecondsHook(activity) || 0;
-                      } catch (unused) {
-                          return 0;
-                      }
-                  }
-                  if (activity.attemptAbsoluteStartTime) {
-                      var start = new Date(activity.attemptAbsoluteStartTime).getTime();
-                      var nowMs = this.now().getTime();
-                      if (!Number.isNaN(start) && nowMs > start) {
-                          return Math.max(0, (nowMs - start) / 1e3);
-                      }
-                  }
-                  return 0;
-              }
-          },
-          {
-              /**
-     * Check if time limit has been exceeded
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if time limit exceeded
-     */ key: "isTimeLimitExceeded",
-              value: function isTimeLimitExceeded(activity) {
-                  var limit = activity.timeLimitDuration;
-                  if (!limit && activity.attemptAbsoluteDurationLimit) {
-                      limit = activity.attemptAbsoluteDurationLimit;
-                  }
-                  if (!limit) {
-                      return false;
-                  }
-                  var limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-                  if (limitSeconds <= 0) {
-                      return false;
-                  }
-                  var elapsedSeconds = this.getElapsedSeconds(activity);
-                  return elapsedSeconds > limitSeconds;
-              }
-          },
-          {
-              /**
-     * Check if activity is outside available time range
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if outside time range
-     */ key: "isOutsideAvailableTimeRange",
-              value: function isOutsideAvailableTimeRange(activity) {
-                  var now = this.now();
-                  if (activity.beginTimeLimit) {
-                      try {
-                          var beginDate = new Date(activity.beginTimeLimit);
-                          if (!Number.isNaN(beginDate.getTime()) && now < beginDate) {
-                              return true;
-                          }
-                      } catch (unused) {}
-                  }
-                  if (activity.endTimeLimit) {
-                      try {
-                          var endDate = new Date(activity.endTimeLimit);
-                          if (!Number.isNaN(endDate.getTime()) && now > endDate) {
-                              return true;
-                          }
-                      } catch (unused) {}
-                  }
-                  return false;
-              }
-          },
-          {
-              /**
-     * Evaluate pre-condition rules and check if activity can be delivered
-     * @param {Activity} activity - The activity to check
-     * @return {{ canDeliver: boolean; wasSkipped: boolean }} - Delivery check result
-     */ key: "canDeliverActivity",
-              value: function canDeliverActivity(activity) {
-                  if (this.checkLimitConditions(activity)) {
-                      return {
-                          canDeliver: false,
-                          wasSkipped: false
-                      };
-                  }
-                  var preConditionResult = this.checkSequencingRules(activity, activity.sequencingRules.preConditionRules);
-                  var wasSkipped = preConditionResult === RuleActionType.SKIP;
-                  return {
-                      canDeliver: preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED,
-                      wasSkipped: wasSkipped
-                  };
-              }
-          }
-      ]);
-      return RuleEvaluationEngine;
-  }();
-
   function _assert_this_initialized$s(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -4399,10 +5404,10 @@
       derived = _get_prototype_of$s(derived);
       return _possible_constructor_return$s(_this, _is_native_reflect_construct$s() ? Reflect.construct(derived, args || [], _get_prototype_of$s(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$1a(instance, Constructor) {
+  function _class_call_check$19(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$1a(target, props) {
+  function _defineProperties$19(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -4411,8 +5416,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$1a(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$1a(Constructor.prototype, protoProps);
+  function _create_class$19(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$19(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$s(o) {
@@ -4443,7 +5448,7 @@
       })();
   }
   function _possible_constructor_return$s(self, call) {
-      if (call && (_type_of$17(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$16(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$s(self);
   }
   function _set_prototype_of$s(o, p) {
@@ -4453,21 +5458,21 @@
       };
       return _set_prototype_of$s(o, p);
   }
-  function _type_of$17(obj) {
+  function _type_of$16(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$15 = Object.defineProperty;
-  var __defNormalProp$15 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$15(obj, key, {
+  var __defProp$14 = Object.defineProperty;
+  var __defNormalProp$14 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$14(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$15 = function __publicField(obj, key, value) {
-      return __defNormalProp$15(obj, (typeof key === "undefined" ? "undefined" : _type_of$17(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$14 = function __publicField(obj, key, value) {
+      return __defNormalProp$14(obj, (typeof key === "undefined" ? "undefined" : _type_of$16(key)) !== "symbol" ? key + "" : key, value);
   };
   var SelectionTiming = /* @__PURE__ */ function(SelectionTiming2) {
       SelectionTiming2["NEVER"] = "never";
@@ -4484,45 +5489,45 @@
   var SequencingControls = /*#__PURE__*/ function(BaseCMI) {
       _inherits$s(SequencingControls, BaseCMI);
       function SequencingControls() {
-          _class_call_check$1a(this, SequencingControls);
+          _class_call_check$19(this, SequencingControls);
           var _this;
           _this = _call_super$s(this, SequencingControls, [
               "sequencingControls"
           ]);
           // Sequencing Control Modes
-          __publicField$15(_this, "_enabled", true);
-          __publicField$15(_this, "_choice", true);
-          __publicField$15(_this, "_choiceExit", true);
+          __publicField$14(_this, "_enabled", true);
+          __publicField$14(_this, "_choice", true);
+          __publicField$14(_this, "_choiceExit", true);
           // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
-          __publicField$15(_this, "_flow", true);
-          __publicField$15(_this, "_forwardOnly", false);
-          __publicField$15(_this, "_useCurrentAttemptObjectiveInfo", true);
-          __publicField$15(_this, "_useCurrentAttemptProgressInfo", true);
+          __publicField$14(_this, "_flow", true);
+          __publicField$14(_this, "_forwardOnly", false);
+          __publicField$14(_this, "_useCurrentAttemptObjectiveInfo", true);
+          __publicField$14(_this, "_useCurrentAttemptProgressInfo", true);
           // Constrain Choice Controls
-          __publicField$15(_this, "_preventActivation", false);
-          __publicField$15(_this, "_constrainChoice", false);
+          __publicField$14(_this, "_preventActivation", false);
+          __publicField$14(_this, "_constrainChoice", false);
           // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
-          __publicField$15(_this, "_stopForwardTraversal", false);
+          __publicField$14(_this, "_stopForwardTraversal", false);
           // Rollup Controls
-          __publicField$15(_this, "_rollupObjectiveSatisfied", true);
-          __publicField$15(_this, "_rollupProgressCompletion", true);
-          __publicField$15(_this, "_objectiveMeasureWeight", 1);
+          __publicField$14(_this, "_rollupObjectiveSatisfied", true);
+          __publicField$14(_this, "_rollupProgressCompletion", true);
+          __publicField$14(_this, "_objectiveMeasureWeight", 1);
           // Selection Controls
-          __publicField$15(_this, "_selectionTiming", "never" /* NEVER */ );
-          __publicField$15(_this, "_selectCount", null);
-          __publicField$15(_this, "_selectionCountStatus", false);
-          __publicField$15(_this, "_randomizeChildren", false);
+          __publicField$14(_this, "_selectionTiming", "never" /* NEVER */ );
+          __publicField$14(_this, "_selectCount", null);
+          __publicField$14(_this, "_selectionCountStatus", false);
+          __publicField$14(_this, "_randomizeChildren", false);
           // Randomization Controls
-          __publicField$15(_this, "_randomizationTiming", "never" /* NEVER */ );
-          __publicField$15(_this, "_reorderChildren", false);
+          __publicField$14(_this, "_randomizationTiming", "never" /* NEVER */ );
+          __publicField$14(_this, "_reorderChildren", false);
           // Auto-completion/satisfaction controls
-          __publicField$15(_this, "_completionSetByContent", false);
-          __publicField$15(_this, "_objectiveSetByContent", false);
+          __publicField$14(_this, "_completionSetByContent", false);
+          __publicField$14(_this, "_objectiveSetByContent", false);
           // Delivery Controls
-          __publicField$15(_this, "_tracked", true);
+          __publicField$14(_this, "_tracked", true);
           return _this;
       }
-      _create_class$1a(SequencingControls, [
+      _create_class$19(SequencingControls, [
           {
               /**
      * Reset the sequencing controls to their default values
@@ -4962,18 +5967,18 @@
       return SequencingControls;
   }(BaseCMI);
 
-  function _array_like_to_array$j(arr, len) {
+  function _array_like_to_array$i(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$c(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$j(arr);
+  function _array_without_holes$b(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
   }
-  function _class_call_check$19(instance, Constructor) {
+  function _class_call_check$18(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$19(target, props) {
+  function _defineProperties$18(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -4982,34 +5987,34 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$19(Constructor, protoProps, staticProps) {
-      if (staticProps) _defineProperties$19(Constructor, staticProps);
+  function _create_class$18(Constructor, protoProps, staticProps) {
+      if (staticProps) _defineProperties$18(Constructor, staticProps);
       return Constructor;
   }
-  function _iterable_to_array$c(iter) {
+  function _iterable_to_array$b(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$c() {
+  function _non_iterable_spread$b() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$c(arr) {
-      return _array_without_holes$c(arr) || _iterable_to_array$c(arr) || _unsupported_iterable_to_array$j(arr) || _non_iterable_spread$c();
+  function _to_consumable_array$b(arr) {
+      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$b();
   }
-  function _unsupported_iterable_to_array$j(o, minLen) {
+  function _unsupported_iterable_to_array$i(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$j(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$j(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
-          _class_call_check$19(this, SelectionRandomization);
+          _class_call_check$18(this, SelectionRandomization);
       }
-      _create_class$19(SelectionRandomization, null, [
+      _create_class$18(SelectionRandomization, null, [
           {
               key: "selectChildrenProcess",
               value: /**
@@ -5019,7 +6024,7 @@
      * @return {Activity[]} - The selected child activities
      */ function selectChildrenProcess(activity) {
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$c(activity.children);
+                  var children = _to_consumable_array$b(activity.children);
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       return children;
                   }
@@ -5088,7 +6093,7 @@
      */ function randomizeChildrenProcess(activity) {
                   var _activity_children;
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$c(activity.children);
+                  var children = _to_consumable_array$b(activity.children);
                   if (controls.randomizationTiming === RandomizationTiming.NEVER) {
                       return children;
                   }
@@ -5098,7 +6103,7 @@
                   if (!controls.randomizeChildren) {
                       return children;
                   }
-                  var randomizedChildren = _to_consumable_array$c(children);
+                  var randomizedChildren = _to_consumable_array$b(children);
                   for(var i = randomizedChildren.length - 1; i > 0; i--){
                       var j = Math.floor(Math.random() * (i + 1));
                       var tempI = randomizedChildren[i];
@@ -5112,7 +6117,7 @@
                       controls.reorderChildren = true;
                   }
                   activity.children.length = 0;
-                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$c(randomizedChildren));
+                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$b(randomizedChildren));
                   return randomizedChildren;
               }
           },
@@ -5136,10 +6141,10 @@
                           var processedIds = new Set(processedChildren2.map(function(child) {
                               return child.id;
                           }));
-                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$c(childIds).some(function(id) {
+                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$b(childIds).some(function(id) {
                               return !processedIds.has(id);
                           })) {
-                              activity.setProcessedChildren(_to_consumable_array$c(activity.children));
+                              activity.setProcessedChildren(_to_consumable_array$b(activity.children));
                           }
                       }
                       return activity.getAvailableChildren();
@@ -5171,7 +6176,7 @@
                   var processedChildren;
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       if (isNewAttempt || shouldApplyRandomization) {
-                          processedChildren = _to_consumable_array$c(activity.children);
+                          processedChildren = _to_consumable_array$b(activity.children);
                       } else {
                           processedChildren = activity.getAvailableChildren();
                       }
@@ -5222,10 +6227,10 @@
       return SelectionRandomization;
   }();
 
-  function _class_call_check$18(instance, Constructor) {
+  function _class_call_check$17(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$18(target, props) {
+  function _defineProperties$17(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5234,34 +6239,34 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$18(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$18(Constructor.prototype, protoProps);
+  function _create_class$17(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$17(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$16(obj) {
+  function _type_of$15(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$14 = Object.defineProperty;
-  var __defNormalProp$14 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$14(obj, key, {
+  var __defProp$13 = Object.defineProperty;
+  var __defNormalProp$13 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$13(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$14 = function __publicField(obj, key, value) {
-      return __defNormalProp$14(obj, (typeof key === "undefined" ? "undefined" : _type_of$16(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$13 = function __publicField(obj, key, value) {
+      return __defNormalProp$13(obj, (typeof key === "undefined" ? "undefined" : _type_of$15(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowTraversalService = /*#__PURE__*/ function() {
       function FlowTraversalService(activityTree, ruleEngine) {
-          _class_call_check$18(this, FlowTraversalService);
-          __publicField$14(this, "activityTree", activityTree);
-          __publicField$14(this, "ruleEngine", ruleEngine);
-          __publicField$14(this, "activityEvaluationCallback", null);
+          _class_call_check$17(this, FlowTraversalService);
+          __publicField$13(this, "activityTree", activityTree);
+          __publicField$13(this, "ruleEngine", ruleEngine);
+          __publicField$13(this, "activityEvaluationCallback", null);
       }
-      _create_class$18(FlowTraversalService, [
+      _create_class$17(FlowTraversalService, [
           {
               /**
      * Supply a disposable objective view for candidate preconditions.
@@ -5692,10 +6697,10 @@
       return FlowTraversalService;
   }();
 
-  function _class_call_check$17(instance, Constructor) {
+  function _class_call_check$16(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$17(target, props) {
+  function _defineProperties$16(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5704,33 +6709,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$17(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$17(Constructor.prototype, protoProps);
+  function _create_class$16(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$16(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$15(obj) {
+  function _type_of$14(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$13 = Object.defineProperty;
-  var __defNormalProp$13 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$13(obj, key, {
+  var __defProp$12 = Object.defineProperty;
+  var __defNormalProp$12 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$12(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$13 = function __publicField(obj, key, value) {
-      return __defNormalProp$13(obj, (typeof key === "undefined" ? "undefined" : _type_of$15(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$12 = function __publicField(obj, key, value) {
+      return __defNormalProp$12(obj, (typeof key === "undefined" ? "undefined" : _type_of$14(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowRequestHandler = /*#__PURE__*/ function() {
       function FlowRequestHandler(activityTree, traversalService) {
-          _class_call_check$17(this, FlowRequestHandler);
-          __publicField$13(this, "activityTree", activityTree);
-          __publicField$13(this, "traversalService", traversalService);
+          _class_call_check$16(this, FlowRequestHandler);
+          __publicField$12(this, "activityTree", activityTree);
+          __publicField$12(this, "traversalService", traversalService);
       }
-      _create_class$17(FlowRequestHandler, [
+      _create_class$16(FlowRequestHandler, [
           {
               /**
      * Start Sequencing Request Process (SB.2.5)
@@ -5860,10 +6865,10 @@
       return FlowRequestHandler;
   }();
 
-  function _class_call_check$16(instance, Constructor) {
+  function _class_call_check$15(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$16(target, props) {
+  function _defineProperties$15(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5872,37 +6877,37 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$16(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$16(Constructor.prototype, protoProps);
+  function _create_class$15(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$15(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$14(obj) {
+  function _type_of$13(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$12 = Object.defineProperty;
-  var __defNormalProp$12 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$12(obj, key, {
+  var __defProp$11 = Object.defineProperty;
+  var __defNormalProp$11 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$11(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$12 = function __publicField(obj, key, value) {
-      return __defNormalProp$12(obj, (typeof key === "undefined" ? "undefined" : _type_of$14(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$11 = function __publicField(obj, key, value) {
+      return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$13(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceRequestHandler = /*#__PURE__*/ function() {
       function ChoiceRequestHandler(activityTree, constraintValidator, traversalService, treeQueries, getNow, getElapsedSeconds) {
-          _class_call_check$16(this, ChoiceRequestHandler);
-          __publicField$12(this, "activityTree", activityTree);
-          __publicField$12(this, "constraintValidator", constraintValidator);
-          __publicField$12(this, "traversalService", traversalService);
-          __publicField$12(this, "treeQueries", treeQueries);
-          __publicField$12(this, "getNow", getNow);
-          __publicField$12(this, "getElapsedSeconds", getElapsedSeconds);
+          _class_call_check$15(this, ChoiceRequestHandler);
+          __publicField$11(this, "activityTree", activityTree);
+          __publicField$11(this, "constraintValidator", constraintValidator);
+          __publicField$11(this, "traversalService", traversalService);
+          __publicField$11(this, "treeQueries", treeQueries);
+          __publicField$11(this, "getNow", getNow);
+          __publicField$11(this, "getElapsedSeconds", getElapsedSeconds);
       }
-      _create_class$16(ChoiceRequestHandler, [
+      _create_class$15(ChoiceRequestHandler, [
           {
               /**
      * Choice Sequencing Request Process (SB.2.9)
@@ -5936,8 +6941,11 @@
                           var pathActivity = _step.value;
                           var evaluationActivity = _this1.traversalService.getActivityForEvaluation(pathActivity, targetActivity);
                           var hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(function(rule) {
+                              var _ref, _ref1;
                               var _this_getNow, _this1, _this_getElapsedSeconds, _this2;
-                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity, (_this_getNow = (_this1 = _this).getNow) === null || _this_getNow === void 0 ? void 0 : _this_getNow.call(_this1), (_this_getElapsedSeconds = (_this2 = _this).getElapsedSeconds) === null || _this_getElapsedSeconds === void 0 ? void 0 : _this_getElapsedSeconds.call(_this2)) === true;
+                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity, (_ref = (_this_getNow = (_this1 = _this).getNow) === null || _this_getNow === void 0 ? void 0 : _this_getNow.call(_this1)) !== null && _ref !== void 0 ? _ref : function() {
+                                  return /* @__PURE__ */ new Date();
+                              }, (_ref1 = (_this_getElapsedSeconds = (_this2 = _this).getElapsedSeconds) === null || _this_getElapsedSeconds === void 0 ? void 0 : _this_getElapsedSeconds.call(_this2)) !== null && _ref1 !== void 0 ? _ref1 : null) === true;
                           });
                           if (hiddenByRule) {
                               result.exception = "SB.2.9-4";
@@ -5948,7 +6956,7 @@
                       };
                       for(var _iterator = this.treeQueries.getPathToRoot(targetActivity)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var _ret = (_this1 = this, _loop());
-                          if (_type_of$14(_ret) === "object") return _ret.v;
+                          if (_type_of$13(_ret) === "object") return _ret.v;
                       }
                   } catch (err) {
                       _didIteratorError = true;
@@ -6152,10 +7160,10 @@
       return ChoiceRequestHandler;
   }();
 
-  function _class_call_check$15(instance, Constructor) {
+  function _class_call_check$14(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$15(target, props) {
+  function _defineProperties$14(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6164,33 +7172,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$15(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$15(Constructor.prototype, protoProps);
+  function _create_class$14(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$14(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$13(obj) {
+  function _type_of$12(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$11 = Object.defineProperty;
-  var __defNormalProp$11 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$11(obj, key, {
+  var __defProp$10 = Object.defineProperty;
+  var __defNormalProp$10 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$10(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$11 = function __publicField(obj, key, value) {
-      return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$13(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$10 = function __publicField(obj, key, value) {
+      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
   };
   var ExitRequestHandler = /*#__PURE__*/ function() {
       function ExitRequestHandler(activityTree, ruleEngine) {
-          _class_call_check$15(this, ExitRequestHandler);
-          __publicField$11(this, "activityTree", activityTree);
-          __publicField$11(this, "ruleEngine", ruleEngine);
+          _class_call_check$14(this, ExitRequestHandler);
+          __publicField$10(this, "activityTree", activityTree);
+          __publicField$10(this, "ruleEngine", ruleEngine);
       }
-      _create_class$15(ExitRequestHandler, [
+      _create_class$14(ExitRequestHandler, [
           {
               /**
      * Exit Sequencing Request Process (SB.2.11)
@@ -6337,10 +7345,10 @@
       return ExitRequestHandler;
   }();
 
-  function _class_call_check$14(instance, Constructor) {
+  function _class_call_check$13(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$14(target, props) {
+  function _defineProperties$13(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6349,33 +7357,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$14(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$14(Constructor.prototype, protoProps);
+  function _create_class$13(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$13(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$12(obj) {
+  function _type_of$11(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$10 = Object.defineProperty;
-  var __defNormalProp$10 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$10(obj, key, {
+  var __defProp$$ = Object.defineProperty;
+  var __defNormalProp$$ = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$$(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$10 = function __publicField(obj, key, value) {
-      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$$ = function __publicField(obj, key, value) {
+      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
   };
   var RetryRequestHandler = /*#__PURE__*/ function() {
       function RetryRequestHandler(activityTree, traversalService) {
-          _class_call_check$14(this, RetryRequestHandler);
-          __publicField$10(this, "activityTree", activityTree);
-          __publicField$10(this, "traversalService", traversalService);
+          _class_call_check$13(this, RetryRequestHandler);
+          __publicField$$(this, "activityTree", activityTree);
+          __publicField$$(this, "traversalService", traversalService);
       }
-      _create_class$14(RetryRequestHandler, [
+      _create_class$13(RetryRequestHandler, [
           {
               /**
      * Retry Sequencing Request Process (SB.2.10)
@@ -6463,10 +7471,10 @@
       return RetryRequestHandler;
   }();
 
-  function _class_call_check$13(instance, Constructor) {
+  function _class_call_check$12(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$13(target, props) {
+  function _defineProperties$12(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6475,46 +7483,46 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$13(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$13(Constructor.prototype, protoProps);
+  function _create_class$12(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$12(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$11(obj) {
+  function _type_of$10(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$$ = Object.defineProperty;
-  var __defNormalProp$$ = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$$(obj, key, {
+  var __defProp$_ = Object.defineProperty;
+  var __defNormalProp$_ = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$_(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$$ = function __publicField(obj, key, value) {
-      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$_ = function __publicField(obj, key, value) {
+      return __defNormalProp$_(obj, (typeof key === "undefined" ? "undefined" : _type_of$10(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingProcess = /*#__PURE__*/ function() {
       function SequencingProcess(activityTree, _sequencingRules, _sequencingControls) {
           var _this = this;
           var options = arguments.length > 4 ? arguments[4] : void 0;
-          _class_call_check$13(this, SequencingProcess);
-          __publicField$$(this, "activityTree");
+          _class_call_check$12(this, SequencingProcess);
+          __publicField$_(this, "activityTree");
           // Extracted services
-          __publicField$$(this, "treeQueries");
-          __publicField$$(this, "constraintValidator");
-          __publicField$$(this, "ruleEngine");
-          __publicField$$(this, "traversalService");
-          __publicField$$(this, "activityEvaluationCallback", null);
+          __publicField$_(this, "treeQueries");
+          __publicField$_(this, "constraintValidator");
+          __publicField$_(this, "ruleEngine");
+          __publicField$_(this, "traversalService");
+          __publicField$_(this, "activityEvaluationCallback", null);
           // Request handlers
-          __publicField$$(this, "flowHandler");
-          __publicField$$(this, "choiceHandler");
-          __publicField$$(this, "exitHandler");
-          __publicField$$(this, "retryHandler");
+          __publicField$_(this, "flowHandler");
+          __publicField$_(this, "choiceHandler");
+          __publicField$_(this, "exitHandler");
+          __publicField$_(this, "retryHandler");
           // Time function (exposed for testing)
-          __publicField$$(this, "_now");
-          __publicField$$(this, "_getAttemptElapsedSecondsHook");
+          __publicField$_(this, "_now");
+          __publicField$_(this, "_getAttemptElapsedSecondsHook");
           this.activityTree = activityTree;
           this._now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
@@ -6536,7 +7544,7 @@
           this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
           this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
       }
-      _create_class$13(SequencingProcess, [
+      _create_class$12(SequencingProcess, [
           {
               key: "now",
               get: /**
@@ -6561,14 +7569,17 @@
                       return _this.getAttemptElapsedSecondsHook;
                   });
                   this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+                  this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
               }
           },
           {
               key: "getAttemptElapsedSecondsHook",
               get: /**
      * Get/set the elapsed seconds hook (used for time-based rules)
-     */ function get() {
-                  return this._getAttemptElapsedSecondsHook;
+     */ // Null, not undefined, so RuleCondition.evaluate skips another process's static hook.
+              function get() {
+                  var _this__getAttemptElapsedSecondsHook;
+                  return (_this__getAttemptElapsedSecondsHook = this._getAttemptElapsedSecondsHook) !== null && _this__getAttemptElapsedSecondsHook !== void 0 ? _this__getAttemptElapsedSecondsHook : null;
               },
               set: function set(fn) {
                   var _this = this;
@@ -6587,6 +7598,7 @@
                       return _this.getAttemptElapsedSecondsHook;
                   });
                   this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+                  this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
               }
           },
           {
@@ -6691,6 +7703,7 @@
      * @return {{valid: boolean, exception: string | null}} - Validation result
      */ key: "validateNavigationRequest",
               value: function validateNavigationRequest(request) {
+                  var _this = this;
                   var targetActivityId = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, currentActivity = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
                   var validRequestTypes = Object.values(SequencingRequestType);
                   if (!validRequestTypes.includes(request)) {
@@ -6798,36 +7811,20 @@
                                       exception: "DB.1.1-1"
                                   };
                               }
-                              var path = [];
-                              for(var node = jumpTarget; node; node = node.parent){
-                                  path.unshift(node);
-                              }
-                              var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                              try {
-                                  for(var _iterator = path[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                                      var activity = _step.value;
-                                      var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
-                                          return rule.action === RuleActionType.DISABLED;
-                                      });
-                                      if (!activity.isAvailable || this.ruleEngine.checkLimitConditions(activity) || this.ruleEngine.checkSequencingRules(this.traversalService.getActivityForEvaluation(activity, jumpTarget), disabledRules) === RuleActionType.DISABLED) {
-                                          return {
-                                              valid: false,
-                                              exception: "DB.1.1-3"
-                                          };
-                                      }
+                              var validator = new DeliveryValidator(this.activityTree, null, {
+                                  now: function now() {
+                                      return _this.now();
                                   }
-                              } catch (err) {
-                                  _didIteratorError = true;
-                                  _iteratorError = err;
-                              } finally{
-                                  try {
-                                      if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                          _iterator.return();
-                                      }
-                                  } finally{
-                                      if (_didIteratorError) {
-                                          throw _iteratorError;
-                                      }
+                              }, function() {
+                                  return _this.ruleEngine;
+                              });
+                              for(var activity = jumpTarget; activity; activity = activity.parent){
+                                  var evaluationActivity = this.traversalService.getActivityForEvaluation(activity, jumpTarget);
+                                  if (!validator.checkActivity(activity, evaluationActivity, false)) {
+                                      return {
+                                          valid: false,
+                                          exception: "DB.1.1-3"
+                                      };
                                   }
                               }
                               break;
@@ -6892,10 +7889,10 @@
       return SequencingProcess;
   }();
 
-  function _class_call_check$12(instance, Constructor) {
+  function _class_call_check$11(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$12(target, props) {
+  function _defineProperties$11(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6904,8 +7901,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$12(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$12(Constructor.prototype, protoProps);
+  function _create_class$11(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$11(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$i(obj, key, value) {
@@ -6934,38 +7931,38 @@
       }
       return target;
   }
-  function _type_of$10(obj) {
+  function _type_of$$(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$_ = Object.defineProperty;
-  var __defNormalProp$_ = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$_(obj, key, {
+  var __defProp$Z = Object.defineProperty;
+  var __defNormalProp$Z = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Z(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$_ = function __publicField(obj, key, value) {
-      return __defNormalProp$_(obj, (typeof key === "undefined" ? "undefined" : _type_of$10(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Z = function __publicField(obj, key, value) {
+      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityDeliveryService = /*#__PURE__*/ function() {
       function ActivityDeliveryService(eventService, loggingService) {
           var callbacks = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
-          _class_call_check$12(this, ActivityDeliveryService);
-          __publicField$_(this, "eventService");
-          __publicField$_(this, "loggingService");
-          __publicField$_(this, "callbacks");
-          __publicField$_(this, "currentDeliveredActivity", null);
-          __publicField$_(this, "currentDeliveredAttemptCount", null);
-          __publicField$_(this, "currentDeliveredGeneration", null);
-          __publicField$_(this, "pendingDelivery", null);
+          _class_call_check$11(this, ActivityDeliveryService);
+          __publicField$Z(this, "eventService");
+          __publicField$Z(this, "loggingService");
+          __publicField$Z(this, "callbacks");
+          __publicField$Z(this, "currentDeliveredActivity", null);
+          __publicField$Z(this, "currentDeliveredAttemptCount", null);
+          __publicField$Z(this, "currentDeliveredGeneration", null);
+          __publicField$Z(this, "pendingDelivery", null);
           this.eventService = eventService;
           this.loggingService = loggingService;
           this.callbacks = callbacks;
       }
-      _create_class$12(ActivityDeliveryService, [
+      _create_class$11(ActivityDeliveryService, [
           {
               /**
      * Process a sequencing result and handle activity delivery
@@ -7098,10 +8095,10 @@
           });
       };
   }
-  function _class_call_check$11(instance, Constructor) {
+  function _class_call_check$10(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$11(target, props) {
+  function _defineProperties$10(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -7110,8 +8107,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$11(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$11(Constructor.prototype, protoProps);
+  function _create_class$10(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$10(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$h(obj, key, value) {
@@ -7263,32 +8260,32 @@
           };
       }
   }
-  function _type_of$$(obj) {
+  function _type_of$_(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Z = Object.defineProperty;
-  var __defNormalProp$Z = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Z(obj, key, {
+  var __defProp$Y = Object.defineProperty;
+  var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Y(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Z = function __publicField(obj, key, value) {
-      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Y = function __publicField(obj, key, value) {
+      return __defNormalProp$Y(obj, (typeof key === "undefined" ? "undefined" : _type_of$_(key)) !== "symbol" ? key + "" : key, value);
   };
   var AsynchronousHttpService = /*#__PURE__*/ function() {
       function AsynchronousHttpService(settings, error_codes) {
-          _class_call_check$11(this, AsynchronousHttpService);
-          __publicField$Z(this, "reportsRequestCompletion", true);
-          __publicField$Z(this, "settings");
-          __publicField$Z(this, "error_codes");
+          _class_call_check$10(this, AsynchronousHttpService);
+          __publicField$Y(this, "reportsRequestCompletion", true);
+          __publicField$Y(this, "settings");
+          __publicField$Y(this, "error_codes");
           this.settings = settings;
           this.error_codes = error_codes;
       }
-      _create_class$11(AsynchronousHttpService, [
+      _create_class$10(AsynchronousHttpService, [
           {
               /**
      * Sends HTTP requests asynchronously to the LMS
@@ -7662,18 +8659,18 @@
       return AsynchronousHttpService;
   }();
 
-  function _array_like_to_array$i(arr, len) {
+  function _array_like_to_array$h(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$b(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
+  function _array_without_holes$a(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$h(arr);
   }
-  function _class_call_check$10(instance, Constructor) {
+  function _class_call_check$$(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$10(target, props) {
+  function _defineProperties$$(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -7682,8 +8679,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$10(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$10(Constructor.prototype, protoProps);
+  function _create_class$$(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$$(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$f(left, right) {
@@ -7692,40 +8689,40 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array$b(iter) {
+  function _iterable_to_array$a(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$b() {
+  function _non_iterable_spread$a() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$b(arr) {
-      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$b();
+  function _to_consumable_array$a(arr) {
+      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$a();
   }
-  function _type_of$_(obj) {
+  function _type_of$Z(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$i(o, minLen) {
+  function _unsupported_iterable_to_array$h(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$h(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
   }
-  var __defProp$Y = Object.defineProperty;
-  var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Y(obj, key, {
+  var __defProp$X = Object.defineProperty;
+  var __defNormalProp$X = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$X(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Y = function __publicField(obj, key, value) {
-      return __defNormalProp$Y(obj, (_type_of$_(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$X = function __publicField(obj, key, value) {
+      return __defNormalProp$X(obj, (_type_of$Z(key)) !== "symbol" ? key + "" : key, value);
   };
   var TARGET_ATTRIBUTE_PREFIX = "{target=";
   function getErrorCode(errorCodes, key) {
@@ -7741,11 +8738,11 @@
   }
   var CMIValueAccessService = /*#__PURE__*/ function() {
       function CMIValueAccessService(context) {
-          _class_call_check$10(this, CMIValueAccessService);
-          __publicField$Y(this, "context");
+          _class_call_check$$(this, CMIValueAccessService);
+          __publicField$X(this, "context");
           this.context = context;
       }
-      _create_class$10(CMIValueAccessService, [
+      _create_class$$(CMIValueAccessService, [
           {
               /**
      * Gets the appropriate error code for undefined data model elements.
@@ -7776,10 +8773,7 @@
                       return global_constants.SCORM_FALSE;
                   }
                   this.context.setLastErrorCode("0");
-                  var targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
-                  var structure = targetPath ? _to_consumable_array$b(targetPath[1].split(".")).concat([
-                      targetPath[2]
-                  ]) : CMIElement.split(".");
+                  var structure = splitCMIElement(CMIElement);
                   var refObject = this.context.getDataModel();
                   var returnValue = global_constants.SCORM_FALSE;
                   var foundFirstIndex = false;
@@ -7827,7 +8821,7 @@
                       return "";
                   }
                   this.context.setLastErrorCode("0");
-                  var structure = CMIElement.split(".");
+                  var structure = splitCMIElement(CMIElement);
                   var refObject = this.context.getDataModel();
                   var attribute = null;
                   var foundFirstIndex = false;
@@ -8132,11 +9126,17 @@
       ]);
       return CMIValueAccessService;
   }();
+  function splitCMIElement(element) {
+      var targetPath = element.match(/^(.*)\.(\{target=[^{}]*\})$/);
+      return targetPath ? _to_consumable_array$a(targetPath[1].split(".")).concat([
+          targetPath[2]
+      ]) : element.split(".");
+  }
 
-  function _class_call_check$$(instance, Constructor) {
+  function _class_call_check$_(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$$(target, props) {
+  function _defineProperties$_(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8145,35 +9145,35 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$$(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$$(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$$(Constructor, staticProps);
+  function _create_class$_(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$_(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$_(Constructor, staticProps);
       return Constructor;
   }
-  function _type_of$Z(obj) {
+  function _type_of$Y(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$X = Object.defineProperty;
-  var __defNormalProp$X = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$X(obj, key, {
+  var __defProp$W = Object.defineProperty;
+  var __defNormalProp$W = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$W(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$X = function __publicField(obj, key, value) {
-      return __defNormalProp$X(obj, (typeof key === "undefined" ? "undefined" : _type_of$Z(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$W = function __publicField(obj, key, value) {
+      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
   };
   var _LoggingService = /*#__PURE__*/ function() {
       function _LoggingService() {
-          _class_call_check$$(this, _LoggingService);
-          __publicField$X(this, "_logLevel", LogLevelEnum.ERROR);
-          __publicField$X(this, "_logHandler");
+          _class_call_check$_(this, _LoggingService);
+          __publicField$W(this, "_logLevel", LogLevelEnum.ERROR);
+          __publicField$W(this, "_logHandler");
           this._logHandler = defaultLogHandler;
       }
-      _create_class$$(_LoggingService, [
+      _create_class$_(_LoggingService, [
           {
               /**
      * Set the log level
@@ -8346,16 +9346,16 @@
       ]);
       return _LoggingService;
   }();
-  __publicField$X(_LoggingService, "_instance");
+  __publicField$W(_LoggingService, "_instance");
   var LoggingService = _LoggingService;
   function getLoggingService() {
       return LoggingService.getInstance();
   }
 
-  function _class_call_check$_(instance, Constructor) {
+  function _class_call_check$Z(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$_(target, props) {
+  function _defineProperties$Z(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8364,8 +9364,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$_(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$_(Constructor.prototype, protoProps);
+  function _create_class$Z(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Z(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$e(left, right) {
@@ -8374,37 +9374,37 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$Y(obj) {
+  function _type_of$X(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$W = Object.defineProperty;
-  var __defNormalProp$W = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$W(obj, key, {
+  var __defProp$V = Object.defineProperty;
+  var __defNormalProp$V = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$V(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$W = function __publicField(obj, key, value) {
-      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$V = function __publicField(obj, key, value) {
+      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
   };
   var ErrorHandlingService = /*#__PURE__*/ function() {
       function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
-          _class_call_check$_(this, ErrorHandlingService);
-          __publicField$W(this, "_lastErrorCode", "0");
-          __publicField$W(this, "_lastDiagnostic", "");
-          __publicField$W(this, "_errorCodes");
-          __publicField$W(this, "_apiLog");
-          __publicField$W(this, "_getLmsErrorMessageDetails");
-          __publicField$W(this, "_loggingService");
+          _class_call_check$Z(this, ErrorHandlingService);
+          __publicField$V(this, "_lastErrorCode", "0");
+          __publicField$V(this, "_lastDiagnostic", "");
+          __publicField$V(this, "_errorCodes");
+          __publicField$V(this, "_apiLog");
+          __publicField$V(this, "_getLmsErrorMessageDetails");
+          __publicField$V(this, "_loggingService");
           this._errorCodes = errorCodes;
           this._apiLog = apiLog;
           this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
           this._loggingService = loggingService || getLoggingService();
       }
-      _create_class$_(ErrorHandlingService, [
+      _create_class$Z(ErrorHandlingService, [
           {
               key: "lastErrorCode",
               get: /**
@@ -8554,10 +9554,10 @@
       return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
   }
 
-  function _class_call_check$Z(instance, Constructor) {
+  function _class_call_check$Y(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Z(target, props) {
+  function _defineProperties$Y(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8566,38 +9566,38 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Z(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Z(Constructor.prototype, protoProps);
+  function _create_class$Y(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Y(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$X(obj) {
+  function _type_of$W(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$V = Object.defineProperty;
-  var __defNormalProp$V = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$V(obj, key, {
+  var __defProp$U = Object.defineProperty;
+  var __defNormalProp$U = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$U(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$V = function __publicField(obj, key, value) {
-      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$U = function __publicField(obj, key, value) {
+      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
   };
   var EventService = /*#__PURE__*/ function() {
       function EventService(apiLog) {
-          _class_call_check$Z(this, EventService);
+          _class_call_check$Y(this, EventService);
           // Map of function names to listeners for faster lookups
-          __publicField$V(this, "listenerMap", /* @__PURE__ */ new Map());
+          __publicField$U(this, "listenerMap", /* @__PURE__ */ new Map());
           // Total count of listeners for logging
-          __publicField$V(this, "listenerCount", 0);
+          __publicField$U(this, "listenerCount", 0);
           // Function to log API messages
-          __publicField$V(this, "apiLog");
+          __publicField$U(this, "apiLog");
           this.apiLog = apiLog;
       }
-      _create_class$Z(EventService, [
+      _create_class$Y(EventService, [
           {
               /**
      * Parses a listener name into its components
@@ -8864,10 +9864,10 @@
           });
       };
   }
-  function _class_call_check$Y(instance, Constructor) {
+  function _class_call_check$X(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Y(target, props) {
+  function _defineProperties$X(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8876,8 +9876,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Y(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Y(Constructor.prototype, protoProps);
+  function _create_class$X(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$X(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$g(obj, key, value) {
@@ -9029,34 +10029,34 @@
           };
       }
   }
-  function _type_of$W(obj) {
+  function _type_of$V(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$U = Object.defineProperty;
-  var __defNormalProp$U = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$U(obj, key, {
+  var __defProp$T = Object.defineProperty;
+  var __defNormalProp$T = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$T(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$U = function __publicField(obj, key, value) {
-      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$T = function __publicField(obj, key, value) {
+      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$V(key)) !== "symbol" ? key + "" : key, value);
   };
   var OfflineStorageService = /*#__PURE__*/ function() {
       function OfflineStorageService(settings, error_codes, apiLog) {
-          _class_call_check$Y(this, OfflineStorageService);
-          __publicField$U(this, "apiLog", apiLog);
-          __publicField$U(this, "settings");
-          __publicField$U(this, "error_codes");
-          __publicField$U(this, "storeName", "scorm_again_offline_data");
-          __publicField$U(this, "syncQueue", "scorm_again_sync_queue");
-          __publicField$U(this, "isOnline", navigator.onLine);
-          __publicField$U(this, "syncInProgress", false);
-          __publicField$U(this, "boundOnlineStatusChangeHandler");
-          __publicField$U(this, "boundCustomNetworkStatusHandler");
+          _class_call_check$X(this, OfflineStorageService);
+          __publicField$T(this, "apiLog", apiLog);
+          __publicField$T(this, "settings");
+          __publicField$T(this, "error_codes");
+          __publicField$T(this, "storeName", "scorm_again_offline_data");
+          __publicField$T(this, "syncQueue", "scorm_again_sync_queue");
+          __publicField$T(this, "isOnline", navigator.onLine);
+          __publicField$T(this, "syncInProgress", false);
+          __publicField$T(this, "boundOnlineStatusChangeHandler");
+          __publicField$T(this, "boundCustomNetworkStatusHandler");
           this.settings = settings;
           this.error_codes = error_codes;
           this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -9065,7 +10065,7 @@
           window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
           window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
       }
-      _create_class$Y(OfflineStorageService, [
+      _create_class$X(OfflineStorageService, [
           {
               /**
      * Handle changes in online status
@@ -9564,7 +10564,7 @@
       return OfflineStorageService;
   }();
 
-  function _type_of$V(obj) {
+  function _type_of$U(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -9584,7 +10584,7 @@
   }, // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   function(CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$V(value), "]");
+      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$U(value), "]");
       return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
   }, // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
   {
@@ -9631,10 +10631,10 @@
       derived = _get_prototype_of$r(derived);
       return _possible_constructor_return$r(_this, _is_native_reflect_construct$r() ? Reflect.construct(derived, args || [], _get_prototype_of$r(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$X(instance, Constructor) {
+  function _class_call_check$W(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$X(target, props) {
+  function _defineProperties$W(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -9643,8 +10643,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$X(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$X(Constructor.prototype, protoProps);
+  function _create_class$W(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$r(o) {
@@ -9681,7 +10681,7 @@
       })();
   }
   function _possible_constructor_return$r(self, call) {
-      if (call && (_type_of$U(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$T(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$r(self);
   }
   function _set_prototype_of$r(o, p) {
@@ -9691,21 +10691,21 @@
       };
       return _set_prototype_of$r(o, p);
   }
-  function _type_of$U(obj) {
+  function _type_of$T(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$T = Object.defineProperty;
-  var __defNormalProp$T = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$T(obj, key, {
+  var __defProp$S = Object.defineProperty;
+  var __defNormalProp$S = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$S(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$T = function __publicField(obj, key, value) {
-      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$U(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$S = function __publicField(obj, key, value) {
+      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupActionType = /* @__PURE__ */ function(RollupActionType2) {
       RollupActionType2["SATISFIED"] = "satisfied";
@@ -9731,20 +10731,20 @@
       _inherits$r(RollupCondition, BaseCMI);
       function RollupCondition() {
           var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", parameters = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : /* @__PURE__ */ new Map(), operator = arguments.length > 2 && arguments[2] !== void 0 /* NO_OP */  ? arguments[2] : "noOp";
-          _class_call_check$X(this, RollupCondition);
+          _class_call_check$W(this, RollupCondition);
           var _this;
           _this = _call_super$r(this, RollupCondition, [
               "rollupCondition"
           ]);
-          __publicField$T(_this, "_condition", "always" /* ALWAYS */ );
-          __publicField$T(_this, "_parameters", /* @__PURE__ */ new Map());
-          __publicField$T(_this, "_operator", "noOp" /* NO_OP */ );
+          __publicField$S(_this, "_condition", "always" /* ALWAYS */ );
+          __publicField$S(_this, "_parameters", /* @__PURE__ */ new Map());
+          __publicField$S(_this, "_operator", "noOp" /* NO_OP */ );
           _this._condition = condition;
           _this._parameters = parameters;
           _this._operator = operator;
           return _this;
       }
-      _create_class$X(RollupCondition, [
+      _create_class$W(RollupCondition, [
           {
               /**
      * Called when the API needs to be reset
@@ -9877,17 +10877,17 @@
       _inherits$r(RollupRule, BaseCMI);
       function RollupRule() {
           var action = arguments.length > 0 && arguments[0] !== void 0 /* SATISFIED */  ? arguments[0] : "satisfied", consideration = arguments.length > 1 && arguments[1] !== void 0 /* ALL */  ? arguments[1] : "all", minimumCount = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0, minimumPercent = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : 0, conditionCombination = arguments.length > 4 && arguments[4] !== void 0 /* ANY */  ? arguments[4] : "any";
-          _class_call_check$X(this, RollupRule);
+          _class_call_check$W(this, RollupRule);
           var _this;
           _this = _call_super$r(this, RollupRule, [
               "rollupRule"
           ]);
-          __publicField$T(_this, "_conditions", []);
-          __publicField$T(_this, "_action", "satisfied" /* SATISFIED */ );
-          __publicField$T(_this, "_consideration", "all" /* ALL */ );
-          __publicField$T(_this, "_minimumCount", 0);
-          __publicField$T(_this, "_minimumPercent", 0);
-          __publicField$T(_this, "conditionCombination", "any" /* ANY */ );
+          __publicField$S(_this, "_conditions", []);
+          __publicField$S(_this, "_action", "satisfied" /* SATISFIED */ );
+          __publicField$S(_this, "_consideration", "all" /* ALL */ );
+          __publicField$S(_this, "_minimumCount", 0);
+          __publicField$S(_this, "_minimumPercent", 0);
+          __publicField$S(_this, "conditionCombination", "any" /* ANY */ );
           _this._action = action;
           _this._consideration = consideration;
           _this._minimumCount = minimumCount;
@@ -9895,7 +10895,7 @@
           _this.conditionCombination = conditionCombination;
           return _this;
       }
-      _create_class$X(RollupRule, [
+      _create_class$W(RollupRule, [
           {
               /**
      * Called when the API needs to be reset
@@ -10070,15 +11070,15 @@
   var RollupRules = /*#__PURE__*/ function(BaseCMI) {
       _inherits$r(RollupRules, BaseCMI);
       function RollupRules() {
-          _class_call_check$X(this, RollupRules);
+          _class_call_check$W(this, RollupRules);
           var _this;
           _this = _call_super$r(this, RollupRules, [
               "rollupRules"
           ]);
-          __publicField$T(_this, "_rules", []);
+          __publicField$S(_this, "_rules", []);
           return _this;
       }
-      _create_class$X(RollupRules, [
+      _create_class$W(RollupRules, [
           {
               /**
      * Called when the API needs to be reset
@@ -10326,13 +11326,13 @@
       return RollupRules;
   }(BaseCMI);
 
-  function _array_like_to_array$h(arr, len) {
+  function _array_like_to_array$g(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$a(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$h(arr);
+  function _array_without_holes$9(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
   function _assert_this_initialized$q(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -10342,10 +11342,10 @@
       derived = _get_prototype_of$q(derived);
       return _possible_constructor_return$q(_this, _is_native_reflect_construct$q() ? Reflect.construct(derived, args || [], _get_prototype_of$q(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$W(instance, Constructor) {
+  function _class_call_check$V(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$W(target, props) {
+  function _defineProperties$V(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -10354,9 +11354,9 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$W(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$W(Constructor, staticProps);
+  function _create_class$V(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$V(Constructor, staticProps);
       return Constructor;
   }
   function _define_property$f(obj, key, value) {
@@ -10416,12 +11416,12 @@
           return !!result;
       })();
   }
-  function _iterable_to_array$a(iter) {
+  function _iterable_to_array$9(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$a() {
+  function _non_iterable_spread$9() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$f(target) {
@@ -10440,7 +11440,7 @@
       return target;
   }
   function _possible_constructor_return$q(self, call) {
-      if (call && (_type_of$T(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$S(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$q(self);
   }
   function _set_prototype_of$q(o, p) {
@@ -10457,76 +11457,76 @@
       }
       return object;
   }
-  function _to_consumable_array$a(arr) {
-      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$a();
+  function _to_consumable_array$9(arr) {
+      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$9();
   }
-  function _type_of$T(obj) {
+  function _type_of$S(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$h(o, minLen) {
+  function _unsupported_iterable_to_array$g(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$h(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
   }
-  var __defProp$S = Object.defineProperty;
-  var __defNormalProp$S = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$S(obj, key, {
+  var __defProp$R = Object.defineProperty;
+  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$R(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$S = function __publicField(obj, key, value) {
-      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$R = function __publicField(obj, key, value) {
+      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$S(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityObjective = /*#__PURE__*/ function() {
       function ActivityObjective(id) {
           var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-          _class_call_check$W(this, ActivityObjective);
+          _class_call_check$V(this, ActivityObjective);
           var _options_description, _options_satisfiedByMeasure, _options_minNormalizedMeasure, _options_isPrimary;
-          __publicField$S(this, "_id");
-          __publicField$S(this, "_description");
-          __publicField$S(this, "_satisfiedByMeasure");
-          __publicField$S(this, "_minNormalizedMeasure");
-          __publicField$S(this, "_mapInfo");
-          __publicField$S(this, "_isPrimary");
-          __publicField$S(this, "_satisfiedStatus", false);
-          __publicField$S(this, "_satisfiedStatusKnown", false);
+          __publicField$R(this, "_id");
+          __publicField$R(this, "_description");
+          __publicField$R(this, "_satisfiedByMeasure");
+          __publicField$R(this, "_minNormalizedMeasure");
+          __publicField$R(this, "_mapInfo");
+          __publicField$R(this, "_isPrimary");
+          __publicField$R(this, "_satisfiedStatus", false);
+          __publicField$R(this, "_satisfiedStatusKnown", false);
           // Note: measureStatus has no dirty flag because it is not synchronized to global
           // objectives. It serves as a validity gate for other synced properties.
-          __publicField$S(this, "_measureStatus", false);
-          __publicField$S(this, "_normalizedMeasure", 0);
-          __publicField$S(this, "_rawScore", "");
-          __publicField$S(this, "_rawScoreKnown", false);
-          __publicField$S(this, "_minScore", "");
-          __publicField$S(this, "_minScoreKnown", false);
-          __publicField$S(this, "_maxScore", "");
-          __publicField$S(this, "_maxScoreKnown", false);
-          __publicField$S(this, "_progressMeasure", 0);
-          __publicField$S(this, "_progressMeasureStatus", false);
-          __publicField$S(this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$S(this, "_progressStatus", false);
+          __publicField$R(this, "_measureStatus", false);
+          __publicField$R(this, "_normalizedMeasure", 0);
+          __publicField$R(this, "_rawScore", "");
+          __publicField$R(this, "_rawScoreKnown", false);
+          __publicField$R(this, "_minScore", "");
+          __publicField$R(this, "_minScoreKnown", false);
+          __publicField$R(this, "_maxScore", "");
+          __publicField$R(this, "_maxScoreKnown", false);
+          __publicField$R(this, "_progressMeasure", 0);
+          __publicField$R(this, "_progressMeasureStatus", false);
+          __publicField$R(this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$R(this, "_progressStatus", false);
           // Dirty flags for tracking which properties have been modified locally
-          __publicField$S(this, "_satisfiedStatusDirty", false);
-          __publicField$S(this, "_normalizedMeasureDirty", false);
-          __publicField$S(this, "_completionStatusDirty", false);
-          __publicField$S(this, "_progressMeasureDirty", false);
-          __publicField$S(this, "_rawScoreDirty", false);
-          __publicField$S(this, "_minScoreDirty", false);
-          __publicField$S(this, "_maxScoreDirty", false);
+          __publicField$R(this, "_satisfiedStatusDirty", false);
+          __publicField$R(this, "_normalizedMeasureDirty", false);
+          __publicField$R(this, "_completionStatusDirty", false);
+          __publicField$R(this, "_progressMeasureDirty", false);
+          __publicField$R(this, "_rawScoreDirty", false);
+          __publicField$R(this, "_minScoreDirty", false);
+          __publicField$R(this, "_maxScoreDirty", false);
           this._id = id;
           this._description = (_options_description = options.description) !== null && _options_description !== void 0 ? _options_description : null;
           this._satisfiedByMeasure = (_options_satisfiedByMeasure = options.satisfiedByMeasure) !== null && _options_satisfiedByMeasure !== void 0 ? _options_satisfiedByMeasure : false;
           this._minNormalizedMeasure = (_options_minNormalizedMeasure = options.minNormalizedMeasure) !== null && _options_minNormalizedMeasure !== void 0 ? _options_minNormalizedMeasure : null;
-          this._mapInfo = options.mapInfo ? _to_consumable_array$a(options.mapInfo) : [];
+          this._mapInfo = options.mapInfo ? _to_consumable_array$9(options.mapInfo) : [];
           this._isPrimary = (_options_isPrimary = options.isPrimary) !== null && _options_isPrimary !== void 0 ? _options_isPrimary : false;
       }
-      _create_class$W(ActivityObjective, [
+      _create_class$V(ActivityObjective, [
           {
               key: "id",
               get: function get() {
@@ -10563,7 +11563,7 @@
                   return this._mapInfo;
               },
               set: function set(mapInfo) {
-                  this._mapInfo = _to_consumable_array$a(mapInfo);
+                  this._mapInfo = _to_consumable_array$9(mapInfo);
               }
           },
           {
@@ -11049,94 +12049,94 @@
       _inherits$q(Activity, BaseCMI);
       function Activity() {
           var id = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : "", title = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "";
-          _class_call_check$W(this, Activity);
+          _class_call_check$V(this, Activity);
           var _this;
           _this = _call_super$q(this, Activity, [
               "activity"
           ]);
-          __publicField$S(_this, "_id", "");
-          __publicField$S(_this, "_title", "");
-          __publicField$S(_this, "_children", []);
-          __publicField$S(_this, "_parent", null);
-          __publicField$S(_this, "_isVisible", true);
-          __publicField$S(_this, "_isActive", false);
-          __publicField$S(_this, "_isSuspended", false);
+          __publicField$R(_this, "_id", "");
+          __publicField$R(_this, "_title", "");
+          __publicField$R(_this, "_children", []);
+          __publicField$R(_this, "_parent", null);
+          __publicField$R(_this, "_isVisible", true);
+          __publicField$R(_this, "_isActive", false);
+          __publicField$R(_this, "_isSuspended", false);
           // Transient delivery context. This is deliberately excluded from persisted activity state.
-          __publicField$S(_this, "_deliveryWasResumed", false);
-          __publicField$S(_this, "_isCompleted", false);
-          __publicField$S(_this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$S(_this, "_successStatus", SuccessStatus.UNKNOWN);
-          __publicField$S(_this, "_attemptCount", 0);
-          __publicField$S(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
-          __publicField$S(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
-          __publicField$S(_this, "_attemptCompletionAmount", 0);
-          __publicField$S(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
-          __publicField$S(_this, "_attemptExperiencedDuration", "PT0H0M0S");
-          __publicField$S(_this, "_activityAbsoluteDuration", "PT0H0M0S");
-          __publicField$S(_this, "_activityExperiencedDuration", "PT0H0M0S");
+          __publicField$R(_this, "_deliveryWasResumed", false);
+          __publicField$R(_this, "_isCompleted", false);
+          __publicField$R(_this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$R(_this, "_successStatus", SuccessStatus.UNKNOWN);
+          __publicField$R(_this, "_attemptCount", 0);
+          __publicField$R(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
+          __publicField$R(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
+          __publicField$R(_this, "_attemptCompletionAmount", 0);
+          __publicField$R(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
+          __publicField$R(_this, "_attemptExperiencedDuration", "PT0H0M0S");
+          __publicField$R(_this, "_activityAbsoluteDuration", "PT0H0M0S");
+          __publicField$R(_this, "_activityExperiencedDuration", "PT0H0M0S");
           // Duration tracking fields (separate from limits) - actual calculated values
-          __publicField$S(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$S(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
-          __publicField$S(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$S(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
+          __publicField$R(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$R(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
+          __publicField$R(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$R(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
           // Timestamp tracking for duration calculation
-          __publicField$S(_this, "_activityStartTimestampUtc", null);
-          __publicField$S(_this, "_attemptStartTimestampUtc", null);
-          __publicField$S(_this, "_activityEndedDate", null);
-          __publicField$S(_this, "_objectiveSatisfiedStatus", false);
-          __publicField$S(_this, "_objectiveSatisfiedStatusKnown", false);
-          __publicField$S(_this, "_objectiveMeasureStatus", false);
-          __publicField$S(_this, "_objectiveNormalizedMeasure", 0);
-          __publicField$S(_this, "_scaledPassingScore", 1);
+          __publicField$R(_this, "_activityStartTimestampUtc", null);
+          __publicField$R(_this, "_attemptStartTimestampUtc", null);
+          __publicField$R(_this, "_activityEndedDate", null);
+          __publicField$R(_this, "_objectiveSatisfiedStatus", false);
+          __publicField$R(_this, "_objectiveSatisfiedStatusKnown", false);
+          __publicField$R(_this, "_objectiveMeasureStatus", false);
+          __publicField$R(_this, "_objectiveNormalizedMeasure", 0);
+          __publicField$R(_this, "_scaledPassingScore", 1);
           // SCORM default minimum normalized measure
           // Dirty flags for tracking which activity-level objective properties have been modified locally
-          __publicField$S(_this, "_objectiveSatisfiedStatusDirty", false);
-          __publicField$S(_this, "_objectiveNormalizedMeasureDirty", false);
-          __publicField$S(_this, "_objectiveMeasureStatusDirty", false);
-          __publicField$S(_this, "_progressMeasure", 0);
-          __publicField$S(_this, "_progressMeasureStatus", false);
-          __publicField$S(_this, "_location", "");
-          __publicField$S(_this, "_attemptAbsoluteStartTime", "");
-          __publicField$S(_this, "_learnerPrefs", null);
-          __publicField$S(_this, "_activityAttemptActive", false);
-          __publicField$S(_this, "_isHiddenFromChoice", false);
-          __publicField$S(_this, "_isAvailable", true);
-          __publicField$S(_this, "_hideLmsUi", []);
-          __publicField$S(_this, "_auxiliaryResources", []);
-          __publicField$S(_this, "_sharedDataMaps", []);
-          __publicField$S(_this, "_attemptLimit", null);
-          __publicField$S(_this, "_attemptAbsoluteDurationLimit", null);
-          __publicField$S(_this, "_activityAbsoluteDurationLimit", null);
-          __publicField$S(_this, "_timeLimitAction", null);
-          __publicField$S(_this, "_timeLimitDuration", null);
-          __publicField$S(_this, "_beginTimeLimit", null);
-          __publicField$S(_this, "_endTimeLimit", null);
-          __publicField$S(_this, "_launchData", "");
-          __publicField$S(_this, "_credit", "credit");
-          __publicField$S(_this, "_maxTimeAllowed", "");
-          __publicField$S(_this, "_completionThreshold", "");
-          __publicField$S(_this, "_sequencingControls");
-          __publicField$S(_this, "_sequencingRules");
-          __publicField$S(_this, "_rollupRules");
-          __publicField$S(_this, "_processedChildren", null);
-          __publicField$S(_this, "_isNewAttempt", false);
-          __publicField$S(_this, "_primaryObjective", null);
-          __publicField$S(_this, "_objectives", []);
-          __publicField$S(_this, "_rollupConsiderations", {
+          __publicField$R(_this, "_objectiveSatisfiedStatusDirty", false);
+          __publicField$R(_this, "_objectiveNormalizedMeasureDirty", false);
+          __publicField$R(_this, "_objectiveMeasureStatusDirty", false);
+          __publicField$R(_this, "_progressMeasure", 0);
+          __publicField$R(_this, "_progressMeasureStatus", false);
+          __publicField$R(_this, "_location", "");
+          __publicField$R(_this, "_attemptAbsoluteStartTime", "");
+          __publicField$R(_this, "_learnerPrefs", null);
+          __publicField$R(_this, "_activityAttemptActive", false);
+          __publicField$R(_this, "_isHiddenFromChoice", false);
+          __publicField$R(_this, "_isAvailable", true);
+          __publicField$R(_this, "_hideLmsUi", []);
+          __publicField$R(_this, "_auxiliaryResources", []);
+          __publicField$R(_this, "_sharedDataMaps", []);
+          __publicField$R(_this, "_attemptLimit", null);
+          __publicField$R(_this, "_attemptAbsoluteDurationLimit", null);
+          __publicField$R(_this, "_activityAbsoluteDurationLimit", null);
+          __publicField$R(_this, "_timeLimitAction", null);
+          __publicField$R(_this, "_timeLimitDuration", null);
+          __publicField$R(_this, "_beginTimeLimit", null);
+          __publicField$R(_this, "_endTimeLimit", null);
+          __publicField$R(_this, "_launchData", "");
+          __publicField$R(_this, "_credit", "credit");
+          __publicField$R(_this, "_maxTimeAllowed", "");
+          __publicField$R(_this, "_completionThreshold", "");
+          __publicField$R(_this, "_sequencingControls");
+          __publicField$R(_this, "_sequencingRules");
+          __publicField$R(_this, "_rollupRules");
+          __publicField$R(_this, "_processedChildren", null);
+          __publicField$R(_this, "_isNewAttempt", false);
+          __publicField$R(_this, "_primaryObjective", null);
+          __publicField$R(_this, "_objectives", []);
+          __publicField$R(_this, "_rollupConsiderations", {
               requiredForSatisfied: "always",
               requiredForNotSatisfied: "always",
               requiredForCompleted: "always",
               requiredForIncomplete: "always",
               measureSatisfactionIfActive: true
           });
-          __publicField$S(_this, "_wasSkipped", false);
-          __publicField$S(_this, "_attemptProgressStatus", false);
-          __publicField$S(_this, "_wasAutoCompleted", false);
-          __publicField$S(_this, "_wasAutoSatisfied", false);
-          __publicField$S(_this, "_completedByMeasure", false);
-          __publicField$S(_this, "_minProgressMeasure", 1);
-          __publicField$S(_this, "_progressWeight", 1);
-          __publicField$S(_this, "_attemptCompletionAmountStatus", false);
+          __publicField$R(_this, "_wasSkipped", false);
+          __publicField$R(_this, "_attemptProgressStatus", false);
+          __publicField$R(_this, "_wasAutoCompleted", false);
+          __publicField$R(_this, "_wasAutoSatisfied", false);
+          __publicField$R(_this, "_completedByMeasure", false);
+          __publicField$R(_this, "_minProgressMeasure", 1);
+          __publicField$R(_this, "_progressWeight", 1);
+          __publicField$R(_this, "_attemptCompletionAmountStatus", false);
           _this._id = id;
           _this._title = title;
           _this._sequencingControls = new SequencingControls();
@@ -11146,7 +12146,7 @@
           _this._objectives = [];
           return _this;
       }
-      _create_class$W(Activity, [
+      _create_class$V(Activity, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
@@ -11393,7 +12393,7 @@
                       (_this__children = this._children).splice.apply(_this__children, [
                           0,
                           this._children.length
-                      ].concat(_to_consumable_array$a(reordered)));
+                      ].concat(_to_consumable_array$9(reordered)));
                   }
               }
           },
@@ -12432,7 +13432,7 @@
      * Replace objectives collection
      * @param {ActivityObjective[]} objectives
      */ function set(objectives) {
-                  this._objectives = _to_consumable_array$a(objectives);
+                  this._objectives = _to_consumable_array$9(objectives);
                   this.syncPrimaryObjectiveCollection();
               }
           },
@@ -12471,7 +13471,7 @@
                   }
                   this._objectives = [
                       this._primaryObjective
-                  ].concat(_to_consumable_array$a(this._objectives));
+                  ].concat(_to_consumable_array$9(this._objectives));
               }
           },
           {
@@ -13177,7 +14177,7 @@
                       minProgressMeasure: this._minProgressMeasure,
                       progressWeight: this._progressWeight,
                       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
-                      hideLmsUi: _to_consumable_array$a(this._hideLmsUi),
+                      hideLmsUi: _to_consumable_array$9(this._hideLmsUi),
                       auxiliaryResources: this._auxiliaryResources.map(function(resource) {
                           return _object_spread$f({}, resource);
                       }),
@@ -13255,7 +14255,7 @@
           {
               key: "addAuxiliaryResource",
               value: function addAuxiliaryResource(resource) {
-                  this.auxiliaryResources = _to_consumable_array$a(this._auxiliaryResources).concat([
+                  this.auxiliaryResources = _to_consumable_array$9(this._auxiliaryResources).concat([
                       resource
                   ]);
               }
@@ -13283,7 +14283,7 @@
      * Getter for hideLmsUi directives
      * @return {HideLmsUiItem[]}
      */ function get() {
-                  return _to_consumable_array$a(this._hideLmsUi);
+                  return _to_consumable_array$9(this._hideLmsUi);
               },
               set: /**
      * Setter for hideLmsUi directives
@@ -13336,10 +14336,10 @@
       return Activity;
   }(BaseCMI);
 
-  function _class_call_check$V(instance, Constructor) {
+  function _class_call_check$U(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$V(target, props) {
+  function _defineProperties$U(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13348,15 +14348,15 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$V(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
+  function _create_class$U(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
       return Constructor;
   }
   var RollupChildFilter = /*#__PURE__*/ function() {
       function RollupChildFilter() {
-          _class_call_check$V(this, RollupChildFilter);
+          _class_call_check$U(this, RollupChildFilter);
       }
-      _create_class$V(RollupChildFilter, [
+      _create_class$U(RollupChildFilter, [
           {
               /**
      * Check Child For Rollup Subprocess
@@ -13585,10 +14585,10 @@
       return RollupChildFilter;
   }();
 
-  function _class_call_check$U(instance, Constructor) {
+  function _class_call_check$T(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$U(target, props) {
+  function _defineProperties$T(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13597,33 +14597,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$U(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
+  function _create_class$T(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$S(obj) {
+  function _type_of$R(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$R = Object.defineProperty;
-  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$R(obj, key, {
+  var __defProp$Q = Object.defineProperty;
+  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Q(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$R = function __publicField(obj, key, value) {
-      return __defNormalProp$R(obj, (_type_of$S(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Q = function __publicField(obj, key, value) {
+      return __defNormalProp$Q(obj, (_type_of$R(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupRuleEvaluator = /*#__PURE__*/ function() {
       function RollupRuleEvaluator(childFilter) {
-          _class_call_check$U(this, RollupRuleEvaluator);
-          __publicField$R(this, "childFilter");
+          _class_call_check$T(this, RollupRuleEvaluator);
+          __publicField$Q(this, "childFilter");
           this.childFilter = childFilter;
       }
-      _create_class$U(RollupRuleEvaluator, [
+      _create_class$T(RollupRuleEvaluator, [
           {
               /**
      * Evaluate a rollup rule
@@ -13764,10 +14764,10 @@
       return RollupRuleEvaluator;
   }();
 
-  function _class_call_check$T(instance, Constructor) {
+  function _class_call_check$S(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$T(target, props) {
+  function _defineProperties$S(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13776,35 +14776,35 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$T(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
+  function _create_class$S(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$R(obj) {
+  function _type_of$Q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Q = Object.defineProperty;
-  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Q(obj, key, {
+  var __defProp$P = Object.defineProperty;
+  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$P(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Q = function __publicField(obj, key, value) {
-      return __defNormalProp$Q(obj, (typeof key === "undefined" ? "undefined" : _type_of$R(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$P = function __publicField(obj, key, value) {
+      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
   };
   var MeasureRollupProcessor = /*#__PURE__*/ function() {
       function MeasureRollupProcessor(childFilter, eventCallback) {
-          _class_call_check$T(this, MeasureRollupProcessor);
-          __publicField$Q(this, "childFilter");
-          __publicField$Q(this, "eventCallback");
+          _class_call_check$S(this, MeasureRollupProcessor);
+          __publicField$P(this, "childFilter");
+          __publicField$P(this, "eventCallback");
           this.childFilter = childFilter;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$T(MeasureRollupProcessor, [
+      _create_class$S(MeasureRollupProcessor, [
           {
               /**
      * Measure Rollup Process
@@ -14038,10 +15038,10 @@
       return MeasureRollupProcessor;
   }();
 
-  function _class_call_check$S(instance, Constructor) {
+  function _class_call_check$R(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$S(target, props) {
+  function _defineProperties$R(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14050,37 +15050,37 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$S(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
+  function _create_class$R(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$Q(obj) {
+  function _type_of$P(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$P = Object.defineProperty;
-  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$P(obj, key, {
+  var __defProp$O = Object.defineProperty;
+  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$O(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$P = function __publicField(obj, key, value) {
-      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$O = function __publicField(obj, key, value) {
+      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveRollupProcessor = /*#__PURE__*/ function() {
       function ObjectiveRollupProcessor(childFilter, ruleEvaluator, eventCallback) {
-          _class_call_check$S(this, ObjectiveRollupProcessor);
-          __publicField$P(this, "childFilter");
-          __publicField$P(this, "ruleEvaluator");
-          __publicField$P(this, "eventCallback");
+          _class_call_check$R(this, ObjectiveRollupProcessor);
+          __publicField$O(this, "childFilter");
+          __publicField$O(this, "ruleEvaluator");
+          __publicField$O(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$S(ObjectiveRollupProcessor, [
+      _create_class$R(ObjectiveRollupProcessor, [
           {
               /**
      * Objective Rollup Process
@@ -14291,10 +15291,10 @@
       return ObjectiveRollupProcessor;
   }();
 
-  function _class_call_check$R(instance, Constructor) {
+  function _class_call_check$Q(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$R(target, props) {
+  function _defineProperties$Q(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14303,39 +15303,39 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$R(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
+  function _create_class$Q(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$P(obj) {
+  function _type_of$O(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$O = Object.defineProperty;
-  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$O(obj, key, {
+  var __defProp$N = Object.defineProperty;
+  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$N(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$O = function __publicField(obj, key, value) {
-      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$N = function __publicField(obj, key, value) {
+      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
   };
   var ProgressRollupProcessor = /*#__PURE__*/ function() {
       function ProgressRollupProcessor(childFilter, ruleEvaluator, objectiveProcessor, eventCallback) {
-          _class_call_check$R(this, ProgressRollupProcessor);
-          __publicField$O(this, "childFilter");
-          __publicField$O(this, "ruleEvaluator");
-          __publicField$O(this, "objectiveProcessor");
-          __publicField$O(this, "eventCallback");
+          _class_call_check$Q(this, ProgressRollupProcessor);
+          __publicField$N(this, "childFilter");
+          __publicField$N(this, "ruleEvaluator");
+          __publicField$N(this, "objectiveProcessor");
+          __publicField$N(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.objectiveProcessor = objectiveProcessor;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$R(ProgressRollupProcessor, [
+      _create_class$Q(ProgressRollupProcessor, [
           {
               /**
      * Activity Progress Rollup Process
@@ -14485,10 +15485,10 @@
       return ProgressRollupProcessor;
   }();
 
-  function _class_call_check$Q(instance, Constructor) {
+  function _class_call_check$P(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Q(target, props) {
+  function _defineProperties$P(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14497,33 +15497,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Q(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
+  function _create_class$P(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$O(obj) {
+  function _type_of$N(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$N = Object.defineProperty;
-  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$N(obj, key, {
+  var __defProp$M = Object.defineProperty;
+  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$M(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$N = function __publicField(obj, key, value) {
-      return __defNormalProp$N(obj, (_type_of$O(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$M = function __publicField(obj, key, value) {
+      return __defNormalProp$M(obj, (_type_of$N(key)) !== "symbol" ? key + "" : key, value);
   };
   var DurationRollupProcessor = /*#__PURE__*/ function() {
       function DurationRollupProcessor(eventCallback) {
-          _class_call_check$Q(this, DurationRollupProcessor);
-          __publicField$N(this, "eventCallback");
+          _class_call_check$P(this, DurationRollupProcessor);
+          __publicField$M(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$Q(DurationRollupProcessor, [
+      _create_class$P(DurationRollupProcessor, [
           {
               /**
      * Duration Rollup Process
@@ -14634,10 +15634,10 @@
       return DurationRollupProcessor;
   }();
 
-  function _class_call_check$P(instance, Constructor) {
+  function _class_call_check$O(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$P(target, props) {
+  function _defineProperties$O(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14646,8 +15646,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$P(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
+  function _create_class$O(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$a(left, right) {
@@ -14656,37 +15656,37 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$N(obj) {
+  function _type_of$M(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$M = Object.defineProperty;
-  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$M(obj, key, {
+  var __defProp$L = Object.defineProperty;
+  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$L(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$M = function __publicField(obj, key, value) {
-      return __defNormalProp$M(obj, (typeof key === "undefined" ? "undefined" : _type_of$N(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$L = function __publicField(obj, key, value) {
+      return __defNormalProp$L(obj, (typeof key === "undefined" ? "undefined" : _type_of$M(key)) !== "symbol" ? key + "" : key, value);
   };
   var MAX_CLUSTER_DEPTH = 10;
   var CrossClusterProcessor = /*#__PURE__*/ function() {
       function CrossClusterProcessor(measureProcessor, objectiveProcessor, progressProcessor, eventCallback) {
-          _class_call_check$P(this, CrossClusterProcessor);
-          __publicField$M(this, "measureProcessor");
-          __publicField$M(this, "objectiveProcessor");
-          __publicField$M(this, "progressProcessor");
-          __publicField$M(this, "eventCallback");
-          __publicField$M(this, "processingClusters", /* @__PURE__ */ new Set());
+          _class_call_check$O(this, CrossClusterProcessor);
+          __publicField$L(this, "measureProcessor");
+          __publicField$L(this, "objectiveProcessor");
+          __publicField$L(this, "progressProcessor");
+          __publicField$L(this, "eventCallback");
+          __publicField$L(this, "processingClusters", /* @__PURE__ */ new Set());
           this.measureProcessor = measureProcessor;
           this.objectiveProcessor = objectiveProcessor;
           this.progressProcessor = progressProcessor;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$P(CrossClusterProcessor, [
+      _create_class$O(CrossClusterProcessor, [
           {
               /**
      * Handle cross-cluster dependencies in rollup
@@ -14928,10 +15928,10 @@
       return CrossClusterProcessor;
   }();
 
-  function _class_call_check$O(instance, Constructor) {
+  function _class_call_check$N(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$O(target, props) {
+  function _defineProperties$N(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14940,9 +15940,9 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$O(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$O(Constructor, staticProps);
+  function _create_class$N(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$N(Constructor, staticProps);
       return Constructor;
   }
   function _instanceof$9(left, right) {
@@ -14951,29 +15951,29 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$M(obj) {
+  function _type_of$L(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$L = Object.defineProperty;
-  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$L(obj, key, {
+  var __defProp$K = Object.defineProperty;
+  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$K(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$L = function __publicField(obj, key, value) {
-      return __defNormalProp$L(obj, (_type_of$M(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$K = function __publicField(obj, key, value) {
+      return __defNormalProp$K(obj, (_type_of$L(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveSynchronizer = /*#__PURE__*/ function() {
       function GlobalObjectiveSynchronizer(eventCallback) {
-          _class_call_check$O(this, GlobalObjectiveSynchronizer);
-          __publicField$L(this, "eventCallback");
+          _class_call_check$N(this, GlobalObjectiveSynchronizer);
+          __publicField$K(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$O(GlobalObjectiveSynchronizer, [
+      _create_class$N(GlobalObjectiveSynchronizer, [
           {
               /**
      * Process global objective mapping for shared objectives
@@ -15818,18 +16818,18 @@
       return GlobalObjectiveSynchronizer;
   }();
 
-  function _array_like_to_array$g(arr, len) {
+  function _array_like_to_array$f(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$9(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
+  function _array_without_holes$8(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
-  function _class_call_check$N(instance, Constructor) {
+  function _class_call_check$M(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$N(target, props) {
+  function _defineProperties$M(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15838,8 +16838,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$N(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
+  function _create_class$M(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$8(left, right) {
@@ -15848,51 +16848,51 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array$9(iter) {
+  function _iterable_to_array$8(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$9() {
+  function _non_iterable_spread$8() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$9(arr) {
-      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$9();
+  function _to_consumable_array$8(arr) {
+      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$8();
   }
-  function _type_of$L(obj) {
+  function _type_of$K(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$g(o, minLen) {
+  function _unsupported_iterable_to_array$f(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
   }
-  var __defProp$K = Object.defineProperty;
-  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$K(obj, key, {
+  var __defProp$J = Object.defineProperty;
+  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$J(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$K = function __publicField(obj, key, value) {
-      return __defNormalProp$K(obj, (typeof key === "undefined" ? "undefined" : _type_of$L(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$J = function __publicField(obj, key, value) {
+      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$K(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupStateValidator = /*#__PURE__*/ function() {
       function RollupStateValidator(childFilter, eventCallback) {
-          _class_call_check$N(this, RollupStateValidator);
-          __publicField$K(this, "rollupStateLog", []);
-          __publicField$K(this, "childFilter");
-          __publicField$K(this, "eventCallback");
+          _class_call_check$M(this, RollupStateValidator);
+          __publicField$J(this, "rollupStateLog", []);
+          __publicField$J(this, "childFilter");
+          __publicField$J(this, "eventCallback");
           this.childFilter = childFilter;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$N(RollupStateValidator, [
+      _create_class$M(RollupStateValidator, [
           {
               /**
      * Validate rollup state consistency across the activity tree
@@ -16021,7 +17021,7 @@
      * @returns Array of rollup state log entries
      */ key: "getRollupStateLog",
               value: function getRollupStateLog() {
-                  return _to_consumable_array$9(this.rollupStateLog);
+                  return _to_consumable_array$8(this.rollupStateLog);
               }
           },
           {
@@ -16036,10 +17036,10 @@
       return RollupStateValidator;
   }();
 
-  function _class_call_check$M(instance, Constructor) {
+  function _class_call_check$L(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$M(target, props) {
+  function _defineProperties$L(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16048,44 +17048,44 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$M(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
+  function _create_class$L(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$K(obj) {
+  function _type_of$J(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$J = Object.defineProperty;
-  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$J(obj, key, {
+  var __defProp$I = Object.defineProperty;
+  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$I(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$J = function __publicField(obj, key, value) {
-      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$K(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$I = function __publicField(obj, key, value) {
+      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupProcess = /*#__PURE__*/ function() {
       function RollupProcess(eventCallback) {
-          _class_call_check$M(this, RollupProcess);
+          _class_call_check$L(this, RollupProcess);
           /**
        * Capability flag for hosts that supported older rollup behavior with a compatibility layer.
        * Rollup contribution controls belong to an activity as a child of its parent; they do not gate
        * calculation of the activity's own rolled-up state.
-       */ __publicField$J(this, "childContributionControlsApplyToParent", true);
-          __publicField$J(this, "childFilter");
-          __publicField$J(this, "ruleEvaluator");
-          __publicField$J(this, "measureProcessor");
-          __publicField$J(this, "objectiveProcessor");
-          __publicField$J(this, "progressProcessor");
-          __publicField$J(this, "durationProcessor");
-          __publicField$J(this, "globalObjectiveSynchronizer");
-          __publicField$J(this, "stateValidator");
-          __publicField$J(this, "crossClusterProcessor");
-          __publicField$J(this, "eventCallback");
+       */ __publicField$I(this, "childContributionControlsApplyToParent", true);
+          __publicField$I(this, "childFilter");
+          __publicField$I(this, "ruleEvaluator");
+          __publicField$I(this, "measureProcessor");
+          __publicField$I(this, "objectiveProcessor");
+          __publicField$I(this, "progressProcessor");
+          __publicField$I(this, "durationProcessor");
+          __publicField$I(this, "globalObjectiveSynchronizer");
+          __publicField$I(this, "stateValidator");
+          __publicField$I(this, "crossClusterProcessor");
+          __publicField$I(this, "eventCallback");
           this.eventCallback = eventCallback || null;
           this.childFilter = new RollupChildFilter();
           this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter);
@@ -16097,7 +17097,7 @@
           this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
           this.crossClusterProcessor = new CrossClusterProcessor(this.measureProcessor, this.objectiveProcessor, this.progressProcessor, eventCallback);
       }
-      _create_class$M(RollupProcess, [
+      _create_class$L(RollupProcess, [
           {
               /**
      * Overall Rollup Process
@@ -16357,10 +17357,10 @@
       return RollupProcess;
   }();
 
-  function _class_call_check$L(instance, Constructor) {
+  function _class_call_check$K(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$L(target, props) {
+  function _defineProperties$K(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16369,8 +17369,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$L(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
+  function _create_class$K(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$K(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$e(obj, key, value) {
@@ -16399,32 +17399,32 @@
       }
       return target;
   }
-  function _type_of$J(obj) {
+  function _type_of$I(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$I = Object.defineProperty;
-  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$I(obj, key, {
+  var __defProp$H = Object.defineProperty;
+  var __defNormalProp$H = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$H(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$I = function __publicField(obj, key, value) {
-      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$H = function __publicField(obj, key, value) {
+      return __defNormalProp$H(obj, (typeof key === "undefined" ? "undefined" : _type_of$I(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveEvaluationContext = /*#__PURE__*/ function() {
       function ObjectiveEvaluationContext(activityTree, globalObjectives) {
-          _class_call_check$L(this, ObjectiveEvaluationContext);
-          __publicField$I(this, "activityTree", activityTree);
-          __publicField$I(this, "globalObjectives", globalObjectives);
-          __publicField$I(this, "synchronizer", new GlobalObjectiveSynchronizer());
-          __publicField$I(this, "treeQueries");
+          _class_call_check$K(this, ObjectiveEvaluationContext);
+          __publicField$H(this, "activityTree", activityTree);
+          __publicField$H(this, "globalObjectives", globalObjectives);
+          __publicField$H(this, "synchronizer", new GlobalObjectiveSynchronizer());
+          __publicField$H(this, "treeQueries");
           this.treeQueries = new ActivityTreeQueries(activityTree);
       }
-      _create_class$L(ObjectiveEvaluationContext, [
+      _create_class$K(ObjectiveEvaluationContext, [
           {
               /**
      * Overlay the old branch's write maps on copied global entries, then read them
@@ -16533,10 +17533,10 @@
       return storedCompletionStatus || CompletionStatus.UNKNOWN;
   }
 
-  function _class_call_check$K(instance, Constructor) {
+  function _class_call_check$J(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$K(target, props) {
+  function _defineProperties$J(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16545,25 +17545,25 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$K(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$K(Constructor.prototype, protoProps);
+  function _create_class$J(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$J(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$I(obj) {
+  function _type_of$H(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$H = Object.defineProperty;
-  var __defNormalProp$H = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$H(obj, key, {
+  var __defProp$G = Object.defineProperty;
+  var __defNormalProp$G = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$G(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$H = function __publicField(obj, key, value) {
-      return __defNormalProp$H(obj, (_type_of$I(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$G = function __publicField(obj, key, value) {
+      return __defNormalProp$G(obj, (_type_of$H(key)) !== "symbol" ? key + "" : key, value);
   };
   var VALID_SUCCESS_STATUSES = [
       SuccessStatus.PASSED,
@@ -16590,11 +17590,11 @@
   }
   var RteDataTransferService = /*#__PURE__*/ function() {
       function RteDataTransferService(context) {
-          _class_call_check$K(this, RteDataTransferService);
-          __publicField$H(this, "context");
+          _class_call_check$J(this, RteDataTransferService);
+          __publicField$G(this, "context");
           this.context = context;
       }
-      _create_class$K(RteDataTransferService, [
+      _create_class$J(RteDataTransferService, [
           {
               /**
      * Transfer RTE Data to Activity
@@ -16883,10 +17883,10 @@
       return RteDataTransferService;
   }();
 
-  function _class_call_check$J(instance, Constructor) {
+  function _class_call_check$I(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$J(target, props) {
+  function _defineProperties$I(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16895,8 +17895,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$J(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$J(Constructor.prototype, protoProps);
+  function _create_class$I(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$I(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$d(obj, key, value) {
@@ -16943,36 +17943,36 @@
       }
       return target;
   }
-  function _type_of$H(obj) {
+  function _type_of$G(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$G = Object.defineProperty;
-  var __defNormalProp$G = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$G(obj, key, {
+  var __defProp$F = Object.defineProperty;
+  var __defNormalProp$F = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$F(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$G = function __publicField(obj, key, value) {
-      return __defNormalProp$G(obj, (typeof key === "undefined" ? "undefined" : _type_of$H(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$F = function __publicField(obj, key, value) {
+      return __defNormalProp$F(obj, (typeof key === "undefined" ? "undefined" : _type_of$G(key)) !== "symbol" ? key + "" : key, value);
   };
   var TerminationHandler = /*#__PURE__*/ function() {
       function TerminationHandler(activityTree, sequencingProcess, rollupProcess, globalObjectiveMap) {
           var _this = this;
           var eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$J(this, TerminationHandler);
-          __publicField$G(this, "activityTree");
-          __publicField$G(this, "sequencingProcess");
-          __publicField$G(this, "rollupProcess");
-          __publicField$G(this, "globalObjectiveMap");
-          __publicField$G(this, "eventCallback");
-          __publicField$G(this, "getCMIData");
-          __publicField$G(this, "is4thEdition");
-          __publicField$G(this, "invalidateCacheCallback", null);
-          __publicField$G(this, "_rteDataTransferService");
+          _class_call_check$I(this, TerminationHandler);
+          __publicField$F(this, "activityTree");
+          __publicField$F(this, "sequencingProcess");
+          __publicField$F(this, "rollupProcess");
+          __publicField$F(this, "globalObjectiveMap");
+          __publicField$F(this, "eventCallback");
+          __publicField$F(this, "getCMIData");
+          __publicField$F(this, "is4thEdition");
+          __publicField$F(this, "invalidateCacheCallback", null);
+          __publicField$F(this, "_rteDataTransferService");
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
           this.rollupProcess = rollupProcess;
@@ -16988,7 +17988,7 @@
           };
           this._rteDataTransferService = new RteDataTransferService(rteContext);
       }
-      _create_class$J(TerminationHandler, [
+      _create_class$I(TerminationHandler, [
           {
               /**
      * Set callback to invalidate navigation cache after state changes
@@ -17865,18 +18865,18 @@
       return TerminationHandler;
   }();
 
-  function _array_like_to_array$f(arr, len) {
+  function _array_like_to_array$e(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$8(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
+  function _array_without_holes$7(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
   }
-  function _class_call_check$I(instance, Constructor) {
+  function _class_call_check$H(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$I(target, props) {
+  function _defineProperties$H(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -17885,8 +18885,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$I(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$I(Constructor.prototype, protoProps);
+  function _create_class$H(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$H(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$c(obj, key, value) {
@@ -17900,12 +18900,12 @@
       } else obj[key] = value;
       return obj;
   }
-  function _iterable_to_array$8(iter) {
+  function _iterable_to_array$7(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$8() {
+  function _non_iterable_spread$7() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$c(target) {
@@ -17923,39 +18923,39 @@
       }
       return target;
   }
-  function _to_consumable_array$8(arr) {
-      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$8();
+  function _to_consumable_array$7(arr) {
+      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$7();
   }
-  function _type_of$G(obj) {
+  function _type_of$F(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$f(o, minLen) {
+  function _unsupported_iterable_to_array$e(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
   }
-  var __defProp$F = Object.defineProperty;
-  var __defNormalProp$F = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$F(obj, key, {
+  var __defProp$E = Object.defineProperty;
+  var __defNormalProp$E = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$E(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$F = function __publicField(obj, key, value) {
-      return __defNormalProp$F(obj, (typeof key === "undefined" ? "undefined" : _type_of$G(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$E = function __publicField(obj, key, value) {
+      return __defNormalProp$E(obj, (typeof key === "undefined" ? "undefined" : _type_of$F(key)) !== "symbol" ? key + "" : key, value);
   };
   var DeliveryRequest = function DeliveryRequest() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
-      _class_call_check$I(this, DeliveryRequest);
-      __publicField$F(this, "valid");
-      __publicField$F(this, "targetActivity");
-      __publicField$F(this, "exception");
+      _class_call_check$H(this, DeliveryRequest);
+      __publicField$E(this, "valid");
+      __publicField$E(this, "targetActivity");
+      __publicField$E(this, "exception");
       this.valid = valid;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -17963,22 +18963,22 @@
   var _DeliveryHandler = /*#__PURE__*/ function() {
       function _DeliveryHandler(activityTree, rollupProcess, globalObjectiveMap) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$I(this, _DeliveryHandler);
-          __publicField$F(this, "activityTree");
-          __publicField$F(this, "rollupProcess");
-          __publicField$F(this, "globalObjectiveMap");
-          __publicField$F(this, "adlNav");
-          __publicField$F(this, "eventCallback");
-          __publicField$F(this, "now");
-          __publicField$F(this, "defaultHideLmsUi");
-          __publicField$F(this, "defaultAuxiliaryResources");
-          __publicField$F(this, "_deliveryInProgress", false);
-          __publicField$F(this, "contentDelivered", false);
-          __publicField$F(this, "endAttemptCallback", null);
-          __publicField$F(this, "checkActivityCallback", null);
-          __publicField$F(this, "invalidateCacheCallback", null);
-          __publicField$F(this, "updateNavigationValidityCallback", null);
-          __publicField$F(this, "clearSuspendedActivityCallback", null);
+          _class_call_check$H(this, _DeliveryHandler);
+          __publicField$E(this, "activityTree");
+          __publicField$E(this, "rollupProcess");
+          __publicField$E(this, "globalObjectiveMap");
+          __publicField$E(this, "adlNav");
+          __publicField$E(this, "eventCallback");
+          __publicField$E(this, "now");
+          __publicField$E(this, "defaultHideLmsUi");
+          __publicField$E(this, "defaultAuxiliaryResources");
+          __publicField$E(this, "_deliveryInProgress", false);
+          __publicField$E(this, "contentDelivered", false);
+          __publicField$E(this, "endAttemptCallback", null);
+          __publicField$E(this, "checkActivityCallback", null);
+          __publicField$E(this, "invalidateCacheCallback", null);
+          __publicField$E(this, "updateNavigationValidityCallback", null);
+          __publicField$E(this, "clearSuspendedActivityCallback", null);
           this.activityTree = activityTree;
           this.rollupProcess = rollupProcess;
           this.globalObjectiveMap = globalObjectiveMap;
@@ -17987,12 +18987,12 @@
           this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
           };
-          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$8(options.defaultHideLmsUi) : [];
+          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$7(options.defaultHideLmsUi) : [];
           this.defaultAuxiliaryResources = (options === null || options === void 0 ? void 0 : options.defaultAuxiliaryResources) ? options.defaultAuxiliaryResources.map(function(resource) {
               return _object_spread$c({}, resource);
           }) : [];
       }
-      _create_class$I(_DeliveryHandler, [
+      _create_class$H(_DeliveryHandler, [
           {
               /** @spec SCORM 2004 SN 4th Ed. DB.2 / UP.4 - commit departed attempts through the coordinator. */ key: "setEndAttemptCallback",
               value: function setEndAttemptCallback(callback) {
@@ -18541,13 +19541,13 @@
       ]);
       return _DeliveryHandler;
   }();
-  __publicField$F(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$8(HIDE_LMS_UI_TOKENS));
+  __publicField$E(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$7(HIDE_LMS_UI_TOKENS));
   var DeliveryHandler = _DeliveryHandler;
 
-  function _class_call_check$H(instance, Constructor) {
+  function _class_call_check$G(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$H(target, props) {
+  function _defineProperties$G(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -18556,37 +19556,37 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$H(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$H(Constructor.prototype, protoProps);
+  function _create_class$G(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$G(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$F(obj) {
+  function _type_of$E(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$E = Object.defineProperty;
-  var __defNormalProp$E = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$E(obj, key, {
+  var __defProp$D = Object.defineProperty;
+  var __defNormalProp$D = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$D(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$E = function __publicField(obj, key, value) {
-      return __defNormalProp$E(obj, (typeof key === "undefined" ? "undefined" : _type_of$F(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$D = function __publicField(obj, key, value) {
+      return __defNormalProp$D(obj, (typeof key === "undefined" ? "undefined" : _type_of$E(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationLookAhead = /*#__PURE__*/ function() {
       function NavigationLookAhead(activityTree, sequencingProcess) {
-          _class_call_check$H(this, NavigationLookAhead);
-          __publicField$E(this, "activityTree");
-          __publicField$E(this, "sequencingProcess");
-          __publicField$E(this, "cache", null);
-          __publicField$E(this, "isDirty", true);
+          _class_call_check$G(this, NavigationLookAhead);
+          __publicField$D(this, "activityTree");
+          __publicField$D(this, "sequencingProcess");
+          __publicField$D(this, "cache", null);
+          __publicField$D(this, "isDirty", true);
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
       }
-      _create_class$H(NavigationLookAhead, [
+      _create_class$G(NavigationLookAhead, [
           {
               /**
      * Predict if Continue navigation would succeed from current activity
@@ -18970,10 +19970,10 @@
       return NavigationLookAhead;
   }();
 
-  function _class_call_check$G(instance, Constructor) {
+  function _class_call_check$F(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$G(target, props) {
+  function _defineProperties$F(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -18982,25 +19982,25 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$G(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$G(Constructor.prototype, protoProps);
+  function _create_class$F(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$E(obj) {
+  function _type_of$D(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$D = Object.defineProperty;
-  var __defNormalProp$D = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$D(obj, key, {
+  var __defProp$C = Object.defineProperty;
+  var __defNormalProp$C = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$C(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$D = function __publicField(obj, key, value) {
-      return __defNormalProp$D(obj, (typeof key === "undefined" ? "undefined" : _type_of$E(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$C = function __publicField(obj, key, value) {
+      return __defNormalProp$C(obj, (typeof key === "undefined" ? "undefined" : _type_of$D(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationRequestType = /* @__PURE__ */ function(NavigationRequestType2) {
       NavigationRequestType2["START"] = "start";
@@ -19019,12 +20019,12 @@
   }(NavigationRequestType || {});
   var NavigationRequestResult = function NavigationRequestResult() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, terminationRequest = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, sequencingRequest = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, targetActivityId = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, exception = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null;
-      _class_call_check$G(this, NavigationRequestResult);
-      __publicField$D(this, "valid");
-      __publicField$D(this, "terminationRequest");
-      __publicField$D(this, "sequencingRequest");
-      __publicField$D(this, "targetActivityId");
-      __publicField$D(this, "exception");
+      _class_call_check$F(this, NavigationRequestResult);
+      __publicField$C(this, "valid");
+      __publicField$C(this, "terminationRequest");
+      __publicField$C(this, "sequencingRequest");
+      __publicField$C(this, "targetActivityId");
+      __publicField$C(this, "exception");
       this.valid = valid;
       this.terminationRequest = terminationRequest;
       this.sequencingRequest = sequencingRequest;
@@ -19034,21 +20034,21 @@
   var NavigationValidityService = /*#__PURE__*/ function() {
       function NavigationValidityService(activityTree, sequencingProcess) {
           var adlNav = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, eventCallback = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null;
-          _class_call_check$G(this, NavigationValidityService);
-          __publicField$D(this, "activityTree");
-          __publicField$D(this, "sequencingProcess");
-          __publicField$D(this, "adlNav");
-          __publicField$D(this, "eventCallback");
-          __publicField$D(this, "navigationLookAhead");
-          __publicField$D(this, "getEffectiveHideLmsUiCallback", null);
-          __publicField$D(this, "getEffectiveAuxiliaryResourcesCallback", null);
+          _class_call_check$F(this, NavigationValidityService);
+          __publicField$C(this, "activityTree");
+          __publicField$C(this, "sequencingProcess");
+          __publicField$C(this, "adlNav");
+          __publicField$C(this, "eventCallback");
+          __publicField$C(this, "navigationLookAhead");
+          __publicField$C(this, "getEffectiveHideLmsUiCallback", null);
+          __publicField$C(this, "getEffectiveAuxiliaryResourcesCallback", null);
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
           this.adlNav = adlNav;
           this.eventCallback = eventCallback;
           this.navigationLookAhead = new NavigationLookAhead(activityTree, sequencingProcess);
       }
-      _create_class$G(NavigationValidityService, [
+      _create_class$F(NavigationValidityService, [
           {
               /**
      * Set callback to get effective hideLmsUi
@@ -19852,7 +20852,7 @@
       return NavigationValidityService;
   }();
 
-  function _array_like_to_array$e(arr, len) {
+  function _array_like_to_array$d(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -19860,10 +20860,10 @@
   function _array_with_holes$a(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _class_call_check$F(instance, Constructor) {
+  function _class_call_check$E(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$F(target, props) {
+  function _defineProperties$E(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -19872,8 +20872,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$F(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
+  function _create_class$E(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$E(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$b(obj, key, value) {
@@ -19954,40 +20954,40 @@
       return target;
   }
   function _sliced_to_array$a(arr, i) {
-      return _array_with_holes$a(arr) || _iterable_to_array_limit$a(arr, i) || _unsupported_iterable_to_array$e(arr, i) || _non_iterable_rest$a();
+      return _array_with_holes$a(arr) || _iterable_to_array_limit$a(arr, i) || _unsupported_iterable_to_array$d(arr, i) || _non_iterable_rest$a();
   }
-  function _type_of$D(obj) {
+  function _type_of$C(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$e(o, minLen) {
+  function _unsupported_iterable_to_array$d(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
   }
-  var __defProp$C = Object.defineProperty;
-  var __defNormalProp$C = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$C(obj, key, {
+  var __defProp$B = Object.defineProperty;
+  var __defNormalProp$B = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$B(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$C = function __publicField(obj, key, value) {
-      return __defNormalProp$C(obj, (typeof key === "undefined" ? "undefined" : _type_of$D(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$B = function __publicField(obj, key, value) {
+      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveService = /*#__PURE__*/ function() {
       function GlobalObjectiveService(eventCallback) {
-          _class_call_check$F(this, GlobalObjectiveService);
-          __publicField$C(this, "globalObjectiveMap", /* @__PURE__ */ new Map());
-          __publicField$C(this, "eventCallback", null);
+          _class_call_check$E(this, GlobalObjectiveService);
+          __publicField$B(this, "globalObjectiveMap", /* @__PURE__ */ new Map());
+          __publicField$B(this, "eventCallback", null);
           this.eventCallback = eventCallback || null;
       }
-      _create_class$F(GlobalObjectiveService, [
+      _create_class$E(GlobalObjectiveService, [
           {
               /**
      * Initialize Global Objective Map
@@ -20310,10 +21310,10 @@
       return GlobalObjectiveService;
   }();
 
-  function _class_call_check$E(instance, Constructor) {
+  function _class_call_check$D(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$E(target, props) {
+  function _defineProperties$D(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -20322,8 +21322,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$E(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$E(Constructor.prototype, protoProps);
+  function _create_class$D(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$D(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$6(left, right) {
@@ -20332,42 +21332,42 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$C(obj) {
+  function _type_of$B(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$B = Object.defineProperty;
-  var __defNormalProp$B = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$B(obj, key, {
+  var __defProp$A = Object.defineProperty;
+  var __defNormalProp$A = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$A(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$B = function __publicField(obj, key, value) {
-      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$A = function __publicField(obj, key, value) {
+      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingStateManager = /*#__PURE__*/ function() {
       function SequencingStateManager(activityTree, globalObjectiveService, rollupProcess) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null;
-          _class_call_check$E(this, SequencingStateManager);
-          __publicField$B(this, "activityTree");
-          __publicField$B(this, "globalObjectiveService");
-          __publicField$B(this, "rollupProcess");
-          __publicField$B(this, "adlNav");
-          __publicField$B(this, "eventCallback");
-          __publicField$B(this, "getEffectiveHideLmsUiCallback", null);
-          __publicField$B(this, "getEffectiveAuxiliaryResourcesCallback", null);
-          __publicField$B(this, "contentDeliveredGetter", null);
-          __publicField$B(this, "contentDeliveredSetter", null);
+          _class_call_check$D(this, SequencingStateManager);
+          __publicField$A(this, "activityTree");
+          __publicField$A(this, "globalObjectiveService");
+          __publicField$A(this, "rollupProcess");
+          __publicField$A(this, "adlNav");
+          __publicField$A(this, "eventCallback");
+          __publicField$A(this, "getEffectiveHideLmsUiCallback", null);
+          __publicField$A(this, "getEffectiveAuxiliaryResourcesCallback", null);
+          __publicField$A(this, "contentDeliveredGetter", null);
+          __publicField$A(this, "contentDeliveredSetter", null);
           this.activityTree = activityTree;
           this.globalObjectiveService = globalObjectiveService;
           this.rollupProcess = rollupProcess;
           this.adlNav = adlNav;
           this.eventCallback = eventCallback;
       }
-      _create_class$E(SequencingStateManager, [
+      _create_class$D(SequencingStateManager, [
           {
               /**
      * Set callback to get effective hideLmsUi
@@ -20826,1009 +21826,6 @@
           }
       ]);
       return SequencingStateManager;
-  }();
-
-  function _array_like_to_array$d(arr, len) {
-      if (len == null || len > arr.length) len = arr.length;
-      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
-      return arr2;
-  }
-  function _array_without_holes$7(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
-  }
-  function _class_call_check$D(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$D(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$D(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$D(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _iterable_to_array$7(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
-          return Array.from(iter);
-      }
-  }
-  function _non_iterable_spread$7() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-  function _to_consumable_array$7(arr) {
-      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$7();
-  }
-  function _type_of$B(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _unsupported_iterable_to_array$d(o, minLen) {
-      if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
-      var n = Object.prototype.toString.call(o).slice(8, -1);
-      if (n === "Object" && o.constructor) n = o.constructor.name;
-      if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
-  }
-  var __defProp$A = Object.defineProperty;
-  var __defNormalProp$A = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$A(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$A = function __publicField(obj, key, value) {
-      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var DeliveryValidator = /*#__PURE__*/ function() {
-      function DeliveryValidator(activityTree) {
-          var eventCallback = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, options = arguments.length > 2 ? arguments[2] : void 0, ruleEngineProvider = arguments.length > 3 ? arguments[3] : void 0;
-          _class_call_check$D(this, DeliveryValidator);
-          __publicField$A(this, "activityTree");
-          __publicField$A(this, "eventCallback");
-          __publicField$A(this, "now");
-          __publicField$A(this, "contentDeliveredGetter", null);
-          __publicField$A(this, "ruleEngineProvider");
-          this.activityTree = activityTree;
-          this.eventCallback = eventCallback;
-          this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
-              return /* @__PURE__ */ new Date();
-          };
-          if (ruleEngineProvider) {
-              this.ruleEngineProvider = ruleEngineProvider;
-          } else {
-              var ruleEngine = new RuleEvaluationEngine({
-                  now: this.now
-              });
-              this.ruleEngineProvider = function() {
-                  return ruleEngine;
-              };
-          }
-      }
-      _create_class$D(DeliveryValidator, [
-          {
-              /**
-     * Set getter for content delivered flag
-     */ key: "setContentDeliveredGetter",
-              value: function setContentDeliveredGetter(getter) {
-                  this.contentDeliveredGetter = getter;
-              }
-          },
-          {
-              /**
-     * Validate Activity Tree State Consistency
-     * @param {Activity} activity - Activity to validate
-     * @return {StateConsistencyResult} - Consistency result
-     */ key: "validateTreeConsistency",
-              value: function validateTreeConsistency(activity) {
-                  if (!this.activityTree.root) {
-                      return {
-                          consistent: false,
-                          exception: "DB.1.1-4"
-                      };
-                  }
-                  if (!this.isActivityPartOfTree(activity, this.activityTree.root)) {
-                      return {
-                          consistent: false,
-                          exception: "DB.1.1-5"
-                      };
-                  }
-                  var activeActivities = this.getActiveActivities();
-                  if (activeActivities.length > 1) {
-                      this.fireEvent("onStateInconsistency", {
-                          activeActivities: activeActivities.map(function(a) {
-                              return a.id;
-                          }),
-                          targetActivity: activity.id
-                      });
-                      return {
-                          consistent: false,
-                          exception: "DB.1.1-6"
-                      };
-                  }
-                  var current = activity;
-                  while(current === null || current === void 0 ? void 0 : current.parent){
-                      if (!current.parent.children.includes(current)) {
-                          return {
-                              consistent: false,
-                              exception: "DB.1.1-7"
-                          };
-                      }
-                      current = current.parent;
-                  }
-                  return {
-                      consistent: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Validate Resource Constraints
-     * @param {Activity} activity - Activity to validate
-     * @return {ResourceConstraintResult} - Resource availability result
-     */ key: "validateResources",
-              value: function validateResources(activity) {
-                  var requiredResources = this.getRequiredResources(activity);
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = requiredResources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var resource = _step.value;
-                          if (!this.isResourceAvailable(resource)) {
-                              return {
-                                  available: false,
-                                  exception: "DB.1.1-8"
-                              };
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  var systemResourceCheck = this.checkSystemLimits();
-                  if (!systemResourceCheck.adequate) {
-                      return {
-                          available: false,
-                          exception: "DB.1.1-9"
-                      };
-                  }
-                  return {
-                      available: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Validate Concurrent Delivery Prevention
-     * @param {Activity} activity - Activity to validate
-     * @return {ConcurrentDeliveryResult} - Concurrency check result
-     */ key: "validateConcurrentDelivery",
-              value: function validateConcurrentDelivery(activity) {
-                  var contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
-                  if (contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
-                      return {
-                          allowed: false,
-                          exception: "DB.1.1-10"
-                      };
-                  }
-                  if (this.hasPendingDeliveryRequests()) {
-                      return {
-                          allowed: false,
-                          exception: "DB.1.1-11"
-                      };
-                  }
-                  if (this.isDeliveryLocked()) {
-                      return {
-                          allowed: false,
-                          exception: "DB.1.1-12"
-                      };
-                  }
-                  return {
-                      allowed: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Validate Activity Dependencies
-     * @param {Activity} activity - Activity to validate
-     * @return {DependencyResult} - Dependency check result
-     */ key: "validateDependencies",
-              value: function validateDependencies(activity) {
-                  var prerequisites = this.getPrerequisites(activity);
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = prerequisites[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var prerequisite = _step.value;
-                          if (!this.isPrerequisiteSatisfied(prerequisite, activity)) {
-                              return {
-                                  satisfied: false,
-                                  exception: "DB.1.1-13"
-                              };
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  var objectiveDependencies = this.getObjectiveDependencies(activity);
-                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                  try {
-                      for(var _iterator1 = objectiveDependencies[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                          var dependency = _step1.value;
-                          if (!this.isObjectiveDependencySatisfied(dependency)) {
-                              return {
-                                  satisfied: false,
-                                  exception: "DB.1.1-14"
-                              };
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError1 = true;
-                      _iteratorError1 = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                              _iterator1.return();
-                          }
-                      } finally{
-                          if (_didIteratorError1) {
-                              throw _iteratorError1;
-                          }
-                      }
-                  }
-                  var sequencingDependencies = this.getSequencingRuleDependencies(activity);
-                  if (!sequencingDependencies.satisfied) {
-                      return {
-                          satisfied: false,
-                          exception: "DB.1.1-15"
-                      };
-                  }
-                  return {
-                      satisfied: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Check Activity Process (UP.5)
-     * Validates if an activity can be delivered based on sequencing rules and limit conditions
-     * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if activity is valid (not disabled, limits not violated)
-     */ key: "checkActivity",
-              value: function checkActivity(activity) {
-                  if (!activity.isAvailable) {
-                      return false;
-                  }
-                  var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
-                      return rule.action === RuleActionType.DISABLED;
-                  });
-                  if (this.ruleEngineProvider().checkSequencingRules(activity, disabledRules) !== null) {
-                      return false;
-                  }
-                  if (!this.checkLimitConditions(activity)) {
-                      return false;
-                  }
-                  return true;
-              }
-          },
-          {
-              /**
-     * Limit Conditions Check Process (UP.1)
-     * Checks if any limit conditions are violated for the activity
-     * @param {Activity} activity - The activity to check limit conditions for
-     * @return {boolean} - True if limit conditions are met, false if violated
-     */ key: "checkLimitConditions",
-              value: function checkLimitConditions(activity) {
-                  var result = true;
-                  var failureReason = "";
-                  if (activity.isSuspended) {
-                      this.fireEvent("onLimitConditionCheck", {
-                          activity: activity,
-                          result: true,
-                          failureReason: "",
-                          attemptInProgress: true
-                      });
-                      return true;
-                  }
-                  if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
-                      if (activity.attemptCount >= activity.attemptLimit) {
-                          result = false;
-                          failureReason = "Attempt limit exceeded";
-                      }
-                  }
-                  if (result && activity.attemptAbsoluteDurationLimit) {
-                      var limitDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-                      if (limitDuration > 0) {
-                          var currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
-                          if (currentDuration >= limitDuration) {
-                              result = false;
-                              failureReason = "Attempt duration limit exceeded";
-                          }
-                      }
-                  }
-                  if (result && activity.activityAbsoluteDurationLimit) {
-                      var limitDuration1 = getDurationAsSeconds(activity.activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-                      if (limitDuration1 > 0) {
-                          var currentDuration1 = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
-                          if (currentDuration1 >= limitDuration1) {
-                              result = false;
-                              failureReason = "Activity duration limit exceeded";
-                          }
-                      }
-                  }
-                  if (result && activity.beginTimeLimit) {
-                      var currentTime = this.now();
-                      var beginTime = new Date(activity.beginTimeLimit);
-                      if (currentTime < beginTime) {
-                          result = false;
-                          failureReason = "Not yet time to begin";
-                      }
-                  }
-                  if (result && activity.endTimeLimit) {
-                      var currentTime1 = this.now();
-                      var endTime = new Date(activity.endTimeLimit);
-                      if (currentTime1 > endTime) {
-                          result = false;
-                          failureReason = "Time limit expired";
-                      }
-                  }
-                  this.fireEvent("onLimitConditionCheck", {
-                      activity: activity,
-                      result: result,
-                      failureReason: failureReason,
-                      checks: {
-                          attemptLimit: activity.attemptLimit,
-                          attemptCount: activity.attemptCount,
-                          attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
-                          activityDurationLimit: activity.activityAbsoluteDurationLimit,
-                          beginTimeLimit: activity.beginTimeLimit,
-                          endTimeLimit: activity.endTimeLimit
-                      }
-                  });
-                  return result;
-              }
-          },
-          {
-              /**
-     * Check if activity is part of tree
-     */ key: "isActivityPartOfTree",
-              value: function isActivityPartOfTree(activity, root) {
-                  if (activity === root) {
-                      return true;
-                  }
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = root.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          if (this.isActivityPartOfTree(activity, child)) {
-                              return true;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return false;
-              }
-          },
-          {
-              /**
-     * Get all active activities in the tree
-     */ key: "getActiveActivities",
-              value: function getActiveActivities() {
-                  var activeActivities = [];
-                  if (this.activityTree.root) {
-                      this.collectActiveActivities(this.activityTree.root, activeActivities);
-                  }
-                  return activeActivities;
-              }
-          },
-          {
-              key: "collectActiveActivities",
-              value: function collectActiveActivities(activity, activeActivities) {
-                  if (activity.isActive) {
-                      activeActivities.push(activity);
-                  }
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          this.collectActiveActivities(child, activeActivities);
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-              }
-          },
-          {
-              /**
-     * Get required resources for activity
-     */ key: "getRequiredResources",
-              value: function getRequiredResources(activity) {
-                  var resources = [];
-                  var activityInfo = (activity.title + " " + activity.location).toLowerCase();
-                  if (activityInfo.includes("video") || activityInfo.includes("multimedia")) {
-                      resources.push("video-codec");
-                  }
-                  if (activityInfo.includes("audio") || activityInfo.includes("sound")) {
-                      resources.push("audio-codec");
-                  }
-                  if (activityInfo.includes("flash") || activityInfo.includes(".swf")) {
-                      resources.push("flash-plugin");
-                  }
-                  if (activityInfo.includes("java") || activityInfo.includes("applet")) {
-                      resources.push("java-runtime");
-                  }
-                  if (activity.children && activity.children.length > 0) {
-                      resources.push("high-bandwidth");
-                  }
-                  if (activity.attemptAbsoluteDurationLimit && this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
-                      resources.push("extended-storage");
-                  }
-                  if (activity.attemptLimit && activity.attemptLimit > 1) {
-                      resources.push("persistent-storage");
-                  }
-                  return resources;
-              }
-          },
-          {
-              /**
-     * Check if resource is available
-     */ key: "isResourceAvailable",
-              value: function isResourceAvailable(resource) {
-                  try {
-                      switch(resource){
-                          case "video-codec":
-                              return !!document.createElement("video").canPlayType;
-                          case "audio-codec":
-                              return !!document.createElement("audio").canPlayType;
-                          case "flash-plugin":
-                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
-                                  return plugin.name === "Shockwave Flash";
-                              });
-                          case "java-runtime":
-                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
-                                  return plugin.name === "Java";
-                              });
-                          case "high-bandwidth":
-                              if ("connection" in navigator) {
-                                  var connection = navigator.connection;
-                                  return connection.effectiveType === "4g" || connection.downlink > 5;
-                              }
-                              return true;
-                          // Assume available if can't detect
-                          case "extended-storage":
-                              return true;
-                          case "persistent-storage":
-                              return "localStorage" in window && "sessionStorage" in window;
-                          default:
-                              return true;
-                      }
-                  } catch (error) {
-                      return false;
-                  }
-              }
-          },
-          {
-              /**
-     * Check system resource limits
-     */ key: "checkSystemLimits",
-              value: function checkSystemLimits() {
-                  try {
-                      var adequate = true;
-                      if ("memory" in performance) {
-                          var memory = performance.memory;
-                          var memoryUsagePercent = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
-                          if (memoryUsagePercent > 0.8) {
-                              adequate = false;
-                          }
-                      }
-                      if ("deviceMemory" in navigator) {
-                          var deviceMemory = navigator.deviceMemory;
-                          if (deviceMemory < 2) {
-                              adequate = false;
-                          }
-                      }
-                      if ("hardwareConcurrency" in navigator) {
-                          var cores = navigator.hardwareConcurrency;
-                          if (cores < 2) {
-                              adequate = false;
-                          }
-                      }
-                      if ("connection" in navigator) {
-                          var connection = navigator.connection;
-                          if (connection.saveData || connection.effectiveType === "slow-2g") {
-                              adequate = false;
-                          }
-                      }
-                      return {
-                          adequate: adequate
-                      };
-                  } catch (error) {
-                      return {
-                          adequate: true
-                      };
-                  }
-              }
-          },
-          {
-              key: "hasPendingDeliveryRequests",
-              value: function hasPendingDeliveryRequests() {
-                  if (this.activityTree && this.activityTree.pendingRequests) {
-                      return this.activityTree.pendingRequests.length > 0;
-                  }
-                  if (typeof window !== "undefined" && window.pendingScormRequests) {
-                      return window.pendingScormRequests > 0;
-                  }
-                  return false;
-              }
-          },
-          {
-              key: "isDeliveryLocked",
-              value: function isDeliveryLocked() {
-                  if (this.activityTree && this.activityTree.navigationLocked) {
-                      return true;
-                  }
-                  if (this.activityTree && this.activityTree.terminationInProgress) {
-                      return true;
-                  }
-                  var resourceCheck = this.checkSystemLimits();
-                  if (!resourceCheck.adequate) {
-                      return true;
-                  }
-                  return !!(typeof window !== "undefined" && window.scormMaintenanceMode);
-              }
-          },
-          {
-              /**
-     * Get activity prerequisites
-     */ key: "getPrerequisites",
-              value: function getPrerequisites(activity) {
-                  var prerequisites = [];
-                  if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                      try {
-                          for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                              var rule = _step.value;
-                              if (rule.conditions && rule.conditions.length > 0) {
-                                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                                  try {
-                                      for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                                          var condition = _step1.value;
-                                          if (condition.referencedObjectiveID && condition.referencedObjectiveID !== activity.id) {
-                                              prerequisites.push(condition.referencedObjectiveID);
-                                          }
-                                      }
-                                  } catch (err) {
-                                      _didIteratorError1 = true;
-                                      _iteratorError1 = err;
-                                  } finally{
-                                      try {
-                                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                                              _iterator1.return();
-                                          }
-                                      } finally{
-                                          if (_didIteratorError1) {
-                                              throw _iteratorError1;
-                                          }
-                                      }
-                                  }
-                              }
-                          }
-                      } catch (err) {
-                          _didIteratorError = true;
-                          _iteratorError = err;
-                      } finally{
-                          try {
-                              if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                  _iterator.return();
-                              }
-                          } finally{
-                              if (_didIteratorError) {
-                                  throw _iteratorError;
-                              }
-                          }
-                      }
-                  }
-                  if (activity.parent && activity.sequencingControls && !activity.sequencingControls.choiceExit) {
-                      var siblings = activity.parent.children;
-                      if (siblings) {
-                          var activityIndex = siblings.indexOf(activity);
-                          for(var i = 0; i < activityIndex; i++){
-                              var sibling = siblings[i];
-                              if (sibling) {
-                                  prerequisites.push(sibling.id);
-                              }
-                          }
-                      }
-                  }
-                  if (activity.prerequisiteActivities) {
-                      var _prerequisites;
-                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$7(activity.prerequisiteActivities));
-                  }
-                  return Array.from(new Set(prerequisites));
-              }
-          },
-          {
-              /**
-     * Check if prerequisite is satisfied
-     */ key: "isPrerequisiteSatisfied",
-              value: function isPrerequisiteSatisfied(prerequisiteId, _activity) {
-                  var prerequisite = this.activityTree.getActivity(prerequisiteId);
-                  if (!prerequisite) {
-                      return false;
-                  }
-                  return prerequisite.completionStatus === "completed";
-              }
-          },
-          {
-              /**
-     * Get objective dependencies
-     */ key: "getObjectiveDependencies",
-              value: function getObjectiveDependencies(activity) {
-                  var dependencies = [];
-                  var objectives = activity.objectives;
-                  if (objectives && objectives.length > 0) {
-                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                      try {
-                          for(var _iterator = objectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                              var objective = _step.value;
-                              if (objective.globalObjectiveID) {
-                                  dependencies.push(objective.globalObjectiveID);
-                              }
-                              if (!objective.satisfiedByMeasure && objective.readNormalizedMeasure) {
-                                  dependencies.push(objective.id + "_measure");
-                              }
-                          }
-                      } catch (err) {
-                          _didIteratorError = true;
-                          _iteratorError = err;
-                      } finally{
-                          try {
-                              if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                  _iterator.return();
-                              }
-                          } finally{
-                              if (_didIteratorError) {
-                                  throw _iteratorError;
-                              }
-                          }
-                      }
-                  }
-                  if (activity.sequencingRules) {
-                      var allRules = _to_consumable_array$7(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$7(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$7(activity.sequencingRules.postConditionRules || []));
-                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                      try {
-                          for(var _iterator1 = allRules[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                              var rule = _step1.value;
-                              if (rule.conditions && rule.conditions.length > 0) {
-                                  var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
-                                  try {
-                                      for(var _iterator2 = rule.conditions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
-                                          var condition = _step2.value;
-                                          if (condition.objectiveReference && condition.objectiveReference !== activity.id) {
-                                              dependencies.push(condition.objectiveReference);
-                                          }
-                                      }
-                                  } catch (err) {
-                                      _didIteratorError2 = true;
-                                      _iteratorError2 = err;
-                                  } finally{
-                                      try {
-                                          if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-                                              _iterator2.return();
-                                          }
-                                      } finally{
-                                          if (_didIteratorError2) {
-                                              throw _iteratorError2;
-                                          }
-                                      }
-                                  }
-                              }
-                          }
-                      } catch (err) {
-                          _didIteratorError1 = true;
-                          _iteratorError1 = err;
-                      } finally{
-                          try {
-                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                                  _iterator1.return();
-                              }
-                          } finally{
-                              if (_didIteratorError1) {
-                                  throw _iteratorError1;
-                              }
-                          }
-                      }
-                  }
-                  return Array.from(new Set(dependencies));
-              }
-          },
-          {
-              /**
-     * Check if objective dependency is satisfied
-     */ key: "isObjectiveDependencySatisfied",
-              value: function isObjectiveDependencySatisfied(objectiveId) {
-                  if (this.activityTree && this.activityTree.globalObjectives) {
-                      var globalObjectives = this.activityTree.globalObjectives;
-                      var globalObjective = globalObjectives[objectiveId];
-                      if (globalObjective) {
-                          return globalObjective.satisfied === true && globalObjective.statusKnown === true;
-                      }
-                  }
-                  if (objectiveId.endsWith("_measure")) {
-                      var baseObjectiveId = objectiveId.replace("_measure", "");
-                      if (this.activityTree && this.activityTree.globalObjectives) {
-                          var globalObjectives1 = this.activityTree.globalObjectives;
-                          var globalObjective1 = globalObjectives1[baseObjectiveId];
-                          if (globalObjective1) {
-                              return globalObjective1.measureKnown === true && globalObjective1.normalizedMeasure >= 0;
-                          }
-                      }
-                  }
-                  var referencedActivity = this.activityTree.getActivity(objectiveId);
-                  if (referencedActivity) {
-                      return referencedActivity.objectiveSatisfiedStatus && referencedActivity.objectiveMeasureStatus;
-                  }
-                  return false;
-              }
-          },
-          {
-              key: "getSequencingRuleDependencies",
-              value: function getSequencingRuleDependencies(activity) {
-                  var satisfied = true;
-                  try {
-                      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-                          var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                          try {
-                              for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                                  var rule = _step.value;
-                                  if (rule.conditions && rule.conditions.length > 0) {
-                                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                                      try {
-                                          for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                                              var condition = _step1.value;
-                                              var conditionType = condition.conditionType || condition.condition;
-                                              switch(conditionType){
-                                                  case "activityProgressKnown":
-                                                      if (!activity.progressMeasureStatus) satisfied = false;
-                                                      break;
-                                                  case "objectiveStatusKnown":
-                                                  case "objectiveSatisfied":
-                                                      {
-                                                          var objectiveId = condition.referencedObjectiveID || activity.id;
-                                                          if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
-                                                          break;
-                                                      }
-                                                  case "attemptLimitExceeded":
-                                                      if (activity.attemptLimit === null) satisfied = false;
-                                                      break;
-                                                  case "timeLimitExceeded":
-                                                      if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit) satisfied = false;
-                                                      break;
-                                                  case "always":
-                                                  case "never":
-                                                      break;
-                                                  default:
-                                                      satisfied = false;
-                                              }
-                                          }
-                                      } catch (err) {
-                                          _didIteratorError1 = true;
-                                          _iteratorError1 = err;
-                                      } finally{
-                                          try {
-                                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                                                  _iterator1.return();
-                                              }
-                                          } finally{
-                                              if (_didIteratorError1) {
-                                                  throw _iteratorError1;
-                                              }
-                                          }
-                                      }
-                                  }
-                              }
-                          } catch (err) {
-                              _didIteratorError = true;
-                              _iteratorError = err;
-                          } finally{
-                              try {
-                                  if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                      _iterator.return();
-                                  }
-                              } finally{
-                                  if (_didIteratorError) {
-                                      throw _iteratorError;
-                                  }
-                              }
-                          }
-                      }
-                      if (activity.sequencingRules && activity.sequencingRules.exitConditionRules) {
-                          var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
-                          try {
-                              for(var _iterator2 = activity.sequencingRules.exitConditionRules[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
-                                  var rule1 = _step2.value;
-                                  if (rule1.conditions && rule1.conditions.length > 0) {
-                                      var _iteratorNormalCompletion3 = true, _didIteratorError3 = false, _iteratorError3 = undefined;
-                                      try {
-                                          for(var _iterator3 = rule1.conditions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true){
-                                              var condition1 = _step3.value;
-                                              var conditionType1 = condition1.conditionType || condition1.condition;
-                                              if ([
-                                                  "objectiveStatusKnown",
-                                                  "objectiveSatisfied"
-                                              ].includes(conditionType1)) {
-                                                  var objectiveId1 = condition1.referencedObjectiveID || activity.id;
-                                                  if (!this.isObjectiveDependencySatisfied(objectiveId1)) satisfied = false;
-                                              }
-                                          }
-                                      } catch (err) {
-                                          _didIteratorError3 = true;
-                                          _iteratorError3 = err;
-                                      } finally{
-                                          try {
-                                              if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
-                                                  _iterator3.return();
-                                              }
-                                          } finally{
-                                              if (_didIteratorError3) {
-                                                  throw _iteratorError3;
-                                              }
-                                          }
-                                      }
-                                  }
-                              }
-                          } catch (err) {
-                              _didIteratorError2 = true;
-                              _iteratorError2 = err;
-                          } finally{
-                              try {
-                                  if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-                                      _iterator2.return();
-                                  }
-                              } finally{
-                                  if (_didIteratorError2) {
-                                      throw _iteratorError2;
-                                  }
-                              }
-                          }
-                      }
-                      if (activity.rollupRules && activity.rollupRules.rules) {
-                          var _iteratorNormalCompletion4 = true, _didIteratorError4 = false, _iteratorError4 = undefined;
-                          try {
-                              for(var _iterator4 = activity.rollupRules.rules[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true){
-                                  var rule2 = _step4.value;
-                                  if (rule2.conditions && rule2.conditions.length > 0) {
-                                      if (activity.children && activity.children.length > 0) {
-                                          var _iteratorNormalCompletion5 = true, _didIteratorError5 = false, _iteratorError5 = undefined;
-                                          try {
-                                              for(var _iterator5 = activity.children[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true){
-                                                  var child = _step5.value;
-                                                  if (!child.isCompleted) {
-                                                      satisfied = false;
-                                                      break;
-                                                  }
-                                              }
-                                          } catch (err) {
-                                              _didIteratorError5 = true;
-                                              _iteratorError5 = err;
-                                          } finally{
-                                              try {
-                                                  if (!_iteratorNormalCompletion5 && _iterator5.return != null) {
-                                                      _iterator5.return();
-                                                  }
-                                              } finally{
-                                                  if (_didIteratorError5) {
-                                                      throw _iteratorError5;
-                                                  }
-                                              }
-                                          }
-                                      }
-                                  }
-                              }
-                          } catch (err) {
-                              _didIteratorError4 = true;
-                              _iteratorError4 = err;
-                          } finally{
-                              try {
-                                  if (!_iteratorNormalCompletion4 && _iterator4.return != null) {
-                                      _iterator4.return();
-                                  }
-                              } finally{
-                                  if (_didIteratorError4) {
-                                      throw _iteratorError4;
-                                  }
-                              }
-                          }
-                      }
-                  } catch (error) {
-                      satisfied = false;
-                  }
-                  return {
-                      satisfied: satisfied
-                  };
-              }
-          },
-          {
-              /**
-     * Helper method to parse ISO 8601 duration to minutes
-     */ key: "parseDurationToMinutes",
-              value: function parseDurationToMinutes(duration) {
-                  return getDurationAsSeconds(duration, scorm2004_regex.CMITimespan) / 60;
-              }
-          },
-          {
-              /**
-     * Fire a sequencing event
-     * @param {string} eventType - The type of event
-     * @param {any} data - Event data
-     */ key: "fireEvent",
-              value: function fireEvent(eventType, data) {
-                  try {
-                      if (this.eventCallback) {
-                          this.eventCallback(eventType, data);
-                      }
-                  } catch (error) {
-                      console.warn("Failed to fire delivery validator event ".concat(eventType, ": ").concat(error));
-                  }
-              }
-          }
-      ]);
-      return DeliveryValidator;
   }();
 
   function _class_call_check$C(instance, Constructor) {
@@ -29656,6 +29653,9 @@
           parts.slice(1).join(bare).replace(unescapeRe, bare)
       ];
   }
+  function allowsBareDelimiters(value, type) {
+      return !isSpecForm(value) && type !== "fill-in";
+  }
 
   function _array_like_to_array$7(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
@@ -30023,7 +30023,7 @@
                           this._learner_response = "";
                           return;
                       }
-                      var allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
+                      var allowBare = allowsBareDelimiters(learner_response, this.type);
                       var nodes = [];
                       var response_type = LearnerResponses[this.type];
                       if (response_type) {
@@ -30262,7 +30262,7 @@
       return text;
   }
   function validatePattern(type, pattern, responseDef) {
-      var allowBare = !isSpecForm(pattern) && type !== "fill-in";
+      var allowBare = allowsBareDelimiters(pattern, type);
       var freeText = [
           "fill-in",
           "long-fill-in",
@@ -33800,6 +33800,12 @@
       ]);
       return ADLDataObject;
   }(BaseCMI);
+  function setStaticNavigationValue(values, kind, key, value) {
+      var element = "adl.nav.request_valid.".concat(kind, ".").concat(key);
+      if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
+          values[key] = value;
+      }
+  }
   var ADLNavRequestValidChoice = /*#__PURE__*/ function() {
       function ADLNavRequestValidChoice() {
           _class_call_check$9(this, ADLNavRequestValidChoice);
@@ -33816,10 +33822,7 @@
           {
               key: "setStaticValue",
               value: function setStaticValue(key, value) {
-                  var element = "adl.nav.request_valid.choice." + key;
-                  if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
-                      this._staticValues[key] = value;
-                  }
+                  setStaticNavigationValue(this._staticValues, "choice", key, value);
               }
           },
           {
@@ -33887,10 +33890,7 @@
           {
               key: "setStaticValue",
               value: function setStaticValue(key, value) {
-                  var element = "adl.nav.request_valid.jump." + key;
-                  if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
-                      this._staticValues[key] = value;
-                  }
+                  setStaticNavigationValue(this._staticValues, "jump", key, value);
               }
           },
           {
@@ -34719,7 +34719,7 @@
               value: function checkValidResponseType(CMIElement, response_type, value, interaction_type) {
                   var nodes = [];
                   if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter) {
-                      nodes = splitDelimited(String(value), response_type.delimiter, !isSpecForm(String(value)) && interaction_type !== "fill-in");
+                      nodes = splitDelimited(String(value), response_type.delimiter, allowsBareDelimiters(String(value), interaction_type));
                   } else {
                       nodes[0] = value;
                   }
@@ -34819,7 +34819,7 @@
                       this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "Incorrect Response Type: ".concat(interaction_type));
                       return;
                   }
-                  var allowBare = !isSpecForm(String(value)) && interaction_type !== "fill-in";
+                  var allowBare = allowsBareDelimiters(String(value), interaction_type);
                   var formatRegex = new RegExp(response.format);
                   for(var i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++){
                       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {

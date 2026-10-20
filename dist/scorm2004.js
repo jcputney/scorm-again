@@ -2374,7 +2374,8 @@ this.Scorm2004API = (function () {
      * Evaluate the condition for an activity
      * @param {Activity} activity - The activity to evaluate the condition for
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
-     */ key: "evaluate",
+     */ // Explicit null suppresses the legacy static hook for per-process evaluation.
+              key: "evaluate",
               value: function evaluate(activity) {
                   var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : _RuleCondition._getElapsedSecondsHook;
                   var _activity_sequencingControls;
@@ -2955,19 +2956,6 @@ this.Scorm2004API = (function () {
   function _class_call_check$16(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$15(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$15(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$15(Constructor.prototype, protoProps);
-      return Constructor;
-  }
   function _type_of$13(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
@@ -2982,14 +2970,1465 @@ this.Scorm2004API = (function () {
       }) : obj[key] = value;
   };
   var __publicField$11 = function __publicField(obj, key, value) {
-      return __defNormalProp$11(obj, (_type_of$13(key)) !== "symbol" ? key + "" : key, value);
+      return __defNormalProp$11(obj, (typeof key === "undefined" ? "undefined" : _type_of$13(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var SequencingRequestType = /* @__PURE__ */ function(SequencingRequestType2) {
+      SequencingRequestType2["START"] = "start";
+      SequencingRequestType2["RESUME_ALL"] = "resumeAll";
+      SequencingRequestType2["CONTINUE"] = "continue";
+      SequencingRequestType2["PREVIOUS"] = "previous";
+      SequencingRequestType2["CHOICE"] = "choice";
+      SequencingRequestType2["JUMP"] = "jump";
+      SequencingRequestType2["EXIT"] = "exit";
+      SequencingRequestType2["EXIT_PARENT"] = "exitParent";
+      SequencingRequestType2["EXIT_ALL"] = "exitAll";
+      SequencingRequestType2["ABANDON"] = "abandon";
+      SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
+      SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
+      SequencingRequestType2["RETRY"] = "retry";
+      SequencingRequestType2["RETRY_ALL"] = "retryAll";
+      return SequencingRequestType2;
+  }(SequencingRequestType || {});
+  var DeliveryRequestType = /* @__PURE__ */ function(DeliveryRequestType2) {
+      DeliveryRequestType2["DELIVER"] = "deliver";
+      DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
+      return DeliveryRequestType2;
+  }(DeliveryRequestType || {});
+  var SequencingResult = function SequencingResult() {
+      var deliveryRequest = arguments.length > 0 && arguments[0] !== void 0 /* DO_NOT_DELIVER */  ? arguments[0] : "doNotDeliver", targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
+      _class_call_check$16(this, SequencingResult);
+      __publicField$11(this, "deliveryRequest");
+      __publicField$11(this, "targetActivity");
+      __publicField$11(this, "exception");
+      __publicField$11(this, "endSequencingSession");
+      this.deliveryRequest = deliveryRequest;
+      this.targetActivity = targetActivity;
+      this.exception = exception;
+      this.endSequencingSession = endSequencingSession;
+  };
+  var FlowSubprocessResult = function FlowSubprocessResult(identifiedActivity, deliverable) {
+      var exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
+      _class_call_check$16(this, FlowSubprocessResult);
+      __publicField$11(this, "identifiedActivity");
+      __publicField$11(this, "deliverable");
+      __publicField$11(this, "exception");
+      __publicField$11(this, "endSequencingSession");
+      this.identifiedActivity = identifiedActivity;
+      this.deliverable = deliverable;
+      this.exception = exception;
+      this.endSequencingSession = endSequencingSession;
+  };
+  var ChoiceTraversalResult = function ChoiceTraversalResult(activity) {
+      var exception = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null;
+      _class_call_check$16(this, ChoiceTraversalResult);
+      __publicField$11(this, "activity");
+      __publicField$11(this, "exception");
+      this.activity = activity;
+      this.exception = exception;
+  };
+  var FlowSubprocessMode = /* @__PURE__ */ function(FlowSubprocessMode2) {
+      FlowSubprocessMode2["FORWARD"] = "forward";
+      FlowSubprocessMode2["BACKWARD"] = "backward";
+      return FlowSubprocessMode2;
+  }(FlowSubprocessMode || {});
+
+  function _class_call_check$15(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$15(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$15(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$15(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _type_of$12(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$10 = Object.defineProperty;
+  var __defNormalProp$10 = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$10(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$10 = function __publicField(obj, key, value) {
+      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var RuleEvaluationEngine = /*#__PURE__*/ function() {
+      function RuleEvaluationEngine() {
+          var options = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+          _class_call_check$15(this, RuleEvaluationEngine);
+          __publicField$10(this, "now");
+          __publicField$10(this, "getAttemptElapsedSecondsHook");
+          this.now = options.now || function() {
+              return /* @__PURE__ */ new Date();
+          };
+          this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
+      }
+      _create_class$15(RuleEvaluationEngine, [
+          {
+              /**
+     * Sequencing Rules Check Process (UP.2)
+     * General process for evaluating a set of sequencing rules
+     * @param {Activity} activity - The activity to evaluate rules for
+     * @param {SequencingRule[]} rules - The rules to evaluate
+     * @return {RuleActionType | null} - The action to take, or null if no rules apply
+     */ key: "checkSequencingRules",
+              value: function checkSequencingRules(activity, rules) {
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = rules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var rule = _step.value;
+                          if (this.checkRuleSubprocess(activity, rule)) {
+                              return rule.action;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return null;
+              }
+          },
+          {
+              /**
+     * Sequencing Rules Check Subprocess (UP.2.1)
+     * Evaluates individual sequencing rule conditions
+     * @param {Activity} activity - The activity to evaluate the rule for
+     * @param {SequencingRule} rule - The rule to evaluate
+     * @return {boolean} - True only when the rule evaluates to definite true
+     */ key: "checkRuleSubprocess",
+              value: function checkRuleSubprocess(activity, rule) {
+                  return rule.evaluate(activity, this.now, this.getAttemptElapsedSecondsHook);
+              }
+          },
+          {
+              /**
+     * Exit Action Rules Subprocess (TB.2.1)
+     * Evaluates the exit condition rules for an activity
+     * @param {Activity} activity - The activity to evaluate exit rules for
+     * @return {RuleActionType | null} - The exit action to process, if any
+     */ key: "evaluateExitRules",
+              value: function evaluateExitRules(activity) {
+                  var exitAction = this.checkSequencingRules(activity, activity.sequencingRules.exitConditionRules);
+                  if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
+                      return exitAction;
+                  }
+                  return null;
+              }
+          },
+          {
+              /**
+     * Post Condition Rules Subprocess (TB.2.2)
+     * Evaluates the post-condition rules for an activity after delivery
+     * @param {Activity} activity - The activity to evaluate post-condition rules for
+     * @return {RuleActionType | null} - The action to take, if any
+     */ key: "evaluatePostConditionAction",
+              value: function evaluatePostConditionAction(activity) {
+                  var postAction = this.checkSequencingRules(activity, activity.sequencingRules.postConditionRules);
+                  var validActions = [
+                      RuleActionType.EXIT_PARENT,
+                      RuleActionType.EXIT_ALL,
+                      RuleActionType.RETRY,
+                      RuleActionType.RETRY_ALL,
+                      RuleActionType.CONTINUE,
+                      RuleActionType.PREVIOUS,
+                      RuleActionType.STOP_FORWARD_TRAVERSAL
+                  ];
+                  if (postAction && validActions.includes(postAction)) {
+                      return postAction;
+                  }
+                  return null;
+              }
+          },
+          {
+              /**
+     * Evaluate post-condition rules and map to sequencing/termination requests
+     * @param {Activity} activity - The activity to evaluate
+     * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
+     */ key: "evaluatePostConditions",
+              value: function evaluatePostConditions(activity) {
+                  var postAction = this.evaluatePostConditionAction(activity);
+                  if (!postAction) {
+                      return {
+                          sequencingRequest: null,
+                          terminationRequest: null
+                      };
+                  }
+                  switch(postAction){
+                      case RuleActionType.EXIT_PARENT:
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: SequencingRequestType.EXIT_PARENT
+                          };
+                      case RuleActionType.EXIT_ALL:
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: SequencingRequestType.EXIT_ALL
+                          };
+                      case RuleActionType.RETRY:
+                          return {
+                              sequencingRequest: SequencingRequestType.RETRY,
+                              terminationRequest: null
+                          };
+                      case RuleActionType.RETRY_ALL:
+                          return {
+                              sequencingRequest: SequencingRequestType.RETRY,
+                              terminationRequest: SequencingRequestType.EXIT_ALL
+                          };
+                      case RuleActionType.CONTINUE:
+                          return {
+                              sequencingRequest: SequencingRequestType.CONTINUE,
+                              terminationRequest: null
+                          };
+                      case RuleActionType.PREVIOUS:
+                          return {
+                              sequencingRequest: SequencingRequestType.PREVIOUS,
+                              terminationRequest: null
+                          };
+                      case RuleActionType.STOP_FORWARD_TRAVERSAL:
+                          activity.sequencingControls.stopForwardTraversal = true;
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: null
+                          };
+                      default:
+                          return {
+                              sequencingRequest: null,
+                              terminationRequest: null
+                          };
+                  }
+              }
+          },
+          {
+              /**
+     * Limit Conditions Check Process (UP.1)
+     * Checks if an activity has exceeded its limit conditions
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if limit conditions are violated
+     */ key: "checkLimitConditions",
+              value: function checkLimitConditions(activity) {
+                  if (activity.isSuspended) {
+                      return false;
+                  }
+                  if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
+                      return true;
+                  }
+                  if (activity.attemptAbsoluteDurationLimit !== null) {
+                      var attemptLimitMs = this.parseDuration(activity.attemptAbsoluteDurationLimit);
+                      if (attemptLimitMs > 0) {
+                          var attemptDurationMs = this.parseDuration(activity.attemptExperiencedDuration);
+                          if (attemptDurationMs >= attemptLimitMs) {
+                              return true;
+                          }
+                      }
+                  }
+                  if (activity.activityAbsoluteDurationLimit !== null) {
+                      var activityLimitMs = this.parseDuration(activity.activityAbsoluteDurationLimit);
+                      if (activityLimitMs > 0) {
+                          var activityDurationMs = this.parseDuration(activity.activityExperiencedDuration);
+                          if (activityDurationMs >= activityLimitMs) {
+                              return true;
+                          }
+                      }
+                  }
+                  return false;
+              }
+          },
+          {
+              /**
+     * Parse ISO 8601 duration to milliseconds
+     * @param {string} duration - ISO 8601 duration string
+     * @return {number} - Duration in milliseconds
+     */ key: "parseDuration",
+              value: function parseDuration(duration) {
+                  if (!duration || typeof duration !== "string") {
+                      return 0;
+                  }
+                  var regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
+                  var matches = duration.match(regex);
+                  if (!matches || duration === "P" || duration.endsWith("T")) {
+                      return 0;
+                  }
+                  var years = parseFloat(matches[1] || "0");
+                  var months = parseFloat(matches[2] || "0");
+                  var weeks = parseFloat(matches[3] || "0");
+                  var days = parseFloat(matches[4] || "0");
+                  var hours = parseFloat(matches[5] || "0");
+                  var minutes = parseFloat(matches[6] || "0");
+                  var seconds = parseFloat(matches[7] || "0");
+                  var totalMs = 0;
+                  totalMs += years * 365.25 * 24 * 3600 * 1e3;
+                  totalMs += months * 30.44 * 24 * 3600 * 1e3;
+                  totalMs += weeks * 7 * 24 * 3600 * 1e3;
+                  totalMs += days * 24 * 3600 * 1e3;
+                  totalMs += hours * 3600 * 1e3;
+                  totalMs += minutes * 60 * 1e3;
+                  totalMs += seconds * 1e3;
+                  return totalMs;
+              }
+          },
+          {
+              /**
+     * Get elapsed attempt seconds for an activity
+     * @param {Activity} activity - The activity
+     * @return {number} - Elapsed seconds
+     */ key: "getElapsedSeconds",
+              value: function getElapsedSeconds(activity) {
+                  if (this.getAttemptElapsedSecondsHook) {
+                      try {
+                          return this.getAttemptElapsedSecondsHook(activity) || 0;
+                      } catch (unused) {
+                          return 0;
+                      }
+                  }
+                  if (activity.attemptAbsoluteStartTime) {
+                      var start = new Date(activity.attemptAbsoluteStartTime).getTime();
+                      var nowMs = this.now().getTime();
+                      if (!Number.isNaN(start) && nowMs > start) {
+                          return Math.max(0, (nowMs - start) / 1e3);
+                      }
+                  }
+                  return 0;
+              }
+          },
+          {
+              /**
+     * Check if time limit has been exceeded
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if time limit exceeded
+     */ key: "isTimeLimitExceeded",
+              value: function isTimeLimitExceeded(activity) {
+                  var limit = activity.timeLimitDuration;
+                  if (!limit && activity.attemptAbsoluteDurationLimit) {
+                      limit = activity.attemptAbsoluteDurationLimit;
+                  }
+                  if (!limit) {
+                      return false;
+                  }
+                  var limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+                  if (limitSeconds <= 0) {
+                      return false;
+                  }
+                  var elapsedSeconds = this.getElapsedSeconds(activity);
+                  return elapsedSeconds > limitSeconds;
+              }
+          },
+          {
+              /**
+     * Check if activity is outside available time range
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if outside time range
+     */ key: "isOutsideAvailableTimeRange",
+              value: function isOutsideAvailableTimeRange(activity) {
+                  var now = this.now();
+                  if (activity.beginTimeLimit) {
+                      try {
+                          var beginDate = new Date(activity.beginTimeLimit);
+                          if (!Number.isNaN(beginDate.getTime()) && now < beginDate) {
+                              return true;
+                          }
+                      } catch (unused) {}
+                  }
+                  if (activity.endTimeLimit) {
+                      try {
+                          var endDate = new Date(activity.endTimeLimit);
+                          if (!Number.isNaN(endDate.getTime()) && now > endDate) {
+                              return true;
+                          }
+                      } catch (unused) {}
+                  }
+                  return false;
+              }
+          },
+          {
+              /**
+     * Evaluate pre-condition rules and check if activity can be delivered
+     * @param {Activity} activity - The activity to check
+     * @return {{ canDeliver: boolean; wasSkipped: boolean }} - Delivery check result
+     */ key: "canDeliverActivity",
+              value: function canDeliverActivity(activity) {
+                  if (this.checkLimitConditions(activity)) {
+                      return {
+                          canDeliver: false,
+                          wasSkipped: false
+                      };
+                  }
+                  var preConditionResult = this.checkSequencingRules(activity, activity.sequencingRules.preConditionRules);
+                  var wasSkipped = preConditionResult === RuleActionType.SKIP;
+                  return {
+                      canDeliver: preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED,
+                      wasSkipped: wasSkipped
+                  };
+              }
+          }
+      ]);
+      return RuleEvaluationEngine;
+  }();
+
+  function _array_like_to_array$i(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_without_holes$c(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
+  }
+  function _class_call_check$14(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$14(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$14(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$14(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _iterable_to_array$c(iter) {
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
+          return Array.from(iter);
+      }
+  }
+  function _non_iterable_spread$c() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _to_consumable_array$c(arr) {
+      return _array_without_holes$c(arr) || _iterable_to_array$c(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$c();
+  }
+  function _type_of$11(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$i(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
+  }
+  var __defProp$$ = Object.defineProperty;
+  var __defNormalProp$$ = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$$(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$$ = function __publicField(obj, key, value) {
+      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var DeliveryValidator = /*#__PURE__*/ function() {
+      function DeliveryValidator(activityTree) {
+          var eventCallback = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, options = arguments.length > 2 ? arguments[2] : void 0, ruleEngineProvider = arguments.length > 3 ? arguments[3] : void 0;
+          _class_call_check$14(this, DeliveryValidator);
+          __publicField$$(this, "activityTree");
+          __publicField$$(this, "eventCallback");
+          __publicField$$(this, "now");
+          __publicField$$(this, "contentDeliveredGetter", null);
+          __publicField$$(this, "ruleEngineProvider");
+          this.activityTree = activityTree;
+          this.eventCallback = eventCallback;
+          this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
+              return /* @__PURE__ */ new Date();
+          };
+          if (ruleEngineProvider) {
+              this.ruleEngineProvider = ruleEngineProvider;
+          } else {
+              var ruleEngine = new RuleEvaluationEngine({
+                  now: this.now
+              });
+              this.ruleEngineProvider = function() {
+                  return ruleEngine;
+              };
+          }
+      }
+      _create_class$14(DeliveryValidator, [
+          {
+              /**
+     * Set getter for content delivered flag
+     */ key: "setContentDeliveredGetter",
+              value: function setContentDeliveredGetter(getter) {
+                  this.contentDeliveredGetter = getter;
+              }
+          },
+          {
+              /**
+     * Validate Activity Tree State Consistency
+     * @param {Activity} activity - Activity to validate
+     * @return {StateConsistencyResult} - Consistency result
+     */ key: "validateTreeConsistency",
+              value: function validateTreeConsistency(activity) {
+                  if (!this.activityTree.root) {
+                      return {
+                          consistent: false,
+                          exception: "DB.1.1-4"
+                      };
+                  }
+                  if (!this.isActivityPartOfTree(activity, this.activityTree.root)) {
+                      return {
+                          consistent: false,
+                          exception: "DB.1.1-5"
+                      };
+                  }
+                  var activeActivities = this.getActiveActivities();
+                  if (activeActivities.length > 1) {
+                      this.fireEvent("onStateInconsistency", {
+                          activeActivities: activeActivities.map(function(a) {
+                              return a.id;
+                          }),
+                          targetActivity: activity.id
+                      });
+                      return {
+                          consistent: false,
+                          exception: "DB.1.1-6"
+                      };
+                  }
+                  var current = activity;
+                  while(current === null || current === void 0 ? void 0 : current.parent){
+                      if (!current.parent.children.includes(current)) {
+                          return {
+                              consistent: false,
+                              exception: "DB.1.1-7"
+                          };
+                      }
+                      current = current.parent;
+                  }
+                  return {
+                      consistent: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Validate Resource Constraints
+     * @param {Activity} activity - Activity to validate
+     * @return {ResourceConstraintResult} - Resource availability result
+     */ key: "validateResources",
+              value: function validateResources(activity) {
+                  var requiredResources = this.getRequiredResources(activity);
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = requiredResources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var resource = _step.value;
+                          if (!this.isResourceAvailable(resource)) {
+                              return {
+                                  available: false,
+                                  exception: "DB.1.1-8"
+                              };
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  var systemResourceCheck = this.checkSystemLimits();
+                  if (!systemResourceCheck.adequate) {
+                      return {
+                          available: false,
+                          exception: "DB.1.1-9"
+                      };
+                  }
+                  return {
+                      available: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Validate Concurrent Delivery Prevention
+     * @param {Activity} activity - Activity to validate
+     * @return {ConcurrentDeliveryResult} - Concurrency check result
+     */ key: "validateConcurrentDelivery",
+              value: function validateConcurrentDelivery(activity) {
+                  var contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
+                  if (contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
+                      return {
+                          allowed: false,
+                          exception: "DB.1.1-10"
+                      };
+                  }
+                  if (this.hasPendingDeliveryRequests()) {
+                      return {
+                          allowed: false,
+                          exception: "DB.1.1-11"
+                      };
+                  }
+                  if (this.isDeliveryLocked()) {
+                      return {
+                          allowed: false,
+                          exception: "DB.1.1-12"
+                      };
+                  }
+                  return {
+                      allowed: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Validate Activity Dependencies
+     * @param {Activity} activity - Activity to validate
+     * @return {DependencyResult} - Dependency check result
+     */ key: "validateDependencies",
+              value: function validateDependencies(activity) {
+                  var prerequisites = this.getPrerequisites(activity);
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = prerequisites[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var prerequisite = _step.value;
+                          if (!this.isPrerequisiteSatisfied(prerequisite, activity)) {
+                              return {
+                                  satisfied: false,
+                                  exception: "DB.1.1-13"
+                              };
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  var objectiveDependencies = this.getObjectiveDependencies(activity);
+                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                  try {
+                      for(var _iterator1 = objectiveDependencies[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                          var dependency = _step1.value;
+                          if (!this.isObjectiveDependencySatisfied(dependency)) {
+                              return {
+                                  satisfied: false,
+                                  exception: "DB.1.1-14"
+                              };
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError1 = true;
+                      _iteratorError1 = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                              _iterator1.return();
+                          }
+                      } finally{
+                          if (_didIteratorError1) {
+                              throw _iteratorError1;
+                          }
+                      }
+                  }
+                  var sequencingDependencies = this.getSequencingRuleDependencies(activity);
+                  if (!sequencingDependencies.satisfied) {
+                      return {
+                          satisfied: false,
+                          exception: "DB.1.1-15"
+                      };
+                  }
+                  return {
+                      satisfied: true,
+                      exception: null
+                  };
+              }
+          },
+          {
+              /**
+     * Check Activity Process (UP.5)
+     * Validates if an activity can be delivered based on sequencing rules and limit conditions
+     * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if activity is valid (not disabled, limits not violated)
+     */ key: "checkActivity",
+              value: function checkActivity(activity) {
+                  var evaluationActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : activity, emitEvent = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
+                  if (!activity.isAvailable) {
+                      return false;
+                  }
+                  var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
+                      return rule.action === RuleActionType.DISABLED;
+                  });
+                  if (this.ruleEngineProvider().checkSequencingRules(evaluationActivity, disabledRules) !== null) {
+                      return false;
+                  }
+                  if (!this.checkLimitConditions(activity, emitEvent)) {
+                      return false;
+                  }
+                  return true;
+              }
+          },
+          {
+              /**
+     * Limit Conditions Check Process (UP.1)
+     * Checks if any limit conditions are violated for the activity
+     * @param {Activity} activity - The activity to check limit conditions for
+     * @return {boolean} - True if limit conditions are met, false if violated
+     */ key: "checkLimitConditions",
+              value: function checkLimitConditions(activity) {
+                  var emitEvent = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+                  var result = true;
+                  var failureReason = "";
+                  if (activity.isSuspended) {
+                      if (emitEvent) this.fireEvent("onLimitConditionCheck", {
+                          activity: activity,
+                          result: true,
+                          failureReason: "",
+                          attemptInProgress: true
+                      });
+                      return true;
+                  }
+                  if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
+                      if (activity.attemptCount >= activity.attemptLimit) {
+                          result = false;
+                          failureReason = "Attempt limit exceeded";
+                      }
+                  }
+                  if (result && activity.attemptAbsoluteDurationLimit) {
+                      var limitDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
+                      if (limitDuration > 0) {
+                          var currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+                          if (currentDuration >= limitDuration) {
+                              result = false;
+                              failureReason = "Attempt duration limit exceeded";
+                          }
+                      }
+                  }
+                  if (result && activity.activityAbsoluteDurationLimit) {
+                      var limitDuration1 = getDurationAsSeconds(activity.activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
+                      if (limitDuration1 > 0) {
+                          var currentDuration1 = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+                          if (currentDuration1 >= limitDuration1) {
+                              result = false;
+                              failureReason = "Activity duration limit exceeded";
+                          }
+                      }
+                  }
+                  if (result && activity.beginTimeLimit) {
+                      var currentTime = this.now();
+                      var beginTime = new Date(activity.beginTimeLimit);
+                      if (currentTime < beginTime) {
+                          result = false;
+                          failureReason = "Not yet time to begin";
+                      }
+                  }
+                  if (result && activity.endTimeLimit) {
+                      var currentTime1 = this.now();
+                      var endTime = new Date(activity.endTimeLimit);
+                      if (currentTime1 > endTime) {
+                          result = false;
+                          failureReason = "Time limit expired";
+                      }
+                  }
+                  if (emitEvent) this.fireEvent("onLimitConditionCheck", {
+                      activity: activity,
+                      result: result,
+                      failureReason: failureReason,
+                      checks: {
+                          attemptLimit: activity.attemptLimit,
+                          attemptCount: activity.attemptCount,
+                          attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
+                          activityDurationLimit: activity.activityAbsoluteDurationLimit,
+                          beginTimeLimit: activity.beginTimeLimit,
+                          endTimeLimit: activity.endTimeLimit
+                      }
+                  });
+                  return result;
+              }
+          },
+          {
+              /**
+     * Check if activity is part of tree
+     */ key: "isActivityPartOfTree",
+              value: function isActivityPartOfTree(activity, root) {
+                  if (activity === root) {
+                      return true;
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = root.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          if (this.isActivityPartOfTree(activity, child)) {
+                              return true;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return false;
+              }
+          },
+          {
+              /**
+     * Get all active activities in the tree
+     */ key: "getActiveActivities",
+              value: function getActiveActivities() {
+                  var activeActivities = [];
+                  if (this.activityTree.root) {
+                      this.collectActiveActivities(this.activityTree.root, activeActivities);
+                  }
+                  return activeActivities;
+              }
+          },
+          {
+              key: "collectActiveActivities",
+              value: function collectActiveActivities(activity, activeActivities) {
+                  if (activity.isActive) {
+                      activeActivities.push(activity);
+                  }
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var child = _step.value;
+                          this.collectActiveActivities(child, activeActivities);
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+              }
+          },
+          {
+              /**
+     * Get required resources for activity
+     */ key: "getRequiredResources",
+              value: function getRequiredResources(activity) {
+                  var resources = [];
+                  var activityInfo = (activity.title + " " + activity.location).toLowerCase();
+                  if (activityInfo.includes("video") || activityInfo.includes("multimedia")) {
+                      resources.push("video-codec");
+                  }
+                  if (activityInfo.includes("audio") || activityInfo.includes("sound")) {
+                      resources.push("audio-codec");
+                  }
+                  if (activityInfo.includes("flash") || activityInfo.includes(".swf")) {
+                      resources.push("flash-plugin");
+                  }
+                  if (activityInfo.includes("java") || activityInfo.includes("applet")) {
+                      resources.push("java-runtime");
+                  }
+                  if (activity.children && activity.children.length > 0) {
+                      resources.push("high-bandwidth");
+                  }
+                  if (activity.attemptAbsoluteDurationLimit && this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
+                      resources.push("extended-storage");
+                  }
+                  if (activity.attemptLimit && activity.attemptLimit > 1) {
+                      resources.push("persistent-storage");
+                  }
+                  return resources;
+              }
+          },
+          {
+              /**
+     * Check if resource is available
+     */ key: "isResourceAvailable",
+              value: function isResourceAvailable(resource) {
+                  try {
+                      switch(resource){
+                          case "video-codec":
+                              return !!document.createElement("video").canPlayType;
+                          case "audio-codec":
+                              return !!document.createElement("audio").canPlayType;
+                          case "flash-plugin":
+                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
+                                  return plugin.name === "Shockwave Flash";
+                              });
+                          case "java-runtime":
+                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
+                                  return plugin.name === "Java";
+                              });
+                          case "high-bandwidth":
+                              if ("connection" in navigator) {
+                                  var connection = navigator.connection;
+                                  return connection.effectiveType === "4g" || connection.downlink > 5;
+                              }
+                              return true;
+                          // Assume available if can't detect
+                          case "extended-storage":
+                              return true;
+                          case "persistent-storage":
+                              return "localStorage" in window && "sessionStorage" in window;
+                          default:
+                              return true;
+                      }
+                  } catch (error) {
+                      return false;
+                  }
+              }
+          },
+          {
+              /**
+     * Check system resource limits
+     */ key: "checkSystemLimits",
+              value: function checkSystemLimits() {
+                  try {
+                      var adequate = true;
+                      if ("memory" in performance) {
+                          var memory = performance.memory;
+                          var memoryUsagePercent = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
+                          if (memoryUsagePercent > 0.8) {
+                              adequate = false;
+                          }
+                      }
+                      if ("deviceMemory" in navigator) {
+                          var deviceMemory = navigator.deviceMemory;
+                          if (deviceMemory < 2) {
+                              adequate = false;
+                          }
+                      }
+                      if ("hardwareConcurrency" in navigator) {
+                          var cores = navigator.hardwareConcurrency;
+                          if (cores < 2) {
+                              adequate = false;
+                          }
+                      }
+                      if ("connection" in navigator) {
+                          var connection = navigator.connection;
+                          if (connection.saveData || connection.effectiveType === "slow-2g") {
+                              adequate = false;
+                          }
+                      }
+                      return {
+                          adequate: adequate
+                      };
+                  } catch (error) {
+                      return {
+                          adequate: true
+                      };
+                  }
+              }
+          },
+          {
+              key: "hasPendingDeliveryRequests",
+              value: function hasPendingDeliveryRequests() {
+                  if (this.activityTree && this.activityTree.pendingRequests) {
+                      return this.activityTree.pendingRequests.length > 0;
+                  }
+                  if (typeof window !== "undefined" && window.pendingScormRequests) {
+                      return window.pendingScormRequests > 0;
+                  }
+                  return false;
+              }
+          },
+          {
+              key: "isDeliveryLocked",
+              value: function isDeliveryLocked() {
+                  if (this.activityTree && this.activityTree.navigationLocked) {
+                      return true;
+                  }
+                  if (this.activityTree && this.activityTree.terminationInProgress) {
+                      return true;
+                  }
+                  var resourceCheck = this.checkSystemLimits();
+                  if (!resourceCheck.adequate) {
+                      return true;
+                  }
+                  return !!(typeof window !== "undefined" && window.scormMaintenanceMode);
+              }
+          },
+          {
+              /**
+     * Get activity prerequisites
+     */ key: "getPrerequisites",
+              value: function getPrerequisites(activity) {
+                  var prerequisites = [];
+                  if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
+                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                      try {
+                          for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                              var rule = _step.value;
+                              if (rule.conditions && rule.conditions.length > 0) {
+                                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                                  try {
+                                      for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                                          var condition = _step1.value;
+                                          if (condition.referencedObjectiveID && condition.referencedObjectiveID !== activity.id) {
+                                              prerequisites.push(condition.referencedObjectiveID);
+                                          }
+                                      }
+                                  } catch (err) {
+                                      _didIteratorError1 = true;
+                                      _iteratorError1 = err;
+                                  } finally{
+                                      try {
+                                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                              _iterator1.return();
+                                          }
+                                      } finally{
+                                          if (_didIteratorError1) {
+                                              throw _iteratorError1;
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError = true;
+                          _iteratorError = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                  _iterator.return();
+                              }
+                          } finally{
+                              if (_didIteratorError) {
+                                  throw _iteratorError;
+                              }
+                          }
+                      }
+                  }
+                  if (activity.parent && activity.sequencingControls && !activity.sequencingControls.choiceExit) {
+                      var siblings = activity.parent.children;
+                      if (siblings) {
+                          var activityIndex = siblings.indexOf(activity);
+                          for(var i = 0; i < activityIndex; i++){
+                              var sibling = siblings[i];
+                              if (sibling) {
+                                  prerequisites.push(sibling.id);
+                              }
+                          }
+                      }
+                  }
+                  if (activity.prerequisiteActivities) {
+                      var _prerequisites;
+                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$c(activity.prerequisiteActivities));
+                  }
+                  return Array.from(new Set(prerequisites));
+              }
+          },
+          {
+              /**
+     * Check if prerequisite is satisfied
+     */ key: "isPrerequisiteSatisfied",
+              value: function isPrerequisiteSatisfied(prerequisiteId, _activity) {
+                  var prerequisite = this.activityTree.getActivity(prerequisiteId);
+                  if (!prerequisite) {
+                      return false;
+                  }
+                  return prerequisite.completionStatus === "completed";
+              }
+          },
+          {
+              /**
+     * Get objective dependencies
+     */ key: "getObjectiveDependencies",
+              value: function getObjectiveDependencies(activity) {
+                  var dependencies = [];
+                  var objectives = activity.objectives;
+                  if (objectives && objectives.length > 0) {
+                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                      try {
+                          for(var _iterator = objectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                              var objective = _step.value;
+                              if (objective.globalObjectiveID) {
+                                  dependencies.push(objective.globalObjectiveID);
+                              }
+                              if (!objective.satisfiedByMeasure && objective.readNormalizedMeasure) {
+                                  dependencies.push(objective.id + "_measure");
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError = true;
+                          _iteratorError = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                  _iterator.return();
+                              }
+                          } finally{
+                              if (_didIteratorError) {
+                                  throw _iteratorError;
+                              }
+                          }
+                      }
+                  }
+                  if (activity.sequencingRules) {
+                      var allRules = _to_consumable_array$c(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$c(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$c(activity.sequencingRules.postConditionRules || []));
+                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                      try {
+                          for(var _iterator1 = allRules[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                              var rule = _step1.value;
+                              if (rule.conditions && rule.conditions.length > 0) {
+                                  var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                                  try {
+                                      for(var _iterator2 = rule.conditions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                                          var condition = _step2.value;
+                                          if (condition.objectiveReference && condition.objectiveReference !== activity.id) {
+                                              dependencies.push(condition.objectiveReference);
+                                          }
+                                      }
+                                  } catch (err) {
+                                      _didIteratorError2 = true;
+                                      _iteratorError2 = err;
+                                  } finally{
+                                      try {
+                                          if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                              _iterator2.return();
+                                          }
+                                      } finally{
+                                          if (_didIteratorError2) {
+                                              throw _iteratorError2;
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError1 = true;
+                          _iteratorError1 = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                  _iterator1.return();
+                              }
+                          } finally{
+                              if (_didIteratorError1) {
+                                  throw _iteratorError1;
+                              }
+                          }
+                      }
+                  }
+                  return Array.from(new Set(dependencies));
+              }
+          },
+          {
+              /**
+     * Check if objective dependency is satisfied
+     */ key: "isObjectiveDependencySatisfied",
+              value: function isObjectiveDependencySatisfied(objectiveId) {
+                  if (this.activityTree && this.activityTree.globalObjectives) {
+                      var globalObjectives = this.activityTree.globalObjectives;
+                      var globalObjective = globalObjectives[objectiveId];
+                      if (globalObjective) {
+                          return globalObjective.satisfied === true && globalObjective.statusKnown === true;
+                      }
+                  }
+                  if (objectiveId.endsWith("_measure")) {
+                      var baseObjectiveId = objectiveId.replace("_measure", "");
+                      if (this.activityTree && this.activityTree.globalObjectives) {
+                          var globalObjectives1 = this.activityTree.globalObjectives;
+                          var globalObjective1 = globalObjectives1[baseObjectiveId];
+                          if (globalObjective1) {
+                              return globalObjective1.measureKnown === true && globalObjective1.normalizedMeasure >= 0;
+                          }
+                      }
+                  }
+                  var referencedActivity = this.activityTree.getActivity(objectiveId);
+                  if (referencedActivity) {
+                      return referencedActivity.objectiveSatisfiedStatus && referencedActivity.objectiveMeasureStatus;
+                  }
+                  return false;
+              }
+          },
+          {
+              key: "getSequencingRuleDependencies",
+              value: function getSequencingRuleDependencies(activity) {
+                  var satisfied = true;
+                  try {
+                      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
+                          var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                          try {
+                              for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                                  var rule = _step.value;
+                                  if (rule.conditions && rule.conditions.length > 0) {
+                                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                                      try {
+                                          for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
+                                              var condition = _step1.value;
+                                              var conditionType = condition.conditionType || condition.condition;
+                                              switch(conditionType){
+                                                  case "activityProgressKnown":
+                                                      if (!activity.progressMeasureStatus) satisfied = false;
+                                                      break;
+                                                  case "objectiveStatusKnown":
+                                                  case "objectiveSatisfied":
+                                                      {
+                                                          var objectiveId = condition.referencedObjectiveID || activity.id;
+                                                          if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
+                                                          break;
+                                                      }
+                                                  case "attemptLimitExceeded":
+                                                      if (activity.attemptLimit === null) satisfied = false;
+                                                      break;
+                                                  case "timeLimitExceeded":
+                                                      if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit) satisfied = false;
+                                                      break;
+                                                  case "always":
+                                                  case "never":
+                                                      break;
+                                                  default:
+                                                      satisfied = false;
+                                              }
+                                          }
+                                      } catch (err) {
+                                          _didIteratorError1 = true;
+                                          _iteratorError1 = err;
+                                      } finally{
+                                          try {
+                                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                                  _iterator1.return();
+                                              }
+                                          } finally{
+                                              if (_didIteratorError1) {
+                                                  throw _iteratorError1;
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          } catch (err) {
+                              _didIteratorError = true;
+                              _iteratorError = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                      _iterator.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError) {
+                                      throw _iteratorError;
+                                  }
+                              }
+                          }
+                      }
+                      if (activity.sequencingRules && activity.sequencingRules.exitConditionRules) {
+                          var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
+                          try {
+                              for(var _iterator2 = activity.sequencingRules.exitConditionRules[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
+                                  var rule1 = _step2.value;
+                                  if (rule1.conditions && rule1.conditions.length > 0) {
+                                      var _iteratorNormalCompletion3 = true, _didIteratorError3 = false, _iteratorError3 = undefined;
+                                      try {
+                                          for(var _iterator3 = rule1.conditions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true){
+                                              var condition1 = _step3.value;
+                                              var conditionType1 = condition1.conditionType || condition1.condition;
+                                              if ([
+                                                  "objectiveStatusKnown",
+                                                  "objectiveSatisfied"
+                                              ].includes(conditionType1)) {
+                                                  var objectiveId1 = condition1.referencedObjectiveID || activity.id;
+                                                  if (!this.isObjectiveDependencySatisfied(objectiveId1)) satisfied = false;
+                                              }
+                                          }
+                                      } catch (err) {
+                                          _didIteratorError3 = true;
+                                          _iteratorError3 = err;
+                                      } finally{
+                                          try {
+                                              if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
+                                                  _iterator3.return();
+                                              }
+                                          } finally{
+                                              if (_didIteratorError3) {
+                                                  throw _iteratorError3;
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          } catch (err) {
+                              _didIteratorError2 = true;
+                              _iteratorError2 = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                                      _iterator2.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError2) {
+                                      throw _iteratorError2;
+                                  }
+                              }
+                          }
+                      }
+                      if (activity.rollupRules && activity.rollupRules.rules) {
+                          var _iteratorNormalCompletion4 = true, _didIteratorError4 = false, _iteratorError4 = undefined;
+                          try {
+                              for(var _iterator4 = activity.rollupRules.rules[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true){
+                                  var rule2 = _step4.value;
+                                  if (rule2.conditions && rule2.conditions.length > 0) {
+                                      if (activity.children && activity.children.length > 0) {
+                                          var _iteratorNormalCompletion5 = true, _didIteratorError5 = false, _iteratorError5 = undefined;
+                                          try {
+                                              for(var _iterator5 = activity.children[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true){
+                                                  var child = _step5.value;
+                                                  if (!child.isCompleted) {
+                                                      satisfied = false;
+                                                      break;
+                                                  }
+                                              }
+                                          } catch (err) {
+                                              _didIteratorError5 = true;
+                                              _iteratorError5 = err;
+                                          } finally{
+                                              try {
+                                                  if (!_iteratorNormalCompletion5 && _iterator5.return != null) {
+                                                      _iterator5.return();
+                                                  }
+                                              } finally{
+                                                  if (_didIteratorError5) {
+                                                      throw _iteratorError5;
+                                                  }
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          } catch (err) {
+                              _didIteratorError4 = true;
+                              _iteratorError4 = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion4 && _iterator4.return != null) {
+                                      _iterator4.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError4) {
+                                      throw _iteratorError4;
+                                  }
+                              }
+                          }
+                      }
+                  } catch (error) {
+                      satisfied = false;
+                  }
+                  return {
+                      satisfied: satisfied
+                  };
+              }
+          },
+          {
+              /**
+     * Helper method to parse ISO 8601 duration to minutes
+     */ key: "parseDurationToMinutes",
+              value: function parseDurationToMinutes(duration) {
+                  return getDurationAsSeconds(duration, scorm2004_regex.CMITimespan) / 60;
+              }
+          },
+          {
+              /**
+     * Fire a sequencing event
+     * @param {string} eventType - The type of event
+     * @param {any} data - Event data
+     */ key: "fireEvent",
+              value: function fireEvent(eventType, data) {
+                  try {
+                      if (this.eventCallback) {
+                          this.eventCallback(eventType, data);
+                      }
+                  } catch (error) {
+                      console.warn("Failed to fire delivery validator event ".concat(eventType, ": ").concat(error));
+                  }
+              }
+          }
+      ]);
+      return DeliveryValidator;
+  }();
+
+  function _class_call_check$13(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$13(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$13(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$13(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _type_of$10(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  var __defProp$_ = Object.defineProperty;
+  var __defNormalProp$_ = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$_(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$_ = function __publicField(obj, key, value) {
+      return __defNormalProp$_(obj, (_type_of$10(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityTreeQueries = /*#__PURE__*/ function() {
       function ActivityTreeQueries(activityTree) {
-          _class_call_check$16(this, ActivityTreeQueries);
-          __publicField$11(this, "activityTree", activityTree);
+          _class_call_check$13(this, ActivityTreeQueries);
+          __publicField$_(this, "activityTree", activityTree);
       }
-      _create_class$15(ActivityTreeQueries, [
+      _create_class$13(ActivityTreeQueries, [
           {
               /**
      * Check if activity is in the activity tree
@@ -3250,10 +4689,10 @@ this.Scorm2004API = (function () {
       return ActivityTreeQueries;
   }();
 
-  function _class_call_check$15(instance, Constructor) {
+  function _class_call_check$12(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$14(target, props) {
+  function _defineProperties$12(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -3262,33 +4701,33 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$14(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$14(Constructor.prototype, protoProps);
+  function _create_class$12(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$12(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$12(obj) {
+  function _type_of$$(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$10 = Object.defineProperty;
-  var __defNormalProp$10 = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$10(obj, key, {
+  var __defProp$Z = Object.defineProperty;
+  var __defNormalProp$Z = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Z(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$10 = function __publicField(obj, key, value) {
-      return __defNormalProp$10(obj, (typeof key === "undefined" ? "undefined" : _type_of$12(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Z = function __publicField(obj, key, value) {
+      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceConstraintValidator = /*#__PURE__*/ function() {
       function ChoiceConstraintValidator(activityTree, treeQueries) {
-          _class_call_check$15(this, ChoiceConstraintValidator);
-          __publicField$10(this, "activityTree", activityTree);
-          __publicField$10(this, "treeQueries", treeQueries);
+          _class_call_check$12(this, ChoiceConstraintValidator);
+          __publicField$Z(this, "activityTree", activityTree);
+          __publicField$Z(this, "treeQueries", treeQueries);
       }
-      _create_class$14(ChoiceConstraintValidator, [
+      _create_class$12(ChoiceConstraintValidator, [
           {
               /**
      * Main entry point - consolidates ALL constraint validation for choice navigation
@@ -3783,440 +5222,6 @@ this.Scorm2004API = (function () {
       return ChoiceConstraintValidator;
   }();
 
-  function _class_call_check$14(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _type_of$11(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$$ = Object.defineProperty;
-  var __defNormalProp$$ = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$$(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$$ = function __publicField(obj, key, value) {
-      return __defNormalProp$$(obj, (typeof key === "undefined" ? "undefined" : _type_of$11(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var SequencingRequestType = /* @__PURE__ */ function(SequencingRequestType2) {
-      SequencingRequestType2["START"] = "start";
-      SequencingRequestType2["RESUME_ALL"] = "resumeAll";
-      SequencingRequestType2["CONTINUE"] = "continue";
-      SequencingRequestType2["PREVIOUS"] = "previous";
-      SequencingRequestType2["CHOICE"] = "choice";
-      SequencingRequestType2["JUMP"] = "jump";
-      SequencingRequestType2["EXIT"] = "exit";
-      SequencingRequestType2["EXIT_PARENT"] = "exitParent";
-      SequencingRequestType2["EXIT_ALL"] = "exitAll";
-      SequencingRequestType2["ABANDON"] = "abandon";
-      SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
-      SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
-      SequencingRequestType2["RETRY"] = "retry";
-      SequencingRequestType2["RETRY_ALL"] = "retryAll";
-      return SequencingRequestType2;
-  }(SequencingRequestType || {});
-  var DeliveryRequestType = /* @__PURE__ */ function(DeliveryRequestType2) {
-      DeliveryRequestType2["DELIVER"] = "deliver";
-      DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
-      return DeliveryRequestType2;
-  }(DeliveryRequestType || {});
-  var SequencingResult = function SequencingResult() {
-      var deliveryRequest = arguments.length > 0 && arguments[0] !== void 0 /* DO_NOT_DELIVER */  ? arguments[0] : "doNotDeliver", targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
-      _class_call_check$14(this, SequencingResult);
-      __publicField$$(this, "deliveryRequest");
-      __publicField$$(this, "targetActivity");
-      __publicField$$(this, "exception");
-      __publicField$$(this, "endSequencingSession");
-      this.deliveryRequest = deliveryRequest;
-      this.targetActivity = targetActivity;
-      this.exception = exception;
-      this.endSequencingSession = endSequencingSession;
-  };
-  var FlowSubprocessResult = function FlowSubprocessResult(identifiedActivity, deliverable) {
-      var exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, endSequencingSession = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
-      _class_call_check$14(this, FlowSubprocessResult);
-      __publicField$$(this, "identifiedActivity");
-      __publicField$$(this, "deliverable");
-      __publicField$$(this, "exception");
-      __publicField$$(this, "endSequencingSession");
-      this.identifiedActivity = identifiedActivity;
-      this.deliverable = deliverable;
-      this.exception = exception;
-      this.endSequencingSession = endSequencingSession;
-  };
-  var ChoiceTraversalResult = function ChoiceTraversalResult(activity) {
-      var exception = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null;
-      _class_call_check$14(this, ChoiceTraversalResult);
-      __publicField$$(this, "activity");
-      __publicField$$(this, "exception");
-      this.activity = activity;
-      this.exception = exception;
-  };
-  var FlowSubprocessMode = /* @__PURE__ */ function(FlowSubprocessMode2) {
-      FlowSubprocessMode2["FORWARD"] = "forward";
-      FlowSubprocessMode2["BACKWARD"] = "backward";
-      return FlowSubprocessMode2;
-  }(FlowSubprocessMode || {});
-
-  function _class_call_check$13(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$13(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$13(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$13(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _type_of$10(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  var __defProp$_ = Object.defineProperty;
-  var __defNormalProp$_ = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$_(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$_ = function __publicField(obj, key, value) {
-      return __defNormalProp$_(obj, (typeof key === "undefined" ? "undefined" : _type_of$10(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var RuleEvaluationEngine = /*#__PURE__*/ function() {
-      function RuleEvaluationEngine() {
-          var options = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
-          _class_call_check$13(this, RuleEvaluationEngine);
-          __publicField$_(this, "now");
-          __publicField$_(this, "getAttemptElapsedSecondsHook");
-          this.now = options.now || function() {
-              return /* @__PURE__ */ new Date();
-          };
-          this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
-      }
-      _create_class$13(RuleEvaluationEngine, [
-          {
-              /**
-     * Sequencing Rules Check Process (UP.2)
-     * General process for evaluating a set of sequencing rules
-     * @param {Activity} activity - The activity to evaluate rules for
-     * @param {SequencingRule[]} rules - The rules to evaluate
-     * @return {RuleActionType | null} - The action to take, or null if no rules apply
-     */ key: "checkSequencingRules",
-              value: function checkSequencingRules(activity, rules) {
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = rules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var rule = _step.value;
-                          if (this.checkRuleSubprocess(activity, rule)) {
-                              return rule.action;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return null;
-              }
-          },
-          {
-              /**
-     * Sequencing Rules Check Subprocess (UP.2.1)
-     * Evaluates individual sequencing rule conditions
-     * @param {Activity} activity - The activity to evaluate the rule for
-     * @param {SequencingRule} rule - The rule to evaluate
-     * @return {boolean} - True only when the rule evaluates to definite true
-     */ key: "checkRuleSubprocess",
-              value: function checkRuleSubprocess(activity, rule) {
-                  var _this_getAttemptElapsedSecondsHook;
-                  return rule.evaluate(activity, this.now, (_this_getAttemptElapsedSecondsHook = this.getAttemptElapsedSecondsHook) !== null && _this_getAttemptElapsedSecondsHook !== void 0 ? _this_getAttemptElapsedSecondsHook : void 0);
-              }
-          },
-          {
-              /**
-     * Exit Action Rules Subprocess (TB.2.1)
-     * Evaluates the exit condition rules for an activity
-     * @param {Activity} activity - The activity to evaluate exit rules for
-     * @return {RuleActionType | null} - The exit action to process, if any
-     */ key: "evaluateExitRules",
-              value: function evaluateExitRules(activity) {
-                  var exitAction = this.checkSequencingRules(activity, activity.sequencingRules.exitConditionRules);
-                  if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
-                      return exitAction;
-                  }
-                  return null;
-              }
-          },
-          {
-              /**
-     * Post Condition Rules Subprocess (TB.2.2)
-     * Evaluates the post-condition rules for an activity after delivery
-     * @param {Activity} activity - The activity to evaluate post-condition rules for
-     * @return {RuleActionType | null} - The action to take, if any
-     */ key: "evaluatePostConditionAction",
-              value: function evaluatePostConditionAction(activity) {
-                  var postAction = this.checkSequencingRules(activity, activity.sequencingRules.postConditionRules);
-                  var validActions = [
-                      RuleActionType.EXIT_PARENT,
-                      RuleActionType.EXIT_ALL,
-                      RuleActionType.RETRY,
-                      RuleActionType.RETRY_ALL,
-                      RuleActionType.CONTINUE,
-                      RuleActionType.PREVIOUS,
-                      RuleActionType.STOP_FORWARD_TRAVERSAL
-                  ];
-                  if (postAction && validActions.includes(postAction)) {
-                      return postAction;
-                  }
-                  return null;
-              }
-          },
-          {
-              /**
-     * Evaluate post-condition rules and map to sequencing/termination requests
-     * @param {Activity} activity - The activity to evaluate
-     * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
-     */ key: "evaluatePostConditions",
-              value: function evaluatePostConditions(activity) {
-                  var postAction = this.evaluatePostConditionAction(activity);
-                  if (!postAction) {
-                      return {
-                          sequencingRequest: null,
-                          terminationRequest: null
-                      };
-                  }
-                  switch(postAction){
-                      case RuleActionType.EXIT_PARENT:
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: SequencingRequestType.EXIT_PARENT
-                          };
-                      case RuleActionType.EXIT_ALL:
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: SequencingRequestType.EXIT_ALL
-                          };
-                      case RuleActionType.RETRY:
-                          return {
-                              sequencingRequest: SequencingRequestType.RETRY,
-                              terminationRequest: null
-                          };
-                      case RuleActionType.RETRY_ALL:
-                          return {
-                              sequencingRequest: SequencingRequestType.RETRY,
-                              terminationRequest: SequencingRequestType.EXIT_ALL
-                          };
-                      case RuleActionType.CONTINUE:
-                          return {
-                              sequencingRequest: SequencingRequestType.CONTINUE,
-                              terminationRequest: null
-                          };
-                      case RuleActionType.PREVIOUS:
-                          return {
-                              sequencingRequest: SequencingRequestType.PREVIOUS,
-                              terminationRequest: null
-                          };
-                      case RuleActionType.STOP_FORWARD_TRAVERSAL:
-                          activity.sequencingControls.stopForwardTraversal = true;
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: null
-                          };
-                      default:
-                          return {
-                              sequencingRequest: null,
-                              terminationRequest: null
-                          };
-                  }
-              }
-          },
-          {
-              /**
-     * Limit Conditions Check Process (UP.1)
-     * Checks if an activity has exceeded its limit conditions
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if limit conditions are violated
-     */ key: "checkLimitConditions",
-              value: function checkLimitConditions(activity) {
-                  if (activity.isSuspended) {
-                      return false;
-                  }
-                  if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
-                      return true;
-                  }
-                  if (activity.attemptAbsoluteDurationLimit !== null) {
-                      var attemptLimitMs = this.parseDuration(activity.attemptAbsoluteDurationLimit);
-                      if (attemptLimitMs > 0) {
-                          var attemptDurationMs = this.parseDuration(activity.attemptExperiencedDuration);
-                          if (attemptDurationMs >= attemptLimitMs) {
-                              return true;
-                          }
-                      }
-                  }
-                  if (activity.activityAbsoluteDurationLimit !== null) {
-                      var activityLimitMs = this.parseDuration(activity.activityAbsoluteDurationLimit);
-                      if (activityLimitMs > 0) {
-                          var activityDurationMs = this.parseDuration(activity.activityExperiencedDuration);
-                          if (activityDurationMs >= activityLimitMs) {
-                              return true;
-                          }
-                      }
-                  }
-                  return false;
-              }
-          },
-          {
-              /**
-     * Parse ISO 8601 duration to milliseconds
-     * @param {string} duration - ISO 8601 duration string
-     * @return {number} - Duration in milliseconds
-     */ key: "parseDuration",
-              value: function parseDuration(duration) {
-                  if (!duration || typeof duration !== "string") {
-                      return 0;
-                  }
-                  var regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
-                  var matches = duration.match(regex);
-                  if (!matches || duration === "P" || duration.endsWith("T")) {
-                      return 0;
-                  }
-                  var years = parseFloat(matches[1] || "0");
-                  var months = parseFloat(matches[2] || "0");
-                  var weeks = parseFloat(matches[3] || "0");
-                  var days = parseFloat(matches[4] || "0");
-                  var hours = parseFloat(matches[5] || "0");
-                  var minutes = parseFloat(matches[6] || "0");
-                  var seconds = parseFloat(matches[7] || "0");
-                  var totalMs = 0;
-                  totalMs += years * 365.25 * 24 * 3600 * 1e3;
-                  totalMs += months * 30.44 * 24 * 3600 * 1e3;
-                  totalMs += weeks * 7 * 24 * 3600 * 1e3;
-                  totalMs += days * 24 * 3600 * 1e3;
-                  totalMs += hours * 3600 * 1e3;
-                  totalMs += minutes * 60 * 1e3;
-                  totalMs += seconds * 1e3;
-                  return totalMs;
-              }
-          },
-          {
-              /**
-     * Get elapsed attempt seconds for an activity
-     * @param {Activity} activity - The activity
-     * @return {number} - Elapsed seconds
-     */ key: "getElapsedSeconds",
-              value: function getElapsedSeconds(activity) {
-                  if (this.getAttemptElapsedSecondsHook) {
-                      try {
-                          return this.getAttemptElapsedSecondsHook(activity) || 0;
-                      } catch (unused) {
-                          return 0;
-                      }
-                  }
-                  if (activity.attemptAbsoluteStartTime) {
-                      var start = new Date(activity.attemptAbsoluteStartTime).getTime();
-                      var nowMs = this.now().getTime();
-                      if (!Number.isNaN(start) && nowMs > start) {
-                          return Math.max(0, (nowMs - start) / 1e3);
-                      }
-                  }
-                  return 0;
-              }
-          },
-          {
-              /**
-     * Check if time limit has been exceeded
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if time limit exceeded
-     */ key: "isTimeLimitExceeded",
-              value: function isTimeLimitExceeded(activity) {
-                  var limit = activity.timeLimitDuration;
-                  if (!limit && activity.attemptAbsoluteDurationLimit) {
-                      limit = activity.attemptAbsoluteDurationLimit;
-                  }
-                  if (!limit) {
-                      return false;
-                  }
-                  var limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-                  if (limitSeconds <= 0) {
-                      return false;
-                  }
-                  var elapsedSeconds = this.getElapsedSeconds(activity);
-                  return elapsedSeconds > limitSeconds;
-              }
-          },
-          {
-              /**
-     * Check if activity is outside available time range
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if outside time range
-     */ key: "isOutsideAvailableTimeRange",
-              value: function isOutsideAvailableTimeRange(activity) {
-                  var now = this.now();
-                  if (activity.beginTimeLimit) {
-                      try {
-                          var beginDate = new Date(activity.beginTimeLimit);
-                          if (!Number.isNaN(beginDate.getTime()) && now < beginDate) {
-                              return true;
-                          }
-                      } catch (unused) {}
-                  }
-                  if (activity.endTimeLimit) {
-                      try {
-                          var endDate = new Date(activity.endTimeLimit);
-                          if (!Number.isNaN(endDate.getTime()) && now > endDate) {
-                              return true;
-                          }
-                      } catch (unused) {}
-                  }
-                  return false;
-              }
-          },
-          {
-              /**
-     * Evaluate pre-condition rules and check if activity can be delivered
-     * @param {Activity} activity - The activity to check
-     * @return {{ canDeliver: boolean; wasSkipped: boolean }} - Delivery check result
-     */ key: "canDeliverActivity",
-              value: function canDeliverActivity(activity) {
-                  if (this.checkLimitConditions(activity)) {
-                      return {
-                          canDeliver: false,
-                          wasSkipped: false
-                      };
-                  }
-                  var preConditionResult = this.checkSequencingRules(activity, activity.sequencingRules.preConditionRules);
-                  var wasSkipped = preConditionResult === RuleActionType.SKIP;
-                  return {
-                      canDeliver: preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED,
-                      wasSkipped: wasSkipped
-                  };
-              }
-          }
-      ]);
-      return RuleEvaluationEngine;
-  }();
-
   function _assert_this_initialized$k(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -4225,10 +5230,10 @@ this.Scorm2004API = (function () {
       derived = _get_prototype_of$k(derived);
       return _possible_constructor_return$k(_this, _is_native_reflect_construct$k() ? Reflect.construct(derived, args || [], _get_prototype_of$k(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$12(instance, Constructor) {
+  function _class_call_check$11(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$12(target, props) {
+  function _defineProperties$11(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -4237,8 +5242,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$12(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$12(Constructor.prototype, protoProps);
+  function _create_class$11(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$11(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$k(o) {
@@ -4269,7 +5274,7 @@ this.Scorm2004API = (function () {
       })();
   }
   function _possible_constructor_return$k(self, call) {
-      if (call && (_type_of$$(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$_(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$k(self);
   }
   function _set_prototype_of$k(o, p) {
@@ -4279,21 +5284,21 @@ this.Scorm2004API = (function () {
       };
       return _set_prototype_of$k(o, p);
   }
-  function _type_of$$(obj) {
+  function _type_of$_(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Z = Object.defineProperty;
-  var __defNormalProp$Z = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Z(obj, key, {
+  var __defProp$Y = Object.defineProperty;
+  var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Y(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Z = function __publicField(obj, key, value) {
-      return __defNormalProp$Z(obj, (typeof key === "undefined" ? "undefined" : _type_of$$(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Y = function __publicField(obj, key, value) {
+      return __defNormalProp$Y(obj, (typeof key === "undefined" ? "undefined" : _type_of$_(key)) !== "symbol" ? key + "" : key, value);
   };
   var SelectionTiming = /* @__PURE__ */ function(SelectionTiming2) {
       SelectionTiming2["NEVER"] = "never";
@@ -4310,45 +5315,45 @@ this.Scorm2004API = (function () {
   var SequencingControls = /*#__PURE__*/ function(BaseCMI) {
       _inherits$k(SequencingControls, BaseCMI);
       function SequencingControls() {
-          _class_call_check$12(this, SequencingControls);
+          _class_call_check$11(this, SequencingControls);
           var _this;
           _this = _call_super$k(this, SequencingControls, [
               "sequencingControls"
           ]);
           // Sequencing Control Modes
-          __publicField$Z(_this, "_enabled", true);
-          __publicField$Z(_this, "_choice", true);
-          __publicField$Z(_this, "_choiceExit", true);
+          __publicField$Y(_this, "_enabled", true);
+          __publicField$Y(_this, "_choice", true);
+          __publicField$Y(_this, "_choiceExit", true);
           // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
-          __publicField$Z(_this, "_flow", true);
-          __publicField$Z(_this, "_forwardOnly", false);
-          __publicField$Z(_this, "_useCurrentAttemptObjectiveInfo", true);
-          __publicField$Z(_this, "_useCurrentAttemptProgressInfo", true);
+          __publicField$Y(_this, "_flow", true);
+          __publicField$Y(_this, "_forwardOnly", false);
+          __publicField$Y(_this, "_useCurrentAttemptObjectiveInfo", true);
+          __publicField$Y(_this, "_useCurrentAttemptProgressInfo", true);
           // Constrain Choice Controls
-          __publicField$Z(_this, "_preventActivation", false);
-          __publicField$Z(_this, "_constrainChoice", false);
+          __publicField$Y(_this, "_preventActivation", false);
+          __publicField$Y(_this, "_constrainChoice", false);
           // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
-          __publicField$Z(_this, "_stopForwardTraversal", false);
+          __publicField$Y(_this, "_stopForwardTraversal", false);
           // Rollup Controls
-          __publicField$Z(_this, "_rollupObjectiveSatisfied", true);
-          __publicField$Z(_this, "_rollupProgressCompletion", true);
-          __publicField$Z(_this, "_objectiveMeasureWeight", 1);
+          __publicField$Y(_this, "_rollupObjectiveSatisfied", true);
+          __publicField$Y(_this, "_rollupProgressCompletion", true);
+          __publicField$Y(_this, "_objectiveMeasureWeight", 1);
           // Selection Controls
-          __publicField$Z(_this, "_selectionTiming", "never" /* NEVER */ );
-          __publicField$Z(_this, "_selectCount", null);
-          __publicField$Z(_this, "_selectionCountStatus", false);
-          __publicField$Z(_this, "_randomizeChildren", false);
+          __publicField$Y(_this, "_selectionTiming", "never" /* NEVER */ );
+          __publicField$Y(_this, "_selectCount", null);
+          __publicField$Y(_this, "_selectionCountStatus", false);
+          __publicField$Y(_this, "_randomizeChildren", false);
           // Randomization Controls
-          __publicField$Z(_this, "_randomizationTiming", "never" /* NEVER */ );
-          __publicField$Z(_this, "_reorderChildren", false);
+          __publicField$Y(_this, "_randomizationTiming", "never" /* NEVER */ );
+          __publicField$Y(_this, "_reorderChildren", false);
           // Auto-completion/satisfaction controls
-          __publicField$Z(_this, "_completionSetByContent", false);
-          __publicField$Z(_this, "_objectiveSetByContent", false);
+          __publicField$Y(_this, "_completionSetByContent", false);
+          __publicField$Y(_this, "_objectiveSetByContent", false);
           // Delivery Controls
-          __publicField$Z(_this, "_tracked", true);
+          __publicField$Y(_this, "_tracked", true);
           return _this;
       }
-      _create_class$12(SequencingControls, [
+      _create_class$11(SequencingControls, [
           {
               /**
      * Reset the sequencing controls to their default values
@@ -4788,18 +5793,18 @@ this.Scorm2004API = (function () {
       return SequencingControls;
   }(BaseCMI);
 
-  function _array_like_to_array$i(arr, len) {
+  function _array_like_to_array$h(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$c(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$i(arr);
+  function _array_without_holes$b(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$h(arr);
   }
-  function _class_call_check$11(instance, Constructor) {
+  function _class_call_check$10(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$11(target, props) {
+  function _defineProperties$10(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -4808,34 +5813,34 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$11(Constructor, protoProps, staticProps) {
-      if (staticProps) _defineProperties$11(Constructor, staticProps);
+  function _create_class$10(Constructor, protoProps, staticProps) {
+      if (staticProps) _defineProperties$10(Constructor, staticProps);
       return Constructor;
   }
-  function _iterable_to_array$c(iter) {
+  function _iterable_to_array$b(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$c() {
+  function _non_iterable_spread$b() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$c(arr) {
-      return _array_without_holes$c(arr) || _iterable_to_array$c(arr) || _unsupported_iterable_to_array$i(arr) || _non_iterable_spread$c();
+  function _to_consumable_array$b(arr) {
+      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$b();
   }
-  function _unsupported_iterable_to_array$i(o, minLen) {
+  function _unsupported_iterable_to_array$h(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$i(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$h(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$i(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
   }
   var SelectionRandomization = /*#__PURE__*/ function() {
       function SelectionRandomization() {
-          _class_call_check$11(this, SelectionRandomization);
+          _class_call_check$10(this, SelectionRandomization);
       }
-      _create_class$11(SelectionRandomization, null, [
+      _create_class$10(SelectionRandomization, null, [
           {
               key: "selectChildrenProcess",
               value: /**
@@ -4845,7 +5850,7 @@ this.Scorm2004API = (function () {
      * @return {Activity[]} - The selected child activities
      */ function selectChildrenProcess(activity) {
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$c(activity.children);
+                  var children = _to_consumable_array$b(activity.children);
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       return children;
                   }
@@ -4914,7 +5919,7 @@ this.Scorm2004API = (function () {
      */ function randomizeChildrenProcess(activity) {
                   var _activity_children;
                   var controls = activity.sequencingControls;
-                  var children = _to_consumable_array$c(activity.children);
+                  var children = _to_consumable_array$b(activity.children);
                   if (controls.randomizationTiming === RandomizationTiming.NEVER) {
                       return children;
                   }
@@ -4924,7 +5929,7 @@ this.Scorm2004API = (function () {
                   if (!controls.randomizeChildren) {
                       return children;
                   }
-                  var randomizedChildren = _to_consumable_array$c(children);
+                  var randomizedChildren = _to_consumable_array$b(children);
                   for(var i = randomizedChildren.length - 1; i > 0; i--){
                       var j = Math.floor(Math.random() * (i + 1));
                       var tempI = randomizedChildren[i];
@@ -4938,7 +5943,7 @@ this.Scorm2004API = (function () {
                       controls.reorderChildren = true;
                   }
                   activity.children.length = 0;
-                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$c(randomizedChildren));
+                  (_activity_children = activity.children).push.apply(_activity_children, _to_consumable_array$b(randomizedChildren));
                   return randomizedChildren;
               }
           },
@@ -4962,10 +5967,10 @@ this.Scorm2004API = (function () {
                           var processedIds = new Set(processedChildren2.map(function(child) {
                               return child.id;
                           }));
-                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$c(childIds).some(function(id) {
+                          if (processedChildren2.length !== activity.children.length || processedIds.size !== childIds.size || _to_consumable_array$b(childIds).some(function(id) {
                               return !processedIds.has(id);
                           })) {
-                              activity.setProcessedChildren(_to_consumable_array$c(activity.children));
+                              activity.setProcessedChildren(_to_consumable_array$b(activity.children));
                           }
                       }
                       return activity.getAvailableChildren();
@@ -4997,7 +6002,7 @@ this.Scorm2004API = (function () {
                   var processedChildren;
                   if (controls.selectionTiming === SelectionTiming.NEVER) {
                       if (isNewAttempt || shouldApplyRandomization) {
-                          processedChildren = _to_consumable_array$c(activity.children);
+                          processedChildren = _to_consumable_array$b(activity.children);
                       } else {
                           processedChildren = activity.getAvailableChildren();
                       }
@@ -5048,10 +6053,10 @@ this.Scorm2004API = (function () {
       return SelectionRandomization;
   }();
 
-  function _class_call_check$10(instance, Constructor) {
+  function _class_call_check$$(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$10(target, props) {
+  function _defineProperties$$(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5060,34 +6065,34 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$10(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$10(Constructor.prototype, protoProps);
+  function _create_class$$(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$$(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$_(obj) {
+  function _type_of$Z(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Y = Object.defineProperty;
-  var __defNormalProp$Y = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Y(obj, key, {
+  var __defProp$X = Object.defineProperty;
+  var __defNormalProp$X = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$X(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Y = function __publicField(obj, key, value) {
-      return __defNormalProp$Y(obj, (typeof key === "undefined" ? "undefined" : _type_of$_(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$X = function __publicField(obj, key, value) {
+      return __defNormalProp$X(obj, (typeof key === "undefined" ? "undefined" : _type_of$Z(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowTraversalService = /*#__PURE__*/ function() {
       function FlowTraversalService(activityTree, ruleEngine) {
-          _class_call_check$10(this, FlowTraversalService);
-          __publicField$Y(this, "activityTree", activityTree);
-          __publicField$Y(this, "ruleEngine", ruleEngine);
-          __publicField$Y(this, "activityEvaluationCallback", null);
+          _class_call_check$$(this, FlowTraversalService);
+          __publicField$X(this, "activityTree", activityTree);
+          __publicField$X(this, "ruleEngine", ruleEngine);
+          __publicField$X(this, "activityEvaluationCallback", null);
       }
-      _create_class$10(FlowTraversalService, [
+      _create_class$$(FlowTraversalService, [
           {
               /**
      * Supply a disposable objective view for candidate preconditions.
@@ -5518,10 +6523,10 @@ this.Scorm2004API = (function () {
       return FlowTraversalService;
   }();
 
-  function _class_call_check$$(instance, Constructor) {
+  function _class_call_check$_(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$$(target, props) {
+  function _defineProperties$_(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5530,33 +6535,33 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$$(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$$(Constructor.prototype, protoProps);
+  function _create_class$_(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$_(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$Z(obj) {
+  function _type_of$Y(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$X = Object.defineProperty;
-  var __defNormalProp$X = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$X(obj, key, {
+  var __defProp$W = Object.defineProperty;
+  var __defNormalProp$W = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$W(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$X = function __publicField(obj, key, value) {
-      return __defNormalProp$X(obj, (typeof key === "undefined" ? "undefined" : _type_of$Z(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$W = function __publicField(obj, key, value) {
+      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
   };
   var FlowRequestHandler = /*#__PURE__*/ function() {
       function FlowRequestHandler(activityTree, traversalService) {
-          _class_call_check$$(this, FlowRequestHandler);
-          __publicField$X(this, "activityTree", activityTree);
-          __publicField$X(this, "traversalService", traversalService);
+          _class_call_check$_(this, FlowRequestHandler);
+          __publicField$W(this, "activityTree", activityTree);
+          __publicField$W(this, "traversalService", traversalService);
       }
-      _create_class$$(FlowRequestHandler, [
+      _create_class$_(FlowRequestHandler, [
           {
               /**
      * Start Sequencing Request Process (SB.2.5)
@@ -5686,10 +6691,10 @@ this.Scorm2004API = (function () {
       return FlowRequestHandler;
   }();
 
-  function _class_call_check$_(instance, Constructor) {
+  function _class_call_check$Z(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$_(target, props) {
+  function _defineProperties$Z(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5698,37 +6703,37 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$_(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$_(Constructor.prototype, protoProps);
+  function _create_class$Z(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Z(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$Y(obj) {
+  function _type_of$X(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$W = Object.defineProperty;
-  var __defNormalProp$W = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$W(obj, key, {
+  var __defProp$V = Object.defineProperty;
+  var __defNormalProp$V = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$V(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$W = function __publicField(obj, key, value) {
-      return __defNormalProp$W(obj, (typeof key === "undefined" ? "undefined" : _type_of$Y(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$V = function __publicField(obj, key, value) {
+      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
   };
   var ChoiceRequestHandler = /*#__PURE__*/ function() {
       function ChoiceRequestHandler(activityTree, constraintValidator, traversalService, treeQueries, getNow, getElapsedSeconds) {
-          _class_call_check$_(this, ChoiceRequestHandler);
-          __publicField$W(this, "activityTree", activityTree);
-          __publicField$W(this, "constraintValidator", constraintValidator);
-          __publicField$W(this, "traversalService", traversalService);
-          __publicField$W(this, "treeQueries", treeQueries);
-          __publicField$W(this, "getNow", getNow);
-          __publicField$W(this, "getElapsedSeconds", getElapsedSeconds);
+          _class_call_check$Z(this, ChoiceRequestHandler);
+          __publicField$V(this, "activityTree", activityTree);
+          __publicField$V(this, "constraintValidator", constraintValidator);
+          __publicField$V(this, "traversalService", traversalService);
+          __publicField$V(this, "treeQueries", treeQueries);
+          __publicField$V(this, "getNow", getNow);
+          __publicField$V(this, "getElapsedSeconds", getElapsedSeconds);
       }
-      _create_class$_(ChoiceRequestHandler, [
+      _create_class$Z(ChoiceRequestHandler, [
           {
               /**
      * Choice Sequencing Request Process (SB.2.9)
@@ -5762,8 +6767,11 @@ this.Scorm2004API = (function () {
                           var pathActivity = _step.value;
                           var evaluationActivity = _this1.traversalService.getActivityForEvaluation(pathActivity, targetActivity);
                           var hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(function(rule) {
+                              var _ref, _ref1;
                               var _this_getNow, _this1, _this_getElapsedSeconds, _this2;
-                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity, (_this_getNow = (_this1 = _this).getNow) === null || _this_getNow === void 0 ? void 0 : _this_getNow.call(_this1), (_this_getElapsedSeconds = (_this2 = _this).getElapsedSeconds) === null || _this_getElapsedSeconds === void 0 ? void 0 : _this_getElapsedSeconds.call(_this2)) === true;
+                              return rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity, (_ref = (_this_getNow = (_this1 = _this).getNow) === null || _this_getNow === void 0 ? void 0 : _this_getNow.call(_this1)) !== null && _ref !== void 0 ? _ref : function() {
+                                  return /* @__PURE__ */ new Date();
+                              }, (_ref1 = (_this_getElapsedSeconds = (_this2 = _this).getElapsedSeconds) === null || _this_getElapsedSeconds === void 0 ? void 0 : _this_getElapsedSeconds.call(_this2)) !== null && _ref1 !== void 0 ? _ref1 : null) === true;
                           });
                           if (hiddenByRule) {
                               result.exception = "SB.2.9-4";
@@ -5774,7 +6782,7 @@ this.Scorm2004API = (function () {
                       };
                       for(var _iterator = this.treeQueries.getPathToRoot(targetActivity)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var _ret = (_this1 = this, _loop());
-                          if (_type_of$Y(_ret) === "object") return _ret.v;
+                          if (_type_of$X(_ret) === "object") return _ret.v;
                       }
                   } catch (err) {
                       _didIteratorError = true;
@@ -5978,10 +6986,10 @@ this.Scorm2004API = (function () {
       return ChoiceRequestHandler;
   }();
 
-  function _class_call_check$Z(instance, Constructor) {
+  function _class_call_check$Y(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Z(target, props) {
+  function _defineProperties$Y(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5990,33 +6998,33 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Z(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Z(Constructor.prototype, protoProps);
+  function _create_class$Y(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Y(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$X(obj) {
+  function _type_of$W(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$V = Object.defineProperty;
-  var __defNormalProp$V = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$V(obj, key, {
+  var __defProp$U = Object.defineProperty;
+  var __defNormalProp$U = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$U(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$V = function __publicField(obj, key, value) {
-      return __defNormalProp$V(obj, (typeof key === "undefined" ? "undefined" : _type_of$X(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$U = function __publicField(obj, key, value) {
+      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
   };
   var ExitRequestHandler = /*#__PURE__*/ function() {
       function ExitRequestHandler(activityTree, ruleEngine) {
-          _class_call_check$Z(this, ExitRequestHandler);
-          __publicField$V(this, "activityTree", activityTree);
-          __publicField$V(this, "ruleEngine", ruleEngine);
+          _class_call_check$Y(this, ExitRequestHandler);
+          __publicField$U(this, "activityTree", activityTree);
+          __publicField$U(this, "ruleEngine", ruleEngine);
       }
-      _create_class$Z(ExitRequestHandler, [
+      _create_class$Y(ExitRequestHandler, [
           {
               /**
      * Exit Sequencing Request Process (SB.2.11)
@@ -6163,10 +7171,10 @@ this.Scorm2004API = (function () {
       return ExitRequestHandler;
   }();
 
-  function _class_call_check$Y(instance, Constructor) {
+  function _class_call_check$X(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Y(target, props) {
+  function _defineProperties$X(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6175,33 +7183,33 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Y(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Y(Constructor.prototype, protoProps);
+  function _create_class$X(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$X(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$W(obj) {
+  function _type_of$V(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$U = Object.defineProperty;
-  var __defNormalProp$U = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$U(obj, key, {
+  var __defProp$T = Object.defineProperty;
+  var __defNormalProp$T = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$T(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$U = function __publicField(obj, key, value) {
-      return __defNormalProp$U(obj, (typeof key === "undefined" ? "undefined" : _type_of$W(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$T = function __publicField(obj, key, value) {
+      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$V(key)) !== "symbol" ? key + "" : key, value);
   };
   var RetryRequestHandler = /*#__PURE__*/ function() {
       function RetryRequestHandler(activityTree, traversalService) {
-          _class_call_check$Y(this, RetryRequestHandler);
-          __publicField$U(this, "activityTree", activityTree);
-          __publicField$U(this, "traversalService", traversalService);
+          _class_call_check$X(this, RetryRequestHandler);
+          __publicField$T(this, "activityTree", activityTree);
+          __publicField$T(this, "traversalService", traversalService);
       }
-      _create_class$Y(RetryRequestHandler, [
+      _create_class$X(RetryRequestHandler, [
           {
               /**
      * Retry Sequencing Request Process (SB.2.10)
@@ -6289,10 +7297,10 @@ this.Scorm2004API = (function () {
       return RetryRequestHandler;
   }();
 
-  function _class_call_check$X(instance, Constructor) {
+  function _class_call_check$W(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$X(target, props) {
+  function _defineProperties$W(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6301,46 +7309,46 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$X(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$X(Constructor.prototype, protoProps);
+  function _create_class$W(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$V(obj) {
+  function _type_of$U(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$T = Object.defineProperty;
-  var __defNormalProp$T = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$T(obj, key, {
+  var __defProp$S = Object.defineProperty;
+  var __defNormalProp$S = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$S(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$T = function __publicField(obj, key, value) {
-      return __defNormalProp$T(obj, (typeof key === "undefined" ? "undefined" : _type_of$V(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$S = function __publicField(obj, key, value) {
+      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$U(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingProcess = /*#__PURE__*/ function() {
       function SequencingProcess(activityTree, _sequencingRules, _sequencingControls) {
           var _this = this;
           var options = arguments.length > 4 ? arguments[4] : void 0;
-          _class_call_check$X(this, SequencingProcess);
-          __publicField$T(this, "activityTree");
+          _class_call_check$W(this, SequencingProcess);
+          __publicField$S(this, "activityTree");
           // Extracted services
-          __publicField$T(this, "treeQueries");
-          __publicField$T(this, "constraintValidator");
-          __publicField$T(this, "ruleEngine");
-          __publicField$T(this, "traversalService");
-          __publicField$T(this, "activityEvaluationCallback", null);
+          __publicField$S(this, "treeQueries");
+          __publicField$S(this, "constraintValidator");
+          __publicField$S(this, "ruleEngine");
+          __publicField$S(this, "traversalService");
+          __publicField$S(this, "activityEvaluationCallback", null);
           // Request handlers
-          __publicField$T(this, "flowHandler");
-          __publicField$T(this, "choiceHandler");
-          __publicField$T(this, "exitHandler");
-          __publicField$T(this, "retryHandler");
+          __publicField$S(this, "flowHandler");
+          __publicField$S(this, "choiceHandler");
+          __publicField$S(this, "exitHandler");
+          __publicField$S(this, "retryHandler");
           // Time function (exposed for testing)
-          __publicField$T(this, "_now");
-          __publicField$T(this, "_getAttemptElapsedSecondsHook");
+          __publicField$S(this, "_now");
+          __publicField$S(this, "_getAttemptElapsedSecondsHook");
           this.activityTree = activityTree;
           this._now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
@@ -6362,7 +7370,7 @@ this.Scorm2004API = (function () {
           this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
           this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
       }
-      _create_class$X(SequencingProcess, [
+      _create_class$W(SequencingProcess, [
           {
               key: "now",
               get: /**
@@ -6387,14 +7395,17 @@ this.Scorm2004API = (function () {
                       return _this.getAttemptElapsedSecondsHook;
                   });
                   this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+                  this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
               }
           },
           {
               key: "getAttemptElapsedSecondsHook",
               get: /**
      * Get/set the elapsed seconds hook (used for time-based rules)
-     */ function get() {
-                  return this._getAttemptElapsedSecondsHook;
+     */ // Null, not undefined, so RuleCondition.evaluate skips another process's static hook.
+              function get() {
+                  var _this__getAttemptElapsedSecondsHook;
+                  return (_this__getAttemptElapsedSecondsHook = this._getAttemptElapsedSecondsHook) !== null && _this__getAttemptElapsedSecondsHook !== void 0 ? _this__getAttemptElapsedSecondsHook : null;
               },
               set: function set(fn) {
                   var _this = this;
@@ -6413,6 +7424,7 @@ this.Scorm2004API = (function () {
                       return _this.getAttemptElapsedSecondsHook;
                   });
                   this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+                  this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
               }
           },
           {
@@ -6517,6 +7529,7 @@ this.Scorm2004API = (function () {
      * @return {{valid: boolean, exception: string | null}} - Validation result
      */ key: "validateNavigationRequest",
               value: function validateNavigationRequest(request) {
+                  var _this = this;
                   var targetActivityId = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, currentActivity = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
                   var validRequestTypes = Object.values(SequencingRequestType);
                   if (!validRequestTypes.includes(request)) {
@@ -6624,36 +7637,20 @@ this.Scorm2004API = (function () {
                                       exception: "DB.1.1-1"
                                   };
                               }
-                              var path = [];
-                              for(var node = jumpTarget; node; node = node.parent){
-                                  path.unshift(node);
-                              }
-                              var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                              try {
-                                  for(var _iterator = path[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                                      var activity = _step.value;
-                                      var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
-                                          return rule.action === RuleActionType.DISABLED;
-                                      });
-                                      if (!activity.isAvailable || this.ruleEngine.checkLimitConditions(activity) || this.ruleEngine.checkSequencingRules(this.traversalService.getActivityForEvaluation(activity, jumpTarget), disabledRules) === RuleActionType.DISABLED) {
-                                          return {
-                                              valid: false,
-                                              exception: "DB.1.1-3"
-                                          };
-                                      }
+                              var validator = new DeliveryValidator(this.activityTree, null, {
+                                  now: function now() {
+                                      return _this.now();
                                   }
-                              } catch (err) {
-                                  _didIteratorError = true;
-                                  _iteratorError = err;
-                              } finally{
-                                  try {
-                                      if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                          _iterator.return();
-                                      }
-                                  } finally{
-                                      if (_didIteratorError) {
-                                          throw _iteratorError;
-                                      }
+                              }, function() {
+                                  return _this.ruleEngine;
+                              });
+                              for(var activity = jumpTarget; activity; activity = activity.parent){
+                                  var evaluationActivity = this.traversalService.getActivityForEvaluation(activity, jumpTarget);
+                                  if (!validator.checkActivity(activity, evaluationActivity, false)) {
+                                      return {
+                                          valid: false,
+                                          exception: "DB.1.1-3"
+                                      };
                                   }
                               }
                               break;
@@ -6718,10 +7715,10 @@ this.Scorm2004API = (function () {
       return SequencingProcess;
   }();
 
-  function _class_call_check$W(instance, Constructor) {
+  function _class_call_check$V(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$W(target, props) {
+  function _defineProperties$V(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6730,8 +7727,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$W(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
+  function _create_class$V(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$h(obj, key, value) {
@@ -6760,38 +7757,38 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _type_of$U(obj) {
+  function _type_of$T(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$S = Object.defineProperty;
-  var __defNormalProp$S = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$S(obj, key, {
+  var __defProp$R = Object.defineProperty;
+  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$R(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$S = function __publicField(obj, key, value) {
-      return __defNormalProp$S(obj, (typeof key === "undefined" ? "undefined" : _type_of$U(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$R = function __publicField(obj, key, value) {
+      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityDeliveryService = /*#__PURE__*/ function() {
       function ActivityDeliveryService(eventService, loggingService) {
           var callbacks = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
-          _class_call_check$W(this, ActivityDeliveryService);
-          __publicField$S(this, "eventService");
-          __publicField$S(this, "loggingService");
-          __publicField$S(this, "callbacks");
-          __publicField$S(this, "currentDeliveredActivity", null);
-          __publicField$S(this, "currentDeliveredAttemptCount", null);
-          __publicField$S(this, "currentDeliveredGeneration", null);
-          __publicField$S(this, "pendingDelivery", null);
+          _class_call_check$V(this, ActivityDeliveryService);
+          __publicField$R(this, "eventService");
+          __publicField$R(this, "loggingService");
+          __publicField$R(this, "callbacks");
+          __publicField$R(this, "currentDeliveredActivity", null);
+          __publicField$R(this, "currentDeliveredAttemptCount", null);
+          __publicField$R(this, "currentDeliveredGeneration", null);
+          __publicField$R(this, "pendingDelivery", null);
           this.eventService = eventService;
           this.loggingService = loggingService;
           this.callbacks = callbacks;
       }
-      _create_class$W(ActivityDeliveryService, [
+      _create_class$V(ActivityDeliveryService, [
           {
               /**
      * Process a sequencing result and handle activity delivery
@@ -6924,10 +7921,10 @@ this.Scorm2004API = (function () {
           });
       };
   }
-  function _class_call_check$V(instance, Constructor) {
+  function _class_call_check$U(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$V(target, props) {
+  function _defineProperties$U(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6936,8 +7933,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$V(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
+  function _create_class$U(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$g(obj, key, value) {
@@ -7089,32 +8086,32 @@ this.Scorm2004API = (function () {
           };
       }
   }
-  function _type_of$T(obj) {
+  function _type_of$S(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$R = Object.defineProperty;
-  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$R(obj, key, {
+  var __defProp$Q = Object.defineProperty;
+  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Q(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$R = function __publicField(obj, key, value) {
-      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Q = function __publicField(obj, key, value) {
+      return __defNormalProp$Q(obj, (typeof key === "undefined" ? "undefined" : _type_of$S(key)) !== "symbol" ? key + "" : key, value);
   };
   var AsynchronousHttpService = /*#__PURE__*/ function() {
       function AsynchronousHttpService(settings, error_codes) {
-          _class_call_check$V(this, AsynchronousHttpService);
-          __publicField$R(this, "reportsRequestCompletion", true);
-          __publicField$R(this, "settings");
-          __publicField$R(this, "error_codes");
+          _class_call_check$U(this, AsynchronousHttpService);
+          __publicField$Q(this, "reportsRequestCompletion", true);
+          __publicField$Q(this, "settings");
+          __publicField$Q(this, "error_codes");
           this.settings = settings;
           this.error_codes = error_codes;
       }
-      _create_class$V(AsynchronousHttpService, [
+      _create_class$U(AsynchronousHttpService, [
           {
               /**
      * Sends HTTP requests asynchronously to the LMS
@@ -7488,18 +8485,18 @@ this.Scorm2004API = (function () {
       return AsynchronousHttpService;
   }();
 
-  function _array_like_to_array$h(arr, len) {
+  function _array_like_to_array$g(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$b(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$h(arr);
+  function _array_without_holes$a(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
   }
-  function _class_call_check$U(instance, Constructor) {
+  function _class_call_check$T(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$U(target, props) {
+  function _defineProperties$T(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -7508,8 +8505,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$U(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
+  function _create_class$T(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$f(left, right) {
@@ -7518,40 +8515,40 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array$b(iter) {
+  function _iterable_to_array$a(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$b() {
+  function _non_iterable_spread$a() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$b(arr) {
-      return _array_without_holes$b(arr) || _iterable_to_array$b(arr) || _unsupported_iterable_to_array$h(arr) || _non_iterable_spread$b();
+  function _to_consumable_array$a(arr) {
+      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$a();
   }
-  function _type_of$S(obj) {
+  function _type_of$R(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$h(o, minLen) {
+  function _unsupported_iterable_to_array$g(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$h(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$h(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
   }
-  var __defProp$Q = Object.defineProperty;
-  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Q(obj, key, {
+  var __defProp$P = Object.defineProperty;
+  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$P(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Q = function __publicField(obj, key, value) {
-      return __defNormalProp$Q(obj, (_type_of$S(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$P = function __publicField(obj, key, value) {
+      return __defNormalProp$P(obj, (_type_of$R(key)) !== "symbol" ? key + "" : key, value);
   };
   var TARGET_ATTRIBUTE_PREFIX = "{target=";
   function getErrorCode(errorCodes, key) {
@@ -7567,11 +8564,11 @@ this.Scorm2004API = (function () {
   }
   var CMIValueAccessService = /*#__PURE__*/ function() {
       function CMIValueAccessService(context) {
-          _class_call_check$U(this, CMIValueAccessService);
-          __publicField$Q(this, "context");
+          _class_call_check$T(this, CMIValueAccessService);
+          __publicField$P(this, "context");
           this.context = context;
       }
-      _create_class$U(CMIValueAccessService, [
+      _create_class$T(CMIValueAccessService, [
           {
               /**
      * Gets the appropriate error code for undefined data model elements.
@@ -7602,10 +8599,7 @@ this.Scorm2004API = (function () {
                       return global_constants.SCORM_FALSE;
                   }
                   this.context.setLastErrorCode("0");
-                  var targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
-                  var structure = targetPath ? _to_consumable_array$b(targetPath[1].split(".")).concat([
-                      targetPath[2]
-                  ]) : CMIElement.split(".");
+                  var structure = splitCMIElement(CMIElement);
                   var refObject = this.context.getDataModel();
                   var returnValue = global_constants.SCORM_FALSE;
                   var foundFirstIndex = false;
@@ -7653,7 +8647,7 @@ this.Scorm2004API = (function () {
                       return "";
                   }
                   this.context.setLastErrorCode("0");
-                  var structure = CMIElement.split(".");
+                  var structure = splitCMIElement(CMIElement);
                   var refObject = this.context.getDataModel();
                   var attribute = null;
                   var foundFirstIndex = false;
@@ -7958,11 +8952,17 @@ this.Scorm2004API = (function () {
       ]);
       return CMIValueAccessService;
   }();
+  function splitCMIElement(element) {
+      var targetPath = element.match(/^(.*)\.(\{target=[^{}]*\})$/);
+      return targetPath ? _to_consumable_array$a(targetPath[1].split(".")).concat([
+          targetPath[2]
+      ]) : element.split(".");
+  }
 
-  function _class_call_check$T(instance, Constructor) {
+  function _class_call_check$S(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$T(target, props) {
+  function _defineProperties$S(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -7971,35 +8971,35 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$T(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$T(Constructor, staticProps);
+  function _create_class$S(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$S(Constructor, staticProps);
       return Constructor;
   }
-  function _type_of$R(obj) {
+  function _type_of$Q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$P = Object.defineProperty;
-  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$P(obj, key, {
+  var __defProp$O = Object.defineProperty;
+  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$O(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$P = function __publicField(obj, key, value) {
-      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$R(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$O = function __publicField(obj, key, value) {
+      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
   };
   var _LoggingService = /*#__PURE__*/ function() {
       function _LoggingService() {
-          _class_call_check$T(this, _LoggingService);
-          __publicField$P(this, "_logLevel", LogLevelEnum.ERROR);
-          __publicField$P(this, "_logHandler");
+          _class_call_check$S(this, _LoggingService);
+          __publicField$O(this, "_logLevel", LogLevelEnum.ERROR);
+          __publicField$O(this, "_logHandler");
           this._logHandler = defaultLogHandler;
       }
-      _create_class$T(_LoggingService, [
+      _create_class$S(_LoggingService, [
           {
               /**
      * Set the log level
@@ -8172,16 +9172,16 @@ this.Scorm2004API = (function () {
       ]);
       return _LoggingService;
   }();
-  __publicField$P(_LoggingService, "_instance");
+  __publicField$O(_LoggingService, "_instance");
   var LoggingService = _LoggingService;
   function getLoggingService() {
       return LoggingService.getInstance();
   }
 
-  function _class_call_check$S(instance, Constructor) {
+  function _class_call_check$R(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$S(target, props) {
+  function _defineProperties$R(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8190,8 +9190,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$S(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
+  function _create_class$R(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$e(left, right) {
@@ -8200,37 +9200,37 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$Q(obj) {
+  function _type_of$P(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$O = Object.defineProperty;
-  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$O(obj, key, {
+  var __defProp$N = Object.defineProperty;
+  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$N(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$O = function __publicField(obj, key, value) {
-      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$N = function __publicField(obj, key, value) {
+      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
   };
   var ErrorHandlingService = /*#__PURE__*/ function() {
       function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
-          _class_call_check$S(this, ErrorHandlingService);
-          __publicField$O(this, "_lastErrorCode", "0");
-          __publicField$O(this, "_lastDiagnostic", "");
-          __publicField$O(this, "_errorCodes");
-          __publicField$O(this, "_apiLog");
-          __publicField$O(this, "_getLmsErrorMessageDetails");
-          __publicField$O(this, "_loggingService");
+          _class_call_check$R(this, ErrorHandlingService);
+          __publicField$N(this, "_lastErrorCode", "0");
+          __publicField$N(this, "_lastDiagnostic", "");
+          __publicField$N(this, "_errorCodes");
+          __publicField$N(this, "_apiLog");
+          __publicField$N(this, "_getLmsErrorMessageDetails");
+          __publicField$N(this, "_loggingService");
           this._errorCodes = errorCodes;
           this._apiLog = apiLog;
           this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
           this._loggingService = loggingService || getLoggingService();
       }
-      _create_class$S(ErrorHandlingService, [
+      _create_class$R(ErrorHandlingService, [
           {
               key: "lastErrorCode",
               get: /**
@@ -8380,10 +9380,10 @@ this.Scorm2004API = (function () {
       return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
   }
 
-  function _class_call_check$R(instance, Constructor) {
+  function _class_call_check$Q(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$R(target, props) {
+  function _defineProperties$Q(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8392,38 +9392,38 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$R(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
+  function _create_class$Q(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$P(obj) {
+  function _type_of$O(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$N = Object.defineProperty;
-  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$N(obj, key, {
+  var __defProp$M = Object.defineProperty;
+  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$M(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$N = function __publicField(obj, key, value) {
-      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$M = function __publicField(obj, key, value) {
+      return __defNormalProp$M(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
   };
   var EventService = /*#__PURE__*/ function() {
       function EventService(apiLog) {
-          _class_call_check$R(this, EventService);
+          _class_call_check$Q(this, EventService);
           // Map of function names to listeners for faster lookups
-          __publicField$N(this, "listenerMap", /* @__PURE__ */ new Map());
+          __publicField$M(this, "listenerMap", /* @__PURE__ */ new Map());
           // Total count of listeners for logging
-          __publicField$N(this, "listenerCount", 0);
+          __publicField$M(this, "listenerCount", 0);
           // Function to log API messages
-          __publicField$N(this, "apiLog");
+          __publicField$M(this, "apiLog");
           this.apiLog = apiLog;
       }
-      _create_class$R(EventService, [
+      _create_class$Q(EventService, [
           {
               /**
      * Parses a listener name into its components
@@ -8690,10 +9690,10 @@ this.Scorm2004API = (function () {
           });
       };
   }
-  function _class_call_check$Q(instance, Constructor) {
+  function _class_call_check$P(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Q(target, props) {
+  function _defineProperties$P(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -8702,8 +9702,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Q(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
+  function _create_class$P(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$f(obj, key, value) {
@@ -8855,34 +9855,34 @@ this.Scorm2004API = (function () {
           };
       }
   }
-  function _type_of$O(obj) {
+  function _type_of$N(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$M = Object.defineProperty;
-  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$M(obj, key, {
+  var __defProp$L = Object.defineProperty;
+  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$L(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$M = function __publicField(obj, key, value) {
-      return __defNormalProp$M(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$L = function __publicField(obj, key, value) {
+      return __defNormalProp$L(obj, (typeof key === "undefined" ? "undefined" : _type_of$N(key)) !== "symbol" ? key + "" : key, value);
   };
   var OfflineStorageService = /*#__PURE__*/ function() {
       function OfflineStorageService(settings, error_codes, apiLog) {
-          _class_call_check$Q(this, OfflineStorageService);
-          __publicField$M(this, "apiLog", apiLog);
-          __publicField$M(this, "settings");
-          __publicField$M(this, "error_codes");
-          __publicField$M(this, "storeName", "scorm_again_offline_data");
-          __publicField$M(this, "syncQueue", "scorm_again_sync_queue");
-          __publicField$M(this, "isOnline", navigator.onLine);
-          __publicField$M(this, "syncInProgress", false);
-          __publicField$M(this, "boundOnlineStatusChangeHandler");
-          __publicField$M(this, "boundCustomNetworkStatusHandler");
+          _class_call_check$P(this, OfflineStorageService);
+          __publicField$L(this, "apiLog", apiLog);
+          __publicField$L(this, "settings");
+          __publicField$L(this, "error_codes");
+          __publicField$L(this, "storeName", "scorm_again_offline_data");
+          __publicField$L(this, "syncQueue", "scorm_again_sync_queue");
+          __publicField$L(this, "isOnline", navigator.onLine);
+          __publicField$L(this, "syncInProgress", false);
+          __publicField$L(this, "boundOnlineStatusChangeHandler");
+          __publicField$L(this, "boundCustomNetworkStatusHandler");
           this.settings = settings;
           this.error_codes = error_codes;
           this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -8891,7 +9891,7 @@ this.Scorm2004API = (function () {
           window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
           window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
       }
-      _create_class$Q(OfflineStorageService, [
+      _create_class$P(OfflineStorageService, [
           {
               /**
      * Handle changes in online status
@@ -9390,7 +10390,7 @@ this.Scorm2004API = (function () {
       return OfflineStorageService;
   }();
 
-  function _type_of$N(obj) {
+  function _type_of$M(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -9410,7 +10410,7 @@ this.Scorm2004API = (function () {
   }, // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   function(CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$N(value), "]");
+      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$M(value), "]");
       return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
   }, // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
   {
@@ -9457,10 +10457,10 @@ this.Scorm2004API = (function () {
       derived = _get_prototype_of$j(derived);
       return _possible_constructor_return$j(_this, _is_native_reflect_construct$j() ? Reflect.construct(derived, args || [], _get_prototype_of$j(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$P(instance, Constructor) {
+  function _class_call_check$O(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$P(target, props) {
+  function _defineProperties$O(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -9469,8 +10469,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$P(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
+  function _create_class$O(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$j(o) {
@@ -9507,7 +10507,7 @@ this.Scorm2004API = (function () {
       })();
   }
   function _possible_constructor_return$j(self, call) {
-      if (call && (_type_of$M(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$L(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$j(self);
   }
   function _set_prototype_of$j(o, p) {
@@ -9517,21 +10517,21 @@ this.Scorm2004API = (function () {
       };
       return _set_prototype_of$j(o, p);
   }
-  function _type_of$M(obj) {
+  function _type_of$L(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$L = Object.defineProperty;
-  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$L(obj, key, {
+  var __defProp$K = Object.defineProperty;
+  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$K(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$L = function __publicField(obj, key, value) {
-      return __defNormalProp$L(obj, (typeof key === "undefined" ? "undefined" : _type_of$M(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$K = function __publicField(obj, key, value) {
+      return __defNormalProp$K(obj, (typeof key === "undefined" ? "undefined" : _type_of$L(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupActionType = /* @__PURE__ */ function(RollupActionType2) {
       RollupActionType2["SATISFIED"] = "satisfied";
@@ -9557,20 +10557,20 @@ this.Scorm2004API = (function () {
       _inherits$j(RollupCondition, BaseCMI);
       function RollupCondition() {
           var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", parameters = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : /* @__PURE__ */ new Map(), operator = arguments.length > 2 && arguments[2] !== void 0 /* NO_OP */  ? arguments[2] : "noOp";
-          _class_call_check$P(this, RollupCondition);
+          _class_call_check$O(this, RollupCondition);
           var _this;
           _this = _call_super$j(this, RollupCondition, [
               "rollupCondition"
           ]);
-          __publicField$L(_this, "_condition", "always" /* ALWAYS */ );
-          __publicField$L(_this, "_parameters", /* @__PURE__ */ new Map());
-          __publicField$L(_this, "_operator", "noOp" /* NO_OP */ );
+          __publicField$K(_this, "_condition", "always" /* ALWAYS */ );
+          __publicField$K(_this, "_parameters", /* @__PURE__ */ new Map());
+          __publicField$K(_this, "_operator", "noOp" /* NO_OP */ );
           _this._condition = condition;
           _this._parameters = parameters;
           _this._operator = operator;
           return _this;
       }
-      _create_class$P(RollupCondition, [
+      _create_class$O(RollupCondition, [
           {
               /**
      * Called when the API needs to be reset
@@ -9703,17 +10703,17 @@ this.Scorm2004API = (function () {
       _inherits$j(RollupRule, BaseCMI);
       function RollupRule() {
           var action = arguments.length > 0 && arguments[0] !== void 0 /* SATISFIED */  ? arguments[0] : "satisfied", consideration = arguments.length > 1 && arguments[1] !== void 0 /* ALL */  ? arguments[1] : "all", minimumCount = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0, minimumPercent = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : 0, conditionCombination = arguments.length > 4 && arguments[4] !== void 0 /* ANY */  ? arguments[4] : "any";
-          _class_call_check$P(this, RollupRule);
+          _class_call_check$O(this, RollupRule);
           var _this;
           _this = _call_super$j(this, RollupRule, [
               "rollupRule"
           ]);
-          __publicField$L(_this, "_conditions", []);
-          __publicField$L(_this, "_action", "satisfied" /* SATISFIED */ );
-          __publicField$L(_this, "_consideration", "all" /* ALL */ );
-          __publicField$L(_this, "_minimumCount", 0);
-          __publicField$L(_this, "_minimumPercent", 0);
-          __publicField$L(_this, "conditionCombination", "any" /* ANY */ );
+          __publicField$K(_this, "_conditions", []);
+          __publicField$K(_this, "_action", "satisfied" /* SATISFIED */ );
+          __publicField$K(_this, "_consideration", "all" /* ALL */ );
+          __publicField$K(_this, "_minimumCount", 0);
+          __publicField$K(_this, "_minimumPercent", 0);
+          __publicField$K(_this, "conditionCombination", "any" /* ANY */ );
           _this._action = action;
           _this._consideration = consideration;
           _this._minimumCount = minimumCount;
@@ -9721,7 +10721,7 @@ this.Scorm2004API = (function () {
           _this.conditionCombination = conditionCombination;
           return _this;
       }
-      _create_class$P(RollupRule, [
+      _create_class$O(RollupRule, [
           {
               /**
      * Called when the API needs to be reset
@@ -9896,15 +10896,15 @@ this.Scorm2004API = (function () {
   var RollupRules = /*#__PURE__*/ function(BaseCMI) {
       _inherits$j(RollupRules, BaseCMI);
       function RollupRules() {
-          _class_call_check$P(this, RollupRules);
+          _class_call_check$O(this, RollupRules);
           var _this;
           _this = _call_super$j(this, RollupRules, [
               "rollupRules"
           ]);
-          __publicField$L(_this, "_rules", []);
+          __publicField$K(_this, "_rules", []);
           return _this;
       }
-      _create_class$P(RollupRules, [
+      _create_class$O(RollupRules, [
           {
               /**
      * Called when the API needs to be reset
@@ -10152,13 +11152,13 @@ this.Scorm2004API = (function () {
       return RollupRules;
   }(BaseCMI);
 
-  function _array_like_to_array$g(arr, len) {
+  function _array_like_to_array$f(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$a(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
+  function _array_without_holes$9(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
   function _assert_this_initialized$i(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -10168,10 +11168,10 @@ this.Scorm2004API = (function () {
       derived = _get_prototype_of$i(derived);
       return _possible_constructor_return$i(_this, _is_native_reflect_construct$i() ? Reflect.construct(derived, args || [], _get_prototype_of$i(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$O(instance, Constructor) {
+  function _class_call_check$N(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$O(target, props) {
+  function _defineProperties$N(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -10180,9 +11180,9 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$O(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$O(Constructor, staticProps);
+  function _create_class$N(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$N(Constructor, staticProps);
       return Constructor;
   }
   function _define_property$e(obj, key, value) {
@@ -10242,12 +11242,12 @@ this.Scorm2004API = (function () {
           return !!result;
       })();
   }
-  function _iterable_to_array$a(iter) {
+  function _iterable_to_array$9(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$a() {
+  function _non_iterable_spread$9() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$e(target) {
@@ -10266,7 +11266,7 @@ this.Scorm2004API = (function () {
       return target;
   }
   function _possible_constructor_return$i(self, call) {
-      if (call && (_type_of$L(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$K(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$i(self);
   }
   function _set_prototype_of$i(o, p) {
@@ -10283,76 +11283,76 @@ this.Scorm2004API = (function () {
       }
       return object;
   }
-  function _to_consumable_array$a(arr) {
-      return _array_without_holes$a(arr) || _iterable_to_array$a(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$a();
+  function _to_consumable_array$9(arr) {
+      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$9();
   }
-  function _type_of$L(obj) {
+  function _type_of$K(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$g(o, minLen) {
+  function _unsupported_iterable_to_array$f(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
   }
-  var __defProp$K = Object.defineProperty;
-  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$K(obj, key, {
+  var __defProp$J = Object.defineProperty;
+  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$J(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$K = function __publicField(obj, key, value) {
-      return __defNormalProp$K(obj, (typeof key === "undefined" ? "undefined" : _type_of$L(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$J = function __publicField(obj, key, value) {
+      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$K(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityObjective = /*#__PURE__*/ function() {
       function ActivityObjective(id) {
           var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-          _class_call_check$O(this, ActivityObjective);
+          _class_call_check$N(this, ActivityObjective);
           var _options_description, _options_satisfiedByMeasure, _options_minNormalizedMeasure, _options_isPrimary;
-          __publicField$K(this, "_id");
-          __publicField$K(this, "_description");
-          __publicField$K(this, "_satisfiedByMeasure");
-          __publicField$K(this, "_minNormalizedMeasure");
-          __publicField$K(this, "_mapInfo");
-          __publicField$K(this, "_isPrimary");
-          __publicField$K(this, "_satisfiedStatus", false);
-          __publicField$K(this, "_satisfiedStatusKnown", false);
+          __publicField$J(this, "_id");
+          __publicField$J(this, "_description");
+          __publicField$J(this, "_satisfiedByMeasure");
+          __publicField$J(this, "_minNormalizedMeasure");
+          __publicField$J(this, "_mapInfo");
+          __publicField$J(this, "_isPrimary");
+          __publicField$J(this, "_satisfiedStatus", false);
+          __publicField$J(this, "_satisfiedStatusKnown", false);
           // Note: measureStatus has no dirty flag because it is not synchronized to global
           // objectives. It serves as a validity gate for other synced properties.
-          __publicField$K(this, "_measureStatus", false);
-          __publicField$K(this, "_normalizedMeasure", 0);
-          __publicField$K(this, "_rawScore", "");
-          __publicField$K(this, "_rawScoreKnown", false);
-          __publicField$K(this, "_minScore", "");
-          __publicField$K(this, "_minScoreKnown", false);
-          __publicField$K(this, "_maxScore", "");
-          __publicField$K(this, "_maxScoreKnown", false);
-          __publicField$K(this, "_progressMeasure", 0);
-          __publicField$K(this, "_progressMeasureStatus", false);
-          __publicField$K(this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$K(this, "_progressStatus", false);
+          __publicField$J(this, "_measureStatus", false);
+          __publicField$J(this, "_normalizedMeasure", 0);
+          __publicField$J(this, "_rawScore", "");
+          __publicField$J(this, "_rawScoreKnown", false);
+          __publicField$J(this, "_minScore", "");
+          __publicField$J(this, "_minScoreKnown", false);
+          __publicField$J(this, "_maxScore", "");
+          __publicField$J(this, "_maxScoreKnown", false);
+          __publicField$J(this, "_progressMeasure", 0);
+          __publicField$J(this, "_progressMeasureStatus", false);
+          __publicField$J(this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$J(this, "_progressStatus", false);
           // Dirty flags for tracking which properties have been modified locally
-          __publicField$K(this, "_satisfiedStatusDirty", false);
-          __publicField$K(this, "_normalizedMeasureDirty", false);
-          __publicField$K(this, "_completionStatusDirty", false);
-          __publicField$K(this, "_progressMeasureDirty", false);
-          __publicField$K(this, "_rawScoreDirty", false);
-          __publicField$K(this, "_minScoreDirty", false);
-          __publicField$K(this, "_maxScoreDirty", false);
+          __publicField$J(this, "_satisfiedStatusDirty", false);
+          __publicField$J(this, "_normalizedMeasureDirty", false);
+          __publicField$J(this, "_completionStatusDirty", false);
+          __publicField$J(this, "_progressMeasureDirty", false);
+          __publicField$J(this, "_rawScoreDirty", false);
+          __publicField$J(this, "_minScoreDirty", false);
+          __publicField$J(this, "_maxScoreDirty", false);
           this._id = id;
           this._description = (_options_description = options.description) !== null && _options_description !== void 0 ? _options_description : null;
           this._satisfiedByMeasure = (_options_satisfiedByMeasure = options.satisfiedByMeasure) !== null && _options_satisfiedByMeasure !== void 0 ? _options_satisfiedByMeasure : false;
           this._minNormalizedMeasure = (_options_minNormalizedMeasure = options.minNormalizedMeasure) !== null && _options_minNormalizedMeasure !== void 0 ? _options_minNormalizedMeasure : null;
-          this._mapInfo = options.mapInfo ? _to_consumable_array$a(options.mapInfo) : [];
+          this._mapInfo = options.mapInfo ? _to_consumable_array$9(options.mapInfo) : [];
           this._isPrimary = (_options_isPrimary = options.isPrimary) !== null && _options_isPrimary !== void 0 ? _options_isPrimary : false;
       }
-      _create_class$O(ActivityObjective, [
+      _create_class$N(ActivityObjective, [
           {
               key: "id",
               get: function get() {
@@ -10389,7 +11389,7 @@ this.Scorm2004API = (function () {
                   return this._mapInfo;
               },
               set: function set(mapInfo) {
-                  this._mapInfo = _to_consumable_array$a(mapInfo);
+                  this._mapInfo = _to_consumable_array$9(mapInfo);
               }
           },
           {
@@ -10875,94 +11875,94 @@ this.Scorm2004API = (function () {
       _inherits$i(Activity, BaseCMI);
       function Activity() {
           var id = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : "", title = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "";
-          _class_call_check$O(this, Activity);
+          _class_call_check$N(this, Activity);
           var _this;
           _this = _call_super$i(this, Activity, [
               "activity"
           ]);
-          __publicField$K(_this, "_id", "");
-          __publicField$K(_this, "_title", "");
-          __publicField$K(_this, "_children", []);
-          __publicField$K(_this, "_parent", null);
-          __publicField$K(_this, "_isVisible", true);
-          __publicField$K(_this, "_isActive", false);
-          __publicField$K(_this, "_isSuspended", false);
+          __publicField$J(_this, "_id", "");
+          __publicField$J(_this, "_title", "");
+          __publicField$J(_this, "_children", []);
+          __publicField$J(_this, "_parent", null);
+          __publicField$J(_this, "_isVisible", true);
+          __publicField$J(_this, "_isActive", false);
+          __publicField$J(_this, "_isSuspended", false);
           // Transient delivery context. This is deliberately excluded from persisted activity state.
-          __publicField$K(_this, "_deliveryWasResumed", false);
-          __publicField$K(_this, "_isCompleted", false);
-          __publicField$K(_this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$K(_this, "_successStatus", SuccessStatus.UNKNOWN);
-          __publicField$K(_this, "_attemptCount", 0);
-          __publicField$K(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
-          __publicField$K(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
-          __publicField$K(_this, "_attemptCompletionAmount", 0);
-          __publicField$K(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
-          __publicField$K(_this, "_attemptExperiencedDuration", "PT0H0M0S");
-          __publicField$K(_this, "_activityAbsoluteDuration", "PT0H0M0S");
-          __publicField$K(_this, "_activityExperiencedDuration", "PT0H0M0S");
+          __publicField$J(_this, "_deliveryWasResumed", false);
+          __publicField$J(_this, "_isCompleted", false);
+          __publicField$J(_this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$J(_this, "_successStatus", SuccessStatus.UNKNOWN);
+          __publicField$J(_this, "_attemptCount", 0);
+          __publicField$J(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
+          __publicField$J(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
+          __publicField$J(_this, "_attemptCompletionAmount", 0);
+          __publicField$J(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
+          __publicField$J(_this, "_attemptExperiencedDuration", "PT0H0M0S");
+          __publicField$J(_this, "_activityAbsoluteDuration", "PT0H0M0S");
+          __publicField$J(_this, "_activityExperiencedDuration", "PT0H0M0S");
           // Duration tracking fields (separate from limits) - actual calculated values
-          __publicField$K(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$K(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
-          __publicField$K(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$K(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
+          __publicField$J(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$J(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
+          __publicField$J(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$J(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
           // Timestamp tracking for duration calculation
-          __publicField$K(_this, "_activityStartTimestampUtc", null);
-          __publicField$K(_this, "_attemptStartTimestampUtc", null);
-          __publicField$K(_this, "_activityEndedDate", null);
-          __publicField$K(_this, "_objectiveSatisfiedStatus", false);
-          __publicField$K(_this, "_objectiveSatisfiedStatusKnown", false);
-          __publicField$K(_this, "_objectiveMeasureStatus", false);
-          __publicField$K(_this, "_objectiveNormalizedMeasure", 0);
-          __publicField$K(_this, "_scaledPassingScore", 1);
+          __publicField$J(_this, "_activityStartTimestampUtc", null);
+          __publicField$J(_this, "_attemptStartTimestampUtc", null);
+          __publicField$J(_this, "_activityEndedDate", null);
+          __publicField$J(_this, "_objectiveSatisfiedStatus", false);
+          __publicField$J(_this, "_objectiveSatisfiedStatusKnown", false);
+          __publicField$J(_this, "_objectiveMeasureStatus", false);
+          __publicField$J(_this, "_objectiveNormalizedMeasure", 0);
+          __publicField$J(_this, "_scaledPassingScore", 1);
           // SCORM default minimum normalized measure
           // Dirty flags for tracking which activity-level objective properties have been modified locally
-          __publicField$K(_this, "_objectiveSatisfiedStatusDirty", false);
-          __publicField$K(_this, "_objectiveNormalizedMeasureDirty", false);
-          __publicField$K(_this, "_objectiveMeasureStatusDirty", false);
-          __publicField$K(_this, "_progressMeasure", 0);
-          __publicField$K(_this, "_progressMeasureStatus", false);
-          __publicField$K(_this, "_location", "");
-          __publicField$K(_this, "_attemptAbsoluteStartTime", "");
-          __publicField$K(_this, "_learnerPrefs", null);
-          __publicField$K(_this, "_activityAttemptActive", false);
-          __publicField$K(_this, "_isHiddenFromChoice", false);
-          __publicField$K(_this, "_isAvailable", true);
-          __publicField$K(_this, "_hideLmsUi", []);
-          __publicField$K(_this, "_auxiliaryResources", []);
-          __publicField$K(_this, "_sharedDataMaps", []);
-          __publicField$K(_this, "_attemptLimit", null);
-          __publicField$K(_this, "_attemptAbsoluteDurationLimit", null);
-          __publicField$K(_this, "_activityAbsoluteDurationLimit", null);
-          __publicField$K(_this, "_timeLimitAction", null);
-          __publicField$K(_this, "_timeLimitDuration", null);
-          __publicField$K(_this, "_beginTimeLimit", null);
-          __publicField$K(_this, "_endTimeLimit", null);
-          __publicField$K(_this, "_launchData", "");
-          __publicField$K(_this, "_credit", "credit");
-          __publicField$K(_this, "_maxTimeAllowed", "");
-          __publicField$K(_this, "_completionThreshold", "");
-          __publicField$K(_this, "_sequencingControls");
-          __publicField$K(_this, "_sequencingRules");
-          __publicField$K(_this, "_rollupRules");
-          __publicField$K(_this, "_processedChildren", null);
-          __publicField$K(_this, "_isNewAttempt", false);
-          __publicField$K(_this, "_primaryObjective", null);
-          __publicField$K(_this, "_objectives", []);
-          __publicField$K(_this, "_rollupConsiderations", {
+          __publicField$J(_this, "_objectiveSatisfiedStatusDirty", false);
+          __publicField$J(_this, "_objectiveNormalizedMeasureDirty", false);
+          __publicField$J(_this, "_objectiveMeasureStatusDirty", false);
+          __publicField$J(_this, "_progressMeasure", 0);
+          __publicField$J(_this, "_progressMeasureStatus", false);
+          __publicField$J(_this, "_location", "");
+          __publicField$J(_this, "_attemptAbsoluteStartTime", "");
+          __publicField$J(_this, "_learnerPrefs", null);
+          __publicField$J(_this, "_activityAttemptActive", false);
+          __publicField$J(_this, "_isHiddenFromChoice", false);
+          __publicField$J(_this, "_isAvailable", true);
+          __publicField$J(_this, "_hideLmsUi", []);
+          __publicField$J(_this, "_auxiliaryResources", []);
+          __publicField$J(_this, "_sharedDataMaps", []);
+          __publicField$J(_this, "_attemptLimit", null);
+          __publicField$J(_this, "_attemptAbsoluteDurationLimit", null);
+          __publicField$J(_this, "_activityAbsoluteDurationLimit", null);
+          __publicField$J(_this, "_timeLimitAction", null);
+          __publicField$J(_this, "_timeLimitDuration", null);
+          __publicField$J(_this, "_beginTimeLimit", null);
+          __publicField$J(_this, "_endTimeLimit", null);
+          __publicField$J(_this, "_launchData", "");
+          __publicField$J(_this, "_credit", "credit");
+          __publicField$J(_this, "_maxTimeAllowed", "");
+          __publicField$J(_this, "_completionThreshold", "");
+          __publicField$J(_this, "_sequencingControls");
+          __publicField$J(_this, "_sequencingRules");
+          __publicField$J(_this, "_rollupRules");
+          __publicField$J(_this, "_processedChildren", null);
+          __publicField$J(_this, "_isNewAttempt", false);
+          __publicField$J(_this, "_primaryObjective", null);
+          __publicField$J(_this, "_objectives", []);
+          __publicField$J(_this, "_rollupConsiderations", {
               requiredForSatisfied: "always",
               requiredForNotSatisfied: "always",
               requiredForCompleted: "always",
               requiredForIncomplete: "always",
               measureSatisfactionIfActive: true
           });
-          __publicField$K(_this, "_wasSkipped", false);
-          __publicField$K(_this, "_attemptProgressStatus", false);
-          __publicField$K(_this, "_wasAutoCompleted", false);
-          __publicField$K(_this, "_wasAutoSatisfied", false);
-          __publicField$K(_this, "_completedByMeasure", false);
-          __publicField$K(_this, "_minProgressMeasure", 1);
-          __publicField$K(_this, "_progressWeight", 1);
-          __publicField$K(_this, "_attemptCompletionAmountStatus", false);
+          __publicField$J(_this, "_wasSkipped", false);
+          __publicField$J(_this, "_attemptProgressStatus", false);
+          __publicField$J(_this, "_wasAutoCompleted", false);
+          __publicField$J(_this, "_wasAutoSatisfied", false);
+          __publicField$J(_this, "_completedByMeasure", false);
+          __publicField$J(_this, "_minProgressMeasure", 1);
+          __publicField$J(_this, "_progressWeight", 1);
+          __publicField$J(_this, "_attemptCompletionAmountStatus", false);
           _this._id = id;
           _this._title = title;
           _this._sequencingControls = new SequencingControls();
@@ -10972,7 +11972,7 @@ this.Scorm2004API = (function () {
           _this._objectives = [];
           return _this;
       }
-      _create_class$O(Activity, [
+      _create_class$N(Activity, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
@@ -11219,7 +12219,7 @@ this.Scorm2004API = (function () {
                       (_this__children = this._children).splice.apply(_this__children, [
                           0,
                           this._children.length
-                      ].concat(_to_consumable_array$a(reordered)));
+                      ].concat(_to_consumable_array$9(reordered)));
                   }
               }
           },
@@ -12258,7 +13258,7 @@ this.Scorm2004API = (function () {
      * Replace objectives collection
      * @param {ActivityObjective[]} objectives
      */ function set(objectives) {
-                  this._objectives = _to_consumable_array$a(objectives);
+                  this._objectives = _to_consumable_array$9(objectives);
                   this.syncPrimaryObjectiveCollection();
               }
           },
@@ -12297,7 +13297,7 @@ this.Scorm2004API = (function () {
                   }
                   this._objectives = [
                       this._primaryObjective
-                  ].concat(_to_consumable_array$a(this._objectives));
+                  ].concat(_to_consumable_array$9(this._objectives));
               }
           },
           {
@@ -13003,7 +14003,7 @@ this.Scorm2004API = (function () {
                       minProgressMeasure: this._minProgressMeasure,
                       progressWeight: this._progressWeight,
                       attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
-                      hideLmsUi: _to_consumable_array$a(this._hideLmsUi),
+                      hideLmsUi: _to_consumable_array$9(this._hideLmsUi),
                       auxiliaryResources: this._auxiliaryResources.map(function(resource) {
                           return _object_spread$e({}, resource);
                       }),
@@ -13081,7 +14081,7 @@ this.Scorm2004API = (function () {
           {
               key: "addAuxiliaryResource",
               value: function addAuxiliaryResource(resource) {
-                  this.auxiliaryResources = _to_consumable_array$a(this._auxiliaryResources).concat([
+                  this.auxiliaryResources = _to_consumable_array$9(this._auxiliaryResources).concat([
                       resource
                   ]);
               }
@@ -13109,7 +14109,7 @@ this.Scorm2004API = (function () {
      * Getter for hideLmsUi directives
      * @return {HideLmsUiItem[]}
      */ function get() {
-                  return _to_consumable_array$a(this._hideLmsUi);
+                  return _to_consumable_array$9(this._hideLmsUi);
               },
               set: /**
      * Setter for hideLmsUi directives
@@ -13162,10 +14162,10 @@ this.Scorm2004API = (function () {
       return Activity;
   }(BaseCMI);
 
-  function _class_call_check$N(instance, Constructor) {
+  function _class_call_check$M(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$N(target, props) {
+  function _defineProperties$M(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13174,15 +14174,15 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$N(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
+  function _create_class$M(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
       return Constructor;
   }
   var RollupChildFilter = /*#__PURE__*/ function() {
       function RollupChildFilter() {
-          _class_call_check$N(this, RollupChildFilter);
+          _class_call_check$M(this, RollupChildFilter);
       }
-      _create_class$N(RollupChildFilter, [
+      _create_class$M(RollupChildFilter, [
           {
               /**
      * Check Child For Rollup Subprocess
@@ -13411,10 +14411,10 @@ this.Scorm2004API = (function () {
       return RollupChildFilter;
   }();
 
-  function _class_call_check$M(instance, Constructor) {
+  function _class_call_check$L(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$M(target, props) {
+  function _defineProperties$L(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13423,33 +14423,33 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$M(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
+  function _create_class$L(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$K(obj) {
+  function _type_of$J(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$J = Object.defineProperty;
-  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$J(obj, key, {
+  var __defProp$I = Object.defineProperty;
+  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$I(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$J = function __publicField(obj, key, value) {
-      return __defNormalProp$J(obj, (_type_of$K(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$I = function __publicField(obj, key, value) {
+      return __defNormalProp$I(obj, (_type_of$J(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupRuleEvaluator = /*#__PURE__*/ function() {
       function RollupRuleEvaluator(childFilter) {
-          _class_call_check$M(this, RollupRuleEvaluator);
-          __publicField$J(this, "childFilter");
+          _class_call_check$L(this, RollupRuleEvaluator);
+          __publicField$I(this, "childFilter");
           this.childFilter = childFilter;
       }
-      _create_class$M(RollupRuleEvaluator, [
+      _create_class$L(RollupRuleEvaluator, [
           {
               /**
      * Evaluate a rollup rule
@@ -13590,10 +14590,10 @@ this.Scorm2004API = (function () {
       return RollupRuleEvaluator;
   }();
 
-  function _class_call_check$L(instance, Constructor) {
+  function _class_call_check$K(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$L(target, props) {
+  function _defineProperties$K(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13602,35 +14602,35 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$L(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
+  function _create_class$K(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$K(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$J(obj) {
+  function _type_of$I(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$I = Object.defineProperty;
-  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$I(obj, key, {
+  var __defProp$H = Object.defineProperty;
+  var __defNormalProp$H = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$H(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$I = function __publicField(obj, key, value) {
-      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$H = function __publicField(obj, key, value) {
+      return __defNormalProp$H(obj, (typeof key === "undefined" ? "undefined" : _type_of$I(key)) !== "symbol" ? key + "" : key, value);
   };
   var MeasureRollupProcessor = /*#__PURE__*/ function() {
       function MeasureRollupProcessor(childFilter, eventCallback) {
-          _class_call_check$L(this, MeasureRollupProcessor);
-          __publicField$I(this, "childFilter");
-          __publicField$I(this, "eventCallback");
+          _class_call_check$K(this, MeasureRollupProcessor);
+          __publicField$H(this, "childFilter");
+          __publicField$H(this, "eventCallback");
           this.childFilter = childFilter;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$L(MeasureRollupProcessor, [
+      _create_class$K(MeasureRollupProcessor, [
           {
               /**
      * Measure Rollup Process
@@ -13864,10 +14864,10 @@ this.Scorm2004API = (function () {
       return MeasureRollupProcessor;
   }();
 
-  function _class_call_check$K(instance, Constructor) {
+  function _class_call_check$J(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$K(target, props) {
+  function _defineProperties$J(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -13876,37 +14876,37 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$K(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$K(Constructor.prototype, protoProps);
+  function _create_class$J(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$J(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$I(obj) {
+  function _type_of$H(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$H = Object.defineProperty;
-  var __defNormalProp$H = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$H(obj, key, {
+  var __defProp$G = Object.defineProperty;
+  var __defNormalProp$G = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$G(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$H = function __publicField(obj, key, value) {
-      return __defNormalProp$H(obj, (typeof key === "undefined" ? "undefined" : _type_of$I(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$G = function __publicField(obj, key, value) {
+      return __defNormalProp$G(obj, (typeof key === "undefined" ? "undefined" : _type_of$H(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveRollupProcessor = /*#__PURE__*/ function() {
       function ObjectiveRollupProcessor(childFilter, ruleEvaluator, eventCallback) {
-          _class_call_check$K(this, ObjectiveRollupProcessor);
-          __publicField$H(this, "childFilter");
-          __publicField$H(this, "ruleEvaluator");
-          __publicField$H(this, "eventCallback");
+          _class_call_check$J(this, ObjectiveRollupProcessor);
+          __publicField$G(this, "childFilter");
+          __publicField$G(this, "ruleEvaluator");
+          __publicField$G(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$K(ObjectiveRollupProcessor, [
+      _create_class$J(ObjectiveRollupProcessor, [
           {
               /**
      * Objective Rollup Process
@@ -14117,10 +15117,10 @@ this.Scorm2004API = (function () {
       return ObjectiveRollupProcessor;
   }();
 
-  function _class_call_check$J(instance, Constructor) {
+  function _class_call_check$I(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$J(target, props) {
+  function _defineProperties$I(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14129,39 +15129,39 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$J(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$J(Constructor.prototype, protoProps);
+  function _create_class$I(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$I(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$H(obj) {
+  function _type_of$G(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$G = Object.defineProperty;
-  var __defNormalProp$G = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$G(obj, key, {
+  var __defProp$F = Object.defineProperty;
+  var __defNormalProp$F = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$F(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$G = function __publicField(obj, key, value) {
-      return __defNormalProp$G(obj, (typeof key === "undefined" ? "undefined" : _type_of$H(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$F = function __publicField(obj, key, value) {
+      return __defNormalProp$F(obj, (typeof key === "undefined" ? "undefined" : _type_of$G(key)) !== "symbol" ? key + "" : key, value);
   };
   var ProgressRollupProcessor = /*#__PURE__*/ function() {
       function ProgressRollupProcessor(childFilter, ruleEvaluator, objectiveProcessor, eventCallback) {
-          _class_call_check$J(this, ProgressRollupProcessor);
-          __publicField$G(this, "childFilter");
-          __publicField$G(this, "ruleEvaluator");
-          __publicField$G(this, "objectiveProcessor");
-          __publicField$G(this, "eventCallback");
+          _class_call_check$I(this, ProgressRollupProcessor);
+          __publicField$F(this, "childFilter");
+          __publicField$F(this, "ruleEvaluator");
+          __publicField$F(this, "objectiveProcessor");
+          __publicField$F(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.objectiveProcessor = objectiveProcessor;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$J(ProgressRollupProcessor, [
+      _create_class$I(ProgressRollupProcessor, [
           {
               /**
      * Activity Progress Rollup Process
@@ -14311,10 +15311,10 @@ this.Scorm2004API = (function () {
       return ProgressRollupProcessor;
   }();
 
-  function _class_call_check$I(instance, Constructor) {
+  function _class_call_check$H(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$I(target, props) {
+  function _defineProperties$H(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14323,33 +15323,33 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$I(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$I(Constructor.prototype, protoProps);
+  function _create_class$H(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$H(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$G(obj) {
+  function _type_of$F(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$F = Object.defineProperty;
-  var __defNormalProp$F = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$F(obj, key, {
+  var __defProp$E = Object.defineProperty;
+  var __defNormalProp$E = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$E(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$F = function __publicField(obj, key, value) {
-      return __defNormalProp$F(obj, (_type_of$G(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$E = function __publicField(obj, key, value) {
+      return __defNormalProp$E(obj, (_type_of$F(key)) !== "symbol" ? key + "" : key, value);
   };
   var DurationRollupProcessor = /*#__PURE__*/ function() {
       function DurationRollupProcessor(eventCallback) {
-          _class_call_check$I(this, DurationRollupProcessor);
-          __publicField$F(this, "eventCallback");
+          _class_call_check$H(this, DurationRollupProcessor);
+          __publicField$E(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$I(DurationRollupProcessor, [
+      _create_class$H(DurationRollupProcessor, [
           {
               /**
      * Duration Rollup Process
@@ -14460,10 +15460,10 @@ this.Scorm2004API = (function () {
       return DurationRollupProcessor;
   }();
 
-  function _class_call_check$H(instance, Constructor) {
+  function _class_call_check$G(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$H(target, props) {
+  function _defineProperties$G(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14472,8 +15472,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$H(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$H(Constructor.prototype, protoProps);
+  function _create_class$G(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$G(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$a(left, right) {
@@ -14482,37 +15482,37 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$F(obj) {
+  function _type_of$E(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$E = Object.defineProperty;
-  var __defNormalProp$E = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$E(obj, key, {
+  var __defProp$D = Object.defineProperty;
+  var __defNormalProp$D = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$D(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$E = function __publicField(obj, key, value) {
-      return __defNormalProp$E(obj, (typeof key === "undefined" ? "undefined" : _type_of$F(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$D = function __publicField(obj, key, value) {
+      return __defNormalProp$D(obj, (typeof key === "undefined" ? "undefined" : _type_of$E(key)) !== "symbol" ? key + "" : key, value);
   };
   var MAX_CLUSTER_DEPTH = 10;
   var CrossClusterProcessor = /*#__PURE__*/ function() {
       function CrossClusterProcessor(measureProcessor, objectiveProcessor, progressProcessor, eventCallback) {
-          _class_call_check$H(this, CrossClusterProcessor);
-          __publicField$E(this, "measureProcessor");
-          __publicField$E(this, "objectiveProcessor");
-          __publicField$E(this, "progressProcessor");
-          __publicField$E(this, "eventCallback");
-          __publicField$E(this, "processingClusters", /* @__PURE__ */ new Set());
+          _class_call_check$G(this, CrossClusterProcessor);
+          __publicField$D(this, "measureProcessor");
+          __publicField$D(this, "objectiveProcessor");
+          __publicField$D(this, "progressProcessor");
+          __publicField$D(this, "eventCallback");
+          __publicField$D(this, "processingClusters", /* @__PURE__ */ new Set());
           this.measureProcessor = measureProcessor;
           this.objectiveProcessor = objectiveProcessor;
           this.progressProcessor = progressProcessor;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$H(CrossClusterProcessor, [
+      _create_class$G(CrossClusterProcessor, [
           {
               /**
      * Handle cross-cluster dependencies in rollup
@@ -14754,10 +15754,10 @@ this.Scorm2004API = (function () {
       return CrossClusterProcessor;
   }();
 
-  function _class_call_check$G(instance, Constructor) {
+  function _class_call_check$F(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$G(target, props) {
+  function _defineProperties$F(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14766,9 +15766,9 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$G(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$G(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$G(Constructor, staticProps);
+  function _create_class$F(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$F(Constructor, staticProps);
       return Constructor;
   }
   function _instanceof$9(left, right) {
@@ -14777,29 +15777,29 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$E(obj) {
+  function _type_of$D(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$D = Object.defineProperty;
-  var __defNormalProp$D = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$D(obj, key, {
+  var __defProp$C = Object.defineProperty;
+  var __defNormalProp$C = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$C(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$D = function __publicField(obj, key, value) {
-      return __defNormalProp$D(obj, (_type_of$E(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$C = function __publicField(obj, key, value) {
+      return __defNormalProp$C(obj, (_type_of$D(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveSynchronizer = /*#__PURE__*/ function() {
       function GlobalObjectiveSynchronizer(eventCallback) {
-          _class_call_check$G(this, GlobalObjectiveSynchronizer);
-          __publicField$D(this, "eventCallback");
+          _class_call_check$F(this, GlobalObjectiveSynchronizer);
+          __publicField$C(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$G(GlobalObjectiveSynchronizer, [
+      _create_class$F(GlobalObjectiveSynchronizer, [
           {
               /**
      * Process global objective mapping for shared objectives
@@ -15644,18 +16644,18 @@ this.Scorm2004API = (function () {
       return GlobalObjectiveSynchronizer;
   }();
 
-  function _array_like_to_array$f(arr, len) {
+  function _array_like_to_array$e(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$9(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
+  function _array_without_holes$8(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
   }
-  function _class_call_check$F(instance, Constructor) {
+  function _class_call_check$E(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$F(target, props) {
+  function _defineProperties$E(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15664,8 +16664,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$F(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
+  function _create_class$E(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$E(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$8(left, right) {
@@ -15674,51 +16674,51 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _iterable_to_array$9(iter) {
+  function _iterable_to_array$8(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$9() {
+  function _non_iterable_spread$8() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _to_consumable_array$9(arr) {
-      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$9();
+  function _to_consumable_array$8(arr) {
+      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$8();
   }
-  function _type_of$D(obj) {
+  function _type_of$C(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$f(o, minLen) {
+  function _unsupported_iterable_to_array$e(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
   }
-  var __defProp$C = Object.defineProperty;
-  var __defNormalProp$C = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$C(obj, key, {
+  var __defProp$B = Object.defineProperty;
+  var __defNormalProp$B = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$B(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$C = function __publicField(obj, key, value) {
-      return __defNormalProp$C(obj, (typeof key === "undefined" ? "undefined" : _type_of$D(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$B = function __publicField(obj, key, value) {
+      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupStateValidator = /*#__PURE__*/ function() {
       function RollupStateValidator(childFilter, eventCallback) {
-          _class_call_check$F(this, RollupStateValidator);
-          __publicField$C(this, "rollupStateLog", []);
-          __publicField$C(this, "childFilter");
-          __publicField$C(this, "eventCallback");
+          _class_call_check$E(this, RollupStateValidator);
+          __publicField$B(this, "rollupStateLog", []);
+          __publicField$B(this, "childFilter");
+          __publicField$B(this, "eventCallback");
           this.childFilter = childFilter;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$F(RollupStateValidator, [
+      _create_class$E(RollupStateValidator, [
           {
               /**
      * Validate rollup state consistency across the activity tree
@@ -15847,7 +16847,7 @@ this.Scorm2004API = (function () {
      * @returns Array of rollup state log entries
      */ key: "getRollupStateLog",
               value: function getRollupStateLog() {
-                  return _to_consumable_array$9(this.rollupStateLog);
+                  return _to_consumable_array$8(this.rollupStateLog);
               }
           },
           {
@@ -15862,10 +16862,10 @@ this.Scorm2004API = (function () {
       return RollupStateValidator;
   }();
 
-  function _class_call_check$E(instance, Constructor) {
+  function _class_call_check$D(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$E(target, props) {
+  function _defineProperties$D(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15874,44 +16874,44 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$E(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$E(Constructor.prototype, protoProps);
+  function _create_class$D(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$D(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$C(obj) {
+  function _type_of$B(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$B = Object.defineProperty;
-  var __defNormalProp$B = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$B(obj, key, {
+  var __defProp$A = Object.defineProperty;
+  var __defNormalProp$A = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$A(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$B = function __publicField(obj, key, value) {
-      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$A = function __publicField(obj, key, value) {
+      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupProcess = /*#__PURE__*/ function() {
       function RollupProcess(eventCallback) {
-          _class_call_check$E(this, RollupProcess);
+          _class_call_check$D(this, RollupProcess);
           /**
        * Capability flag for hosts that supported older rollup behavior with a compatibility layer.
        * Rollup contribution controls belong to an activity as a child of its parent; they do not gate
        * calculation of the activity's own rolled-up state.
-       */ __publicField$B(this, "childContributionControlsApplyToParent", true);
-          __publicField$B(this, "childFilter");
-          __publicField$B(this, "ruleEvaluator");
-          __publicField$B(this, "measureProcessor");
-          __publicField$B(this, "objectiveProcessor");
-          __publicField$B(this, "progressProcessor");
-          __publicField$B(this, "durationProcessor");
-          __publicField$B(this, "globalObjectiveSynchronizer");
-          __publicField$B(this, "stateValidator");
-          __publicField$B(this, "crossClusterProcessor");
-          __publicField$B(this, "eventCallback");
+       */ __publicField$A(this, "childContributionControlsApplyToParent", true);
+          __publicField$A(this, "childFilter");
+          __publicField$A(this, "ruleEvaluator");
+          __publicField$A(this, "measureProcessor");
+          __publicField$A(this, "objectiveProcessor");
+          __publicField$A(this, "progressProcessor");
+          __publicField$A(this, "durationProcessor");
+          __publicField$A(this, "globalObjectiveSynchronizer");
+          __publicField$A(this, "stateValidator");
+          __publicField$A(this, "crossClusterProcessor");
+          __publicField$A(this, "eventCallback");
           this.eventCallback = eventCallback || null;
           this.childFilter = new RollupChildFilter();
           this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter);
@@ -15923,7 +16923,7 @@ this.Scorm2004API = (function () {
           this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
           this.crossClusterProcessor = new CrossClusterProcessor(this.measureProcessor, this.objectiveProcessor, this.progressProcessor, eventCallback);
       }
-      _create_class$E(RollupProcess, [
+      _create_class$D(RollupProcess, [
           {
               /**
      * Overall Rollup Process
@@ -16183,10 +17183,10 @@ this.Scorm2004API = (function () {
       return RollupProcess;
   }();
 
-  function _class_call_check$D(instance, Constructor) {
+  function _class_call_check$C(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$D(target, props) {
+  function _defineProperties$C(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16195,8 +17195,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$D(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$D(Constructor.prototype, protoProps);
+  function _create_class$C(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$C(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$d(obj, key, value) {
@@ -16225,32 +17225,32 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _type_of$B(obj) {
+  function _type_of$A(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$A = Object.defineProperty;
-  var __defNormalProp$A = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$A(obj, key, {
+  var __defProp$z = Object.defineProperty;
+  var __defNormalProp$z = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$z(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$A = function __publicField(obj, key, value) {
-      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$z = function __publicField(obj, key, value) {
+      return __defNormalProp$z(obj, (typeof key === "undefined" ? "undefined" : _type_of$A(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveEvaluationContext = /*#__PURE__*/ function() {
       function ObjectiveEvaluationContext(activityTree, globalObjectives) {
-          _class_call_check$D(this, ObjectiveEvaluationContext);
-          __publicField$A(this, "activityTree", activityTree);
-          __publicField$A(this, "globalObjectives", globalObjectives);
-          __publicField$A(this, "synchronizer", new GlobalObjectiveSynchronizer());
-          __publicField$A(this, "treeQueries");
+          _class_call_check$C(this, ObjectiveEvaluationContext);
+          __publicField$z(this, "activityTree", activityTree);
+          __publicField$z(this, "globalObjectives", globalObjectives);
+          __publicField$z(this, "synchronizer", new GlobalObjectiveSynchronizer());
+          __publicField$z(this, "treeQueries");
           this.treeQueries = new ActivityTreeQueries(activityTree);
       }
-      _create_class$D(ObjectiveEvaluationContext, [
+      _create_class$C(ObjectiveEvaluationContext, [
           {
               /**
      * Overlay the old branch's write maps on copied global entries, then read them
@@ -16359,10 +17359,10 @@ this.Scorm2004API = (function () {
       return storedCompletionStatus || CompletionStatus.UNKNOWN;
   }
 
-  function _class_call_check$C(instance, Constructor) {
+  function _class_call_check$B(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$C(target, props) {
+  function _defineProperties$B(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16371,25 +17371,25 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$C(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$C(Constructor.prototype, protoProps);
+  function _create_class$B(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$B(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$A(obj) {
+  function _type_of$z(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$z = Object.defineProperty;
-  var __defNormalProp$z = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$z(obj, key, {
+  var __defProp$y = Object.defineProperty;
+  var __defNormalProp$y = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$y(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$z = function __publicField(obj, key, value) {
-      return __defNormalProp$z(obj, (_type_of$A(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$y = function __publicField(obj, key, value) {
+      return __defNormalProp$y(obj, (_type_of$z(key)) !== "symbol" ? key + "" : key, value);
   };
   var VALID_SUCCESS_STATUSES = [
       SuccessStatus.PASSED,
@@ -16416,11 +17416,11 @@ this.Scorm2004API = (function () {
   }
   var RteDataTransferService = /*#__PURE__*/ function() {
       function RteDataTransferService(context) {
-          _class_call_check$C(this, RteDataTransferService);
-          __publicField$z(this, "context");
+          _class_call_check$B(this, RteDataTransferService);
+          __publicField$y(this, "context");
           this.context = context;
       }
-      _create_class$C(RteDataTransferService, [
+      _create_class$B(RteDataTransferService, [
           {
               /**
      * Transfer RTE Data to Activity
@@ -16709,10 +17709,10 @@ this.Scorm2004API = (function () {
       return RteDataTransferService;
   }();
 
-  function _class_call_check$B(instance, Constructor) {
+  function _class_call_check$A(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$B(target, props) {
+  function _defineProperties$A(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16721,8 +17721,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$B(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$B(Constructor.prototype, protoProps);
+  function _create_class$A(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$A(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$c(obj, key, value) {
@@ -16769,36 +17769,36 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _type_of$z(obj) {
+  function _type_of$y(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$y = Object.defineProperty;
-  var __defNormalProp$y = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$y(obj, key, {
+  var __defProp$x = Object.defineProperty;
+  var __defNormalProp$x = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$x(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$y = function __publicField(obj, key, value) {
-      return __defNormalProp$y(obj, (typeof key === "undefined" ? "undefined" : _type_of$z(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$x = function __publicField(obj, key, value) {
+      return __defNormalProp$x(obj, (typeof key === "undefined" ? "undefined" : _type_of$y(key)) !== "symbol" ? key + "" : key, value);
   };
   var TerminationHandler = /*#__PURE__*/ function() {
       function TerminationHandler(activityTree, sequencingProcess, rollupProcess, globalObjectiveMap) {
           var _this = this;
           var eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$B(this, TerminationHandler);
-          __publicField$y(this, "activityTree");
-          __publicField$y(this, "sequencingProcess");
-          __publicField$y(this, "rollupProcess");
-          __publicField$y(this, "globalObjectiveMap");
-          __publicField$y(this, "eventCallback");
-          __publicField$y(this, "getCMIData");
-          __publicField$y(this, "is4thEdition");
-          __publicField$y(this, "invalidateCacheCallback", null);
-          __publicField$y(this, "_rteDataTransferService");
+          _class_call_check$A(this, TerminationHandler);
+          __publicField$x(this, "activityTree");
+          __publicField$x(this, "sequencingProcess");
+          __publicField$x(this, "rollupProcess");
+          __publicField$x(this, "globalObjectiveMap");
+          __publicField$x(this, "eventCallback");
+          __publicField$x(this, "getCMIData");
+          __publicField$x(this, "is4thEdition");
+          __publicField$x(this, "invalidateCacheCallback", null);
+          __publicField$x(this, "_rteDataTransferService");
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
           this.rollupProcess = rollupProcess;
@@ -16814,7 +17814,7 @@ this.Scorm2004API = (function () {
           };
           this._rteDataTransferService = new RteDataTransferService(rteContext);
       }
-      _create_class$B(TerminationHandler, [
+      _create_class$A(TerminationHandler, [
           {
               /**
      * Set callback to invalidate navigation cache after state changes
@@ -17691,18 +18691,18 @@ this.Scorm2004API = (function () {
       return TerminationHandler;
   }();
 
-  function _array_like_to_array$e(arr, len) {
+  function _array_like_to_array$d(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_without_holes$8(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
+  function _array_without_holes$7(arr) {
+      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
   }
-  function _class_call_check$A(instance, Constructor) {
+  function _class_call_check$z(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$A(target, props) {
+  function _defineProperties$z(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -17711,8 +18711,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$A(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$A(Constructor.prototype, protoProps);
+  function _create_class$z(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$z(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$b(obj, key, value) {
@@ -17726,12 +18726,12 @@ this.Scorm2004API = (function () {
       } else obj[key] = value;
       return obj;
   }
-  function _iterable_to_array$8(iter) {
+  function _iterable_to_array$7(iter) {
       if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
           return Array.from(iter);
       }
   }
-  function _non_iterable_spread$8() {
+  function _non_iterable_spread$7() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _object_spread$b(target) {
@@ -17749,39 +18749,39 @@ this.Scorm2004API = (function () {
       }
       return target;
   }
-  function _to_consumable_array$8(arr) {
-      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$8();
+  function _to_consumable_array$7(arr) {
+      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$7();
   }
-  function _type_of$y(obj) {
+  function _type_of$x(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$e(o, minLen) {
+  function _unsupported_iterable_to_array$d(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
   }
-  var __defProp$x = Object.defineProperty;
-  var __defNormalProp$x = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$x(obj, key, {
+  var __defProp$w = Object.defineProperty;
+  var __defNormalProp$w = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$w(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$x = function __publicField(obj, key, value) {
-      return __defNormalProp$x(obj, (typeof key === "undefined" ? "undefined" : _type_of$y(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$w = function __publicField(obj, key, value) {
+      return __defNormalProp$w(obj, (typeof key === "undefined" ? "undefined" : _type_of$x(key)) !== "symbol" ? key + "" : key, value);
   };
   var DeliveryRequest = function DeliveryRequest() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
-      _class_call_check$A(this, DeliveryRequest);
-      __publicField$x(this, "valid");
-      __publicField$x(this, "targetActivity");
-      __publicField$x(this, "exception");
+      _class_call_check$z(this, DeliveryRequest);
+      __publicField$w(this, "valid");
+      __publicField$w(this, "targetActivity");
+      __publicField$w(this, "exception");
       this.valid = valid;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -17789,22 +18789,22 @@ this.Scorm2004API = (function () {
   var _DeliveryHandler = /*#__PURE__*/ function() {
       function _DeliveryHandler(activityTree, rollupProcess, globalObjectiveMap) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$A(this, _DeliveryHandler);
-          __publicField$x(this, "activityTree");
-          __publicField$x(this, "rollupProcess");
-          __publicField$x(this, "globalObjectiveMap");
-          __publicField$x(this, "adlNav");
-          __publicField$x(this, "eventCallback");
-          __publicField$x(this, "now");
-          __publicField$x(this, "defaultHideLmsUi");
-          __publicField$x(this, "defaultAuxiliaryResources");
-          __publicField$x(this, "_deliveryInProgress", false);
-          __publicField$x(this, "contentDelivered", false);
-          __publicField$x(this, "endAttemptCallback", null);
-          __publicField$x(this, "checkActivityCallback", null);
-          __publicField$x(this, "invalidateCacheCallback", null);
-          __publicField$x(this, "updateNavigationValidityCallback", null);
-          __publicField$x(this, "clearSuspendedActivityCallback", null);
+          _class_call_check$z(this, _DeliveryHandler);
+          __publicField$w(this, "activityTree");
+          __publicField$w(this, "rollupProcess");
+          __publicField$w(this, "globalObjectiveMap");
+          __publicField$w(this, "adlNav");
+          __publicField$w(this, "eventCallback");
+          __publicField$w(this, "now");
+          __publicField$w(this, "defaultHideLmsUi");
+          __publicField$w(this, "defaultAuxiliaryResources");
+          __publicField$w(this, "_deliveryInProgress", false);
+          __publicField$w(this, "contentDelivered", false);
+          __publicField$w(this, "endAttemptCallback", null);
+          __publicField$w(this, "checkActivityCallback", null);
+          __publicField$w(this, "invalidateCacheCallback", null);
+          __publicField$w(this, "updateNavigationValidityCallback", null);
+          __publicField$w(this, "clearSuspendedActivityCallback", null);
           this.activityTree = activityTree;
           this.rollupProcess = rollupProcess;
           this.globalObjectiveMap = globalObjectiveMap;
@@ -17813,12 +18813,12 @@ this.Scorm2004API = (function () {
           this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
               return /* @__PURE__ */ new Date();
           };
-          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$8(options.defaultHideLmsUi) : [];
+          this.defaultHideLmsUi = (options === null || options === void 0 ? void 0 : options.defaultHideLmsUi) ? _to_consumable_array$7(options.defaultHideLmsUi) : [];
           this.defaultAuxiliaryResources = (options === null || options === void 0 ? void 0 : options.defaultAuxiliaryResources) ? options.defaultAuxiliaryResources.map(function(resource) {
               return _object_spread$b({}, resource);
           }) : [];
       }
-      _create_class$A(_DeliveryHandler, [
+      _create_class$z(_DeliveryHandler, [
           {
               /** @spec SCORM 2004 SN 4th Ed. DB.2 / UP.4 - commit departed attempts through the coordinator. */ key: "setEndAttemptCallback",
               value: function setEndAttemptCallback(callback) {
@@ -18367,13 +19367,13 @@ this.Scorm2004API = (function () {
       ]);
       return _DeliveryHandler;
   }();
-  __publicField$x(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$8(HIDE_LMS_UI_TOKENS));
+  __publicField$w(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$7(HIDE_LMS_UI_TOKENS));
   var DeliveryHandler = _DeliveryHandler;
 
-  function _class_call_check$z(instance, Constructor) {
+  function _class_call_check$y(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$z(target, props) {
+  function _defineProperties$y(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -18382,37 +19382,37 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$z(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$z(Constructor.prototype, protoProps);
+  function _create_class$y(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$y(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$x(obj) {
+  function _type_of$w(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$w = Object.defineProperty;
-  var __defNormalProp$w = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$w(obj, key, {
+  var __defProp$v = Object.defineProperty;
+  var __defNormalProp$v = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$v(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$w = function __publicField(obj, key, value) {
-      return __defNormalProp$w(obj, (typeof key === "undefined" ? "undefined" : _type_of$x(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$v = function __publicField(obj, key, value) {
+      return __defNormalProp$v(obj, (typeof key === "undefined" ? "undefined" : _type_of$w(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationLookAhead = /*#__PURE__*/ function() {
       function NavigationLookAhead(activityTree, sequencingProcess) {
-          _class_call_check$z(this, NavigationLookAhead);
-          __publicField$w(this, "activityTree");
-          __publicField$w(this, "sequencingProcess");
-          __publicField$w(this, "cache", null);
-          __publicField$w(this, "isDirty", true);
+          _class_call_check$y(this, NavigationLookAhead);
+          __publicField$v(this, "activityTree");
+          __publicField$v(this, "sequencingProcess");
+          __publicField$v(this, "cache", null);
+          __publicField$v(this, "isDirty", true);
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
       }
-      _create_class$z(NavigationLookAhead, [
+      _create_class$y(NavigationLookAhead, [
           {
               /**
      * Predict if Continue navigation would succeed from current activity
@@ -18796,10 +19796,10 @@ this.Scorm2004API = (function () {
       return NavigationLookAhead;
   }();
 
-  function _class_call_check$y(instance, Constructor) {
+  function _class_call_check$x(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$y(target, props) {
+  function _defineProperties$x(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -18808,25 +19808,25 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$y(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$y(Constructor.prototype, protoProps);
+  function _create_class$x(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$x(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$w(obj) {
+  function _type_of$v(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$v = Object.defineProperty;
-  var __defNormalProp$v = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$v(obj, key, {
+  var __defProp$u = Object.defineProperty;
+  var __defNormalProp$u = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$u(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$v = function __publicField(obj, key, value) {
-      return __defNormalProp$v(obj, (typeof key === "undefined" ? "undefined" : _type_of$w(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$u = function __publicField(obj, key, value) {
+      return __defNormalProp$u(obj, (typeof key === "undefined" ? "undefined" : _type_of$v(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationRequestType = /* @__PURE__ */ function(NavigationRequestType2) {
       NavigationRequestType2["START"] = "start";
@@ -18845,12 +19845,12 @@ this.Scorm2004API = (function () {
   }(NavigationRequestType || {});
   var NavigationRequestResult = function NavigationRequestResult() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, terminationRequest = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, sequencingRequest = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, targetActivityId = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, exception = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null;
-      _class_call_check$y(this, NavigationRequestResult);
-      __publicField$v(this, "valid");
-      __publicField$v(this, "terminationRequest");
-      __publicField$v(this, "sequencingRequest");
-      __publicField$v(this, "targetActivityId");
-      __publicField$v(this, "exception");
+      _class_call_check$x(this, NavigationRequestResult);
+      __publicField$u(this, "valid");
+      __publicField$u(this, "terminationRequest");
+      __publicField$u(this, "sequencingRequest");
+      __publicField$u(this, "targetActivityId");
+      __publicField$u(this, "exception");
       this.valid = valid;
       this.terminationRequest = terminationRequest;
       this.sequencingRequest = sequencingRequest;
@@ -18860,21 +19860,21 @@ this.Scorm2004API = (function () {
   var NavigationValidityService = /*#__PURE__*/ function() {
       function NavigationValidityService(activityTree, sequencingProcess) {
           var adlNav = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, eventCallback = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null;
-          _class_call_check$y(this, NavigationValidityService);
-          __publicField$v(this, "activityTree");
-          __publicField$v(this, "sequencingProcess");
-          __publicField$v(this, "adlNav");
-          __publicField$v(this, "eventCallback");
-          __publicField$v(this, "navigationLookAhead");
-          __publicField$v(this, "getEffectiveHideLmsUiCallback", null);
-          __publicField$v(this, "getEffectiveAuxiliaryResourcesCallback", null);
+          _class_call_check$x(this, NavigationValidityService);
+          __publicField$u(this, "activityTree");
+          __publicField$u(this, "sequencingProcess");
+          __publicField$u(this, "adlNav");
+          __publicField$u(this, "eventCallback");
+          __publicField$u(this, "navigationLookAhead");
+          __publicField$u(this, "getEffectiveHideLmsUiCallback", null);
+          __publicField$u(this, "getEffectiveAuxiliaryResourcesCallback", null);
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
           this.adlNav = adlNav;
           this.eventCallback = eventCallback;
           this.navigationLookAhead = new NavigationLookAhead(activityTree, sequencingProcess);
       }
-      _create_class$y(NavigationValidityService, [
+      _create_class$x(NavigationValidityService, [
           {
               /**
      * Set callback to get effective hideLmsUi
@@ -19678,7 +20678,7 @@ this.Scorm2004API = (function () {
       return NavigationValidityService;
   }();
 
-  function _array_like_to_array$d(arr, len) {
+  function _array_like_to_array$c(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -19686,10 +20686,10 @@ this.Scorm2004API = (function () {
   function _array_with_holes$9(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _class_call_check$x(instance, Constructor) {
+  function _class_call_check$w(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$x(target, props) {
+  function _defineProperties$w(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -19698,8 +20698,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$x(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$x(Constructor.prototype, protoProps);
+  function _create_class$w(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$w(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$a(obj, key, value) {
@@ -19780,40 +20780,40 @@ this.Scorm2004API = (function () {
       return target;
   }
   function _sliced_to_array$9(arr, i) {
-      return _array_with_holes$9(arr) || _iterable_to_array_limit$9(arr, i) || _unsupported_iterable_to_array$d(arr, i) || _non_iterable_rest$9();
+      return _array_with_holes$9(arr) || _iterable_to_array_limit$9(arr, i) || _unsupported_iterable_to_array$c(arr, i) || _non_iterable_rest$9();
   }
-  function _type_of$v(obj) {
+  function _type_of$u(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$d(o, minLen) {
+  function _unsupported_iterable_to_array$c(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
   }
-  var __defProp$u = Object.defineProperty;
-  var __defNormalProp$u = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$u(obj, key, {
+  var __defProp$t = Object.defineProperty;
+  var __defNormalProp$t = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$t(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$u = function __publicField(obj, key, value) {
-      return __defNormalProp$u(obj, (typeof key === "undefined" ? "undefined" : _type_of$v(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$t = function __publicField(obj, key, value) {
+      return __defNormalProp$t(obj, (typeof key === "undefined" ? "undefined" : _type_of$u(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveService = /*#__PURE__*/ function() {
       function GlobalObjectiveService(eventCallback) {
-          _class_call_check$x(this, GlobalObjectiveService);
-          __publicField$u(this, "globalObjectiveMap", /* @__PURE__ */ new Map());
-          __publicField$u(this, "eventCallback", null);
+          _class_call_check$w(this, GlobalObjectiveService);
+          __publicField$t(this, "globalObjectiveMap", /* @__PURE__ */ new Map());
+          __publicField$t(this, "eventCallback", null);
           this.eventCallback = eventCallback || null;
       }
-      _create_class$x(GlobalObjectiveService, [
+      _create_class$w(GlobalObjectiveService, [
           {
               /**
      * Initialize Global Objective Map
@@ -20136,10 +21136,10 @@ this.Scorm2004API = (function () {
       return GlobalObjectiveService;
   }();
 
-  function _class_call_check$w(instance, Constructor) {
+  function _class_call_check$v(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$w(target, props) {
+  function _defineProperties$v(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -20148,8 +21148,8 @@ this.Scorm2004API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$w(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$w(Constructor.prototype, protoProps);
+  function _create_class$v(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$v(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _instanceof$6(left, right) {
@@ -20158,42 +21158,42 @@ this.Scorm2004API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$u(obj) {
+  function _type_of$t(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$t = Object.defineProperty;
-  var __defNormalProp$t = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$t(obj, key, {
+  var __defProp$s = Object.defineProperty;
+  var __defNormalProp$s = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$s(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$t = function __publicField(obj, key, value) {
-      return __defNormalProp$t(obj, (typeof key === "undefined" ? "undefined" : _type_of$u(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$s = function __publicField(obj, key, value) {
+      return __defNormalProp$s(obj, (typeof key === "undefined" ? "undefined" : _type_of$t(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingStateManager = /*#__PURE__*/ function() {
       function SequencingStateManager(activityTree, globalObjectiveService, rollupProcess) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null;
-          _class_call_check$w(this, SequencingStateManager);
-          __publicField$t(this, "activityTree");
-          __publicField$t(this, "globalObjectiveService");
-          __publicField$t(this, "rollupProcess");
-          __publicField$t(this, "adlNav");
-          __publicField$t(this, "eventCallback");
-          __publicField$t(this, "getEffectiveHideLmsUiCallback", null);
-          __publicField$t(this, "getEffectiveAuxiliaryResourcesCallback", null);
-          __publicField$t(this, "contentDeliveredGetter", null);
-          __publicField$t(this, "contentDeliveredSetter", null);
+          _class_call_check$v(this, SequencingStateManager);
+          __publicField$s(this, "activityTree");
+          __publicField$s(this, "globalObjectiveService");
+          __publicField$s(this, "rollupProcess");
+          __publicField$s(this, "adlNav");
+          __publicField$s(this, "eventCallback");
+          __publicField$s(this, "getEffectiveHideLmsUiCallback", null);
+          __publicField$s(this, "getEffectiveAuxiliaryResourcesCallback", null);
+          __publicField$s(this, "contentDeliveredGetter", null);
+          __publicField$s(this, "contentDeliveredSetter", null);
           this.activityTree = activityTree;
           this.globalObjectiveService = globalObjectiveService;
           this.rollupProcess = rollupProcess;
           this.adlNav = adlNav;
           this.eventCallback = eventCallback;
       }
-      _create_class$w(SequencingStateManager, [
+      _create_class$v(SequencingStateManager, [
           {
               /**
      * Set callback to get effective hideLmsUi
@@ -20652,1009 +21652,6 @@ this.Scorm2004API = (function () {
           }
       ]);
       return SequencingStateManager;
-  }();
-
-  function _array_like_to_array$c(arr, len) {
-      if (len == null || len > arr.length) len = arr.length;
-      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
-      return arr2;
-  }
-  function _array_without_holes$7(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$c(arr);
-  }
-  function _class_call_check$v(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$v(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$v(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$v(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _iterable_to_array$7(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) {
-          return Array.from(iter);
-      }
-  }
-  function _non_iterable_spread$7() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-  function _to_consumable_array$7(arr) {
-      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$c(arr) || _non_iterable_spread$7();
-  }
-  function _type_of$t(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _unsupported_iterable_to_array$c(o, minLen) {
-      if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
-      var n = Object.prototype.toString.call(o).slice(8, -1);
-      if (n === "Object" && o.constructor) n = o.constructor.name;
-      if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
-  }
-  var __defProp$s = Object.defineProperty;
-  var __defNormalProp$s = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$s(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$s = function __publicField(obj, key, value) {
-      return __defNormalProp$s(obj, (typeof key === "undefined" ? "undefined" : _type_of$t(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var DeliveryValidator = /*#__PURE__*/ function() {
-      function DeliveryValidator(activityTree) {
-          var eventCallback = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, options = arguments.length > 2 ? arguments[2] : void 0, ruleEngineProvider = arguments.length > 3 ? arguments[3] : void 0;
-          _class_call_check$v(this, DeliveryValidator);
-          __publicField$s(this, "activityTree");
-          __publicField$s(this, "eventCallback");
-          __publicField$s(this, "now");
-          __publicField$s(this, "contentDeliveredGetter", null);
-          __publicField$s(this, "ruleEngineProvider");
-          this.activityTree = activityTree;
-          this.eventCallback = eventCallback;
-          this.now = (options === null || options === void 0 ? void 0 : options.now) || function() {
-              return /* @__PURE__ */ new Date();
-          };
-          if (ruleEngineProvider) {
-              this.ruleEngineProvider = ruleEngineProvider;
-          } else {
-              var ruleEngine = new RuleEvaluationEngine({
-                  now: this.now
-              });
-              this.ruleEngineProvider = function() {
-                  return ruleEngine;
-              };
-          }
-      }
-      _create_class$v(DeliveryValidator, [
-          {
-              /**
-     * Set getter for content delivered flag
-     */ key: "setContentDeliveredGetter",
-              value: function setContentDeliveredGetter(getter) {
-                  this.contentDeliveredGetter = getter;
-              }
-          },
-          {
-              /**
-     * Validate Activity Tree State Consistency
-     * @param {Activity} activity - Activity to validate
-     * @return {StateConsistencyResult} - Consistency result
-     */ key: "validateTreeConsistency",
-              value: function validateTreeConsistency(activity) {
-                  if (!this.activityTree.root) {
-                      return {
-                          consistent: false,
-                          exception: "DB.1.1-4"
-                      };
-                  }
-                  if (!this.isActivityPartOfTree(activity, this.activityTree.root)) {
-                      return {
-                          consistent: false,
-                          exception: "DB.1.1-5"
-                      };
-                  }
-                  var activeActivities = this.getActiveActivities();
-                  if (activeActivities.length > 1) {
-                      this.fireEvent("onStateInconsistency", {
-                          activeActivities: activeActivities.map(function(a) {
-                              return a.id;
-                          }),
-                          targetActivity: activity.id
-                      });
-                      return {
-                          consistent: false,
-                          exception: "DB.1.1-6"
-                      };
-                  }
-                  var current = activity;
-                  while(current === null || current === void 0 ? void 0 : current.parent){
-                      if (!current.parent.children.includes(current)) {
-                          return {
-                              consistent: false,
-                              exception: "DB.1.1-7"
-                          };
-                      }
-                      current = current.parent;
-                  }
-                  return {
-                      consistent: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Validate Resource Constraints
-     * @param {Activity} activity - Activity to validate
-     * @return {ResourceConstraintResult} - Resource availability result
-     */ key: "validateResources",
-              value: function validateResources(activity) {
-                  var requiredResources = this.getRequiredResources(activity);
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = requiredResources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var resource = _step.value;
-                          if (!this.isResourceAvailable(resource)) {
-                              return {
-                                  available: false,
-                                  exception: "DB.1.1-8"
-                              };
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  var systemResourceCheck = this.checkSystemLimits();
-                  if (!systemResourceCheck.adequate) {
-                      return {
-                          available: false,
-                          exception: "DB.1.1-9"
-                      };
-                  }
-                  return {
-                      available: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Validate Concurrent Delivery Prevention
-     * @param {Activity} activity - Activity to validate
-     * @return {ConcurrentDeliveryResult} - Concurrency check result
-     */ key: "validateConcurrentDelivery",
-              value: function validateConcurrentDelivery(activity) {
-                  var contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
-                  if (contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
-                      return {
-                          allowed: false,
-                          exception: "DB.1.1-10"
-                      };
-                  }
-                  if (this.hasPendingDeliveryRequests()) {
-                      return {
-                          allowed: false,
-                          exception: "DB.1.1-11"
-                      };
-                  }
-                  if (this.isDeliveryLocked()) {
-                      return {
-                          allowed: false,
-                          exception: "DB.1.1-12"
-                      };
-                  }
-                  return {
-                      allowed: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Validate Activity Dependencies
-     * @param {Activity} activity - Activity to validate
-     * @return {DependencyResult} - Dependency check result
-     */ key: "validateDependencies",
-              value: function validateDependencies(activity) {
-                  var prerequisites = this.getPrerequisites(activity);
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = prerequisites[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var prerequisite = _step.value;
-                          if (!this.isPrerequisiteSatisfied(prerequisite, activity)) {
-                              return {
-                                  satisfied: false,
-                                  exception: "DB.1.1-13"
-                              };
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  var objectiveDependencies = this.getObjectiveDependencies(activity);
-                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                  try {
-                      for(var _iterator1 = objectiveDependencies[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                          var dependency = _step1.value;
-                          if (!this.isObjectiveDependencySatisfied(dependency)) {
-                              return {
-                                  satisfied: false,
-                                  exception: "DB.1.1-14"
-                              };
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError1 = true;
-                      _iteratorError1 = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                              _iterator1.return();
-                          }
-                      } finally{
-                          if (_didIteratorError1) {
-                              throw _iteratorError1;
-                          }
-                      }
-                  }
-                  var sequencingDependencies = this.getSequencingRuleDependencies(activity);
-                  if (!sequencingDependencies.satisfied) {
-                      return {
-                          satisfied: false,
-                          exception: "DB.1.1-15"
-                      };
-                  }
-                  return {
-                      satisfied: true,
-                      exception: null
-                  };
-              }
-          },
-          {
-              /**
-     * Check Activity Process (UP.5)
-     * Validates if an activity can be delivered based on sequencing rules and limit conditions
-     * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if activity is valid (not disabled, limits not violated)
-     */ key: "checkActivity",
-              value: function checkActivity(activity) {
-                  if (!activity.isAvailable) {
-                      return false;
-                  }
-                  var disabledRules = activity.sequencingRules.preConditionRules.filter(function(rule) {
-                      return rule.action === RuleActionType.DISABLED;
-                  });
-                  if (this.ruleEngineProvider().checkSequencingRules(activity, disabledRules) !== null) {
-                      return false;
-                  }
-                  if (!this.checkLimitConditions(activity)) {
-                      return false;
-                  }
-                  return true;
-              }
-          },
-          {
-              /**
-     * Limit Conditions Check Process (UP.1)
-     * Checks if any limit conditions are violated for the activity
-     * @param {Activity} activity - The activity to check limit conditions for
-     * @return {boolean} - True if limit conditions are met, false if violated
-     */ key: "checkLimitConditions",
-              value: function checkLimitConditions(activity) {
-                  var result = true;
-                  var failureReason = "";
-                  if (activity.isSuspended) {
-                      this.fireEvent("onLimitConditionCheck", {
-                          activity: activity,
-                          result: true,
-                          failureReason: "",
-                          attemptInProgress: true
-                      });
-                      return true;
-                  }
-                  if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
-                      if (activity.attemptCount >= activity.attemptLimit) {
-                          result = false;
-                          failureReason = "Attempt limit exceeded";
-                      }
-                  }
-                  if (result && activity.attemptAbsoluteDurationLimit) {
-                      var limitDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-                      if (limitDuration > 0) {
-                          var currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
-                          if (currentDuration >= limitDuration) {
-                              result = false;
-                              failureReason = "Attempt duration limit exceeded";
-                          }
-                      }
-                  }
-                  if (result && activity.activityAbsoluteDurationLimit) {
-                      var limitDuration1 = getDurationAsSeconds(activity.activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-                      if (limitDuration1 > 0) {
-                          var currentDuration1 = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
-                          if (currentDuration1 >= limitDuration1) {
-                              result = false;
-                              failureReason = "Activity duration limit exceeded";
-                          }
-                      }
-                  }
-                  if (result && activity.beginTimeLimit) {
-                      var currentTime = this.now();
-                      var beginTime = new Date(activity.beginTimeLimit);
-                      if (currentTime < beginTime) {
-                          result = false;
-                          failureReason = "Not yet time to begin";
-                      }
-                  }
-                  if (result && activity.endTimeLimit) {
-                      var currentTime1 = this.now();
-                      var endTime = new Date(activity.endTimeLimit);
-                      if (currentTime1 > endTime) {
-                          result = false;
-                          failureReason = "Time limit expired";
-                      }
-                  }
-                  this.fireEvent("onLimitConditionCheck", {
-                      activity: activity,
-                      result: result,
-                      failureReason: failureReason,
-                      checks: {
-                          attemptLimit: activity.attemptLimit,
-                          attemptCount: activity.attemptCount,
-                          attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
-                          activityDurationLimit: activity.activityAbsoluteDurationLimit,
-                          beginTimeLimit: activity.beginTimeLimit,
-                          endTimeLimit: activity.endTimeLimit
-                      }
-                  });
-                  return result;
-              }
-          },
-          {
-              /**
-     * Check if activity is part of tree
-     */ key: "isActivityPartOfTree",
-              value: function isActivityPartOfTree(activity, root) {
-                  if (activity === root) {
-                      return true;
-                  }
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = root.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          if (this.isActivityPartOfTree(activity, child)) {
-                              return true;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return false;
-              }
-          },
-          {
-              /**
-     * Get all active activities in the tree
-     */ key: "getActiveActivities",
-              value: function getActiveActivities() {
-                  var activeActivities = [];
-                  if (this.activityTree.root) {
-                      this.collectActiveActivities(this.activityTree.root, activeActivities);
-                  }
-                  return activeActivities;
-              }
-          },
-          {
-              key: "collectActiveActivities",
-              value: function collectActiveActivities(activity, activeActivities) {
-                  if (activity.isActive) {
-                      activeActivities.push(activity);
-                  }
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          this.collectActiveActivities(child, activeActivities);
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-              }
-          },
-          {
-              /**
-     * Get required resources for activity
-     */ key: "getRequiredResources",
-              value: function getRequiredResources(activity) {
-                  var resources = [];
-                  var activityInfo = (activity.title + " " + activity.location).toLowerCase();
-                  if (activityInfo.includes("video") || activityInfo.includes("multimedia")) {
-                      resources.push("video-codec");
-                  }
-                  if (activityInfo.includes("audio") || activityInfo.includes("sound")) {
-                      resources.push("audio-codec");
-                  }
-                  if (activityInfo.includes("flash") || activityInfo.includes(".swf")) {
-                      resources.push("flash-plugin");
-                  }
-                  if (activityInfo.includes("java") || activityInfo.includes("applet")) {
-                      resources.push("java-runtime");
-                  }
-                  if (activity.children && activity.children.length > 0) {
-                      resources.push("high-bandwidth");
-                  }
-                  if (activity.attemptAbsoluteDurationLimit && this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
-                      resources.push("extended-storage");
-                  }
-                  if (activity.attemptLimit && activity.attemptLimit > 1) {
-                      resources.push("persistent-storage");
-                  }
-                  return resources;
-              }
-          },
-          {
-              /**
-     * Check if resource is available
-     */ key: "isResourceAvailable",
-              value: function isResourceAvailable(resource) {
-                  try {
-                      switch(resource){
-                          case "video-codec":
-                              return !!document.createElement("video").canPlayType;
-                          case "audio-codec":
-                              return !!document.createElement("audio").canPlayType;
-                          case "flash-plugin":
-                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
-                                  return plugin.name === "Shockwave Flash";
-                              });
-                          case "java-runtime":
-                              return navigator.plugins && Array.from(navigator.plugins).some(function(plugin) {
-                                  return plugin.name === "Java";
-                              });
-                          case "high-bandwidth":
-                              if ("connection" in navigator) {
-                                  var connection = navigator.connection;
-                                  return connection.effectiveType === "4g" || connection.downlink > 5;
-                              }
-                              return true;
-                          // Assume available if can't detect
-                          case "extended-storage":
-                              return true;
-                          case "persistent-storage":
-                              return "localStorage" in window && "sessionStorage" in window;
-                          default:
-                              return true;
-                      }
-                  } catch (error) {
-                      return false;
-                  }
-              }
-          },
-          {
-              /**
-     * Check system resource limits
-     */ key: "checkSystemLimits",
-              value: function checkSystemLimits() {
-                  try {
-                      var adequate = true;
-                      if ("memory" in performance) {
-                          var memory = performance.memory;
-                          var memoryUsagePercent = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
-                          if (memoryUsagePercent > 0.8) {
-                              adequate = false;
-                          }
-                      }
-                      if ("deviceMemory" in navigator) {
-                          var deviceMemory = navigator.deviceMemory;
-                          if (deviceMemory < 2) {
-                              adequate = false;
-                          }
-                      }
-                      if ("hardwareConcurrency" in navigator) {
-                          var cores = navigator.hardwareConcurrency;
-                          if (cores < 2) {
-                              adequate = false;
-                          }
-                      }
-                      if ("connection" in navigator) {
-                          var connection = navigator.connection;
-                          if (connection.saveData || connection.effectiveType === "slow-2g") {
-                              adequate = false;
-                          }
-                      }
-                      return {
-                          adequate: adequate
-                      };
-                  } catch (error) {
-                      return {
-                          adequate: true
-                      };
-                  }
-              }
-          },
-          {
-              key: "hasPendingDeliveryRequests",
-              value: function hasPendingDeliveryRequests() {
-                  if (this.activityTree && this.activityTree.pendingRequests) {
-                      return this.activityTree.pendingRequests.length > 0;
-                  }
-                  if (typeof window !== "undefined" && window.pendingScormRequests) {
-                      return window.pendingScormRequests > 0;
-                  }
-                  return false;
-              }
-          },
-          {
-              key: "isDeliveryLocked",
-              value: function isDeliveryLocked() {
-                  if (this.activityTree && this.activityTree.navigationLocked) {
-                      return true;
-                  }
-                  if (this.activityTree && this.activityTree.terminationInProgress) {
-                      return true;
-                  }
-                  var resourceCheck = this.checkSystemLimits();
-                  if (!resourceCheck.adequate) {
-                      return true;
-                  }
-                  return !!(typeof window !== "undefined" && window.scormMaintenanceMode);
-              }
-          },
-          {
-              /**
-     * Get activity prerequisites
-     */ key: "getPrerequisites",
-              value: function getPrerequisites(activity) {
-                  var prerequisites = [];
-                  if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                      try {
-                          for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                              var rule = _step.value;
-                              if (rule.conditions && rule.conditions.length > 0) {
-                                  var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                                  try {
-                                      for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                                          var condition = _step1.value;
-                                          if (condition.referencedObjectiveID && condition.referencedObjectiveID !== activity.id) {
-                                              prerequisites.push(condition.referencedObjectiveID);
-                                          }
-                                      }
-                                  } catch (err) {
-                                      _didIteratorError1 = true;
-                                      _iteratorError1 = err;
-                                  } finally{
-                                      try {
-                                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                                              _iterator1.return();
-                                          }
-                                      } finally{
-                                          if (_didIteratorError1) {
-                                              throw _iteratorError1;
-                                          }
-                                      }
-                                  }
-                              }
-                          }
-                      } catch (err) {
-                          _didIteratorError = true;
-                          _iteratorError = err;
-                      } finally{
-                          try {
-                              if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                  _iterator.return();
-                              }
-                          } finally{
-                              if (_didIteratorError) {
-                                  throw _iteratorError;
-                              }
-                          }
-                      }
-                  }
-                  if (activity.parent && activity.sequencingControls && !activity.sequencingControls.choiceExit) {
-                      var siblings = activity.parent.children;
-                      if (siblings) {
-                          var activityIndex = siblings.indexOf(activity);
-                          for(var i = 0; i < activityIndex; i++){
-                              var sibling = siblings[i];
-                              if (sibling) {
-                                  prerequisites.push(sibling.id);
-                              }
-                          }
-                      }
-                  }
-                  if (activity.prerequisiteActivities) {
-                      var _prerequisites;
-                      (_prerequisites = prerequisites).push.apply(_prerequisites, _to_consumable_array$7(activity.prerequisiteActivities));
-                  }
-                  return Array.from(new Set(prerequisites));
-              }
-          },
-          {
-              /**
-     * Check if prerequisite is satisfied
-     */ key: "isPrerequisiteSatisfied",
-              value: function isPrerequisiteSatisfied(prerequisiteId, _activity) {
-                  var prerequisite = this.activityTree.getActivity(prerequisiteId);
-                  if (!prerequisite) {
-                      return false;
-                  }
-                  return prerequisite.completionStatus === "completed";
-              }
-          },
-          {
-              /**
-     * Get objective dependencies
-     */ key: "getObjectiveDependencies",
-              value: function getObjectiveDependencies(activity) {
-                  var dependencies = [];
-                  var objectives = activity.objectives;
-                  if (objectives && objectives.length > 0) {
-                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                      try {
-                          for(var _iterator = objectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                              var objective = _step.value;
-                              if (objective.globalObjectiveID) {
-                                  dependencies.push(objective.globalObjectiveID);
-                              }
-                              if (!objective.satisfiedByMeasure && objective.readNormalizedMeasure) {
-                                  dependencies.push(objective.id + "_measure");
-                              }
-                          }
-                      } catch (err) {
-                          _didIteratorError = true;
-                          _iteratorError = err;
-                      } finally{
-                          try {
-                              if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                  _iterator.return();
-                              }
-                          } finally{
-                              if (_didIteratorError) {
-                                  throw _iteratorError;
-                              }
-                          }
-                      }
-                  }
-                  if (activity.sequencingRules) {
-                      var allRules = _to_consumable_array$7(activity.sequencingRules.preConditionRules || []).concat(_to_consumable_array$7(activity.sequencingRules.exitConditionRules || []), _to_consumable_array$7(activity.sequencingRules.postConditionRules || []));
-                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                      try {
-                          for(var _iterator1 = allRules[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                              var rule = _step1.value;
-                              if (rule.conditions && rule.conditions.length > 0) {
-                                  var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
-                                  try {
-                                      for(var _iterator2 = rule.conditions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
-                                          var condition = _step2.value;
-                                          if (condition.objectiveReference && condition.objectiveReference !== activity.id) {
-                                              dependencies.push(condition.objectiveReference);
-                                          }
-                                      }
-                                  } catch (err) {
-                                      _didIteratorError2 = true;
-                                      _iteratorError2 = err;
-                                  } finally{
-                                      try {
-                                          if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-                                              _iterator2.return();
-                                          }
-                                      } finally{
-                                          if (_didIteratorError2) {
-                                              throw _iteratorError2;
-                                          }
-                                      }
-                                  }
-                              }
-                          }
-                      } catch (err) {
-                          _didIteratorError1 = true;
-                          _iteratorError1 = err;
-                      } finally{
-                          try {
-                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                                  _iterator1.return();
-                              }
-                          } finally{
-                              if (_didIteratorError1) {
-                                  throw _iteratorError1;
-                              }
-                          }
-                      }
-                  }
-                  return Array.from(new Set(dependencies));
-              }
-          },
-          {
-              /**
-     * Check if objective dependency is satisfied
-     */ key: "isObjectiveDependencySatisfied",
-              value: function isObjectiveDependencySatisfied(objectiveId) {
-                  if (this.activityTree && this.activityTree.globalObjectives) {
-                      var globalObjectives = this.activityTree.globalObjectives;
-                      var globalObjective = globalObjectives[objectiveId];
-                      if (globalObjective) {
-                          return globalObjective.satisfied === true && globalObjective.statusKnown === true;
-                      }
-                  }
-                  if (objectiveId.endsWith("_measure")) {
-                      var baseObjectiveId = objectiveId.replace("_measure", "");
-                      if (this.activityTree && this.activityTree.globalObjectives) {
-                          var globalObjectives1 = this.activityTree.globalObjectives;
-                          var globalObjective1 = globalObjectives1[baseObjectiveId];
-                          if (globalObjective1) {
-                              return globalObjective1.measureKnown === true && globalObjective1.normalizedMeasure >= 0;
-                          }
-                      }
-                  }
-                  var referencedActivity = this.activityTree.getActivity(objectiveId);
-                  if (referencedActivity) {
-                      return referencedActivity.objectiveSatisfiedStatus && referencedActivity.objectiveMeasureStatus;
-                  }
-                  return false;
-              }
-          },
-          {
-              key: "getSequencingRuleDependencies",
-              value: function getSequencingRuleDependencies(activity) {
-                  var satisfied = true;
-                  try {
-                      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-                          var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                          try {
-                              for(var _iterator = activity.sequencingRules.preConditionRules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                                  var rule = _step.value;
-                                  if (rule.conditions && rule.conditions.length > 0) {
-                                      var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
-                                      try {
-                                          for(var _iterator1 = rule.conditions[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
-                                              var condition = _step1.value;
-                                              var conditionType = condition.conditionType || condition.condition;
-                                              switch(conditionType){
-                                                  case "activityProgressKnown":
-                                                      if (!activity.progressMeasureStatus) satisfied = false;
-                                                      break;
-                                                  case "objectiveStatusKnown":
-                                                  case "objectiveSatisfied":
-                                                      {
-                                                          var objectiveId = condition.referencedObjectiveID || activity.id;
-                                                          if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
-                                                          break;
-                                                      }
-                                                  case "attemptLimitExceeded":
-                                                      if (activity.attemptLimit === null) satisfied = false;
-                                                      break;
-                                                  case "timeLimitExceeded":
-                                                      if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit) satisfied = false;
-                                                      break;
-                                                  case "always":
-                                                  case "never":
-                                                      break;
-                                                  default:
-                                                      satisfied = false;
-                                              }
-                                          }
-                                      } catch (err) {
-                                          _didIteratorError1 = true;
-                                          _iteratorError1 = err;
-                                      } finally{
-                                          try {
-                                              if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
-                                                  _iterator1.return();
-                                              }
-                                          } finally{
-                                              if (_didIteratorError1) {
-                                                  throw _iteratorError1;
-                                              }
-                                          }
-                                      }
-                                  }
-                              }
-                          } catch (err) {
-                              _didIteratorError = true;
-                              _iteratorError = err;
-                          } finally{
-                              try {
-                                  if (!_iteratorNormalCompletion && _iterator.return != null) {
-                                      _iterator.return();
-                                  }
-                              } finally{
-                                  if (_didIteratorError) {
-                                      throw _iteratorError;
-                                  }
-                              }
-                          }
-                      }
-                      if (activity.sequencingRules && activity.sequencingRules.exitConditionRules) {
-                          var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
-                          try {
-                              for(var _iterator2 = activity.sequencingRules.exitConditionRules[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
-                                  var rule1 = _step2.value;
-                                  if (rule1.conditions && rule1.conditions.length > 0) {
-                                      var _iteratorNormalCompletion3 = true, _didIteratorError3 = false, _iteratorError3 = undefined;
-                                      try {
-                                          for(var _iterator3 = rule1.conditions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true){
-                                              var condition1 = _step3.value;
-                                              var conditionType1 = condition1.conditionType || condition1.condition;
-                                              if ([
-                                                  "objectiveStatusKnown",
-                                                  "objectiveSatisfied"
-                                              ].includes(conditionType1)) {
-                                                  var objectiveId1 = condition1.referencedObjectiveID || activity.id;
-                                                  if (!this.isObjectiveDependencySatisfied(objectiveId1)) satisfied = false;
-                                              }
-                                          }
-                                      } catch (err) {
-                                          _didIteratorError3 = true;
-                                          _iteratorError3 = err;
-                                      } finally{
-                                          try {
-                                              if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
-                                                  _iterator3.return();
-                                              }
-                                          } finally{
-                                              if (_didIteratorError3) {
-                                                  throw _iteratorError3;
-                                              }
-                                          }
-                                      }
-                                  }
-                              }
-                          } catch (err) {
-                              _didIteratorError2 = true;
-                              _iteratorError2 = err;
-                          } finally{
-                              try {
-                                  if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-                                      _iterator2.return();
-                                  }
-                              } finally{
-                                  if (_didIteratorError2) {
-                                      throw _iteratorError2;
-                                  }
-                              }
-                          }
-                      }
-                      if (activity.rollupRules && activity.rollupRules.rules) {
-                          var _iteratorNormalCompletion4 = true, _didIteratorError4 = false, _iteratorError4 = undefined;
-                          try {
-                              for(var _iterator4 = activity.rollupRules.rules[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true){
-                                  var rule2 = _step4.value;
-                                  if (rule2.conditions && rule2.conditions.length > 0) {
-                                      if (activity.children && activity.children.length > 0) {
-                                          var _iteratorNormalCompletion5 = true, _didIteratorError5 = false, _iteratorError5 = undefined;
-                                          try {
-                                              for(var _iterator5 = activity.children[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true){
-                                                  var child = _step5.value;
-                                                  if (!child.isCompleted) {
-                                                      satisfied = false;
-                                                      break;
-                                                  }
-                                              }
-                                          } catch (err) {
-                                              _didIteratorError5 = true;
-                                              _iteratorError5 = err;
-                                          } finally{
-                                              try {
-                                                  if (!_iteratorNormalCompletion5 && _iterator5.return != null) {
-                                                      _iterator5.return();
-                                                  }
-                                              } finally{
-                                                  if (_didIteratorError5) {
-                                                      throw _iteratorError5;
-                                                  }
-                                              }
-                                          }
-                                      }
-                                  }
-                              }
-                          } catch (err) {
-                              _didIteratorError4 = true;
-                              _iteratorError4 = err;
-                          } finally{
-                              try {
-                                  if (!_iteratorNormalCompletion4 && _iterator4.return != null) {
-                                      _iterator4.return();
-                                  }
-                              } finally{
-                                  if (_didIteratorError4) {
-                                      throw _iteratorError4;
-                                  }
-                              }
-                          }
-                      }
-                  } catch (error) {
-                      satisfied = false;
-                  }
-                  return {
-                      satisfied: satisfied
-                  };
-              }
-          },
-          {
-              /**
-     * Helper method to parse ISO 8601 duration to minutes
-     */ key: "parseDurationToMinutes",
-              value: function parseDurationToMinutes(duration) {
-                  return getDurationAsSeconds(duration, scorm2004_regex.CMITimespan) / 60;
-              }
-          },
-          {
-              /**
-     * Fire a sequencing event
-     * @param {string} eventType - The type of event
-     * @param {any} data - Event data
-     */ key: "fireEvent",
-              value: function fireEvent(eventType, data) {
-                  try {
-                      if (this.eventCallback) {
-                          this.eventCallback(eventType, data);
-                      }
-                  } catch (error) {
-                      console.warn("Failed to fire delivery validator event ".concat(eventType, ": ").concat(error));
-                  }
-              }
-          }
-      ]);
-      return DeliveryValidator;
   }();
 
   function _class_call_check$u(instance, Constructor) {
@@ -26436,6 +26433,9 @@ this.Scorm2004API = (function () {
           parts.slice(1).join(bare).replace(unescapeRe, bare)
       ];
   }
+  function allowsBareDelimiters(value, type) {
+      return !isSpecForm(value) && type !== "fill-in";
+  }
 
   function _array_like_to_array$7(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
@@ -26803,7 +26803,7 @@ this.Scorm2004API = (function () {
                           this._learner_response = "";
                           return;
                       }
-                      var allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
+                      var allowBare = allowsBareDelimiters(learner_response, this.type);
                       var nodes = [];
                       var response_type = LearnerResponses[this.type];
                       if (response_type) {
@@ -27042,7 +27042,7 @@ this.Scorm2004API = (function () {
       return text;
   }
   function validatePattern(type, pattern, responseDef) {
-      var allowBare = !isSpecForm(pattern) && type !== "fill-in";
+      var allowBare = allowsBareDelimiters(pattern, type);
       var freeText = [
           "fill-in",
           "long-fill-in",
@@ -30822,6 +30822,12 @@ this.Scorm2004API = (function () {
       ]);
       return ADLDataObject;
   }(BaseCMI);
+  function setStaticNavigationValue(values, kind, key, value) {
+      var element = "adl.nav.request_valid.".concat(kind, ".").concat(key);
+      if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
+          values[key] = value;
+      }
+  }
   var ADLNavRequestValidChoice = /*#__PURE__*/ function() {
       function ADLNavRequestValidChoice() {
           _class_call_check$9(this, ADLNavRequestValidChoice);
@@ -30838,10 +30844,7 @@ this.Scorm2004API = (function () {
           {
               key: "setStaticValue",
               value: function setStaticValue(key, value) {
-                  var element = "adl.nav.request_valid.choice." + key;
-                  if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
-                      this._staticValues[key] = value;
-                  }
+                  setStaticNavigationValue(this._staticValues, "choice", key, value);
               }
           },
           {
@@ -30909,10 +30912,7 @@ this.Scorm2004API = (function () {
           {
               key: "setStaticValue",
               value: function setStaticValue(key, value) {
-                  var element = "adl.nav.request_valid.jump." + key;
-                  if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
-                      this._staticValues[key] = value;
-                  }
+                  setStaticNavigationValue(this._staticValues, "jump", key, value);
               }
           },
           {
@@ -31741,7 +31741,7 @@ this.Scorm2004API = (function () {
               value: function checkValidResponseType(CMIElement, response_type, value, interaction_type) {
                   var nodes = [];
                   if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter) {
-                      nodes = splitDelimited(String(value), response_type.delimiter, !isSpecForm(String(value)) && interaction_type !== "fill-in");
+                      nodes = splitDelimited(String(value), response_type.delimiter, allowsBareDelimiters(String(value), interaction_type));
                   } else {
                       nodes[0] = value;
                   }
@@ -31841,7 +31841,7 @@ this.Scorm2004API = (function () {
                       this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "Incorrect Response Type: ".concat(interaction_type));
                       return;
                   }
-                  var allowBare = !isSpecForm(String(value)) && interaction_type !== "fill-in";
+                  var allowBare = allowsBareDelimiters(String(value), interaction_type);
                   var formatRegex = new RegExp(response.format);
                   for(var i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++){
                       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {

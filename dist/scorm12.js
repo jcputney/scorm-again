@@ -2262,7 +2262,8 @@ this.Scorm12API = (function () {
      * Evaluate the condition for an activity
      * @param {Activity} activity - The activity to evaluate the condition for
      * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
-     */ key: "evaluate",
+     */ // Explicit null suppresses the legacy static hook for per-process evaluation.
+              key: "evaluate",
               value: function evaluate(activity) {
                   var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : _RuleCondition._now, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : _RuleCondition._getElapsedSecondsHook;
                   var _activity_sequencingControls;
@@ -4673,10 +4674,7 @@ this.Scorm12API = (function () {
                       return global_constants.SCORM_FALSE;
                   }
                   this.context.setLastErrorCode("0");
-                  var targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
-                  var structure = targetPath ? _to_consumable_array$3(targetPath[1].split(".")).concat([
-                      targetPath[2]
-                  ]) : CMIElement.split(".");
+                  var structure = splitCMIElement(CMIElement);
                   var refObject = this.context.getDataModel();
                   var returnValue = global_constants.SCORM_FALSE;
                   var foundFirstIndex = false;
@@ -4724,7 +4722,7 @@ this.Scorm12API = (function () {
                       return "";
                   }
                   this.context.setLastErrorCode("0");
-                  var structure = CMIElement.split(".");
+                  var structure = splitCMIElement(CMIElement);
                   var refObject = this.context.getDataModel();
                   var attribute = null;
                   var foundFirstIndex = false;
@@ -5029,6 +5027,12 @@ this.Scorm12API = (function () {
       ]);
       return CMIValueAccessService;
   }();
+  function splitCMIElement(element) {
+      var targetPath = element.match(/^(.*)\.(\{target=[^{}]*\})$/);
+      return targetPath ? _to_consumable_array$3(targetPath[1].split(".")).concat([
+          targetPath[2]
+      ]) : element.split(".");
+  }
 
   function _class_call_check$k(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");

@@ -31,8 +31,8 @@ export declare class DeliveryValidator {
     validateResources(activity: Activity): ResourceConstraintResult;
     validateConcurrentDelivery(activity: Activity): ConcurrentDeliveryResult;
     validateDependencies(activity: Activity): DependencyResult;
-    checkActivity(activity: Activity): boolean;
-    checkLimitConditions(activity: Activity): boolean;
+    checkActivity(activity: Activity, evaluationActivity?: Activity, emitEvent?: boolean): boolean;
+    checkLimitConditions(activity: Activity, emitEvent?: boolean): boolean;
     private isActivityPartOfTree;
     private getActiveActivities;
     private collectActiveActivities;

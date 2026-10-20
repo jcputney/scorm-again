@@ -31,7 +31,7 @@ export declare class SequencingProcess {
     get now(): () => Date;
     set now(fn: () => Date);
     private _getAttemptElapsedSecondsHook;
-    get getAttemptElapsedSecondsHook(): ((activity: Activity) => number) | undefined;
+    get getAttemptElapsedSecondsHook(): ((activity: Activity) => number) | null;
     set getAttemptElapsedSecondsHook(fn: ((activity: Activity) => number) | undefined);
     constructor(activityTree: ActivityTree, _sequencingRules?: SequencingRules | null, _sequencingControls?: SequencingControls | null, _adlNav?: ADLNav | null, options?: SequencingProcessOptions);
     sequencingRequestProcess(request: SequencingRequestType, targetActivityId?: string | null): SequencingResult;

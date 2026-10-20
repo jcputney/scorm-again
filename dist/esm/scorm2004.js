@@ -1361,6 +1361,7 @@ class RuleCondition extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the condition for
    * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
+  // Explicit null suppresses the legacy static hook for per-process evaluation.
   evaluate(activity, now = RuleCondition._now, getElapsedSeconds = RuleCondition._getElapsedSecondsHook) {
     let result;
     const hasReferencedObjective = this._referencedObjective !== null;
@@ -1816,6 +1817,953 @@ class SequencingRules extends BaseCMI {
     };
     this.jsonString = false;
     return result;
+  }
+}
+
+var SequencingRequestType = /* @__PURE__ */ ((SequencingRequestType2) => {
+  SequencingRequestType2["START"] = "start";
+  SequencingRequestType2["RESUME_ALL"] = "resumeAll";
+  SequencingRequestType2["CONTINUE"] = "continue";
+  SequencingRequestType2["PREVIOUS"] = "previous";
+  SequencingRequestType2["CHOICE"] = "choice";
+  SequencingRequestType2["JUMP"] = "jump";
+  SequencingRequestType2["EXIT"] = "exit";
+  SequencingRequestType2["EXIT_PARENT"] = "exitParent";
+  SequencingRequestType2["EXIT_ALL"] = "exitAll";
+  SequencingRequestType2["ABANDON"] = "abandon";
+  SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
+  SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
+  SequencingRequestType2["RETRY"] = "retry";
+  SequencingRequestType2["RETRY_ALL"] = "retryAll";
+  return SequencingRequestType2;
+})(SequencingRequestType || {});
+var DeliveryRequestType = /* @__PURE__ */ ((DeliveryRequestType2) => {
+  DeliveryRequestType2["DELIVER"] = "deliver";
+  DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
+  return DeliveryRequestType2;
+})(DeliveryRequestType || {});
+class SequencingResult {
+  deliveryRequest;
+  targetActivity;
+  exception;
+  endSequencingSession;
+  constructor(deliveryRequest = "doNotDeliver" /* DO_NOT_DELIVER */, targetActivity = null, exception = null, endSequencingSession = false) {
+    this.deliveryRequest = deliveryRequest;
+    this.targetActivity = targetActivity;
+    this.exception = exception;
+    this.endSequencingSession = endSequencingSession;
+  }
+}
+class FlowSubprocessResult {
+  identifiedActivity;
+  deliverable;
+  exception;
+  endSequencingSession;
+  constructor(identifiedActivity, deliverable, exception = null, endSequencingSession = false) {
+    this.identifiedActivity = identifiedActivity;
+    this.deliverable = deliverable;
+    this.exception = exception;
+    this.endSequencingSession = endSequencingSession;
+  }
+}
+class ChoiceTraversalResult {
+  activity;
+  exception;
+  constructor(activity, exception = null) {
+    this.activity = activity;
+    this.exception = exception;
+  }
+}
+var FlowSubprocessMode = /* @__PURE__ */ ((FlowSubprocessMode2) => {
+  FlowSubprocessMode2["FORWARD"] = "forward";
+  FlowSubprocessMode2["BACKWARD"] = "backward";
+  return FlowSubprocessMode2;
+})(FlowSubprocessMode || {});
+
+class RuleEvaluationEngine {
+  now;
+  getAttemptElapsedSecondsHook;
+  constructor(options = {}) {
+    this.now = options.now || (() => /* @__PURE__ */ new Date());
+    this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
+  }
+  /**
+   * Sequencing Rules Check Process (UP.2)
+   * General process for evaluating a set of sequencing rules
+   * @param {Activity} activity - The activity to evaluate rules for
+   * @param {SequencingRule[]} rules - The rules to evaluate
+   * @return {RuleActionType | null} - The action to take, or null if no rules apply
+   */
+  checkSequencingRules(activity, rules) {
+    for (const rule of rules) {
+      if (this.checkRuleSubprocess(activity, rule)) {
+        return rule.action;
+      }
+    }
+    return null;
+  }
+  /**
+   * Sequencing Rules Check Subprocess (UP.2.1)
+   * Evaluates individual sequencing rule conditions
+   * @param {Activity} activity - The activity to evaluate the rule for
+   * @param {SequencingRule} rule - The rule to evaluate
+   * @return {boolean} - True only when the rule evaluates to definite true
+   */
+  checkRuleSubprocess(activity, rule) {
+    return rule.evaluate(activity, this.now, this.getAttemptElapsedSecondsHook);
+  }
+  /**
+   * Exit Action Rules Subprocess (TB.2.1)
+   * Evaluates the exit condition rules for an activity
+   * @param {Activity} activity - The activity to evaluate exit rules for
+   * @return {RuleActionType | null} - The exit action to process, if any
+   */
+  evaluateExitRules(activity) {
+    const exitAction = this.checkSequencingRules(
+      activity,
+      activity.sequencingRules.exitConditionRules
+    );
+    if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
+      return exitAction;
+    }
+    return null;
+  }
+  /**
+   * Post Condition Rules Subprocess (TB.2.2)
+   * Evaluates the post-condition rules for an activity after delivery
+   * @param {Activity} activity - The activity to evaluate post-condition rules for
+   * @return {RuleActionType | null} - The action to take, if any
+   */
+  evaluatePostConditionAction(activity) {
+    const postAction = this.checkSequencingRules(
+      activity,
+      activity.sequencingRules.postConditionRules
+    );
+    const validActions = [
+      RuleActionType.EXIT_PARENT,
+      RuleActionType.EXIT_ALL,
+      RuleActionType.RETRY,
+      RuleActionType.RETRY_ALL,
+      RuleActionType.CONTINUE,
+      RuleActionType.PREVIOUS,
+      RuleActionType.STOP_FORWARD_TRAVERSAL
+    ];
+    if (postAction && validActions.includes(postAction)) {
+      return postAction;
+    }
+    return null;
+  }
+  /**
+   * Evaluate post-condition rules and map to sequencing/termination requests
+   * @param {Activity} activity - The activity to evaluate
+   * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
+   */
+  evaluatePostConditions(activity) {
+    const postAction = this.evaluatePostConditionAction(activity);
+    if (!postAction) {
+      return {
+        sequencingRequest: null,
+        terminationRequest: null
+      };
+    }
+    switch (postAction) {
+      case RuleActionType.EXIT_PARENT:
+        return {
+          sequencingRequest: null,
+          terminationRequest: SequencingRequestType.EXIT_PARENT
+        };
+      case RuleActionType.EXIT_ALL:
+        return {
+          sequencingRequest: null,
+          terminationRequest: SequencingRequestType.EXIT_ALL
+        };
+      case RuleActionType.RETRY:
+        return {
+          sequencingRequest: SequencingRequestType.RETRY,
+          terminationRequest: null
+        };
+      case RuleActionType.RETRY_ALL:
+        return {
+          sequencingRequest: SequencingRequestType.RETRY,
+          terminationRequest: SequencingRequestType.EXIT_ALL
+        };
+      case RuleActionType.CONTINUE:
+        return {
+          sequencingRequest: SequencingRequestType.CONTINUE,
+          terminationRequest: null
+        };
+      case RuleActionType.PREVIOUS:
+        return {
+          sequencingRequest: SequencingRequestType.PREVIOUS,
+          terminationRequest: null
+        };
+      case RuleActionType.STOP_FORWARD_TRAVERSAL:
+        activity.sequencingControls.stopForwardTraversal = true;
+        return {
+          sequencingRequest: null,
+          terminationRequest: null
+        };
+      default:
+        return {
+          sequencingRequest: null,
+          terminationRequest: null
+        };
+    }
+  }
+  /**
+   * Limit Conditions Check Process (UP.1)
+   * Checks if an activity has exceeded its limit conditions
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if limit conditions are violated
+   */
+  checkLimitConditions(activity) {
+    if (activity.isSuspended) {
+      return false;
+    }
+    if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
+      return true;
+    }
+    if (activity.attemptAbsoluteDurationLimit !== null) {
+      const attemptLimitMs = this.parseDuration(activity.attemptAbsoluteDurationLimit);
+      if (attemptLimitMs > 0) {
+        const attemptDurationMs = this.parseDuration(activity.attemptExperiencedDuration);
+        if (attemptDurationMs >= attemptLimitMs) {
+          return true;
+        }
+      }
+    }
+    if (activity.activityAbsoluteDurationLimit !== null) {
+      const activityLimitMs = this.parseDuration(activity.activityAbsoluteDurationLimit);
+      if (activityLimitMs > 0) {
+        const activityDurationMs = this.parseDuration(activity.activityExperiencedDuration);
+        if (activityDurationMs >= activityLimitMs) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  /**
+   * Parse ISO 8601 duration to milliseconds
+   * @param {string} duration - ISO 8601 duration string
+   * @return {number} - Duration in milliseconds
+   */
+  parseDuration(duration) {
+    if (!duration || typeof duration !== "string") {
+      return 0;
+    }
+    const regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
+    const matches = duration.match(regex);
+    if (!matches || duration === "P" || duration.endsWith("T")) {
+      return 0;
+    }
+    const years = parseFloat(matches[1] || "0");
+    const months = parseFloat(matches[2] || "0");
+    const weeks = parseFloat(matches[3] || "0");
+    const days = parseFloat(matches[4] || "0");
+    const hours = parseFloat(matches[5] || "0");
+    const minutes = parseFloat(matches[6] || "0");
+    const seconds = parseFloat(matches[7] || "0");
+    let totalMs = 0;
+    totalMs += years * 365.25 * 24 * 3600 * 1e3;
+    totalMs += months * 30.44 * 24 * 3600 * 1e3;
+    totalMs += weeks * 7 * 24 * 3600 * 1e3;
+    totalMs += days * 24 * 3600 * 1e3;
+    totalMs += hours * 3600 * 1e3;
+    totalMs += minutes * 60 * 1e3;
+    totalMs += seconds * 1e3;
+    return totalMs;
+  }
+  /**
+   * Get elapsed attempt seconds for an activity
+   * @param {Activity} activity - The activity
+   * @return {number} - Elapsed seconds
+   */
+  getElapsedSeconds(activity) {
+    if (this.getAttemptElapsedSecondsHook) {
+      try {
+        return this.getAttemptElapsedSecondsHook(activity) || 0;
+      } catch {
+        return 0;
+      }
+    }
+    if (activity.attemptAbsoluteStartTime) {
+      const start = new Date(activity.attemptAbsoluteStartTime).getTime();
+      const nowMs = this.now().getTime();
+      if (!Number.isNaN(start) && nowMs > start) {
+        return Math.max(0, (nowMs - start) / 1e3);
+      }
+    }
+    return 0;
+  }
+  /**
+   * Check if time limit has been exceeded
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if time limit exceeded
+   */
+  isTimeLimitExceeded(activity) {
+    let limit = activity.timeLimitDuration;
+    if (!limit && activity.attemptAbsoluteDurationLimit) {
+      limit = activity.attemptAbsoluteDurationLimit;
+    }
+    if (!limit) {
+      return false;
+    }
+    const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+    if (limitSeconds <= 0) {
+      return false;
+    }
+    const elapsedSeconds = this.getElapsedSeconds(activity);
+    return elapsedSeconds > limitSeconds;
+  }
+  /**
+   * Check if activity is outside available time range
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if outside time range
+   */
+  isOutsideAvailableTimeRange(activity) {
+    const now = this.now();
+    if (activity.beginTimeLimit) {
+      try {
+        const beginDate = new Date(activity.beginTimeLimit);
+        if (!Number.isNaN(beginDate.getTime()) && now < beginDate) {
+          return true;
+        }
+      } catch {
+      }
+    }
+    if (activity.endTimeLimit) {
+      try {
+        const endDate = new Date(activity.endTimeLimit);
+        if (!Number.isNaN(endDate.getTime()) && now > endDate) {
+          return true;
+        }
+      } catch {
+      }
+    }
+    return false;
+  }
+  /**
+   * Evaluate pre-condition rules and check if activity can be delivered
+   * @param {Activity} activity - The activity to check
+   * @return {{ canDeliver: boolean; wasSkipped: boolean }} - Delivery check result
+   */
+  canDeliverActivity(activity) {
+    if (this.checkLimitConditions(activity)) {
+      return { canDeliver: false, wasSkipped: false };
+    }
+    const preConditionResult = this.checkSequencingRules(
+      activity,
+      activity.sequencingRules.preConditionRules
+    );
+    const wasSkipped = preConditionResult === RuleActionType.SKIP;
+    return {
+      canDeliver: preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED,
+      wasSkipped
+    };
+  }
+}
+
+class DeliveryValidator {
+  activityTree;
+  eventCallback;
+  now;
+  contentDeliveredGetter = null;
+  ruleEngineProvider;
+  constructor(activityTree, eventCallback = null, options, ruleEngineProvider) {
+    this.activityTree = activityTree;
+    this.eventCallback = eventCallback;
+    this.now = options?.now || (() => /* @__PURE__ */ new Date());
+    if (ruleEngineProvider) {
+      this.ruleEngineProvider = ruleEngineProvider;
+    } else {
+      const ruleEngine = new RuleEvaluationEngine({ now: this.now });
+      this.ruleEngineProvider = () => ruleEngine;
+    }
+  }
+  /**
+   * Set getter for content delivered flag
+   */
+  setContentDeliveredGetter(getter) {
+    this.contentDeliveredGetter = getter;
+  }
+  /**
+   * Validate Activity Tree State Consistency
+   * @param {Activity} activity - Activity to validate
+   * @return {StateConsistencyResult} - Consistency result
+   */
+  validateTreeConsistency(activity) {
+    if (!this.activityTree.root) {
+      return { consistent: false, exception: "DB.1.1-4" };
+    }
+    if (!this.isActivityPartOfTree(activity, this.activityTree.root)) {
+      return { consistent: false, exception: "DB.1.1-5" };
+    }
+    const activeActivities = this.getActiveActivities();
+    if (activeActivities.length > 1) {
+      this.fireEvent("onStateInconsistency", {
+        activeActivities: activeActivities.map((a) => a.id),
+        targetActivity: activity.id
+      });
+      return { consistent: false, exception: "DB.1.1-6" };
+    }
+    let current = activity;
+    while (current?.parent) {
+      if (!current.parent.children.includes(current)) {
+        return { consistent: false, exception: "DB.1.1-7" };
+      }
+      current = current.parent;
+    }
+    return { consistent: true, exception: null };
+  }
+  /**
+   * Validate Resource Constraints
+   * @param {Activity} activity - Activity to validate
+   * @return {ResourceConstraintResult} - Resource availability result
+   */
+  validateResources(activity) {
+    const requiredResources = this.getRequiredResources(activity);
+    for (const resource of requiredResources) {
+      if (!this.isResourceAvailable(resource)) {
+        return {
+          available: false,
+          exception: "DB.1.1-8"
+          // Resource not available
+        };
+      }
+    }
+    const systemResourceCheck = this.checkSystemLimits();
+    if (!systemResourceCheck.adequate) {
+      return {
+        available: false,
+        exception: "DB.1.1-9"
+        // Insufficient system resources
+      };
+    }
+    return { available: true, exception: null };
+  }
+  /**
+   * Validate Concurrent Delivery Prevention
+   * @param {Activity} activity - Activity to validate
+   * @return {ConcurrentDeliveryResult} - Concurrency check result
+   */
+  validateConcurrentDelivery(activity) {
+    const contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
+    if (contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
+      return {
+        allowed: false,
+        exception: "DB.1.1-10"
+        // Another activity is currently being delivered
+      };
+    }
+    if (this.hasPendingDeliveryRequests()) {
+      return {
+        allowed: false,
+        exception: "DB.1.1-11"
+        // Delivery request already in queue
+      };
+    }
+    if (this.isDeliveryLocked()) {
+      return {
+        allowed: false,
+        exception: "DB.1.1-12"
+        // Delivery is currently locked
+      };
+    }
+    return { allowed: true, exception: null };
+  }
+  /**
+   * Validate Activity Dependencies
+   * @param {Activity} activity - Activity to validate
+   * @return {DependencyResult} - Dependency check result
+   */
+  validateDependencies(activity) {
+    const prerequisites = this.getPrerequisites(activity);
+    for (const prerequisite of prerequisites) {
+      if (!this.isPrerequisiteSatisfied(prerequisite, activity)) {
+        return {
+          satisfied: false,
+          exception: "DB.1.1-13"
+          // Prerequisites not satisfied
+        };
+      }
+    }
+    const objectiveDependencies = this.getObjectiveDependencies(activity);
+    for (const dependency of objectiveDependencies) {
+      if (!this.isObjectiveDependencySatisfied(dependency)) {
+        return {
+          satisfied: false,
+          exception: "DB.1.1-14"
+          // Objective dependencies not met
+        };
+      }
+    }
+    const sequencingDependencies = this.getSequencingRuleDependencies(activity);
+    if (!sequencingDependencies.satisfied) {
+      return {
+        satisfied: false,
+        exception: "DB.1.1-15"
+        // Sequencing dependencies not met
+      };
+    }
+    return { satisfied: true, exception: null };
+  }
+  /**
+   * Check Activity Process (UP.5)
+   * Validates if an activity can be delivered based on sequencing rules and limit conditions
+   * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if activity is valid (not disabled, limits not violated)
+   */
+  checkActivity(activity, evaluationActivity = activity, emitEvent = true) {
+    if (!activity.isAvailable) {
+      return false;
+    }
+    const disabledRules = activity.sequencingRules.preConditionRules.filter(
+      (rule) => rule.action === RuleActionType.DISABLED
+    );
+    if (this.ruleEngineProvider().checkSequencingRules(evaluationActivity, disabledRules) !== null) {
+      return false;
+    }
+    if (!this.checkLimitConditions(activity, emitEvent)) {
+      return false;
+    }
+    return true;
+  }
+  /**
+   * Limit Conditions Check Process (UP.1)
+   * Checks if any limit conditions are violated for the activity
+   * @param {Activity} activity - The activity to check limit conditions for
+   * @return {boolean} - True if limit conditions are met, false if violated
+   */
+  checkLimitConditions(activity, emitEvent = true) {
+    let result = true;
+    let failureReason = "";
+    if (activity.isSuspended) {
+      if (emitEvent) this.fireEvent("onLimitConditionCheck", {
+        activity,
+        result: true,
+        failureReason: "",
+        attemptInProgress: true
+      });
+      return true;
+    }
+    if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
+      if (activity.attemptCount >= activity.attemptLimit) {
+        result = false;
+        failureReason = "Attempt limit exceeded";
+      }
+    }
+    if (result && activity.attemptAbsoluteDurationLimit) {
+      const limitDuration = getDurationAsSeconds(
+        activity.attemptAbsoluteDurationLimit,
+        scorm2004_regex.CMITimespan
+      );
+      if (limitDuration > 0) {
+        const currentDuration = getDurationAsSeconds(
+          activity.attemptAbsoluteDuration || "PT0H0M0S",
+          scorm2004_regex.CMITimespan
+        );
+        if (currentDuration >= limitDuration) {
+          result = false;
+          failureReason = "Attempt duration limit exceeded";
+        }
+      }
+    }
+    if (result && activity.activityAbsoluteDurationLimit) {
+      const limitDuration = getDurationAsSeconds(
+        activity.activityAbsoluteDurationLimit,
+        scorm2004_regex.CMITimespan
+      );
+      if (limitDuration > 0) {
+        const currentDuration = getDurationAsSeconds(
+          activity.activityAbsoluteDuration || "PT0H0M0S",
+          scorm2004_regex.CMITimespan
+        );
+        if (currentDuration >= limitDuration) {
+          result = false;
+          failureReason = "Activity duration limit exceeded";
+        }
+      }
+    }
+    if (result && activity.beginTimeLimit) {
+      const currentTime = this.now();
+      const beginTime = new Date(activity.beginTimeLimit);
+      if (currentTime < beginTime) {
+        result = false;
+        failureReason = "Not yet time to begin";
+      }
+    }
+    if (result && activity.endTimeLimit) {
+      const currentTime = this.now();
+      const endTime = new Date(activity.endTimeLimit);
+      if (currentTime > endTime) {
+        result = false;
+        failureReason = "Time limit expired";
+      }
+    }
+    if (emitEvent) this.fireEvent("onLimitConditionCheck", {
+      activity,
+      result,
+      failureReason,
+      checks: {
+        attemptLimit: activity.attemptLimit,
+        attemptCount: activity.attemptCount,
+        attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
+        activityDurationLimit: activity.activityAbsoluteDurationLimit,
+        beginTimeLimit: activity.beginTimeLimit,
+        endTimeLimit: activity.endTimeLimit
+      }
+    });
+    return result;
+  }
+  /**
+   * Check if activity is part of tree
+   */
+  isActivityPartOfTree(activity, root) {
+    if (activity === root) {
+      return true;
+    }
+    for (const child of root.children) {
+      if (this.isActivityPartOfTree(activity, child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * Get all active activities in the tree
+   */
+  getActiveActivities() {
+    const activeActivities = [];
+    if (this.activityTree.root) {
+      this.collectActiveActivities(this.activityTree.root, activeActivities);
+    }
+    return activeActivities;
+  }
+  collectActiveActivities(activity, activeActivities) {
+    if (activity.isActive) {
+      activeActivities.push(activity);
+    }
+    for (const child of activity.children) {
+      this.collectActiveActivities(child, activeActivities);
+    }
+  }
+  /**
+   * Get required resources for activity
+   */
+  getRequiredResources(activity) {
+    const resources = [];
+    const activityInfo = (activity.title + " " + activity.location).toLowerCase();
+    if (activityInfo.includes("video") || activityInfo.includes("multimedia")) {
+      resources.push("video-codec");
+    }
+    if (activityInfo.includes("audio") || activityInfo.includes("sound")) {
+      resources.push("audio-codec");
+    }
+    if (activityInfo.includes("flash") || activityInfo.includes(".swf")) {
+      resources.push("flash-plugin");
+    }
+    if (activityInfo.includes("java") || activityInfo.includes("applet")) {
+      resources.push("java-runtime");
+    }
+    if (activity.children && activity.children.length > 0) {
+      resources.push("high-bandwidth");
+    }
+    if (activity.attemptAbsoluteDurationLimit && this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
+      resources.push("extended-storage");
+    }
+    if (activity.attemptLimit && activity.attemptLimit > 1) {
+      resources.push("persistent-storage");
+    }
+    return resources;
+  }
+  /**
+   * Check if resource is available
+   */
+  isResourceAvailable(resource) {
+    try {
+      switch (resource) {
+        case "video-codec":
+          return !!document.createElement("video").canPlayType;
+        case "audio-codec":
+          return !!document.createElement("audio").canPlayType;
+        case "flash-plugin":
+          return navigator.plugins && Array.from(navigator.plugins).some(
+            (plugin) => plugin.name === "Shockwave Flash"
+          );
+        case "java-runtime":
+          return navigator.plugins && Array.from(navigator.plugins).some((plugin) => plugin.name === "Java");
+        case "high-bandwidth":
+          if ("connection" in navigator) {
+            const connection = navigator.connection;
+            return connection.effectiveType === "4g" || connection.downlink > 5;
+          }
+          return true;
+        // Assume available if can't detect
+        case "extended-storage":
+          return true;
+        case "persistent-storage":
+          return "localStorage" in window && "sessionStorage" in window;
+        default:
+          return true;
+      }
+    } catch (error) {
+      return false;
+    }
+  }
+  /**
+   * Check system resource limits
+   */
+  checkSystemLimits() {
+    try {
+      let adequate = true;
+      if ("memory" in performance) {
+        const memory = performance.memory;
+        const memoryUsagePercent = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
+        if (memoryUsagePercent > 0.8) {
+          adequate = false;
+        }
+      }
+      if ("deviceMemory" in navigator) {
+        const deviceMemory = navigator.deviceMemory;
+        if (deviceMemory < 2) {
+          adequate = false;
+        }
+      }
+      if ("hardwareConcurrency" in navigator) {
+        const cores = navigator.hardwareConcurrency;
+        if (cores < 2) {
+          adequate = false;
+        }
+      }
+      if ("connection" in navigator) {
+        const connection = navigator.connection;
+        if (connection.saveData || connection.effectiveType === "slow-2g") {
+          adequate = false;
+        }
+      }
+      return { adequate };
+    } catch (error) {
+      return { adequate: true };
+    }
+  }
+  hasPendingDeliveryRequests() {
+    if (this.activityTree && this.activityTree.pendingRequests) {
+      return this.activityTree.pendingRequests.length > 0;
+    }
+    if (typeof window !== "undefined" && window.pendingScormRequests) {
+      return window.pendingScormRequests > 0;
+    }
+    return false;
+  }
+  isDeliveryLocked() {
+    if (this.activityTree && this.activityTree.navigationLocked) {
+      return true;
+    }
+    if (this.activityTree && this.activityTree.terminationInProgress) {
+      return true;
+    }
+    const resourceCheck = this.checkSystemLimits();
+    if (!resourceCheck.adequate) {
+      return true;
+    }
+    return !!(typeof window !== "undefined" && window.scormMaintenanceMode);
+  }
+  /**
+   * Get activity prerequisites
+   */
+  getPrerequisites(activity) {
+    const prerequisites = [];
+    if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
+      for (const rule of activity.sequencingRules.preConditionRules) {
+        if (rule.conditions && rule.conditions.length > 0) {
+          for (const condition of rule.conditions) {
+            if (condition.referencedObjectiveID && condition.referencedObjectiveID !== activity.id) {
+              prerequisites.push(condition.referencedObjectiveID);
+            }
+          }
+        }
+      }
+    }
+    if (activity.parent && activity.sequencingControls && !activity.sequencingControls.choiceExit) {
+      const siblings = activity.parent.children;
+      if (siblings) {
+        const activityIndex = siblings.indexOf(activity);
+        for (let i = 0; i < activityIndex; i++) {
+          const sibling = siblings[i];
+          if (sibling) {
+            prerequisites.push(sibling.id);
+          }
+        }
+      }
+    }
+    if (activity.prerequisiteActivities) {
+      prerequisites.push(...activity.prerequisiteActivities);
+    }
+    return Array.from(new Set(prerequisites));
+  }
+  /**
+   * Check if prerequisite is satisfied
+   */
+  isPrerequisiteSatisfied(prerequisiteId, _activity) {
+    const prerequisite = this.activityTree.getActivity(prerequisiteId);
+    if (!prerequisite) {
+      return false;
+    }
+    return prerequisite.completionStatus === "completed";
+  }
+  /**
+   * Get objective dependencies
+   */
+  getObjectiveDependencies(activity) {
+    const dependencies = [];
+    const objectives = activity.objectives;
+    if (objectives && objectives.length > 0) {
+      for (const objective of objectives) {
+        if (objective.globalObjectiveID) {
+          dependencies.push(objective.globalObjectiveID);
+        }
+        if (!objective.satisfiedByMeasure && objective.readNormalizedMeasure) {
+          dependencies.push(objective.id + "_measure");
+        }
+      }
+    }
+    if (activity.sequencingRules) {
+      const allRules = [
+        ...activity.sequencingRules.preConditionRules || [],
+        ...activity.sequencingRules.exitConditionRules || [],
+        ...activity.sequencingRules.postConditionRules || []
+      ];
+      for (const rule of allRules) {
+        if (rule.conditions && rule.conditions.length > 0) {
+          for (const condition of rule.conditions) {
+            if (condition.objectiveReference && condition.objectiveReference !== activity.id) {
+              dependencies.push(condition.objectiveReference);
+            }
+          }
+        }
+      }
+    }
+    return Array.from(new Set(dependencies));
+  }
+  /**
+   * Check if objective dependency is satisfied
+   */
+  isObjectiveDependencySatisfied(objectiveId) {
+    if (this.activityTree && this.activityTree.globalObjectives) {
+      const globalObjectives = this.activityTree.globalObjectives;
+      const globalObjective = globalObjectives[objectiveId];
+      if (globalObjective) {
+        return globalObjective.satisfied === true && globalObjective.statusKnown === true;
+      }
+    }
+    if (objectiveId.endsWith("_measure")) {
+      const baseObjectiveId = objectiveId.replace("_measure", "");
+      if (this.activityTree && this.activityTree.globalObjectives) {
+        const globalObjectives = this.activityTree.globalObjectives;
+        const globalObjective = globalObjectives[baseObjectiveId];
+        if (globalObjective) {
+          return globalObjective.measureKnown === true && globalObjective.normalizedMeasure >= 0;
+        }
+      }
+    }
+    const referencedActivity = this.activityTree.getActivity(objectiveId);
+    if (referencedActivity) {
+      return referencedActivity.objectiveSatisfiedStatus && referencedActivity.objectiveMeasureStatus;
+    }
+    return false;
+  }
+  getSequencingRuleDependencies(activity) {
+    let satisfied = true;
+    try {
+      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
+        for (const rule of activity.sequencingRules.preConditionRules) {
+          if (rule.conditions && rule.conditions.length > 0) {
+            for (const condition of rule.conditions) {
+              const conditionType = condition.conditionType || condition.condition;
+              switch (conditionType) {
+                case "activityProgressKnown":
+                  if (!activity.progressMeasureStatus) satisfied = false;
+                  break;
+                case "objectiveStatusKnown":
+                case "objectiveSatisfied": {
+                  const objectiveId = condition.referencedObjectiveID || activity.id;
+                  if (!this.isObjectiveDependencySatisfied(objectiveId))
+                    satisfied = false;
+                  break;
+                }
+                case "attemptLimitExceeded":
+                  if (activity.attemptLimit === null) satisfied = false;
+                  break;
+                case "timeLimitExceeded":
+                  if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit)
+                    satisfied = false;
+                  break;
+                case "always":
+                case "never":
+                  break;
+                default:
+                  satisfied = false;
+              }
+            }
+          }
+        }
+      }
+      if (activity.sequencingRules && activity.sequencingRules.exitConditionRules) {
+        for (const rule of activity.sequencingRules.exitConditionRules) {
+          if (rule.conditions && rule.conditions.length > 0) {
+            for (const condition of rule.conditions) {
+              const conditionType = condition.conditionType || condition.condition;
+              if (["objectiveStatusKnown", "objectiveSatisfied"].includes(
+                conditionType
+              )) {
+                const objectiveId = condition.referencedObjectiveID || activity.id;
+                if (!this.isObjectiveDependencySatisfied(objectiveId))
+                  satisfied = false;
+              }
+            }
+          }
+        }
+      }
+      if (activity.rollupRules && activity.rollupRules.rules) {
+        for (const rule of activity.rollupRules.rules) {
+          if (rule.conditions && rule.conditions.length > 0) {
+            if (activity.children && activity.children.length > 0) {
+              for (const child of activity.children) {
+                if (!child.isCompleted) {
+                  satisfied = false;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      satisfied = false;
+    }
+    return { satisfied };
+  }
+  /**
+   * Helper method to parse ISO 8601 duration to minutes
+   */
+  parseDurationToMinutes(duration) {
+    return getDurationAsSeconds(duration, scorm2004_regex.CMITimespan) / 60;
+  }
+  /**
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
+   */
+  fireEvent(eventType, data) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
+      }
+    } catch (error) {
+      console.warn(`Failed to fire delivery validator event ${eventType}: ${error}`);
+    }
   }
 }
 
@@ -2408,350 +3356,6 @@ class ChoiceConstraintValidator {
    */
   hasAttemptLimitViolation(targetActivity) {
     return !!(targetActivity.attemptLimit && targetActivity.attemptCount >= targetActivity.attemptLimit);
-  }
-}
-
-var SequencingRequestType = /* @__PURE__ */ ((SequencingRequestType2) => {
-  SequencingRequestType2["START"] = "start";
-  SequencingRequestType2["RESUME_ALL"] = "resumeAll";
-  SequencingRequestType2["CONTINUE"] = "continue";
-  SequencingRequestType2["PREVIOUS"] = "previous";
-  SequencingRequestType2["CHOICE"] = "choice";
-  SequencingRequestType2["JUMP"] = "jump";
-  SequencingRequestType2["EXIT"] = "exit";
-  SequencingRequestType2["EXIT_PARENT"] = "exitParent";
-  SequencingRequestType2["EXIT_ALL"] = "exitAll";
-  SequencingRequestType2["ABANDON"] = "abandon";
-  SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
-  SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
-  SequencingRequestType2["RETRY"] = "retry";
-  SequencingRequestType2["RETRY_ALL"] = "retryAll";
-  return SequencingRequestType2;
-})(SequencingRequestType || {});
-var DeliveryRequestType = /* @__PURE__ */ ((DeliveryRequestType2) => {
-  DeliveryRequestType2["DELIVER"] = "deliver";
-  DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
-  return DeliveryRequestType2;
-})(DeliveryRequestType || {});
-class SequencingResult {
-  deliveryRequest;
-  targetActivity;
-  exception;
-  endSequencingSession;
-  constructor(deliveryRequest = "doNotDeliver" /* DO_NOT_DELIVER */, targetActivity = null, exception = null, endSequencingSession = false) {
-    this.deliveryRequest = deliveryRequest;
-    this.targetActivity = targetActivity;
-    this.exception = exception;
-    this.endSequencingSession = endSequencingSession;
-  }
-}
-class FlowSubprocessResult {
-  identifiedActivity;
-  deliverable;
-  exception;
-  endSequencingSession;
-  constructor(identifiedActivity, deliverable, exception = null, endSequencingSession = false) {
-    this.identifiedActivity = identifiedActivity;
-    this.deliverable = deliverable;
-    this.exception = exception;
-    this.endSequencingSession = endSequencingSession;
-  }
-}
-class ChoiceTraversalResult {
-  activity;
-  exception;
-  constructor(activity, exception = null) {
-    this.activity = activity;
-    this.exception = exception;
-  }
-}
-var FlowSubprocessMode = /* @__PURE__ */ ((FlowSubprocessMode2) => {
-  FlowSubprocessMode2["FORWARD"] = "forward";
-  FlowSubprocessMode2["BACKWARD"] = "backward";
-  return FlowSubprocessMode2;
-})(FlowSubprocessMode || {});
-
-class RuleEvaluationEngine {
-  now;
-  getAttemptElapsedSecondsHook;
-  constructor(options = {}) {
-    this.now = options.now || (() => /* @__PURE__ */ new Date());
-    this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
-  }
-  /**
-   * Sequencing Rules Check Process (UP.2)
-   * General process for evaluating a set of sequencing rules
-   * @param {Activity} activity - The activity to evaluate rules for
-   * @param {SequencingRule[]} rules - The rules to evaluate
-   * @return {RuleActionType | null} - The action to take, or null if no rules apply
-   */
-  checkSequencingRules(activity, rules) {
-    for (const rule of rules) {
-      if (this.checkRuleSubprocess(activity, rule)) {
-        return rule.action;
-      }
-    }
-    return null;
-  }
-  /**
-   * Sequencing Rules Check Subprocess (UP.2.1)
-   * Evaluates individual sequencing rule conditions
-   * @param {Activity} activity - The activity to evaluate the rule for
-   * @param {SequencingRule} rule - The rule to evaluate
-   * @return {boolean} - True only when the rule evaluates to definite true
-   */
-  checkRuleSubprocess(activity, rule) {
-    return rule.evaluate(activity, this.now, this.getAttemptElapsedSecondsHook ?? void 0);
-  }
-  /**
-   * Exit Action Rules Subprocess (TB.2.1)
-   * Evaluates the exit condition rules for an activity
-   * @param {Activity} activity - The activity to evaluate exit rules for
-   * @return {RuleActionType | null} - The exit action to process, if any
-   */
-  evaluateExitRules(activity) {
-    const exitAction = this.checkSequencingRules(
-      activity,
-      activity.sequencingRules.exitConditionRules
-    );
-    if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
-      return exitAction;
-    }
-    return null;
-  }
-  /**
-   * Post Condition Rules Subprocess (TB.2.2)
-   * Evaluates the post-condition rules for an activity after delivery
-   * @param {Activity} activity - The activity to evaluate post-condition rules for
-   * @return {RuleActionType | null} - The action to take, if any
-   */
-  evaluatePostConditionAction(activity) {
-    const postAction = this.checkSequencingRules(
-      activity,
-      activity.sequencingRules.postConditionRules
-    );
-    const validActions = [
-      RuleActionType.EXIT_PARENT,
-      RuleActionType.EXIT_ALL,
-      RuleActionType.RETRY,
-      RuleActionType.RETRY_ALL,
-      RuleActionType.CONTINUE,
-      RuleActionType.PREVIOUS,
-      RuleActionType.STOP_FORWARD_TRAVERSAL
-    ];
-    if (postAction && validActions.includes(postAction)) {
-      return postAction;
-    }
-    return null;
-  }
-  /**
-   * Evaluate post-condition rules and map to sequencing/termination requests
-   * @param {Activity} activity - The activity to evaluate
-   * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
-   */
-  evaluatePostConditions(activity) {
-    const postAction = this.evaluatePostConditionAction(activity);
-    if (!postAction) {
-      return {
-        sequencingRequest: null,
-        terminationRequest: null
-      };
-    }
-    switch (postAction) {
-      case RuleActionType.EXIT_PARENT:
-        return {
-          sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_PARENT
-        };
-      case RuleActionType.EXIT_ALL:
-        return {
-          sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_ALL
-        };
-      case RuleActionType.RETRY:
-        return {
-          sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: null
-        };
-      case RuleActionType.RETRY_ALL:
-        return {
-          sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: SequencingRequestType.EXIT_ALL
-        };
-      case RuleActionType.CONTINUE:
-        return {
-          sequencingRequest: SequencingRequestType.CONTINUE,
-          terminationRequest: null
-        };
-      case RuleActionType.PREVIOUS:
-        return {
-          sequencingRequest: SequencingRequestType.PREVIOUS,
-          terminationRequest: null
-        };
-      case RuleActionType.STOP_FORWARD_TRAVERSAL:
-        activity.sequencingControls.stopForwardTraversal = true;
-        return {
-          sequencingRequest: null,
-          terminationRequest: null
-        };
-      default:
-        return {
-          sequencingRequest: null,
-          terminationRequest: null
-        };
-    }
-  }
-  /**
-   * Limit Conditions Check Process (UP.1)
-   * Checks if an activity has exceeded its limit conditions
-   * @param {Activity} activity - The activity to check
-   * @return {boolean} - True if limit conditions are violated
-   */
-  checkLimitConditions(activity) {
-    if (activity.isSuspended) {
-      return false;
-    }
-    if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
-      return true;
-    }
-    if (activity.attemptAbsoluteDurationLimit !== null) {
-      const attemptLimitMs = this.parseDuration(activity.attemptAbsoluteDurationLimit);
-      if (attemptLimitMs > 0) {
-        const attemptDurationMs = this.parseDuration(activity.attemptExperiencedDuration);
-        if (attemptDurationMs >= attemptLimitMs) {
-          return true;
-        }
-      }
-    }
-    if (activity.activityAbsoluteDurationLimit !== null) {
-      const activityLimitMs = this.parseDuration(activity.activityAbsoluteDurationLimit);
-      if (activityLimitMs > 0) {
-        const activityDurationMs = this.parseDuration(activity.activityExperiencedDuration);
-        if (activityDurationMs >= activityLimitMs) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-  /**
-   * Parse ISO 8601 duration to milliseconds
-   * @param {string} duration - ISO 8601 duration string
-   * @return {number} - Duration in milliseconds
-   */
-  parseDuration(duration) {
-    if (!duration || typeof duration !== "string") {
-      return 0;
-    }
-    const regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
-    const matches = duration.match(regex);
-    if (!matches || duration === "P" || duration.endsWith("T")) {
-      return 0;
-    }
-    const years = parseFloat(matches[1] || "0");
-    const months = parseFloat(matches[2] || "0");
-    const weeks = parseFloat(matches[3] || "0");
-    const days = parseFloat(matches[4] || "0");
-    const hours = parseFloat(matches[5] || "0");
-    const minutes = parseFloat(matches[6] || "0");
-    const seconds = parseFloat(matches[7] || "0");
-    let totalMs = 0;
-    totalMs += years * 365.25 * 24 * 3600 * 1e3;
-    totalMs += months * 30.44 * 24 * 3600 * 1e3;
-    totalMs += weeks * 7 * 24 * 3600 * 1e3;
-    totalMs += days * 24 * 3600 * 1e3;
-    totalMs += hours * 3600 * 1e3;
-    totalMs += minutes * 60 * 1e3;
-    totalMs += seconds * 1e3;
-    return totalMs;
-  }
-  /**
-   * Get elapsed attempt seconds for an activity
-   * @param {Activity} activity - The activity
-   * @return {number} - Elapsed seconds
-   */
-  getElapsedSeconds(activity) {
-    if (this.getAttemptElapsedSecondsHook) {
-      try {
-        return this.getAttemptElapsedSecondsHook(activity) || 0;
-      } catch {
-        return 0;
-      }
-    }
-    if (activity.attemptAbsoluteStartTime) {
-      const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-      const nowMs = this.now().getTime();
-      if (!Number.isNaN(start) && nowMs > start) {
-        return Math.max(0, (nowMs - start) / 1e3);
-      }
-    }
-    return 0;
-  }
-  /**
-   * Check if time limit has been exceeded
-   * @param {Activity} activity - The activity to check
-   * @return {boolean} - True if time limit exceeded
-   */
-  isTimeLimitExceeded(activity) {
-    let limit = activity.timeLimitDuration;
-    if (!limit && activity.attemptAbsoluteDurationLimit) {
-      limit = activity.attemptAbsoluteDurationLimit;
-    }
-    if (!limit) {
-      return false;
-    }
-    const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-    if (limitSeconds <= 0) {
-      return false;
-    }
-    const elapsedSeconds = this.getElapsedSeconds(activity);
-    return elapsedSeconds > limitSeconds;
-  }
-  /**
-   * Check if activity is outside available time range
-   * @param {Activity} activity - The activity to check
-   * @return {boolean} - True if outside time range
-   */
-  isOutsideAvailableTimeRange(activity) {
-    const now = this.now();
-    if (activity.beginTimeLimit) {
-      try {
-        const beginDate = new Date(activity.beginTimeLimit);
-        if (!Number.isNaN(beginDate.getTime()) && now < beginDate) {
-          return true;
-        }
-      } catch {
-      }
-    }
-    if (activity.endTimeLimit) {
-      try {
-        const endDate = new Date(activity.endTimeLimit);
-        if (!Number.isNaN(endDate.getTime()) && now > endDate) {
-          return true;
-        }
-      } catch {
-      }
-    }
-    return false;
-  }
-  /**
-   * Evaluate pre-condition rules and check if activity can be delivered
-   * @param {Activity} activity - The activity to check
-   * @return {{ canDeliver: boolean; wasSkipped: boolean }} - Delivery check result
-   */
-  canDeliverActivity(activity) {
-    if (this.checkLimitConditions(activity)) {
-      return { canDeliver: false, wasSkipped: false };
-    }
-    const preConditionResult = this.checkSequencingRules(
-      activity,
-      activity.sequencingRules.preConditionRules
-    );
-    const wasSkipped = preConditionResult === RuleActionType.SKIP;
-    return {
-      canDeliver: preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED,
-      wasSkipped
-    };
   }
 }
 
@@ -3929,7 +4533,11 @@ class ChoiceRequestHandler {
         targetActivity
       );
       const hiddenByRule = pathActivity.sequencingRules.preConditionRules.some(
-        (rule) => rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(evaluationActivity, this.getNow?.(), this.getElapsedSeconds?.()) === true
+        (rule) => rule.action === RuleActionType.HIDE_FROM_CHOICE && rule.evaluate(
+          evaluationActivity,
+          this.getNow?.() ?? (() => /* @__PURE__ */ new Date()),
+          this.getElapsedSeconds?.() ?? null
+        ) === true
       );
       if (hiddenByRule) {
         result.exception = "SB.2.9-4";
@@ -4306,13 +4914,15 @@ class SequencingProcess {
       () => this.getAttemptElapsedSecondsHook
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+    this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
   }
   _getAttemptElapsedSecondsHook;
   /**
    * Get/set the elapsed seconds hook (used for time-based rules)
    */
+  // Null, not undefined, so RuleCondition.evaluate skips another process's static hook.
   get getAttemptElapsedSecondsHook() {
-    return this._getAttemptElapsedSecondsHook;
+    return this._getAttemptElapsedSecondsHook ?? null;
   }
   set getAttemptElapsedSecondsHook(fn) {
     this._getAttemptElapsedSecondsHook = fn;
@@ -4333,6 +4943,7 @@ class SequencingProcess {
       () => this.getAttemptElapsedSecondsHook
     );
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+    this.exitHandler = new ExitRequestHandler(this.activityTree, this.ruleEngine);
   }
   constructor(activityTree, _sequencingRules, _sequencingControls, _adlNav = null, options) {
     this.activityTree = activityTree;
@@ -4526,18 +5137,15 @@ class SequencingProcess {
         if (jumpTarget.children.length > 0) {
           return { valid: false, exception: "DB.1.1-1" };
         }
-        const path = [];
-        for (let node = jumpTarget; node; node = node.parent) {
-          path.unshift(node);
-        }
-        for (const activity of path) {
-          const disabledRules = activity.sequencingRules.preConditionRules.filter(
-            (rule) => rule.action === RuleActionType.DISABLED
-          );
-          if (!activity.isAvailable || this.ruleEngine.checkLimitConditions(activity) || this.ruleEngine.checkSequencingRules(
-            this.traversalService.getActivityForEvaluation(activity, jumpTarget),
-            disabledRules
-          ) === RuleActionType.DISABLED) {
+        const validator = new DeliveryValidator(
+          this.activityTree,
+          null,
+          { now: () => this.now() },
+          () => this.ruleEngine
+        );
+        for (let activity = jumpTarget; activity; activity = activity.parent) {
+          const evaluationActivity = this.traversalService.getActivityForEvaluation(activity, jumpTarget);
+          if (!validator.checkActivity(activity, evaluationActivity, false)) {
             return { valid: false, exception: "DB.1.1-3" };
           }
         }
@@ -4949,8 +5557,7 @@ class CMIValueAccessService {
       return global_constants.SCORM_FALSE;
     }
     this.context.setLastErrorCode("0");
-    const targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
-    const structure = targetPath ? [...targetPath[1].split("."), targetPath[2]] : CMIElement.split(".");
+    const structure = splitCMIElement(CMIElement);
     let refObject = this.context.getDataModel();
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
@@ -5026,7 +5633,7 @@ class CMIValueAccessService {
       return "";
     }
     this.context.setLastErrorCode("0");
-    const structure = CMIElement.split(".");
+    const structure = splitCMIElement(CMIElement);
     let refObject = this.context.getDataModel();
     let attribute = null;
     let foundFirstIndex = false;
@@ -5340,6 +5947,10 @@ class CMIValueAccessService {
       error: false
     };
   }
+}
+function splitCMIElement(element) {
+  const targetPath = element.match(/^(.*)\.(\{target=[^{}]*\})$/);
+  return targetPath ? [...targetPath[1].split("."), targetPath[2]] : element.split(".");
 }
 
 class LoggingService {
@@ -11986,7 +12597,11 @@ class TerminationHandler {
     recursionDepth++;
     const exitRules = activity.sequencingRules.exitConditionRules;
     for (const rule of exitRules) {
-      if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
+      if (rule.evaluate(
+        activity,
+        this.sequencingProcess.now,
+        this.sequencingProcess.getAttemptElapsedSecondsHook
+      )) {
         if (rule.action === RuleActionType.EXIT) {
           return { action: "EXIT", recursionDepth };
         } else if (rule.action === RuleActionType.EXIT_PARENT) {
@@ -12152,7 +12767,11 @@ class TerminationHandler {
   exitActionRulesSubprocess(activity) {
     const exitRules = activity.sequencingRules.exitConditionRules;
     for (const rule of exitRules) {
-      if (rule.evaluate(activity, this.sequencingProcess.now, this.sequencingProcess.getAttemptElapsedSecondsHook)) {
+      if (rule.evaluate(
+        activity,
+        this.sequencingProcess.now,
+        this.sequencingProcess.getAttemptElapsedSecondsHook
+      )) {
         if (rule.action === RuleActionType.EXIT) {
           return "EXIT";
         } else if (rule.action === RuleActionType.EXIT_PARENT) {
@@ -14334,609 +14953,6 @@ class SequencingStateManager {
       }
     } catch (error) {
       console.warn(`Failed to fire state manager event ${eventType}: ${error}`);
-    }
-  }
-}
-
-class DeliveryValidator {
-  activityTree;
-  eventCallback;
-  now;
-  contentDeliveredGetter = null;
-  ruleEngineProvider;
-  constructor(activityTree, eventCallback = null, options, ruleEngineProvider) {
-    this.activityTree = activityTree;
-    this.eventCallback = eventCallback;
-    this.now = options?.now || (() => /* @__PURE__ */ new Date());
-    if (ruleEngineProvider) {
-      this.ruleEngineProvider = ruleEngineProvider;
-    } else {
-      const ruleEngine = new RuleEvaluationEngine({ now: this.now });
-      this.ruleEngineProvider = () => ruleEngine;
-    }
-  }
-  /**
-   * Set getter for content delivered flag
-   */
-  setContentDeliveredGetter(getter) {
-    this.contentDeliveredGetter = getter;
-  }
-  /**
-   * Validate Activity Tree State Consistency
-   * @param {Activity} activity - Activity to validate
-   * @return {StateConsistencyResult} - Consistency result
-   */
-  validateTreeConsistency(activity) {
-    if (!this.activityTree.root) {
-      return { consistent: false, exception: "DB.1.1-4" };
-    }
-    if (!this.isActivityPartOfTree(activity, this.activityTree.root)) {
-      return { consistent: false, exception: "DB.1.1-5" };
-    }
-    const activeActivities = this.getActiveActivities();
-    if (activeActivities.length > 1) {
-      this.fireEvent("onStateInconsistency", {
-        activeActivities: activeActivities.map((a) => a.id),
-        targetActivity: activity.id
-      });
-      return { consistent: false, exception: "DB.1.1-6" };
-    }
-    let current = activity;
-    while (current?.parent) {
-      if (!current.parent.children.includes(current)) {
-        return { consistent: false, exception: "DB.1.1-7" };
-      }
-      current = current.parent;
-    }
-    return { consistent: true, exception: null };
-  }
-  /**
-   * Validate Resource Constraints
-   * @param {Activity} activity - Activity to validate
-   * @return {ResourceConstraintResult} - Resource availability result
-   */
-  validateResources(activity) {
-    const requiredResources = this.getRequiredResources(activity);
-    for (const resource of requiredResources) {
-      if (!this.isResourceAvailable(resource)) {
-        return {
-          available: false,
-          exception: "DB.1.1-8"
-          // Resource not available
-        };
-      }
-    }
-    const systemResourceCheck = this.checkSystemLimits();
-    if (!systemResourceCheck.adequate) {
-      return {
-        available: false,
-        exception: "DB.1.1-9"
-        // Insufficient system resources
-      };
-    }
-    return { available: true, exception: null };
-  }
-  /**
-   * Validate Concurrent Delivery Prevention
-   * @param {Activity} activity - Activity to validate
-   * @return {ConcurrentDeliveryResult} - Concurrency check result
-   */
-  validateConcurrentDelivery(activity) {
-    const contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
-    if (contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
-      return {
-        allowed: false,
-        exception: "DB.1.1-10"
-        // Another activity is currently being delivered
-      };
-    }
-    if (this.hasPendingDeliveryRequests()) {
-      return {
-        allowed: false,
-        exception: "DB.1.1-11"
-        // Delivery request already in queue
-      };
-    }
-    if (this.isDeliveryLocked()) {
-      return {
-        allowed: false,
-        exception: "DB.1.1-12"
-        // Delivery is currently locked
-      };
-    }
-    return { allowed: true, exception: null };
-  }
-  /**
-   * Validate Activity Dependencies
-   * @param {Activity} activity - Activity to validate
-   * @return {DependencyResult} - Dependency check result
-   */
-  validateDependencies(activity) {
-    const prerequisites = this.getPrerequisites(activity);
-    for (const prerequisite of prerequisites) {
-      if (!this.isPrerequisiteSatisfied(prerequisite, activity)) {
-        return {
-          satisfied: false,
-          exception: "DB.1.1-13"
-          // Prerequisites not satisfied
-        };
-      }
-    }
-    const objectiveDependencies = this.getObjectiveDependencies(activity);
-    for (const dependency of objectiveDependencies) {
-      if (!this.isObjectiveDependencySatisfied(dependency)) {
-        return {
-          satisfied: false,
-          exception: "DB.1.1-14"
-          // Objective dependencies not met
-        };
-      }
-    }
-    const sequencingDependencies = this.getSequencingRuleDependencies(activity);
-    if (!sequencingDependencies.satisfied) {
-      return {
-        satisfied: false,
-        exception: "DB.1.1-15"
-        // Sequencing dependencies not met
-      };
-    }
-    return { satisfied: true, exception: null };
-  }
-  /**
-   * Check Activity Process (UP.5)
-   * Validates if an activity can be delivered based on sequencing rules and limit conditions
-   * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
-   * @param {Activity} activity - The activity to check
-   * @return {boolean} - True if activity is valid (not disabled, limits not violated)
-   */
-  checkActivity(activity) {
-    if (!activity.isAvailable) {
-      return false;
-    }
-    const disabledRules = activity.sequencingRules.preConditionRules.filter(
-      (rule) => rule.action === RuleActionType.DISABLED
-    );
-    if (this.ruleEngineProvider().checkSequencingRules(activity, disabledRules) !== null) {
-      return false;
-    }
-    if (!this.checkLimitConditions(activity)) {
-      return false;
-    }
-    return true;
-  }
-  /**
-   * Limit Conditions Check Process (UP.1)
-   * Checks if any limit conditions are violated for the activity
-   * @param {Activity} activity - The activity to check limit conditions for
-   * @return {boolean} - True if limit conditions are met, false if violated
-   */
-  checkLimitConditions(activity) {
-    let result = true;
-    let failureReason = "";
-    if (activity.isSuspended) {
-      this.fireEvent("onLimitConditionCheck", {
-        activity,
-        result: true,
-        failureReason: "",
-        attemptInProgress: true
-      });
-      return true;
-    }
-    if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
-      if (activity.attemptCount >= activity.attemptLimit) {
-        result = false;
-        failureReason = "Attempt limit exceeded";
-      }
-    }
-    if (result && activity.attemptAbsoluteDurationLimit) {
-      const limitDuration = getDurationAsSeconds(
-        activity.attemptAbsoluteDurationLimit,
-        scorm2004_regex.CMITimespan
-      );
-      if (limitDuration > 0) {
-        const currentDuration = getDurationAsSeconds(
-          activity.attemptAbsoluteDuration || "PT0H0M0S",
-          scorm2004_regex.CMITimespan
-        );
-        if (currentDuration >= limitDuration) {
-          result = false;
-          failureReason = "Attempt duration limit exceeded";
-        }
-      }
-    }
-    if (result && activity.activityAbsoluteDurationLimit) {
-      const limitDuration = getDurationAsSeconds(
-        activity.activityAbsoluteDurationLimit,
-        scorm2004_regex.CMITimespan
-      );
-      if (limitDuration > 0) {
-        const currentDuration = getDurationAsSeconds(
-          activity.activityAbsoluteDuration || "PT0H0M0S",
-          scorm2004_regex.CMITimespan
-        );
-        if (currentDuration >= limitDuration) {
-          result = false;
-          failureReason = "Activity duration limit exceeded";
-        }
-      }
-    }
-    if (result && activity.beginTimeLimit) {
-      const currentTime = this.now();
-      const beginTime = new Date(activity.beginTimeLimit);
-      if (currentTime < beginTime) {
-        result = false;
-        failureReason = "Not yet time to begin";
-      }
-    }
-    if (result && activity.endTimeLimit) {
-      const currentTime = this.now();
-      const endTime = new Date(activity.endTimeLimit);
-      if (currentTime > endTime) {
-        result = false;
-        failureReason = "Time limit expired";
-      }
-    }
-    this.fireEvent("onLimitConditionCheck", {
-      activity,
-      result,
-      failureReason,
-      checks: {
-        attemptLimit: activity.attemptLimit,
-        attemptCount: activity.attemptCount,
-        attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
-        activityDurationLimit: activity.activityAbsoluteDurationLimit,
-        beginTimeLimit: activity.beginTimeLimit,
-        endTimeLimit: activity.endTimeLimit
-      }
-    });
-    return result;
-  }
-  /**
-   * Check if activity is part of tree
-   */
-  isActivityPartOfTree(activity, root) {
-    if (activity === root) {
-      return true;
-    }
-    for (const child of root.children) {
-      if (this.isActivityPartOfTree(activity, child)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  /**
-   * Get all active activities in the tree
-   */
-  getActiveActivities() {
-    const activeActivities = [];
-    if (this.activityTree.root) {
-      this.collectActiveActivities(this.activityTree.root, activeActivities);
-    }
-    return activeActivities;
-  }
-  collectActiveActivities(activity, activeActivities) {
-    if (activity.isActive) {
-      activeActivities.push(activity);
-    }
-    for (const child of activity.children) {
-      this.collectActiveActivities(child, activeActivities);
-    }
-  }
-  /**
-   * Get required resources for activity
-   */
-  getRequiredResources(activity) {
-    const resources = [];
-    const activityInfo = (activity.title + " " + activity.location).toLowerCase();
-    if (activityInfo.includes("video") || activityInfo.includes("multimedia")) {
-      resources.push("video-codec");
-    }
-    if (activityInfo.includes("audio") || activityInfo.includes("sound")) {
-      resources.push("audio-codec");
-    }
-    if (activityInfo.includes("flash") || activityInfo.includes(".swf")) {
-      resources.push("flash-plugin");
-    }
-    if (activityInfo.includes("java") || activityInfo.includes("applet")) {
-      resources.push("java-runtime");
-    }
-    if (activity.children && activity.children.length > 0) {
-      resources.push("high-bandwidth");
-    }
-    if (activity.attemptAbsoluteDurationLimit && this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
-      resources.push("extended-storage");
-    }
-    if (activity.attemptLimit && activity.attemptLimit > 1) {
-      resources.push("persistent-storage");
-    }
-    return resources;
-  }
-  /**
-   * Check if resource is available
-   */
-  isResourceAvailable(resource) {
-    try {
-      switch (resource) {
-        case "video-codec":
-          return !!document.createElement("video").canPlayType;
-        case "audio-codec":
-          return !!document.createElement("audio").canPlayType;
-        case "flash-plugin":
-          return navigator.plugins && Array.from(navigator.plugins).some(
-            (plugin) => plugin.name === "Shockwave Flash"
-          );
-        case "java-runtime":
-          return navigator.plugins && Array.from(navigator.plugins).some((plugin) => plugin.name === "Java");
-        case "high-bandwidth":
-          if ("connection" in navigator) {
-            const connection = navigator.connection;
-            return connection.effectiveType === "4g" || connection.downlink > 5;
-          }
-          return true;
-        // Assume available if can't detect
-        case "extended-storage":
-          return true;
-        case "persistent-storage":
-          return "localStorage" in window && "sessionStorage" in window;
-        default:
-          return true;
-      }
-    } catch (error) {
-      return false;
-    }
-  }
-  /**
-   * Check system resource limits
-   */
-  checkSystemLimits() {
-    try {
-      let adequate = true;
-      if ("memory" in performance) {
-        const memory = performance.memory;
-        const memoryUsagePercent = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
-        if (memoryUsagePercent > 0.8) {
-          adequate = false;
-        }
-      }
-      if ("deviceMemory" in navigator) {
-        const deviceMemory = navigator.deviceMemory;
-        if (deviceMemory < 2) {
-          adequate = false;
-        }
-      }
-      if ("hardwareConcurrency" in navigator) {
-        const cores = navigator.hardwareConcurrency;
-        if (cores < 2) {
-          adequate = false;
-        }
-      }
-      if ("connection" in navigator) {
-        const connection = navigator.connection;
-        if (connection.saveData || connection.effectiveType === "slow-2g") {
-          adequate = false;
-        }
-      }
-      return { adequate };
-    } catch (error) {
-      return { adequate: true };
-    }
-  }
-  hasPendingDeliveryRequests() {
-    if (this.activityTree && this.activityTree.pendingRequests) {
-      return this.activityTree.pendingRequests.length > 0;
-    }
-    if (typeof window !== "undefined" && window.pendingScormRequests) {
-      return window.pendingScormRequests > 0;
-    }
-    return false;
-  }
-  isDeliveryLocked() {
-    if (this.activityTree && this.activityTree.navigationLocked) {
-      return true;
-    }
-    if (this.activityTree && this.activityTree.terminationInProgress) {
-      return true;
-    }
-    const resourceCheck = this.checkSystemLimits();
-    if (!resourceCheck.adequate) {
-      return true;
-    }
-    return !!(typeof window !== "undefined" && window.scormMaintenanceMode);
-  }
-  /**
-   * Get activity prerequisites
-   */
-  getPrerequisites(activity) {
-    const prerequisites = [];
-    if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-      for (const rule of activity.sequencingRules.preConditionRules) {
-        if (rule.conditions && rule.conditions.length > 0) {
-          for (const condition of rule.conditions) {
-            if (condition.referencedObjectiveID && condition.referencedObjectiveID !== activity.id) {
-              prerequisites.push(condition.referencedObjectiveID);
-            }
-          }
-        }
-      }
-    }
-    if (activity.parent && activity.sequencingControls && !activity.sequencingControls.choiceExit) {
-      const siblings = activity.parent.children;
-      if (siblings) {
-        const activityIndex = siblings.indexOf(activity);
-        for (let i = 0; i < activityIndex; i++) {
-          const sibling = siblings[i];
-          if (sibling) {
-            prerequisites.push(sibling.id);
-          }
-        }
-      }
-    }
-    if (activity.prerequisiteActivities) {
-      prerequisites.push(...activity.prerequisiteActivities);
-    }
-    return Array.from(new Set(prerequisites));
-  }
-  /**
-   * Check if prerequisite is satisfied
-   */
-  isPrerequisiteSatisfied(prerequisiteId, _activity) {
-    const prerequisite = this.activityTree.getActivity(prerequisiteId);
-    if (!prerequisite) {
-      return false;
-    }
-    return prerequisite.completionStatus === "completed";
-  }
-  /**
-   * Get objective dependencies
-   */
-  getObjectiveDependencies(activity) {
-    const dependencies = [];
-    const objectives = activity.objectives;
-    if (objectives && objectives.length > 0) {
-      for (const objective of objectives) {
-        if (objective.globalObjectiveID) {
-          dependencies.push(objective.globalObjectiveID);
-        }
-        if (!objective.satisfiedByMeasure && objective.readNormalizedMeasure) {
-          dependencies.push(objective.id + "_measure");
-        }
-      }
-    }
-    if (activity.sequencingRules) {
-      const allRules = [
-        ...activity.sequencingRules.preConditionRules || [],
-        ...activity.sequencingRules.exitConditionRules || [],
-        ...activity.sequencingRules.postConditionRules || []
-      ];
-      for (const rule of allRules) {
-        if (rule.conditions && rule.conditions.length > 0) {
-          for (const condition of rule.conditions) {
-            if (condition.objectiveReference && condition.objectiveReference !== activity.id) {
-              dependencies.push(condition.objectiveReference);
-            }
-          }
-        }
-      }
-    }
-    return Array.from(new Set(dependencies));
-  }
-  /**
-   * Check if objective dependency is satisfied
-   */
-  isObjectiveDependencySatisfied(objectiveId) {
-    if (this.activityTree && this.activityTree.globalObjectives) {
-      const globalObjectives = this.activityTree.globalObjectives;
-      const globalObjective = globalObjectives[objectiveId];
-      if (globalObjective) {
-        return globalObjective.satisfied === true && globalObjective.statusKnown === true;
-      }
-    }
-    if (objectiveId.endsWith("_measure")) {
-      const baseObjectiveId = objectiveId.replace("_measure", "");
-      if (this.activityTree && this.activityTree.globalObjectives) {
-        const globalObjectives = this.activityTree.globalObjectives;
-        const globalObjective = globalObjectives[baseObjectiveId];
-        if (globalObjective) {
-          return globalObjective.measureKnown === true && globalObjective.normalizedMeasure >= 0;
-        }
-      }
-    }
-    const referencedActivity = this.activityTree.getActivity(objectiveId);
-    if (referencedActivity) {
-      return referencedActivity.objectiveSatisfiedStatus && referencedActivity.objectiveMeasureStatus;
-    }
-    return false;
-  }
-  getSequencingRuleDependencies(activity) {
-    let satisfied = true;
-    try {
-      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-        for (const rule of activity.sequencingRules.preConditionRules) {
-          if (rule.conditions && rule.conditions.length > 0) {
-            for (const condition of rule.conditions) {
-              const conditionType = condition.conditionType || condition.condition;
-              switch (conditionType) {
-                case "activityProgressKnown":
-                  if (!activity.progressMeasureStatus) satisfied = false;
-                  break;
-                case "objectiveStatusKnown":
-                case "objectiveSatisfied": {
-                  const objectiveId = condition.referencedObjectiveID || activity.id;
-                  if (!this.isObjectiveDependencySatisfied(objectiveId))
-                    satisfied = false;
-                  break;
-                }
-                case "attemptLimitExceeded":
-                  if (activity.attemptLimit === null) satisfied = false;
-                  break;
-                case "timeLimitExceeded":
-                  if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit)
-                    satisfied = false;
-                  break;
-                case "always":
-                case "never":
-                  break;
-                default:
-                  satisfied = false;
-              }
-            }
-          }
-        }
-      }
-      if (activity.sequencingRules && activity.sequencingRules.exitConditionRules) {
-        for (const rule of activity.sequencingRules.exitConditionRules) {
-          if (rule.conditions && rule.conditions.length > 0) {
-            for (const condition of rule.conditions) {
-              const conditionType = condition.conditionType || condition.condition;
-              if (["objectiveStatusKnown", "objectiveSatisfied"].includes(
-                conditionType
-              )) {
-                const objectiveId = condition.referencedObjectiveID || activity.id;
-                if (!this.isObjectiveDependencySatisfied(objectiveId))
-                  satisfied = false;
-              }
-            }
-          }
-        }
-      }
-      if (activity.rollupRules && activity.rollupRules.rules) {
-        for (const rule of activity.rollupRules.rules) {
-          if (rule.conditions && rule.conditions.length > 0) {
-            if (activity.children && activity.children.length > 0) {
-              for (const child of activity.children) {
-                if (!child.isCompleted) {
-                  satisfied = false;
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (error) {
-      satisfied = false;
-    }
-    return { satisfied };
-  }
-  /**
-   * Helper method to parse ISO 8601 duration to minutes
-   */
-  parseDurationToMinutes(duration) {
-    return getDurationAsSeconds(duration, scorm2004_regex.CMITimespan) / 60;
-  }
-  /**
-   * Fire a sequencing event
-   * @param {string} eventType - The type of event
-   * @param {any} data - Event data
-   */
-  fireEvent(eventType, data) {
-    try {
-      if (this.eventCallback) {
-        this.eventCallback(eventType, data);
-      }
-    } catch (error) {
-      console.warn(`Failed to fire delivery validator event ${eventType}: ${error}`);
     }
   }
 }
@@ -18671,6 +18687,9 @@ function splitFirstDelimited(value, bracketed, allowBare = true) {
   }
   return [first, parts.slice(1).join(bare).replace(unescapeRe, bare)];
 }
+function allowsBareDelimiters(value, type) {
+  return !isSpecForm(value) && type !== "fill-in";
+}
 
 const EMPTY_CORRECT_PATTERN_TYPES = /* @__PURE__ */ new Set([
   "choice",
@@ -18889,7 +18908,7 @@ class CMIInteractionsObject extends BaseCMI {
         this._learner_response = "";
         return;
       }
-      const allowBare = !isSpecForm(learner_response) && this.type !== "fill-in";
+      const allowBare = allowsBareDelimiters(learner_response, this.type);
       let nodes = [];
       const response_type = LearnerResponses[this.type];
       if (response_type) {
@@ -19145,7 +19164,7 @@ function stripCorrectResponsePrefixes(node, type, firstItem = true) {
   return text;
 }
 function validatePattern(type, pattern, responseDef) {
-  const allowBare = !isSpecForm(pattern) && type !== "fill-in";
+  const allowBare = allowsBareDelimiters(pattern, type);
   const freeText = ["fill-in", "long-fill-in", "other"].includes(type);
   if (!freeText && pattern.trim() !== pattern) {
     throw new Scorm2004ValidationError(
@@ -20370,7 +20389,12 @@ class CMIContent extends BaseCMI {
    * @param {string} location
    */
   set location(location) {
-    if (check2004ValidFormat(this._cmi_element + ".location", location, scorm2004_regex.CMIString1000, true)) {
+    if (check2004ValidFormat(
+      this._cmi_element + ".location",
+      location,
+      scorm2004_regex.CMIString1000,
+      true
+    )) {
       this._location = location;
     }
   }
@@ -21537,6 +21561,12 @@ class ADLDataObject extends BaseCMI {
     return result;
   }
 }
+function setStaticNavigationValue(values, kind, key, value) {
+  const element = `adl.nav.request_valid.${kind}.${key}`;
+  if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
+    values[key] = value;
+  }
+}
 class ADLNavRequestValidChoice {
   _parentNav = null;
   _staticValues = {};
@@ -21544,10 +21574,7 @@ class ADLNavRequestValidChoice {
     return this._staticValues[`{target=${target}}`];
   }
   setStaticValue(key, value) {
-    const element = "adl.nav.request_valid.choice." + key;
-    if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
-      this._staticValues[key] = value;
-    }
+    setStaticNavigationValue(this._staticValues, "choice", key, value);
   }
   setParentNav(nav) {
     this._parentNav = nav;
@@ -21593,10 +21620,7 @@ class ADLNavRequestValidJump {
     return this._staticValues[`{target=${target}}`];
   }
   setStaticValue(key, value) {
-    const element = "adl.nav.request_valid.jump." + key;
-    if (check2004ValidFormat(element, value, scorm2004_regex.NAVBoolean) && check2004ValidFormat(element, key, scorm2004_regex.NAVTarget)) {
-      this._staticValues[key] = value;
-    }
+    setStaticNavigationValue(this._staticValues, "jump", key, value);
   }
   setParentNav(nav) {
     this._parentNav = nav;
@@ -22208,7 +22232,7 @@ class Scorm2004ResponseValidator {
       nodes = splitDelimited(
         String(value),
         response_type.delimiter,
-        !isSpecForm(String(value)) && interaction_type !== "fill-in"
+        allowsBareDelimiters(String(value), interaction_type)
       );
     } else {
       nodes[0] = value;
@@ -22325,7 +22349,7 @@ class Scorm2004ResponseValidator {
       );
       return;
     }
-    const allowBare = !isSpecForm(String(value)) && interaction_type !== "fill-in";
+    const allowBare = allowsBareDelimiters(String(value), interaction_type);
     const formatRegex = new RegExp(response.format);
     for (let i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++) {
       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {

@@ -1231,8 +1231,7 @@ class CMIValueAccessService {
       return global_constants.SCORM_FALSE;
     }
     this.context.setLastErrorCode("0");
-    const targetPath = CMIElement.match(/^(.*)\.(\{target=[^{}]*\})$/);
-    const structure = targetPath ? [...targetPath[1].split("."), targetPath[2]] : CMIElement.split(".");
+    const structure = splitCMIElement(CMIElement);
     let refObject = this.context.getDataModel();
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
@@ -1308,7 +1307,7 @@ class CMIValueAccessService {
       return "";
     }
     this.context.setLastErrorCode("0");
-    const structure = CMIElement.split(".");
+    const structure = splitCMIElement(CMIElement);
     let refObject = this.context.getDataModel();
     let attribute = null;
     let foundFirstIndex = false;
@@ -1622,6 +1621,10 @@ class CMIValueAccessService {
       error: false
     };
   }
+}
+function splitCMIElement(element) {
+  const targetPath = element.match(/^(.*)\.(\{target=[^{}]*\})$/);
+  return targetPath ? [...targetPath[1].split("."), targetPath[2]] : element.split(".");
 }
 
 class LoggingService {
