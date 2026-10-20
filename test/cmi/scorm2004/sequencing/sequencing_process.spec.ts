@@ -87,6 +87,25 @@ describe("SequencingProcess", () => {
       expect(parent.isActive).toBe(false);
     });
 
+    it("does not use another process's hook for exit rules", () => {
+      const parent = activityTree.getActivity("child1")!;
+      const leaf = activityTree.getActivity("grandchild1")!;
+      leaf.timeLimitDuration = "PT10S";
+      leaf.attemptAbsoluteStartTime = "2026-01-01T00:00:00Z";
+      const rule = new SequencingRule(RuleActionType.EXIT_PARENT);
+      rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
+      leaf.sequencingRules.exitConditionRules.push(rule);
+      sequencingProcess.now = () => new Date("2026-01-01T00:00:01Z");
+      const other = new SequencingProcess(activityTree);
+      other.getAttemptElapsedSecondsHook = () => 20;
+      expect(sequencingProcess.getAttemptElapsedSecondsHook).toBeNull();
+      parent.isActive = true;
+      leaf.isActive = true;
+      activityTree.currentActivity = leaf;
+      sequencingProcess.sequencingRequestProcess(SequencingRequestType.EXIT);
+      expect(parent.isActive).toBe(true);
+    });
+
     it("isolates choice clocks and absent hooks from another process", () => {
       const leaf = activityTree.getActivity("grandchild1")!;
       leaf.timeLimitDuration = "PT10S";

@@ -27,7 +27,7 @@ export class ChoiceRequestHandler {
     private traversalService: FlowTraversalService,
     private treeQueries: ActivityTreeQueries,
     private getNow?: () => () => Date,
-    private getElapsedSeconds?: () => ((activity: Activity) => number) | undefined,
+    private getElapsedSeconds?: () => ((activity: Activity) => number) | null | undefined,
   ) {}
 
   /**

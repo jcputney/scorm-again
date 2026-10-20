@@ -150,7 +150,8 @@ isTerminated(): boolean;
 ### Data Access Layer Methods
 
 ```typescript
-// Getter method
+// Getter method. A trailing {target=...} is one path segment, even when the
+// identifier has periods, e.g. "adl.nav.request_valid.choice.{target=mod.1}".
 getCMIValue(CMIElement: string): string;
 
 // Setter method

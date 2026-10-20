@@ -121,8 +121,9 @@ export class SequencingProcess {
   /**
    * Get/set the elapsed seconds hook (used for time-based rules)
    */
-  public get getAttemptElapsedSecondsHook(): ((activity: Activity) => number) | undefined {
-    return this._getAttemptElapsedSecondsHook;
+  // Null, not undefined, so RuleCondition.evaluate skips another process's static hook.
+  public get getAttemptElapsedSecondsHook(): ((activity: Activity) => number) | null {
+    return this._getAttemptElapsedSecondsHook ?? null;
   }
 
   public set getAttemptElapsedSecondsHook(fn: ((activity: Activity) => number) | undefined) {
