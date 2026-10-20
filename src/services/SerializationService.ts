@@ -51,7 +51,7 @@ export class SerializationService implements ISerializationService {
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
     setStartingData: (data: StringKeyMap) => void,
-    onInvalidValue: (element: string, error: unknown) => void = () => {},
+    onInvalidValue?: (element: string, error: unknown) => void,
   ): void {
     if (!isNotInitialized()) {
       console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
@@ -208,7 +208,7 @@ export class SerializationService implements ISerializationService {
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
     setStartingData: (data: StringKeyMap) => void,
-    onInvalidValue: (element: string, error: unknown) => void = () => {},
+    onInvalidValue?: (element: string, error: unknown) => void,
   ): void {
     if (!isNotInitialized()) {
       console.error("loadFromJSON can only be called before the call to lmsInitialize.");
@@ -223,6 +223,9 @@ export class SerializationService implements ISerializationService {
       try {
         setCMIValue(element, value);
       } catch (error) {
+        if (onInvalidValue === undefined) {
+          throw error;
+        }
         onInvalidValue(element, error);
       }
     };
