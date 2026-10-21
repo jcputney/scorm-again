@@ -292,6 +292,10 @@ export interface SequencingEventListeners {
   onSequencingStart?: (activity: IActivity) => void;
   onSequencingEnd?: () => void;
   onActivityDelivery?: (activity: IActivity) => void;
+  /**
+   * On same-activity resume, this listener and the ActivityUnload event receive the
+   * Activity after DB.2 has already prepared it for the new delivery.
+   */
   onActivityUnload?: (activity: IActivity) => void;
   onNavigationRequest?: (request: string, target?: string) => void;
   onRollupComplete?: (activity: IActivity) => void;
