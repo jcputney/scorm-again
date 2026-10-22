@@ -689,6 +689,76 @@ describe("SequencingService", () => {
       expect(root.objectiveSatisfiedStatus).toBe(false);
     });
 
+    function elapsedRollupService(getAttemptElapsedSeconds?: (activity: Activity) => number) {
+      const root = new Activity("root", "Root");
+      const child = new Activity("child", "Child");
+      root.addChild(child);
+      root.addChild(new Activity("next", "Next"));
+      root.sequencingControls.flow = true;
+      child.timeLimitDuration = "PT1H";
+      child.attemptProgressStatus = true;
+      child.attemptCount = 1;
+      const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
+      rule.addCondition(new RollupCondition(RollupConditionType.TIME_LIMIT_EXCEEDED));
+      root.rollupRules.addRule(rule);
+      const timedSequencing = new Sequencing();
+      timedSequencing.activityTree.root = root;
+      const service = new SequencingService(
+        timedSequencing,
+        cmi,
+        adl,
+        eventService,
+        loggingService,
+        { ...configuration, getAttemptElapsedSeconds },
+      );
+      expect(service.initialize()).toBe(global_constants.SCORM_TRUE);
+      timedSequencing.activityTree.currentActivity = child;
+      child.attemptAbsoluteStartTime = "";
+      return { service, root, child };
+    }
+
+    it.each([1800, 7200])("rolls up with the configured elapsed hook (%s seconds)", (elapsed) => {
+      const { service, root, child } = elapsedRollupService((activity) =>
+        activity.id === "child" ? elapsed : 0,
+      );
+      expect(child.attemptExperiencedDuration).toBe("PT0H0M0S");
+      expect(child.attemptAbsoluteStartTime).toBe("");
+      service.triggerRollupOnCMIChange("cmi.completion_status", "unknown", "incomplete");
+      expect(root.objectiveSatisfiedStatusKnown).toBe(elapsed > 3600);
+      expect(root.objectiveSatisfiedStatus).toBe(false);
+    });
+
+    it("falls back to recorded duration when no elapsed hook is configured", () => {
+      const { service, root, child } = elapsedRollupService();
+      child.attemptExperiencedDuration = "PT2H";
+      service.triggerRollupOnCMIChange("cmi.completion_status", "unknown", "incomplete");
+      expect(root.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(root.objectiveSatisfiedStatus).toBe(false);
+    });
+
+    it("updates the elapsed hook in the sequencing process and live rollup", () => {
+      const { service, root } = elapsedRollupService(() => 0);
+      const hook = (activity: Activity) => (activity.id === "child" ? 7200 : 0);
+      service.updateConfiguration({ getAttemptElapsedSeconds: hook });
+      expect((service as any).sequencingProcess.getAttemptElapsedSecondsHook).toBe(hook);
+      service.triggerRollupOnCMIChange("cmi.completion_status", "unknown", "incomplete");
+      expect(root.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(root.objectiveSatisfiedStatus).toBe(false);
+    });
+
+    it("passes the elapsed hook to navigation preview rollup", () => {
+      const calls: Activity[] = [];
+      const { service, child } = elapsedRollupService((activity) => {
+        calls.push(activity);
+        return activity.id === "child" ? 7200 : 0;
+      });
+      child.isActive = true;
+      calls.length = 0;
+      expect(service.previewNavigationRequest("continue").outcome).toBe("allowed");
+      expect(calls.some((activity) => activity.id === child.id)).toBe(true);
+      expect(calls).not.toContain(child);
+    });
+
     it("returns the sequencing process to the system clock when now is cleared", () => {
       const fixed = new Date("2025-06-15T12:00:00Z");
       const service = new SequencingService(sequencing, cmi, adl, eventService, loggingService, {
