@@ -603,8 +603,9 @@ export class SequencingService {
     // holds its own copies and the navigation preview works from a snapshot;
     // the live rollup process reads the configuration (see rollupClock).
     if (this.sequencingProcess) {
-      if (config.now) {
-        this.sequencingProcess.now = config.now;
+      if ("now" in config) {
+        // Clearing `now` returns to the system clock, as rollup does.
+        this.sequencingProcess.now = config.now ?? (() => new Date());
       }
       if ("getAttemptElapsedSeconds" in config) {
         this.sequencingProcess.getAttemptElapsedSecondsHook = config.getAttemptElapsedSeconds;

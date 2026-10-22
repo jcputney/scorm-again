@@ -688,6 +688,21 @@ describe("SequencingService", () => {
       expect(root.objectiveSatisfiedStatusKnown).toBe(true);
       expect(root.objectiveSatisfiedStatus).toBe(false);
     });
+
+    it("returns the sequencing process to the system clock when now is cleared", () => {
+      const fixed = new Date("2025-06-15T12:00:00Z");
+      const service = new SequencingService(sequencing, cmi, adl, eventService, loggingService, {
+        ...configuration,
+        now: () => fixed,
+      });
+      service.initialize();
+      const process = (service as any).sequencingProcess;
+      expect(process.now()).toBe(fixed);
+
+      service.updateConfiguration({ now: undefined });
+      expect(process.now()).not.toBe(fixed);
+      expect(Math.abs(process.now().getTime() - Date.now())).toBeLessThan(60_000);
+    });
   });
 
   describe("configuration with time providers", () => {
