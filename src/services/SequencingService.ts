@@ -1,6 +1,7 @@
 import { Activity } from "../cmi/scorm2004/sequencing/activity";
 import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing";
 import { RollupProcess } from "../cmi/scorm2004/sequencing/rollup_process";
+import { RollupClockOptions } from "../cmi/scorm2004/sequencing/rollup/rollup_rule_evaluator";
 import {
   DeliveryRequest,
   NavigationRequestType,
@@ -114,7 +115,7 @@ export class SequencingService {
       deliveryCallbacks,
     );
 
-    this.rollupProcess = new RollupProcess();
+    this.rollupProcess = new RollupProcess(undefined, this.rollupClock());
     // Propagate time provider to rule evaluation (time-based conditions)
     if (this.configuration.now) {
       RuleCondition.setNowProvider(this.configuration.now);
@@ -123,6 +124,27 @@ export class SequencingService {
 
     // Create sequencing processes immediately so navigation requests work before SCO Initialize
     this.createSequencingProcesses();
+  }
+
+  /**
+   * The clock time-based rollup conditions (timeLimitExceeded,
+   * outsideAvailableTimeRange) are evaluated with: the configured `now` and
+   * `getAttemptElapsedSeconds`, the same ones the sequencing rules use.
+   * Without an argument the providers are read from the current configuration
+   * on every evaluation, so `updateConfiguration()` reaches the live rollup
+   * process; the navigation preview passes its own snapshot.
+   * @param {SequencingConfiguration} [configuration] - A fixed configuration to read
+   * @return {RollupClockOptions}
+   */
+  private rollupClock(configuration?: SequencingConfiguration): RollupClockOptions {
+    const current = (): SequencingConfiguration => configuration ?? this.configuration;
+    return {
+      now: () => (current().now ?? (() => new Date()))(),
+      // NaN when no hook is configured: the time-limit check then falls back to
+      // the activity's recorded durations, as it does without a hook.
+      getAttemptElapsedSeconds: (activity) =>
+        current().getAttemptElapsedSeconds?.(activity) ?? Number.NaN,
+    };
   }
 
   /**
@@ -338,7 +360,7 @@ export class SequencingService {
       const preview = new OverallSequencingProcess(
         tree,
         process,
-        new RollupProcess(),
+        new RollupProcess(undefined, this.rollupClock(configuration)),
         null,
         (event) => {
           if (event === "onSequencingSessionEnd") ended = true;
@@ -576,6 +598,22 @@ export class SequencingService {
    */
   public updateConfiguration(config: Partial<SequencingConfiguration>): void {
     this.configuration = { ...this.configuration, ...config };
+    // Keep running processes on the configured time providers, so sequencing
+    // and rollup rules keep reading the same clock. The sequencing process
+    // holds its own copies and the navigation preview works from a snapshot;
+    // the live rollup process reads the configuration (see rollupClock).
+    if (this.sequencingProcess) {
+      if ("now" in config) {
+        // Clearing `now` returns to the system clock, as rollup does.
+        this.sequencingProcess.now = config.now ?? (() => new Date());
+      }
+      if ("getAttemptElapsedSeconds" in config) {
+        this.sequencingProcess.getAttemptElapsedSecondsHook = config.getAttemptElapsedSeconds;
+      }
+    }
+    if (this.navigationPreviewConfiguration) {
+      this.navigationPreviewConfiguration = this.configuration;
+    }
     this.log("debug", "Sequencing configuration updated");
   }
 

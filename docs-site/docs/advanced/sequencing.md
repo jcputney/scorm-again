@@ -55,7 +55,7 @@ The `sequencing` object can contain the following properties:
 - `collections`: Reusable manifest sequencing collections, supplied as a keyed record or an array whose entries have `id`.
 - `hideLmsUi` and `auxiliaryResources`: Package-level delivery UI data.
 - `autoRollupOnCMIChange`: Compatibility behavior for immediate rollup. Leave `false` for SCORM-conforming end-attempt transfer.
-- `getAttemptElapsedSeconds`: Optional `(activity) => number` that returns the seconds elapsed in the activity's current attempt. `timeLimitExceeded` rules and limit checks use it, including a result of `0`, instead of `attemptExperiencedDuration` or `attemptAbsoluteStartTime`. A thrown error or a negative or non-numeric result falls back to those values.
+- `getAttemptElapsedSeconds`: Optional `(activity) => number` that returns the seconds elapsed in the activity's current attempt. `timeLimitExceeded` rule and rollup conditions and limit checks use it, including a result of `0`, instead of `attemptExperiencedDuration` or `attemptAbsoluteStartTime`. A thrown error or a negative or non-numeric result falls back to those values.
 - `eventListeners`: Sequencing lifecycle callbacks such as `onActivityDelivery`, `onRollupComplete`, and `onNavigationValidityUpdate`.
 
 ### Configuration Hooks

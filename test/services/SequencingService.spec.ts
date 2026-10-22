@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SequencingConfiguration, SequencingService } from "../../src/services/SequencingService";
 import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
 import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
@@ -7,6 +7,14 @@ import { ADL } from "../../src/cmi/scorm2004/adl";
 import { EventService } from "../../src/services/EventService";
 import { LoggingService } from "../../src/services/LoggingService";
 import { global_constants } from "../../src/constants/api_constants";
+import {
+  RollupActionType,
+  RollupCondition,
+  RollupConditionType,
+  RollupConsiderationType,
+  RollupRule,
+} from "../../src/cmi/scorm2004/sequencing/rollup_rules";
+import { RuleCondition } from "../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("SequencingService", () => {
   let sequencingService: SequencingService;
@@ -626,6 +634,74 @@ describe("SequencingService", () => {
 
       const result = sequencingService.processNavigationRequest("exitAll", undefined, "logout");
       expect(typeof result).toBe("boolean");
+    });
+  });
+
+  describe("time-based rollup conditions", () => {
+    afterEach(() => {
+      // The service propagates `now` to the legacy static provider; restore it.
+      RuleCondition.setNowProvider(() => new Date());
+    });
+
+    it("rolls up with the configured clock, including after updateConfiguration", () => {
+      const root = new Activity("root", "Root");
+      const open = new Activity("open", "Open");
+      const closed = new Activity("closed", "Closed");
+      root.addChild(open);
+      root.addChild(closed);
+      root.sequencingControls.flow = true;
+      for (const child of [open, closed]) {
+        child.sequencingControls.tracked = true;
+        child.sequencingControls.rollupObjectiveSatisfied = true;
+        child.sequencingControls.rollupProgressCompletion = true;
+        child.attemptProgressStatus = true;
+        child.attemptCount = 1;
+      }
+      closed.endTimeLimit = "2025-06-15T11:00:00Z";
+      const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
+      rule.addCondition(new RollupCondition(RollupConditionType.OUTSIDE_AVAILABLE_TIME_RANGE));
+      root.rollupRules.addRule(rule);
+
+      const timedSequencing = new Sequencing();
+      timedSequencing.activityTree.root = root;
+      const service = new SequencingService(
+        timedSequencing,
+        cmi,
+        adl,
+        eventService,
+        loggingService,
+        {
+          ...configuration,
+          now: () => new Date("2025-06-15T10:00:00Z"),
+        },
+      );
+      expect(service.initialize()).toBe(global_constants.SCORM_TRUE);
+      timedSequencing.activityTree.currentActivity = open;
+
+      // Before the closed child's end time the rule does not apply.
+      service.triggerRollupOnCMIChange("cmi.completion_status", "unknown", "incomplete");
+      expect(root.objectiveSatisfiedStatusKnown).toBe(false);
+
+      // After it — the clock changed through updateConfiguration — it does.
+      service.updateConfiguration({ now: () => new Date("2025-06-15T12:00:00Z") });
+      service.triggerRollupOnCMIChange("cmi.completion_status", "unknown", "incomplete");
+      expect(root.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(root.objectiveSatisfiedStatus).toBe(false);
+    });
+
+    it("returns the sequencing process to the system clock when now is cleared", () => {
+      const fixed = new Date("2025-06-15T12:00:00Z");
+      const service = new SequencingService(sequencing, cmi, adl, eventService, loggingService, {
+        ...configuration,
+        now: () => fixed,
+      });
+      service.initialize();
+      const process = (service as any).sequencingProcess;
+      expect(process.now()).toBe(fixed);
+
+      service.updateConfiguration({ now: undefined });
+      expect(process.now()).not.toBe(fixed);
+      expect(Math.abs(process.now().getTime() - Date.now())).toBeLessThan(60_000);
     });
   });
 
