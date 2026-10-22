@@ -130,15 +130,20 @@ export class SequencingService {
    * The clock time-based rollup conditions (timeLimitExceeded,
    * outsideAvailableTimeRange) are evaluated with: the configured `now` and
    * `getAttemptElapsedSeconds`, the same ones the sequencing rules use.
-   * @param {SequencingConfiguration} configuration - The configuration to read
+   * Without an argument the providers are read from the current configuration
+   * on every evaluation, so `updateConfiguration()` reaches the live rollup
+   * process; the navigation preview passes its own snapshot.
+   * @param {SequencingConfiguration} [configuration] - A fixed configuration to read
    * @return {RollupClockOptions}
    */
-  private rollupClock(
-    configuration: SequencingConfiguration = this.configuration,
-  ): RollupClockOptions {
+  private rollupClock(configuration?: SequencingConfiguration): RollupClockOptions {
+    const current = (): SequencingConfiguration => configuration ?? this.configuration;
     return {
-      now: configuration.now,
-      getAttemptElapsedSeconds: configuration.getAttemptElapsedSeconds,
+      now: () => (current().now ?? (() => new Date()))(),
+      // NaN when no hook is configured: the time-limit check then falls back to
+      // the activity's recorded durations, as it does without a hook.
+      getAttemptElapsedSeconds: (activity) =>
+        current().getAttemptElapsedSeconds?.(activity) ?? Number.NaN,
     };
   }
 
@@ -593,6 +598,21 @@ export class SequencingService {
    */
   public updateConfiguration(config: Partial<SequencingConfiguration>): void {
     this.configuration = { ...this.configuration, ...config };
+    // Keep running processes on the configured time providers, so sequencing
+    // and rollup rules keep reading the same clock. The sequencing process
+    // holds its own copies and the navigation preview works from a snapshot;
+    // the live rollup process reads the configuration (see rollupClock).
+    if (this.sequencingProcess) {
+      if (config.now) {
+        this.sequencingProcess.now = config.now;
+      }
+      if ("getAttemptElapsedSeconds" in config) {
+        this.sequencingProcess.getAttemptElapsedSecondsHook = config.getAttemptElapsedSeconds;
+      }
+    }
+    if (this.navigationPreviewConfiguration) {
+      this.navigationPreviewConfiguration = this.configuration;
+    }
     this.log("debug", "Sequencing configuration updated");
   }
 
