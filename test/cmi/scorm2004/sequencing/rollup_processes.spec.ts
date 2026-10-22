@@ -1992,7 +1992,8 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     rollupProcess.overallRollupProcess(b1, globalObjectives);
     expect(a.objectiveSatisfiedStatusKnown).toBe(true);
     expect(a.objectiveSatisfiedStatus).toBe(true);
-    expect(root.objectiveSatisfiedStatusKnown && !root.objectiveSatisfiedStatus).toBe(false);
+    expect(root.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(root.objectiveSatisfiedStatus).toBe(true);
   });
 
   it("rolls up each sibling cluster through its own ancestor chain", () => {
