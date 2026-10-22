@@ -5,9 +5,12 @@ describe("Terminate during host delivery notifications", () => {
   for (const listener of ["callback", "event"]) {
     for (const target of ["a", "b"]) {
       it(`preserves the delivered attempt when unload ${listener} terminates during choice to ${target}`, () => {
+        // The service catches listener errors, so record results here and assert them afterwards.
+        let terminateResult: string | undefined;
+        let terminatedInListener: boolean | undefined;
         const onUnload = vi.fn(() => {
-          expect(api.Terminate("")).toBe("true");
-          expect(api.isTerminated()).toBe(true);
+          terminateResult = api.Terminate("");
+          terminatedInListener = api.isTerminated();
         });
         const api = new Scorm2004API({
           logLevel: 5,
@@ -28,6 +31,8 @@ describe("Terminate during host delivery notifications", () => {
         const commit = vi.spyOn(api, "renderCommitCMI");
         expect(api.processNavigationRequest("choice", target)).toBe(true);
         expect(onUnload).toHaveBeenCalledTimes(1);
+        expect(terminateResult).toBe("true");
+        expect(terminatedInListener).toBe(true);
         expect(commit).toHaveBeenCalled();
         expect(api.adl.sequencing.getCurrentActivity()).toMatchObject({
           id: target,
