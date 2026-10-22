@@ -30,6 +30,7 @@ export enum RollupConditionType {
   OBJECTIVE_MEASURE_LESS_THAN = "objectiveMeasureLessThan",
   COMPLETED = "completed",
   PROGRESS_KNOWN = "progressKnown",
+  ACTIVITY_PROGRESS_KNOWN = "activityProgressKnown",
   ATTEMPTED = "attempted",
   ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
   TIME_LIMIT_EXCEEDED = "timeLimitExceeded",
@@ -210,6 +211,7 @@ export class RollupCondition extends BaseCMI {
         result = progressInfoAvailable && activity.isCompleted;
         break;
       case RollupConditionType.PROGRESS_KNOWN:
+      case RollupConditionType.ACTIVITY_PROGRESS_KNOWN:
         result =
           progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
         break;

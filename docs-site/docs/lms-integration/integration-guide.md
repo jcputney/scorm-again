@@ -1954,7 +1954,7 @@ Delivery rejects an activity when a disabled rule applies to it or to any ancest
 
 **Rollup Condition Types:**
 - `satisfied`, `objectiveStatusKnown`, `objectiveMeasureKnown`, `objectiveMeasureGreaterThan`, `objectiveMeasureLessThan`
-- `completed`, `progressKnown`, `attempted`, `notAttempted`, `attemptLimitExceeded`
+- `completed`, `activityProgressKnown` (IMS SS value; `progressKnown` is an accepted alias), `attempted`, `notAttempted`, `attemptLimitExceeded`
 - `timeLimitExceeded`, `outsideAvailableTimeRange` — evaluated with the configured `now` and `getAttemptElapsedSeconds`, like the rule conditions of the same name
 - `always`
 
