@@ -247,6 +247,7 @@ Each rule has an `action`, a `consideration` (which can be `all`, `any`, `none`,
 `atLeastPercent`), optional `minimumCount` and `minimumPercent` values (for `atLeastCount` and
 `atLeastPercent` considerations), and an array of `conditions`. Each condition has a `condition`
 type and optional `parameters`.
+`minimumPercent` takes a manifest fraction from 0 to 1; values above 1 are read as whole percents.
 
 ## Example
 

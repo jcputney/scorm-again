@@ -1938,7 +1938,7 @@ Delivery rejects an activity when a disabled rule applies to it or to any ancest
       action: "satisfied",             // "satisfied", "notSatisfied", "completed", "incomplete"
       consideration: "all",            // "all", "any", "none", "atLeastCount", "atLeastPercent"
       minimumCount: 0,                 // For "atLeastCount"
-      minimumPercent: 0,               // For "atLeastPercent"
+      minimumPercent: 0,               // Manifest fraction 0-1; values above 1 are whole percents
       conditionCombination: "any",     // How one child's conditions combine: "any" (default), "all"
       conditions: [
         {

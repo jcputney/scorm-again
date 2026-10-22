@@ -1,5 +1,6 @@
 import { Activity } from "../activity";
 import {
+  normalizeMinimumPercent,
   RollupActionType,
   RollupConditionCombination,
   RollupConsiderationType,
@@ -121,9 +122,8 @@ export class RollupRuleEvaluator {
       case RollupConsiderationType.AT_LEAST_COUNT:
         return satisfiedCount >= rule.minimumCount;
       case RollupConsiderationType.AT_LEAST_PERCENT: {
-        const percent =
-          contributingChildren > 0 ? (satisfiedCount / contributingChildren) * 100 : 0;
-        return contributingChildren > 0 && percent >= rule.minimumPercent;
+        const fraction = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
+        return contributingChildren > 0 && fraction >= normalizeMinimumPercent(rule.minimumPercent);
       }
       default:
         return false;
