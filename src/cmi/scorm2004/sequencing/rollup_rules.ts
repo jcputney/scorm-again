@@ -3,6 +3,11 @@ import { Activity } from "./activity";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
 import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
+import {
+  AttemptElapsedSecondsHook,
+  isOutsideAvailableTimeRange,
+  isTimeLimitExceeded,
+} from "./time_conditions";
 
 /**
  * Enum for rollup action types
@@ -27,6 +32,8 @@ export enum RollupConditionType {
   PROGRESS_KNOWN = "progressKnown",
   ATTEMPTED = "attempted",
   ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
+  TIME_LIMIT_EXCEEDED = "timeLimitExceeded",
+  OUTSIDE_AVAILABLE_TIME_RANGE = "outsideAvailableTimeRange",
   NOT_ATTEMPTED = "notAttempted",
   ALWAYS = "always",
 }
@@ -141,9 +148,15 @@ export class RollupCondition extends BaseCMI {
   /**
    * Evaluate the condition for an activity
    * @param {Activity} activity - The activity to evaluate the condition for
+   * @param {() => Date} [now] - The clock of the evaluating process (time-based conditions)
+   * @param {AttemptElapsedSecondsHook | null} [getElapsedSeconds] - Elapsed-time hook (timeLimitExceeded)
    * @return {boolean} - True if the condition is met, false otherwise
    */
-  evaluate(activity: Activity): boolean {
+  evaluate(
+    activity: Activity,
+    now: () => Date = () => new Date(),
+    getElapsedSeconds: AttemptElapsedSecondsHook | null = null,
+  ): boolean {
     // Current-attempt controls make prior tracking data unknown to the parent without removing the
     // child from the rollup rule's population.
     // @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo and
@@ -205,6 +218,12 @@ export class RollupCondition extends BaseCMI {
         break;
       case RollupConditionType.ATTEMPT_LIMIT_EXCEEDED:
         result = activity.hasAttemptLimitExceeded();
+        break;
+      case RollupConditionType.TIME_LIMIT_EXCEEDED:
+        result = isTimeLimitExceeded(activity, now, getElapsedSeconds);
+        break;
+      case RollupConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
+        result = isOutsideAvailableTimeRange(activity, now);
         break;
       case RollupConditionType.NOT_ATTEMPTED:
         result = !progressInfoAvailable || activity.attemptCount === 0;
@@ -385,9 +404,15 @@ export class RollupRule extends BaseCMI {
   /**
    * Evaluate the rule for a set of child activities
    * @param {Activity[]} children - The child activities to evaluate the rule for
+   * @param {() => Date} [now] - The clock of the evaluating process (time-based conditions)
+   * @param {AttemptElapsedSecondsHook | null} [getElapsedSeconds] - Elapsed-time hook (timeLimitExceeded)
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
-  evaluate(children: Activity[]): boolean {
+  evaluate(
+    children: Activity[],
+    now?: () => Date,
+    getElapsedSeconds?: AttemptElapsedSecondsHook | null,
+  ): boolean {
     if (children.length === 0) {
       return false;
     }
@@ -398,8 +423,8 @@ export class RollupRule extends BaseCMI {
         return true;
       }
       return this.conditionCombination === RollupConditionCombination.ALL
-        ? this._conditions.every((condition) => condition.evaluate(child))
-        : this._conditions.some((condition) => condition.evaluate(child));
+        ? this._conditions.every((condition) => condition.evaluate(child, now, getElapsedSeconds))
+        : this._conditions.some((condition) => condition.evaluate(child, now, getElapsedSeconds));
     });
 
     // Apply consideration

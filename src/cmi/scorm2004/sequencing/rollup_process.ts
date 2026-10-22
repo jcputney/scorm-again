@@ -1,6 +1,6 @@
 import { Activity } from "./activity";
 import { RollupChildFilter } from "./rollup/rollup_child_filter";
-import { RollupRuleEvaluator } from "./rollup/rollup_rule_evaluator";
+import { RollupClockOptions, RollupRuleEvaluator } from "./rollup/rollup_rule_evaluator";
 import { MeasureRollupProcessor, MeasureRollupOptions } from "./rollup/measure_rollup";
 import { ObjectiveRollupProcessor } from "./rollup/objective_rollup";
 import { ProgressRollupProcessor } from "./rollup/progress_rollup";
@@ -60,13 +60,15 @@ export class RollupProcess {
    * Create a new RollupProcess orchestrator
    *
    * @param eventCallback - Optional callback for firing events
+   * @param clock - Clock for time-based rollup conditions; pass the sequencing
+   *   process's `now` and `getAttemptElapsedSeconds` so rollup and sequencing rules agree
    */
-  constructor(eventCallback?: EventCallback) {
+  constructor(eventCallback?: EventCallback, clock: RollupClockOptions = {}) {
     this.eventCallback = eventCallback || null;
 
     // Initialize all processors with proper dependency injection
     this.childFilter = new RollupChildFilter();
-    this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter);
+    this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter, clock);
     this.measureProcessor = new MeasureRollupProcessor(this.childFilter, eventCallback);
     this.objectiveProcessor = new ObjectiveRollupProcessor(
       this.childFilter,

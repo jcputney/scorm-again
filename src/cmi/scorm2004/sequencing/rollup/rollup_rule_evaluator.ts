@@ -6,6 +6,18 @@ import {
   RollupRule,
 } from "../rollup_rules";
 import { RollupChildFilter } from "./rollup_child_filter";
+import { AttemptElapsedSecondsHook } from "../time_conditions";
+
+/**
+ * The clock time-based rollup conditions are evaluated with
+ * (timeLimitExceeded, outsideAvailableTimeRange).
+ */
+export interface RollupClockOptions {
+  /** The evaluating process's clock; defaults to the system clock. */
+  now?: (() => Date) | undefined;
+  /** Reports elapsed attempt seconds; see the `getAttemptElapsedSeconds` setting. */
+  getAttemptElapsedSeconds?: AttemptElapsedSecondsHook | undefined;
+}
 
 /**
  * RollupRuleEvaluator - Handles evaluation of rollup rules
@@ -19,14 +31,19 @@ import { RollupChildFilter } from "./rollup_child_filter";
  */
 export class RollupRuleEvaluator {
   private childFilter: RollupChildFilter;
+  private now: () => Date;
+  private getAttemptElapsedSeconds: AttemptElapsedSecondsHook | null;
 
   /**
    * Create a new RollupRuleEvaluator
    *
    * @param childFilter - RollupChildFilter instance for filtering children
+   * @param clock - Clock for time-based rollup conditions
    */
-  constructor(childFilter: RollupChildFilter) {
+  constructor(childFilter: RollupChildFilter, clock: RollupClockOptions = {}) {
     this.childFilter = childFilter;
+    this.now = clock.now || (() => new Date());
+    this.getAttemptElapsedSeconds = clock.getAttemptElapsedSeconds || null;
   }
 
   /**
@@ -132,8 +149,12 @@ export class RollupRuleEvaluator {
     // counted; conditionCombination controls how one child's condition results combine.
     // @spec SCORM 2004 4th Ed. SN RB.1.4.1
     return rule.conditionCombination === RollupConditionCombination.ALL
-      ? rule.conditions.every((condition) => condition.evaluate(child))
-      : rule.conditions.some((condition) => condition.evaluate(child));
+      ? rule.conditions.every((condition) =>
+          condition.evaluate(child, this.now, this.getAttemptElapsedSeconds),
+        )
+      : rule.conditions.some((condition) =>
+          condition.evaluate(child, this.now, this.getAttemptElapsedSeconds),
+        );
   }
 
   /**
