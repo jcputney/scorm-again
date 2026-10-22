@@ -1,6 +1,6 @@
 import { Activity } from "./activity.js";
 import { RollupChildFilter } from "./rollup/rollup_child_filter.js";
-import { RollupRuleEvaluator } from "./rollup/rollup_rule_evaluator.js";
+import { RollupClockOptions, RollupRuleEvaluator } from "./rollup/rollup_rule_evaluator.js";
 import { MeasureRollupProcessor, MeasureRollupOptions } from "./rollup/measure_rollup.js";
 import { ObjectiveRollupProcessor } from "./rollup/objective_rollup.js";
 import { ProgressRollupProcessor } from "./rollup/progress_rollup.js";
@@ -21,7 +21,7 @@ export declare class RollupProcess {
     private stateValidator;
     private crossClusterProcessor;
     private eventCallback;
-    constructor(eventCallback?: EventCallback);
+    constructor(eventCallback?: EventCallback, clock?: RollupClockOptions);
     overallRollupProcess(activity: Activity, globalObjectives?: Map<string, GlobalObjective>): Activity[];
     validateRollupStateConsistency(rootActivity: Activity): boolean;
     processGlobalObjectiveMapping(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;

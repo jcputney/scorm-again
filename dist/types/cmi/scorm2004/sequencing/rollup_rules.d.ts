@@ -1,5 +1,6 @@
 import { BaseCMI } from "../../common/base_cmi.js";
 import { Activity } from "./activity.js";
+import { AttemptElapsedSecondsHook } from "./time_conditions.js";
 export declare enum RollupActionType {
     SATISFIED = "satisfied",
     NOT_SATISFIED = "notSatisfied",
@@ -16,6 +17,8 @@ export declare enum RollupConditionType {
     PROGRESS_KNOWN = "progressKnown",
     ATTEMPTED = "attempted",
     ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
+    TIME_LIMIT_EXCEEDED = "timeLimitExceeded",
+    OUTSIDE_AVAILABLE_TIME_RANGE = "outsideAvailableTimeRange",
     NOT_ATTEMPTED = "notAttempted",
     ALWAYS = "always"
 }
@@ -46,7 +49,7 @@ export declare class RollupCondition extends BaseCMI {
     set parameters(parameters: Map<string, any>);
     get operator(): RollupConditionOperator;
     set operator(operator: RollupConditionOperator);
-    evaluate(activity: Activity): boolean;
+    evaluate(activity: Activity, now?: () => Date, getElapsedSeconds?: AttemptElapsedSecondsHook | null): boolean;
     toJSON(): object;
 }
 export declare class RollupRule extends BaseCMI {
@@ -69,7 +72,7 @@ export declare class RollupRule extends BaseCMI {
     set minimumCount(minimumCount: number);
     get minimumPercent(): number;
     set minimumPercent(minimumPercent: number);
-    evaluate(children: Activity[]): boolean;
+    evaluate(children: Activity[], now?: () => Date, getElapsedSeconds?: AttemptElapsedSecondsHook | null): boolean;
     toJSON(): object;
 }
 export declare class RollupRules extends BaseCMI {

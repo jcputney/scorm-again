@@ -1194,6 +1194,75 @@ function advanceDeliveryGeneration(activity) {
   deliveryGenerations.set(activity, getDeliveryGeneration(activity) + 1);
 }
 
+function isTimeLimitExceeded(activity, now, getElapsedSeconds) {
+  let limit = activity.timeLimitDuration;
+  if (!limit && activity.attemptAbsoluteDurationLimit) {
+    limit = activity.attemptAbsoluteDurationLimit;
+  }
+  if (!limit) {
+    return false;
+  }
+  const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+  if (limitSeconds <= 0) {
+    return false;
+  }
+  let elapsedSeconds = 0;
+  let hasHookValue = false;
+  if (getElapsedSeconds) {
+    try {
+      const hookResult = getElapsedSeconds(activity);
+      if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
+        elapsedSeconds = hookResult;
+        hasHookValue = true;
+      }
+    } catch {
+      elapsedSeconds = 0;
+    }
+  }
+  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+    const attemptDurationSeconds = getDurationAsSeconds(
+      activity.attemptExperiencedDuration,
+      scorm2004_regex.CMITimespan
+    );
+    if (attemptDurationSeconds > 0) {
+      elapsedSeconds = attemptDurationSeconds;
+    }
+  }
+  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+    try {
+      const start = new Date(activity.attemptAbsoluteStartTime).getTime();
+      const nowMs = now().getTime();
+      if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
+        elapsedSeconds = (nowMs - start) / 1e3;
+      }
+    } catch {
+      elapsedSeconds = 0;
+    }
+  }
+  return elapsedSeconds > limitSeconds;
+}
+function isOutsideAvailableTimeRange(activity, clock) {
+  const beginTime = activity.beginTimeLimit;
+  const endTime = activity.endTimeLimit;
+  if (!beginTime && !endTime) {
+    return false;
+  }
+  const now = clock();
+  if (beginTime) {
+    const beginDate = new Date(beginTime);
+    if (now < beginDate) {
+      return true;
+    }
+  }
+  if (endTime) {
+    const endDate = new Date(endTime);
+    if (now > endDate) {
+      return true;
+    }
+  }
+  return false;
+}
+
 var RuleActionType = /* @__PURE__ */ ((RuleActionType2) => {
   RuleActionType2["SKIP"] = "skip";
   RuleActionType2["DISABLED"] = "disabled";
@@ -1445,10 +1514,10 @@ class RuleCondition extends BaseCMI {
           result = activity.hasAttemptLimitExceeded();
           break;
         case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
-          result = this.evaluateTimeLimitExceeded(activity, now, getElapsedSeconds);
+          result = isTimeLimitExceeded(activity, now, getElapsedSeconds);
           break;
         case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
-          result = this.evaluateOutsideAvailableTimeRange(activity, now);
+          result = isOutsideAvailableTimeRange(activity, now);
           break;
         case "always" /* ALWAYS */:
           result = true;
@@ -1464,86 +1533,6 @@ class RuleCondition extends BaseCMI {
       result = kleeneNot(result);
     }
     return result;
-  }
-  /**
-   * Evaluate if time limit has been exceeded
-   * @param {Activity} activity - The activity to evaluate
-   * @return {boolean}
-   * @private
-   */
-  evaluateTimeLimitExceeded(activity, now, getElapsedSeconds) {
-    let limit = activity.timeLimitDuration;
-    if (!limit && activity.attemptAbsoluteDurationLimit) {
-      limit = activity.attemptAbsoluteDurationLimit;
-    }
-    if (!limit) {
-      return false;
-    }
-    const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-    if (limitSeconds <= 0) {
-      return false;
-    }
-    let elapsedSeconds = 0;
-    let hasHookValue = false;
-    if (getElapsedSeconds) {
-      try {
-        const hookResult = getElapsedSeconds(activity);
-        if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
-          elapsedSeconds = hookResult;
-          hasHookValue = true;
-        }
-      } catch {
-        elapsedSeconds = 0;
-      }
-    }
-    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
-      const attemptDurationSeconds = getDurationAsSeconds(
-        activity.attemptExperiencedDuration,
-        scorm2004_regex.CMITimespan
-      );
-      if (attemptDurationSeconds > 0) {
-        elapsedSeconds = attemptDurationSeconds;
-      }
-    }
-    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
-      try {
-        const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-        const nowMs = now().getTime();
-        if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
-          elapsedSeconds = (nowMs - start) / 1e3;
-        }
-      } catch {
-        elapsedSeconds = 0;
-      }
-    }
-    return elapsedSeconds > limitSeconds;
-  }
-  /**
-   * Evaluate if activity is outside available time range
-   * @param {Activity} activity - The activity to evaluate
-   * @return {boolean}
-   * @private
-   */
-  evaluateOutsideAvailableTimeRange(activity, clock) {
-    const beginTime = activity.beginTimeLimit;
-    const endTime = activity.endTimeLimit;
-    if (!beginTime && !endTime) {
-      return false;
-    }
-    const now = clock();
-    if (beginTime) {
-      const beginDate = new Date(beginTime);
-      if (now < beginDate) {
-        return true;
-      }
-    }
-    if (endTime) {
-      const endDate = new Date(endTime);
-      if (now > endDate) {
-        return true;
-      }
-    }
-    return false;
   }
   /**
    * Parse ISO 8601 duration to milliseconds
@@ -6997,9 +6986,11 @@ class RollupCondition extends BaseCMI {
   /**
    * Evaluate the condition for an activity
    * @param {Activity} activity - The activity to evaluate the condition for
+   * @param {() => Date} [now] - The clock of the evaluating process (time-based conditions)
+   * @param {AttemptElapsedSecondsHook | null} [getElapsedSeconds] - Elapsed-time hook (timeLimitExceeded)
    * @return {boolean} - True if the condition is met, false otherwise
    */
-  evaluate(activity) {
+  evaluate(activity, now = () => /* @__PURE__ */ new Date(), getElapsedSeconds = null) {
     const objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
     const progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
     let result;
@@ -7034,6 +7025,12 @@ class RollupCondition extends BaseCMI {
         break;
       case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
         result = activity.hasAttemptLimitExceeded();
+        break;
+      case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
+        result = isTimeLimitExceeded(activity, now, getElapsedSeconds);
+        break;
+      case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
+        result = isOutsideAvailableTimeRange(activity, now);
         break;
       case "notAttempted" /* NOT_ATTEMPTED */:
         result = !progressInfoAvailable || activity.attemptCount === 0;
@@ -7187,9 +7184,11 @@ class RollupRule extends BaseCMI {
   /**
    * Evaluate the rule for a set of child activities
    * @param {Activity[]} children - The child activities to evaluate the rule for
+   * @param {() => Date} [now] - The clock of the evaluating process (time-based conditions)
+   * @param {AttemptElapsedSecondsHook | null} [getElapsedSeconds] - Elapsed-time hook (timeLimitExceeded)
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
-  evaluate(children) {
+  evaluate(children, now, getElapsedSeconds) {
     if (children.length === 0) {
       return false;
     }
@@ -7197,7 +7196,7 @@ class RollupRule extends BaseCMI {
       if (this._conditions.length === 0) {
         return true;
       }
-      return this.conditionCombination === "all" /* ALL */ ? this._conditions.every((condition) => condition.evaluate(child)) : this._conditions.some((condition) => condition.evaluate(child));
+      return this.conditionCombination === "all" /* ALL */ ? this._conditions.every((condition) => condition.evaluate(child, now, getElapsedSeconds)) : this._conditions.some((condition) => condition.evaluate(child, now, getElapsedSeconds));
     });
     switch (this._consideration) {
       case "all" /* ALL */:
@@ -10025,13 +10024,18 @@ class RollupChildFilter {
 
 class RollupRuleEvaluator {
   childFilter;
+  now;
+  getAttemptElapsedSeconds;
   /**
    * Create a new RollupRuleEvaluator
    *
    * @param childFilter - RollupChildFilter instance for filtering children
+   * @param clock - Clock for time-based rollup conditions
    */
-  constructor(childFilter) {
+  constructor(childFilter, clock = {}) {
     this.childFilter = childFilter;
+    this.now = clock.now || (() => /* @__PURE__ */ new Date());
+    this.getAttemptElapsedSeconds = clock.getAttemptElapsedSeconds || null;
   }
   /**
    * Evaluate a rollup rule
@@ -10115,7 +10119,11 @@ class RollupRuleEvaluator {
     if (rule.conditions.length === 0) {
       return true;
     }
-    return rule.conditionCombination === RollupConditionCombination.ALL ? rule.conditions.every((condition) => condition.evaluate(child)) : rule.conditions.some((condition) => condition.evaluate(child));
+    return rule.conditionCombination === RollupConditionCombination.ALL ? rule.conditions.every(
+      (condition) => condition.evaluate(child, this.now, this.getAttemptElapsedSeconds)
+    ) : rule.conditions.some(
+      (condition) => condition.evaluate(child, this.now, this.getAttemptElapsedSeconds)
+    );
   }
   /**
    * Evaluate rules for a specific action type
@@ -11629,11 +11637,13 @@ class RollupProcess {
    * Create a new RollupProcess orchestrator
    *
    * @param eventCallback - Optional callback for firing events
+   * @param clock - Clock for time-based rollup conditions; pass the sequencing
+   *   process's `now` and `getAttemptElapsedSeconds` so rollup and sequencing rules agree
    */
-  constructor(eventCallback) {
+  constructor(eventCallback, clock = {}) {
     this.eventCallback = eventCallback || null;
     this.childFilter = new RollupChildFilter();
-    this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter);
+    this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter, clock);
     this.measureProcessor = new MeasureRollupProcessor(this.childFilter, eventCallback);
     this.objectiveProcessor = new ObjectiveRollupProcessor(
       this.childFilter,
@@ -15940,12 +15950,31 @@ class SequencingService {
       loggingService,
       deliveryCallbacks
     );
-    this.rollupProcess = new RollupProcess();
+    this.rollupProcess = new RollupProcess(void 0, this.rollupClock());
     if (this.configuration.now) {
       RuleCondition.setNowProvider(this.configuration.now);
     }
     this.setupCMIChangeWatchers();
     this.createSequencingProcesses();
+  }
+  /**
+   * The clock time-based rollup conditions (timeLimitExceeded,
+   * outsideAvailableTimeRange) are evaluated with: the configured `now` and
+   * `getAttemptElapsedSeconds`, the same ones the sequencing rules use.
+   * Without an argument the providers are read from the current configuration
+   * on every evaluation, so `updateConfiguration()` reaches the live rollup
+   * process; the navigation preview passes its own snapshot.
+   * @param {SequencingConfiguration} [configuration] - A fixed configuration to read
+   * @return {RollupClockOptions}
+   */
+  rollupClock(configuration) {
+    const current = () => configuration ?? this.configuration;
+    return {
+      now: () => (current().now ?? (() => /* @__PURE__ */ new Date()))(),
+      // NaN when no hook is configured: the time-limit check then falls back to
+      // the activity's recorded durations, as it does without a hook.
+      getAttemptElapsedSeconds: (activity) => current().getAttemptElapsedSeconds?.(activity) ?? Number.NaN
+    };
   }
   /**
    * Create sequencing processes
@@ -16094,7 +16123,7 @@ class SequencingService {
       const preview = new OverallSequencingProcess(
         tree,
         process,
-        new RollupProcess(),
+        new RollupProcess(void 0, this.rollupClock(configuration)),
         null,
         (event) => {
           if (event === "onSequencingSessionEnd") ended = true;
@@ -16274,6 +16303,17 @@ class SequencingService {
    */
   updateConfiguration(config) {
     this.configuration = { ...this.configuration, ...config };
+    if (this.sequencingProcess) {
+      if ("now" in config) {
+        this.sequencingProcess.now = config.now ?? (() => /* @__PURE__ */ new Date());
+      }
+      if ("getAttemptElapsedSeconds" in config) {
+        this.sequencingProcess.getAttemptElapsedSecondsHook = config.getAttemptElapsedSeconds;
+      }
+    }
+    if (this.navigationPreviewConfiguration) {
+      this.navigationPreviewConfiguration = this.configuration;
+    }
     this.log("debug", "Sequencing configuration updated");
   }
   /**

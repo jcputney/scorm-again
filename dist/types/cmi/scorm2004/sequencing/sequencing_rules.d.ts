@@ -62,8 +62,6 @@ export declare class RuleCondition extends BaseCMI {
     set referencedObjective(objectiveId: string | null);
     private resolveReferencedObjective;
     evaluate(activity: Activity, now?: () => Date, getElapsedSeconds?: ((activity: Activity) => number) | null | undefined): RuleConditionEvaluation;
-    private evaluateTimeLimitExceeded;
-    private evaluateOutsideAvailableTimeRange;
     private parseISO8601Duration;
     toJSON(): object;
 }

@@ -1987,6 +1987,72 @@ this.Scorm12API = (function () {
       deliveryGenerations.set(activity, getDeliveryGeneration(activity) + 1);
   }
 
+  function isTimeLimitExceeded(activity, now, getElapsedSeconds) {
+      var limit = activity.timeLimitDuration;
+      if (!limit && activity.attemptAbsoluteDurationLimit) {
+          limit = activity.attemptAbsoluteDurationLimit;
+      }
+      if (!limit) {
+          return false;
+      }
+      var limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+      if (limitSeconds <= 0) {
+          return false;
+      }
+      var elapsedSeconds = 0;
+      var hasHookValue = false;
+      if (getElapsedSeconds) {
+          try {
+              var hookResult = getElapsedSeconds(activity);
+              if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
+                  elapsedSeconds = hookResult;
+                  hasHookValue = true;
+              }
+          } catch (unused) {
+              elapsedSeconds = 0;
+          }
+      }
+      if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+          var attemptDurationSeconds = getDurationAsSeconds(activity.attemptExperiencedDuration, scorm2004_regex.CMITimespan);
+          if (attemptDurationSeconds > 0) {
+              elapsedSeconds = attemptDurationSeconds;
+          }
+      }
+      if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+          try {
+              var start = new Date(activity.attemptAbsoluteStartTime).getTime();
+              var nowMs = now().getTime();
+              if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
+                  elapsedSeconds = (nowMs - start) / 1e3;
+              }
+          } catch (unused) {
+              elapsedSeconds = 0;
+          }
+      }
+      return elapsedSeconds > limitSeconds;
+  }
+  function isOutsideAvailableTimeRange(activity, clock) {
+      var beginTime = activity.beginTimeLimit;
+      var endTime = activity.endTimeLimit;
+      if (!beginTime && !endTime) {
+          return false;
+      }
+      var now = clock();
+      if (beginTime) {
+          var beginDate = new Date(beginTime);
+          if (now < beginDate) {
+              return true;
+          }
+      }
+      if (endTime) {
+          var endDate = new Date(endTime);
+          if (now > endDate) {
+              return true;
+          }
+      }
+      return false;
+  }
+
   function _assert_this_initialized$d(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       return self;
@@ -2346,10 +2412,10 @@ this.Scorm12API = (function () {
                           result = activity.hasAttemptLimitExceeded();
                           break;
                       case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */ :
-                          result = this.evaluateTimeLimitExceeded(activity, now, getElapsedSeconds);
+                          result = isTimeLimitExceeded(activity, now, getElapsedSeconds);
                           break;
                       case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */ :
-                          result = this.evaluateOutsideAvailableTimeRange(activity, now);
+                          result = isOutsideAvailableTimeRange(activity, now);
                           break;
                       case "always" /* ALWAYS */ :
                           result = true;
@@ -2365,87 +2431,6 @@ this.Scorm12API = (function () {
                       result = kleeneNot(result);
                   }
                   return result;
-              }
-          },
-          {
-              /**
-     * Evaluate if time limit has been exceeded
-     * @param {Activity} activity - The activity to evaluate
-     * @return {boolean}
-     * @private
-     */ key: "evaluateTimeLimitExceeded",
-              value: function evaluateTimeLimitExceeded(activity, now, getElapsedSeconds) {
-                  var limit = activity.timeLimitDuration;
-                  if (!limit && activity.attemptAbsoluteDurationLimit) {
-                      limit = activity.attemptAbsoluteDurationLimit;
-                  }
-                  if (!limit) {
-                      return false;
-                  }
-                  var limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-                  if (limitSeconds <= 0) {
-                      return false;
-                  }
-                  var elapsedSeconds = 0;
-                  var hasHookValue = false;
-                  if (getElapsedSeconds) {
-                      try {
-                          var hookResult = getElapsedSeconds(activity);
-                          if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
-                              elapsedSeconds = hookResult;
-                              hasHookValue = true;
-                          }
-                      } catch (unused) {
-                          elapsedSeconds = 0;
-                      }
-                  }
-                  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
-                      var attemptDurationSeconds = getDurationAsSeconds(activity.attemptExperiencedDuration, scorm2004_regex.CMITimespan);
-                      if (attemptDurationSeconds > 0) {
-                          elapsedSeconds = attemptDurationSeconds;
-                      }
-                  }
-                  if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
-                      try {
-                          var start = new Date(activity.attemptAbsoluteStartTime).getTime();
-                          var nowMs = now().getTime();
-                          if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
-                              elapsedSeconds = (nowMs - start) / 1e3;
-                          }
-                      } catch (unused) {
-                          elapsedSeconds = 0;
-                      }
-                  }
-                  return elapsedSeconds > limitSeconds;
-              }
-          },
-          {
-              /**
-     * Evaluate if activity is outside available time range
-     * @param {Activity} activity - The activity to evaluate
-     * @return {boolean}
-     * @private
-     */ key: "evaluateOutsideAvailableTimeRange",
-              value: function evaluateOutsideAvailableTimeRange(activity, clock) {
-                  var beginTime = activity.beginTimeLimit;
-                  var endTime = activity.endTimeLimit;
-                  if (!beginTime && !endTime) {
-                      return false;
-                  }
-                  var now = clock();
-                  if (beginTime) {
-                      var beginDate = new Date(beginTime);
-                      if (now < beginDate) {
-                          return true;
-                      }
-                  }
-                  if (endTime) {
-                      var endDate = new Date(endTime);
-                      if (now > endDate) {
-                          return true;
-                      }
-                  }
-                  return false;
               }
           },
           {
@@ -6680,9 +6665,14 @@ this.Scorm12API = (function () {
               /**
      * Evaluate the condition for an activity
      * @param {Activity} activity - The activity to evaluate the condition for
+     * @param {() => Date} [now] - The clock of the evaluating process (time-based conditions)
+     * @param {AttemptElapsedSecondsHook | null} [getElapsedSeconds] - Elapsed-time hook (timeLimitExceeded)
      * @return {boolean} - True if the condition is met, false otherwise
      */ key: "evaluate",
               value: function evaluate(activity) {
+                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : function() {
+                      return /* @__PURE__ */ new Date();
+                  }, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
                   var objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
                   var progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
                   var result;
@@ -6719,6 +6709,12 @@ this.Scorm12API = (function () {
                           break;
                       case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */ :
                           result = activity.hasAttemptLimitExceeded();
+                          break;
+                      case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */ :
+                          result = isTimeLimitExceeded(activity, now, getElapsedSeconds);
+                          break;
+                      case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */ :
+                          result = isOutsideAvailableTimeRange(activity, now);
                           break;
                       case "notAttempted" /* NOT_ATTEMPTED */ :
                           result = !progressInfoAvailable || activity.attemptCount === 0;
@@ -6887,9 +6883,11 @@ this.Scorm12API = (function () {
               /**
      * Evaluate the rule for a set of child activities
      * @param {Activity[]} children - The child activities to evaluate the rule for
+     * @param {() => Date} [now] - The clock of the evaluating process (time-based conditions)
+     * @param {AttemptElapsedSecondsHook | null} [getElapsedSeconds] - Elapsed-time hook (timeLimitExceeded)
      * @return {boolean} - True if the rule conditions are met, false otherwise
      */ key: "evaluate",
-              value: function evaluate(children) {
+              value: function evaluate(children, now, getElapsedSeconds) {
                   var _this = this;
                   if (children.length === 0) {
                       return false;
@@ -6899,9 +6897,9 @@ this.Scorm12API = (function () {
                           return true;
                       }
                       return _this.conditionCombination === "all" /* ALL */  ? _this._conditions.every(function(condition) {
-                          return condition.evaluate(child);
+                          return condition.evaluate(child, now, getElapsedSeconds);
                       }) : _this._conditions.some(function(condition) {
-                          return condition.evaluate(child);
+                          return condition.evaluate(child, now, getElapsedSeconds);
                       });
                   });
                   switch(this._consideration){
