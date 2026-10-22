@@ -22,7 +22,6 @@ describe("RollupChildFilter", () => {
         const child = createMockActivity({ tracked: false });
 
         expect(filter.checkChildForRollupSubprocess(child, "objective")).toBe(false);
-        expect(filter.checkChildForRollupSubprocess(child, "measure")).toBe(false);
         expect(filter.checkChildForRollupSubprocess(child, "progress")).toBe(false);
       });
 
@@ -42,19 +41,17 @@ describe("RollupChildFilter", () => {
         child.progressInfoAvailableInCurrentParentAttempt = false;
 
         expect(filter.checkChildForRollupSubprocess(child, "objective")).toBe(true);
-        expect(filter.checkChildForRollupSubprocess(child, "measure")).toBe(false);
         expect(filter.checkChildForRollupSubprocess(child, "progress")).toBe(true);
         expect(filter.isChildSatisfiedForRollup(child)).toBe(false);
         expect(filter.isChildCompletedForRollup(child)).toBe(false);
       });
     });
 
-    describe("objective/measure rollup", () => {
+    describe("objective rollup", () => {
       it("should return false when rollupObjectiveSatisfied is false", () => {
         const child = createMockActivity({ rollupObjectiveSatisfied: false });
 
         expect(filter.checkChildForRollupSubprocess(child, "objective")).toBe(false);
-        expect(filter.checkChildForRollupSubprocess(child, "measure")).toBe(false);
       });
 
       it("should return true with default 'always' consideration", () => {

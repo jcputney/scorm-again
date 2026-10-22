@@ -91,15 +91,11 @@ describe("SCORM 2004 Sequencing Integration", () => {
     }).not.toThrow();
   });
 
-  test("should calculate complex weighted measures", () => {
-    const children = rootActivity.children;
-    const complexMeasure = rollupProcess.calculateComplexWeightedMeasure(rootActivity, children);
+  test("should calculate the configured weighted measure", () => {
+    rollupProcess.overallRollupProcess(rootActivity.children[0]);
 
-    expect(complexMeasure).toBeGreaterThan(0);
-    expect(complexMeasure).toBeLessThanOrEqual(1);
-    // Should be different from simple average due to complex weighting
-    const simpleAverage = (0.8 + 0.6) / 2;
-    expect(complexMeasure).not.toBe(simpleAverage);
+    expect(rootActivity.objectiveMeasureStatus).toBe(true);
+    expect(rootActivity.objectiveNormalizedMeasure).toBeCloseTo(0.7);
   });
 
   test("should integrate rollup state validation in overall sequencing", () => {
