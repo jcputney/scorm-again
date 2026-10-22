@@ -11,6 +11,7 @@ import { isOutsideAvailableTimeRange, isTimeLimitExceeded } from "./time_conditi
  * Enum for rule condition operators
  */
 export enum RuleConditionOperator {
+  NO_OP = "noOp",
   NOT = "not",
   AND = "and",
   OR = "or",
