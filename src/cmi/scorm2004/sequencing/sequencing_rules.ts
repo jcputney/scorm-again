@@ -5,6 +5,7 @@ import { scorm2004_errors } from "../../../constants/error_codes";
 import { SuccessStatus, CompletionStatus } from "../../../constants/enums";
 import { getDurationAsSeconds } from "../../../utilities";
 import { scorm2004_regex } from "../../../constants/regex";
+import { isOutsideAvailableTimeRange, isTimeLimitExceeded } from "./time_conditions";
 
 /**
  * Enum for rule condition operators
@@ -375,10 +376,10 @@ export class RuleCondition extends BaseCMI {
           result = activity.hasAttemptLimitExceeded();
           break;
         case RuleConditionType.TIME_LIMIT_EXCEEDED:
-          result = this.evaluateTimeLimitExceeded(activity, now, getElapsedSeconds);
+          result = isTimeLimitExceeded(activity, now, getElapsedSeconds);
           break;
         case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
-          result = this.evaluateOutsideAvailableTimeRange(activity, now);
+          result = isOutsideAvailableTimeRange(activity, now);
           break;
         case RuleConditionType.ALWAYS:
           result = true;
@@ -396,113 +397,6 @@ export class RuleCondition extends BaseCMI {
     }
 
     return result;
-  }
-
-  /**
-   * Evaluate if time limit has been exceeded
-   * @param {Activity} activity - The activity to evaluate
-   * @return {boolean}
-   * @private
-   */
-  private evaluateTimeLimitExceeded(activity: Activity, now: () => Date, getElapsedSeconds?: ((activity: Activity) => number) | null): boolean {
-    // Check timeLimitDuration (primary time limit)
-    let limit = activity.timeLimitDuration;
-
-    // Fallback to attemptAbsoluteDurationLimit if timeLimitDuration is not set
-    if (!limit && activity.attemptAbsoluteDurationLimit) {
-      limit = activity.attemptAbsoluteDurationLimit;
-    }
-
-    // No limit means condition is false
-    if (!limit) {
-      return false;
-    }
-
-    // Parse limit to seconds
-    const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-
-    // Invalid or zero limit means condition is false
-    if (limitSeconds <= 0) {
-      return false;
-    }
-
-    let elapsedSeconds = 0;
-    let hasHookValue = false;
-
-    // Strategy 1: Use hook if available (preferred for LMS integration)
-    if (getElapsedSeconds) {
-      try {
-        const hookResult = getElapsedSeconds(activity);
-        if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
-          elapsedSeconds = hookResult;
-          hasHookValue = true;
-        }
-      } catch {
-        elapsedSeconds = 0;
-      }
-    }
-
-    // Strategy 2: Try to use attemptExperiencedDuration if hook not available
-    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
-      const attemptDurationSeconds = getDurationAsSeconds(
-        activity.attemptExperiencedDuration,
-        scorm2004_regex.CMITimespan,
-      );
-      if (attemptDurationSeconds > 0) {
-        elapsedSeconds = attemptDurationSeconds;
-      }
-    }
-
-    // Strategy 3: Calculate from attemptAbsoluteStartTime if duration not available
-    if (!hasHookValue && elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
-      try {
-        const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-        const nowMs = now().getTime();
-
-        // Validate timestamps before calculating
-        if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
-          elapsedSeconds = (nowMs - start) / 1000;
-        }
-      } catch {
-        elapsedSeconds = 0;
-      }
-    }
-
-    // Time limit is exceeded if elapsed time is strictly greater than limit
-    return elapsedSeconds > limitSeconds;
-  }
-
-  /**
-   * Evaluate if activity is outside available time range
-   * @param {Activity} activity - The activity to evaluate
-   * @return {boolean}
-   * @private
-   */
-  private evaluateOutsideAvailableTimeRange(activity: Activity, clock: () => Date): boolean {
-    const beginTime = activity.beginTimeLimit;
-    const endTime = activity.endTimeLimit;
-
-    if (!beginTime && !endTime) {
-      return false;
-    }
-
-    const now = clock();
-
-    if (beginTime) {
-      const beginDate = new Date(beginTime);
-      if (now < beginDate) {
-        return true;
-      }
-    }
-
-    if (endTime) {
-      const endDate = new Date(endTime);
-      if (now > endDate) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /**
