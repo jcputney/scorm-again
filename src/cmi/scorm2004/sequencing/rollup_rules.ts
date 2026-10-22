@@ -196,14 +196,17 @@ export class RollupCondition extends BaseCMI {
         // Per SCORM 2004 SN Book RB.1.4.1, the "satisfied" condition checks the
         // objective satisfaction status from the activity's tracked objective.
         // This is populated via global objective mapping (readSatisfiedStatus).
-        // Also check successStatus for backward compatibility with leaf activities.
-        result =
-          objectiveInfoAvailable &&
-          (activity.objectiveSatisfiedStatusKnown ||
-            activity.successStatus !== SuccessStatus.UNKNOWN)
-            ? activity.objectiveSatisfiedStatus === true ||
-              activity.successStatus === SuccessStatus.PASSED
-            : "unknown";
+        // successStatus is a fallback only for activities without a primary objective, matching the
+        // sequencing-rule condition; otherwise a stale successStatus could mask an unknown status.
+        if (!objectiveInfoAvailable) {
+          result = "unknown";
+        } else if (activity.objectiveSatisfiedStatusKnown) {
+          result = activity.objectiveSatisfiedStatus === true;
+        } else if (!activity.primaryObjective && activity.successStatus !== SuccessStatus.UNKNOWN) {
+          result = activity.successStatus === SuccessStatus.PASSED;
+        } else {
+          result = "unknown";
+        }
         break;
       case RollupConditionType.OBJECTIVE_STATUS_KNOWN:
         // Per SCORM 2004 SN Book RB.1.4.1, objectiveStatusKnown checks if

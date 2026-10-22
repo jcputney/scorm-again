@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RollupActionType as Action,
   RollupCondition,
@@ -57,6 +57,21 @@ describe("three-valued rollup conditions (RB.1.4 / RB.1.4.1)", () => {
       expect(new RollupCondition(Condition.SATISFIED).evaluateThreeValued(child)).toBe(expected);
     },
   );
+
+  it("ignores a stale success status when the primary objective status is unknown", () => {
+    const child = new Activity("child");
+    child.primaryObjective = new ActivityObjective("child-primary", { isPrimary: true });
+    child.successStatus = SuccessStatus.PASSED;
+    child.objectiveSatisfiedStatusKnown = false;
+    expect(new RollupCondition(Condition.SATISFIED).evaluateThreeValued(child)).toBe("unknown");
+  });
+
+  it("uses a known objective status over success status", () => {
+    const child = new Activity("child");
+    child.objectiveSatisfiedStatus = false;
+    child.successStatus = SuccessStatus.PASSED;
+    expect(new RollupCondition(Condition.SATISFIED).evaluateThreeValued(child)).toBe(false);
+  });
 
   it.each([Combination.ALL, Combination.ANY])(
     "keeps empty conditions true for %s",
