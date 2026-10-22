@@ -9,9 +9,6 @@ import { vi } from "vitest";
 import { Activity, RollupConsiderationsConfig } from "../../src/cmi/scorm2004/sequencing/activity";
 import { RollupCondition } from "../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus, SuccessStatus } from "../../src/constants/enums";
-import { MeasureRollupProcessor } from "../../src/cmi/scorm2004/sequencing/rollup/measure_rollup";
-import { ObjectiveRollupProcessor } from "../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
-import { ProgressRollupProcessor } from "../../src/cmi/scorm2004/sequencing/rollup/progress_rollup";
 import { GlobalObjectiveMapEntry, Settings } from "../../src/types/api_types";
 import { CMI } from "../../src/cmi/scorm2004/cmi";
 import { ADL } from "../../src/cmi/scorm2004/adl";
@@ -134,56 +131,6 @@ export function createMockRollupConsiderations(
     requiredForIncomplete: "always",
     ...overrides,
   } satisfies RollupConsiderationsConfig;
-}
-
-// ============================================================================
-// Processor Mocks
-// ============================================================================
-
-/**
- * Options for mock processors
- */
-export interface MockProcessorOptions {
-  measureRollupResult?: Activity[];
-}
-
-/**
- * Return type for createMockProcessors
- */
-export interface MockProcessors {
-  measureProcessor: MeasureRollupProcessor;
-  objectiveProcessor: ObjectiveRollupProcessor;
-  progressProcessor: ProgressRollupProcessor;
-}
-
-/**
- * Creates mock rollup processors for testing CrossClusterProcessor
- *
- * @param options - Configuration options for the mock processors
- * @returns An object containing mock measure, objective, and progress processors
- */
-export function createMockProcessors(options: MockProcessorOptions = {}): MockProcessors {
-  const measureProcessor = {
-    measureRollupProcess: vi.fn().mockReturnValue(options.measureRollupResult ?? []),
-    completionMeasureRollupProcess: vi.fn(),
-  } satisfies Pick<
-    MeasureRollupProcessor,
-    "measureRollupProcess" | "completionMeasureRollupProcess"
-  >;
-
-  const objectiveProcessor = {
-    objectiveRollupProcess: vi.fn(),
-  } satisfies Pick<ObjectiveRollupProcessor, "objectiveRollupProcess">;
-
-  const progressProcessor = {
-    activityProgressRollupProcess: vi.fn(),
-  } satisfies Pick<ProgressRollupProcessor, "activityProgressRollupProcess">;
-
-  return {
-    measureProcessor: measureProcessor as unknown as MeasureRollupProcessor,
-    objectiveProcessor: objectiveProcessor as unknown as ObjectiveRollupProcessor,
-    progressProcessor: progressProcessor as unknown as ProgressRollupProcessor,
-  };
 }
 
 // ============================================================================

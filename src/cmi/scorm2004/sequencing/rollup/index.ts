@@ -21,7 +21,3 @@ export {
   EventCallback as ProgressEventCallback,
 } from "./progress_rollup";
 export { DurationRollupProcessor, EventCallback as DurationEventCallback } from "./duration_rollup";
-export {
-  CrossClusterProcessor,
-  EventCallback as CrossClusterEventCallback,
-} from "./cross_cluster_processor";
