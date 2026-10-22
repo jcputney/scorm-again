@@ -1939,10 +1939,11 @@ Delivery rejects an activity when a disabled rule applies to it or to any ancest
       consideration: "all",            // "all", "any", "none", "atLeastCount", "atLeastPercent"
       minimumCount: 0,                 // For "atLeastCount"
       minimumPercent: 0,               // For "atLeastPercent"
+      conditionCombination: "any",     // How one child's conditions combine: "any" (default), "all"
       conditions: [
         {
-          condition: "completed",      // "satisfied", "objectiveStatusKnown", "objectiveMeasureKnown",
-                                       // "completed", "activityProgressKnown", "attempted"
+          condition: "completed",      // See rollup condition types below
+          operator: "not",             // "not" or omitted for positive
           parameters: {}               // Optional parameters
         }
       ]
@@ -1950,6 +1951,12 @@ Delivery rejects an activity when a disabled rule applies to it or to any ancest
   ]
 }
 ```
+
+**Rollup Condition Types:**
+- `satisfied`, `objectiveStatusKnown`, `objectiveMeasureKnown`, `objectiveMeasureGreaterThan`, `objectiveMeasureLessThan`
+- `completed`, `progressKnown`, `attempted`, `notAttempted`, `attemptLimitExceeded`
+- `timeLimitExceeded`, `outsideAvailableTimeRange` — evaluated with the configured `now` and `getAttemptElapsedSeconds`, like the rule conditions of the same name
+- `always`
 
 ### Objective Map Info (Global Objectives)
 
