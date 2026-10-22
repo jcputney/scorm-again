@@ -7,6 +7,7 @@
 
 import { vi } from "vitest";
 import { Activity, RollupConsiderationsConfig } from "../../src/cmi/scorm2004/sequencing/activity";
+import { RuleConditionEvaluation } from "../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition } from "../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus, SuccessStatus } from "../../src/constants/enums";
 import { GlobalObjectiveMapEntry, Settings } from "../../src/types/api_types";
@@ -104,10 +105,16 @@ export function createMockActivity(options: MockActivityOptions = {}): Activity 
  * @param evaluateFn - Function to evaluate the condition against an activity
  * @returns A mock RollupCondition
  */
-export function createMockCondition(evaluateFn: (activity: Activity) => boolean): RollupCondition {
+export function createMockCondition(
+  evaluateFn: (activity: Activity) => RuleConditionEvaluation,
+): RollupCondition {
   return {
-    evaluate: evaluateFn,
-  } satisfies Pick<RollupCondition, "evaluate"> as unknown as RollupCondition;
+    evaluate: (activity: Activity) => evaluateFn(activity) === true,
+    evaluateThreeValued: evaluateFn,
+  } satisfies Pick<
+    RollupCondition,
+    "evaluate" | "evaluateThreeValued"
+  > as unknown as RollupCondition;
 }
 
 // ============================================================================
