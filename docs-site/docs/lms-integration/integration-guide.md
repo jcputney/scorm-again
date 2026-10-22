@@ -1889,10 +1889,11 @@ const api = new Scorm2004API({
 }
 ```
 
-**Measure rollup.** A parent's rolled-up score is the weighted average of its tracked children's scores, using each child's `objectiveMeasureWeight` (SCORM 2004 SN RB.1.1). Other rollup settings do not change the weight.
+**Measure rollup.** A parent's rolled-up score is the weighted average of its tracked children's scores, using each child's `objectiveMeasureWeight` (SCORM 2004 SN RB.1.1).
 
 - **Children without a score:** a child that has no score yet still counts its weight, so it lowers the average until it is scored. The same applies to a score from an earlier parent attempt when `useCurrentAttemptObjectiveInfo` is true.
-- **Leaving a child out:** `rollupObjectiveSatisfied` does not affect the score. Set `objectiveMeasureWeight: 0` instead.
+- **Active children:** if the parent's `rollupConsiderations.measureSatisfactionIfActive` is false, a child that is active or has an attempt in progress is left out until its attempt ends. The setting is true by default, so active children count.
+- **Leaving a child out:** `rollupObjectiveSatisfied` and the `requiredFor...` rollup considerations do not affect the score. Set `objectiveMeasureWeight: 0` instead.
 - **No scores at all:** if none of the counted children has a score, the parent has no score.
 
 ### Sequencing Rules
