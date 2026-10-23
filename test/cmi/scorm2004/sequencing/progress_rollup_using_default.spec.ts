@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { RollupChildFilter } from "../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
 import { RollupRuleEvaluator } from "../../../../src/cmi/scorm2004/sequencing/rollup/rollup_rule_evaluator";
 import { ObjectiveRollupProcessor } from "../../../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
@@ -76,5 +76,22 @@ describe("Activity Progress Rollup Using Default (RB.1.3)", () => {
     processor.activityProgressRollupProcess(parent);
 
     expect(parent.completionStatus).toBe(priorStatus);
+  });
+
+  it("preserves unknown and completed parent status when no children contribute", () => {
+    const primaryObjective = new ActivityObjective("primary", { isPrimary: true });
+    parent.primaryObjective = primaryObjective;
+    primaryObjective.completionStatus = CompletionStatus.COMPLETED;
+    for (const child of [child1, child2, child3]) {
+      child.sequencingControls.tracked = false;
+    }
+
+    processor.activityProgressRollupProcess(parent);
+    expect(parent.completionStatus).toBe(CompletionStatus.UNKNOWN);
+    expect(primaryObjective.completionStatus).toBe(CompletionStatus.COMPLETED);
+
+    parent.completionStatus = CompletionStatus.COMPLETED;
+    processor.activityProgressRollupProcess(parent);
+    expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
   });
 });

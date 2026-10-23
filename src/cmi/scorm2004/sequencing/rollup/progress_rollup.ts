@@ -116,9 +116,9 @@ export class ProgressRollupProcessor {
         this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete"),
     );
 
+    // @spec SN Book: RB.1.4 step 1.2.4 - an empty contributing children bag
+    // causes no status changes.
     if (contributors.length === 0) {
-      activity.completionStatus = CompletionStatus.INCOMPLETE;
-      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
       return;
     }
 

@@ -10,6 +10,9 @@ import {
   RollupRule,
   RollupRules
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
+import { RollupChildFilter } from "../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
+import { RollupRuleEvaluator } from "../../../../src/cmi/scorm2004/sequencing/rollup/rollup_rule_evaluator";
+import { ObjectiveRollupProcessor } from "../../../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
 import { SuccessStatus } from "../../../../src/constants/enums";
 
 describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
@@ -331,5 +334,17 @@ describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
       expect(parentActivity.successStatus).toBe(SuccessStatus.PASSED);
       expect(parentActivity.objectiveMeasureStatus).toBe(false); // Measure not set
     });
+  });
+
+  it("ignores a stale passing measure when the measure status is unknown", () => {
+    parentActivity.objectiveNormalizedMeasure = 0.9;
+    parentActivity.objectiveMeasureStatus = false;
+
+    const filter = new RollupChildFilter();
+    const evaluator = new RollupRuleEvaluator(filter);
+    new ObjectiveRollupProcessor(filter, evaluator).objectiveRollupProcess(parentActivity);
+
+    expect(parentActivity.objectiveSatisfiedStatusKnown).toBe(false);
+    expect(parentActivity.objectiveSatisfiedStatus).toBe(false);
   });
 });
