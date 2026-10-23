@@ -212,8 +212,8 @@ describe("Rollup Considerations Complete (RB.1.4)", () => {
 
       rollupProcess.overallRollupProcess(child1);
 
-      // Parent should be satisfied (child3 excluded from notSatisfied check)
-      expect(parent.objectiveSatisfiedStatus).toBe(true);
+      // RB.1.4.2: child3 still participates in satisfied, so neither action fires.
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
     });
   });
 
@@ -356,8 +356,8 @@ describe("Rollup Considerations Complete (RB.1.4)", () => {
 
       rollupProcess.overallRollupProcess(child1);
 
-      // Parent should be completed (child3 excluded from incomplete check)
-      expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
+      // RB.1.4.2: child3 still participates in completed, so neither action fires.
+      expect(parent.completionStatus).toBe(CompletionStatus.UNKNOWN);
     });
   });
 

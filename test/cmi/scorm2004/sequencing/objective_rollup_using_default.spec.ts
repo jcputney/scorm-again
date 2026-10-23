@@ -145,4 +145,70 @@ describe("Objective Rollup Using Default (RB.1.2.c)", () => {
     expect(contentWrapper.objectiveSatisfiedStatusKnown).toBe(true);
     expect(contentWrapper.objectiveSatisfiedStatus).toBe(false);
   });
+
+  it("leaves status unchanged when a suspended negative child is excluded only from the negative action", () => {
+    const parent = new Activity("action_parent", "Action Parent");
+    const childA = new Activity("a", "A");
+    const childB = new Activity("b", "B");
+    parent.addChild(childA);
+    parent.addChild(childB);
+    for (const child of [childA, childB]) {
+      child.attemptCount = 1;
+      child.attemptProgressStatus = true;
+    }
+    childA.objectiveSatisfiedStatus = true;
+    childB.objectiveSatisfiedStatus = false;
+    childB.isSuspended = true;
+    childB.requiredForNotSatisfied = "ifNotSuspended";
+
+    processor.objectiveRollupProcess(parent);
+
+    expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
+  });
+
+  it("lets the positive action override when both actions fire", () => {
+    const parent = new Activity("action_parent", "Action Parent");
+    const childA = new Activity("a", "A");
+    const childB = new Activity("b", "B");
+    parent.addChild(childA);
+    parent.addChild(childB);
+    for (const child of [childA, childB]) {
+      child.attemptCount = 1;
+      child.attemptProgressStatus = true;
+    }
+    childA.objectiveSatisfiedStatus = true;
+    childB.objectiveSatisfiedStatus = false;
+    childB.isSuspended = true;
+    childB.requiredForSatisfied = "ifNotSuspended";
+
+    processor.objectiveRollupProcess(parent);
+
+    expect(parent.objectiveSatisfiedStatus).toBe(true);
+  });
+
+  it.each(["positive", "negative"])("does not fire an empty %s action set", (emptyAction) => {
+    const parent = new Activity("action_parent", "Action Parent");
+    const childA = new Activity("a", "A");
+    const childB = new Activity("b", "B");
+    parent.addChild(childA);
+    parent.addChild(childB);
+    for (const child of [childA, childB]) {
+      child.attemptCount = 1;
+      child.attemptProgressStatus = true;
+    }
+    for (const child of [childA, childB]) {
+      child.isSuspended = true;
+      if (emptyAction === "positive") {
+        child.requiredForSatisfied = "ifNotSuspended";
+        child.objectiveSatisfiedStatus = false;
+      } else {
+        child.requiredForNotSatisfied = "ifNotSuspended";
+        child.objectiveSatisfiedStatus = true;
+      }
+    }
+
+    processor.objectiveRollupProcess(parent);
+
+    expect(parent.objectiveSatisfiedStatus).toBe(emptyAction === "positive" ? false : true);
+  });
 });
