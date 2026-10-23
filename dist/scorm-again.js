@@ -19303,8 +19303,10 @@
                       activity.objectiveNormalizedMeasure = 0;
                       activity.objectiveMeasureStatus = false;
                   }
-                  activity.attemptAbsoluteDuration = "PT0H0M0S";
-                  activity.attemptExperiencedDuration = "PT0H0M0S";
+                  if (!activity.deliveryWasResumed) {
+                      activity.attemptAbsoluteDuration = "PT0H0M0S";
+                      activity.attemptExperiencedDuration = "PT0H0M0S";
+                  }
                   activity.isAvailable = true;
               }
           },
@@ -19316,7 +19318,9 @@
      */ key: "setupAttemptTracking",
               value: function setupAttemptTracking(activity) {
                   activity.wasSkipped = false;
-                  activity.attemptAbsoluteStartTime = this.now().toISOString();
+                  if (!activity.deliveryWasResumed || !activity.attemptAbsoluteStartTime) {
+                      activity.attemptAbsoluteStartTime = this.now().toISOString();
+                  }
                   if (!activity.location) {
                       activity.location = "";
                   }
@@ -23297,6 +23301,7 @@
           __publicField$x(this, "isInitialized", false);
           __publicField$x(this, "navigationPreviewConfiguration", null);
           __publicField$x(this, "isSequencingActive", false);
+          __publicField$x(this, "deliveryNotificationsInProgress", false);
           __publicField$x(this, "lastCMIValues", /* @__PURE__ */ new Map());
           __publicField$x(this, "lastSequencingResult", null);
           this.sequencing = sequencing;
@@ -23639,9 +23644,15 @@
                   };
                   this.lastSequencingResult = sequencingResult;
                   if (deliveryRequest.valid && deliveryRequest.targetActivity) {
-                      var _this_overallSequencingProcess;
-                      this.activityDeliveryService.processSequencingResult(sequencingResult);
-                      (_this_overallSequencingProcess = this.overallSequencingProcess) === null || _this_overallSequencingProcess === void 0 ? void 0 : _this_overallSequencingProcess.updateNavigationValidity();
+                      var wasInProgress = this.deliveryNotificationsInProgress;
+                      this.deliveryNotificationsInProgress = true;
+                      try {
+                          var _this_overallSequencingProcess;
+                          this.activityDeliveryService.processSequencingResult(sequencingResult);
+                          (_this_overallSequencingProcess = this.overallSequencingProcess) === null || _this_overallSequencingProcess === void 0 ? void 0 : _this_overallSequencingProcess.updateNavigationValidity();
+                      } finally{
+                          this.deliveryNotificationsInProgress = wasInProgress;
+                      }
                       this.log("info", "Navigation request '".concat(request, "' resulted in activity delivery: ").concat(deliveryRequest.targetActivity.id));
                       return true;
                   } else {
@@ -23771,7 +23782,7 @@
               value: function isDeliveryInProgress() {
                   var _ref;
                   var _this_overallSequencingProcess;
-                  return (_ref = (_this_overallSequencingProcess = this.overallSequencingProcess) === null || _this_overallSequencingProcess === void 0 ? void 0 : _this_overallSequencingProcess.isDeliveryInProgress()) !== null && _ref !== void 0 ? _ref : false;
+                  return this.deliveryNotificationsInProgress || ((_ref = (_this_overallSequencingProcess = this.overallSequencingProcess) === null || _this_overallSequencingProcess === void 0 ? void 0 : _this_overallSequencingProcess.isDeliveryInProgress()) !== null && _ref !== void 0 ? _ref : false);
               }
           },
           {

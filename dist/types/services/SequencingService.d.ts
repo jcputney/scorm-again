@@ -37,6 +37,7 @@ export declare class SequencingService {
     private isInitialized;
     private navigationPreviewConfiguration;
     private isSequencingActive;
+    private deliveryNotificationsInProgress;
     private lastCMIValues;
     private lastSequencingResult;
     constructor(sequencing: Sequencing, cmi: CMI, adl: ADL, eventService: IEventService, loggingService: ILoggingService, configuration?: SequencingConfiguration);

@@ -13417,8 +13417,10 @@ class DeliveryHandler {
       activity.objectiveNormalizedMeasure = 0;
       activity.objectiveMeasureStatus = false;
     }
-    activity.attemptAbsoluteDuration = "PT0H0M0S";
-    activity.attemptExperiencedDuration = "PT0H0M0S";
+    if (!activity.deliveryWasResumed) {
+      activity.attemptAbsoluteDuration = "PT0H0M0S";
+      activity.attemptExperiencedDuration = "PT0H0M0S";
+    }
     activity.isAvailable = true;
   }
   /**
@@ -13428,7 +13430,9 @@ class DeliveryHandler {
    */
   setupAttemptTracking(activity) {
     activity.wasSkipped = false;
-    activity.attemptAbsoluteStartTime = this.now().toISOString();
+    if (!activity.deliveryWasResumed || !activity.attemptAbsoluteStartTime) {
+      activity.attemptAbsoluteStartTime = this.now().toISOString();
+    }
     if (!activity.location) {
       activity.location = "";
     }
@@ -16145,6 +16149,7 @@ class SequencingService {
   isInitialized = false;
   navigationPreviewConfiguration = null;
   isSequencingActive = false;
+  deliveryNotificationsInProgress = false;
   lastCMIValues = /* @__PURE__ */ new Map();
   lastSequencingResult = null;
   constructor(sequencing, cmi, adl, eventService, loggingService, configuration = {}) {
@@ -16447,8 +16452,14 @@ class SequencingService {
     };
     this.lastSequencingResult = sequencingResult;
     if (deliveryRequest.valid && deliveryRequest.targetActivity) {
-      this.activityDeliveryService.processSequencingResult(sequencingResult);
-      this.overallSequencingProcess?.updateNavigationValidity();
+      const wasInProgress = this.deliveryNotificationsInProgress;
+      this.deliveryNotificationsInProgress = true;
+      try {
+        this.activityDeliveryService.processSequencingResult(sequencingResult);
+        this.overallSequencingProcess?.updateNavigationValidity();
+      } finally {
+        this.deliveryNotificationsInProgress = wasInProgress;
+      }
       this.log(
         "info",
         `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`
@@ -16564,7 +16575,7 @@ class SequencingService {
    * @return {boolean} True if delivery is in progress
    */
   isDeliveryInProgress() {
-    return this.overallSequencingProcess?.isDeliveryInProgress() ?? false;
+    return this.deliveryNotificationsInProgress || (this.overallSequencingProcess?.isDeliveryInProgress() ?? false);
   }
   // Private helper methods
   /**

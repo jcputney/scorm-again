@@ -10643,8 +10643,10 @@ this.Scorm12API = (function () {
                       activity.objectiveNormalizedMeasure = 0;
                       activity.objectiveMeasureStatus = false;
                   }
-                  activity.attemptAbsoluteDuration = "PT0H0M0S";
-                  activity.attemptExperiencedDuration = "PT0H0M0S";
+                  if (!activity.deliveryWasResumed) {
+                      activity.attemptAbsoluteDuration = "PT0H0M0S";
+                      activity.attemptExperiencedDuration = "PT0H0M0S";
+                  }
                   activity.isAvailable = true;
               }
           },
@@ -10656,7 +10658,9 @@ this.Scorm12API = (function () {
      */ key: "setupAttemptTracking",
               value: function setupAttemptTracking(activity) {
                   activity.wasSkipped = false;
-                  activity.attemptAbsoluteStartTime = this.now().toISOString();
+                  if (!activity.deliveryWasResumed || !activity.attemptAbsoluteStartTime) {
+                      activity.attemptAbsoluteStartTime = this.now().toISOString();
+                  }
                   if (!activity.location) {
                       activity.location = "";
                   }
