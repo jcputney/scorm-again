@@ -1953,10 +1953,8 @@ Delivery rejects an activity when a disabled rule applies to it or to any ancest
 ```
 
 **Rollup Condition Types:**
-- `satisfied`, `objectiveStatusKnown`, `objectiveMeasureKnown`, `objectiveMeasureGreaterThan`, `objectiveMeasureLessThan`
-- `completed`, `progressKnown`, `attempted`, `notAttempted`, `attemptLimitExceeded`
-- `timeLimitExceeded`, `outsideAvailableTimeRange` — evaluated with the configured `now` and `getAttemptElapsedSeconds`, like the rule conditions of the same name
-- `always`
+- IMS SS values: `satisfied`, `objectiveStatusKnown`, `objectiveMeasureKnown`, `completed`, `activityProgressKnown`, `attempted`, `attemptLimitExceeded`, `timeLimitExceeded` and `outsideAvailableTimeRange`. Like the sequencing rule conditions of the same name, `timeLimitExceeded` uses the configured `now` and `getAttemptElapsedSeconds`, and `outsideAvailableTimeRange` uses `now`.
+- scorm-again extensions, which manifests do not contain: `progressKnown` (an alias of `activityProgressKnown`), `objectiveMeasureGreaterThan`, `objectiveMeasureLessThan`, `notAttempted` and `always`.
 
 ### Objective Map Info (Global Objectives)
 

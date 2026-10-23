@@ -591,3 +591,41 @@ it.each([30, 120])(
     }
   },
 );
+
+it.each(["timeLimitExceeded", "activityProgressKnown"])(
+  "rolls up the settings-built %s condition through API sequencing",
+  (condition) => {
+    const apiInstance = api({
+      sequencing: {
+        autoRollupOnCMIChange: true,
+        getAttemptElapsedSeconds: (activity) => (activity.id === "rollup-child" ? 7200 : 0),
+        activityTree: {
+          id: "rollup-root",
+          title: "Root",
+          sequencingControls: { flow: true },
+          rollupRules: {
+            rules: [
+              {
+                action: "notSatisfied",
+                consideration: "any",
+                conditions: [{ condition }],
+              },
+            ],
+          },
+          children: [
+            {
+              id: "rollup-child",
+              title: "Child",
+              timeLimitDuration: "PT1H",
+            },
+          ],
+        },
+      },
+    });
+    expect(apiInstance.lmsInitialize("")).toBe("true");
+    expect(apiInstance.lmsSetValue("cmi.completion_status", "incomplete")).toBe("true");
+    const root = apiInstance._sequencing.activityTree.root!;
+    expect(root.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(root.objectiveSatisfiedStatus).toBe(false);
+  },
+);
