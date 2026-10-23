@@ -5,7 +5,6 @@ import { MeasureRollupProcessor, MeasureRollupOptions } from "./rollup/measure_r
 import { ObjectiveRollupProcessor } from "./rollup/objective_rollup.js";
 import { ProgressRollupProcessor } from "./rollup/progress_rollup.js";
 import { DurationRollupProcessor } from "./rollup/duration_rollup.js";
-import { CrossClusterProcessor } from "./rollup/cross_cluster_processor.js";
 import { GlobalObjectiveSynchronizer, GlobalObjective, GlobalObjectiveWriteTargets } from "./objectives/global_objective_synchronizer.js";
 import { RollupStateValidator } from "./validation/rollup_state_validator.js";
 export type EventCallback = (eventType: string, data?: unknown) => void;
@@ -19,7 +18,6 @@ export declare class RollupProcess {
     private durationProcessor;
     private globalObjectiveSynchronizer;
     private stateValidator;
-    private crossClusterProcessor;
     private eventCallback;
     constructor(eventCallback?: EventCallback, clock?: RollupClockOptions);
     overallRollupProcess(activity: Activity, globalObjectives?: Map<string, GlobalObjective>): Activity[];
@@ -29,7 +27,6 @@ export declare class RollupProcess {
     syncActivityObjectivesFromGlobals(activity: Activity, globalObjectives: Map<string, GlobalObjective>): boolean;
     syncFreshlyWrittenObjectivesToActiveAncestor(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): boolean;
     calculateComplexWeightedMeasure(activity: Activity, children: Activity[], options?: MeasureRollupOptions): number;
-    processCrossClusterDependencies(activity: Activity, clusters: Activity[]): void;
     getChildFilter(): RollupChildFilter;
     getRuleEvaluator(): RollupRuleEvaluator;
     getMeasureProcessor(): MeasureRollupProcessor;
@@ -38,6 +35,5 @@ export declare class RollupProcess {
     getDurationProcessor(): DurationRollupProcessor;
     getGlobalObjectiveSynchronizer(): GlobalObjectiveSynchronizer;
     getStateValidator(): RollupStateValidator;
-    getCrossClusterProcessor(): CrossClusterProcessor;
 }
 //# sourceMappingURL=rollup_process.d.ts.map

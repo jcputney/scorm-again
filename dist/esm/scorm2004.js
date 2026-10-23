@@ -10701,158 +10701,6 @@ class DurationRollupProcessor {
   }
 }
 
-const MAX_CLUSTER_DEPTH = 10;
-class CrossClusterProcessor {
-  measureProcessor;
-  objectiveProcessor;
-  progressProcessor;
-  eventCallback;
-  processingClusters = /* @__PURE__ */ new Set();
-  /**
-   * Create a new CrossClusterProcessor
-   *
-   * @param measureProcessor - MeasureRollupProcessor for measure rollup
-   * @param objectiveProcessor - ObjectiveRollupProcessor for objective rollup
-   * @param progressProcessor - ProgressRollupProcessor for progress rollup
-   * @param eventCallback - Optional callback for firing events
-   */
-  constructor(measureProcessor, objectiveProcessor, progressProcessor, eventCallback) {
-    this.measureProcessor = measureProcessor;
-    this.objectiveProcessor = objectiveProcessor;
-    this.progressProcessor = progressProcessor;
-    this.eventCallback = eventCallback || null;
-  }
-  /**
-   * Handle cross-cluster dependencies in rollup
-   * Manages dependencies between activity clusters for accurate rollup
-   *
-   * @param activity - The activity to process
-   * @param clusters - Related activity clusters
-   * @param depth - Current recursion depth (default 0)
-   */
-  processCrossClusterDependencies(activity, clusters, depth = 0) {
-    if (depth >= MAX_CLUSTER_DEPTH) {
-      this.eventCallback?.("cross_cluster_max_depth_reached", {
-        activityId: activity.id,
-        depth,
-        maxDepth: MAX_CLUSTER_DEPTH
-      });
-      return;
-    }
-    if (this.processingClusters.has(activity.id)) {
-      this.eventCallback?.("cross_cluster_skip_reentrant", {
-        activityId: activity.id
-      });
-      return;
-    }
-    try {
-      this.processingClusters.add(activity.id);
-      this.eventCallback?.("cross_cluster_processing_started", {
-        activityId: activity.id,
-        clusterCount: clusters.length,
-        depth
-      });
-      const dependencyMap = /* @__PURE__ */ new Map();
-      for (const cluster of clusters) {
-        this.analyzeCrossClusterDependencies(cluster, dependencyMap);
-      }
-      const processOrder = this.resolveDependencyOrder(dependencyMap);
-      for (const clusterId of processOrder) {
-        const cluster = clusters.find((c) => c.id === clusterId);
-        if (cluster) {
-          this.processClusterRollup(cluster, depth);
-        }
-      }
-      this.eventCallback?.("cross_cluster_processing_completed", {
-        activityId: activity.id,
-        processedClusters: processOrder.length,
-        dependencyMap: Array.from(dependencyMap.entries())
-      });
-    } catch (error) {
-      this.eventCallback?.("cross_cluster_processing_error", {
-        activityId: activity.id,
-        error: error instanceof Error ? error.message : String(error)
-      });
-    } finally {
-      this.processingClusters.delete(activity.id);
-    }
-  }
-  /**
-   * Identify Activity Clusters
-   * Identifies clusters among child activities for cross-cluster dependency processing
-   *
-   * @param children - Child activities to analyze
-   * @returns Array of identified clusters
-   */
-  identifyActivityClusters(children) {
-    const clusters = [];
-    for (const child of children) {
-      if (child.children.length > 0 && child.sequencingControls.flow) {
-        clusters.push(child);
-      }
-    }
-    return clusters;
-  }
-  /**
-   * Analyze cross-cluster dependencies
-   * Builds dependency relationships based on sequencing rules and prerequisites
-   *
-   * @param cluster - The cluster to analyze
-   * @param dependencyMap - Map to store dependencies
-   */
-  analyzeCrossClusterDependencies(cluster, dependencyMap) {
-    const dependencies = [];
-    const sequencingRules = cluster.sequencingRules;
-    if (sequencingRules && sequencingRules.preConditionRules.length > 0) ;
-    dependencyMap.set(cluster.id, dependencies);
-  }
-  /**
-   * Resolve dependency processing order
-   * Uses topological sort to determine correct processing order
-   *
-   * @param dependencyMap - Map of dependencies
-   * @returns Ordered array of cluster IDs
-   */
-  resolveDependencyOrder(dependencyMap) {
-    const resolved = [];
-    const resolving = /* @__PURE__ */ new Set();
-    const resolve = (id) => {
-      if (resolved.includes(id)) return;
-      if (resolving.has(id)) {
-        this.eventCallback?.("circular_dependency_detected", { activityId: id });
-        return;
-      }
-      resolving.add(id);
-      const dependencies = dependencyMap.get(id) || [];
-      for (const depId of dependencies) {
-        resolve(depId);
-      }
-      resolving.delete(id);
-      resolved.push(id);
-    };
-    for (const id of Array.from(dependencyMap.keys())) {
-      resolve(id);
-    }
-    return resolved;
-  }
-  /**
-   * Process rollup for a specific cluster
-   * Performs standard rollup process for the cluster
-   *
-   * @param cluster - The cluster to process
-   * @param depth - Current recursion depth for nested cluster handling
-   */
-  processClusterRollup(cluster, depth = 0) {
-    const nestedClusters = this.measureProcessor.measureRollupProcess(cluster);
-    this.measureProcessor.completionMeasureRollupProcess(cluster);
-    this.objectiveProcessor.objectiveRollupProcess(cluster);
-    this.progressProcessor.activityProgressRollupProcess(cluster);
-    if (nestedClusters.length > 1) {
-      this.processCrossClusterDependencies(cluster, nestedClusters, depth + 1);
-    }
-  }
-}
-
 class GlobalObjectiveSynchronizer {
   eventCallback;
   /**
@@ -11628,7 +11476,6 @@ class RollupProcess {
   durationProcessor;
   globalObjectiveSynchronizer;
   stateValidator;
-  crossClusterProcessor;
   eventCallback;
   /**
    * Create a new RollupProcess orchestrator
@@ -11656,12 +11503,6 @@ class RollupProcess {
     this.durationProcessor = new DurationRollupProcessor(eventCallback);
     this.globalObjectiveSynchronizer = new GlobalObjectiveSynchronizer(eventCallback);
     this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
-    this.crossClusterProcessor = new CrossClusterProcessor(
-      this.measureProcessor,
-      this.objectiveProcessor,
-      this.progressProcessor,
-      eventCallback
-    );
   }
   /**
    * Overall Rollup Process
@@ -11684,11 +11525,8 @@ class RollupProcess {
       if (!onlyDurationRollup) {
         const beforeStatus = currentActivity.captureRollupStatus();
         if (currentActivity.children.length > 0) {
-          const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
+          this.measureProcessor.measureRollupProcess(currentActivity);
           this.measureProcessor.completionMeasureRollupProcess(currentActivity);
-          if (clusters.length > 1) {
-            this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
-          }
         }
         this.objectiveProcessor.objectiveRollupProcess(currentActivity);
         this.progressProcessor.activityProgressRollupProcess(currentActivity);
@@ -11817,15 +11655,6 @@ class RollupProcess {
   calculateComplexWeightedMeasure(activity, children, options) {
     return this.measureProcessor.calculateComplexWeightedMeasure(activity, children, options);
   }
-  /**
-   * Handle cross-cluster dependencies in rollup
-   *
-   * @param activity - The activity to process
-   * @param clusters - Related activity clusters
-   */
-  processCrossClusterDependencies(activity, clusters) {
-    this.crossClusterProcessor.processCrossClusterDependencies(activity, clusters);
-  }
   // ============================================================================
   // Accessor methods for individual processors (for advanced use cases)
   // ============================================================================
@@ -11876,12 +11705,6 @@ class RollupProcess {
    */
   getStateValidator() {
     return this.stateValidator;
-  }
-  /**
-   * Get the cross-cluster processor
-   */
-  getCrossClusterProcessor() {
-    return this.crossClusterProcessor;
   }
 }
 

@@ -4,5 +4,4 @@ export { MeasureRollupProcessor, MeasureRollupOptions, EventCallback as MeasureE
 export { ObjectiveRollupProcessor, EventCallback as ObjectiveEventCallback, } from "./objective_rollup.js";
 export { ProgressRollupProcessor, EventCallback as ProgressEventCallback, } from "./progress_rollup.js";
 export { DurationRollupProcessor, EventCallback as DurationEventCallback } from "./duration_rollup.js";
-export { CrossClusterProcessor, EventCallback as CrossClusterEventCallback, } from "./cross_cluster_processor.js";
 //# sourceMappingURL=index.d.ts.map
