@@ -10798,12 +10798,32 @@
                   var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : function() {
                       return /* @__PURE__ */ new Date();
                   }, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
+                  return this.evaluateThreeValued(activity, now, getElapsedSeconds) === true;
+              }
+          },
+          {
+              /**
+     * Evaluate without collapsing unknown tracking information to false.
+     * @spec SCORM 2004 4th Ed. SN RB.1.4.1
+     */ key: "evaluateThreeValued",
+              value: function evaluateThreeValued(activity) {
+                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : function() {
+                      return /* @__PURE__ */ new Date();
+                  }, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
                   var objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
                   var progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
                   var result;
                   switch(this._condition){
                       case "satisfied" /* SATISFIED */ :
-                          result = objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
+                          if (!objectiveInfoAvailable) {
+                              result = "unknown";
+                          } else if (activity.objectiveSatisfiedStatusKnown) {
+                              result = activity.objectiveSatisfiedStatus === true;
+                          } else if (!activity.primaryObjective && activity.successStatus !== SuccessStatus.UNKNOWN) {
+                              result = activity.successStatus === SuccessStatus.PASSED;
+                          } else {
+                              result = "unknown";
+                          }
                           break;
                       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ :
                           result = objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
@@ -10814,17 +10834,17 @@
                       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ :
                           {
                               var greaterThanValue = this._parameters.get("threshold") || 0;
-                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure > greaterThanValue : "unknown";
                               break;
                           }
                       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ :
                           {
                               var lessThanValue = this._parameters.get("threshold") || 0;
-                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure < lessThanValue : "unknown";
                               break;
                           }
                       case "completed" /* COMPLETED */ :
-                          result = progressInfoAvailable && activity.isCompleted;
+                          result = progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN ? activity.isCompleted : "unknown";
                           break;
                       case "progressKnown" /* PROGRESS_KNOWN */ :
                       case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */ :
@@ -10851,7 +10871,7 @@
                       default:
                           result = false;
                   }
-                  return this._operator === "not" /* NOT */  ? !result : result;
+                  return this._operator === "not" /* NOT */  ? kleeneNot(result) : result;
               }
           },
           {
@@ -14644,6 +14664,7 @@
                   var children = activity.getAvailableChildren();
                   var contributingChildren = 0;
                   var satisfiedCount = 0;
+                  var unknownCount = 0;
                   var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                   try {
                       for(var _iterator = children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
@@ -14665,8 +14686,11 @@
                           }
                           if (isIncluded) {
                               contributingChildren++;
-                              if (this.evaluateRollupConditionsSubprocess(child, rule)) {
+                              var result = this.evaluateRollupConditionsThreeValued(child, rule);
+                              if (result === true) {
                                   satisfiedCount++;
+                              } else if (result === "unknown") {
+                                  unknownCount++;
                               }
                           }
                       }
@@ -14690,13 +14714,13 @@
                       case RollupConsiderationType.ANY:
                           return satisfiedCount > 0;
                       case RollupConsiderationType.NONE:
-                          return contributingChildren > 0 && satisfiedCount === 0;
+                          return contributingChildren > 0 && satisfiedCount === 0 && unknownCount === 0;
                       case RollupConsiderationType.AT_LEAST_COUNT:
-                          return satisfiedCount >= rule.minimumCount;
+                          return contributingChildren > 0 && unknownCount < contributingChildren && satisfiedCount >= rule.minimumCount;
                       case RollupConsiderationType.AT_LEAST_PERCENT:
                           {
                               var fraction = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
-                              return contributingChildren > 0 && fraction >= normalizeMinimumPercent(rule.minimumPercent);
+                              return contributingChildren > 0 && unknownCount < contributingChildren && fraction >= normalizeMinimumPercent(rule.minimumPercent);
                           }
                       default:
                           return false;
@@ -14714,15 +14738,23 @@
      * @returns True if all conditions are met, false otherwise
      */ key: "evaluateRollupConditionsSubprocess",
               value: function evaluateRollupConditionsSubprocess(child, rule) {
+                  return this.evaluateRollupConditionsThreeValued(child, rule) === true;
+              }
+          },
+          {
+              /**
+     * Combine conditions while preserving missing tracking information.
+     * @spec SCORM 2004 4th Ed. SN RB.1.4.1
+     */ key: "evaluateRollupConditionsThreeValued",
+              value: function evaluateRollupConditionsThreeValued(child, rule) {
                   var _this = this;
                   if (rule.conditions.length === 0) {
                       return true;
                   }
-                  return rule.conditionCombination === RollupConditionCombination.ALL ? rule.conditions.every(function(condition) {
-                      return condition.evaluate(child, _this.now, _this.getAttemptElapsedSeconds);
-                  }) : rule.conditions.some(function(condition) {
-                      return condition.evaluate(child, _this.now, _this.getAttemptElapsedSeconds);
+                  var results = rule.conditions.map(function(condition) {
+                      return condition.evaluateThreeValued(child, _this.now, _this.getAttemptElapsedSeconds);
                   });
+                  return rule.conditionCombination === RollupConditionCombination.ALL ? kleeneAnd(results) : kleeneOr(results);
               }
           },
           {

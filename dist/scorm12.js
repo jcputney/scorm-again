@@ -6676,12 +6676,32 @@ this.Scorm12API = (function () {
                   var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : function() {
                       return /* @__PURE__ */ new Date();
                   }, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
+                  return this.evaluateThreeValued(activity, now, getElapsedSeconds) === true;
+              }
+          },
+          {
+              /**
+     * Evaluate without collapsing unknown tracking information to false.
+     * @spec SCORM 2004 4th Ed. SN RB.1.4.1
+     */ key: "evaluateThreeValued",
+              value: function evaluateThreeValued(activity) {
+                  var now = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : function() {
+                      return /* @__PURE__ */ new Date();
+                  }, getElapsedSeconds = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
                   var objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
                   var progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
                   var result;
                   switch(this._condition){
                       case "satisfied" /* SATISFIED */ :
-                          result = objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
+                          if (!objectiveInfoAvailable) {
+                              result = "unknown";
+                          } else if (activity.objectiveSatisfiedStatusKnown) {
+                              result = activity.objectiveSatisfiedStatus === true;
+                          } else if (!activity.primaryObjective && activity.successStatus !== SuccessStatus.UNKNOWN) {
+                              result = activity.successStatus === SuccessStatus.PASSED;
+                          } else {
+                              result = "unknown";
+                          }
                           break;
                       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ :
                           result = objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
@@ -6692,17 +6712,17 @@ this.Scorm12API = (function () {
                       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ :
                           {
                               var greaterThanValue = this._parameters.get("threshold") || 0;
-                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure > greaterThanValue : "unknown";
                               break;
                           }
                       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ :
                           {
                               var lessThanValue = this._parameters.get("threshold") || 0;
-                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+                              result = objectiveInfoAvailable && activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure < lessThanValue : "unknown";
                               break;
                           }
                       case "completed" /* COMPLETED */ :
-                          result = progressInfoAvailable && activity.isCompleted;
+                          result = progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN ? activity.isCompleted : "unknown";
                           break;
                       case "progressKnown" /* PROGRESS_KNOWN */ :
                       case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */ :
@@ -6729,7 +6749,7 @@ this.Scorm12API = (function () {
                       default:
                           result = false;
                   }
-                  return this._operator === "not" /* NOT */  ? !result : result;
+                  return this._operator === "not" /* NOT */  ? kleeneNot(result) : result;
               }
           },
           {

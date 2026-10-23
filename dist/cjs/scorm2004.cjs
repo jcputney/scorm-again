@@ -6994,12 +6994,27 @@ class RollupCondition extends BaseCMI {
    * @return {boolean} - True if the condition is met, false otherwise
    */
   evaluate(activity, now = () => /* @__PURE__ */ new Date(), getElapsedSeconds = null) {
+    return this.evaluateThreeValued(activity, now, getElapsedSeconds) === true;
+  }
+  /**
+   * Evaluate without collapsing unknown tracking information to false.
+   * @spec SCORM 2004 4th Ed. SN RB.1.4.1
+   */
+  evaluateThreeValued(activity, now = () => /* @__PURE__ */ new Date(), getElapsedSeconds = null) {
     const objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
     const progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
     let result;
     switch (this._condition) {
       case "satisfied" /* SATISFIED */:
-        result = objectiveInfoAvailable && (activity.objectiveSatisfiedStatus === true || activity.successStatus === SuccessStatus.PASSED);
+        if (!objectiveInfoAvailable) {
+          result = "unknown";
+        } else if (activity.objectiveSatisfiedStatusKnown) {
+          result = activity.objectiveSatisfiedStatus === true;
+        } else if (!activity.primaryObjective && activity.successStatus !== SuccessStatus.UNKNOWN) {
+          result = activity.successStatus === SuccessStatus.PASSED;
+        } else {
+          result = "unknown";
+        }
         break;
       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
         result = objectiveInfoAvailable && activity.objectiveSatisfiedStatusKnown;
@@ -7009,16 +7024,16 @@ class RollupCondition extends BaseCMI {
         break;
       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        result = objectiveInfoAvailable && activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure > greaterThanValue : "unknown";
         break;
       }
       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        result = objectiveInfoAvailable && activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        result = objectiveInfoAvailable && activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure < lessThanValue : "unknown";
         break;
       }
       case "completed" /* COMPLETED */:
-        result = progressInfoAvailable && activity.isCompleted;
+        result = progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN ? activity.isCompleted : "unknown";
         break;
       case "progressKnown" /* PROGRESS_KNOWN */:
       case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */:
@@ -7045,7 +7060,7 @@ class RollupCondition extends BaseCMI {
       default:
         result = false;
     }
-    return this._operator === "not" /* NOT */ ? !result : result;
+    return this._operator === "not" /* NOT */ ? kleeneNot(result) : result;
   }
   /**
    * toJSON for RollupCondition
@@ -10051,6 +10066,7 @@ class RollupRuleEvaluator {
     const children = activity.getAvailableChildren();
     let contributingChildren = 0;
     let satisfiedCount = 0;
+    let unknownCount = 0;
     for (const child of children) {
       let isIncluded = false;
       switch (rule.action) {
@@ -10085,8 +10101,11 @@ class RollupRuleEvaluator {
       }
       if (isIncluded) {
         contributingChildren++;
-        if (this.evaluateRollupConditionsSubprocess(child, rule)) {
+        const result = this.evaluateRollupConditionsThreeValued(child, rule);
+        if (result === true) {
           satisfiedCount++;
+        } else if (result === "unknown") {
+          unknownCount++;
         }
       }
     }
@@ -10096,12 +10115,12 @@ class RollupRuleEvaluator {
       case RollupConsiderationType.ANY:
         return satisfiedCount > 0;
       case RollupConsiderationType.NONE:
-        return contributingChildren > 0 && satisfiedCount === 0;
+        return contributingChildren > 0 && satisfiedCount === 0 && unknownCount === 0;
       case RollupConsiderationType.AT_LEAST_COUNT:
-        return satisfiedCount >= rule.minimumCount;
+        return contributingChildren > 0 && unknownCount < contributingChildren && satisfiedCount >= rule.minimumCount;
       case RollupConsiderationType.AT_LEAST_PERCENT: {
         const fraction = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
-        return contributingChildren > 0 && fraction >= normalizeMinimumPercent(rule.minimumPercent);
+        return contributingChildren > 0 && unknownCount < contributingChildren && fraction >= normalizeMinimumPercent(rule.minimumPercent);
       }
       default:
         return false;
@@ -10117,14 +10136,20 @@ class RollupRuleEvaluator {
    * @returns True if all conditions are met, false otherwise
    */
   evaluateRollupConditionsSubprocess(child, rule) {
+    return this.evaluateRollupConditionsThreeValued(child, rule) === true;
+  }
+  /**
+   * Combine conditions while preserving missing tracking information.
+   * @spec SCORM 2004 4th Ed. SN RB.1.4.1
+   */
+  evaluateRollupConditionsThreeValued(child, rule) {
     if (rule.conditions.length === 0) {
       return true;
     }
-    return rule.conditionCombination === RollupConditionCombination.ALL ? rule.conditions.every(
-      (condition) => condition.evaluate(child, this.now, this.getAttemptElapsedSeconds)
-    ) : rule.conditions.some(
-      (condition) => condition.evaluate(child, this.now, this.getAttemptElapsedSeconds)
+    const results = rule.conditions.map(
+      (condition) => condition.evaluateThreeValued(child, this.now, this.getAttemptElapsedSeconds)
     );
+    return rule.conditionCombination === RollupConditionCombination.ALL ? kleeneAnd(results) : kleeneOr(results);
   }
   /**
    * Evaluate rules for a specific action type

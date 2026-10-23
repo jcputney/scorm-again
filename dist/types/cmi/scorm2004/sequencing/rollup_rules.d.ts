@@ -1,6 +1,7 @@
 import { BaseCMI } from "../../common/base_cmi.js";
 import { Activity } from "./activity.js";
 import { AttemptElapsedSecondsHook } from "./time_conditions.js";
+import { RuleConditionEvaluation } from "./sequencing_rules.js";
 export declare enum RollupActionType {
     SATISFIED = "satisfied",
     NOT_SATISFIED = "notSatisfied",
@@ -52,6 +53,7 @@ export declare class RollupCondition extends BaseCMI {
     get operator(): RollupConditionOperator;
     set operator(operator: RollupConditionOperator);
     evaluate(activity: Activity, now?: () => Date, getElapsedSeconds?: AttemptElapsedSecondsHook | null): boolean;
+    evaluateThreeValued(activity: Activity, now?: () => Date, getElapsedSeconds?: AttemptElapsedSecondsHook | null): RuleConditionEvaluation;
     toJSON(): object;
 }
 export declare class RollupRule extends BaseCMI {
