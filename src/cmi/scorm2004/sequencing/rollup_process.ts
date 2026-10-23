@@ -5,7 +5,6 @@ import { MeasureRollupProcessor, MeasureRollupOptions } from "./rollup/measure_r
 import { ObjectiveRollupProcessor } from "./rollup/objective_rollup";
 import { ProgressRollupProcessor } from "./rollup/progress_rollup";
 import { DurationRollupProcessor } from "./rollup/duration_rollup";
-import { CrossClusterProcessor } from "./rollup/cross_cluster_processor";
 import {
   GlobalObjectiveSynchronizer,
   GlobalObjective,
@@ -33,7 +32,6 @@ export type EventCallback = (eventType: string, data?: unknown) => void;
  * - DurationRollupProcessor: Duration aggregation rollup
  * - GlobalObjectiveSynchronizer: Global objective synchronization
  * - RollupStateValidator: State consistency validation
- * - CrossClusterProcessor: Cross-cluster dependency handling
  *
  * @spec SN Book: RB.1.5 (Overall Rollup Process)
  */
@@ -53,7 +51,6 @@ export class RollupProcess {
   private durationProcessor: DurationRollupProcessor;
   private globalObjectiveSynchronizer: GlobalObjectiveSynchronizer;
   private stateValidator: RollupStateValidator;
-  private crossClusterProcessor: CrossClusterProcessor;
   private eventCallback: EventCallback | null;
 
   /**
@@ -84,12 +81,6 @@ export class RollupProcess {
     this.durationProcessor = new DurationRollupProcessor(eventCallback);
     this.globalObjectiveSynchronizer = new GlobalObjectiveSynchronizer(eventCallback);
     this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
-    this.crossClusterProcessor = new CrossClusterProcessor(
-      this.measureProcessor,
-      this.objectiveProcessor,
-      this.progressProcessor,
-      eventCallback,
-    );
   }
 
   /**
@@ -124,14 +115,9 @@ export class RollupProcess {
 
         // Step 1: Measure Rollup Process (RB.1.1)
         if (currentActivity.children.length > 0) {
-          const clusters = this.measureProcessor.measureRollupProcess(currentActivity);
+          this.measureProcessor.measureRollupProcess(currentActivity);
           // Step 1b: Completion Measure Rollup Process (RB.1.1 b)
           this.measureProcessor.completionMeasureRollupProcess(currentActivity);
-
-          // Process cross-cluster dependencies if dealing with multiple clusters
-          if (clusters.length > 1) {
-            this.crossClusterProcessor.processCrossClusterDependencies(currentActivity, clusters);
-          }
         }
 
         // The rollupObjectiveSatisfied and rollupProgressCompletion controls describe whether
@@ -324,16 +310,6 @@ export class RollupProcess {
     return this.measureProcessor.calculateComplexWeightedMeasure(activity, children, options);
   }
 
-  /**
-   * Handle cross-cluster dependencies in rollup
-   *
-   * @param activity - The activity to process
-   * @param clusters - Related activity clusters
-   */
-  public processCrossClusterDependencies(activity: Activity, clusters: Activity[]): void {
-    this.crossClusterProcessor.processCrossClusterDependencies(activity, clusters);
-  }
-
   // ============================================================================
   // Accessor methods for individual processors (for advanced use cases)
   // ============================================================================
@@ -392,12 +368,5 @@ export class RollupProcess {
    */
   public getStateValidator(): RollupStateValidator {
     return this.stateValidator;
-  }
-
-  /**
-   * Get the cross-cluster processor
-   */
-  public getCrossClusterProcessor(): CrossClusterProcessor {
-    return this.crossClusterProcessor;
   }
 }

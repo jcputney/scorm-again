@@ -102,23 +102,6 @@ describe("SCORM 2004 Sequencing Integration", () => {
     expect(complexMeasure).not.toBe(simpleAverage);
   });
 
-  test("should handle cross-cluster dependencies", () => {
-    // Create clusters (activities with children and flow control)
-    const cluster1 = new Activity("cluster1", "Cluster 1");
-    cluster1.sequencingControls.flow = true;
-    cluster1.addChild(new Activity("leaf1", "Leaf 1"));
-
-    const cluster2 = new Activity("cluster2", "Cluster 2");
-    cluster2.sequencingControls.flow = true;
-    cluster2.addChild(new Activity("leaf2", "Leaf 2"));
-
-    const clusters = [cluster1, cluster2];
-
-    expect(() => {
-      rollupProcess.processCrossClusterDependencies(rootActivity, clusters);
-    }).not.toThrow();
-  });
-
   test("should integrate rollup state validation in overall sequencing", () => {
     // Test that validation happens during sequencing
     const child1 = rootActivity.children[0];

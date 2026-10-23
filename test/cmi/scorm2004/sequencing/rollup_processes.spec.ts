@@ -1952,96 +1952,69 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
   });
 
-  describe("processCrossClusterDependencies", () => {
-    it("should identify activity clusters correctly", () => {
-      const events: Array<{ type: string; data: any }> = [];
-      const eventCallback = (type: string, data: any) => {
-        events.push({ type, data });
-      };
-
-      const processWithEvents = new RollupProcess(eventCallback);
-
-      // Create clusters with flow enabled
-      const cluster1 = new Activity("cluster1", "Cluster 1");
-      const cluster2 = new Activity("cluster2", "Cluster 2");
-      const leaf1 = new Activity("leaf1", "Leaf 1");
-      const leaf2 = new Activity("leaf2", "Leaf 2");
-
-      cluster1.addChild(leaf1);
-      cluster2.addChild(leaf2);
-      cluster1.sequencingControls.flow = true;
-      cluster2.sequencingControls.flow = true;
-
-      parent.addChild(cluster1);
-      parent.addChild(cluster2);
-
-      processWithEvents.processCrossClusterDependencies(parent, [cluster1, cluster2]);
-
-      const startEvent = events.find(e => e.type === "cross_cluster_processing_started");
-      const completeEvent = events.find(e => e.type === "cross_cluster_processing_completed");
-
-      expect(startEvent).toBeDefined();
-      expect(startEvent?.data.clusterCount).toBe(2);
-      expect(completeEvent).toBeDefined();
+  it("keeps a read-mapped module satisfied when a sibling module rolls up", () => {
+    const root = new Activity("root", "Root");
+    const a = new Activity("a", "A");
+    const b = new Activity("b", "B");
+    const a1 = new Activity("a1", "A1");
+    const b1 = new Activity("b1", "B1");
+    root.addChild(a);
+    root.addChild(b);
+    a.addChild(a1);
+    b.addChild(b1);
+    a.sequencingControls.flow = true;
+    b.sequencingControls.flow = true;
+    a.primaryObjective = new ActivityObjective("a-primary", {
+      isPrimary: true,
+      mapInfo: [
+        {
+          targetObjectiveID: "g-a",
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: false,
+        },
+      ],
     });
+    const globalObjectives = new Map([
+      ["g-a", { id: "g-a", satisfiedStatus: true, satisfiedStatusKnown: true }],
+    ]);
+    a1.objectiveSatisfiedStatus = false;
+    a1.objectiveMeasureStatus = true;
+    a1.objectiveNormalizedMeasure = 0.2;
+    b1.objectiveSatisfiedStatus = true;
+    b1.objectiveMeasureStatus = true;
+    b1.objectiveNormalizedMeasure = 0.9;
 
-    it("should handle circular dependencies gracefully", () => {
-      const events: Array<{ type: string; data: any }> = [];
-      const eventCallback = (type: string, data: any) => {
-        events.push({ type, data });
-      };
+    rollupProcess.processGlobalObjectiveMapping(root, globalObjectives);
+    rollupProcess.overallRollupProcess(a1, globalObjectives);
+    expect(a.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(a.objectiveSatisfiedStatus).toBe(true);
 
-      const processWithEvents = new RollupProcess(eventCallback);
+    rollupProcess.overallRollupProcess(b1, globalObjectives);
+    expect(a.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(a.objectiveSatisfiedStatus).toBe(true);
+    expect(root.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(root.objectiveSatisfiedStatus).toBe(true);
+  });
 
-      const cluster1 = new Activity("cluster1", "Cluster 1");
-      const leaf1 = new Activity("leaf1", "Leaf 1");
-      cluster1.addChild(leaf1);
-      cluster1.sequencingControls.flow = true;
+  it("rolls up each sibling cluster through its own ancestor chain", () => {
+    const cluster1 = new Activity("cluster1", "Cluster 1");
+    const cluster2 = new Activity("cluster2", "Cluster 2");
+    const leaf1 = new Activity("leaf1", "Leaf 1");
+    const leaf2 = new Activity("leaf2", "Leaf 2");
+    parent.addChild(cluster1);
+    parent.addChild(cluster2);
+    cluster1.addChild(leaf1);
+    cluster2.addChild(leaf2);
+    leaf1.objectiveSatisfiedStatus = true;
+    leaf2.objectiveSatisfiedStatus = true;
 
-      // Process with single cluster (no actual circular dependency, but tests the code path)
-      processWithEvents.processCrossClusterDependencies(parent, [cluster1]);
+    rollupProcess.overallRollupProcess(leaf1);
+    rollupProcess.overallRollupProcess(leaf2);
 
-      // Should complete without throwing
-      const completeEvent = events.find(e => e.type === "cross_cluster_processing_completed");
-      expect(completeEvent).toBeDefined();
-    });
-
-    it("should process cluster rollup in dependency order", () => {
-      const cluster1 = new Activity("cluster1", "Cluster 1");
-      const cluster2 = new Activity("cluster2", "Cluster 2");
-      const leaf1 = new Activity("leaf1", "Leaf 1");
-      const leaf2 = new Activity("leaf2", "Leaf 2");
-
-      cluster1.addChild(leaf1);
-      cluster2.addChild(leaf2);
-      cluster1.sequencingControls.flow = true;
-      cluster2.sequencingControls.flow = true;
-      cluster1.sequencingControls.rollupObjectiveSatisfied = true;
-      cluster2.sequencingControls.rollupObjectiveSatisfied = true;
-
-      leaf1.objectiveSatisfiedStatus = true;
-      leaf2.objectiveSatisfiedStatus = true;
-
-      rollupProcess.processCrossClusterDependencies(parent, [cluster1, cluster2]);
-
-      // Clusters should be processed
-      expect(cluster1.objectiveSatisfiedStatus).toBe(true);
-      expect(cluster2.objectiveSatisfiedStatus).toBe(true);
-    });
-
-    it("should handle empty cluster list", () => {
-      const events: Array<{ type: string; data: any }> = [];
-      const eventCallback = (type: string, data: any) => {
-        events.push({ type, data });
-      };
-
-      const processWithEvents = new RollupProcess(eventCallback);
-
-      processWithEvents.processCrossClusterDependencies(parent, []);
-
-      const startEvent = events.find(e => e.type === "cross_cluster_processing_started");
-      expect(startEvent?.data.clusterCount).toBe(0);
-    });
+    expect(cluster1.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(cluster1.objectiveSatisfiedStatus).toBe(true);
+    expect(cluster2.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(cluster2.objectiveSatisfiedStatus).toBe(true);
   });
 
   describe("calculateComplexWeightedMeasure", () => {
