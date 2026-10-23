@@ -7243,6 +7243,7 @@ class RollupCondition extends BaseCMI {
         result = progressInfoAvailable && activity.isCompleted;
         break;
       case "progressKnown" /* PROGRESS_KNOWN */:
+      case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */:
         result = progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN;
         break;
       case "attempted" /* ATTEMPTED */:

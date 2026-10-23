@@ -15,6 +15,7 @@ export declare enum RollupConditionType {
     OBJECTIVE_MEASURE_LESS_THAN = "objectiveMeasureLessThan",
     COMPLETED = "completed",
     PROGRESS_KNOWN = "progressKnown",
+    ACTIVITY_PROGRESS_KNOWN = "activityProgressKnown",
     ATTEMPTED = "attempted",
     ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
     TIME_LIMIT_EXCEEDED = "timeLimitExceeded",

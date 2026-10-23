@@ -1,6 +1,7 @@
 import { BaseCMI } from "../../common/base_cmi.js";
 import { Activity } from "./activity.js";
 export declare enum RuleConditionOperator {
+    NO_OP = "noOp",
     NOT = "not",
     AND = "and",
     OR = "or"
