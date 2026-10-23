@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {
-  Activity,
-  ActivityObjective
-} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../src/constants/enums";
 
 /**
@@ -27,7 +24,7 @@ describe("Satisfaction By Measure Edge Cases (RB.1.2.a)", () => {
     parent.primaryObjective = new ActivityObjective("primary", {
       isPrimary: true,
       satisfiedByMeasure: true,
-      minNormalizedMeasure: 0.7
+      minNormalizedMeasure: 0.7,
     });
     child = new Activity("child", "Child Activity");
 
@@ -219,8 +216,8 @@ describe("Satisfaction By Measure Edge Cases (RB.1.2.a)", () => {
       // Parent should not get a measure (no contributing children)
       expect(parent.objectiveMeasureStatus).toBe(false);
 
-      // Should fall back to default rollup
-      // Since no children have valid measures, parent should not be satisfied
+      // Measure-based satisfaction is unknown when the measure is unknown.
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
       expect(parent.objectiveSatisfiedStatus).toBe(false);
     });
 
