@@ -10731,8 +10731,6 @@ class ProgressRollupProcessor {
       (child) => this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete")
     );
     if (contributors.length === 0) {
-      activity.completionStatus = CompletionStatus.INCOMPLETE;
-      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
       return;
     }
     let sawUnknownContributor = false;

@@ -15363,8 +15363,6 @@
                       return _this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && _this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete");
                   });
                   if (contributors.length === 0) {
-                      activity.completionStatus = CompletionStatus.INCOMPLETE;
-                      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
                       return;
                   }
                   var sawUnknownContributor = false;
