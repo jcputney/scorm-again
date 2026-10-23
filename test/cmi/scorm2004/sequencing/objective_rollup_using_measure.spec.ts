@@ -409,6 +409,33 @@ describe("Objective rollup method selection", () => {
     },
   );
 
+  it("carries a cluster's change to unknown satisfaction up to the root", () => {
+    // Only the middle cluster's Known flag changes. Its measure and satisfaction
+    // value stay the same, and rollup must still reach the course.
+    const { parent: middle, children } = cluster(true, 0.6);
+    const course = new Activity("course", "Course");
+    course.addChild(middle);
+    const leaf = new Activity("leaf", "Leaf");
+    children[0].addChild(leaf);
+    const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
+    rule.addCondition(
+      new RollupCondition(
+        RollupConditionType.OBJECTIVE_STATUS_KNOWN,
+        new Map(),
+        RollupConditionOperator.NOT,
+      ),
+    );
+    course.rollupRules.addRule(rule);
+    middle.objectiveSatisfiedStatus = true;
+    course.objectiveSatisfiedStatus = true;
+
+    new RollupProcess().overallRollupProcess(leaf);
+
+    expect(middle.objectiveSatisfiedStatusKnown).toBe(false);
+    expect(course.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(course.objectiveSatisfiedStatus).toBe(false);
+  });
+
   it.each([undefined, true, false])(
     "preserves status when the only satisfaction rule does not fire: %s",
     (previous) => {
