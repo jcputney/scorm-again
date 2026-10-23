@@ -12,3 +12,8 @@ export const BUILT_IN_COURSE_PATH = "courses/minimal-test";
 // On the Android emulator, 10.0.2.2 is the host computer.
 export const LMS_COMMIT_URL = Platform.OS === "android" ? "http://10.0.2.2:3001/lms/commit" : "http://localhost:3001/lms/commit";
 export const LEARNER_ID = "demo-learner";
+
+// The local course server always uses this port. localStorage, which holds
+// scorm-again's queue of unsent commits, belongs to the page origin, and the
+// origin includes the port. A new port on each launch would strand the queue.
+export const STATIC_SERVER_PORT = 38127;

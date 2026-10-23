@@ -62,6 +62,7 @@ If you close the course while offline, the queue stays on the device. The next l
 ## How it works
 
 - `app/player/[courseId].tsx` reads the scorm-again bundle, the bridge script and the course's SCORM version. It builds `window.scormBridgeConfig` and runs all three with `injectedJavaScriptBeforeContentLoaded`.
+- `StaticServerService` serves the app's document folder on `http://127.0.0.1:38127` (`STATIC_SERVER_PORT` in `src/constants.ts`). The port is fixed because localStorage, which holds the queue of unsent commits, belongs to the page origin, and the origin includes the port.
 - The WebView opens `player.html`, a host page that `StaticServerService` writes to the app's document folder. The host page loads the course in an iframe once the API exists. Many course wrappers declare their own global `API` variable, so the course cannot share a window with the scorm-again API.
 - The player sends each NetInfo change to the WebView as a `scorm-again:network-status` event. It sends the current status again when the course calls `Initialize`.
 - The bridge sends log lines, which the player prints to the Metro console, and sync events, which drive the header icon and the Settings tab.
@@ -82,6 +83,7 @@ src/services/            course storage, downloads, local HTTP server, sync log
 ## Troubleshooting
 
 - **Metro cannot resolve `scorm-again.zip` or `minimal-test.zip`.** Run `npm run prepare-assets`. Starting Expo with `npx expo start` skips it.
+- **The course does not load and the log says the server could not start.** Another program is using port 38127. On the iOS Simulator, that includes programs on your computer. Change `STATIC_SERVER_PORT` in `src/constants.ts`. Commits still queued under the old port stay unsent.
 - **Commits fail.** Check that the mock LMS is running and that `LMS_COMMIT_URL` uses an address the device can reach. The Android emulator cannot reach `localhost` on your computer.
 - **The course cannot find the API.** Turn on debug logging in the Settings tab, open the course again, and read the `[scorm-again]` lines in the Metro console. The [mobile troubleshooting notes](https://jcputney.github.io/scorm-again/docs/advanced/mobile/react-native#troubleshooting) cover the common causes.
 

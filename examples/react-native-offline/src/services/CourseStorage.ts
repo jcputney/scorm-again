@@ -94,10 +94,14 @@ export class CourseStorage {
         throw new Error("Failed to load built-in course zip asset");
       }
 
-      // Start from an empty folder so files removed from the course do not linger
+      // Unzip into an empty temporary folder, outside COURSES_DIR so it is never
+      // listed as a course, and replace the current course only once that works
+      const extractDir = `${FileSystem.documentDirectory}built-in-course-extract/`;
+      await FileSystem.deleteAsync(extractDir, { idempotent: true });
+      await FileSystem.makeDirectoryAsync(extractDir, { intermediates: true });
+      await unzip(asset.localUri, extractDir);
       await FileSystem.deleteAsync(courseDir, { idempotent: true });
-      await FileSystem.makeDirectoryAsync(courseDir, { intermediates: true });
-      await unzip(asset.localUri, courseDir);
+      await FileSystem.moveAsync({ from: extractDir, to: courseDir });
 
       if (asset.hash) {
         await AsyncStorage.setItem(BUILT_IN_COURSE_ASSET_HASH_KEY, asset.hash);

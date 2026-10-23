@@ -40,6 +40,9 @@ export class SyncManager {
         return null;
       }
       const result = JSON.parse(stored);
+      if (!Number.isFinite(result?.time) || typeof result?.success !== 'boolean') {
+        return null;
+      }
       return { time: new Date(result.time), success: result.success };
     } catch (error) {
       this.addLog(`Error reading last sync result: ${error}`, 'error');

@@ -1,5 +1,6 @@
 import Server, { STATES } from "@dr.pogodin/react-native-static-server";
 import * as FileSystem from "expo-file-system/legacy";
+import { STATIC_SERVER_PORT } from "../constants";
 
 export class StaticServerService {
   private static instance: StaticServerService;
@@ -71,7 +72,7 @@ export class StaticServerService {
       // Create a single server serving from the Documents directory
       this.server = new Server({
         fileDir: rootPath,
-        port: 0, // Auto-select available port
+        port: STATIC_SERVER_PORT, // Fixed so the origin, and its localStorage, stays the same
         hostname: "127.0.0.1",
         stopInBackground: false, // Keep running when app goes to background
       });
