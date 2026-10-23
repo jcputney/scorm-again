@@ -112,6 +112,8 @@ export interface RollupStatusSnapshot {
   objectiveSatisfiedStatus: boolean;
   attemptProgressStatus: boolean;
   attemptCompletionStatus: boolean;
+  attemptCompletionAmount: number;
+  attemptCompletionAmountStatus: boolean;
 }
 
 export class ActivityObjective {
@@ -2823,11 +2825,12 @@ export class Activity extends BaseCMI {
     return {
       measureStatus: this._objectiveMeasureStatus,
       normalizedMeasure: this._objectiveNormalizedMeasure,
-      objectiveProgressStatus:
-        this._objectiveSatisfiedStatus !== null && this._objectiveSatisfiedStatus !== undefined,
+      objectiveProgressStatus: this._objectiveSatisfiedStatusKnown,
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       attemptProgressStatus: this._completionStatus !== CompletionStatus.UNKNOWN,
       attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED,
+      attemptCompletionAmount: this._attemptCompletionAmount,
+      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
     };
   }
 
@@ -2847,7 +2850,9 @@ export class Activity extends BaseCMI {
       prior.objectiveProgressStatus === current.objectiveProgressStatus &&
       prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus &&
       prior.attemptProgressStatus === current.attemptProgressStatus &&
-      prior.attemptCompletionStatus === current.attemptCompletionStatus
+      prior.attemptCompletionStatus === current.attemptCompletionStatus &&
+      prior.attemptCompletionAmount === current.attemptCompletionAmount &&
+      prior.attemptCompletionAmountStatus === current.attemptCompletionAmountStatus
     );
   }
 
