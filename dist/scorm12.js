@@ -6590,6 +6590,9 @@ this.Scorm12API = (function () {
   var __publicField$e = function __publicField(obj, key, value) {
       return __defNormalProp$e(obj, (typeof key === "undefined" ? "undefined" : _type_of$e(key)) !== "symbol" ? key + "" : key, value);
   };
+  function normalizeMinimumPercent(minimumPercent) {
+      return minimumPercent > 1 ? minimumPercent / 100 : minimumPercent;
+  }
   var RollupCondition = /*#__PURE__*/ function(BaseCMI) {
       _inherits$b(RollupCondition, BaseCMI);
       function RollupCondition() {
@@ -6914,8 +6917,8 @@ this.Scorm12API = (function () {
                           return matchingChildren.length >= this._minimumCount;
                       case "atLeastPercent" /* AT_LEAST_PERCENT */ :
                           {
-                              var percent = matchingChildren.length / children.length * 100;
-                              return percent >= this._minimumPercent;
+                              var fraction = matchingChildren.length / children.length;
+                              return fraction >= normalizeMinimumPercent(this._minimumPercent);
                           }
                       default:
                           return false;

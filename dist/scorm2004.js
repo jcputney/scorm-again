@@ -10538,6 +10538,9 @@ this.Scorm2004API = (function () {
       RollupConsiderationType2["AT_LEAST_PERCENT"] = "atLeastPercent";
       return RollupConsiderationType2;
   }(RollupConsiderationType || {});
+  function normalizeMinimumPercent(minimumPercent) {
+      return minimumPercent > 1 ? minimumPercent / 100 : minimumPercent;
+  }
   var RollupCondition = /*#__PURE__*/ function(BaseCMI) {
       _inherits$j(RollupCondition, BaseCMI);
       function RollupCondition() {
@@ -10862,8 +10865,8 @@ this.Scorm2004API = (function () {
                           return matchingChildren.length >= this._minimumCount;
                       case "atLeastPercent" /* AT_LEAST_PERCENT */ :
                           {
-                              var percent = matchingChildren.length / children.length * 100;
-                              return percent >= this._minimumPercent;
+                              var fraction = matchingChildren.length / children.length;
+                              return fraction >= normalizeMinimumPercent(this._minimumPercent);
                           }
                       default:
                           return false;
@@ -14521,8 +14524,8 @@ this.Scorm2004API = (function () {
                           return satisfiedCount >= rule.minimumCount;
                       case RollupConsiderationType.AT_LEAST_PERCENT:
                           {
-                              var percent = contributingChildren > 0 ? satisfiedCount / contributingChildren * 100 : 0;
-                              return contributingChildren > 0 && percent >= rule.minimumPercent;
+                              var fraction = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
+                              return contributingChildren > 0 && fraction >= normalizeMinimumPercent(rule.minimumPercent);
                           }
                       default:
                           return false;

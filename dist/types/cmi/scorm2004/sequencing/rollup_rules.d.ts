@@ -38,6 +38,7 @@ export declare enum RollupConsiderationType {
     AT_LEAST_COUNT = "atLeastCount",
     AT_LEAST_PERCENT = "atLeastPercent"
 }
+export declare function normalizeMinimumPercent(minimumPercent: number): number;
 export declare class RollupCondition extends BaseCMI {
     private _condition;
     private _parameters;

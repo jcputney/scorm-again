@@ -7144,6 +7144,9 @@ var RollupConsiderationType = /* @__PURE__ */ ((RollupConsiderationType2) => {
   RollupConsiderationType2["AT_LEAST_PERCENT"] = "atLeastPercent";
   return RollupConsiderationType2;
 })(RollupConsiderationType || {});
+function normalizeMinimumPercent(minimumPercent) {
+  return minimumPercent > 1 ? minimumPercent / 100 : minimumPercent;
+}
 class RollupCondition extends BaseCMI {
   _condition = "always" /* ALWAYS */;
   _parameters = /* @__PURE__ */ new Map();
@@ -7434,8 +7437,8 @@ class RollupRule extends BaseCMI {
       case "atLeastCount" /* AT_LEAST_COUNT */:
         return matchingChildren.length >= this._minimumCount;
       case "atLeastPercent" /* AT_LEAST_PERCENT */: {
-        const percent = matchingChildren.length / children.length * 100;
-        return percent >= this._minimumPercent;
+        const fraction = matchingChildren.length / children.length;
+        return fraction >= normalizeMinimumPercent(this._minimumPercent);
       }
       default:
         return false;
@@ -10325,8 +10328,8 @@ class RollupRuleEvaluator {
       case RollupConsiderationType.AT_LEAST_COUNT:
         return satisfiedCount >= rule.minimumCount;
       case RollupConsiderationType.AT_LEAST_PERCENT: {
-        const percent = contributingChildren > 0 ? satisfiedCount / contributingChildren * 100 : 0;
-        return contributingChildren > 0 && percent >= rule.minimumPercent;
+        const fraction = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
+        return contributingChildren > 0 && fraction >= normalizeMinimumPercent(rule.minimumPercent);
       }
       default:
         return false;
