@@ -12,10 +12,15 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import type {
+  WebViewNavigationEvent,
+  WebViewErrorEvent,
+  WebViewHttpErrorEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import { Ionicons } from '@expo/vector-icons';
 import NetInfo from '@react-native-community/netinfo';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { SyncIndicator } from '@/src/components/SyncIndicator';
 import { useThemeColor } from '@/components/Themed';
 import courseStorage from '@/src/services/CourseStorage';
@@ -32,7 +37,7 @@ interface MessagePayload {
 export default function PlayerScreen() {
   const { courseId } = useLocalSearchParams<{ courseId: string }>();
   const router = useRouter();
-  const webViewRef = useRef<WebView>(null);
+  const webViewRef = useRef<WebView<{}>>(null);
 
   const [isOnline, setIsOnline] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -439,7 +444,7 @@ export default function PlayerScreen() {
 
       {/* WebView - now uses HTTP URL from local server */}
       <View style={[styles.webviewContainer, { backgroundColor }]}>
-        <WebView
+        <WebView<{}>
           ref={webViewRef}
           source={{ uri: courseUrl }}
           onMessage={handleMessage}
@@ -478,18 +483,18 @@ export default function PlayerScreen() {
           originWhitelist={['*']}
           mixedContentMode="always"
           mediaPlaybackRequiresUserAction={false}
-          onLoadStart={(e) => {
+          onLoadStart={(e: WebViewNavigationEvent) => {
             console.log('WebView loading:', e.nativeEvent.url);
           }}
-          onLoad={(e) => {
+          onLoad={(e: WebViewNavigationEvent) => {
             console.log('WebView loaded:', e.nativeEvent.url);
           }}
-          onError={(syntheticEvent) => {
+          onError={(syntheticEvent: WebViewErrorEvent) => {
             const { nativeEvent } = syntheticEvent;
             console.error('WebView error:', nativeEvent);
             Alert.alert('Error', `Failed to load: ${nativeEvent.description || 'Unknown error'}`);
           }}
-          onHttpError={(syntheticEvent) => {
+          onHttpError={(syntheticEvent: WebViewHttpErrorEvent) => {
             const { nativeEvent } = syntheticEvent;
             console.error('WebView HTTP error:', nativeEvent);
           }}

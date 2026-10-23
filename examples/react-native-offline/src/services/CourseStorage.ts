@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { Asset } from "expo-asset";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { unzip } from "react-native-zip-archive";
@@ -402,7 +402,7 @@ export class CourseStorage {
 
       for (const item of items) {
         const itemPath = `${dirPath}/${item}`;
-        const info = await FileSystem.getInfoAsync(itemPath, { size: true });
+        const info = await FileSystem.getInfoAsync(itemPath);
 
         if (info.exists) {
           if (info.isDirectory) {

@@ -1,5 +1,5 @@
 import Server, { STATES } from "@dr.pogodin/react-native-static-server";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 
 export class StaticServerService {
   private static instance: StaticServerService;

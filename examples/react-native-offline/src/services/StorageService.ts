@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export class StorageService {
   private static instance: StorageService;
@@ -55,7 +55,7 @@ export class StorageService {
 
         if (info.isDirectory) {
           totalSize += await this.getDirectorySize(itemPath);
-        } else if (info.size) {
+        } else if (info.exists && info.size) {
           totalSize += info.size;
         }
       }
