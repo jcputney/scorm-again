@@ -143,7 +143,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.75);
     });
 
-    it("should ignore children without measure status", () => {
+    it("should count children without measure status in the denominator", () => {
       child1.objectiveMeasureStatus = true;
       child1.objectiveNormalizedMeasure = 0.8;
       child2.objectiveMeasureStatus = false; // No measure
@@ -152,8 +152,8 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
       rollupProcess.overallRollupProcess(child1);
 
-      // Average of only child1 and child3: (0.8 + 1.0) / 2 = 0.9
-      expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.9);
+      // Unknown child2 contributes weight but no score: (0.8 + 1.0) / 3 = 0.6
+      expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.6);
     });
 
     it("should handle no valid measures", () => {
@@ -166,18 +166,18 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       expect(parent.objectiveMeasureStatus).toBe(false);
     });
 
-    it("should respect rollup contribution settings", () => {
+    it("should exclude untracked children from measure rollup", () => {
       child1.objectiveMeasureStatus = true;
       child1.objectiveNormalizedMeasure = 0.8;
-      child1.sequencingControls.rollupObjectiveSatisfied = false; // Don't contribute
+      child1.sequencingControls.tracked = false; // Don't contribute
 
       child2.objectiveMeasureStatus = true;
       child2.objectiveNormalizedMeasure = 1.0;
 
       rollupProcess.overallRollupProcess(child1);
 
-      // Only child2 should contribute
-      expect(parent.objectiveNormalizedMeasure).toBe(1.0);
+      // Child1 is excluded; unknown child3 still contributes weight: 1.0 / 2 = 0.5
+      expect(parent.objectiveNormalizedMeasure).toBe(0.5);
     });
   });
 
@@ -1305,14 +1305,14 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         expect(parent.objectiveMeasureStatus).toBe(false);
       });
 
-      it("should set objectiveMeasureStatus to false when children excluded by considerations", () => {
+      it("should set objectiveMeasureStatus to false when scored children are untracked", () => {
         child1.objectiveMeasureStatus = true;
         child1.objectiveNormalizedMeasure = 0.8;
-        child1.sequencingControls.rollupObjectiveSatisfied = false; // Excluded
+        child1.sequencingControls.tracked = false; // Excluded
 
         child2.objectiveMeasureStatus = true;
         child2.objectiveNormalizedMeasure = 0.9;
-        child2.sequencingControls.rollupObjectiveSatisfied = false; // Excluded
+        child2.sequencingControls.tracked = false; // Excluded
 
         rollupProcess.overallRollupProcess(child1);
 
@@ -2017,131 +2017,40 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     expect(cluster2.objectiveSatisfiedStatus).toBe(true);
   });
 
-  describe("calculateComplexWeightedMeasure", () => {
+  describe("Configured weighted measure through overall rollup", () => {
     it("should calculate basic weighted average", () => {
       child1.objectiveMeasureStatus = true;
       child1.objectiveNormalizedMeasure = 0.8;
-      child1.sequencingControls.objectiveMeasureWeight = 1.0;
-
       child2.objectiveMeasureStatus = true;
       child2.objectiveNormalizedMeasure = 0.6;
-      child2.sequencingControls.objectiveMeasureWeight = 1.0;
+      child3.sequencingControls.objectiveMeasureWeight = 0;
 
-      const result = rollupProcess.calculateComplexWeightedMeasure(
-        parent,
-        [child1, child2],
-        { enableThresholdBias: false }
-      );
+      rollupProcess.overallRollupProcess(child1);
 
-      expect(result).toBeCloseTo(0.7, 1);
-    });
-
-    it("should apply completion status penalty", () => {
-      child1.objectiveMeasureStatus = true;
-      child1.objectiveNormalizedMeasure = 0.8;
-      child1.sequencingControls.objectiveMeasureWeight = 1.0;
-      child1.completionStatus = CompletionStatus.INCOMPLETE; // Penalty applied
-
-      const result = rollupProcess.calculateComplexWeightedMeasure(
-        parent,
-        [child1],
-        { enableThresholdBias: false }
-      );
-
-      // Weight reduced by 0.8 factor for incomplete
-      expect(result).toBeCloseTo(0.8, 1);
-    });
-
-    it("should apply attempt count penalty", () => {
-      child1.objectiveMeasureStatus = true;
-      child1.objectiveNormalizedMeasure = 0.8;
-      child1.sequencingControls.objectiveMeasureWeight = 1.0;
-      child1.attemptCount = 3; // Multiple attempts - penalty applied
-
-      const result = rollupProcess.calculateComplexWeightedMeasure(
-        parent,
-        [child1],
-        { enableThresholdBias: false }
-      );
-
-      expect(result).toBeCloseTo(0.8, 1);
-    });
-
-    it("should apply threshold bias when enabled", () => {
-      child1.objectiveMeasureStatus = true;
-      child1.objectiveNormalizedMeasure = 0.9;
-      child1.sequencingControls.objectiveMeasureWeight = 1.0;
-      child1.scaledPassingScore = 0.7;
-
-      const resultWithBias = rollupProcess.calculateComplexWeightedMeasure(
-        parent,
-        [child1],
-        { enableThresholdBias: true }
-      );
-
-      const resultWithoutBias = rollupProcess.calculateComplexWeightedMeasure(
-        parent,
-        [child1],
-        { enableThresholdBias: false }
-      );
-
-      // Both should be close to 0.9, but bias may slightly adjust
-      expect(resultWithBias).toBeCloseTo(0.9, 1);
-      expect(resultWithoutBias).toBeCloseTo(0.9, 1);
+      expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.7);
     });
 
     it("should handle children with no measure", () => {
       child1.objectiveMeasureStatus = false;
+      child2.objectiveMeasureStatus = false;
+      child3.objectiveMeasureStatus = false;
 
-      const result = rollupProcess.calculateComplexWeightedMeasure(
-        parent,
-        [child1],
-        { enableThresholdBias: false }
-      );
+      rollupProcess.overallRollupProcess(child1);
 
-      expect(result).toBe(0);
+      expect(parent.objectiveMeasureStatus).toBe(false);
     });
 
-    it("should exclude children that don't pass rollup check", () => {
+    it("should exclude untracked children", () => {
       child1.objectiveMeasureStatus = true;
       child1.objectiveNormalizedMeasure = 0.8;
-      child1.sequencingControls.rollupObjectiveSatisfied = false; // Excluded
-
+      child1.sequencingControls.tracked = false;
       child2.objectiveMeasureStatus = true;
       child2.objectiveNormalizedMeasure = 0.6;
-      child2.sequencingControls.objectiveMeasureWeight = 1.0;
+      child3.sequencingControls.objectiveMeasureWeight = 0;
 
-      const result = rollupProcess.calculateComplexWeightedMeasure(
-        parent,
-        [child1, child2],
-        { enableThresholdBias: false }
-      );
+      rollupProcess.overallRollupProcess(child1);
 
-      // Only child2 should contribute
-      expect(result).toBeCloseTo(0.6, 1);
-    });
-
-    it("should fire weighting calculation event", () => {
-      const events: Array<{ type: string; data: any }> = [];
-      const eventCallback = (type: string, data: any) => {
-        events.push({ type, data });
-      };
-
-      const processWithEvents = new RollupProcess(eventCallback);
-
-      child1.objectiveMeasureStatus = true;
-      child1.objectiveNormalizedMeasure = 0.8;
-      child1.sequencingControls.objectiveMeasureWeight = 1.0;
-
-      processWithEvents.calculateComplexWeightedMeasure(
-        parent,
-        [child1],
-        { enableThresholdBias: false }
-      );
-
-      const weightingEvent = events.find(e => e.type === "complex_weighting_calculated");
-      expect(weightingEvent).toBeDefined();
-      expect(weightingEvent?.data.activityId).toBe(parent.id);
+      expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.6);
     });
   });
 

@@ -1,7 +1,7 @@
 import { Activity } from "./activity";
 import { RollupChildFilter } from "./rollup/rollup_child_filter";
 import { RollupClockOptions, RollupRuleEvaluator } from "./rollup/rollup_rule_evaluator";
-import { MeasureRollupProcessor, MeasureRollupOptions } from "./rollup/measure_rollup";
+import { MeasureRollupProcessor } from "./rollup/measure_rollup";
 import { ObjectiveRollupProcessor } from "./rollup/objective_rollup";
 import { ProgressRollupProcessor } from "./rollup/progress_rollup";
 import { DurationRollupProcessor } from "./rollup/duration_rollup";
@@ -292,22 +292,6 @@ export class RollupProcess {
       globalObjectives,
       writeTargets,
     );
-  }
-
-  /**
-   * Calculate complex weighted measure for an activity
-   *
-   * @param activity - The parent activity
-   * @param children - Child activities to weight
-   * @param options - Configuration options
-   * @returns Calculated weighted measure
-   */
-  public calculateComplexWeightedMeasure(
-    activity: Activity,
-    children: Activity[],
-    options?: MeasureRollupOptions,
-  ): number {
-    return this.measureProcessor.calculateComplexWeightedMeasure(activity, children, options);
   }
 
   // ============================================================================

@@ -4,7 +4,7 @@ import { CompletionStatus, SuccessStatus } from "../../../../constants/enums";
 /**
  * Type of rollup operation being performed
  */
-export type RollupType = "measure" | "objective" | "progress";
+export type RollupType = "objective" | "progress";
 
 /**
  * Rollup action for consideration filtering
@@ -29,7 +29,7 @@ export class RollupChildFilter {
    *
    * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
    * @param child - The child activity to check
-   * @param rollupType - Type of rollup ("measure", "objective", "progress")
+   * @param rollupType - Type of rollup ("objective", "progress")
    * @param rollupAction - Specific rollup action (satisfied, notSatisfied, completed, incomplete)
    * @returns True if child contributes to rollup
    */
@@ -43,18 +43,10 @@ export class RollupChildFilter {
       return false;
     }
 
-    // Current-attempt controls affect whether the parent may use a child's data for rollup; they
-    // do not erase the child's tracking state, which remains available to the child's own rules.
-    // @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo and
-    // useCurrentAttemptProgressInfo
-    if (rollupType === "measure" && child.objectiveInfoAvailableInCurrentParentAttempt === false) {
-      return false;
-    }
-
     let included = false;
 
     // RB.1.4.2 Step 2: Check for objective rollup (satisfied/notSatisfied)
-    if (rollupType === "measure" || rollupType === "objective") {
+    if (rollupType === "objective") {
       // Step 2.1: Check if child tracks objective rollup
       if (!child.sequencingControls.rollupObjectiveSatisfied) {
         return false;

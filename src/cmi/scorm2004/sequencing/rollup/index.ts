@@ -9,7 +9,6 @@ export { RollupChildFilter, RollupType, RollupAction } from "./rollup_child_filt
 export { RollupRuleEvaluator } from "./rollup_rule_evaluator";
 export {
   MeasureRollupProcessor,
-  MeasureRollupOptions,
   EventCallback as MeasureEventCallback,
 } from "./measure_rollup";
 export {

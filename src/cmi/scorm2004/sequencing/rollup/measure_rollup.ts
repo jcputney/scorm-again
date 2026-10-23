@@ -2,17 +2,6 @@ import { Activity } from "../activity";
 import { RollupChildFilter } from "./rollup_child_filter";
 
 /**
- * Options for measure rollup calculation
- */
-export interface MeasureRollupOptions {
-  /**
-   * Enable threshold bias for weighted calculations
-   * When true, applies small bonuses/penalties based on passing threshold comparison
-   */
-  enableThresholdBias?: boolean;
-}
-
-/**
  * Event callback function type
  */
 export type EventCallback = (eventType: string, data?: unknown) => void;
@@ -28,24 +17,18 @@ export type EventCallback = (eventType: string, data?: unknown) => void;
  * @spec SN Book: RB.1.1.b (Completion Measure Rollup Process)
  */
 export class MeasureRollupProcessor {
-  private childFilter: RollupChildFilter;
-  private eventCallback: EventCallback | null;
-
   /**
    * Create a new MeasureRollupProcessor
    *
-   * @param childFilter - RollupChildFilter instance for filtering children
-   * @param eventCallback - Optional callback for firing events
+   * @param _childFilter - Retained for constructor compatibility
+   * @param _eventCallback - Retained for constructor compatibility
    */
-  constructor(childFilter: RollupChildFilter, eventCallback?: EventCallback) {
-    this.childFilter = childFilter;
-    this.eventCallback = eventCallback || null;
-  }
+  constructor(_childFilter: RollupChildFilter, _eventCallback?: EventCallback) {}
 
   /**
    * Measure Rollup Process
    * Rolls up objective measure (score) from children to parent
-   * Uses complex weighted measure calculation
+   * Uses each counted child's configured objective measure weight
    *
    * @spec SN Book: RB.1.1 (Measure Rollup Process)
    * @param activity - The parent activity
@@ -54,38 +37,57 @@ export class MeasureRollupProcessor {
   public measureRollupProcess(activity: Activity): Activity[] {
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
+      // No available child means no valid data, so the parent's measure is unknown.
+      activity.objectiveMeasureStatus = false;
       return [];
     }
 
     const rollupConsiderations = activity.rollupConsiderations;
-    const contributingChildren = children.filter((child) => {
-      if (!this.childFilter.checkChildForRollupSubprocess(child, "measure")) {
-        return false;
-      }
-      if (!child.objectiveMeasureStatus || child.objectiveNormalizedMeasure === null) {
-        return false;
+    const contributingChildren: Activity[] = [];
+    let counted = 0;
+    let total = 0;
+    let validData = false;
+
+    for (const child of children) {
+      if (child.sequencingControls.tracked === false) {
+        continue;
       }
       if (
         !rollupConsiderations.measureSatisfactionIfActive &&
         (child.activityAttemptActive || child.isActive)
       ) {
-        return false;
+        continue;
       }
-      return true;
-    });
-
-    if (contributingChildren.length === 0) {
-      activity.objectiveMeasureStatus = false;
-      return [];
+      // RB.1.1 gates on Tracked only. Objective info from an earlier parent attempt is unknown
+      // (useCurrentAttemptObjectiveInfo): the child keeps its weight but not its score.
+      const hasKnownMeasure =
+        child.objectiveInfoAvailableInCurrentParentAttempt !== false &&
+        child.objectiveMeasureStatus &&
+        child.objectiveNormalizedMeasure !== null;
+      if (hasKnownMeasure) {
+        contributingChildren.push(child);
+      }
+      const weight = child.sequencingControls.objectiveMeasureWeight;
+      if (weight <= 0) {
+        continue;
+      }
+      counted += weight;
+      if (hasKnownMeasure) {
+        total += weight * child.objectiveNormalizedMeasure;
+        validData = true;
+      }
     }
 
-    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(
-      activity,
-      contributingChildren,
-      { enableThresholdBias: false },
-    );
-    activity.objectiveNormalizedMeasure = complexWeightedMeasure;
-    activity.objectiveMeasureStatus = true;
+    if (!validData) {
+      // No known child measure means the parent's measure is unknown (4th Ed valid-data step).
+      // The ADL SRTE sequencer has no such step and reports 0 here; we follow the spec text.
+      activity.objectiveMeasureStatus = false;
+    } else if (counted > 0) {
+      activity.objectiveNormalizedMeasure = total / counted;
+      activity.objectiveMeasureStatus = true;
+    } else {
+      activity.objectiveMeasureStatus = false;
+    }
 
     // Return identified clusters for cross-cluster processing
     return this.identifyActivityClusters(contributingChildren);
@@ -137,105 +139,6 @@ export class MeasureRollupProcessor {
       activity.attemptCompletionAmount = totalWeightedMeasure / totalWeight;
       activity.attemptCompletionAmountStatus = true;
     }
-  }
-
-  /**
-   * Calculate Complex Weighted Measure
-   * Handles complex objective weighting scenarios with dependency chains
-   * Supports weighted rollup calculations with various adjustment factors
-   *
-   * @spec Priority 5 Gap Implementation
-   * @param activity - The parent activity
-   * @param children - Child activities to weight
-   * @param options - Configuration options for the calculation
-   * @returns Calculated weighted measure
-   */
-  public calculateComplexWeightedMeasure(
-    activity: Activity,
-    children: Activity[],
-    options?: MeasureRollupOptions,
-  ): number {
-    let totalWeightedMeasure = 0;
-    let totalWeight = 0;
-    const weightingLog: Array<{ childId: string; measure: number; weight: number }> = [];
-    const enableBias = options?.enableThresholdBias ?? true;
-
-    for (const child of children) {
-      if (!this.childFilter.checkChildForRollupSubprocess(child, "measure")) {
-        continue;
-      }
-
-      if (child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null) {
-        // Handle complex weighting scenarios
-        const baseWeight = child.sequencingControls.objectiveMeasureWeight;
-        const adjustedWeight = this.calculateAdjustedWeight(child, baseWeight, enableBias);
-        const contribution = child.objectiveNormalizedMeasure * adjustedWeight;
-
-        totalWeightedMeasure += contribution;
-        totalWeight += adjustedWeight;
-
-        weightingLog.push({
-          childId: child.id,
-          measure: child.objectiveNormalizedMeasure,
-          weight: adjustedWeight,
-        });
-      }
-    }
-
-    this.eventCallback?.("complex_weighting_calculated", {
-      activityId: activity.id,
-      weightingDetails: weightingLog,
-      totalWeight,
-      totalWeightedMeasure,
-      result: totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0,
-    });
-
-    return totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0;
-  }
-
-  /**
-   * Calculate adjusted weight for complex weighting scenarios
-   * Applies various adjustment factors based on activity state
-   *
-   * @param child - Child activity to calculate weight for
-   * @param baseWeight - Base weight from sequencing controls
-   * @param enableBias - Whether to apply threshold bias adjustments
-   * @returns Adjusted weight value
-   */
-  public calculateAdjustedWeight(
-    child: Activity,
-    baseWeight: number,
-    enableBias: boolean = true,
-  ): number {
-    let adjustedWeight = baseWeight;
-
-    // Factor in completion status
-    if (child.completionStatus !== "completed") {
-      adjustedWeight *= 0.8; // Reduce weight for incomplete activities
-    }
-
-    // Factor in attempt count (penalize multiple attempts)
-    if (child.attemptCount > 1) {
-      const attemptPenalty = Math.max(0.5, 1 - (child.attemptCount - 1) * 0.1);
-      adjustedWeight *= attemptPenalty;
-    }
-
-    // Factor in time limits if exceeded
-    if (child.hasAttemptLimitExceeded()) {
-      adjustedWeight *= 0.6; // Significant penalty for exceeding limits
-    }
-
-    // Bias by relation to passing threshold when available
-    if (enableBias && child.objectiveMeasureStatus) {
-      const threshold = child.scaledPassingScore ?? 0.7;
-      if (child.objectiveNormalizedMeasure >= threshold) {
-        adjustedWeight *= 1.05; // small boost for above-threshold performance
-      } else {
-        adjustedWeight *= 0.95; // small penalty for below-threshold performance
-      }
-    }
-
-    return Math.max(0, adjustedWeight); // Ensure non-negative weight
   }
 
   /**

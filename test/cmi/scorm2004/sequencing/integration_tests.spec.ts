@@ -91,15 +91,11 @@ describe("SCORM 2004 Sequencing Integration", () => {
     }).not.toThrow();
   });
 
-  test("should calculate complex weighted measures", () => {
-    const children = rootActivity.children;
-    const complexMeasure = rollupProcess.calculateComplexWeightedMeasure(rootActivity, children);
+  test("should calculate the configured weighted measure", () => {
+    rollupProcess.overallRollupProcess(rootActivity.children[0]);
 
-    expect(complexMeasure).toBeGreaterThan(0);
-    expect(complexMeasure).toBeLessThanOrEqual(1);
-    // Should be different from simple average due to complex weighting
-    const simpleAverage = (0.8 + 0.6) / 2;
-    expect(complexMeasure).not.toBe(simpleAverage);
+    expect(rootActivity.objectiveMeasureStatus).toBe(true);
+    expect(rootActivity.objectiveNormalizedMeasure).toBeCloseTo(0.7);
   });
 
   test("should integrate rollup state validation in overall sequencing", () => {
@@ -117,8 +113,7 @@ describe("SCORM 2004 Sequencing Integration", () => {
     expect(isConsistent).toBe(true);
   });
 
-  test("should properly wire measure rollup with complex weighting", () => {
-    // Set up children with different completion states to test complex weighting
+  test("should ignore completion state and attempt count when weighting measures", () => {
     const child1 = rootActivity.children[0];
     const child2 = rootActivity.children[1];
 
@@ -126,14 +121,13 @@ describe("SCORM 2004 Sequencing Integration", () => {
     child1.attemptCount = 1;
 
     child2.completionStatus = "incomplete";
-    child2.attemptCount = 3; // Multiple attempts should affect weighting
+    child2.attemptCount = 3;
 
-    // Process rollup
     rollupProcess.overallRollupProcess(child1);
 
-    // Root should have a calculated measure that reflects complex weighting
+    // RB.1.1 uses only objectiveMeasureWeight: (0.8 + 0.6) / 2
     expect(rootActivity.objectiveMeasureStatus).toBe(true);
-    expect(rootActivity.objectiveNormalizedMeasure).toBeGreaterThan(0);
+    expect(rootActivity.objectiveNormalizedMeasure).toBeCloseTo(0.7);
   });
 
   test("should maintain global objective synchronization", () => {
