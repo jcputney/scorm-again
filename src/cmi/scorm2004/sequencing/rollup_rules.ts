@@ -8,6 +8,7 @@ import {
   isOutsideAvailableTimeRange,
   isTimeLimitExceeded,
 } from "./time_conditions";
+import { RuleConditionEvaluation, kleeneNot } from "./sequencing_rules";
 
 /**
  * Enum for rollup action types
@@ -169,6 +170,18 @@ export class RollupCondition extends BaseCMI {
     now: () => Date = () => new Date(),
     getElapsedSeconds: AttemptElapsedSecondsHook | null = null,
   ): boolean {
+    return this.evaluateThreeValued(activity, now, getElapsedSeconds) === true;
+  }
+
+  /**
+   * Evaluate without collapsing unknown tracking information to false.
+   * @spec SCORM 2004 4th Ed. SN RB.1.4.1
+   */
+  evaluateThreeValued(
+    activity: Activity,
+    now: () => Date = () => new Date(),
+    getElapsedSeconds: AttemptElapsedSecondsHook | null = null,
+  ): RuleConditionEvaluation {
     // Current-attempt controls make prior tracking data unknown to the parent without removing the
     // child from the rollup rule's population.
     // @spec SCORM 2004 SN 4th Ed. SM.1 useCurrentAttemptObjectiveInfo and
@@ -176,19 +189,24 @@ export class RollupCondition extends BaseCMI {
     const objectiveInfoAvailable = activity.objectiveInfoAvailableInCurrentParentAttempt !== false;
     const progressInfoAvailable = activity.progressInfoAvailableInCurrentParentAttempt !== false;
 
-    let result: boolean;
+    let result: RuleConditionEvaluation;
 
     switch (this._condition) {
       case RollupConditionType.SATISFIED:
         // Per SCORM 2004 SN Book RB.1.4.1, the "satisfied" condition checks the
         // objective satisfaction status from the activity's tracked objective.
         // This is populated via global objective mapping (readSatisfiedStatus).
-        // Also check successStatus for backward compatibility with leaf activities.
-        result = (
-          objectiveInfoAvailable &&
-          (activity.objectiveSatisfiedStatus === true ||
-            activity.successStatus === SuccessStatus.PASSED)
-        );
+        // successStatus is a fallback only for activities without a primary objective, matching the
+        // sequencing-rule condition; otherwise a stale successStatus could mask an unknown status.
+        if (!objectiveInfoAvailable) {
+          result = "unknown";
+        } else if (activity.objectiveSatisfiedStatusKnown) {
+          result = activity.objectiveSatisfiedStatus === true;
+        } else if (!activity.primaryObjective && activity.successStatus !== SuccessStatus.UNKNOWN) {
+          result = activity.successStatus === SuccessStatus.PASSED;
+        } else {
+          result = "unknown";
+        }
         break;
       case RollupConditionType.OBJECTIVE_STATUS_KNOWN:
         // Per SCORM 2004 SN Book RB.1.4.1, objectiveStatusKnown checks if
@@ -202,24 +220,25 @@ export class RollupCondition extends BaseCMI {
         break;
       case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        result = (
-          objectiveInfoAvailable &&
-          activity.objectiveMeasureStatus &&
-          activity.objectiveNormalizedMeasure > greaterThanValue
-        );
+        result =
+          objectiveInfoAvailable && activity.objectiveMeasureStatus
+            ? activity.objectiveNormalizedMeasure > greaterThanValue
+            : "unknown";
         break;
       }
       case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        result = (
-          objectiveInfoAvailable &&
-          activity.objectiveMeasureStatus &&
-          activity.objectiveNormalizedMeasure < lessThanValue
-        );
+        result =
+          objectiveInfoAvailable && activity.objectiveMeasureStatus
+            ? activity.objectiveNormalizedMeasure < lessThanValue
+            : "unknown";
         break;
       }
       case RollupConditionType.COMPLETED:
-        result = progressInfoAvailable && activity.isCompleted;
+        result =
+          progressInfoAvailable && activity.completionStatus !== CompletionStatus.UNKNOWN
+            ? activity.isCompleted
+            : "unknown";
         break;
       case RollupConditionType.PROGRESS_KNOWN:
       case RollupConditionType.ACTIVITY_PROGRESS_KNOWN:
@@ -248,7 +267,7 @@ export class RollupCondition extends BaseCMI {
         result = false;
     }
 
-    return this._operator === RollupConditionOperator.NOT ? !result : result;
+    return this._operator === RollupConditionOperator.NOT ? kleeneNot(result) : result;
   }
 
   /**

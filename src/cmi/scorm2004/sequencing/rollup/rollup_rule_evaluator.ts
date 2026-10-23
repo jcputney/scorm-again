@@ -8,6 +8,7 @@ import {
 } from "../rollup_rules";
 import { RollupChildFilter } from "./rollup_child_filter";
 import { AttemptElapsedSecondsHook } from "../time_conditions";
+import { RuleConditionEvaluation, kleeneAnd, kleeneOr } from "../sequencing_rules";
 
 /**
  * The clock time-based rollup conditions are evaluated with
@@ -60,9 +61,9 @@ export class RollupRuleEvaluator {
     const children = activity.getAvailableChildren();
     let contributingChildren = 0;
     let satisfiedCount = 0;
+    let unknownCount = 0;
 
-    // Count children that meet the rule conditions
-    // IMPORTANT: Only count children that BOTH pass consideration check AND condition check
+    // Count true and unknown results among included children.
     for (const child of children) {
       // Step 1: Check if child is included based on consideration settings (RB.1.4.2)
       let isIncluded = false;
@@ -102,8 +103,11 @@ export class RollupRuleEvaluator {
         contributingChildren++;
 
         // Step 3: Evaluate rule conditions for this child using RB.1.4.1
-        if (this.evaluateRollupConditionsSubprocess(child, rule)) {
+        const result = this.evaluateRollupConditionsThreeValued(child, rule);
+        if (result === true) {
           satisfiedCount++;
+        } else if (result === "unknown") {
+          unknownCount++;
         }
       }
     }
@@ -112,18 +116,28 @@ export class RollupRuleEvaluator {
     // those numeric fields to zero, so treating their presence as the discriminator makes "any"
     // and "none" rules vacuously true even when no child matches.
     // @spec SCORM 2004 4th Ed. SN RB.1.4 and TR RU-02a / RU-02b
+    // RB.1.4 step 1.2.4: no rule fires when no child is included (the ADL fork returns true for
+    // "all" and "none" here).
     switch (rule.consideration) {
       case RollupConsiderationType.ALL:
         return contributingChildren > 0 && satisfiedCount === contributingChildren;
       case RollupConsiderationType.ANY:
         return satisfiedCount > 0;
       case RollupConsiderationType.NONE:
-        return contributingChildren > 0 && satisfiedCount === 0;
+        return contributingChildren > 0 && satisfiedCount === 0 && unknownCount === 0;
       case RollupConsiderationType.AT_LEAST_COUNT:
-        return satisfiedCount >= rule.minimumCount;
+        return (
+          contributingChildren > 0 &&
+          unknownCount < contributingChildren &&
+          satisfiedCount >= rule.minimumCount
+        );
       case RollupConsiderationType.AT_LEAST_PERCENT: {
         const fraction = contributingChildren > 0 ? satisfiedCount / contributingChildren : 0;
-        return contributingChildren > 0 && fraction >= normalizeMinimumPercent(rule.minimumPercent);
+        return (
+          contributingChildren > 0 &&
+          unknownCount < contributingChildren &&
+          fraction >= normalizeMinimumPercent(rule.minimumPercent)
+        );
       }
       default:
         return false;
@@ -140,21 +154,27 @@ export class RollupRuleEvaluator {
    * @returns True if all conditions are met, false otherwise
    */
   public evaluateRollupConditionsSubprocess(child: Activity, rule: RollupRule): boolean {
-    // If no conditions are specified, the rule always applies
+    return this.evaluateRollupConditionsThreeValued(child, rule) === true;
+  }
+
+  /**
+   * Combine conditions while preserving missing tracking information.
+   * @spec SCORM 2004 4th Ed. SN RB.1.4.1
+   */
+  public evaluateRollupConditionsThreeValued(
+    child: Activity,
+    rule: RollupRule,
+  ): RuleConditionEvaluation {
     if (rule.conditions.length === 0) {
       return true;
     }
 
-    // rollupConditions defaults to "any". childActivitySet controls how matching children are
-    // counted; conditionCombination controls how one child's condition results combine.
-    // @spec SCORM 2004 4th Ed. SN RB.1.4.1
+    const results = rule.conditions.map((condition) =>
+      condition.evaluateThreeValued(child, this.now, this.getAttemptElapsedSeconds),
+    );
     return rule.conditionCombination === RollupConditionCombination.ALL
-      ? rule.conditions.every((condition) =>
-          condition.evaluate(child, this.now, this.getAttemptElapsedSeconds),
-        )
-      : rule.conditions.some((condition) =>
-          condition.evaluate(child, this.now, this.getAttemptElapsedSeconds),
-        );
+      ? kleeneAnd(results)
+      : kleeneOr(results);
   }
 
   /**

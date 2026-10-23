@@ -491,10 +491,10 @@ describe("Advanced Rollup Configuration Tests", () => {
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
-      // No children satisfied (>= 0 still true)
+      // Every included child is unknown, so even a zero threshold cannot fire.
       rollupProcess.overallRollupProcess(children[0]);
 
-      expect(parent.objectiveSatisfiedStatus).toBe(true);
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
     });
 
     it("should handle count equal to total children", () => {
@@ -625,8 +625,8 @@ describe("Advanced Rollup Configuration Tests", () => {
       // No children satisfied
       rollupProcess.overallRollupProcess(children[0]);
 
-      // 0% threshold always matches
-      expect(parent.objectiveSatisfiedStatus).toBe(true);
+      // Every included child is unknown, so the zero threshold cannot fire.
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
     });
 
     it("should handle 100% threshold", () => {

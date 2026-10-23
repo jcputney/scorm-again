@@ -597,8 +597,8 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
       rollupProcess.overallRollupProcess(child1);
 
-      // None are satisfied, so rule applies
-      expect(parent.objectiveSatisfiedStatus).toBe(true);
+      // Unknown children prevent the none rule from applying.
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
     });
 
     it("should handle attempted/not attempted conditions", () => {
