@@ -256,15 +256,15 @@ describe("three-valued rollup conditions (RB.1.4 / RB.1.4.1)", () => {
   });
 
   it.each([
-    [ChildSet.ALL, false],
-    [ChildSet.ANY, false],
-    [ChildSet.NONE, false],
-    [ChildSet.AT_LEAST_COUNT, true],
-    [ChildSet.AT_LEAST_PERCENT, false],
-  ] as const)("preserves excluded empty-set behavior for %s", (set, expected) => {
+    ChildSet.ALL,
+    ChildSet.ANY,
+    ChildSet.NONE,
+    ChildSet.AT_LEAST_COUNT,
+    ChildSet.AT_LEAST_PERCENT,
+  ])("does not fire %s when no child is included (RB.1.4 step 1.2.4)", (set) => {
     const { parent, children } = tree([null]);
     children[0]!.sequencingControls.rollupObjectiveSatisfied = false;
-    expect(evaluator.evaluateRollupRule(parent, rule(set))).toBe(expected);
+    expect(evaluator.evaluateRollupRule(parent, rule(set))).toBe(false);
   });
 
   it("keeps activityProgressKnown and time conditions boolean, with the clock hooks", () => {

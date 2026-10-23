@@ -116,7 +116,8 @@ export class RollupRuleEvaluator {
     // those numeric fields to zero, so treating their presence as the discriminator makes "any"
     // and "none" rules vacuously true even when no child matches.
     // @spec SCORM 2004 4th Ed. SN RB.1.4 and TR RU-02a / RU-02b
-    // Preserve empty included-set behavior; the ADL fork differs here.
+    // RB.1.4 step 1.2.4: no rule fires when no child is included (the ADL fork returns true for
+    // "all" and "none" here).
     switch (rule.consideration) {
       case RollupConsiderationType.ALL:
         return contributingChildren > 0 && satisfiedCount === contributingChildren;
@@ -126,7 +127,8 @@ export class RollupRuleEvaluator {
         return contributingChildren > 0 && satisfiedCount === 0 && unknownCount === 0;
       case RollupConsiderationType.AT_LEAST_COUNT:
         return (
-          (contributingChildren === 0 || unknownCount < contributingChildren) &&
+          contributingChildren > 0 &&
+          unknownCount < contributingChildren &&
           satisfiedCount >= rule.minimumCount
         );
       case RollupConsiderationType.AT_LEAST_PERCENT: {
