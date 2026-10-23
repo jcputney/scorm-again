@@ -32,18 +32,16 @@ export class MeasureRollupProcessor {
    *
    * @spec SN Book: RB.1.1 (Measure Rollup Process)
    * @param activity - The parent activity
-   * @returns Array of identified activity clusters (for cross-cluster processing)
    */
-  public measureRollupProcess(activity: Activity): Activity[] {
+  public measureRollupProcess(activity: Activity): void {
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
       // No available child means no valid data, so the parent's measure is unknown.
       activity.objectiveMeasureStatus = false;
-      return [];
+      return;
     }
 
     const rollupConsiderations = activity.rollupConsiderations;
-    const contributingChildren: Activity[] = [];
     let counted = 0;
     let total = 0;
     let validData = false;
@@ -64,9 +62,6 @@ export class MeasureRollupProcessor {
         child.objectiveInfoAvailableInCurrentParentAttempt !== false &&
         child.objectiveMeasureStatus &&
         child.objectiveNormalizedMeasure !== null;
-      if (hasKnownMeasure) {
-        contributingChildren.push(child);
-      }
       const weight = child.sequencingControls.objectiveMeasureWeight;
       if (weight <= 0) {
         continue;
@@ -88,9 +83,6 @@ export class MeasureRollupProcessor {
     } else {
       activity.objectiveMeasureStatus = false;
     }
-
-    // Return identified clusters for cross-cluster processing
-    return this.identifyActivityClusters(contributingChildren);
   }
 
   /**
@@ -139,25 +131,5 @@ export class MeasureRollupProcessor {
       activity.attemptCompletionAmount = totalWeightedMeasure / totalWeight;
       activity.attemptCompletionAmountStatus = true;
     }
-  }
-
-  /**
-   * Identify Activity Clusters
-   * Identifies clusters among child activities for cross-cluster dependency processing
-   *
-   * @param children - Child activities to analyze
-   * @returns Array of identified clusters
-   */
-  public identifyActivityClusters(children: Activity[]): Activity[] {
-    const clusters: Activity[] = [];
-
-    for (const child of children) {
-      // An activity is considered a cluster if it has children and flow controls
-      if (child.children.length > 0 && child.sequencingControls.flow) {
-        clusters.push(child);
-      }
-    }
-
-    return clusters;
   }
 }

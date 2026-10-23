@@ -82,7 +82,7 @@ export function createMockActivity(options: MockActivityOptions = {}): Activity 
     requiredForNotSatisfied: options.requiredForNotSatisfied ?? "always",
     requiredForCompleted: options.requiredForCompleted ?? "always",
     requiredForIncomplete: options.requiredForIncomplete ?? "always",
-    objectiveSatisfiedStatus: options.objectiveSatisfiedStatus ?? null,
+    objectiveSatisfiedStatus: options.objectiveSatisfiedStatus ?? false,
     objectiveMeasureStatus: options.objectiveMeasureStatus ?? false,
     successStatus: options.successStatus ?? SuccessStatus.UNKNOWN,
     completionStatus: options.completionStatus ?? CompletionStatus.UNKNOWN,
