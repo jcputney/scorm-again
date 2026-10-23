@@ -8,10 +8,9 @@ export interface LogEntry {
 
 const MAX_LOGS = 100;
 const STORAGE_KEYS = {
-  LAST_SYNC: '@scorm-again:lastSyncTime',
+  LAST_SYNC: '@scorm-again:lastSyncResult',
   DEBUG_ENABLED: '@scorm-again:debugEnabled',
   LOGS: '@scorm-again:logs',
-  SYNC_TRIGGER: '@scorm-again:syncTrigger',
 };
 
 export class SyncManager {
@@ -29,41 +28,22 @@ export class SyncManager {
     return SyncManager.instance;
   }
 
-  async triggerSync(): Promise<void> {
-    this.addLog('Manual sync triggered', 'info');
-
-    // Store a timestamp that WebViews can check for
-    const timestamp = Date.now().toString();
-    await AsyncStorage.setItem(STORAGE_KEYS.SYNC_TRIGGER, timestamp);
-
-    // Update last sync time
-    await this.updateLastSyncTime();
-
-    this.addLog('Sync request broadcast to active sessions', 'info');
+  async recordSyncResult(success: boolean): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, JSON.stringify({ time: Date.now(), success }));
+    this.addLog(success ? 'Offline data synced' : 'Offline data sync failed', success ? 'info' : 'error');
   }
 
-  getPendingCount(): number | null {
-    // This would require inspecting localStorage via WebView
-    // For now, return null to indicate "Unknown"
-    // Future implementation could use a hidden WebView to read localStorage
-    return null;
-  }
-
-  async getLastSyncTime(): Promise<Date | null> {
+  async getLastSyncResult(): Promise<{ time: Date; success: boolean } | null> {
     try {
-      const timestamp = await AsyncStorage.getItem(STORAGE_KEYS.LAST_SYNC);
-      return timestamp ? new Date(parseInt(timestamp, 10)) : null;
+      const stored = await AsyncStorage.getItem(STORAGE_KEYS.LAST_SYNC);
+      if (!stored) {
+        return null;
+      }
+      const result = JSON.parse(stored);
+      return { time: new Date(result.time), success: result.success };
     } catch (error) {
-      this.addLog(`Error reading last sync time: ${error}`, 'error');
+      this.addLog(`Error reading last sync result: ${error}`, 'error');
       return null;
-    }
-  }
-
-  async updateLastSyncTime(): Promise<void> {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
-    } catch (error) {
-      this.addLog(`Error updating last sync time: ${error}`, 'error');
     }
   }
 

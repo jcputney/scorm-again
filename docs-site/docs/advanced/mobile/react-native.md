@@ -36,6 +36,8 @@ function ScormPlayer({ bundleText, configText, bridgeText, courseUrl, webViewRef
 
 `WebView` comes from `react-native-webview`. In your NetInfo listener, call `webViewRef.current.injectJavaScript(script + "\ntrue;")` with the connectivity script above, and unsubscribe when the component unmounts.
 
+The [`examples/react-native-offline`](https://github.com/jcputney/scorm-again/tree/master/examples/react-native-offline) app in the repository uses this setup. It serves courses from a local HTTP server, includes a small test course, and commits to the mock LMS from the integration tests.
+
 <!--@include: ./_partials/host-page.md-->
 
 <!--@include: ./_partials/troubleshooting.md-->
