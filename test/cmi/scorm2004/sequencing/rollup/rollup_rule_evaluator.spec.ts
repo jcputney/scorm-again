@@ -685,4 +685,34 @@ describe("RollupRuleEvaluator", () => {
       expect(result).toBe(true);
     });
   });
+
+  it("divides atLeastPercent by included children only", () => {
+    child1.objectiveSatisfiedStatus = true;
+    child2.objectiveSatisfiedStatus = true;
+    child3.objectiveSatisfiedStatus = false;
+    const excluded = new Activity("excluded");
+    excluded.sequencingControls.tracked = false;
+    parent.addChild(excluded);
+    const rule = new RollupRule(
+      RollupActionType.SATISFIED,
+      RollupConsiderationType.AT_LEAST_PERCENT,
+      0,
+      0.6,
+    );
+    rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+
+    expect(evaluator.evaluateRollupRule(parent, rule)).toBe(true);
+  });
+
+  it("filters notSatisfied rules with requiredForNotSatisfied", () => {
+    child1.requiredForSatisfied = "ifNotSkipped";
+    child1.requiredForNotSatisfied = "always";
+    child1.wasSkipped = true;
+    child2.sequencingControls.tracked = false;
+    child3.sequencingControls.tracked = false;
+    const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
+    rule.addCondition(new RollupCondition(RollupConditionType.ALWAYS));
+
+    expect(evaluator.evaluateRollupRule(parent, rule)).toBe(true);
+  });
 });

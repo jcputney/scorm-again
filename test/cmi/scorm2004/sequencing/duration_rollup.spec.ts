@@ -426,4 +426,20 @@ describe("Duration Rollup Process", () => {
       expect(parent.activityExperiencedDurationValue).toBe("PT5M");
     });
   });
+
+  it("counts attempt duration when child and parent attempts start at the same instant", () => {
+    const parent = new Activity("parent");
+    const child = new Activity("child");
+    parent.addChild(child);
+    parent.attemptStartTimestampUtc = "2025-01-01T10:00:00Z";
+    child.attemptStartTimestampUtc = parent.attemptStartTimestampUtc;
+    child.activityStartTimestampUtc = child.attemptStartTimestampUtc;
+    child.activityEndedDate = new Date("2025-01-01T10:05:00Z");
+    child.attemptExperiencedDuration = "PT5M0S";
+
+    rollupProcess.overallRollupProcess(child);
+
+    expect(parent.attemptExperiencedDurationValue).toBe("PT5M");
+    expect(parent.attemptAbsoluteDurationValue).toBe("PT5M");
+  });
 });

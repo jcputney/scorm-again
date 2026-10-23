@@ -296,4 +296,22 @@ describe("three-valued rollup conditions (RB.1.4 / RB.1.4.1)", () => {
       true,
     );
   });
+
+  it("treats an attempted child as not attempted when current parent progress info is unavailable", () => {
+    const child = new Activity("child");
+    child.attemptCount = 2;
+    child.progressInfoAvailableInCurrentParentAttempt = false;
+
+    expect(new RollupCondition(Condition.NOT_ATTEMPTED).evaluateThreeValued(child)).toBe(true);
+  });
+
+  it("reports objective status as unknown when current parent objective info is unavailable", () => {
+    const child = new Activity("child");
+    child.objectiveSatisfiedStatus = true;
+    child.objectiveInfoAvailableInCurrentParentAttempt = false;
+
+    expect(new RollupCondition(Condition.OBJECTIVE_STATUS_KNOWN).evaluateThreeValued(child)).toBe(
+      false,
+    );
+  });
 });

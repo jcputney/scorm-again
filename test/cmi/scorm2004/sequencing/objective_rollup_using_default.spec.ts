@@ -133,4 +133,16 @@ describe("Objective Rollup Using Default (RB.1.2.c)", () => {
 
     expect(result).toBeNull();
   });
+
+  it("keeps the parent not satisfied when a known false objective has a passed success status", () => {
+    for (const leaf of testLeaves) leaf.objectiveSatisfiedStatus = true;
+    testLeaves[0].objectiveSatisfiedStatus = false;
+    testLeaves[0].objectiveSatisfiedStatusKnown = true;
+    testLeaves[0].successStatus = "passed";
+
+    processor.objectiveRollupProcess(contentWrapper);
+
+    expect(contentWrapper.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(contentWrapper.objectiveSatisfiedStatus).toBe(false);
+  });
 });
