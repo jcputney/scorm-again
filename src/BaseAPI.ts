@@ -207,6 +207,7 @@ export default abstract class BaseAPI implements IBaseAPI {
           this._error_codes,
           (functionName, message, level, element) =>
             this.apiLog(functionName, message, level, element),
+          this._httpService,
         );
 
       if (this.settings.courseId) {
@@ -246,26 +247,6 @@ export default abstract class BaseAPI implements IBaseAPI {
               });
           }
         });
-      }
-
-      // Check for offline data to restore on initialization
-      if (this._offlineStorageService && this._courseId) {
-        this._offlineStorageService
-          .getOfflineData(this._courseId)
-          .then((offlineData) => {
-            if (offlineData) {
-              this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
-              // Restore data from offline storage
-              this.loadFromJSON(offlineData.runtimeData);
-            }
-          })
-          .catch((error) => {
-            this.apiLog(
-              "constructor",
-              `Error retrieving offline data: ${error}`,
-              LogLevelEnum.ERROR,
-            );
-          });
       }
     }
 
@@ -370,6 +351,35 @@ export default abstract class BaseAPI implements IBaseAPI {
       if (settings?.courseId) {
         this._courseId = settings.courseId;
       }
+    }
+  }
+
+  protected restoreOfflineData(): void {
+    if (!this.settings.enableOfflineSupport || !this._courseId || !this.isNotInitialized()) {
+      return;
+    }
+    try {
+      const pending = this._offlineStorageService?.getPendingOfflineData?.(this._courseId) ?? [];
+      for (const data of pending) {
+        try {
+          const runtimeData = (Array.isArray(data) ? data : (data.runtimeData ?? data)) as
+            StringKeyMap | any[];
+          if (Array.isArray(runtimeData)) {
+            this.apiLog("Initialize", "Skipping restore of params payload", LogLevelEnum.WARN);
+          } else if (runtimeData.cmi) {
+            this.loadFromJSON({ cmi: runtimeData.cmi });
+          } else {
+            const cmiData = Object.fromEntries(
+              Object.entries(runtimeData).filter(([key]) => key.startsWith("cmi.")),
+            );
+            this.loadFromFlattenedJSON(cmiData);
+          }
+        } catch (error) {
+          this.apiLog("Initialize", `Error restoring offline data: ${error}`, LogLevelEnum.ERROR);
+        }
+      }
+    } catch (error) {
+      this.apiLog("Initialize", `Error restoring offline data: ${error}`, LogLevelEnum.ERROR);
     }
   }
 
@@ -1720,24 +1730,10 @@ export default abstract class BaseAPI implements IBaseAPI {
           LogLevelEnum.INFO,
         );
 
-        if (finalParams && typeof finalParams === "object" && "cmi" in finalParams) {
-          // Store offline and return actual storage result (localStorage is synchronous)
-          return this._offlineStorageService.storeOffline(
-            this._courseId,
-            finalParams as CommitObject,
-            { isTerminateCommit: immediate, sequence },
-          );
-        } else {
-          this.apiLog(
-            "processHttpRequest",
-            "Invalid commit data format for offline storage",
-            LogLevelEnum.ERROR,
-          );
-          return {
-            result: global_constants.SCORM_FALSE,
-            errorCode: this._error_codes.GENERAL ?? 101,
-          };
-        }
+        return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
+          isTerminateCommit: immediate,
+          sequence,
+        });
       }
 
       // Otherwise, proceed with HTTP request (synchronous or async based on service)

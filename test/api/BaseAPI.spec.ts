@@ -630,32 +630,20 @@ describe("BaseAPI", () => {
       );
     });
 
-    it("should return error when offline and params format is invalid", async () => {
+    it("should store array payloads offline", () => {
       api.settings = { enableOfflineSupport: true };
-      const url = "https://example.com/lms";
-      const params = ["invalid", "format"]; // Invalid format for offline storage
-
-      // Mock the offline storage service
-      // eslint-disable-next-line
-      // @ts-ignore - Assign the mock service
+      const params = ["cmi.suspend_data=saved"];
+      const storeOffline = vi.fn().mockReturnValue({ result: "true", errorCode: 0 });
       api["_offlineStorageService"] = {
-        isDeviceOnline: vi.fn().mockReturnValue(false),
-      };
+        isDeviceOnline: () => false,
+        storeOffline,
+      } as any;
       api["_courseId"] = "course123";
-
-      const apiLogSpy = vi.spyOn(api, "apiLog");
-
-      const result = await api.processHttpRequest(url, params);
-
-      expect(result).toEqual({
-        result: global_constants.SCORM_FALSE,
-        errorCode: errorCodes.GENERAL,
+      expect(api.processHttpRequest("https://example.com/lms", params)).toEqual({
+        result: "true",
+        errorCode: 0,
       });
-      expect(apiLogSpy).toHaveBeenCalledWith(
-        "processHttpRequest",
-        "Invalid commit data format for offline storage",
-        LogLevelEnum.ERROR,
-      );
+      expect(storeOffline).toHaveBeenCalledWith("course123", params, expect.any(Object));
     });
   });
 
@@ -1439,114 +1427,48 @@ describe("BaseAPI", () => {
       expect(offlineStorageService.getOfflineData).not.toHaveBeenCalled();
     });
 
-    it("should attempt to retrieve offline data when courseId is provided", async () => {
-      // Mock the OfflineStorageService constructor
-      const mockGetOfflineData = vi.fn().mockResolvedValue(null);
-      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
-        mockGetOfflineData,
-      );
-
-      const settings = {
+    it("should defer retrieval until initialization", () => {
+      const retrieve = vi
+        .spyOn(OfflineStorageService.prototype, "getPendingOfflineData")
+        .mockReturnValue([]);
+      const testApi = new TestAPI(errorCodes, {
         enableOfflineSupport: true,
         courseId: "test-course-123",
-      };
-
-      // Create API with the settings
-      new TestAPI(errorCodes, settings);
-
-      // Wait for any promises to resolve
-      vi.runAllTimers();
-      await Promise.resolve();
-
-      // Assert
-      expect(mockGetOfflineData).toHaveBeenCalledWith("test-course-123");
+      });
+      expect(retrieve).not.toHaveBeenCalled();
+      testApi["restoreOfflineData"]();
+      expect(retrieve).toHaveBeenCalledWith("test-course-123");
     });
 
-    it("should load data from offline storage when data is found", async () => {
-      const offlineData = {
-        runtimeData: { cmi: { core: { student_id: "offline-student" } } },
-      };
-
-      // Mock the OfflineStorageService.getOfflineData method
-      const mockGetOfflineData = vi.fn().mockResolvedValue(offlineData);
-      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
-        mockGetOfflineData,
-      );
-
-      const settings = {
+    it("should restore the saved runtime data before initialization", () => {
+      const offlineData = { runtimeData: { cmi: { core: { student_id: "offline-student" } } } };
+      vi.spyOn(OfflineStorageService.prototype, "getPendingOfflineData").mockReturnValue([
+        offlineData,
+      ]);
+      const testApi = new TestAPI(errorCodes, {
         enableOfflineSupport: true,
-        courseId: "test-course-123",
-      };
-
-      // Create API with the settings
-      const testApi = new TestAPI(errorCodes, settings);
-
-      // Mock the loadFromJSON method
-      const loadFromJSONSpy = vi.spyOn(testApi, "loadFromJSON");
-
-      // Wait for any promises to resolve
-      vi.runAllTimers();
-      await Promise.resolve();
-
-      // Assert
-      expect(mockGetOfflineData).toHaveBeenCalledWith("test-course-123");
-      expect(loadFromJSONSpy).toHaveBeenCalledWith(offlineData.runtimeData);
+        courseId: "course123",
+      });
+      const load = vi.spyOn(testApi, "loadFromJSON").mockImplementation(() => {});
+      testApi["restoreOfflineData"]();
+      expect(load).toHaveBeenCalledWith(offlineData.runtimeData);
     });
 
-    it("should handle errors when retrieving offline data", async () => {
-      // Mock the OfflineStorageService.getOfflineData method to throw an error
-      const mockGetOfflineData = vi.fn().mockRejectedValue(new Error("Storage error"));
-      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
-        mockGetOfflineData,
-      );
-
-      const settings = {
+    it("should ignore retrieval errors and missing offline data", () => {
+      const retrieve = vi
+        .spyOn(OfflineStorageService.prototype, "getPendingOfflineData")
+        .mockImplementation(() => {
+          throw new Error("Storage error");
+        });
+      const testApi = new TestAPI(errorCodes, {
         enableOfflineSupport: true,
-        courseId: "test-course-123",
-        logLevel: LogLevelEnum.DEBUG, // Set log level to ensure logs are processed
-      };
-
-      // Create API with the settings
-      new TestAPI(errorCodes, settings);
-
-      // Wait for any promises to resolve
-      vi.runAllTimers();
-      await Promise.resolve();
-
-      // Assert that getOfflineData was called with the correct courseId
-      expect(mockGetOfflineData).toHaveBeenCalledWith("test-course-123");
-
-      // Note: We can see from the console output that the error is being logged correctly,
-      // but we can't easily spy on the logging service due to how it's implemented.
-      // The most important part of this test is verifying that getOfflineData is called
-      // with the correct courseId, which we've done above.
-    });
-
-    it("should not attempt to load data when no offline data is found", async () => {
-      // Mock the OfflineStorageService.getOfflineData method to return null
-      const mockGetOfflineData = vi.fn().mockResolvedValue(null);
-      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
-        mockGetOfflineData,
-      );
-
-      const settings = {
-        enableOfflineSupport: true,
-        courseId: "test-course-123",
-      };
-
-      // Create API with the settings
-      const testApi = new TestAPI(errorCodes, settings);
-
-      // Mock the loadFromJSON method
-      const loadFromJSONSpy = vi.spyOn(testApi, "loadFromJSON");
-
-      // Wait for any promises to resolve
-      vi.runAllTimers();
-      await Promise.resolve();
-
-      // Assert
-      expect(mockGetOfflineData).toHaveBeenCalledWith("test-course-123");
-      expect(loadFromJSONSpy).not.toHaveBeenCalled();
+        courseId: "course123",
+      });
+      const load = vi.spyOn(testApi, "loadFromJSON");
+      expect(() => testApi["restoreOfflineData"]()).not.toThrow();
+      retrieve.mockReturnValue([]);
+      testApi["restoreOfflineData"]();
+      expect(load).not.toHaveBeenCalled();
     });
   });
 

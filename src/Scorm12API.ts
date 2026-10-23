@@ -149,6 +149,7 @@ class Scorm12API extends BaseAPI {
       return global_constants.SCORM_FALSE;
     }
 
+    this.restoreOfflineData();
     this.cmi.initialize();
     if (this.cmi.core.lesson_status) {
       this.statusSetByModule = true;

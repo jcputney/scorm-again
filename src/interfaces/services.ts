@@ -412,16 +412,21 @@ export interface IOfflineStorageService {
    */
   storeOffline(
     courseId: string,
-    commitData: CommitObject,
+    commitData: CommitObject | StringKeyMap | Array<any>,
     metadata?: { isTerminateCommit?: boolean; sequence?: number },
   ): ResultObject;
+
+  /**
+   * Read the latest snapshot synchronously, only while the course has queued commits.
+   */
+  getPendingOfflineData?(courseId: string): (CommitObject | StringKeyMap | Array<any>)[];
 
   /**
    * Get stored offline data for a course
    * @param {string} courseId - Identifier for the course
    * @returns {Promise<CommitObject|null>} - The stored data or null if not found
    */
-  getOfflineData(courseId: string): Promise<CommitObject | null>;
+  getOfflineData(courseId: string): Promise<CommitObject | StringKeyMap | Array<any> | null>;
 
   /**
    * Synchronize offline data with the LMS when connection is available

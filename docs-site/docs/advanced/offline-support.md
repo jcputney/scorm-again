@@ -60,8 +60,9 @@ The API automatically detects network connectivity status and switches between o
 modes:
 
 - When online, data is sent directly to the LMS as usual
-- When offline, data is stored locally in the browser's localStorage
-- When connection is restored, data is synchronized back to the LMS
+- When offline, each commit is queued in localStorage in the configured `dataCommitFormat`
+- If the course still has unsynced commits when `Initialize` runs, the API loads them, oldest first, over any data you loaded from the LMS. Commits in the `params` format are not restored.
+- When connection is restored, data is synchronized back to the LMS. The stored copy for a course is removed once all of its commits have synced.
 
 ### Synchronization Events
 

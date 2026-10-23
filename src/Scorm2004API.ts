@@ -677,6 +677,7 @@ class Scorm2004API extends BaseAPI {
       return global_constants.SCORM_FALSE;
     }
 
+    this.restoreOfflineData();
     this.cmi.initialize();
     const result = this.initialize(
       "Initialize",

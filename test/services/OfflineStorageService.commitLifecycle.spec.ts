@@ -38,17 +38,19 @@ const successfulResponse = (): Response =>
     headers: { "Content-Type": "application/json" },
   });
 
-const installSuccessfulXHR = (): void => {
+const installSuccessfulXHR = () => {
   const xhr = {
     open: vi.fn(),
     setRequestHeader: vi.fn(),
-    send: vi.fn(),
+    onload: null as (() => void) | null,
+    send: vi.fn(() => xhr.onload?.()),
     status: 200,
     responseText: JSON.stringify({ result: "true", errorCode: 0 }),
   };
   vi.stubGlobal("XMLHttpRequest", function MockXMLHttpRequest() {
     return xhr;
   } as unknown as typeof XMLHttpRequest);
+  return xhr;
 };
 
 describe("OfflineStorageService commit lifecycle", () => {
@@ -102,7 +104,7 @@ describe("OfflineStorageService commit lifecycle", () => {
   it("captures and replays an API termination with all opt-in markers", async () => {
     vi.stubGlobal("navigator", { onLine: false, sendBeacon: vi.fn() });
     const requestHandler = vi.fn((data: unknown, _metadata?: CommitMetadata) => data);
-    const fetchStub = vi.spyOn(global, "fetch").mockResolvedValue(successfulResponse());
+    const xhr = installSuccessfulXHR();
     const api = new Scorm12API({
       courseId: "course-1",
       enableOfflineSupport: true,
@@ -133,10 +135,8 @@ describe("OfflineStorageService commit lifecycle", () => {
         sequence: 1,
       },
     );
-    expect(fetchStub).toHaveBeenCalledWith(
-      "https://example.com/commit?final=true",
-      expect.any(Object),
-    );
+    expect(xhr.open).toHaveBeenCalledWith("POST", "https://example.com/commit?final=true", true);
+    expect(xhr.send).toHaveBeenCalledTimes(1);
   });
 
   it("replays the capture-time sequence after later online commits advance the API counter", async () => {
