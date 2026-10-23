@@ -65,8 +65,10 @@ for (const match of settingsBody.matchAll(/^\s*(\w+)\??\s*:/gm)) settings.add(ma
 const events = new Set<string>();
 for (const path of files(join(root, "src")).filter((path) => path.endsWith(".ts"))) {
   const source = readFileSync(path, "utf8");
-  for (const match of source.matchAll(/\bprocessListeners\s*\(\s*["'`]([^"'`$]+)["'`$]/g))
-    events.add(match[1]!.split(".")[0]!);
+  // Read every string in the first argument, so `ok ? "A" : "B"` yields both names.
+  for (const call of source.matchAll(/\bprocessListeners\s*\(([^,)]*)/g))
+    for (const match of call[1]!.matchAll(/["'`]([A-Za-z][\w.]*)/g))
+      events.add(match[1]!.split(".")[0]!);
   if (/Scorm(?:12|2004)API\.ts$/.test(path)) {
     for (const match of source.matchAll(
       /this\.(?:initialize|terminate|getValue|setValue|commit|getLastError|getErrorString|getDiagnostic)\s*\(\s*["'](\w+)["']/g,
