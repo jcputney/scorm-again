@@ -47,6 +47,49 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
   });
 
   describe("Overall Rollup Process (RB.1.5)", () => {
+    it.each([3, 5])("should propagate known failure through %i ancestors", (depth) => {
+      const course = new Activity("course", "Course");
+      let leaf = course;
+      for (let i = 0; i < depth; i++) {
+        const child = new Activity(`level-${i}`, `Level ${i}`);
+        leaf.addChild(child);
+        leaf = child;
+      }
+      leaf.objectiveSatisfiedStatus = false;
+
+      rollupProcess.overallRollupProcess(leaf);
+
+      expect(course.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(course.objectiveSatisfiedStatus).toBe(false);
+    });
+
+    it.each([0, 0.6])("should propagate completion amount %f to the root", (amount) => {
+      const course = new Activity("course", "Course");
+      const a = new Activity("a", "A");
+      const b = new Activity("b", "B");
+      const leaf = new Activity("leaf", "Leaf");
+      course.addChild(a);
+      a.addChild(b);
+      b.addChild(leaf);
+      leaf.objectiveSatisfiedStatus = false;
+      rollupProcess.overallRollupProcess(leaf);
+      leaf.attemptCompletionAmount = amount;
+      leaf.attemptCompletionAmountStatus = true;
+
+      rollupProcess.overallRollupProcess(leaf);
+
+      expect(course.attemptCompletionAmountStatus).toBe(true);
+      expect(course.attemptCompletionAmount).toBe(amount);
+
+      leaf.attemptCompletionAmount = 0.8;
+      rollupProcess.overallRollupProcess(leaf);
+      expect(course.attemptCompletionAmount).toBe(0.8);
+
+      leaf.attemptCompletionAmountStatus = false;
+      rollupProcess.overallRollupProcess(leaf);
+      expect(course.attemptCompletionAmountStatus).toBe(false);
+    });
+
     it("should rollup from activity to root", () => {
       // Set child states
       child1.objectiveSatisfiedStatus = true;
