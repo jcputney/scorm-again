@@ -165,8 +165,9 @@ describe("Offline commit, restore and replay", () => {
         );
         const service = (restored as any)._offlineStorageService as OfflineStorageService;
         (service as any).isOnline = true;
-        expect(await service.syncOfflineData()).toBe(true);
         const replayed = scenario === "matching" || scenario === "legacy";
+        // A queue with nothing for this course and learner is a skipped run.
+        expect(await service.syncOfflineData()).toBe(replayed);
         expect(requests).toHaveLength(replayed ? 1 : 0);
         expect(JSON.parse(localStorage.getItem(queueKey)!)).toEqual(replayed ? [] : queued);
         if (!replayed) expect(localStorage.getItem(snapshotKey)).not.toBeNull();

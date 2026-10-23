@@ -209,6 +209,7 @@ export default abstract class BaseAPI implements IBaseAPI {
             this.apiLog(functionName, message, level, element),
           this._httpService,
           () => this.getOfflineLearnerId(),
+          (event) => this.processListeners(event),
         );
 
       if (this.settings.courseId) {
@@ -231,20 +232,12 @@ export default abstract class BaseAPI implements IBaseAPI {
                   return this._offlineStorageService?.syncOfflineData();
                 }
               })
-              .then((syncSuccess) => {
-                if (syncSuccess) {
-                  this.processListeners("OfflineDataSynced");
-                } else if (syncSuccess === false) {
-                  this.processListeners("OfflineDataSyncFailed");
-                }
-              })
               .catch((error) => {
                 this.apiLog(
                   "BeforeTerminate",
                   `Error syncing offline data: ${error}`,
                   LogLevelEnum.ERROR,
                 );
-                this.processListeners("OfflineDataSyncFailed");
               });
           }
         });
@@ -467,7 +460,6 @@ export default abstract class BaseAPI implements IBaseAPI {
               void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
                 if (syncSuccess) {
                   this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                  this.processListeners("OfflineDataSynced");
                 }
               });
             }
@@ -1111,7 +1103,6 @@ export default abstract class BaseAPI implements IBaseAPI {
               void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
                 if (syncSuccess) {
                   this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                  this.processListeners("OfflineDataSynced");
                 } else {
                   this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
                 }
