@@ -73,6 +73,7 @@ export class SequencingService {
   private isInitialized: boolean = false;
   private navigationPreviewConfiguration: SequencingConfiguration | null = null;
   private isSequencingActive: boolean = false;
+  private deliveryNotificationsInProgress: boolean = false;
   private lastCMIValues: Map<string, any> = new Map();
   private lastSequencingResult: SequencingResult | null = null;
 
@@ -489,12 +490,15 @@ export class SequencingService {
 
     // Handle the delivery request
     if (deliveryRequest.valid && deliveryRequest.targetActivity) {
-      // Process delivery through activity delivery service
-      this.activityDeliveryService.processSequencingResult(sequencingResult);
-
-      // Update navigation validity for the new current activity
-      // This ensures Continue/Previous buttons are correctly enabled/disabled
-      this.overallSequencingProcess?.updateNavigationValidity();
+      // Old content may synchronously Terminate from unload notifications after DB.2.
+      const wasInProgress = this.deliveryNotificationsInProgress;
+      this.deliveryNotificationsInProgress = true;
+      try {
+        this.activityDeliveryService.processSequencingResult(sequencingResult);
+        this.overallSequencingProcess?.updateNavigationValidity();
+      } finally {
+        this.deliveryNotificationsInProgress = wasInProgress;
+      }
 
       this.log(
         "info",
@@ -650,7 +654,10 @@ export class SequencingService {
    * @return {boolean} True if delivery is in progress
    */
   public isDeliveryInProgress(): boolean {
-    return this.overallSequencingProcess?.isDeliveryInProgress() ?? false;
+    return (
+      this.deliveryNotificationsInProgress ||
+      (this.overallSequencingProcess?.isDeliveryInProgress() ?? false)
+    );
   }
 
   // Private helper methods

@@ -142,7 +142,9 @@ export class DeliveryHandler {
   /**
    * Set callback to check activity validity
    */
-  public setCheckActivityCallback(callback: (activity: Activity, target: Activity) => boolean): void {
+  public setCheckActivityCallback(
+    callback: (activity: Activity, target: Activity) => boolean,
+  ): void {
     this.checkActivityCallback = callback;
   }
 
@@ -296,8 +298,7 @@ export class DeliveryHandler {
       for (const pathActivity of activityPath) {
         // Only process activities that are not already active
         if (!pathActivity.isActive) {
-          const isPathActivityResuming =
-            isResuming || suspendedPathActivities.has(pathActivity);
+          const isPathActivityResuming = isResuming || suspendedPathActivities.has(pathActivity);
           if (isPathActivityResuming) {
             // Resuming: clear suspended flag but don't increment attempt
             pathActivity.isSuspended = false;
@@ -391,8 +392,7 @@ export class DeliveryHandler {
       const globalObjective = this.globalObjectiveMap.get(targetId);
 
       return (
-        (mapInfo.readSatisfiedStatus !== false &&
-          globalObjective?.satisfiedStatusKnown === true) ||
+        (mapInfo.readSatisfiedStatus !== false && globalObjective?.satisfiedStatusKnown === true) ||
         (mapInfo.readNormalizedMeasure !== false &&
           globalObjective?.normalizedMeasureKnown === true)
       );
@@ -431,8 +431,10 @@ export class DeliveryHandler {
     }
 
     // Set up activity attempt information
-    activity.attemptAbsoluteDuration = "PT0H0M0S";
-    activity.attemptExperiencedDuration = "PT0H0M0S";
+    if (!activity.deliveryWasResumed) {
+      activity.attemptAbsoluteDuration = "PT0H0M0S";
+      activity.attemptExperiencedDuration = "PT0H0M0S";
+    }
 
     // Mark as available for sequencing
     activity.isAvailable = true;
@@ -449,8 +451,10 @@ export class DeliveryHandler {
 
     activity.wasSkipped = false;
 
-    // Set attempt start time (use injected clock)
-    activity.attemptAbsoluteStartTime = this.now().toISOString();
+    // Set attempt start time (use injected clock). A resumed attempt keeps its start time.
+    if (!activity.deliveryWasResumed || !activity.attemptAbsoluteStartTime) {
+      activity.attemptAbsoluteStartTime = this.now().toISOString();
+    }
 
     // Initialize location if not set
     if (!activity.location) {
