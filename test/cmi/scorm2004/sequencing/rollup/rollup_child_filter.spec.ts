@@ -498,33 +498,6 @@ describe("RollupChildFilter", () => {
 
       expect(filter.isChildSatisfiedForRollup(child)).toBe(false);
     });
-
-    it("should return true when successStatus is PASSED and objectiveSatisfiedStatus is null", () => {
-      const child = createMockActivity({
-        objectiveSatisfiedStatus: null,
-        successStatus: SuccessStatus.PASSED
-      });
-
-      expect(filter.isChildSatisfiedForRollup(child)).toBe(true);
-    });
-
-    it("should return false when successStatus is FAILED and objectiveSatisfiedStatus is null", () => {
-      const child = createMockActivity({
-        objectiveSatisfiedStatus: null,
-        successStatus: SuccessStatus.FAILED
-      });
-
-      expect(filter.isChildSatisfiedForRollup(child)).toBe(false);
-    });
-
-    it("should return false when objectiveSatisfiedStatus is null and successStatus is UNKNOWN", () => {
-      const child = createMockActivity({
-        objectiveSatisfiedStatus: null,
-        successStatus: SuccessStatus.UNKNOWN
-      });
-
-      expect(filter.isChildSatisfiedForRollup(child)).toBe(false);
-    });
   });
 
   describe("isChildCompletedForRollup", () => {

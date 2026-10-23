@@ -1,5 +1,5 @@
 import { Activity, RollupConsiderationsConfig } from "../activity";
-import { CompletionStatus, SuccessStatus } from "../../../../constants/enums";
+import { CompletionStatus } from "../../../../constants/enums";
 
 /**
  * Type of rollup operation being performed
@@ -201,7 +201,7 @@ export class RollupChildFilter {
 
   /**
    * Check if child is satisfied for rollup
-   * Evaluates objective satisfaction status and success status
+   * Evaluates objective satisfaction status for the current parent attempt
    *
    * @param child - Child activity to check
    * @returns True if child is considered satisfied
@@ -211,23 +211,7 @@ export class RollupChildFilter {
       return false;
     }
 
-    if (child.objectiveSatisfiedStatus === true) {
-      return true;
-    }
-
-    if (child.objectiveSatisfiedStatus === false) {
-      return false;
-    }
-
-    if (child.successStatus === SuccessStatus.PASSED) {
-      return true;
-    }
-
-    if (child.successStatus === SuccessStatus.FAILED) {
-      return false;
-    }
-
-    return false;
+    return child.objectiveSatisfiedStatus;
   }
 
   /**

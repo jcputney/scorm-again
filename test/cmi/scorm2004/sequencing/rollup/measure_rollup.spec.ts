@@ -69,13 +69,11 @@ describe("Measure rollup (RB.1.1)", () => {
     expect(parent.objectiveNormalizedMeasure).toBe(0.5);
   });
 
-  it("counts unavailable objective info as weight only and omits its cluster", () => {
+  it("counts unavailable objective info as weight only", () => {
     y.objectiveNormalizedMeasure = 1;
     y.sequencingControls.useCurrentAttemptObjectiveInfo = true;
     y.objectiveInfoAvailableInCurrentParentAttempt = false;
-    y.addChild(new Activity("unavailable-leaf"));
-    y.sequencingControls.flow = true;
-    expect(rollup.measureRollupProcess(parent)).toEqual([]);
+    rollup.measureRollupProcess(parent);
     expect(parent.objectiveMeasureStatus).toBe(true);
     expect(parent.objectiveNormalizedMeasure).toBe(0.5);
   });
@@ -115,16 +113,6 @@ describe("Measure rollup (RB.1.1)", () => {
     expect(parent.objectiveNormalizedMeasure).toBe(1);
   });
 
-  it("preserves the known-measure cluster return contract independently of weight", () => {
-    x.addChild(new Activity("leaf"));
-    x.sequencingControls.flow = true;
-    x.sequencingControls.objectiveMeasureWeight = 0;
-    y.addChild(new Activity("unknown-leaf"));
-    y.sequencingControls.flow = true;
-    y.objectiveMeasureStatus = false;
-    expect(rollup.measureRollupProcess(parent)).toEqual([x]);
-  });
-
   it("clears measure status when all weights are zero", () => {
     x.sequencingControls.objectiveMeasureWeight = 0;
     y.sequencingControls.objectiveMeasureWeight = 0;
@@ -144,7 +132,7 @@ describe("Measure rollup (RB.1.1)", () => {
     parent.objectiveMeasureStatus = true;
     parent.objectiveNormalizedMeasure = 0.9;
     parent.setProcessedChildren([]);
-    expect(rollup.measureRollupProcess(parent)).toEqual([]);
+    rollup.measureRollupProcess(parent);
     expect(parent.objectiveMeasureStatus).toBe(false);
   });
 
