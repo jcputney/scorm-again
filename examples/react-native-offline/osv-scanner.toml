@@ -1,0 +1,13 @@
+# OSV-Scanner applies this file only to the lockfile in this folder.
+# Both packages come in only through @expo/cli, Expo's local development
+# tool. Neither is part of the app bundle. Check again when the ignores expire.
+
+[[IgnoredVulns]]
+id = "GHSA-86w9-cpqp-85rv"
+ignoreUntil = 2027-04-23
+reason = "node-forge 1.4.0, used only by @expo/cli. No fixed version exists yet."
+
+[[IgnoredVulns]]
+id = "GHSA-mrhx-c7xc-m3w5"
+ignoreUntil = 2027-04-23
+reason = "zod 3.25.76, used only by @expo/cli. The fix is in zod 4.6.6, which @expo/cli 58 does not use."
