@@ -77,4 +77,17 @@ describe("Activity Progress Rollup Using Default (RB.1.3)", () => {
 
     expect(parent.completionStatus).toBe(priorStatus);
   });
+
+  it("preserves unknown and completed parent status when no children contribute", () => {
+    for (const child of [child1, child2, child3]) {
+      child.sequencingControls.tracked = false;
+    }
+
+    processor.activityProgressRollupProcess(parent);
+    expect(parent.completionStatus).toBe(CompletionStatus.UNKNOWN);
+
+    parent.completionStatus = CompletionStatus.COMPLETED;
+    processor.activityProgressRollupProcess(parent);
+    expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
+  });
 });
