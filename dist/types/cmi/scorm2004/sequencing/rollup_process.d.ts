@@ -1,7 +1,7 @@
 import { Activity } from "./activity.js";
 import { RollupChildFilter } from "./rollup/rollup_child_filter.js";
 import { RollupClockOptions, RollupRuleEvaluator } from "./rollup/rollup_rule_evaluator.js";
-import { MeasureRollupProcessor, MeasureRollupOptions } from "./rollup/measure_rollup.js";
+import { MeasureRollupProcessor } from "./rollup/measure_rollup.js";
 import { ObjectiveRollupProcessor } from "./rollup/objective_rollup.js";
 import { ProgressRollupProcessor } from "./rollup/progress_rollup.js";
 import { DurationRollupProcessor } from "./rollup/duration_rollup.js";
@@ -26,7 +26,6 @@ export declare class RollupProcess {
     syncTerminatedActivityObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): GlobalObjectiveWriteTargets;
     syncActivityObjectivesFromGlobals(activity: Activity, globalObjectives: Map<string, GlobalObjective>): boolean;
     syncFreshlyWrittenObjectivesToActiveAncestor(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): boolean;
-    calculateComplexWeightedMeasure(activity: Activity, children: Activity[], options?: MeasureRollupOptions): number;
     getChildFilter(): RollupChildFilter;
     getRuleEvaluator(): RollupRuleEvaluator;
     getMeasureProcessor(): MeasureRollupProcessor;

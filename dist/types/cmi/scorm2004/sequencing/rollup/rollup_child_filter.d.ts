@@ -1,5 +1,5 @@
 import { Activity, RollupConsiderationsConfig } from "../activity.js";
-export type RollupType = "measure" | "objective" | "progress";
+export type RollupType = "objective" | "progress";
 export type RollupAction = "satisfied" | "notSatisfied" | "completed" | "incomplete";
 export declare class RollupChildFilter {
     checkChildForRollupSubprocess(child: Activity, rollupType: RollupType, rollupAction?: RollupAction): boolean;

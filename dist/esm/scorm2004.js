@@ -9822,7 +9822,7 @@ class RollupChildFilter {
    *
    * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
    * @param child - The child activity to check
-   * @param rollupType - Type of rollup ("measure", "objective", "progress")
+   * @param rollupType - Type of rollup ("objective", "progress")
    * @param rollupAction - Specific rollup action (satisfied, notSatisfied, completed, incomplete)
    * @returns True if child contributes to rollup
    */
@@ -9830,11 +9830,8 @@ class RollupChildFilter {
     if (child.sequencingControls.tracked === false) {
       return false;
     }
-    if (rollupType === "measure" && child.objectiveInfoAvailableInCurrentParentAttempt === false) {
-      return false;
-    }
     let included = false;
-    if (rollupType === "measure" || rollupType === "objective") {
+    if (rollupType === "objective") {
       if (!child.sequencingControls.rollupObjectiveSatisfied) {
         return false;
       }
@@ -10149,22 +10146,18 @@ class RollupRuleEvaluator {
 }
 
 class MeasureRollupProcessor {
-  childFilter;
-  eventCallback;
   /**
    * Create a new MeasureRollupProcessor
    *
-   * @param childFilter - RollupChildFilter instance for filtering children
-   * @param eventCallback - Optional callback for firing events
+   * @param _childFilter - Retained for constructor compatibility
+   * @param _eventCallback - Retained for constructor compatibility
    */
-  constructor(childFilter, eventCallback) {
-    this.childFilter = childFilter;
-    this.eventCallback = eventCallback || null;
+  constructor(_childFilter, _eventCallback) {
   }
   /**
    * Measure Rollup Process
    * Rolls up objective measure (score) from children to parent
-   * Uses complex weighted measure calculation
+   * Uses each counted child's configured objective measure weight
    *
    * @spec SN Book: RB.1.1 (Measure Rollup Process)
    * @param activity - The parent activity
@@ -10173,32 +10166,43 @@ class MeasureRollupProcessor {
   measureRollupProcess(activity) {
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
-      return [];
-    }
-    const rollupConsiderations = activity.rollupConsiderations;
-    const contributingChildren = children.filter((child) => {
-      if (!this.childFilter.checkChildForRollupSubprocess(child, "measure")) {
-        return false;
-      }
-      if (!child.objectiveMeasureStatus || child.objectiveNormalizedMeasure === null) {
-        return false;
-      }
-      if (!rollupConsiderations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-        return false;
-      }
-      return true;
-    });
-    if (contributingChildren.length === 0) {
       activity.objectiveMeasureStatus = false;
       return [];
     }
-    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(
-      activity,
-      contributingChildren,
-      { enableThresholdBias: false }
-    );
-    activity.objectiveNormalizedMeasure = complexWeightedMeasure;
-    activity.objectiveMeasureStatus = true;
+    const rollupConsiderations = activity.rollupConsiderations;
+    const contributingChildren = [];
+    let counted = 0;
+    let total = 0;
+    let validData = false;
+    for (const child of children) {
+      if (child.sequencingControls.tracked === false) {
+        continue;
+      }
+      if (!rollupConsiderations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
+        continue;
+      }
+      const hasKnownMeasure = child.objectiveInfoAvailableInCurrentParentAttempt !== false && child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null;
+      if (hasKnownMeasure) {
+        contributingChildren.push(child);
+      }
+      const weight = child.sequencingControls.objectiveMeasureWeight;
+      if (weight <= 0) {
+        continue;
+      }
+      counted += weight;
+      if (hasKnownMeasure) {
+        total += weight * child.objectiveNormalizedMeasure;
+        validData = true;
+      }
+    }
+    if (!validData) {
+      activity.objectiveMeasureStatus = false;
+    } else if (counted > 0) {
+      activity.objectiveNormalizedMeasure = total / counted;
+      activity.objectiveMeasureStatus = true;
+    } else {
+      activity.objectiveMeasureStatus = false;
+    }
     return this.identifyActivityClusters(contributingChildren);
   }
   /**
@@ -10234,79 +10238,6 @@ class MeasureRollupProcessor {
       activity.attemptCompletionAmount = totalWeightedMeasure / totalWeight;
       activity.attemptCompletionAmountStatus = true;
     }
-  }
-  /**
-   * Calculate Complex Weighted Measure
-   * Handles complex objective weighting scenarios with dependency chains
-   * Supports weighted rollup calculations with various adjustment factors
-   *
-   * @spec Priority 5 Gap Implementation
-   * @param activity - The parent activity
-   * @param children - Child activities to weight
-   * @param options - Configuration options for the calculation
-   * @returns Calculated weighted measure
-   */
-  calculateComplexWeightedMeasure(activity, children, options) {
-    let totalWeightedMeasure = 0;
-    let totalWeight = 0;
-    const weightingLog = [];
-    const enableBias = options?.enableThresholdBias ?? true;
-    for (const child of children) {
-      if (!this.childFilter.checkChildForRollupSubprocess(child, "measure")) {
-        continue;
-      }
-      if (child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null) {
-        const baseWeight = child.sequencingControls.objectiveMeasureWeight;
-        const adjustedWeight = this.calculateAdjustedWeight(child, baseWeight, enableBias);
-        const contribution = child.objectiveNormalizedMeasure * adjustedWeight;
-        totalWeightedMeasure += contribution;
-        totalWeight += adjustedWeight;
-        weightingLog.push({
-          childId: child.id,
-          measure: child.objectiveNormalizedMeasure,
-          weight: adjustedWeight
-        });
-      }
-    }
-    this.eventCallback?.("complex_weighting_calculated", {
-      activityId: activity.id,
-      weightingDetails: weightingLog,
-      totalWeight,
-      totalWeightedMeasure,
-      result: totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0
-    });
-    return totalWeight > 0 ? totalWeightedMeasure / totalWeight : 0;
-  }
-  /**
-   * Calculate adjusted weight for complex weighting scenarios
-   * Applies various adjustment factors based on activity state
-   *
-   * @param child - Child activity to calculate weight for
-   * @param baseWeight - Base weight from sequencing controls
-   * @param enableBias - Whether to apply threshold bias adjustments
-   * @returns Adjusted weight value
-   */
-  calculateAdjustedWeight(child, baseWeight, enableBias = true) {
-    let adjustedWeight = baseWeight;
-    if (child.completionStatus !== "completed") {
-      adjustedWeight *= 0.8;
-    }
-    if (child.attemptCount > 1) {
-      const attemptPenalty = Math.max(0.5, 1 - (child.attemptCount - 1) * 0.1);
-      adjustedWeight *= attemptPenalty;
-    }
-    if (child.hasAttemptLimitExceeded()) {
-      adjustedWeight *= 0.6;
-    }
-    if (enableBias && child.objectiveMeasureStatus) {
-      const threshold = child.scaledPassingScore ?? 0.7;
-      if (child.objectiveNormalizedMeasure >= threshold) {
-        adjustedWeight *= 1.05;
-      } else {
-        adjustedWeight *= 0.95;
-      }
-    }
-    return Math.max(0, adjustedWeight);
   }
   /**
    * Identify Activity Clusters
@@ -11646,17 +11577,6 @@ class RollupProcess {
       globalObjectives,
       writeTargets
     );
-  }
-  /**
-   * Calculate complex weighted measure for an activity
-   *
-   * @param activity - The parent activity
-   * @param children - Child activities to weight
-   * @param options - Configuration options
-   * @returns Calculated weighted measure
-   */
-  calculateComplexWeightedMeasure(activity, children, options) {
-    return this.measureProcessor.calculateComplexWeightedMeasure(activity, children, options);
   }
   // ============================================================================
   // Accessor methods for individual processors (for advanced use cases)
