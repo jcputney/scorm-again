@@ -208,6 +208,7 @@ export default abstract class BaseAPI implements IBaseAPI {
           (functionName, message, level, element) =>
             this.apiLog(functionName, message, level, element),
           this._httpService,
+          () => this.getOfflineLearnerId(),
         );
 
       if (this.settings.courseId) {
@@ -354,12 +355,35 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
   }
 
+  protected getOfflineLearnerId(): string {
+    return this.getCMIValue("core" in this.cmi ? "cmi.core.student_id" : "cmi.learner_id") || "";
+  }
+
   protected restoreOfflineData(): void {
     if (!this.settings.enableOfflineSupport || !this._courseId || !this.isNotInitialized()) {
       return;
     }
     try {
-      const pending = this._offlineStorageService?.getPendingOfflineData?.(this._courseId) ?? [];
+      const pending =
+        this._offlineStorageService?.getPendingOfflineData?.(
+          this._courseId,
+          this.getOfflineLearnerId(),
+        ) ?? [];
+      // Enforce the CMI setters' SCO write restrictions during offline restore.
+      if (pending.length) this.cmi.initialize();
+      const restoreValue = (element: string, value: any) => {
+        // Existing LMS comment children do not inherit the array's initialized flag.
+        if (
+          !/^cmi\.(core\.)?(session_time|exit)$/.test(element) &&
+          !/^cmi\.comments_from_lms(\.|$)/.test(element)
+        ) {
+          try {
+            this.setCMIValue(element, value);
+          } catch {
+            // Read-only or invalid values must not prevent other values from restoring.
+          }
+        }
+      };
       for (const data of pending) {
         try {
           const runtimeData = (Array.isArray(data) ? data : (data.runtimeData ?? data)) as
@@ -367,12 +391,24 @@ export default abstract class BaseAPI implements IBaseAPI {
           if (Array.isArray(runtimeData)) {
             this.apiLog("Initialize", "Skipping restore of params payload", LogLevelEnum.WARN);
           } else if (runtimeData.cmi) {
-            this.loadFromJSON({ cmi: runtimeData.cmi });
+            this._serializationService.loadFromFlattenedJSON(
+              flatten({ cmi: runtimeData.cmi }),
+              "",
+              restoreValue,
+              () => true,
+              () => {},
+            );
           } else {
             const cmiData = Object.fromEntries(
               Object.entries(runtimeData).filter(([key]) => key.startsWith("cmi.")),
             );
-            this.loadFromFlattenedJSON(cmiData);
+            this._serializationService.loadFromFlattenedJSON(
+              cmiData,
+              "",
+              restoreValue,
+              () => true,
+              () => {},
+            );
           }
         } catch (error) {
           this.apiLog("Initialize", `Error restoring offline data: ${error}`, LogLevelEnum.ERROR);
@@ -1731,6 +1767,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         );
 
         return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
+          learnerId: this.getOfflineLearnerId(),
           isTerminateCommit: immediate,
           sequence,
         });

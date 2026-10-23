@@ -9,6 +9,7 @@ import { appendQueryParam, StringKeyMap } from "../utilities";
 type OfflinePayload = CommitObject | StringKeyMap | Array<any>;
 
 type OfflineCommitMetadata = {
+  learnerId?: string;
   isTerminateCommit?: boolean;
   sequence?: number;
 };
@@ -19,6 +20,7 @@ type OfflineCommitMetadata = {
 interface SyncQueueItem {
   id: string;
   courseId: string;
+  learnerId?: string;
   timestamp: number;
   data: OfflinePayload;
   syncAttempts: number;
@@ -55,6 +57,7 @@ export class OfflineStorageService {
       CMIElement?: string,
     ) => void,
     private httpService?: IHttpService,
+    private getLearnerId: () => string = () => "",
   ) {
     this.settings = settings;
     this.error_codes = error_codes;
@@ -186,6 +189,7 @@ export class OfflineStorageService {
       const queueItem: SyncQueueItem = {
         id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         courseId,
+        learnerId: metadata?.learnerId ?? this.getLearnerId(),
         timestamp: Date.now(),
         data: commitData,
         syncAttempts: 0,
@@ -252,9 +256,11 @@ export class OfflineStorageService {
     }
   }
 
-  getPendingOfflineData(courseId: string): OfflinePayload[] {
+  getPendingOfflineData(courseId: string, learnerId: string): OfflinePayload[] {
     const queue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
-    return queue.filter((item) => item.courseId === courseId).map((item) => item.data);
+    return queue
+      .filter((item) => item.courseId === courseId && item.learnerId === learnerId)
+      .map((item) => item.data);
   }
 
   /**
@@ -287,8 +293,17 @@ export class OfflineStorageService {
       // Keep track of successful and failed sync attempts
       const remainingQueue: SyncQueueItem[] = [];
 
+      const learnerId = this.getLearnerId();
+      const matches = (item: SyncQueueItem) =>
+        item.courseId === this.settings.courseId &&
+        (item.learnerId === undefined || item.learnerId === learnerId);
+
       // Process each queue item
       for (const item of syncQueue) {
+        if (!matches(item)) {
+          remainingQueue.push(item);
+          continue;
+        }
         const maxAttempts = this.settings.maxSyncAttempts ?? 5;
 
         // Remove items that have exceeded max sync attempts (abandon them)
@@ -345,7 +360,7 @@ export class OfflineStorageService {
 
       // Update the queue with remaining items
       this.saveToStorage(this.syncQueue, remainingQueue);
-      for (const courseId of new Set(syncQueue.map((item) => item.courseId))) {
+      for (const courseId of new Set(syncQueue.filter(matches).map((item) => item.courseId))) {
         if (!remainingQueue.some((item) => item.courseId === courseId)) {
           this.removeFromStorage(`${this.storeName}_${courseId}`);
         }

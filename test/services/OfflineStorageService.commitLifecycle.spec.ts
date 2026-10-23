@@ -76,6 +76,7 @@ describe("OfflineStorageService commit lifecycle", () => {
     const service = new OfflineStorageService(
       {
         ...DefaultSettings,
+        courseId: "course-1",
         lmsCommitUrl: "https://example.com/commit?token=abc",
         requestHandler,
         terminateCommitParam: "final",

@@ -31,6 +31,10 @@ class TestAPI extends BaseAPI {
     jsonString: false,
   } as unknown as BaseRootCMI;
 
+  protected override getOfflineLearnerId(): string {
+    return "";
+  }
+
   // Implement abstract methods
   reset() {}
 
@@ -1437,11 +1441,11 @@ describe("BaseAPI", () => {
       });
       expect(retrieve).not.toHaveBeenCalled();
       testApi["restoreOfflineData"]();
-      expect(retrieve).toHaveBeenCalledWith("test-course-123");
+      expect(retrieve).toHaveBeenCalledWith("test-course-123", "");
     });
 
     it("should restore the saved runtime data before initialization", () => {
-      const offlineData = { runtimeData: { cmi: { core: { student_id: "offline-student" } } } };
+      const offlineData = { runtimeData: { cmi: { suspend_data: "offline" } } };
       vi.spyOn(OfflineStorageService.prototype, "getPendingOfflineData").mockReturnValue([
         offlineData,
       ]);
@@ -1449,9 +1453,10 @@ describe("BaseAPI", () => {
         enableOfflineSupport: true,
         courseId: "course123",
       });
-      const load = vi.spyOn(testApi, "loadFromJSON").mockImplementation(() => {});
+      const set = vi.spyOn(testApi, "setCMIValue").mockReturnValue("true");
       testApi["restoreOfflineData"]();
-      expect(load).toHaveBeenCalledWith(offlineData.runtimeData);
+      expect(testApi.cmi.initialize).toHaveBeenCalled();
+      expect(set).toHaveBeenCalledWith("cmi.suspend_data", "offline");
     });
 
     it("should ignore retrieval errors and missing offline data", () => {

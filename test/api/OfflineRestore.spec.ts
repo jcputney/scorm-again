@@ -109,7 +109,7 @@ describe("Offline commit, restore and replay", () => {
         });
 
         if (dataCommitFormat !== "params") {
-          it(`${version}: restores ${dataCommitFormat}, common fields ${renderCommonCommitFields} before CMI initialization`, () => {
+          it(`${version}: restores ${dataCommitFormat}, common fields ${renderCommonCommitFields} with matching LMS identity`, () => {
             const extra = { dataCommitFormat, renderCommonCommitFields };
             const first = create(version, extra);
             const identity =
@@ -120,7 +120,7 @@ describe("Offline commit, restore and replay", () => {
             first.lmsInitialize();
             first.lmsCommit();
             const restored = create(version, extra);
-            restored.loadFromJSON({ cmi: { suspend_data: "LMS" } });
+            restored.loadFromJSON({ cmi: { ...identity, suspend_data: "LMS" } });
             expect(restored.lmsInitialize()).toBe("true");
             expect(restored.lmsGetValue("cmi.suspend_data")).toBe("offline");
             expect(
@@ -130,6 +130,153 @@ describe("Offline commit, restore and replay", () => {
         }
       }
     }
+
+    for (const scenario of [
+      "other learner",
+      "other course",
+      "matching",
+      "legacy",
+      "empty learner",
+    ]) {
+      it(`${version}: isolates restore and replay for ${scenario}`, async () => {
+        const identityKey = version === "1.2" ? "cmi.core.student_id" : "cmi.learner_id";
+        const first = create(version);
+        first.loadFromFlattenedJSON({ [identityKey]: "A" });
+        first.lmsInitialize();
+        first.lmsSetValue("cmi.suspend_data", "offline");
+        first.lmsCommit();
+        const queued = JSON.parse(localStorage.getItem(queueKey)!);
+        expect(queued[0].learnerId).toBe("A");
+        if (scenario === "legacy") {
+          delete queued[0].learnerId;
+          localStorage.setItem(queueKey, JSON.stringify(queued));
+        }
+        const restored = create(version, {
+          courseId: scenario === "other course" ? "Y" : "course",
+        });
+        restored.loadFromFlattenedJSON({
+          [identityKey]:
+            scenario === "other learner" ? "B" : scenario === "empty learner" ? "" : "A",
+          "cmi.suspend_data": "LMS",
+        });
+        expect(restored.lmsInitialize()).toBe("true");
+        expect(restored.lmsGetValue("cmi.suspend_data")).toBe(
+          scenario === "matching" ? "offline" : "LMS",
+        );
+        const service = (restored as any)._offlineStorageService as OfflineStorageService;
+        (service as any).isOnline = true;
+        expect(await service.syncOfflineData()).toBe(true);
+        const replayed = scenario === "matching" || scenario === "legacy";
+        expect(requests).toHaveLength(replayed ? 1 : 0);
+        expect(JSON.parse(localStorage.getItem(queueKey)!)).toEqual(replayed ? [] : queued);
+        if (!replayed) expect(localStorage.getItem(snapshotKey)).not.toBeNull();
+      });
+    }
+
+    it(`${version}: protects LMS and session values while restoring writable data`, () => {
+      const core = version === "1.2" ? "cmi.core." : "cmi.";
+      const identity = core + (version === "1.2" ? "student_id" : "learner_id");
+      const fields: Record<string, string> = {
+        [identity]: "A",
+        [core + (version === "1.2" ? "student_name" : "learner_name")]: "LMS Name",
+        [core + "credit"]: "credit",
+        [core + (version === "1.2" ? "lesson_mode" : "mode")]: "normal",
+        [core + "entry"]: "ab-initio",
+        [core + "total_time"]: version === "1.2" ? "01:00:00" : "PT1H",
+        "cmi.launch_data": "LMS launch",
+        ...(version === "1.2"
+          ? {
+              "cmi.student_data.mastery_score": "80",
+              "cmi.student_data.max_time_allowed": "01:00:00",
+              "cmi.student_data.time_limit_action": "exit,message",
+            }
+          : {
+              "cmi.completion_threshold": "0.8",
+              "cmi.scaled_passing_score": "0.8",
+              "cmi.max_time_allowed": "PT1H",
+              "cmi.time_limit_action": "exit,message",
+            }),
+        ...(version === "1.2"
+          ? { "cmi.comments_from_lms": "LMS comment" }
+          : {
+              "cmi.comments_from_lms.0.comment": "LMS comment",
+              "cmi.comments_from_lms.0.location": "LMS location",
+            }),
+      };
+      const first = create(version);
+      first.loadFromFlattenedJSON(fields);
+      first.lmsInitialize();
+      first.lmsSetValue("cmi.suspend_data", "offline");
+      first.lmsSetValue(core + (version === "1.2" ? "lesson_location" : "location"), "bookmark");
+      first.lmsSetValue(
+        core + (version === "1.2" ? "lesson_status" : "completion_status"),
+        "completed",
+      );
+      first.lmsSetValue(core + "score.raw", "85");
+      first.lmsSetValue("cmi.objectives.0.id", "objective");
+      first.lmsSetValue("cmi.objectives.0.score.raw", "75");
+      first.lmsSetValue("cmi.interactions.0.id", "interaction");
+      first.lmsSetValue("cmi.interactions.0.type", "choice");
+      first.lmsSetValue(core + "session_time", version === "1.2" ? "0000:05:00" : "PT5M");
+      first.lmsSetValue(core + "exit", "suspend");
+      if (version === "2004") {
+        first.lmsSetValue("cmi.progress_measure", "1");
+        first.lmsSetValue("cmi.score.scaled", "1");
+        first.lmsSetValue("cmi.success_status", "passed");
+      }
+      first.lmsCommit();
+      const lmsFields = Object.fromEntries(
+        Object.entries(fields).map(([key, value]) => [
+          key,
+          key === identity
+            ? value
+            : key.includes("name") ||
+                key.includes("launch_data") ||
+                key.includes("comment") ||
+                key.endsWith("location")
+              ? "fresh LMS"
+              : value,
+        ]),
+      );
+      Object.assign(lmsFields, {
+        [core + "credit"]: "no-credit",
+        [core + (version === "1.2" ? "lesson_mode" : "mode")]: "review",
+        [core + "entry"]: "resume",
+        [core + "total_time"]: version === "1.2" ? "02:00:00" : "PT2H",
+        ...(version === "1.2"
+          ? {
+              "cmi.student_data.mastery_score": "90",
+              "cmi.student_data.max_time_allowed": "02:00:00",
+              "cmi.student_data.time_limit_action": "continue,no message",
+            }
+          : {
+              "cmi.completion_threshold": "0.9",
+              "cmi.scaled_passing_score": "0.9",
+              "cmi.max_time_allowed": "PT2H",
+              "cmi.time_limit_action": "continue,no message",
+            }),
+      });
+      const restored = create(version);
+      restored.loadFromFlattenedJSON(lmsFields);
+      expect(restored.lmsInitialize()).toBe("true");
+      for (const [key, value] of Object.entries(lmsFields))
+        expect(restored.getCMIValue(key)).toBe(value);
+      const runtime = JSON.parse(JSON.stringify(restored.cmi));
+      const session = version === "1.2" ? runtime.core : runtime;
+      expect(session.session_time).toBe(version === "1.2" ? "00:00:00" : "PT0H0M0S");
+      expect(session.exit).toBe("");
+      expect(restored.lmsGetValue("cmi.suspend_data")).toBe("offline");
+      expect(
+        restored.lmsGetValue(core + (version === "1.2" ? "lesson_location" : "location")),
+      ).toBe("bookmark");
+      expect(
+        restored.lmsGetValue(core + (version === "1.2" ? "lesson_status" : "completion_status")),
+      ).toBe("completed");
+      expect(restored.lmsGetValue(core + "score.raw")).toBe("85");
+      expect(restored.getCMIValue("cmi.objectives.0.score.raw")).toBe("75");
+      expect(runtime.interactions["0"].id).toBe("interaction");
+      if (version === "2004") expect(restored.lmsGetValue("cmi.success_status")).toBe("passed");
+    });
 
     for (const dataCommitFormat of ["json", "flattened"] as const) {
       it(`${version}: restores all partial ${dataCommitFormat} commits without metadata`, () => {
@@ -154,7 +301,7 @@ describe("Offline commit, restore and replay", () => {
         for (const item of queue) {
           item.data.final = true;
         }
-        queue.unshift({ courseId: "course", data: null });
+        queue.unshift({ courseId: "course", learnerId: "", data: null });
         localStorage.setItem(queueKey, JSON.stringify(queue));
         const restored = create(version, extra);
         const log = vi.spyOn(restored, "apiLog");
@@ -191,6 +338,27 @@ describe("Offline commit, restore and replay", () => {
       expect(restored.lmsGetValue("cmi.suspend_data")).toBe("LMS");
     });
   }
+
+  it("2004: does not republish restored objectives to global objectives", () => {
+    const sequencingStatePersistence = {
+      persistence: { saveState: vi.fn(), loadState: vi.fn() },
+      autoSaveOn: "never" as const,
+      autoLoadOnInitialize: false,
+    };
+    const first = create("2004", { sequencingStatePersistence });
+    first.lmsInitialize();
+    first.lmsSetValue("cmi.objectives.0.id", "global-1");
+    first.lmsSetValue("cmi.objectives.0.success_status", "passed");
+    first.lmsCommit();
+    const restored = create("2004", { sequencingStatePersistence }) as Scorm2004API;
+    const manager = (restored as any)._globalObjectiveManager;
+    vi.spyOn(manager, "isHostDeclaredGlobalObjectiveId").mockReturnValue(true);
+    vi.spyOn(restored as any, "currentActivityAllowsGlobalObjectiveWrites").mockReturnValue(true);
+    const publish = vi.spyOn(manager, "findOrCreateGlobalObjective");
+    expect(restored.lmsInitialize()).toBe("true");
+    expect(restored.lmsGetValue("cmi.objectives.0.success_status")).toBe("passed");
+    expect(publish).not.toHaveBeenCalled();
+  });
 
   for (const event of ["onerror", "ontimeout"] as const) {
     it(`returns commit failure for async XHR ${event}`, async () => {

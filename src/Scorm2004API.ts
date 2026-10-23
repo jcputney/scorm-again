@@ -1076,6 +1076,19 @@ class Scorm2004API extends BaseAPI {
     }
   }
 
+  /**
+   * Offline restore replays queued commits through setCMIValue directly, so it needs the same
+   * global objective guard as loadFromJSON.
+   */
+  protected override restoreOfflineData(): void {
+    this._restoringFromJSON = true;
+    try {
+      super.restoreOfflineData();
+    } finally {
+      this._restoringFromJSON = false;
+    }
+  }
+
   override setCMIValue(CMIElement: string, value: any): string {
     if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       const parts = CMIElement.split(".");

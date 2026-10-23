@@ -60,9 +60,10 @@ The API automatically detects network connectivity status and switches between o
 modes:
 
 - When online, data is sent directly to the LMS as usual
-- When offline, each commit is queued in localStorage in the configured `dataCommitFormat`
-- If the course still has unsynced commits when `Initialize` runs, the API loads them, oldest first, over any data you loaded from the LMS. Commits in the `params` format are not restored.
-- When connection is restored, data is synchronized back to the LMS. The stored copy for a course is removed once all of its commits have synced.
+- When offline, each commit is queued in localStorage in the configured `dataCommitFormat`, with the course id and the learner id
+- If the same course and learner still have unsynced commits when `Initialize` runs, the API loads them, oldest first, over any data you loaded from the LMS. Only values the SCO can write are restored. LMS-controlled values, such as the learner id, keep the values you loaded, and `exit` and `session_time` are not restored. Commits in the `params` format are not restored.
+- When connection is restored, the commits for the current course and learner are synchronized back to the LMS. The stored copy for a course is removed once all of its commits have synced.
+- Commits queued by older versions have no learner id. They are synced for their course but never restored.
 
 ### Synchronization Events
 
