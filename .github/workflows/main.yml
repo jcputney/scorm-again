@@ -68,7 +68,7 @@ jobs:
           if printf '%s\n' "$files" | grep -qE '^(docs-site/|README\.md$)'; then
             docs=true
           fi
-          if printf '%s\n' "$files" | grep -qE '^examples/react-native-offline/'; then
+          if printf '%s\n' "$files" | grep -qE '^(examples/react-native-offline/|docs-site/examples/)'; then
             example=true
           fi
           echo "lib=$lib" >> "$GITHUB_OUTPUT"
@@ -456,11 +456,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Packs the committed dist bundle, the docs bridge and the built-in
+      # course into the zips the app requires at bundle time.
+      - name: Build bundled assets
+        run: npm run prepare-assets
+
       - name: Type check
         run: npx tsc --noEmit
 
       - name: Check Expo dependencies
         run: npx expo-doctor
+
+      # Bundles the app's JavaScript and assets for both platforms without a
+      # device, so a broken import or a missing asset zip fails here.
+      - name: Bundle the app
+        run: npx expo export --platform android --platform ios --output-dir "$RUNNER_TEMP/expo-export"
 
   # Single required status check for the master ruleset. It always runs, and
   # passes unless a job that actually executed (i.e. not skipped) failed. This
