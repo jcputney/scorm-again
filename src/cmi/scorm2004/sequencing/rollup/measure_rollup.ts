@@ -37,6 +37,8 @@ export class MeasureRollupProcessor {
   public measureRollupProcess(activity: Activity): Activity[] {
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
+      // No available child means no valid data, so the parent's measure is unknown.
+      activity.objectiveMeasureStatus = false;
       return [];
     }
 

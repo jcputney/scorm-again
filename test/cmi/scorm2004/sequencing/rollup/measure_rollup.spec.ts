@@ -140,6 +140,14 @@ describe("Measure rollup (RB.1.1)", () => {
     expect(parent.objectiveMeasureStatus).toBe(false);
   });
 
+  it("clears a stale parent measure when no child is available", () => {
+    parent.objectiveMeasureStatus = true;
+    parent.objectiveNormalizedMeasure = 0.9;
+    parent.setProcessedChildren([]);
+    expect(rollup.measureRollupProcess(parent)).toEqual([]);
+    expect(parent.objectiveMeasureStatus).toBe(false);
+  });
+
   it("clears a stale parent measure after the scored child starts another attempt", () => {
     y.objectiveMeasureStatus = false;
     rollup.measureRollupProcess(parent);
