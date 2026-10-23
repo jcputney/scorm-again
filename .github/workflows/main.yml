@@ -40,6 +40,7 @@ jobs:
     outputs:
       lib: ${{ steps.detect.outputs.lib }}
       docs: ${{ steps.detect.outputs.docs }}
+      example: ${{ steps.detect.outputs.example }}
     steps:
       - name: Detect changed paths
         id: detect
@@ -52,12 +53,14 @@ jobs:
             # Non-PR event (push / workflow_dispatch): run the full library pipeline.
             echo "lib=true" >> "$GITHUB_OUTPUT"
             echo "docs=false" >> "$GITHUB_OUTPUT"
-            echo "Non-PR event: lib=true docs=false"
+            echo "example=false" >> "$GITHUB_OUTPUT"
+            echo "Non-PR event: lib=true docs=false example=false"
             exit 0
           fi
           files=$(gh api "repos/$REPO/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
           lib=false
           docs=false
+          example=false
           if printf '%s\n' "$files" | grep -qE '^(src/|test/|docs-site/examples/|package\.json$|package-lock\.json$|tsconfig\.json$|vitest\.config\.ts$|playwright\.config\.ts$|rollup\.config\.mjs$|\.github/workflows/main\.yml$)'; then
             lib=true
           fi
@@ -65,9 +68,13 @@ jobs:
           if printf '%s\n' "$files" | grep -qE '^(docs-site/|README\.md$)'; then
             docs=true
           fi
+          if printf '%s\n' "$files" | grep -qE '^examples/react-native-offline/'; then
+            example=true
+          fi
           echo "lib=$lib" >> "$GITHUB_OUTPUT"
           echo "docs=$docs" >> "$GITHUB_OUTPUT"
-          echo "Detected changes: lib=$lib docs=$docs"
+          echo "example=$example" >> "$GITHUB_OUTPUT"
+          echo "Detected changes: lib=$lib docs=$docs example=$example"
 
   guard-dist:
     name: Reject PRs changing dist/
@@ -424,6 +431,37 @@ jobs:
           npm ci
           npm run build
 
+  # Type-check the React Native example and check its Expo dependencies. It
+  # cannot run the app, so a device test is still needed before a release.
+  example-check:
+    name: Example Check
+    needs: changes
+    if: needs.changes.outputs.example == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/react-native-offline
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node.js
+        # Expo SDK 58 supports Node 22, 24 and 26, not 25.
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: examples/react-native-offline/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Check Expo dependencies
+        run: npx expo-doctor
+
   # Single required status check for the master ruleset. It always runs, and
   # passes unless a job that actually executed (i.e. not skipped) failed. This
   # lets one ruleset check gate both library PRs (via build-and-unit) and
@@ -431,7 +469,7 @@ jobs:
   # paths it covers.
   ci-gate:
     name: CI Gate
-    needs: [ changes, guard-dist, build-and-unit, docs-build ]
+    needs: [ changes, guard-dist, build-and-unit, docs-build, example-check ]
     if: always()
     runs-on: ubuntu-latest
     steps:
