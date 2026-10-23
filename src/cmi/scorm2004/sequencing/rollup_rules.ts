@@ -67,6 +67,17 @@ export enum RollupConsiderationType {
 }
 
 /**
+ * Read a rollup rule's minimumPercent as a fraction.
+ * IMS SS minimumPercent is 0.0-1.0; values above 1 are whole percents, kept for backward
+ * compatibility.
+ * @param {number} minimumPercent
+ * @return {number}
+ */
+export function normalizeMinimumPercent(minimumPercent: number): number {
+  return minimumPercent > 1 ? minimumPercent / 100 : minimumPercent;
+}
+
+/**
  * Class representing a rollup condition
  */
 export class RollupCondition extends BaseCMI {
@@ -440,8 +451,8 @@ export class RollupRule extends BaseCMI {
       case RollupConsiderationType.AT_LEAST_COUNT:
         return matchingChildren.length >= this._minimumCount;
       case RollupConsiderationType.AT_LEAST_PERCENT: {
-        const percent = (matchingChildren.length / children.length) * 100;
-        return percent >= this._minimumPercent;
+        const fraction = matchingChildren.length / children.length;
+        return fraction >= normalizeMinimumPercent(this._minimumPercent);
       }
       default:
         return false;
