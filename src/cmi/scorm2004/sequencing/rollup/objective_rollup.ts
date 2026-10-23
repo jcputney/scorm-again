@@ -1,3 +1,4 @@
+import { SuccessStatus } from "../../../../constants/enums";
 import { Activity } from "../activity";
 import { RollupActionType, RollupRule } from "../rollup_rules";
 import { RollupChildFilter } from "./rollup_child_filter";
@@ -62,6 +63,7 @@ export class ObjectiveRollupProcessor {
       const measureResult = this.objectiveRollupUsingMeasure(activity);
       if (measureResult === null) {
         activity.objectiveSatisfiedStatusKnown = false;
+        activity.successStatus = SuccessStatus.UNKNOWN;
       } else {
         activity.objectiveSatisfiedStatus = measureResult;
       }

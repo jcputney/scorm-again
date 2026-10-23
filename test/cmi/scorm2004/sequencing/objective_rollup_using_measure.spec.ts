@@ -404,6 +404,7 @@ describe("Objective rollup method selection", () => {
 
       expect(parent.objectiveMeasureStatus).toBe(false);
       expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(parent.successStatus).toBe(SuccessStatus.UNKNOWN);
       expect(parent.primaryObjective?.satisfiedStatusKnown).toBe(false);
     },
   );
