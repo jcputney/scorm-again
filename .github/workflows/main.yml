@@ -444,6 +444,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7.0.1
+        with:
+          # npm ci runs the example's dependency lifecycle scripts, and no step
+          # here needs a Git credential, so keep it out of .git/config.
+          persist-credentials: false
 
       - name: Setup Node.js
         # Expo SDK 58 supports Node 22, 24 and 26, not 25.
