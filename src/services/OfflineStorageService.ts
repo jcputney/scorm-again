@@ -2,9 +2,14 @@ import { CommitObject, InternalSettings, ResultObject } from "../types/api_types
 import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
 import { ErrorCode } from "../constants/error_codes";
-import { appendQueryParam } from "../utilities";
+import { SynchronousHttpService } from "./SynchronousHttpService";
+import { IHttpService } from "../interfaces/services";
+import { appendQueryParam, StringKeyMap } from "../utilities";
+
+type OfflinePayload = CommitObject | StringKeyMap | Array<any>;
 
 type OfflineCommitMetadata = {
+  learnerId?: string;
   isTerminateCommit?: boolean;
   sequence?: number;
 };
@@ -15,8 +20,9 @@ type OfflineCommitMetadata = {
 interface SyncQueueItem {
   id: string;
   courseId: string;
+  learnerId?: string;
   timestamp: number;
-  data: CommitObject;
+  data: OfflinePayload;
   syncAttempts: number;
   isTerminateCommit?: boolean;
   sequence?: number;
@@ -50,6 +56,8 @@ export class OfflineStorageService {
       messageLevel: LogLevelEnum,
       CMIElement?: string,
     ) => void,
+    private httpService?: IHttpService,
+    private getLearnerId: () => string = () => "",
   ) {
     this.settings = settings;
     this.error_codes = error_codes;
@@ -173,7 +181,7 @@ export class OfflineStorageService {
    */
   storeOffline(
     courseId: string,
-    commitData: CommitObject,
+    commitData: OfflinePayload,
     metadata?: OfflineCommitMetadata,
   ): ResultObject {
     try {
@@ -181,6 +189,7 @@ export class OfflineStorageService {
       const queueItem: SyncQueueItem = {
         id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         courseId,
+        learnerId: metadata?.learnerId ?? this.getLearnerId(),
         timestamp: Date.now(),
         data: commitData,
         syncAttempts: 0,
@@ -233,9 +242,9 @@ export class OfflineStorageService {
    * @param {string} courseId - Identifier for the course
    * @returns {Promise<CommitObject|null>} - The stored data or null if not found
    */
-  async getOfflineData(courseId: string): Promise<CommitObject | null> {
+  async getOfflineData(courseId: string): Promise<OfflinePayload | null> {
     try {
-      const data = this.getFromStorage<CommitObject>(`${this.storeName}_${courseId}`);
+      const data = this.getFromStorage<OfflinePayload>(`${this.storeName}_${courseId}`);
       return data || null;
     } catch (error) {
       this.apiLog(
@@ -245,6 +254,13 @@ export class OfflineStorageService {
       );
       return null;
     }
+  }
+
+  getPendingOfflineData(courseId: string, learnerId: string): OfflinePayload[] {
+    const queue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
+    return queue
+      .filter((item) => item.courseId === courseId && item.learnerId === learnerId)
+      .map((item) => item.data);
   }
 
   /**
@@ -277,8 +293,17 @@ export class OfflineStorageService {
       // Keep track of successful and failed sync attempts
       const remainingQueue: SyncQueueItem[] = [];
 
+      const learnerId = this.getLearnerId();
+      const matches = (item: SyncQueueItem) =>
+        item.courseId === this.settings.courseId &&
+        (item.learnerId === undefined || item.learnerId === learnerId);
+
       // Process each queue item
       for (const item of syncQueue) {
+        if (!matches(item)) {
+          remainingQueue.push(item);
+          continue;
+        }
         const maxAttempts = this.settings.maxSyncAttempts ?? 5;
 
         // Remove items that have exceeded max sync attempts (abandon them)
@@ -335,6 +360,11 @@ export class OfflineStorageService {
 
       // Update the queue with remaining items
       this.saveToStorage(this.syncQueue, remainingQueue);
+      for (const courseId of new Set(syncQueue.filter(matches).map((item) => item.courseId))) {
+        if (!remainingQueue.some((item) => item.courseId === courseId)) {
+          this.removeFromStorage(`${this.storeName}_${courseId}`);
+        }
+      }
 
       this.apiLog(
         "OfflineStorageService",
@@ -362,7 +392,7 @@ export class OfflineStorageService {
    * @returns {Promise<ResultObject>} - Result of the sync operation
    */
   private async sendDataToLMS(
-    data: CommitObject,
+    data: OfflinePayload,
     metadata?: OfflineCommitMetadata,
   ): Promise<ResultObject> {
     const configuredCommitUrl = this.settings.lmsCommitUrl;
@@ -376,26 +406,63 @@ export class OfflineStorageService {
     try {
       const lmsCommitUrl = String(configuredCommitUrl);
 
-      // Apply request handler if configured
-      const processedData = this.settings.requestHandler(data, {
-        isTerminateCommit: metadata?.isTerminateCommit ?? false,
-        trigger: "offline-replay",
-        ...(metadata?.sequence !== undefined ? { sequence: metadata.sequence } : {}),
-      });
-
       const requestUrl =
         metadata?.isTerminateCommit && this.settings.terminateCommitParam
           ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true")
           : lmsCommitUrl;
+      const commitMetadata = {
+        isTerminateCommit: metadata?.isTerminateCommit ?? false,
+        trigger: "offline-replay" as const,
+        ...(metadata?.sequence !== undefined ? { sequence: metadata.sequence } : {}),
+      };
+      const httpService = this.httpService;
+      if (
+        httpService instanceof SynchronousHttpService &&
+        !("reportsRequestCompletion" in httpService && httpService.reportsRequestCompletion)
+      ) {
+        return await httpService.performAsyncRequest(requestUrl, data, commitMetadata);
+      }
+      if (httpService) {
+        return await new Promise<ResultObject>((resolve, reject) => {
+          try {
+            const result = httpService.processHttpRequest(
+              requestUrl,
+              data,
+              false,
+              this.apiLog,
+              (event, _element, errorCode) => {
+                if (event === "CommitSuccess") resolve({ result: "true", errorCode: 0 });
+                if (event === "CommitError") resolve({ result: "false", errorCode });
+              },
+              commitMetadata,
+              // A deferring service settles each request through this callback. If it sent
+              // no commit event first, the replay counts as failed and stays queued.
+              () =>
+                resolve({
+                  result: "false",
+                  errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+                }),
+            );
+            if (!httpService.reportsRequestCompletion) resolve(result);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+      const processedData = this.settings.requestHandler(data, commitMetadata) ?? data;
 
       // Send the data to the LMS
       const init = {
         method: "POST",
         mode: this.settings.fetchMode,
-        body: JSON.stringify(processedData),
+        body: Array.isArray(processedData)
+          ? processedData.join("&")
+          : JSON.stringify(processedData),
         headers: {
           ...this.settings.xhrHeaders,
-          "Content-Type": this.settings.commitRequestDataType,
+          "Content-Type": Array.isArray(processedData)
+            ? "application/x-www-form-urlencoded"
+            : this.settings.commitRequestDataType,
         },
       } as RequestInit;
 
@@ -475,6 +542,17 @@ export class OfflineStorageService {
   private saveToStorage(key: string, data: any): void {
     try {
       localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        throw new Error("storage quota exceeded - localStorage is full", { cause: error });
+      }
+      throw error;
+    }
+  }
+
+  private removeFromStorage(key: string): void {
+    try {
+      localStorage.removeItem(key);
     } catch (error) {
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
         throw new Error("storage quota exceeded - localStorage is full", { cause: error });

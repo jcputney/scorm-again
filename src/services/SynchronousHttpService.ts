@@ -164,6 +164,51 @@ export class SynchronousHttpService implements IHttpService {
     }
   }
 
+  performAsyncRequest(
+    url: string,
+    params: CommitObject | StringKeyMap | Array<any>,
+    metadata?: CommitMetadata,
+  ): Promise<ResultObject> {
+    return new Promise((resolve) => {
+      const failure = (error?: unknown) =>
+        resolve({
+          result: global_constants.SCORM_FALSE,
+          errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+          ...(error instanceof Error ? { errorMessage: error.message } : {}),
+        });
+      try {
+        const handledPayload =
+          metadata === undefined
+            ? this.settings.requestHandler(params)
+            : this.settings.requestHandler(params, metadata);
+        const requestPayload = (handledPayload ?? params) as
+          CommitObject | StringKeyMap | Array<any>;
+        const { body, contentType } = this._prepareRequestBody(requestPayload);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", contentType);
+        Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
+          xhr.setRequestHeader(key, String(value));
+        });
+        if (this.settings.xhrWithCredentials) {
+          xhr.withCredentials = true;
+        }
+        xhr.onload = () => {
+          try {
+            resolve(this.settings.xhrResponseHandler(xhr));
+          } catch (error) {
+            failure(error);
+          }
+        };
+        xhr.onerror = () => failure();
+        xhr.ontimeout = () => failure();
+        xhr.send(body);
+      } catch (error) {
+        failure(error);
+      }
+    });
+  }
+
   /**
    * Prepares the request body and content type based on params type
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request

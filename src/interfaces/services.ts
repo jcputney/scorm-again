@@ -412,21 +412,31 @@ export interface IOfflineStorageService {
    */
   storeOffline(
     courseId: string,
-    commitData: CommitObject,
-    metadata?: { isTerminateCommit?: boolean; sequence?: number },
+    commitData: CommitObject | StringKeyMap | Array<any>,
+    metadata?: { learnerId?: string; isTerminateCommit?: boolean; sequence?: number },
   ): ResultObject;
+
+  /**
+   * Read the data of every queued commit for the course and learner synchronously, oldest
+   * first. Restoring applies each payload in turn, so a later partial commit only overrides
+   * the values it contains. Returns an empty array when nothing is queued.
+   */
+  getPendingOfflineData?(
+    courseId: string,
+    learnerId: string,
+  ): (CommitObject | StringKeyMap | Array<any>)[];
 
   /**
    * Get stored offline data for a course
    * @param {string} courseId - Identifier for the course
    * @returns {Promise<CommitObject|null>} - The stored data or null if not found
    */
-  getOfflineData(courseId: string): Promise<CommitObject | null>;
+  getOfflineData(courseId: string): Promise<CommitObject | StringKeyMap | Array<any> | null>;
 
   /**
    * Synchronize offline data with the LMS when connection is available
    *
-   * Optional: Can be called without courseId to sync all pending data
+   * Syncs only the current course and learner, including legacy items for this course.
    *
    * @returns {Promise<boolean>} - Success status of synchronization
    */

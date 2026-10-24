@@ -37,6 +37,7 @@ describe("OfflineStorageService Tests", () => {
     ...DefaultSettings,
     lmsCommitUrl: "https://example.com/commit",
     enableOfflineSupport: true,
+    courseId: "course123",
   } as InternalSettings;
   const errorCodes: ErrorCode = {
     GENERAL: 101,
@@ -425,7 +426,7 @@ describe("OfflineStorageService Tests", () => {
     it("should handle sync failures and increment attempt count", async () => {
       const service = createService();
       const commitData = createSampleCommitObject();
-      const courseId = "error_course"; // This will trigger the error response in fetch mock
+      const courseId = "course123";
 
       // Modify commitData to trigger error response
       const errorCommitData = { ...commitData, courseId };
@@ -655,7 +656,7 @@ describe("OfflineStorageService Tests", () => {
       // Create queue with two items
       const successItem = {
         id: "success_item",
-        courseId: "course1",
+        courseId: "course123",
         timestamp: Date.now(),
         data: createSampleCommitObject(),
         syncAttempts: 0,
@@ -663,7 +664,7 @@ describe("OfflineStorageService Tests", () => {
 
       const failItem = {
         id: "fail_item",
-        courseId: "course2",
+        courseId: "course123",
         timestamp: Date.now() + 1,
         data: { ...createSampleCommitObject(), courseId: "course2" },
         syncAttempts: 0,
