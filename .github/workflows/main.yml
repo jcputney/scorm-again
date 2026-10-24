@@ -17,6 +17,7 @@ on:
     paths:
       - 'src/**'
       - 'test/**'
+      - 'docs-site/examples/**'
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig.json'
@@ -57,7 +58,7 @@ jobs:
           files=$(gh api "repos/$REPO/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
           lib=false
           docs=false
-          if printf '%s\n' "$files" | grep -qE '^(src/|test/|package\.json$|package-lock\.json$|tsconfig\.json$|vitest\.config\.ts$|playwright\.config\.ts$|rollup\.config\.mjs$|\.github/workflows/main\.yml$)'; then
+          if printf '%s\n' "$files" | grep -qE '^(src/|test/|docs-site/examples/|package\.json$|package-lock\.json$|tsconfig\.json$|vitest\.config\.ts$|playwright\.config\.ts$|rollup\.config\.mjs$|\.github/workflows/main\.yml$)'; then
             lib=true
           fi
           # The docs snippet check also scans README.md.

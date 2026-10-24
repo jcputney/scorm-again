@@ -138,53 +138,7 @@ To use offline support in a mobile application:
 
 ### React Native Example
 
-```javascript
-import React from 'react';
-import { WebView } from 'react-native-webview';
-import NetInfo from '@react-native-community/netinfo';
-
-const ScormPlayer = () => {
-  const webviewRef = React.useRef(null);
-
-  // Update scorm-again's network status using the custom event API
-  const updateNetworkStatus = (isConnected) => {
-    const script = `
-      window.dispatchEvent(new CustomEvent('scorm-again:network-status', {
-        detail: { online: ${isConnected} }
-      }));
-      true; // Required for iOS
-    `;
-    if (webviewRef.current) {
-      webviewRef.current.injectJavaScript(script);
-    }
-  };
-
-  // Listen for network changes from React Native
-  React.useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener(state => {
-      updateNetworkStatus(state.isConnected);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  return (
-    <WebView
-      ref={webviewRef}
-      source={{ uri: 'https://your-domain.com/scorm-content/' }}
-      javaScriptEnabled={true}
-      domStorageEnabled={true}
-      startInLoadingState={true}
-      originWhitelist={['*']}
-      onMessage={(event) => {
-        // Handle messages from the WebView if needed
-      }}
-    />
-  );
-};
-
-export default ScormPlayer;
-```
+The [React Native guide](/docs/advanced/mobile/react-native) shows the full setup: the shared bridge script, running it at document start, and sending connectivity changes from native code. Its configuration sets `lmsCommitUrl`, `enableOfflineSupport` and `courseId`. Without a commit URL, commits are neither sent nor queued.
 
 ## Detailed Mobile Framework Examples
 
@@ -203,7 +157,7 @@ refer to these detailed guides:
 1. **Storage Limits**: localStorage typically has a 5-10MB limit, which may affect large courses
 2. **Security**: Data is stored unencrypted in localStorage by default
 3. **Data Persistence**: Mobile apps may clear localStorage in certain scenarios
-4. **Conflict Resolution**: The API uses a timestamp-based approach; latest data wins
+4. **Conflict Resolution**: There is no conflict handling. Queued commits are replayed one at a time, in the order they were stored
 5. **Connectivity Detection**: Some browsers may have delayed connectivity status updates
 
 ## Best Practices

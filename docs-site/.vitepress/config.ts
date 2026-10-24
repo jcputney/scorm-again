@@ -45,8 +45,9 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
 
-  // Everything that is not site content.
-  srcExclude: ["README.md", "**/node_modules/**"],
+  // Everything that is not site content. _partials holds Markdown that pages
+  // pull in with <!--@include-->, so it must not become pages of its own.
+  srcExclude: ["README.md", "**/node_modules/**", "**/_partials/**"],
 
   head: [
     ["link", { rel: "icon", type: "image/svg+xml", href: "/scorm-again/img/favicon.svg" }],
