@@ -4,6 +4,7 @@ import { DefaultSettings } from "../../src/constants/default_settings";
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
 import { scorm12_errors } from "../../src/constants/error_codes";
 import { OfflineStorageService } from "../../src/services/OfflineStorageService";
+import { IHttpService } from "../../src/interfaces/services";
 import { CommitMetadata, CommitObject, InternalSettings } from "../../src/types/api_types";
 
 const createStorage = (): Storage => {
@@ -178,5 +179,50 @@ describe("OfflineStorageService commit lifecycle", () => {
     ]);
     expect(capturedPayloads[0]).toEqual(expect.objectContaining({ commitSequence: 2 }));
     expect(capturedPayloads[1]).toEqual(expect.objectContaining({ commitSequence: 1 }));
+  });
+
+  it.each([
+    ["no commit event", [], 1],
+    ["CommitSuccess", ["CommitSuccess"], 0],
+  ])("settles a deferred replay that sends %s", async (_label, events, remaining) => {
+    vi.stubGlobal("navigator", { onLine: true, sendBeacon: vi.fn() });
+    // A deferring service reports each settled request through onRequestComplete.
+    const httpService = {
+      reportsRequestCompletion: true,
+      processHttpRequest: vi.fn(
+        (
+          _url: string,
+          _params: unknown,
+          _immediate: boolean,
+          _apiLog: unknown,
+          processListeners: (event: string) => void,
+          _metadata?: CommitMetadata,
+          onRequestComplete?: () => void,
+        ) => {
+          setTimeout(() => {
+            for (const event of events) processListeners(event);
+            onRequestComplete?.();
+          });
+          return { result: "true", errorCode: 0 };
+        },
+      ),
+    } as unknown as IHttpService;
+    const service = new OfflineStorageService(
+      {
+        ...DefaultSettings,
+        courseId: "course-1",
+        lmsCommitUrl: "https://example.com/commit",
+      } as InternalSettings,
+      scorm12_errors,
+      vi.fn(),
+      httpService,
+    );
+    services.push(service);
+    service.storeOffline("course-1", createCommit());
+
+    await expect(service.syncOfflineData()).resolves.toBe(true);
+
+    expect(httpService.processHttpRequest).toHaveBeenCalledOnce();
+    expect(service.getPendingOfflineData("course-1", "")).toHaveLength(remaining);
   });
 });

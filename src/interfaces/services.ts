@@ -417,7 +417,9 @@ export interface IOfflineStorageService {
   ): ResultObject;
 
   /**
-   * Read the latest snapshot synchronously, only while the course has queued commits.
+   * Read the data of every queued commit for the course and learner synchronously, oldest
+   * first. Restoring applies each payload in turn, so a later partial commit only overrides
+   * the values it contains. Returns an empty array when nothing is queued.
    */
   getPendingOfflineData?(
     courseId: string,

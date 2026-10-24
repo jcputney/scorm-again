@@ -1469,11 +1469,13 @@ describe("BaseAPI", () => {
         enableOfflineSupport: true,
         courseId: "course123",
       });
-      const load = vi.spyOn(testApi, "loadFromJSON");
+      const set = vi.spyOn(testApi, "setCMIValue");
       expect(() => testApi["restoreOfflineData"]()).not.toThrow();
       retrieve.mockReturnValue([]);
       testApi["restoreOfflineData"]();
-      expect(load).not.toHaveBeenCalled();
+      expect(retrieve).toHaveBeenCalledTimes(2);
+      expect(set).not.toHaveBeenCalled();
+      expect(testApi.cmi.initialize).not.toHaveBeenCalled();
     });
   });
 

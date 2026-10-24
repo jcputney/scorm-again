@@ -435,6 +435,13 @@ export class OfflineStorageService {
                 if (event === "CommitError") resolve({ result: "false", errorCode });
               },
               commitMetadata,
+              // A deferring service settles each request through this callback. If it sent
+              // no commit event first, the replay counts as failed and stays queued.
+              () =>
+                resolve({
+                  result: "false",
+                  errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+                }),
             );
             if (!httpService.reportsRequestCompletion) resolve(result);
           } catch (error) {
