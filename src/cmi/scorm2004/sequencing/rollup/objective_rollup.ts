@@ -158,6 +158,11 @@ export class ObjectiveRollupProcessor {
       return null;
     }
 
+    // @spec SN Book: RB.1.2.a step 3.1.2.1 - defer measure satisfaction while active.
+    if (activity.isActive && !activity.rollupConsiderations.measureSatisfactionIfActive) {
+      return null;
+    }
+
     return activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
   }
 
@@ -191,20 +196,16 @@ export class ObjectiveRollupProcessor {
       return null;
     }
 
-    const considerations = activity.rollupConsiderations;
-
     // @spec SN Book: RB.1.4.2 - filter children separately for each rollup action.
     const notSatisfiedChildren = this.childFilter.filterChildrenForRequirement(
       children,
       "objective",
       "notSatisfied",
-      considerations,
     );
     const satisfiedChildren = this.childFilter.filterChildrenForRequirement(
       children,
       "objective",
       "satisfied",
-      considerations,
     );
 
     // @spec SN Book: RB.1.4 step 1.2.4 - an empty bag cannot fire an action.

@@ -90,18 +90,22 @@ export class RollupProcess {
    *
    * @spec SN Book: RB.1.5 (Overall Rollup Process)
    * @param activity - The activity to start rollup from
+   * @param globalObjectives - Shared global objectives
+   * @param includeActivity - Start with the activity itself instead of its parent
    * @returns Array of activities that had status changes
    */
   public overallRollupProcess(
     activity: Activity,
     globalObjectives?: Map<string, GlobalObjective>,
+    includeActivity = false,
   ): Activity[] {
     const affectedActivities: Activity[] = [];
-    let currentActivity: Activity | null = activity.parent; // Start from parent, not the activity itself
+    // Start from the activity when requested, otherwise from its parent.
+    let currentActivity: Activity | null = includeActivity ? activity : activity.parent;
     let onlyDurationRollup = false;
     let isFirst = true;
 
-    // Process rollup up the tree from parent to root
+    // Process rollup up the tree to the root
     while (currentActivity) {
       // Duration rollup happens FIRST, ALWAYS for cluster activities
       // This happens even when optimization is active for other rollup types

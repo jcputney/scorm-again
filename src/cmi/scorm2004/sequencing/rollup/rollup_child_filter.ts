@@ -1,4 +1,4 @@
-import { Activity, RollupConsiderationsConfig } from "../activity";
+import { Activity } from "../activity";
 import { CompletionStatus } from "../../../../constants/enums";
 
 /**
@@ -153,18 +153,14 @@ export class RollupChildFilter {
    * @param children - Child activities to filter
    * @param rollupType - Type of rollup ("objective" | "progress")
    * @param mode - Rollup action mode
-   * @param considerations - Parent-level rollup considerations config
    * @returns Filtered array of children that should contribute to rollup
    */
   public filterChildrenForRequirement(
     children: Activity[],
     rollupType: "objective" | "progress",
     mode: RollupAction,
-    considerations: RollupConsiderationsConfig,
   ): Activity[] {
-    return children.filter((child) =>
-      this.shouldIncludeChildForRollup(child, rollupType, mode, considerations),
-    );
+    return children.filter((child) => this.shouldIncludeChildForRollup(child, rollupType, mode));
   }
 
   /**
@@ -173,30 +169,15 @@ export class RollupChildFilter {
    * @param child - Child activity to check
    * @param rollupType - Type of rollup ("objective" | "progress")
    * @param mode - Rollup action mode
-   * @param considerations - Parent-level rollup considerations config
    * @returns True if child should be included
    */
   public shouldIncludeChildForRollup(
     child: Activity,
     rollupType: "objective" | "progress",
     mode: RollupAction,
-    considerations: RollupConsiderationsConfig,
   ): boolean {
     // Use the enhanced RB.1.4.2 implementation with rollupAction parameter
-    if (!this.checkChildForRollupSubprocess(child, rollupType, mode)) {
-      return false;
-    }
-
-    // Check parent-level measureSatisfactionIfActive setting
-    if (
-      rollupType === "objective" &&
-      !considerations.measureSatisfactionIfActive &&
-      (child.activityAttemptActive || child.isActive)
-    ) {
-      return false;
-    }
-
-    return true;
+    return this.checkChildForRollupSubprocess(child, rollupType, mode);
   }
 
   /**

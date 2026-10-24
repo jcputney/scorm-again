@@ -1002,7 +1002,12 @@ export class TerminationHandler {
 
     // Trigger rollup after global objective sync
     // Rollup calculates satisfaction and completion based on children and global state
-    this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap);
+    // Roll up a cluster itself now that its attempt is inactive (RB.1.5, UP.4).
+    this.rollupProcess.overallRollupProcess(
+      activity,
+      this.globalObjectiveMap,
+      activity.children.length > 0,
+    );
 
     // Rollup can recalculate an active cluster's primary objective from its
     // children. Reapply only the fields written by this terminating descendant

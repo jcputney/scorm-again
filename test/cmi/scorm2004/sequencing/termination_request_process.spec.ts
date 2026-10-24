@@ -7,7 +7,7 @@ import {
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
   RuleCondition,
@@ -97,7 +97,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
       expect(result.valid).toBe(true);
-      expect(rollupSpy).toHaveBeenCalledWith(grandchild1, expect.any(Map));
+      expect(rollupSpy).toHaveBeenCalledWith(grandchild1, expect.any(Map), false);
     });
   });
 
@@ -1102,4 +1102,39 @@ it("uses the process elapsed hook at construction and after replacement", () => 
   } finally {
     RuleCondition.setElapsedSecondsHook(undefined);
   }
+});
+
+it("decides cluster measure satisfaction when its attempt ends after its leaf", () => {
+  const root = new Activity("root", "Root");
+  const cluster = new Activity("cluster", "Cluster");
+  const leaf = new Activity("leaf", "Leaf");
+  root.addChild(cluster);
+  cluster.addChild(leaf);
+  cluster.primaryObjective = new ActivityObjective("primary", {
+    isPrimary: true,
+    satisfiedByMeasure: true,
+    minNormalizedMeasure: 0.7,
+  });
+  cluster.applyRollupConsiderations({ measureSatisfactionIfActive: false });
+  leaf.objectiveMeasureStatus = true;
+  leaf.objectiveNormalizedMeasure = 0.8;
+  const tree = new ActivityTree(root);
+  tree.currentActivity = leaf;
+  const rollup = new RollupProcess();
+  const handler = new TerminationHandler(tree, new SequencingProcess(tree), rollup, new Map());
+
+  expect(cluster.isActive).toBe(true);
+  rollup.overallRollupProcess(leaf);
+  expect(cluster.objectiveSatisfiedStatusKnown).toBe(false);
+  handler.endAttempt(leaf);
+  expect(cluster.isActive).toBe(true);
+  expect(cluster.objectiveSatisfiedStatusKnown).toBe(false);
+  handler.endAttempt(cluster);
+
+  expect(cluster.isActive).toBe(false);
+  expect(cluster.objectiveNormalizedMeasure).toBeCloseTo(0.8);
+  expect(cluster.objectiveSatisfiedStatusKnown).toBe(true);
+  expect(cluster.objectiveSatisfiedStatus).toBe(true);
+  expect(cluster.primaryObjective?.satisfiedStatusKnown).toBe(true);
+  expect(root.objectiveSatisfiedStatus).toBe(true);
 });
