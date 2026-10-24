@@ -160,9 +160,17 @@ describe("documentation code snippets", () => {
   it("uses events derived from source emissions and API wrappers", () => {
     const violations: string[] = [];
     for (const block of blocks) {
-      for (const match of block.text.matchAll(
-        /\b([\w.]*[Aa][Pp][Ii][\w.]*)\s*\.on\s*\(\s*(["'])(.*?)\2/g,
-      )) {
+      // Instances of either API class are checked whatever the variable is called.
+      const instances = new Set(
+        Array.from(
+          block.text.matchAll(
+            /\b(?:const|let|var)\s+(\w+)\s*=\s*new\s+[\w.]*Scorm(?:12|2004)API\s*\(/g,
+          ),
+          (instance) => instance[1]!,
+        ),
+      );
+      for (const match of block.text.matchAll(/\b([\w.]+)\s*\.on\s*\(\s*(["'])(.*?)\2/g)) {
+        if (!/api/i.test(match[1]!) && !instances.has(match[1]!)) continue;
         // EventService supports space-separated names and trailing CMI prefix wildcards.
         for (const listener of match[3]!.trim().split(/\s+/).filter(Boolean)) {
           const name = listener.split(".")[0]!;
