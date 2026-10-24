@@ -1892,7 +1892,7 @@ const api = new Scorm2004API({
 **Measure rollup.** A parent's rolled-up score is the weighted average of its tracked children's scores, using each child's `objectiveMeasureWeight` (SCORM 2004 SN RB.1.1).
 
 - **Children without a score:** a child that has no score yet still counts its weight, so it lowers the average until it is scored. The same applies to a score from an earlier parent attempt when `useCurrentAttemptObjectiveInfo` is true.
-- **Active children:** children count whether or not they are active. `rollupConsiderations.measureSatisfactionIfActive` applies to the activity itself and is true by default. When it is false, an activity that is satisfied by its score (`satisfiedByMeasure`) has unknown satisfaction while it is active. Its score decides once its attempt ends, and only then does a write map publish the result. Until then, sibling precondition rules that read the shared objective see it as unknown.
+- **Active children:** children count whether or not they are active. `rollupConsiderations.measureSatisfactionIfActive` applies to the activity itself and is true by default. When it is false, an activity that is satisfied by its score (`satisfiedByMeasure`) has unknown satisfaction while it is active. Its score decides once its attempt ends, and only then does a write map publish the result. Until then, the shared objective keeps the value it had before, so sibling precondition rules that read it do not see this attempt's result.
 - **Leaving a child out:** `rollupObjectiveSatisfied` and the `requiredFor...` rollup considerations do not affect the score. Set `objectiveMeasureWeight: 0` instead.
 - **No scores at all:** if none of the counted children has a score, the parent has no score.
 
