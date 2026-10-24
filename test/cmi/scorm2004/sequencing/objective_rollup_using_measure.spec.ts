@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  Activity,
-  ActivityObjective
-} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RollupActionType,
   RollupCondition,
   RollupConditionType,
+  RollupConditionOperator,
+  RollupConsiderationType,
   RollupRule,
-  RollupRules
+  RollupRules,
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { RollupChildFilter } from "../../../../src/cmi/scorm2004/sequencing/rollup/rollup_child_filter";
 import { RollupRuleEvaluator } from "../../../../src/cmi/scorm2004/sequencing/rollup/rollup_rule_evaluator";
 import { ObjectiveRollupProcessor } from "../../../../src/cmi/scorm2004/sequencing/rollup/objective_rollup";
+import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { SuccessStatus } from "../../../../src/constants/enums";
 
 describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
@@ -28,7 +28,7 @@ describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
     parentActivity.primaryObjective = new ActivityObjective("primary", {
       isPrimary: true,
       satisfiedByMeasure: true,
-      minNormalizedMeasure: 0.7
+      minNormalizedMeasure: 0.7,
     });
     rollupRules = new RollupRules();
 
@@ -346,5 +346,138 @@ describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
 
     expect(parentActivity.objectiveSatisfiedStatusKnown).toBe(false);
     expect(parentActivity.objectiveSatisfiedStatus).toBe(false);
+  });
+});
+
+describe("Objective rollup method selection", () => {
+  function cluster(byMeasure = true, threshold = 0.8) {
+    const parent = new Activity("parent", "Parent");
+    parent.primaryObjective = new ActivityObjective("primary", {
+      isPrimary: true,
+      satisfiedByMeasure: byMeasure,
+      minNormalizedMeasure: threshold,
+    });
+    parent.scaledPassingScore = threshold;
+    const children = [new Activity("c1", "Child 1"), new Activity("c2", "Child 2")];
+    for (const child of children) parent.addChild(child);
+    return { parent, children };
+  }
+
+  function notSatisfiedRule(parent: Activity) {
+    const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
+    rule.addCondition(
+      new RollupCondition(RollupConditionType.SATISFIED, new Map(), RollupConditionOperator.NOT),
+    );
+    parent.rollupRules.addRule(rule);
+  }
+
+  it.each([true, false])("uses the passing measure with explicit rules: %s", (withRules) => {
+    const { parent, children } = cluster();
+    children[0].objectiveNormalizedMeasure = 1.0;
+    children[1].objectiveNormalizedMeasure = 0.8;
+    children.forEach((child) => {
+      child.objectiveMeasureStatus = true;
+    });
+    children[0].objectiveSatisfiedStatus = true;
+    children[1].objectiveSatisfiedStatus = false;
+    if (withRules) notSatisfiedRule(parent);
+
+    new RollupProcess().overallRollupProcess(children[0]);
+
+    expect(parent.objectiveNormalizedMeasure).toBeCloseTo(0.9);
+    expect(parent.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(parent.objectiveSatisfiedStatus).toBe(true);
+    expect(parent.primaryObjective?.satisfiedStatus).toBe(true);
+  });
+
+  it.each([true, false])(
+    "clears a previously known status when the measure is unknown: %s",
+    (previous) => {
+      const { parent, children } = cluster(true, 0.6);
+      parent.objectiveSatisfiedStatus = previous;
+      children.forEach((child) => {
+        child.objectiveSatisfiedStatus = true;
+      });
+      notSatisfiedRule(parent);
+
+      new RollupProcess().overallRollupProcess(children[0]);
+
+      expect(parent.objectiveMeasureStatus).toBe(false);
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(parent.successStatus).toBe(SuccessStatus.UNKNOWN);
+      expect(parent.primaryObjective?.satisfiedStatusKnown).toBe(false);
+    },
+  );
+
+  it("carries a cluster's change to unknown satisfaction up to the root", () => {
+    // Only the middle cluster's Known flag changes. Its measure and satisfaction
+    // value stay the same, and rollup must still reach the course.
+    const { parent: middle, children } = cluster(true, 0.6);
+    const course = new Activity("course", "Course");
+    course.addChild(middle);
+    const leaf = new Activity("leaf", "Leaf");
+    children[0].addChild(leaf);
+    const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
+    rule.addCondition(
+      new RollupCondition(
+        RollupConditionType.OBJECTIVE_STATUS_KNOWN,
+        new Map(),
+        RollupConditionOperator.NOT,
+      ),
+    );
+    course.rollupRules.addRule(rule);
+    middle.objectiveSatisfiedStatus = true;
+    course.objectiveSatisfiedStatus = true;
+
+    new RollupProcess().overallRollupProcess(leaf);
+
+    expect(middle.objectiveSatisfiedStatusKnown).toBe(false);
+    expect(course.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(course.objectiveSatisfiedStatus).toBe(false);
+  });
+
+  it.each([undefined, true, false])(
+    "preserves status when the only satisfaction rule does not fire: %s",
+    (previous) => {
+      const { parent, children } = cluster(false);
+      if (previous !== undefined) parent.objectiveSatisfiedStatus = previous;
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
+      rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+      parent.rollupRules.addRule(rule);
+      children[0].objectiveSatisfiedStatus = true;
+      children[1].objectiveSatisfiedStatus = false;
+
+      new RollupProcess().overallRollupProcess(children[1]);
+
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(previous !== undefined);
+      expect(parent.objectiveSatisfiedStatus).toBe(previous ?? false);
+    },
+  );
+
+  it("uses a firing notSatisfied rule without measure-based satisfaction", () => {
+    const { parent, children } = cluster(false);
+    children[0].objectiveSatisfiedStatus = true;
+    children[1].objectiveSatisfiedStatus = false;
+    notSatisfiedRule(parent);
+
+    new RollupProcess().overallRollupProcess(children[1]);
+
+    expect(parent.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(parent.objectiveSatisfiedStatus).toBe(false);
+  });
+
+  it("lets a firing satisfied rule override a firing notSatisfied rule", () => {
+    const { parent, children } = cluster(false);
+    children[0].objectiveSatisfiedStatus = true;
+    children[1].objectiveSatisfiedStatus = false;
+    notSatisfiedRule(parent);
+    const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ANY);
+    rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+    parent.rollupRules.addRule(rule);
+
+    new RollupProcess().overallRollupProcess(children[1]);
+
+    expect(parent.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(parent.objectiveSatisfiedStatus).toBe(true);
   });
 });

@@ -1,3 +1,4 @@
+import { SuccessStatus } from "../../../../constants/enums";
 import { Activity } from "../activity";
 import { RollupActionType, RollupRule } from "../rollup_rules";
 import { RollupChildFilter } from "./rollup_child_filter";
@@ -53,22 +54,41 @@ export class ObjectiveRollupProcessor {
   public objectiveRollupProcess(activity: Activity): void {
     const rollupRules = activity.rollupRules;
 
-    // First, try rollup using rules (RB.1.2.b)
-    const ruleResult = this.objectiveRollupUsingRules(activity, rollupRules.rules);
-    if (ruleResult !== null) {
-      activity.objectiveSatisfiedStatus = ruleResult;
-      // Do NOT set objectiveMeasureStatus here - rule-based rollup doesn't involve measures
-      // Per SCORM 2004 SN Book RB.1.2.b, only satisfaction status is determined by rules
+    // @spec IMS Simple Sequencing 1.0 RB.1.2: "measure-based computation, a
+    // rule-based computation or an alternative default rule-based computation,
+    // applied in that order"; SM.6 Objective Satisfied by Measure: "in place of
+    // any other method". ADL SRTE SeqRollupRuleset.java ignores rule results
+    // when the measure threshold has already decided the status.
+    if (activity.primaryObjective?.satisfiedByMeasure) {
+      const measureResult = this.objectiveRollupUsingMeasure(activity);
+      if (measureResult === null) {
+        activity.objectiveSatisfiedStatusKnown = false;
+        activity.successStatus = SuccessStatus.UNKNOWN;
+      } else {
+        activity.objectiveSatisfiedStatus = measureResult;
+      }
       this.syncPrimaryObjectiveFromActivity(activity);
       return;
     }
 
-    // Then, try rollup using measure (RB.1.2.a)
-    const measureResult = this.objectiveRollupUsingMeasure(activity);
-    if (measureResult !== null) {
-      activity.objectiveSatisfiedStatus = measureResult;
-      // measureStatus is already true from measureRollupProcess (which ran first)
+    const ruleResult = this.objectiveRollupUsingRules(activity, rollupRules.rules);
+    if (ruleResult !== null) {
+      activity.objectiveSatisfiedStatus = ruleResult;
+      // Rule-based rollup determines satisfaction only, not measure status.
       this.syncPrimaryObjectiveFromActivity(activity);
+    }
+
+    // @spec SN Book: RB.1.2.b - once the activity defines any satisfied or
+    // notSatisfied rollup rule, those rules alone determine satisfaction.
+    // Default rollup is not a fallback when the defined rules do not fire;
+    // in that case, the activity's satisfaction status is left unchanged.
+    if (
+      rollupRules.rules.some(
+        (rule) =>
+          rule.action === RollupActionType.SATISFIED ||
+          rule.action === RollupActionType.NOT_SATISFIED,
+      )
+    ) {
       return;
     }
 
@@ -76,7 +96,7 @@ export class ObjectiveRollupProcessor {
     // @spec SN Book: RB.1.4 (Rollup Rule Check) - an unknown default-rollup result
     // (null) means this subprocess has no information to contribute, so the
     // activity's existing satisfaction status must be left untouched, exactly
-    // like the rules and measure branches above.
+    // like the rules branch above.
     const defaultResult = this.objectiveRollupUsingDefault(activity);
     if (defaultResult !== null) {
       activity.objectiveSatisfiedStatus = defaultResult;

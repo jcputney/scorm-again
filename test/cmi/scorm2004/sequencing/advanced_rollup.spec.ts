@@ -534,8 +534,9 @@ describe("Advanced Rollup Configuration Tests", () => {
 
       rollupProcess.overallRollupProcess(children[0]);
 
-      // Can't satisfy count requirement, default rollup applies (all children satisfied = parent satisfied)
-      expect(parent.objectiveSatisfiedStatus).toBe(true);
+      // The explicit rule does not fire, so satisfaction remains unknown.
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(parent.objectiveSatisfiedStatus).toBe(false);
     });
   });
 
@@ -925,7 +926,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       expect(parent.objectiveSatisfiedStatus).toBe(true);
     });
 
-    it("should handle fallback to default rollup when no rules match", () => {
+    it("should preserve unknown satisfaction when no rules match", () => {
       // Add rule that won't match
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
@@ -943,8 +944,9 @@ describe("Advanced Rollup Configuration Tests", () => {
 
       rollupProcess.overallRollupProcess(children[0]);
 
-      // Rule doesn't match, default rollup applies (all children satisfied = parent satisfied)
-      expect(parent.objectiveSatisfiedStatus).toBe(true);
+      // The explicit rule does not fire, so satisfaction remains unknown.
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(parent.objectiveSatisfiedStatus).toBe(false);
     });
 
     it("should apply NONE consideration when no children meet condition", () => {
