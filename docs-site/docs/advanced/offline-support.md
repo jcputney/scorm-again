@@ -67,7 +67,12 @@ modes:
 
 ### Synchronization Events
 
-The API triggers events during synchronization that you can listen for:
+Each sync run emits `OfflineDataSyncing` when it starts, then one result event:
+
+- `OfflineDataSynced` when the LMS accepted every commit in the run
+- `OfflineDataSyncFailed` when a commit failed and stays queued, a commit was dropped after `maxSyncAttempts`, or the run threw an error
+
+This applies to every sync, whether `Initialize`, `Commit`, `Terminate` or a network status change started it. No events fire when a sync is skipped because nothing is queued for the current course and learner, the device is offline, or another sync is already running.
 
 ```javascript
 // Listen for offline data sync events

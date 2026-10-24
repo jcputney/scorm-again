@@ -58,6 +58,7 @@ export class OfflineStorageService {
     ) => void,
     private httpService?: IHttpService,
     private getLearnerId: () => string = () => "",
+    private processListeners: (event: string) => void = () => {},
   ) {
     this.settings = settings;
     this.error_codes = error_codes;
@@ -83,23 +84,7 @@ export class OfflineStorageService {
 
     // If we've come back online, trigger sync process
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO,
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        },
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -146,23 +131,7 @@ export class OfflineStorageService {
 
     // If we've come back online, trigger sync process
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO,
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        },
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -170,6 +139,38 @@ export class OfflineStorageService {
         LogLevelEnum.INFO,
       );
     }
+  }
+
+  /**
+   * Sync queued data when the device comes back online.
+   */
+  private syncAfterReconnect(): void {
+    if (!this.hasQueuedData(this.settings.courseId)) {
+      this.apiLog(
+        "OfflineStorageService",
+        "Device is back online, nothing to sync",
+        LogLevelEnum.INFO,
+      );
+      return;
+    }
+
+    this.apiLog(
+      "OfflineStorageService",
+      "Device is back online, attempting to sync...",
+      LogLevelEnum.INFO,
+    );
+    this.syncOfflineData().then(
+      (success) => {
+        if (success) {
+          this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+        } else {
+          this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+        }
+      },
+      (error) => {
+        this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+      },
+    );
   }
 
   /**
@@ -274,29 +275,36 @@ export class OfflineStorageService {
     }
 
     this.syncInProgress = true;
+    let started = false;
+    let success = false;
 
     try {
       // Get the queue of items to sync
       const syncQueue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
+      const learnerId = this.getLearnerId();
+      const matches = (item: SyncQueueItem) =>
+        item.courseId === this.settings.courseId &&
+        (item.learnerId === undefined || item.learnerId === learnerId);
+      const matchingCount = syncQueue.filter(matches).length;
 
-      if (syncQueue.length === 0) {
-        this.syncInProgress = false;
-        return true;
+      if (matchingCount === 0) {
+        return false;
       }
+
+      // An online, nonoverlapping run with items for this course and learner emits Syncing once,
+      // then exactly one Synced (all items accepted) or SyncFailed (queued, dropped, or thrown).
+      started = true;
+      this.processListeners("OfflineDataSyncing");
+      let allAccepted = true;
 
       this.apiLog(
         "OfflineStorageService",
-        `Found ${syncQueue.length} items to sync`,
+        `Found ${matchingCount} items to sync`,
         LogLevelEnum.INFO,
       );
 
       // Keep track of successful and failed sync attempts
       const remainingQueue: SyncQueueItem[] = [];
-
-      const learnerId = this.getLearnerId();
-      const matches = (item: SyncQueueItem) =>
-        item.courseId === this.settings.courseId &&
-        (item.learnerId === undefined || item.learnerId === learnerId);
 
       // Process each queue item
       for (const item of syncQueue) {
@@ -313,6 +321,7 @@ export class OfflineStorageService {
             `Removing abandoned item ${item.id} after ${maxAttempts} failed sync attempts`,
             LogLevelEnum.WARN,
           );
+          allAccepted = false;
           // Don't add to remainingQueue - item is abandoned
           continue;
         }
@@ -337,6 +346,7 @@ export class OfflineStorageService {
               LogLevelEnum.INFO,
             );
           } else {
+            allAccepted = false;
             // Sync failed, increment attempts and keep in queue
             item.syncAttempts++;
             remainingQueue.push(item);
@@ -347,6 +357,7 @@ export class OfflineStorageService {
             );
           }
         } catch (error) {
+          allAccepted = false;
           // On error, increment attempts and keep in queue
           item.syncAttempts++;
           remainingQueue.push(item);
@@ -372,16 +383,24 @@ export class OfflineStorageService {
         LogLevelEnum.INFO,
       );
 
-      this.syncInProgress = false;
-      return true;
+      success = allAccepted;
+      return success;
     } catch (error) {
+      if (!started) {
+        started = true;
+        this.processListeners("OfflineDataSyncing");
+      }
       this.apiLog(
         "OfflineStorageService",
         `Error during sync process: ${error}`,
         LogLevelEnum.ERROR,
       );
-      this.syncInProgress = false;
       return false;
+    } finally {
+      this.syncInProgress = false;
+      if (started) {
+        this.processListeners(success ? "OfflineDataSynced" : "OfflineDataSyncFailed");
+      }
     }
   }
 
@@ -567,8 +586,21 @@ export class OfflineStorageService {
    * @returns {Promise<boolean>} - Whether there is pending data
    */
   async hasPendingOfflineData(courseId: string): Promise<boolean> {
+    return this.hasQueuedData(courseId);
+  }
+
+  /**
+   * Check for queued data matching the course and current learner.
+   */
+  private hasQueuedData(courseId: string | undefined): boolean {
     const queue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
-    return queue.some((item) => item.courseId === courseId);
+    const learnerId = this.getLearnerId();
+    // Match what syncOfflineData would send: this learner's items and legacy items without one.
+    return queue.some(
+      (item) =>
+        item.courseId === courseId &&
+        (item.learnerId === undefined || item.learnerId === learnerId),
+    );
   }
 
   /**

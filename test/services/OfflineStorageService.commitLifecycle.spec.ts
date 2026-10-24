@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
+import Scorm2004API from "../../src/Scorm2004API";
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
 import { scorm12_errors } from "../../src/constants/error_codes";
@@ -182,9 +183,9 @@ describe("OfflineStorageService commit lifecycle", () => {
   });
 
   it.each([
-    ["no commit event", [], 1],
-    ["CommitSuccess", ["CommitSuccess"], 0],
-  ])("settles a deferred replay that sends %s", async (_label, events, remaining) => {
+    ["no commit event", [], 1, false],
+    ["CommitSuccess", ["CommitSuccess"], 0, true],
+  ])("settles a deferred replay that sends %s", async (_label, events, remaining, synced) => {
     vi.stubGlobal("navigator", { onLine: true, sendBeacon: vi.fn() });
     // A deferring service reports each settled request through onRequestComplete.
     const httpService = {
@@ -220,9 +221,144 @@ describe("OfflineStorageService commit lifecycle", () => {
     services.push(service);
     service.storeOffline("course-1", createCommit());
 
-    await expect(service.syncOfflineData()).resolves.toBe(true);
+    await expect(service.syncOfflineData()).resolves.toBe(synced);
 
     expect(httpService.processHttpRequest).toHaveBeenCalledOnce();
     expect(service.getPendingOfflineData("course-1", "")).toHaveLength(remaining);
+  });
+
+  describe.each([
+    ["SCORM 1.2", Scorm12API],
+    ["SCORM 2004", Scorm2004API],
+  ] as const)("%s sync events", (_name, API) => {
+    it.each(["Initialize", "Commit", "BeforeTerminate", "online", "network-status", "direct"])(
+      "emits one ordered success pair for %s",
+      async (entry) => {
+        vi.stubGlobal("navigator", { onLine: true, sendBeacon: vi.fn(() => true) });
+        installSuccessfulXHR();
+        const api = new API({
+          courseId: "course-1",
+          enableOfflineSupport: true,
+          lmsCommitUrl: "https://example.com/commit",
+          logLevel: LogLevelEnum.NONE,
+          syncOnInitialize: entry === "Initialize",
+          syncOnTerminate: entry === "BeforeTerminate",
+        });
+        const service = api["_offlineStorageService"] as OfflineStorageService;
+        services.push(service);
+        const events: string[] = [];
+        for (const event of ["OfflineDataSyncing", "OfflineDataSynced", "OfflineDataSyncFailed"]) {
+          api.on(event, () => events.push(event));
+        }
+        if (entry !== "Initialize") expect(api.lmsInitialize()).toBe("true");
+        service.storeOffline("course-1", createCommit());
+
+        if (entry === "Initialize") expect(api.lmsInitialize()).toBe("true");
+        if (entry === "Commit") expect(api.lmsCommit()).toBe("true");
+        if (entry === "BeforeTerminate") expect(api.lmsFinish()).toBe("true");
+        if (entry === "online" || entry === "network-status") {
+          service["isOnline"] = false;
+          window.dispatchEvent(
+            entry === "online"
+              ? new Event("online")
+              : new CustomEvent("scorm-again:network-status", { detail: { online: true } }),
+          );
+        }
+        if (entry === "direct") await expect(service.syncOfflineData()).resolves.toBe(true);
+
+        await vi.waitFor(() => expect(events).toEqual(["OfflineDataSyncing", "OfflineDataSynced"]));
+        expect(await service.hasPendingOfflineData("course-1")).toBe(false);
+      },
+    );
+  });
+
+  it.each(["partial", "dropped", "throw", "read"])(
+    "emits one failure pair and resolves false for a %s failure",
+    async (failure) => {
+      vi.stubGlobal("navigator", { onLine: true });
+      const emit = vi.fn();
+      const service = new OfflineStorageService(
+        {
+          ...DefaultSettings,
+          courseId: "course-1",
+          lmsCommitUrl: "https://example.com/commit",
+        } as InternalSettings,
+        scorm12_errors,
+        vi.fn(),
+        undefined,
+        () => "",
+        emit,
+      );
+      services.push(service);
+      service.storeOffline("course-1", createCommit());
+      if (failure === "partial") service.storeOffline("course-1", createCommit());
+      const send = vi.spyOn(service as any, "sendDataToLMS");
+      send.mockResolvedValueOnce({ result: "true", errorCode: 0 });
+      send.mockResolvedValueOnce({ result: "false", errorCode: 101 });
+      if (failure === "dropped") {
+        const queue = JSON.parse(localStorage.getItem("scorm_again_sync_queue")!);
+        queue[0].syncAttempts = 5;
+        localStorage.setItem("scorm_again_sync_queue", JSON.stringify(queue));
+      }
+      if (failure === "throw") {
+        vi.spyOn(service as any, "saveToStorage").mockImplementation(() => {
+          throw new Error("Storage failure");
+        });
+      }
+
+      if (failure === "read") {
+        vi.spyOn(service as any, "getFromStorage").mockImplementation(() => {
+          throw new Error("Storage read failure");
+        });
+      }
+
+      await expect(service.syncOfflineData()).resolves.toBe(false);
+      expect(emit.mock.calls).toEqual([["OfflineDataSyncing"], ["OfflineDataSyncFailed"]]);
+      if (failure === "partial") {
+        const queue = JSON.parse(localStorage.getItem("scorm_again_sync_queue")!);
+        expect(queue).toEqual([expect.objectContaining({ courseId: "course-1", syncAttempts: 1 })]);
+      }
+      if (failure === "dropped") {
+        expect(send).not.toHaveBeenCalled();
+        expect(await service.hasPendingOfflineData("course-1")).toBe(false);
+      }
+    },
+  );
+
+  it("skips empty, other-learner, offline, and overlapping calls without emitting events", async () => {
+    vi.stubGlobal("navigator", { onLine: true });
+    const emit = vi.fn();
+    const service = new OfflineStorageService(
+      { ...DefaultSettings, courseId: "course-1" } as InternalSettings,
+      scorm12_errors,
+      vi.fn(),
+      undefined,
+      () => "",
+      emit,
+    );
+    services.push(service);
+    await expect(service.syncOfflineData()).resolves.toBe(false);
+    service.storeOffline("course-1", createCommit(), { learnerId: "other" });
+    await expect(service.hasPendingOfflineData("course-1")).resolves.toBe(false);
+    await expect(service.syncOfflineData()).resolves.toBe(false);
+    service.storeOffline("course-1", createCommit());
+    service["isOnline"] = false;
+    await expect(service.syncOfflineData()).resolves.toBe(false);
+    expect(emit).not.toHaveBeenCalled();
+
+    service["isOnline"] = true;
+    let finish!: (value: { result: string; errorCode: number }) => void;
+    vi.spyOn(service as any, "sendDataToLMS").mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const running = service.syncOfflineData();
+    expect(emit.mock.calls).toEqual([["OfflineDataSyncing"]]);
+    await expect(service.syncOfflineData()).resolves.toBe(false);
+    expect(emit.mock.calls).toEqual([["OfflineDataSyncing"]]);
+    finish({ result: "true", errorCode: 0 });
+    await expect(running).resolves.toBe(true);
+    expect(emit.mock.calls).toEqual([["OfflineDataSyncing"], ["OfflineDataSynced"]]);
   });
 });

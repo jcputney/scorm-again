@@ -365,7 +365,7 @@ describe("OfflineStorageService Tests", () => {
       expect(localStorageMock.getItem).not.toHaveBeenCalled();
     });
 
-    it("should return true when there is no data to sync", async () => {
+    it("should return false when there is no data to sync", async () => {
       const service = createService();
 
       // Ensure queue is empty
@@ -374,7 +374,7 @@ describe("OfflineStorageService Tests", () => {
       const result = await service.syncOfflineData();
 
       // Verify result
-      expect(result).toBe(true);
+      expect(result).toBe(false);
       expect(localStorageMock.getItem).toHaveBeenCalledWith("scorm_again_sync_queue");
     });
 
@@ -450,7 +450,7 @@ describe("OfflineStorageService Tests", () => {
       const result = await service.syncOfflineData();
 
       // Verify result
-      expect(result).toBe(true); // Overall sync process succeeded even though item sync failed
+      expect(result).toBe(false);
 
       // Verify fetch was called
       expect(fetch).toHaveBeenCalled();
@@ -488,7 +488,7 @@ describe("OfflineStorageService Tests", () => {
       const result = await service.syncOfflineData();
 
       // Verify result
-      expect(result).toBe(true);
+      expect(result).toBe(false);
 
       // Verify fetch was not called for this item
       expect(fetch).not.toHaveBeenCalled();
@@ -525,7 +525,7 @@ describe("OfflineStorageService Tests", () => {
       const result = await service.syncOfflineData();
 
       // Verify result
-      expect(result).toBe(true);
+      expect(result).toBe(false);
 
       // Verify fetch was NOT called because item is at max attempts
       expect(fetch).not.toHaveBeenCalled();
@@ -643,11 +643,11 @@ describe("OfflineStorageService Tests", () => {
       const sync1Result = await sync1Promise;
       expect(sync1Result).toBe(true);
 
-      // Now a third sync should work (first is done)
+      // A third sync is skipped because the queue is empty
       vi.clearAllMocks();
       localStorageMock.getItem.mockReturnValueOnce(null); // Empty queue
       const sync3Result = await service.syncOfflineData();
-      expect(sync3Result).toBe(true);
+      expect(sync3Result).toBe(false);
     });
 
     it("should maintain queue integrity when some items succeed and others fail", async () => {
@@ -689,8 +689,8 @@ describe("OfflineStorageService Tests", () => {
       // Perform sync
       const result = await service.syncOfflineData();
 
-      // Overall sync should succeed (process completed)
-      expect(result).toBe(true);
+      // A failed item makes the run fail
+      expect(result).toBe(false);
 
       // Verify queue was updated correctly
       const setItemCalls = localStorageMock.setItem.mock.calls;
@@ -722,9 +722,7 @@ describe("OfflineStorageService Tests", () => {
   });
 
   describe("offline events integration", () => {
-    it("should be used by BaseAPI to fire OfflineDataSynced event on successful sync", async () => {
-      // This test documents expected integration behavior
-      // The actual event firing happens in BaseAPI, which calls syncOfflineData
+    it("should return true on successful sync", async () => {
       const service = createService();
       const commitData = createSampleCommitObject();
       const courseId = "course123";
@@ -748,7 +746,7 @@ describe("OfflineStorageService Tests", () => {
       const stillPending = await service.hasPendingOfflineData(courseId);
       expect(stillPending).toBe(false);
 
-      // Verify success log (BaseAPI would fire event based on this return value)
+      // Verify success log
       expect(apiLog).toHaveBeenCalledWith(
         "OfflineStorageService",
         expect.stringContaining("Successfully synced item"),
@@ -756,7 +754,7 @@ describe("OfflineStorageService Tests", () => {
       );
     });
 
-    it("should return false on sync failure for BaseAPI to fire OfflineDataSyncFailed event", async () => {
+    it("should return false on storage failure", async () => {
       const service = createService();
 
       // Simulate catastrophic failure
@@ -766,7 +764,7 @@ describe("OfflineStorageService Tests", () => {
 
       const syncResult = await service.syncOfflineData();
 
-      // Verify sync failed (BaseAPI would fire OfflineDataSyncFailed based on this)
+      // Verify sync failed
       expect(syncResult).toBe(false);
 
       // Verify error was logged
@@ -801,8 +799,32 @@ describe("OfflineStorageService Tests", () => {
   });
 
   describe("handleOnlineStatusChange", () => {
+    it("should skip sync when coming back online with nothing queued", async () => {
+      const service = createService();
+      const syncSpy = vi.spyOn(service, "syncOfflineData");
+
+      isOnline = false;
+      window.dispatchEvent(new Event("offline"));
+      isOnline = true;
+      window.dispatchEvent(new Event("online"));
+      await Promise.resolve();
+
+      expect(syncSpy).not.toHaveBeenCalled();
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        "Device is back online, nothing to sync",
+        LogLevelEnum.INFO,
+      );
+      expect(apiLog).not.toHaveBeenCalledWith(
+        "OfflineStorageService",
+        "Sync failed",
+        expect.anything(),
+      );
+    });
+
     it("should trigger sync when coming back online", () => {
       const service = createService();
+      service.storeOffline("course123", createSampleCommitObject());
       const syncSpy = vi.spyOn(service, "syncOfflineData");
 
       // Simulate going offline
@@ -841,8 +863,36 @@ describe("OfflineStorageService Tests", () => {
   });
 
   describe("handleCustomNetworkStatus", () => {
+    it("should skip sync when coming back online with nothing queued", async () => {
+      const service = createService();
+      const syncSpy = vi.spyOn(service, "syncOfflineData");
+
+      isOnline = false;
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", { detail: { online: false } }),
+      );
+      isOnline = true;
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", { detail: { online: true } }),
+      );
+      await Promise.resolve();
+
+      expect(syncSpy).not.toHaveBeenCalled();
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        "Device is back online, nothing to sync",
+        LogLevelEnum.INFO,
+      );
+      expect(apiLog).not.toHaveBeenCalledWith(
+        "OfflineStorageService",
+        "Sync failed",
+        expect.anything(),
+      );
+    });
+
     it("should update network status and trigger sync when custom event sets online to true", async () => {
       const service = createService();
+      service.storeOffline("course123", createSampleCommitObject());
       const syncSpy = vi.spyOn(service, "syncOfflineData").mockResolvedValue(true);
 
       // Start with device offline
@@ -964,6 +1014,7 @@ describe("OfflineStorageService Tests", () => {
 
     it("should transition from offline to online via custom event", () => {
       const service = createService();
+      service.storeOffline("course123", createSampleCommitObject());
       const syncSpy = vi.spyOn(service, "syncOfflineData");
 
       // First set offline
@@ -1324,8 +1375,8 @@ describe("OfflineStorageService Tests", () => {
         // Perform sync
         const result = await service.syncOfflineData();
 
-        // Verify result indicates overall success (process completed even though item failed)
-        expect(result).toBe(true);
+        // A network failure makes the run fail
+        expect(result).toBe(false);
 
         // Verify error was logged - the error message is from sendDataToLMS
         expect(apiLog).toHaveBeenCalledWith(
