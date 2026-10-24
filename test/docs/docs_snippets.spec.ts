@@ -78,8 +78,6 @@ for (const path of files(join(root, "src")).filter((path) => path.endsWith(".ts"
     for (const match of source.matchAll(/:\s*["'](Sequence\w+)["']/g)) events.add(match[1]!);
   }
 }
-// The offline sync events PR adds this emission. Remove the entry when it lands.
-const pendingOfflineSyncEvents = new Set(["OfflineDataSyncing"]);
 
 type Block = { file: string; text: string; line: number };
 const blocks: Block[] = [];
@@ -174,7 +172,7 @@ describe("documentation code snippets", () => {
         // EventService supports space-separated names and trailing CMI prefix wildcards.
         for (const listener of match[3]!.trim().split(/\s+/).filter(Boolean)) {
           const name = listener.split(".")[0]!;
-          if (!events.has(name) && !pendingOfflineSyncEvents.has(name))
+          if (!events.has(name))
             violations.push(location(block, match.index!, `unknown event ${listener}`));
         }
       }
