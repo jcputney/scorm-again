@@ -50,19 +50,19 @@ describe("Measure rollup (RB.1.1)", () => {
     expect(parent.objectiveNormalizedMeasure).toBe(1);
   });
 
-  it("excludes an active child only when measureSatisfactionIfActive is false", () => {
+  it("counts an active child even when measureSatisfactionIfActive is false", () => {
     y.activityAttemptActive = true;
     rollup.measureRollupProcess(parent);
     expect(parent.objectiveNormalizedMeasure).toBe(0.5);
 
     parent.applyRollupConsiderations({ measureSatisfactionIfActive: false });
     rollup.measureRollupProcess(parent);
-    expect(parent.objectiveNormalizedMeasure).toBe(1);
+    expect(parent.objectiveNormalizedMeasure).toBe(0.5);
 
     y.activityAttemptActive = false;
     y.isActive = true;
     rollup.measureRollupProcess(parent);
-    expect(parent.objectiveNormalizedMeasure).toBe(1);
+    expect(parent.objectiveNormalizedMeasure).toBe(0.5);
 
     y.isActive = false;
     rollup.measureRollupProcess(parent);

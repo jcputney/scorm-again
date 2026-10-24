@@ -211,7 +211,7 @@ export class GlobalObjectiveSynchronizer {
         // Only write if the objective property has been modified (dirty flag set)
         if (
           mapInfo.writeSatisfiedStatus &&
-          this.hasKnownSatisfiedStatus(objective) &&
+          this.hasKnownSatisfiedStatus(activity, objective) &&
           objective.isDirty("satisfiedStatus")
         ) {
           globalObjective.satisfiedStatus = objective.satisfiedStatus;
@@ -325,9 +325,12 @@ export class GlobalObjectiveSynchronizer {
           objective,
         );
 
-        if (mapInfo.writeSatisfiedStatus) {
+        if (
+          mapInfo.writeSatisfiedStatus &&
+          !this.isMeasureSatisfactionDeferred(activity, objective)
+        ) {
           writeTargets.satisfiedStatus.add(targetId);
-          if (this.hasKnownSatisfiedStatus(objective)) {
+          if (this.hasKnownSatisfiedStatus(activity, objective)) {
             globalObjective.satisfiedStatus = objective.satisfiedStatus;
             globalObjective.satisfiedStatusKnown = true;
           } else {
@@ -545,7 +548,7 @@ export class GlobalObjectiveSynchronizer {
       if (this.canWriteGlobalObjectives(activity)) {
         // Write from local to global using THIS ACTIVITY'S mapInfo directives
         // Each activity has its own write permissions for the global objective
-        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective)) {
+        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(activity, objective)) {
           globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
         }
@@ -558,7 +561,11 @@ export class GlobalObjectiveSynchronizer {
           // and Write Objective Satisfied Status are independent mapInfo controls.
           // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description - Objective
           // Satisfied By Measure derives satisfaction only for objectives that declare it.
-          if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
+          if (
+            mapInfo.writeSatisfiedStatus &&
+            objective.satisfiedByMeasure &&
+            !this.isMeasureSatisfactionDeferred(activity, objective)
+          ) {
             const threshold = objective.minNormalizedMeasure ?? 1.0;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
@@ -818,6 +825,16 @@ export class GlobalObjectiveSynchronizer {
     };
   }
 
+  private isMeasureSatisfactionDeferred(activity: Activity, objective: ActivityObjective): boolean {
+    // @spec SCORM 2004 SN 4th Ed. RB.1.2.a step 3.1.2.1
+    // Satisfaction is deferred while active when measure satisfaction is disabled.
+    return (
+      objective.satisfiedByMeasure &&
+      activity.isActive &&
+      !activity.rollupConsiderations.measureSatisfactionIfActive
+    );
+  }
+
   /**
    * Return whether the local objective has known satisfaction state to write.
    *
@@ -825,7 +842,10 @@ export class GlobalObjectiveSynchronizer {
    * Status identifies whether Objective Satisfied Status is known; Objective
    * Measure Status is independent measure knowledge.
    */
-  private hasKnownSatisfiedStatus(objective: ActivityObjective): boolean {
+  private hasKnownSatisfiedStatus(activity: Activity, objective: ActivityObjective): boolean {
+    if (this.isMeasureSatisfactionDeferred(activity, objective)) {
+      return false;
+    }
     if (objective.satisfiedByMeasure) {
       // @spec SCORM 2004 4th Ed. SN 3.10 Objective Description / 3.10.3
       // Objective Map - a measure-controlled objective has a known satisfied

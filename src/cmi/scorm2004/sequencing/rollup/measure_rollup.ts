@@ -41,19 +41,12 @@ export class MeasureRollupProcessor {
       return;
     }
 
-    const rollupConsiderations = activity.rollupConsiderations;
     let counted = 0;
     let total = 0;
     let validData = false;
 
     for (const child of children) {
       if (child.sequencingControls.tracked === false) {
-        continue;
-      }
-      if (
-        !rollupConsiderations.measureSatisfactionIfActive &&
-        (child.activityAttemptActive || child.isActive)
-      ) {
         continue;
       }
       // RB.1.1 gates on Tracked only. Objective info from an earlier parent attempt is unknown

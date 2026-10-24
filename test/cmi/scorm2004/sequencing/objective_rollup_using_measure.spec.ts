@@ -336,6 +336,47 @@ describe("Objective Rollup Using Measure (RB.1.2.a)", () => {
     });
   });
 
+  it.each([false, true])(
+    "clears active measure satisfaction to unknown with previous pass: %s",
+    (previousPass) => {
+      parentActivity.objectiveMeasureStatus = true;
+      parentActivity.objectiveNormalizedMeasure = 0.9;
+      if (previousPass) parentActivity.successStatus = SuccessStatus.PASSED;
+      parentActivity.isActive = true;
+      parentActivity.applyRollupConsiderations({ measureSatisfactionIfActive: false });
+      const filter = new RollupChildFilter();
+      new ObjectiveRollupProcessor(filter, new RollupRuleEvaluator(filter)).objectiveRollupProcess(
+        parentActivity,
+      );
+      expect(parentActivity.objectiveSatisfiedStatusKnown).toBe(false);
+      expect(parentActivity.successStatus).toBe(SuccessStatus.UNKNOWN);
+      expect(parentActivity.primaryObjective?.satisfiedStatusKnown).toBe(false);
+    },
+  );
+
+  it.each([
+    [true, true],
+    [false, false],
+  ])(
+    "decides target satisfaction by threshold with active=%s and measureSatisfactionIfActive=%s",
+    (active, measureSatisfactionIfActive) => {
+      parentActivity.isActive = active;
+      parentActivity.applyRollupConsiderations({ measureSatisfactionIfActive });
+      for (const child of [child1, child2, child3]) {
+        child.objectiveMeasureStatus = true;
+        child.objectiveNormalizedMeasure = 0.8;
+      }
+      const process = new RollupProcess();
+      process.overallRollupProcess(child1);
+      expect(parentActivity.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(parentActivity.successStatus).toBe(SuccessStatus.PASSED);
+      for (const child of [child1, child2, child3]) child.objectiveNormalizedMeasure = 0.6;
+      process.overallRollupProcess(child1);
+      expect(parentActivity.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(parentActivity.successStatus).toBe(SuccessStatus.FAILED);
+    },
+  );
+
   it("ignores a stale passing measure when the measure status is unknown", () => {
     parentActivity.objectiveNormalizedMeasure = 0.9;
     parentActivity.objectiveMeasureStatus = false;
