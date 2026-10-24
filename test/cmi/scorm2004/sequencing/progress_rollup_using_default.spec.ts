@@ -94,4 +94,72 @@ describe("Activity Progress Rollup Using Default (RB.1.3)", () => {
     processor.activityProgressRollupProcess(parent);
     expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
   });
+
+  it("leaves status unchanged when a suspended negative child is excluded only from the negative action", () => {
+    const parent = new Activity("action_parent", "Action Parent");
+    const childA = new Activity("a", "A");
+    const childB = new Activity("b", "B");
+    parent.addChild(childA);
+    parent.addChild(childB);
+    for (const child of [childA, childB]) {
+      child.attemptCount = 1;
+      child.attemptProgressStatus = true;
+    }
+    childA.completionStatus = CompletionStatus.COMPLETED;
+    childB.completionStatus = CompletionStatus.INCOMPLETE;
+    childB.isSuspended = true;
+    childB.requiredForIncomplete = "ifNotSuspended";
+
+    processor.activityProgressRollupProcess(parent);
+
+    expect(parent.completionStatus).toBe(CompletionStatus.UNKNOWN);
+  });
+
+  it("lets the positive action override when both actions fire", () => {
+    const parent = new Activity("action_parent", "Action Parent");
+    const childA = new Activity("a", "A");
+    const childB = new Activity("b", "B");
+    parent.addChild(childA);
+    parent.addChild(childB);
+    for (const child of [childA, childB]) {
+      child.attemptCount = 1;
+      child.attemptProgressStatus = true;
+    }
+    childA.completionStatus = CompletionStatus.COMPLETED;
+    childB.completionStatus = CompletionStatus.INCOMPLETE;
+    childB.isSuspended = true;
+    childB.requiredForCompleted = "ifNotSuspended";
+
+    processor.activityProgressRollupProcess(parent);
+
+    expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
+  });
+
+  it.each(["positive", "negative"])("does not fire an empty %s action set", (emptyAction) => {
+    const parent = new Activity("action_parent", "Action Parent");
+    const childA = new Activity("a", "A");
+    const childB = new Activity("b", "B");
+    parent.addChild(childA);
+    parent.addChild(childB);
+    for (const child of [childA, childB]) {
+      child.attemptCount = 1;
+      child.attemptProgressStatus = true;
+    }
+    for (const child of [childA, childB]) {
+      child.isSuspended = true;
+      if (emptyAction === "positive") {
+        child.requiredForCompleted = "ifNotSuspended";
+        child.completionStatus = CompletionStatus.INCOMPLETE;
+      } else {
+        child.requiredForIncomplete = "ifNotSuspended";
+        child.completionStatus = CompletionStatus.COMPLETED;
+      }
+    }
+
+    processor.activityProgressRollupProcess(parent);
+
+    expect(parent.completionStatus).toBe(
+      emptyAction === "positive" ? CompletionStatus.INCOMPLETE : CompletionStatus.COMPLETED,
+    );
+  });
 });

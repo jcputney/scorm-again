@@ -105,58 +105,47 @@ export class ProgressRollupProcessor {
       return;
     }
 
-    // Default: completed if all tracked children are completed
-    // For default rollup, use INTERSECTION of both consideration filters.
-    // A child must pass BOTH requiredForCompleted AND requiredForIncomplete
-    // to contribute to the rollup. This ensures symmetric exclusion.
+    // @spec SN Book: RB.1.4.2 - filter children separately for each rollup action.
     const children = activity.getAvailableChildren();
-    const contributors = children.filter(
-      (child) =>
-        this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") &&
-        this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete"),
+    const incompleteChildren = children.filter((child) =>
+      this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete"),
+    );
+    const completedChildren = children.filter((child) =>
+      this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed"),
     );
 
-    // @spec SN Book: RB.1.4 step 1.2.4 - an empty contributing children bag
-    // causes no status changes.
-    if (contributors.length === 0) {
+    // @spec SN Book: RB.1.4 step 1.2.4 - an empty bag cannot fire an action.
+    if (incompleteChildren.length === 0 && completedChildren.length === 0) {
       return;
     }
 
-    // Default progress rollup logic, partitioned by whether each contributor's
-    // completion status is actually KNOWN (RB.1.4.2) rather than simply
-    // defaulting to "not completed" because it was never attempted this parent
-    // attempt:
-    // - Parent is "incomplete" if ANY known contributor is incomplete
-    // - Parent is "completed" if ALL contributors are known and completed
-    // - Otherwise (no known-incomplete contributor, but at least one
-    //   contributor's completion status is unknown) this subprocess has no
-    //   information to report, so the activity's completion status is left as-is.
-    // @spec SN Book: RB.1.3 (Activity Progress Rollup Using Default: completed
-    // if all children completed, incomplete if any child incomplete - unknown
-    // does not count as either)
-    // @spec SN Book: RB.1.4 (Rollup Rule Check: unknown does not evaluate True
-    // for "any")
-    // @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
-    let sawUnknownContributor = false;
-    for (const child of contributors) {
-      if (!this.childFilter.isChildCompletionStatusKnownForRollup(child)) {
-        sawUnknownContributor = true;
-        continue;
-      }
-
-      if (!this.childFilter.isChildCompletedForRollup(child)) {
-        activity.completionStatus = CompletionStatus.INCOMPLETE;
-        this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
-        return;
-      }
+    let result: CompletionStatus | null = null;
+    if (
+      incompleteChildren.some(
+        (child) =>
+          this.childFilter.isChildCompletionStatusKnownForRollup(child) &&
+          !this.childFilter.isChildCompletedForRollup(child),
+      )
+    ) {
+      result = CompletionStatus.INCOMPLETE;
     }
 
-    if (sawUnknownContributor) {
-      return;
+    // @spec SN Book: RB.1.3 - completed overrides incomplete when both fire.
+    if (
+      completedChildren.length > 0 &&
+      completedChildren.every(
+        (child) =>
+          this.childFilter.isChildCompletionStatusKnownForRollup(child) &&
+          this.childFilter.isChildCompletedForRollup(child),
+      )
+    ) {
+      result = CompletionStatus.COMPLETED;
     }
 
-    activity.completionStatus = CompletionStatus.COMPLETED;
-    this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+    if (result !== null) {
+      activity.completionStatus = result;
+      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+    }
   }
 
   /**

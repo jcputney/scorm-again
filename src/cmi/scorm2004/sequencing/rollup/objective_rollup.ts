@@ -163,10 +163,9 @@ export class ObjectiveRollupProcessor {
 
   /**
    * Objective Rollup Using Default
-   * For default rollup (no explicit rules), a child is included only if it
-   * passes BOTH requiredForSatisfied AND requiredForNotSatisfied considerations.
-   * This ensures symmetric exclusion: setting either consideration excludes
-   * the child from the entire objective rollup evaluation.
+   * For default rollup (no explicit rules), the "not satisfied" check uses the
+   * children that pass requiredForNotSatisfied, and the "satisfied" check uses
+   * the children that pass requiredForSatisfied.
    *
    * A contributing child's objective status may itself be unknown (e.g. it has
    * never been attempted in this parent attempt). Per RB.1.4 (Rollup Rule
@@ -180,9 +179,9 @@ export class ObjectiveRollupProcessor {
    * "any")
    * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
    * @param activity - The parent activity
-   * @returns True if all contributing children are known-satisfied, false if
-   * any contributing child is known-not-satisfied, or null if there is no
-   * information to roll up (no contributors, or none with a known status)
+   * @returns True if every child included for "satisfied" is known-satisfied,
+   * otherwise false if any child included for "not satisfied" is
+   * known-not-satisfied, otherwise null (no information to roll up)
    */
   public objectiveRollupUsingDefault(activity: Activity): boolean | null {
     const children = activity.getAvailableChildren();
@@ -194,56 +193,49 @@ export class ObjectiveRollupProcessor {
 
     const considerations = activity.rollupConsiderations;
 
-    // For default rollup, use INTERSECTION of both consideration filters.
-    // A child must pass BOTH requiredForSatisfied AND requiredForNotSatisfied
-    // to contribute to the rollup. This ensures that setting either
-    // consideration (e.g., ifNotSuspended, ifNotSkipped) excludes the child
-    // from the entire default objective rollup evaluation.
-    const contributors = children.filter((child) => {
-      // Check both consideration filters
-      if (
-        !this.childFilter.checkChildForRollupSubprocess(child, "objective", "satisfied") ||
-        !this.childFilter.checkChildForRollupSubprocess(child, "objective", "notSatisfied")
-      ) {
-        return false;
-      }
+    // @spec SN Book: RB.1.4.2 - filter children separately for each rollup action.
+    const notSatisfiedChildren = this.childFilter.filterChildrenForRequirement(
+      children,
+      "objective",
+      "notSatisfied",
+      considerations,
+    );
+    const satisfiedChildren = this.childFilter.filterChildrenForRequirement(
+      children,
+      "objective",
+      "satisfied",
+      considerations,
+    );
 
-      // Check parent-level measureSatisfactionIfActive setting
-      if (
-        !considerations.measureSatisfactionIfActive &&
-        (child.activityAttemptActive || child.isActive)
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-
-    // @spec SN Book: RB.1.2.c / RB.1.4 - as above, no contributing children
-    // means no information for this subprocess to report.
-    if (contributors.length === 0) {
+    // @spec SN Book: RB.1.4 step 1.2.4 - an empty bag cannot fire an action.
+    if (notSatisfiedChildren.length === 0 && satisfiedChildren.length === 0) {
       return null;
     }
 
-    // Default rollup logic, partitioned by whether each contributor's status is
-    // actually KNOWN (RB.1.4.2):
-    // - Parent is "not satisfied" if ANY known contributor is not satisfied
-    // - Parent is "satisfied" if ALL contributors are known and satisfied
-    // - Otherwise (no known-not-satisfied contributor, but at least one
-    //   contributor's status is unknown) the parent's status is unknown too.
-    let sawUnknownContributor = false;
-    for (const child of contributors) {
-      if (!this.childFilter.isChildObjectiveStatusKnownForRollup(child)) {
-        sawUnknownContributor = true;
-        continue;
-      }
-
-      if (!this.childFilter.isChildSatisfiedForRollup(child)) {
-        return false;
-      }
+    let result: boolean | null = null;
+    if (
+      notSatisfiedChildren.some(
+        (child) =>
+          this.childFilter.isChildObjectiveStatusKnownForRollup(child) &&
+          !this.childFilter.isChildSatisfiedForRollup(child),
+      )
+    ) {
+      result = false;
     }
 
-    return sawUnknownContributor ? null : true;
+    // @spec SN Book: RB.1.2.b - satisfied overrides not satisfied when both fire.
+    if (
+      satisfiedChildren.length > 0 &&
+      satisfiedChildren.every(
+        (child) =>
+          this.childFilter.isChildObjectiveStatusKnownForRollup(child) &&
+          this.childFilter.isChildSatisfiedForRollup(child),
+      )
+    ) {
+      result = true;
+    }
+
+    return result;
   }
 
   /**
