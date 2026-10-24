@@ -7,11 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "scormagain",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.scormagain.offline"
@@ -32,13 +27,14 @@
       "expo-router",
       "expo-dev-client",
       [
-        "expo-build-properties",
+        "expo-splash-screen",
         {
-          "ios": {
-            "deploymentTarget": "15.5"
-          }
+          "image": "./assets/images/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

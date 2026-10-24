@@ -2,7 +2,6 @@
 
 # dependencies
 node_modules/
-package-lock.json
 
 # Expo
 .expo/
@@ -44,3 +43,7 @@ yarn-error.*
 # Downloaded courses (except .gitkeep)
 assets/courses/*
 !assets/courses/.gitkeep
+
+# Generated scorm-again assets (except .gitkeep)
+assets/scorm-again/*
+!assets/scorm-again/.gitkeep

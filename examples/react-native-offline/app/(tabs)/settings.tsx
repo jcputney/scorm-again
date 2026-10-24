@@ -9,24 +9,22 @@ import {
   Alert,
   Linking,
   RefreshControl,
-  ActivityIndicator,
 } from 'react-native';
-import NetInfo, { useNetInfo } from '@react-native-community/netinfo';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import SyncManager from '../../src/services/SyncManager';
 import StorageService from '../../src/services/StorageService';
+import courseStorage from '../../src/services/CourseStorage';
 
-const SCORM_AGAIN_VERSION = '3.0.0-alpha.1';
 const GITHUB_URL = 'https://github.com/jcputney/scorm-again';
 const DOCS_URL = 'https://github.com/jcputney/scorm-again#readme';
 
 export default function SettingsScreen() {
   const netInfo = useNetInfo();
   const [refreshing, setRefreshing] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [lastSync, setLastSync] = useState<{ time: Date; success: boolean } | null>(null);
+  const [scormAgainVersion, setScormAgainVersion] = useState<string | null>(null);
   const [storageUsed, setStorageUsed] = useState<number>(0);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
@@ -38,16 +36,17 @@ export default function SettingsScreen() {
 
   const loadData = async () => {
     try {
-      const [syncTime, debug, storage] = await Promise.all([
-        SyncManager.getLastSyncTime(),
+      const [syncResult, debug, storage, version] = await Promise.all([
+        SyncManager.getLastSyncResult(),
         SyncManager.isDebugEnabled(),
         StorageService.getTotalStorageUsed(),
+        courseStorage.getScormAgainVersion(),
       ]);
 
-      setLastSyncTime(syncTime);
+      setLastSync(syncResult);
+      setScormAgainVersion(version);
       setDebugEnabled(debug);
       setStorageUsed(storage);
-      setPendingCount(SyncManager.getPendingCount());
       setLogs(SyncManager.getLogs());
     } catch (error) {
       console.error('Error loading settings data:', error);
@@ -58,25 +57,6 @@ export default function SettingsScreen() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  };
-
-  const handleSync = async () => {
-    if (!netInfo.isConnected) {
-      Alert.alert('Offline', 'Cannot sync while offline. Please connect to the internet.');
-      return;
-    }
-
-    setSyncing(true);
-    try {
-      await SyncManager.triggerSync();
-      await loadData();
-      Alert.alert('Success', 'Sync triggered successfully');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to trigger sync');
-      console.error('Sync error:', error);
-    } finally {
-      setSyncing(false);
-    }
   };
 
   const handleClearStorage = () => {
@@ -130,11 +110,6 @@ export default function SettingsScreen() {
     });
   };
 
-  const formatDate = (date: Date | null) => {
-    if (!date) return 'Never';
-    return date.toLocaleString();
-  };
-
   const getLogLevelColor = (level: string) => {
     switch (level) {
       case 'error':
@@ -177,35 +152,15 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Synchronization</Text>
         <View style={styles.card}>
-          <TouchableOpacity
-            style={[
-              styles.syncButton,
-              (!netInfo.isConnected || syncing) && styles.syncButtonDisabled,
-            ]}
-            onPress={handleSync}
-            disabled={!netInfo.isConnected || syncing}
-          >
-            {syncing ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="sync" size={20} color="#fff" />
-                <Text style={styles.syncButtonText}>Sync Now</Text>
-              </>
-            )}
-          </TouchableOpacity>
-
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Pending Items:</Text>
+            <Text style={styles.infoLabel}>Last sync:</Text>
             <Text style={styles.infoValue}>
-              {pendingCount !== null ? pendingCount : 'Unknown'}
+              {lastSync ? `${lastSync.time.toLocaleString()} (${lastSync.success ? 'succeeded' : 'failed'})` : 'Never'}
             </Text>
           </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Last Sync:</Text>
-            <Text style={styles.infoValue}>{formatDate(lastSyncTime)}</Text>
-          </View>
+          <Text style={styles.infoLabel}>
+            scorm-again sends queued data by itself when a course starts, commits or exits, and when the device comes back online.
+          </Text>
         </View>
       </View>
 
@@ -243,13 +198,17 @@ export default function SettingsScreen() {
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>scorm-again Version:</Text>
-            <Text style={styles.infoValue}>{SCORM_AGAIN_VERSION}</Text>
+            <Text style={styles.infoValue}>{scormAgainVersion || 'unknown'}</Text>
           </View>
 
           <View style={styles.switchRow}>
             <Text style={styles.infoLabel}>Show Debug Logs:</Text>
             <Switch value={debugEnabled} onValueChange={handleToggleDebug} />
           </View>
+
+          <Text style={styles.infoLabel}>
+            Applies the next time a course opens and switches the log level from 3 (WARN) to 1 (DEBUG).
+          </Text>
 
           {debugEnabled && (
             <>
@@ -374,24 +333,6 @@ const styles = StyleSheet.create({
   statusSubtext: {
     fontSize: 14,
     color: '#666',
-  },
-  syncButton: {
-    backgroundColor: '#007aff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  syncButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  syncButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   infoRow: {
     flexDirection: 'row',

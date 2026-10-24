@@ -1,11 +1,18 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { Asset } from "expo-asset";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { unzip } from "react-native-zip-archive";
 import { BUILT_IN_COURSE_ID, BUILT_IN_COURSE_TITLE } from "../constants";
 
-const BUILT_IN_COURSE_EXTRACTED_KEY = "@built_in_course_extracted_v3";
-const SCORM_AGAIN_EXTRACTED_KEY = "@scorm_again_extracted_v3";
+const BUILT_IN_COURSE_ASSET_HASH_KEY = "@built_in_course_asset_hash";
+const SCORM_AGAIN_ASSET_HASH_KEY = "@scorm_again_asset_hash";
+// Required at module level: Metro treats a require inside try/catch as optional,
+// so a missing zip would bundle and only fail at runtime. Run
+// `npm run prepare-assets` to create both zips.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const BUILT_IN_COURSE_ZIP = require("../../assets/courses/minimal-test.zip");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const SCORM_AGAIN_ZIP = require("../../assets/scorm-again/scorm-again.zip");
 export const COURSES_DIR = `${FileSystem.documentDirectory}courses/`;
 export const SCORM_AGAIN_DIR = `${FileSystem.documentDirectory}scorm-again/`;
 
@@ -70,41 +77,35 @@ export class CourseStorage {
    * Extract the built-in course from bundled zip asset
    */
   private async extractBuiltInCourseIfNeeded(): Promise<void> {
-    const alreadyExtracted = await AsyncStorage.getItem(
-      BUILT_IN_COURSE_EXTRACTED_KEY
-    );
-    if (alreadyExtracted === "true") {
-      // Verify the course still exists
-      const courseDir = `${COURSES_DIR}${BUILT_IN_COURSE_ID}/`;
-      const indexPath = `${courseDir}index.html`;
-      const exists = await FileSystem.getInfoAsync(indexPath);
-      if (exists.exists) {
-        return;
-      }
-    }
-
-    console.log("Extracting built-in course from bundled zip...");
+    const courseDir = `${COURSES_DIR}${BUILT_IN_COURSE_ID}/`;
 
     try {
-      // Load the bundled zip asset
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const assetModule = require("../../assets/courses/minimal-test.zip");
-      const [asset] = await Asset.loadAsync(assetModule);
+      // The hash changes whenever prepare-assets packs different files
+      const asset = Asset.fromModule(BUILT_IN_COURSE_ZIP);
+      const storedHash = await AsyncStorage.getItem(BUILT_IN_COURSE_ASSET_HASH_KEY);
+      const index = await FileSystem.getInfoAsync(`${courseDir}index.html`);
+      if (asset.hash && storedHash === asset.hash && index.exists) {
+        return;
+      }
 
+      console.log("Extracting built-in course from bundled zip...");
+      await asset.downloadAsync();
       if (!asset.localUri) {
         throw new Error("Failed to load built-in course zip asset");
       }
 
-      // Create course directory
-      const courseDir = `${COURSES_DIR}${BUILT_IN_COURSE_ID}/`;
-      await FileSystem.makeDirectoryAsync(courseDir, {
-        intermediates: true,
-      }).catch(() => {});
+      // Unzip into an empty temporary folder, outside COURSES_DIR so it is never
+      // listed as a course, and replace the current course only once that works
+      const extractDir = `${FileSystem.documentDirectory}built-in-course-extract/`;
+      await FileSystem.deleteAsync(extractDir, { idempotent: true });
+      await FileSystem.makeDirectoryAsync(extractDir, { intermediates: true });
+      await unzip(asset.localUri, extractDir);
+      await FileSystem.deleteAsync(courseDir, { idempotent: true });
+      await FileSystem.moveAsync({ from: extractDir, to: courseDir });
 
-      // Extract the zip
-      await unzip(asset.localUri, courseDir);
-
-      await AsyncStorage.setItem(BUILT_IN_COURSE_EXTRACTED_KEY, "true");
+      if (asset.hash) {
+        await AsyncStorage.setItem(BUILT_IN_COURSE_ASSET_HASH_KEY, asset.hash);
+      }
       console.log("Built-in course extracted successfully");
     } catch (error) {
       console.error("Error extracting built-in course:", error);
@@ -112,41 +113,71 @@ export class CourseStorage {
   }
 
   /**
-   * Extract scorm-again.js from bundled zip asset
+   * Extract scorm-again.min.js, the bridge script and version.txt from the bundled zip asset
    */
   private async extractScormAgainIfNeeded(): Promise<void> {
-    const alreadyExtracted = await AsyncStorage.getItem(
-      SCORM_AGAIN_EXTRACTED_KEY
-    );
-    if (alreadyExtracted === "true") {
-      // Verify the file still exists
-      const scormPath = `${SCORM_AGAIN_DIR}scorm-again.min.js`;
-      const exists = await FileSystem.getInfoAsync(scormPath);
-      if (exists.exists) {
+    try {
+      // The hash changes whenever prepare-assets packs a different build
+      const asset = Asset.fromModule(SCORM_AGAIN_ZIP);
+      const storedHash = await AsyncStorage.getItem(SCORM_AGAIN_ASSET_HASH_KEY);
+      const bundle = await FileSystem.getInfoAsync(`${SCORM_AGAIN_DIR}scorm-again.min.js`);
+      if (asset.hash && storedHash === asset.hash && bundle.exists) {
         return;
       }
-    }
 
-    console.log("Extracting scorm-again from bundled zip...");
-
-    try {
-      // Load the bundled zip asset
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const assetModule = require("../../assets/scorm-again/scorm-again.zip");
-      const [asset] = await Asset.loadAsync(assetModule);
-
+      console.log("Extracting scorm-again from bundled zip...");
+      await asset.downloadAsync();
       if (!asset.localUri) {
         throw new Error("Failed to load scorm-again zip asset");
       }
 
-      // Extract the zip
       await unzip(asset.localUri, SCORM_AGAIN_DIR);
 
-      await AsyncStorage.setItem(SCORM_AGAIN_EXTRACTED_KEY, "true");
+      if (asset.hash) {
+        await AsyncStorage.setItem(SCORM_AGAIN_ASSET_HASH_KEY, asset.hash);
+      }
       console.log("scorm-again extracted successfully");
     } catch (error) {
       console.error("Error extracting scorm-again:", error);
     }
+  }
+
+  /**
+   * Get the path to the shared bridge script from the docs
+   */
+  getBridgePath(): string {
+    return `${SCORM_AGAIN_DIR}mobile-bridge.js`;
+  }
+
+  /**
+   * Get the scorm-again version that prepare-assets packed, or null if unknown
+   */
+  async getScormAgainVersion(): Promise<string | null> {
+    await this.initialize();
+    try {
+      return (await FileSystem.readAsStringAsync(`${SCORM_AGAIN_DIR}version.txt`)).trim();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Read the SCORM version from the course manifest's schemaversion.
+   * Defaults to 2004 when the manifest does not say.
+   */
+  async getCourseScormVersion(courseId: string): Promise<"1.2" | "2004"> {
+    await this.initialize();
+    try {
+      const manifest = await FileSystem.readAsStringAsync(`${COURSES_DIR}${courseId}/imsmanifest.xml`);
+      const match = manifest.match(/<(?:[\w.-]+:)?schemaversion\b[^>]*>([^<]*)<\/(?:[\w.-]+:)?schemaversion\s*>/i);
+      if (match) {
+        return match[1].includes("1.2") ? "1.2" : "2004";
+      }
+      console.warn("No schemaversion in course manifest:", courseId);
+    } catch {
+      console.warn("Unable to read course manifest:", courseId);
+    }
+    return "2004";
   }
 
   /**
@@ -402,7 +433,7 @@ export class CourseStorage {
 
       for (const item of items) {
         const itemPath = `${dirPath}/${item}`;
-        const info = await FileSystem.getInfoAsync(itemPath, { size: true });
+        const info = await FileSystem.getInfoAsync(itemPath);
 
         if (info.exists) {
           if (info.isDirectory) {
@@ -423,8 +454,8 @@ export class CourseStorage {
    * Force re-extraction of bundled assets (for debugging/updates)
    */
   async forceReExtract(): Promise<void> {
-    await AsyncStorage.removeItem(BUILT_IN_COURSE_EXTRACTED_KEY);
-    await AsyncStorage.removeItem(SCORM_AGAIN_EXTRACTED_KEY);
+    await AsyncStorage.removeItem(BUILT_IN_COURSE_ASSET_HASH_KEY);
+    await AsyncStorage.removeItem(SCORM_AGAIN_ASSET_HASH_KEY);
     this.initialized = false;
     await this.initialize();
   }

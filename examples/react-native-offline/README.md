@@ -1,317 +1,92 @@
-# SCORM Again - React Native Offline Example
+# scorm-again React Native offline example
 
-A React Native Expo application demonstrating offline SCORM content delivery using the scorm-again library. This example shows how to download, store, and play SCORM courses locally on mobile devices with full offline support.
+An Expo app that plays SCORM courses on iOS and Android with scorm-again, including offline support. It uses the shared bridge script from the [React Native guide](https://jcputney.github.io/scorm-again/docs/advanced/mobile/react-native).
 
-## Features
+The app:
 
-- Download SCORM courses for offline viewing
-- Local course library management
-- WebView-based SCORM player with scorm-again integration
-- Progress tracking and synchronization
-- **Comprehensive Settings Screen** with:
-  - Real-time network status monitoring
-  - Manual sync controls
-  - Storage management
-  - Debug logging and log viewer
-  - Quick access to documentation
-- Works on both iOS and Android
+- includes a small SCORM 2004 test course, and downloads the ADL Golf example courses from the Downloads tab
+- serves the courses from a local HTTP server and plays them in a WebView
+- commits to an LMS endpoint. While the device is offline, scorm-again queues the commits in localStorage and sends them when the device is back online.
+- shows the network status, the last sync result, storage use and debug logs on the Settings tab
 
-## Prerequisites
+## Requirements
 
-Before you begin, ensure you have the following installed:
+- Node.js 22, 24 or 26. Expo SDK 58 does not support Node 25.
+- Xcode for iOS, or Android Studio for Android
+- A development build. The app uses native modules, such as the local HTTP server and zip extraction, that Expo Go does not include.
 
-- **Node.js** (v18 or higher)
-- **npm** or **yarn**
-- **Expo CLI** (will be installed via npx)
-- **iOS Simulator** (Mac only, via Xcode)
-- **Android Studio** (for Android Emulator)
-- **Xcode** (Mac only, for iOS development)
+## Run the app
 
-## Project Structure
+1. Start the mock LMS from the repository root:
+
+   ```bash
+   npm ci
+   npm run test:integration:server
+   ```
+
+   The mock LMS listens on port 3001. The first run also downloads the courses that the integration tests use. To see the commits it has received, open http://localhost:3001/lms/history.
+
+2. In this folder, install the dependencies and start the app:
+
+   ```bash
+   npm ci
+   npm run ios      # or: npm run android
+   ```
+
+`npm run ios`, `npm run android` and `npm start` run `npm run prepare-assets` first. That script packs three things into zips under `assets/`, which the app extracts on first launch:
+
+- `dist/scorm-again.min.js` from the repository
+- the bridge script, `docs-site/examples/mobile-bridge.js`
+- the test course in `course/minimal-test/`
+
+`dist/` is committed, so this works from a fresh clone. To try your own library changes, run `npm run build` in the repository root first. The app extracts a zip again whenever its contents change.
+
+## LMS address
+
+`LMS_COMMIT_URL` in `src/constants.ts` sets where commits go:
+
+- iOS Simulator: `http://localhost:3001/lms/commit`
+- Android emulator: `http://10.0.2.2:3001/lms/commit`. `10.0.2.2` is the emulator's address for your computer.
+- A physical device: use your computer's address on the local network. Plain HTTP to a non-local address may need a cleartext or App Transport Security exception.
+
+Every launch uses the learner id in `LEARNER_ID`, in the same file.
+
+## Try offline support
+
+1. Open Minimal Test Course from the Library tab. Tap **Set location**, then **Commit**. The commit appears in `/lms/history`.
+2. Turn off the network, for example with airplane mode. Tap **Set location** and **Commit** again. The commit returns `true`, and scorm-again stores it in localStorage.
+3. Turn the network back on. The app sends a network status event to the WebView, and scorm-again sends the queued commit. The sync icon in the header spins until the sync finishes, and the Settings tab shows the result.
+
+If you close the course while offline, the queue stays on the device. The next launch of the same course restores the unsent data, and scorm-again sends it once the device is online.
+
+## How it works
+
+- `app/player/[courseId].tsx` reads the scorm-again bundle, the bridge script and the course's SCORM version. It builds `window.scormBridgeConfig` and runs all three with `injectedJavaScriptBeforeContentLoaded`.
+- `StaticServerService` serves the app's document folder on `http://127.0.0.1:38127` (`STATIC_SERVER_PORT` in `src/constants.ts`). The port is fixed because localStorage, which holds the queue of unsent commits, belongs to the page origin, and the origin includes the port.
+- The WebView opens `player.html`, a host page that `StaticServerService` writes to the app's document folder. The host page loads the course in an iframe once the API exists. Many course wrappers declare their own global `API` variable, so the course cannot share a window with the scorm-again API.
+- The player sends each NetInfo change to the WebView as a `scorm-again:network-status` event. It sends the current status again when the course calls `Initialize`.
+- The bridge sends log lines, which the player prints to the Metro console, and sync events, which drive the header icon and the Settings tab.
+
+The Settings tab has no "sync now" button. scorm-again has no public method to start a sync. It syncs by itself on `Initialize`, `Commit` and `Terminate`, and when the device comes back online.
+
+## Project layout
 
 ```
-examples/react-native-offline/
-├── app/
-│   ├── (tabs)/               # Bottom tab navigation
-│   │   ├── _layout.tsx       # Tab navigator configuration
-│   │   ├── library.tsx       # Course library screen
-│   │   ├── downloads.tsx     # Downloaded courses screen
-│   │   └── settings.tsx      # Settings screen
-│   ├── player/
-│   │   └── [courseId].tsx    # SCORM player screen (dynamic route)
-│   └── _layout.tsx           # Root layout
-├── src/
-│   ├── services/             # Business logic services
-│   │   ├── SyncManager.ts    # Sync orchestration and logging
-│   │   ├── StorageService.ts # File system operations
-│   │   └── index.ts          # Service exports
-│   ├── contexts/             # React contexts
-│   │   ├── SyncContext.tsx   # Sync state management
-│   │   └── index.ts          # Context exports
-│   ├── components/           # Reusable UI components
-│   └── constants.ts          # App constants (ADL download URL, etc.)
-├── assets/
-│   ├── scorm-again/          # scorm-again library files
-│   └── courses/              # Downloaded SCORM courses
-├── app.json                  # Expo configuration
-├── package.json              # Dependencies
-└── tsconfig.json             # TypeScript configuration
-```
-
-## Setup
-
-### 1. Install Dependencies
-
-```bash
-cd examples/react-native-offline
-npm install
-```
-
-Key dependencies include:
-- `@react-native-async-storage/async-storage` - Persistent storage for settings and logs
-- `@react-native-community/netinfo` - Network status monitoring
-- `expo-file-system` - File operations for course storage
-- `react-native-webview` - SCORM content rendering
-- `react-native-zip-archive` - Course package extraction
-
-Note: If you encounter npm cache permission issues, you may need to fix npm cache ownership:
-
-```bash
-sudo chown -R $(whoami) ~/.npm
-```
-
-Or use yarn as an alternative:
-
-```bash
-yarn install
-```
-
-### 2. Prebuild Native Projects
-
-Generate the native iOS and Android projects:
-
-```bash
-npx expo prebuild
-```
-
-This will create `ios/` and `android/` directories with the necessary native code.
-
-To clean and regenerate:
-
-```bash
-npx expo prebuild --clean
-```
-
-### 3. Copy SCORM Library
-
-Copy the scorm-again library into the assets folder:
-
-```bash
-# From the root of the scorm-again repository
-npm run build
-cp dist/scorm-again.js examples/react-native-offline/assets/scorm-again/
-```
-
-## Running the App
-
-### iOS
-
-```bash
-npm run ios
-```
-
-Or specify a simulator:
-
-```bash
-npx expo run:ios --device "iPhone 15 Pro"
-```
-
-### Android
-
-```bash
-npm run android
-```
-
-Or specify an emulator:
-
-```bash
-npx expo run:android --device emulator-5554
-```
-
-### Development Mode
-
-Start the development server:
-
-```bash
-npm start
-```
-
-Then press:
-- `i` for iOS
-- `a` for Android
-- `r` to reload
-- `m` for menu
-
-## How It Works
-
-### 1. Course Library
-
-The library screen displays available SCORM courses from a remote catalog. Users can browse and download courses for offline viewing.
-
-### 2. Downloads
-
-The downloads screen shows all locally stored courses and their completion status. Users can launch courses, view progress, and manage storage.
-
-### 3. SCORM Player
-
-The player uses React Native WebView to display SCORM content. The scorm-again library provides the SCORM API implementation that the content communicates with.
-
-Key features:
-- Offline-first architecture using expo-file-system
-- SCORM 1.2 and SCORM 2004 support
-- Progress tracking and resume functionality
-- Network-aware synchronization
-
-### 4. Settings Screen
-
-The settings screen provides comprehensive app management:
-- **Network Status**: Real-time online/offline indicator with connection type
-- **Sync Management**: Manual sync trigger, pending items count, last sync timestamp
-- **Storage Controls**: Display total storage used, clear all courses with confirmation
-- **Debug Tools**: Toggle debug logging, view color-coded logs with timestamps, clear logs
-- **About Section**: Links to GitHub repository and documentation
-
-For detailed documentation, see [SETTINGS_SCREEN.md](./SETTINGS_SCREEN.md).
-
-### 5. Offline Storage
-
-Courses are downloaded as ZIP files, extracted to the device filesystem, and served locally. The app uses:
-- **expo-file-system** for file operations
-- **react-native-zip-archive** for ZIP extraction
-- **@react-native-community/netinfo** for network detection
-- **AsyncStorage** for metadata, settings, and progress tracking
-- **SyncManager** for coordinating sync operations across screens
-- **StorageService** for calculating and managing course storage
-
-## Configuration
-
-### Constants
-
-Edit `src/constants.ts` to configure:
-
-```typescript
-export const ADL_DOWNLOAD_URL = "https://cdn.noverant.com/AllGolfExamples.zip";
-```
-
-### App Settings
-
-Edit `app.json` to configure:
-- App name and slug
-- Bundle identifiers (iOS/Android)
-- Icon and splash screen
-- Permissions
-
-## Development
-
-### TypeScript
-
-The project uses TypeScript throughout. Type checking:
-
-```bash
-npx tsc --noEmit
-```
-
-### File-Based Routing
-
-This project uses Expo Router for navigation. Routes are automatically generated from the `app/` directory structure:
-
-- `app/(tabs)/library.tsx` → `/library` (tab)
-- `app/(tabs)/downloads.tsx` → `/downloads` (tab)
-- `app/(tabs)/settings.tsx` → `/settings` (tab)
-- `app/player/[courseId].tsx` → `/player/123` (dynamic route)
-
-### Adding Native Dependencies
-
-After adding any native dependency:
-
-```bash
-npx expo prebuild --clean
-npm run ios  # or npm run android
-```
-
-## Testing SCORM Content
-
-### Sample Course
-
-A minimal test course is included in `assets/courses/`. To test with real content:
-
-1. Download ADL sample courses from the configured URL
-2. Extract to `assets/courses/`
-3. Update the course metadata in the app
-
-### Course Structure
-
-Each course should follow this structure:
-
-```
-assets/courses/my-course/
-├── imsmanifest.xml
-├── index.html
-└── ... (course files)
+app/(tabs)/              Library, Downloads and Settings tabs
+app/player/[courseId].tsx  the course player
+course/minimal-test/     source of the built-in test course
+scripts/prepare-assets.mjs
+src/constants.ts         LMS address, learner id, download URL
+src/services/            course storage, downloads, local HTTP server, sync log
 ```
 
 ## Troubleshooting
 
-### iOS Build Issues
+- **Metro cannot resolve `scorm-again.zip` or `minimal-test.zip`.** Run `npm run prepare-assets`. Starting Expo with `npx expo start` skips it.
+- **The course does not load and the log says the server could not start.** Another program is using port 38127. On the iOS Simulator, that includes programs on your computer. Change `STATIC_SERVER_PORT` in `src/constants.ts`. Commits still queued under the old port stay unsent.
+- **Commits fail.** Check that the mock LMS is running and that `LMS_COMMIT_URL` uses an address the device can reach. The Android emulator cannot reach `localhost` on your computer.
+- **The course cannot find the API.** Turn on debug logging in the Settings tab, open the course again, and read the `[scorm-again]` lines in the Metro console. The [mobile troubleshooting notes](https://jcputney.github.io/scorm-again/docs/advanced/mobile/react-native#troubleshooting) cover the common causes.
 
-If you encounter code signing issues:
+## Testing
 
-1. Open `ios/reactnativeoffline.xcworkspace` in Xcode
-2. Select your development team
-3. Update the bundle identifier if needed
-
-### Android Build Issues
-
-If you encounter build failures:
-
-```bash
-cd android
-./gradlew clean
-cd ..
-npx expo run:android
-```
-
-### Metro Bundler Issues
-
-Clear the cache:
-
-```bash
-npx expo start --clear
-```
-
-### Native Module Issues
-
-If native modules aren't linking:
-
-```bash
-npx expo prebuild --clean
-cd ios && pod install && cd ..
-npm run ios
-```
-
-## Additional Documentation
-
-- [Settings Screen Details](./SETTINGS_SCREEN.md) - Complete guide to the Settings screen features and services
-- [Player Integration Guide](./PLAYER_INTEGRATION_EXAMPLE.md) - How to integrate sync functionality with the SCORM player
-
-## Resources
-
-- [Expo Documentation](https://docs.expo.dev/)
-- [Expo Router Documentation](https://docs.expo.dev/router/introduction/)
-- [React Native Documentation](https://reactnative.dev/)
-- [scorm-again Documentation](https://github.com/jcputney/scorm-again)
-- [SCORM Specifications](https://adlnet.gov/projects/scorm/)
-
-## License
-
-This example is part of the scorm-again project and follows the same license.
+CI builds the asset zips, type-checks the app, checks its Expo dependencies, and bundles its JavaScript for Android and iOS with `expo export`. It does not build the native apps or run them on a device or emulator. The bridge script itself runs in Chromium and Firefox in the library's integration tests (`test/integration/MobileBridge.spec.ts`).

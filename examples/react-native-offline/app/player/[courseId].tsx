@@ -9,36 +9,43 @@ import {
   StatusBar,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import type {
+  WebViewNavigationEvent,
+  WebViewErrorEvent,
+  WebViewHttpErrorEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import { Ionicons } from '@expo/vector-icons';
 import NetInfo from '@react-native-community/netinfo';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { SyncIndicator } from '@/src/components/SyncIndicator';
 import { useThemeColor } from '@/components/Themed';
 import courseStorage from '@/src/services/CourseStorage';
 import staticServer from '@/src/services/StaticServerService';
+import SyncManager from '@/src/services/SyncManager';
+import { LMS_COMMIT_URL, LEARNER_ID } from '@/src/constants';
 
 interface MessagePayload {
   type: string;
-  status?: string;
-  level?: string;
+  name?: string;
+  errorCode?: number;
+  level?: number | string;
   message?: string;
-  title?: string;
 }
 
 export default function PlayerScreen() {
   const { courseId } = useLocalSearchParams<{ courseId: string }>();
   const router = useRouter();
-  const webViewRef = useRef<WebView>(null);
+  const webViewRef = useRef<WebView<{}>>(null);
 
   const [isOnline, setIsOnline] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [courseTitle, setCourseTitle] = useState('SCORM Course');
   const [courseUrl, setCourseUrl] = useState<string | null>(null);
-  const [scormAgainScript, setScormAgainScript] = useState<string | null>(null);
+  const [injectionScript, setInjectionScript] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,22 +69,21 @@ export default function PlayerScreen() {
     };
   }, []);
 
+  const sendNetworkStatus = (online: boolean) => {
+    webViewRef.current?.injectJavaScript(`
+      window.dispatchEvent(new CustomEvent('scorm-again:network-status', {
+        detail: { online: ${online} }
+      }));
+      true;
+    `);
+  };
+
   // Monitor network status
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
-      const online = state.isConnected ?? false;
+      const online = state.isConnected === true && state.isInternetReachable !== false;
       setIsOnline(online);
-
-      // Dispatch network status event to WebView
-      if (webViewRef.current) {
-        const script = `
-          window.dispatchEvent(new CustomEvent('scorm-again:network-status', {
-            detail: { online: ${online} }
-          }));
-          true;
-        `;
-        webViewRef.current.injectJavaScript(script);
-      }
+      sendNetworkStatus(online);
     });
 
     return () => unsubscribe();
@@ -108,53 +114,37 @@ export default function PlayerScreen() {
         const launchFile = await courseStorage.getCourseLaunchFile(courseId);
         console.log('Launch file:', launchFile);
 
-        // Debug: List all files and directories in course
-        const coursePath = await courseStorage.getCoursePath(courseId);
-        console.log('Course path:', coursePath);
-        try {
-          const items = await FileSystem.readDirectoryAsync(coursePath);
-          console.log('Items in course directory:', items);
-
-          // List contents of each directory to help debug 404 issues
-          for (const item of items) {
-            const itemPath = `${coursePath}${item}`;
-            const info = await FileSystem.getInfoAsync(itemPath);
-            if (info.exists && info.isDirectory) {
-              try {
-                const subItems = await FileSystem.readDirectoryAsync(`${itemPath}/`);
-                console.log(`Contents of ${item}/:`, subItems);
-              } catch (e) {
-                console.log(`Error listing ${item}/:`, e);
-              }
-            }
-          }
-        } catch (e) {
-          console.log('Error listing files:', e);
-        }
-
         // Start the static server
         console.log('Starting static server...');
         await staticServer.start();
         console.log('Static server started');
 
         // Get HTTP URL for the course
-        const url = staticServer.getCourseUrl(courseId, launchFile);
+        const url = staticServer.getPlayerUrl(courseId, launchFile);
         setCourseUrl(url);
         console.log('Course URL:', url);
 
-        // Read scorm-again script content for inline injection
         const scormPath = await courseStorage.getScormAgainPath();
-        console.log('Scorm-again path:', scormPath);
-        try {
-          const scriptContent = await FileSystem.readAsStringAsync(scormPath);
-          setScormAgainScript(scriptContent);
-          console.log('Scorm-again script loaded, length:', scriptContent.length);
-        } catch (err) {
-          console.error('Failed to read scorm-again script:', err);
-          setError('Failed to load SCORM API');
-          setIsLoading(false);
-          return;
-        }
+        const [bundleText, bridgeText, version, debug] = await Promise.all([
+          FileSystem.readAsStringAsync(scormPath),
+          FileSystem.readAsStringAsync(courseStorage.getBridgePath()),
+          courseStorage.getCourseScormVersion(courseId),
+          SyncManager.isDebugEnabled(),
+        ]);
+        const config = {
+          version,
+          settings: {
+            lmsCommitUrl: LMS_COMMIT_URL,
+            enableOfflineSupport: true,
+            courseId,
+            autocommit: true,
+            autocommitSeconds: 60,
+            logLevel: debug ? 1 : 3,
+          },
+          cmi: version === '1.2' ? { core: { student_id: LEARNER_ID } } : { learner_id: LEARNER_ID },
+        };
+        const configText = `window.scormBridgeConfig = ${JSON.stringify(config)};`;
+        setInjectionScript(bundleText + '\n' + configText + '\n' + bridgeText + '\ntrue;');
 
         setCourseTitle(courseId);
         setIsLoading(false);
@@ -177,21 +167,42 @@ export default function PlayerScreen() {
       const payload: MessagePayload = JSON.parse(event.nativeEvent.data);
 
       switch (payload.type) {
-        case 'sync':
-          if (payload.status === 'success') {
-            setIsSyncing(false);
-            Alert.alert('Sync Complete', 'Course data synced successfully');
-          } else if (payload.status === 'error') {
-            setIsSyncing(false);
-            Alert.alert('Sync Failed', 'Failed to sync course data');
-          } else if (payload.status === 'start') {
-            setIsSyncing(true);
+        case 'event':
+          switch (payload.name) {
+            case 'Initialize':
+            case 'LMSInitialize':
+              NetInfo.fetch().then((state) => {
+                const online = state.isConnected === true && state.isInternetReachable !== false;
+                setIsOnline(online);
+                sendNetworkStatus(online);
+              }).catch((err) => console.warn('Failed to read network status:', err));
+              break;
+            case 'OfflineDataSyncing':
+              setIsSyncing(true);
+              break;
+            case 'OfflineDataSynced':
+              setIsSyncing(false);
+              SyncManager.recordSyncResult(true).catch((err) => console.error('Failed to record sync result:', err));
+              break;
+            case 'OfflineDataSyncFailed':
+              setIsSyncing(false);
+              SyncManager.recordSyncResult(false).catch((err) => console.error('Failed to record sync result:', err));
+              Alert.alert('Sync Failed', 'Some course data could not be sent to the LMS.');
+              break;
+            case 'CommitError':
+              console.warn('[scorm-again] CommitError:', payload.errorCode);
+              break;
           }
           break;
 
         case 'log':
-          // Handle log messages from scorm-again
-          console.log(`[SCORM] [${payload.level}] ${payload.message}`);
+          if (Number(payload.level) >= 4) {
+            console.error('[scorm-again]', payload.message);
+          } else if (Number(payload.level) === 3) {
+            console.warn('[scorm-again]', payload.message);
+          } else {
+            console.log('[scorm-again]', payload.message);
+          }
           break;
 
         case 'console':
@@ -206,161 +217,12 @@ export default function PlayerScreen() {
           }
           break;
 
-        case 'alert':
-          // Show native alert for WebView alert/confirm calls
-          Alert.alert(payload.title || 'Alert', payload.message || '');
-          break;
-
         default:
           console.log('Unknown message type:', payload.type, event.nativeEvent.data);
       }
     } catch (err) {
       console.error('Error parsing WebView message:', err);
     }
-  };
-
-  // Create injection script - injects scorm-again directly before page loads
-  const getInjectionScript = () => {
-    if (!scormAgainScript || !courseId) return '';
-
-    return `
-      (function() {
-        // Override dialog functions to use native alerts via postMessage
-        window.alert = function(msg) {
-          console.log('[ALERT]', msg);
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'alert',
-              message: String(msg)
-            }));
-          }
-        };
-        window.confirm = function(msg) {
-          console.log('[CONFIRM]', msg);
-          // Note: confirm is synchronous in JS but we can't block for native response
-          // Default to true for now - could implement async confirm if needed
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'alert',
-              title: 'Confirm',
-              message: String(msg)
-            }));
-          }
-          return true;
-        };
-        window.prompt = function(msg, defaultVal) {
-          console.log('[PROMPT]', msg);
-          return defaultVal || '';
-        };
-
-        // Use postMessage for logging since console isn't forwarded yet
-        function scormLog(msg) {
-          console.log('[SCORM-INJECT] ' + msg);
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({type: 'console', level: 'log', message: '[SCORM-INJECT] ' + msg}));
-          }
-        }
-
-        scormLog('Starting injection...');
-
-        try {
-          // Inject scorm-again.js inline
-          ${scormAgainScript}
-
-          scormLog('Script executed');
-          scormLog('window.Scorm2004API exists: ' + (typeof window.Scorm2004API));
-          scormLog('window.Scorm12API exists: ' + (typeof window.Scorm12API));
-
-          var apiSettings = {
-            enableOfflineSupport: true,
-            courseId: '${courseId}',
-            autocommit: true,
-            autocommitSeconds: 60,
-            logLevel: 1, // ERROR level only to reduce noise
-          };
-
-          // Initialize SCORM 2004 API (for SCORM 2004 courses)
-          if (window.Scorm2004API) {
-            scormLog('Creating Scorm2004API instance...');
-            window.API_1484_11 = new window.Scorm2004API(apiSettings);
-            scormLog('API_1484_11 created (SCORM 2004)');
-          } else {
-            scormLog('WARNING: Scorm2004API not found');
-          }
-
-          // Initialize SCORM 1.2 API (for SCORM 1.2 courses)
-          if (window.Scorm12API) {
-            scormLog('Creating Scorm12API instance...');
-            var scorm12Instance = new window.Scorm12API(apiSettings);
-            // Store the instance in a closure-protected variable
-            window._scorm12APIInstance = scorm12Instance;
-            // Use getter/setter to make window.API bulletproof against "var API = null"
-            Object.defineProperty(window, 'API', {
-              get: function() { return window._scorm12APIInstance; },
-              set: function(val) {
-                scormLog('Blocked attempt to set window.API to: ' + val);
-                // Ignore - keep our instance
-              },
-              configurable: false  // Prevent redefinition
-            });
-            scormLog('API created (SCORM 1.2) - protected with getter');
-            scormLog('API.LMSInitialize exists: ' + (typeof window.API.LMSInitialize));
-          } else {
-            scormLog('WARNING: Scorm12API not found');
-          }
-
-          // ADL Golf Examples use GetAPI() which searches window.parent
-          // In a WebView, window.parent === window, so the search fails
-          // Fix: Make window.parent return a fake parent that has both APIs
-          Object.defineProperty(window, 'parent', {
-            get: function() {
-              return {
-                API_1484_11: window.API_1484_11,  // SCORM 2004
-                API: window._scorm12APIInstance,  // SCORM 1.2 (use protected instance)
-                parent: null  // Stop parent chain traversal
-              };
-            },
-            configurable: true
-          });
-
-          scormLog('window.parent override installed');
-
-          // Set up sync event listeners on the active API
-          var activeAPI = window.API_1484_11 || window.API;
-          if (activeAPI && activeAPI.on) {
-            activeAPI.on('OfflineDataSyncing', function() {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'sync',
-                status: 'start'
-              }));
-            });
-
-            activeAPI.on('OfflineDataSynced', function() {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'sync',
-                status: 'success'
-              }));
-            });
-
-            activeAPI.on('OfflineDataSyncFailed', function(error) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'sync',
-                status: 'error'
-              }));
-            });
-          }
-
-          scormLog('SCORM APIs initialized - 1.2: ' + (typeof window.API) + ', 2004: ' + (typeof window.API_1484_11));
-
-        } catch (e) {
-          scormLog('ERROR: ' + e.message);
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({type: 'console', level: 'error', message: '[SCORM-INJECT] Error: ' + e.message + ' Stack: ' + e.stack}));
-          }
-        }
-      })();
-      true;
-    `;
   };
 
   // Handle back button
@@ -386,7 +248,7 @@ export default function PlayerScreen() {
   }
 
   // Show error screen
-  if (error || !courseUrl || !scormAgainScript) {
+  if (error || !courseUrl || !injectionScript) {
     return (
       <View style={[styles.centerContainer, { backgroundColor }]}>
         <Ionicons name="alert-circle-outline" size={64} color="#ff3b30" />
@@ -439,13 +301,14 @@ export default function PlayerScreen() {
 
       {/* WebView - now uses HTTP URL from local server */}
       <View style={[styles.webviewContainer, { backgroundColor }]}>
-        <WebView
+        <WebView<{}>
           ref={webViewRef}
           source={{ uri: courseUrl }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           domStorageEnabled={true}
-          injectedJavaScriptBeforeContentLoaded={getInjectionScript()}
+          injectedJavaScriptBeforeContentLoaded={injectionScript}
+          injectedJavaScriptBeforeContentLoadedForMainFrameOnly={true}
           injectedJavaScript={`
             // Forward console.log to React Native
             const originalLog = console.log;
@@ -464,32 +327,23 @@ export default function PlayerScreen() {
               window.ReactNativeWebView.postMessage(JSON.stringify({type: 'console', level: 'warn', message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')}));
             };
 
-            // Trigger resize to help ADL courses size their iframe correctly
-            setTimeout(function() {
-              window.dispatchEvent(new Event('resize'));
-              // Also try calling SetupIFrame if it exists (ADL launchpage function)
-              if (typeof SetupIFrame === 'function') {
-                SetupIFrame();
-              }
-            }, 100);
-
             true;
           `}
           originWhitelist={['*']}
           mixedContentMode="always"
           mediaPlaybackRequiresUserAction={false}
-          onLoadStart={(e) => {
+          onLoadStart={(e: WebViewNavigationEvent) => {
             console.log('WebView loading:', e.nativeEvent.url);
           }}
-          onLoad={(e) => {
+          onLoad={(e: WebViewNavigationEvent) => {
             console.log('WebView loaded:', e.nativeEvent.url);
           }}
-          onError={(syntheticEvent) => {
+          onError={(syntheticEvent: WebViewErrorEvent) => {
             const { nativeEvent } = syntheticEvent;
             console.error('WebView error:', nativeEvent);
             Alert.alert('Error', `Failed to load: ${nativeEvent.description || 'Unknown error'}`);
           }}
-          onHttpError={(syntheticEvent) => {
+          onHttpError={(syntheticEvent: WebViewHttpErrorEvent) => {
             const { nativeEvent } = syntheticEvent;
             console.error('WebView HTTP error:', nativeEvent);
           }}

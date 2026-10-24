@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minimal Test Course</title>
+  <style>
+    body { font: 18px sans-serif; margin: 24px; line-height: 1.5; color: #222; }
+    button { padding: 12px; margin: 6px; font: inherit; }
+    #status { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>Minimal Test Course</h1>
+  <p>Learner: <span id="learner"></span></p>
+  <p>Location: <span id="location"></span></p>
+  <button id="locationButton">Set location</button>
+  <button id="completeButton">Mark complete</button>
+  <button id="commitButton">Commit</button>
+  <button id="exitButton">Exit</button>
+  <p id="status" role="status"></p>
+  <script>
+    (function () {
+      var api = null;
+      var terminated = false;
+      function findAPI(start) {
+        var current = start;
+        var depth;
+        for (depth = 0; current && depth < 10; depth++) {
+          try {
+            if (current.API_1484_11) return current.API_1484_11;
+            if (current.parent === current) break;
+            current = current.parent;
+          } catch (error) { break; }
+        }
+        return null;
+      }
+      function show(message) {
+        document.getElementById('status').textContent = message;
+      }
+      function refresh() {
+        document.getElementById('learner').textContent = api.GetValue('cmi.learner_id');
+        document.getElementById('location').textContent = api.GetValue('cmi.location');
+      }
+      function terminate() {
+        if (api && !terminated) {
+          var result = api.Terminate('');
+          terminated = result === 'true';
+          show('Terminate: ' + result);
+        }
+      }
+      window.addEventListener('load', function () {
+        api = findAPI(window);
+        if (!api) {
+          try { api = findAPI(window.opener); } catch (error) { /* No accessible opener. */ }
+        }
+        if (!api) {
+          show('SCORM API not found. Open this course through the app player.');
+          return;
+        }
+        show('Initialize: ' + api.Initialize(''));
+        refresh();
+      });
+      document.getElementById('locationButton').onclick = function () {
+        if (!api || terminated) return;
+        show('Set location: ' + api.SetValue('cmi.location', new Date().toISOString()));
+        refresh();
+      };
+      document.getElementById('completeButton').onclick = function () {
+        if (!api || terminated) return;
+        api.SetValue('cmi.completion_status', 'completed');
+        api.SetValue('cmi.success_status', 'passed');
+        show('Marked complete and passed');
+      };
+      document.getElementById('commitButton').onclick = function () {
+        if (!api || terminated) return;
+        var result = api.Commit('');
+        show('Commit: ' + result + ', GetLastError: ' + api.GetLastError());
+      };
+      document.getElementById('exitButton').onclick = function () {
+        if (!api || terminated) return;
+        api.SetValue('cmi.exit', 'suspend');
+        terminate();
+      };
+      window.addEventListener('pagehide', terminate);
+    })();
+  </script>
+</body>
+</html>

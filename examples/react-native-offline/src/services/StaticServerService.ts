@@ -1,5 +1,6 @@
 import Server, { STATES } from "@dr.pogodin/react-native-static-server";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
+import { STATIC_SERVER_PORT } from "../constants";
 
 export class StaticServerService {
   private static instance: StaticServerService;
@@ -43,6 +44,26 @@ export class StaticServerService {
         throw new Error("Document directory not available");
       }
 
+      // The course runs in an iframe because many course wrappers declare their own
+      // global API variable, and SCORM content searches parent windows for the API.
+      await FileSystem.writeAsStringAsync(`${docDir}player.html`, `<!doctype html>
+<html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html,body{margin:0;width:100%;height:100%}iframe{width:100%;height:100%;border:0;display:block}</style>
+</head><body><iframe id="course" title="Course"></iframe><script>
+(function () {
+  var match = /(?:^|&)course=([^&]*)/.exec(window.location.search.slice(1));
+  var course = match ? decodeURIComponent(match[1].replace(/\\+/g, ' ')) : '';
+  var tries = 0;
+  var timer = setInterval(function () {
+    tries++;
+    if (window.API_1484_11 || window.API || tries >= 200) {
+      clearInterval(timer);
+      document.getElementById('course').src = course;
+    }
+  }, 50);
+})();
+</script></body></html>`);
+
       // Remove file:// prefix for the server - serve from Documents root
       const rootPath = docDir.replace("file://", "").replace(/\/$/, "");
 
@@ -51,7 +72,7 @@ export class StaticServerService {
       // Create a single server serving from the Documents directory
       this.server = new Server({
         fileDir: rootPath,
-        port: 0, // Auto-select available port
+        port: STATIC_SERVER_PORT, // Fixed so the origin, and its localStorage, stays the same
         hostname: "127.0.0.1",
         stopInBackground: false, // Keep running when app goes to background
       });
@@ -118,15 +139,11 @@ export class StaticServerService {
     return `${this.origin}/courses/${courseId}/`;
   }
 
-  /**
-   * Get the URL to the scorm-again.js file
-   * @returns The HTTP URL to the scorm-again script
-   */
-  getScormAgainUrl(): string {
+  getPlayerUrl(courseId: string, launchFile: string): string {
     if (!this.origin) {
       throw new Error("Static server not running");
     }
-    return `${this.origin}/scorm-again/scorm2004.min.js`;
+    return `${this.origin}/player.html?course=${encodeURIComponent(`courses/${courseId}/${launchFile}`)}`;
   }
 
   /**

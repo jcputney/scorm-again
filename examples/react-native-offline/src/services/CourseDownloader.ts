@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { unzip } from 'react-native-zip-archive';
 import { ADL_DOWNLOAD_URL } from '../constants';
 
@@ -146,7 +146,7 @@ export class CourseDownloader {
       id: courseId,
       name: originalName.replace('.zip', ''),
       path: coursePath,
-      size: (fileInfo as FileSystem.FileInfo).size || 0,
+      size: fileInfo.exists ? fileInfo.size || 0 : 0,
       downloadedAt: new Date(),
     };
 
@@ -248,7 +248,7 @@ export class CourseDownloader {
           if (info.isDirectory) {
             totalSize += await this.getDirectorySize(`${itemPath}/`);
           } else {
-            totalSize += (info as FileSystem.FileInfo).size || 0;
+            totalSize += info.size || 0;
           }
         }
       }
