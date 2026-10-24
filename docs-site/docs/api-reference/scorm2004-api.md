@@ -487,7 +487,7 @@ When navigation requests are processed, corresponding events are fired:
 - `SequenceAbandonAll` - Abandon all activities
 - `SequenceRetry` - Retry current activity
 - `SequenceRetryAll` - Retry from root activity
-- `ActivityDelivered` - Activity ready for delivery (activity passed as parameter)
+- `ActivityDelivery` - Activity ready for delivery (activity passed as parameter)
 - `SequencingComplete` - Sequencing process completed (result passed as parameter)
 - `SequencingError` - Sequencing error occurred (error passed as parameter)
 
@@ -500,12 +500,12 @@ api.on("SequenceNext", () => {
   // LMS should load the next SCO
 });
 
-api.on("SequenceChoice", (event, target) => {
+api.on("SequenceChoice", (target) => {
   console.log(`Navigating to activity: ${target}`);
   // LMS should load the specified SCO
 });
 
-api.on("ActivityDelivered", (event, activity) => {
+api.on("ActivityDelivery", (activityId, activity) => {
   console.log("Deliver activity:", activity.id);
   // LMS should launch the SCO
 });

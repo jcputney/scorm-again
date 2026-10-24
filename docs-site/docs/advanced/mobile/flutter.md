@@ -311,7 +311,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
       scormAgainScript.src = 'file://$apiDir/scorm-again.js';
       scormAgainScript.onload = function() {
         // Initialize scorm-again with offline support
-        window.API = new window.ScormAgain.SCORM2004API({
+        window.API_1484_11 = new window.Scorm2004API({
           enableOfflineSupport: true,
           courseId: '$_courseId',
           autocommit: true,
@@ -319,7 +319,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
           syncOnInitialize: true,
           syncOnTerminate: true,
           logLevel: 4,
-          onLogMessage: function(message, level) {
+          onLogMessage: function(level, message) {
             window.ScormBridge.postMessage(JSON.stringify({
               type: 'log',
               message: message,
@@ -329,7 +329,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
         });
 
         // Notify when offline data is synced
-        window.API.on('OfflineDataSynced', function() {
+        window.API_1484_11.on('OfflineDataSynced', function() {
           window.ScormBridge.postMessage(JSON.stringify({
             type: 'sync',
             status: 'success'
@@ -338,7 +338,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
 
         // Store connection status in scorm-again
         // TODO: This will be replaced with the new event API pattern in a future update
-        window.API._offlineStorageService.isDeviceOnline = function() {
+        window.API_1484_11._offlineStorageService.isDeviceOnline = function() {
           return ${_isOnline};
         };
       };
@@ -361,8 +361,8 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
    Future<void> _syncOfflineData() async {
       if (_isOnline) {
          await _controller.runJavaScript('''
-        if (window.API && window.API._offlineStorageService) {
-          window.API._offlineStorageService.syncOfflineData().then(function(success) {
+        if (window.API_1484_11 && window.API_1484_11._offlineStorageService) {
+          window.API_1484_11._offlineStorageService.syncOfflineData().then(function(success) {
             window.ScormBridge.postMessage(JSON.stringify({
               type: 'sync',
               status: success ? 'success' : 'failed'

@@ -455,7 +455,7 @@ class ScormPlayerViewController: UIViewController {
         scormAgainScript.src = '\(apiURL)';
         scormAgainScript.onload = function() {
             // Initialize scorm-again with offline support
-            window.API = new window.ScormAgain.SCORM2004API({
+            window.API_1484_11 = new window.Scorm2004API({
                 enableOfflineSupport: true,
                 courseId: '\(courseId)',
                 autocommit: true,
@@ -463,7 +463,7 @@ class ScormPlayerViewController: UIViewController {
                 syncOnInitialize: true,
                 syncOnTerminate: true,
                 logLevel: 4,
-                onLogMessage: function(message, level) {
+                onLogMessage: function(level, message) {
                     window.webkit.messageHandlers.scormBridge.postMessage({
                         type: 'log',
                         message: message,
@@ -473,7 +473,7 @@ class ScormPlayerViewController: UIViewController {
             });
 
             // Notify when offline data is synced
-            window.API.on('OfflineDataSynced', function() {
+            window.API_1484_11.on('OfflineDataSynced', function() {
                 window.webkit.messageHandlers.scormBridge.postMessage({
                     type: 'sync',
                     status: 'success'
@@ -482,7 +482,7 @@ class ScormPlayerViewController: UIViewController {
 
             // Override the isDeviceOnline method to use our Swift value
             // TODO: This will be replaced with the new event API pattern in a future update
-            window.API._offlineStorageService.isDeviceOnline = function() {
+            window.API_1484_11._offlineStorageService.isDeviceOnline = function() {
                 return \(isOnline);
             };
         };
@@ -499,8 +499,8 @@ class ScormPlayerViewController: UIViewController {
     private func updateWebViewOnlineStatus() {
         // Update the online status in the WebView
         let jsCode = """
-        if (window.API && window.API._offlineStorageService) {
-            window.API._offlineStorageService.isDeviceOnline = function() {
+        if (window.API_1484_11 && window.API_1484_11._offlineStorageService) {
+            window.API_1484_11._offlineStorageService.isDeviceOnline = function() {
                 return \(isOnline);
             };
         }
@@ -516,8 +516,8 @@ class ScormPlayerViewController: UIViewController {
         }
 
         let jsCode = """
-        if (window.API && window.API._offlineStorageService) {
-            window.API._offlineStorageService.syncOfflineData().then(function(success) {
+        if (window.API_1484_11 && window.API_1484_11._offlineStorageService) {
+            window.API_1484_11._offlineStorageService.syncOfflineData().then(function(success) {
                 window.webkit.messageHandlers.scormBridge.postMessage({
                     type: 'sync',
                     status: success ? 'success' : 'failed'
@@ -931,8 +931,8 @@ You can also implement functionality to export SCORM results:
 ```swift
 func exportScormResults(courseId: String) {
     let jsCode = """
-    if (window.API) {
-        var results = window.API.renderCMIToJSONString();
+    if (window.API_1484_11) {
+        var results = window.API_1484_11.renderCMIToJSONString();
         window.webkit.messageHandlers.scormBridge.postMessage({
             type: 'export',
             courseId: '\(courseId)',

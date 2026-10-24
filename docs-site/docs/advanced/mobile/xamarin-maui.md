@@ -434,7 +434,7 @@ namespace ScormMauiApp.Controls
                 var scormAgainScript = document.createElement('script');
                 scormAgainScript.src = '{ApiPath}';
                 scormAgainScript.onload = function() {{
-                    window.API = new window.ScormAgain.SCORM2004API({{
+                    window.API_1484_11 = new window.Scorm2004API({{
                         enableOfflineSupport: true,
                         courseId: '{CourseId}',
                         autocommit: true,
@@ -442,7 +442,7 @@ namespace ScormMauiApp.Controls
                         syncOnInitialize: true,
                         syncOnTerminate: true,
                         logLevel: 4,
-                        onLogMessage: function(message, level) {{
+                        onLogMessage: function(level, message) {{
                             {messageHandler}(JSON.stringify({{
                                 type: 'log',
                                 message: message,
@@ -451,7 +451,7 @@ namespace ScormMauiApp.Controls
                         }}
                     }});
 
-                    window.API.on('OfflineDataSynced', function() {{
+                    window.API_1484_11.on('OfflineDataSynced', function() {{
                         {messageHandler}(JSON.stringify({{
                             type: 'sync',
                             status: 'success'
@@ -459,7 +459,7 @@ namespace ScormMauiApp.Controls
                     }});
 
                     // TODO: This will be replaced with the new event API pattern in a future update
-                    window.API._offlineStorageService.isDeviceOnline = function() {{
+                    window.API_1484_11._offlineStorageService.isDeviceOnline = function() {{
                         return {IsOnline.ToString().ToLower()};
                     }};
                 }};
@@ -481,8 +481,8 @@ namespace ScormMauiApp.Controls
 #endif
 
             var js = @$"
-                if (window.API && window.API._offlineStorageService) {{
-                    window.API._offlineStorageService.syncOfflineData().then(function(success) {{
+                if (window.API_1484_11 && window.API_1484_11._offlineStorageService) {{
+                    window.API_1484_11._offlineStorageService.syncOfflineData().then(function(success) {{
                         {messageHandler}(JSON.stringify({{
                             type: 'sync',
                             status: success ? 'success' : 'failed'

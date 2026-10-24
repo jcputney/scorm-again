@@ -60,7 +60,8 @@ jobs:
           if printf '%s\n' "$files" | grep -qE '^(src/|test/|package\.json$|package-lock\.json$|tsconfig\.json$|vitest\.config\.ts$|playwright\.config\.ts$|rollup\.config\.mjs$|\.github/workflows/main\.yml$)'; then
             lib=true
           fi
-          if printf '%s\n' "$files" | grep -qE '^docs-site/'; then
+          # The docs snippet check also scans README.md.
+          if printf '%s\n' "$files" | grep -qE '^(docs-site/|README\.md$)'; then
             docs=true
           fi
           echo "lib=$lib" >> "$GITHUB_OUTPUT"
@@ -401,6 +402,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Lint documentation code snippets
+        run: npx vitest run test/docs/docs_snippets.spec.ts
 
       - name: Build scorm-again library
         run: npm run build:all:prod

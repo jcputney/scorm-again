@@ -161,7 +161,7 @@ The following events are available for SCORM 2004:
 - `SequenceAbandonAll` - Abandon all activities
 - `SequenceRetry` - Retry the current activity
 - `SequenceRetryAll` - Retry from the root activity
-- `ActivityDelivered` - An activity is ready for delivery
+- `ActivityDelivery` - An activity is ready for delivery
 - `SequencingComplete` - Sequencing process completed
 - `SequencingError` - Sequencing error occurred
 
@@ -251,7 +251,7 @@ window.API_1484_11.on("SequenceChoice", function(targetActivityId) {
 });
 
 // Listen for activity delivery
-window.API_1484_11.on("ActivityDelivered", function(activity) {
+window.API_1484_11.on("ActivityDelivery", function(activityId, activity) {
   console.log(`Delivering activity: ${activity.id}`);
   // LMS should launch the specified activity
 });

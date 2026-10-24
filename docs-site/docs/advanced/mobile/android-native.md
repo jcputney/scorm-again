@@ -348,7 +348,7 @@ class ScormWebViewWrapper(
             var scormAgainScript = document.createElement('script');
             scormAgainScript.src = '$apiPath';
             scormAgainScript.onload = function() {
-                window.API = new window.ScormAgain.SCORM2004API({
+                window.API_1484_11 = new window.Scorm2004API({
                     enableOfflineSupport: true,
                     courseId: '$courseId',
                     autocommit: true,
@@ -356,7 +356,7 @@ class ScormWebViewWrapper(
                     syncOnInitialize: true,
                     syncOnTerminate: true,
                     logLevel: 4,
-                    onLogMessage: function(message, level) {
+                    onLogMessage: function(level, message) {
                         window.AndroidBridge.postMessage(JSON.stringify({
                             type: 'log',
                             message: message,
@@ -365,7 +365,7 @@ class ScormWebViewWrapper(
                     }
                 });
 
-                window.API.on('OfflineDataSynced', function() {
+                window.API_1484_11.on('OfflineDataSynced', function() {
                     window.AndroidBridge.postMessage(JSON.stringify({
                         type: 'sync',
                         status: 'success'
@@ -373,7 +373,7 @@ class ScormWebViewWrapper(
                 });
 
                 // TODO: This will be replaced with the new event API pattern in a future update
-                window.API._offlineStorageService.isDeviceOnline = function() {
+                window.API_1484_11._offlineStorageService.isDeviceOnline = function() {
                     return $isOnline;
                 };
             };
@@ -385,8 +385,8 @@ class ScormWebViewWrapper(
 
     fun syncOfflineData() {
         val js = """
-            if (window.API && window.API._offlineStorageService) {
-                window.API._offlineStorageService.syncOfflineData().then(function(success) {
+            if (window.API_1484_11 && window.API_1484_11._offlineStorageService) {
+                window.API_1484_11._offlineStorageService.syncOfflineData().then(function(success) {
                     window.AndroidBridge.postMessage(JSON.stringify({
                         type: 'sync',
                         status: success ? 'success' : 'failed'

@@ -431,7 +431,7 @@ const ScormPlayerScreen = ({ route }) => {
       scormAgainScript.src = '${apiPath}';
       scormAgainScript.onload = function() {
         // Initialize scorm-again with offline support
-        window.API = new window.ScormAgain.SCORM2004API({
+        window.API_1484_11 = new window.Scorm2004API({
           enableOfflineSupport: true,
           courseId: '${courseId}',
           autocommit: true,
@@ -439,7 +439,7 @@ const ScormPlayerScreen = ({ route }) => {
           syncOnInitialize: true,
           syncOnTerminate: true,
           logLevel: 4,
-          onLogMessage: function(message, level) {
+          onLogMessage: function(level, message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'log',
               message: message,
@@ -449,7 +449,7 @@ const ScormPlayerScreen = ({ route }) => {
         });
 
         // Notify when offline data is synced
-        window.API.on('OfflineDataSynced', function() {
+        window.API_1484_11.on('OfflineDataSynced', function() {
           window.ReactNativeWebView.postMessage(JSON.stringify({
             type: 'sync',
             status: 'success'
@@ -458,7 +458,7 @@ const ScormPlayerScreen = ({ route }) => {
 
         // Override the isDeviceOnline method to use our React state
         // TODO: This will be replaced with the new event API pattern in a future update
-        window.API._offlineStorageService.isDeviceOnline = function() {
+        window.API_1484_11._offlineStorageService.isDeviceOnline = function() {
           return ${isOnline};
         };
       };
@@ -473,8 +473,8 @@ const ScormPlayerScreen = ({ route }) => {
     if (!isOnline || !webViewRef.current) return;
 
     const jsCode = `
-      if (window.API && window.API._offlineStorageService) {
-        window.API._offlineStorageService.syncOfflineData().then(function(success) {
+      if (window.API_1484_11 && window.API_1484_11._offlineStorageService) {
+        window.API_1484_11._offlineStorageService.syncOfflineData().then(function(success) {
           window.ReactNativeWebView.postMessage(JSON.stringify({
             type: 'sync',
             status: success ? 'success' : 'failed'
@@ -1091,7 +1091,7 @@ const ScormPlayerScreen = () => {
       scormAgainScript.src = '${apiPath}/scorm-again.js';
       scormAgainScript.onload = function() {
         // Initialize scorm-again with offline support
-        window.API = new window.ScormAgain.SCORM2004API({
+        window.API_1484_11 = new window.Scorm2004API({
           enableOfflineSupport: true,
           courseId: '${COURSE_ID}',
           autocommit: true,
@@ -1099,7 +1099,7 @@ const ScormPlayerScreen = () => {
           syncOnInitialize: true,
           syncOnTerminate: true,
           logLevel: 4,
-          onLogMessage: function(message, level) {
+          onLogMessage: function(level, message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'log',
               message: message,
@@ -1109,7 +1109,7 @@ const ScormPlayerScreen = () => {
         });
 
         // Notify when offline data is synced
-        window.API.on('OfflineDataSynced', function() {
+        window.API_1484_11.on('OfflineDataSynced', function() {
           window.ReactNativeWebView.postMessage(JSON.stringify({
             type: 'sync',
             status: 'success'
@@ -1118,7 +1118,7 @@ const ScormPlayerScreen = () => {
 
         // Override the isDeviceOnline method to use our React state
         // TODO: This will be replaced with the new event API pattern in a future update
-        window.API._offlineStorageService.isDeviceOnline = function() {
+        window.API_1484_11._offlineStorageService.isDeviceOnline = function() {
           return ${isOnline};
         };
       };
@@ -1132,8 +1132,8 @@ const ScormPlayerScreen = () => {
   const syncOfflineData = () => {
     if (isOnline && webViewRef.current) {
       const jsCode = `
-        if (window.API && window.API._offlineStorageService) {
-          window.API._offlineStorageService.syncOfflineData().then(function(success) {
+        if (window.API_1484_11 && window.API_1484_11._offlineStorageService) {
+          window.API_1484_11._offlineStorageService.syncOfflineData().then(function(success) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'sync',
               status: success ? 'success' : 'failed'
