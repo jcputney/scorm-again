@@ -1,3 +1,4 @@
+import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
 import { TerminationHandler } from "../../../../src/cmi/scorm2004/sequencing/handlers/termination_handler";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -12,6 +13,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
+  RuleConditionOperator,
   SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { getExceptionDescription } from "../../../../src/constants/sequencing_exceptions";
@@ -1137,4 +1139,154 @@ it("decides cluster measure satisfaction when its attempt ends after its leaf", 
   expect(cluster.objectiveSatisfiedStatus).toBe(true);
   expect(cluster.primaryObjective?.satisfiedStatusKnown).toBe(true);
   expect(root.objectiveSatisfiedStatus).toBe(true);
+});
+
+describe("measureSatisfactionIfActive through navigation", () => {
+  function buildCourse() {
+    const tree = new ActivityTree();
+    const course = new Activity("course", "Course");
+    const scored = new Activity("scored", "Scored Module");
+    const quiz = new Activity("quiz", "Quiz");
+    const next = new Activity("next", "Next Module");
+    const nextLeaf = new Activity("next-leaf", "Next Lesson");
+    course.addChild(scored);
+    course.addChild(next);
+    scored.addChild(quiz);
+    next.addChild(nextLeaf);
+    course.sequencingControls.flow = true;
+    course.sequencingControls.choice = true;
+    scored.sequencingControls.flow = true;
+    next.sequencingControls.flow = true;
+    for (const cluster of [course, scored]) {
+      cluster.primaryObjective = new ActivityObjective(`${cluster.id}-objective`, {
+        isPrimary: true,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.7,
+      });
+      cluster.applyRollupConsiderations({ measureSatisfactionIfActive: false });
+    }
+    tree.root = course;
+    tree.currentActivity = quiz;
+    quiz.attemptCount = 1;
+    quiz.objectiveMeasureStatus = true;
+    quiz.objectiveNormalizedMeasure = 0.8;
+    const process = new OverallSequencingProcess(
+      tree,
+      new SequencingProcess(tree),
+      new RollupProcess(),
+    );
+    return { course, scored, nextLeaf, process };
+  }
+
+  it.each([NavigationRequestType.CONTINUE, NavigationRequestType.CHOICE])(
+    "decides a cluster's measure satisfaction when %s leaves it",
+    (request) => {
+      const { scored, nextLeaf, process } = buildCourse();
+
+      const result = process.processNavigationRequest(request, nextLeaf.id);
+
+      expect(result.valid).toBe(true);
+      expect(result.targetActivity).toBe(nextLeaf);
+      expect(scored.isActive).toBe(false);
+      expect(scored.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(scored.objectiveSatisfiedStatus).toBe(true);
+    },
+  );
+
+  it("decides the cluster and the root on EXIT_ALL", () => {
+    const { course, scored, process } = buildCourse();
+
+    const result = process.processNavigationRequest(NavigationRequestType.EXIT_ALL);
+
+    expect(result.valid).toBe(true);
+    expect(scored.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(scored.objectiveSatisfiedStatus).toBe(true);
+    // The unscored module keeps its weight, so the course measure is 0.4.
+    expect(course.objectiveNormalizedMeasure).toBeCloseTo(0.4);
+    expect(course.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(course.objectiveSatisfiedStatus).toBe(false);
+  });
+});
+
+describe("measure satisfaction write maps through CONTINUE", () => {
+  it.each([
+    [true, 1, false, true],
+    [false, 1, false, false],
+    [true, 1, true, false],
+    [false, 1, true, false],
+    [false, 0.4, false, false],
+    [false, 0.4, true, false],
+    [true, 0.4, true, true],
+  ])("msia=%s measure=%s negated=%s skips=%s", (msia, measure, negate, skips) => {
+    const tree = new ActivityTree();
+    const root = new Activity("root", "Root");
+    const writerCluster = new Activity("writer-cluster", "Writer Cluster");
+    const writerLeaf = new Activity("writer-leaf", "Writer Leaf");
+    const readerLeaf = new Activity("reader-leaf", "Reader Leaf");
+    const finalLeaf = new Activity("final-leaf", "Final Leaf");
+    root.addChild(writerCluster);
+    root.addChild(readerLeaf);
+    root.addChild(finalLeaf);
+    writerCluster.addChild(writerLeaf);
+    root.sequencingControls.flow = true;
+    writerCluster.sequencingControls.flow = true;
+    writerCluster.primaryObjective = new ActivityObjective("writer-objective", {
+      isPrimary: true,
+      satisfiedByMeasure: true,
+      minNormalizedMeasure: 0.6,
+      mapInfo: [
+        {
+          targetObjectiveID: "shared",
+          readSatisfiedStatus: false,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: false,
+          writeNormalizedMeasure: false,
+        },
+      ],
+    });
+    writerCluster.applyRollupConsiderations({ measureSatisfactionIfActive: msia });
+    readerLeaf.primaryObjective = new ActivityObjective("reader-objective", {
+      isPrimary: true,
+      mapInfo: [
+        {
+          targetObjectiveID: "shared",
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: false,
+          readNormalizedMeasure: false,
+          writeNormalizedMeasure: false,
+        },
+      ],
+    });
+    const skip = new SequencingRule(RuleActionType.SKIP);
+    skip.addCondition(
+      new RuleCondition(
+        RuleConditionType.SATISFIED,
+        negate ? RuleConditionOperator.NOT : RuleConditionOperator.NO_OP,
+      ),
+    );
+    readerLeaf.sequencingRules.addPreConditionRule(skip);
+    tree.root = root;
+    tree.currentActivity = writerLeaf;
+    writerLeaf.attemptCount = 1;
+    writerLeaf.objectiveMeasureStatus = true;
+    writerLeaf.objectiveNormalizedMeasure = measure;
+    const process = new OverallSequencingProcess(
+      tree,
+      new SequencingProcess(tree),
+      new RollupProcess(),
+      new ADLNav(),
+    );
+
+    const result = process.processNavigationRequest(NavigationRequestType.CONTINUE);
+
+    expect(result.valid).toBe(true);
+    expect(result.targetActivity).toBe(skips ? finalLeaf : readerLeaf);
+    expect(writerCluster.isActive).toBe(false);
+    expect(writerCluster.objectiveSatisfiedStatusKnown).toBe(true);
+    expect(writerCluster.objectiveSatisfiedStatus).toBe(measure >= 0.6);
+    expect(process.getGlobalObjectiveMap().get("shared")).toMatchObject({
+      satisfiedStatusKnown: true,
+      satisfiedStatus: measure >= 0.6,
+    });
+  });
 });
