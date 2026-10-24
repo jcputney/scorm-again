@@ -84,23 +84,7 @@ export class OfflineStorageService {
 
     // If we've come back online, trigger sync process
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO,
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        },
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -147,23 +131,7 @@ export class OfflineStorageService {
 
     // If we've come back online, trigger sync process
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO,
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        },
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -171,6 +139,38 @@ export class OfflineStorageService {
         LogLevelEnum.INFO,
       );
     }
+  }
+
+  /**
+   * Sync queued data when the device comes back online.
+   */
+  private syncAfterReconnect(): void {
+    if (!this.hasQueuedData(this.settings.courseId)) {
+      this.apiLog(
+        "OfflineStorageService",
+        "Device is back online, nothing to sync",
+        LogLevelEnum.INFO,
+      );
+      return;
+    }
+
+    this.apiLog(
+      "OfflineStorageService",
+      "Device is back online, attempting to sync...",
+      LogLevelEnum.INFO,
+    );
+    this.syncOfflineData().then(
+      (success) => {
+        if (success) {
+          this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+        } else {
+          this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+        }
+      },
+      (error) => {
+        this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+      },
+    );
   }
 
   /**
@@ -586,6 +586,13 @@ export class OfflineStorageService {
    * @returns {Promise<boolean>} - Whether there is pending data
    */
   async hasPendingOfflineData(courseId: string): Promise<boolean> {
+    return this.hasQueuedData(courseId);
+  }
+
+  /**
+   * Check for queued data matching the course and current learner.
+   */
+  private hasQueuedData(courseId: string | undefined): boolean {
     const queue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
     const learnerId = this.getLearnerId();
     // Match what syncOfflineData would send: this learner's items and legacy items without one.
