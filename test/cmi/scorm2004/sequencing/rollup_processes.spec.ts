@@ -988,30 +988,41 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       expect(parent.completionStatus).toBe("completed");
     });
 
-    it("defers satisfaction while a contributing child is active when configured", () => {
-      const adlParent = new Activity("adlParentActive", "ADL Parent Active");
-      adlParent.sequencingControls.rollupObjectiveSatisfied = true;
-
-      const activeChild = new Activity("active", "Active Child");
-      adlParent.addChild(activeChild);
-
-      adlParent.applyRollupConsiderations({
-        measureSatisfactionIfActive: false
+    it("defers measure satisfaction while the parent itself is active", () => {
+      parent.primaryObjective = new ActivityObjective("primary", {
+        isPrimary: true,
+        satisfiedByMeasure: true,
+        minNormalizedMeasure: 0.7
       });
+      parent.applyRollupConsiderations({ measureSatisfactionIfActive: false });
+      for (const child of [child1, child2, child3]) {
+        child.objectiveMeasureStatus = true;
+        child.objectiveNormalizedMeasure = 0.8;
+      }
+      parent.isActive = true;
+      rollupProcess.overallRollupProcess(child1);
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(false);
 
-      activeChild.objectiveSatisfiedStatus = true;
-      activeChild.attemptCount = 1;
-      activeChild.activityAttemptActive = true;
-      activeChild.isActive = true;
+      parent.isActive = false;
+      rollupProcess.overallRollupProcess(child1);
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(parent.objectiveSatisfiedStatus).toBe(true);
+    });
 
-      rollupProcess.overallRollupProcess(activeChild);
-      expect(adlParent.objectiveSatisfiedStatus).toBe(false);
+    it("counts an active satisfied child for default rollup when measureSatisfactionIfActive is false", () => {
+      const parent = new Activity("default-parent", "Parent");
+      const child = new Activity("active-child", "Child");
+      parent.addChild(child);
+      parent.applyRollupConsiderations({ measureSatisfactionIfActive: false });
+      parent.isActive = true;
+      child.isActive = true;
+      child.activityAttemptActive = true;
+      child.objectiveSatisfiedStatus = true;
 
-      activeChild.activityAttemptActive = false;
-      activeChild.isActive = false;
+      rollupProcess.overallRollupProcess(child);
 
-      rollupProcess.overallRollupProcess(activeChild);
-      expect(adlParent.objectiveSatisfiedStatus).toBe(true);
+      expect(parent.objectiveSatisfiedStatusKnown).toBe(true);
+      expect(parent.objectiveSatisfiedStatus).toBe(true);
     });
   });
 

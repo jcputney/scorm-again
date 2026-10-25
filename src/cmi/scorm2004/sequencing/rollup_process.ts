@@ -84,24 +84,52 @@ export class RollupProcess {
   }
 
   /**
+   * Roll up one activity without duration rollup, ancestor traversal or global reads.
+   * @spec SCORM 2004 SN 4th Ed. RB.1.1 to RB.1.3
+   */
+  public rollupActivity(activity: Activity): void {
+    // Step 1: Measure Rollup Process (RB.1.1)
+    if (activity.children.length > 0) {
+      this.measureProcessor.measureRollupProcess(activity);
+      // Step 1b: Completion Measure Rollup Process (RB.1.1 b)
+      this.measureProcessor.completionMeasureRollupProcess(activity);
+    }
+
+    // The rollupObjectiveSatisfied and rollupProgressCompletion controls describe whether
+    // this activity contributes to its parent's rollup; they do not disable calculation of
+    // this activity's own rolled-up state. The child-filtering subprocess applies those
+    // controls to each contributing child (SCORM 2004 RB.1.4.2).
+
+    // Step 2: Objective Rollup Process (RB.1.2)
+    this.objectiveProcessor.objectiveRollupProcess(activity);
+
+    // Step 3: Activity Progress Rollup Process (RB.1.3)
+    this.progressProcessor.activityProgressRollupProcess(activity);
+  }
+
+  /**
    * Overall Rollup Process
    * Performs rollup from a given activity up through its ancestors
    * OPTIMIZATION: Stops propagating rollup when status stops changing (SCORM 2004 4.6.1)
    *
    * @spec SN Book: RB.1.5 (Overall Rollup Process)
    * @param activity - The activity to start rollup from
+   * @param globalObjectives - Shared global objectives
+   * @param includeActivity - Start with the activity itself instead of its parent
    * @returns Array of activities that had status changes
    */
   public overallRollupProcess(
     activity: Activity,
     globalObjectives?: Map<string, GlobalObjective>,
+    includeActivity = false,
   ): Activity[] {
     const affectedActivities: Activity[] = [];
-    let currentActivity: Activity | null = activity.parent; // Start from parent, not the activity itself
+    // Start from the activity when requested, otherwise from its parent.
+    let currentActivity: Activity | null = includeActivity ? activity : activity.parent;
     let onlyDurationRollup = false;
     let isFirst = true;
 
-    // Process rollup up the tree from parent to root
+    // Process rollup up the tree to the root
     while (currentActivity) {
       // Duration rollup happens FIRST, ALWAYS for cluster activities
       // This happens even when optimization is active for other rollup types
@@ -113,23 +141,7 @@ export class RollupProcess {
         // Capture status BEFORE rollup
         const beforeStatus = currentActivity.captureRollupStatus();
 
-        // Step 1: Measure Rollup Process (RB.1.1)
-        if (currentActivity.children.length > 0) {
-          this.measureProcessor.measureRollupProcess(currentActivity);
-          // Step 1b: Completion Measure Rollup Process (RB.1.1 b)
-          this.measureProcessor.completionMeasureRollupProcess(currentActivity);
-        }
-
-        // The rollupObjectiveSatisfied and rollupProgressCompletion controls describe whether
-        // this activity contributes to its parent's rollup; they do not disable calculation of
-        // this activity's own rolled-up state. The child-filtering subprocess applies those
-        // controls to each contributing child (SCORM 2004 RB.1.4.2).
-
-        // Step 2: Objective Rollup Process (RB.1.2)
-        this.objectiveProcessor.objectiveRollupProcess(currentActivity);
-
-        // Step 3: Activity Progress Rollup Process (RB.1.3)
-        this.progressProcessor.activityProgressRollupProcess(currentActivity);
+        this.rollupActivity(currentActivity);
 
         // A primary objective read map is the activity's view of the shared objective. Restore
         // that view after calculating this cluster and before its parent evaluates the cluster as

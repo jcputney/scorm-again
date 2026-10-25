@@ -169,6 +169,9 @@ describe("Overall Sequencing Process (OP.1)", () => {
         localRoot.sequencingControls.flow = true;
         writerCluster.sequencingControls.flow = true;
 
+        // The cluster's measure must remain known when its inactive attempt rolls up.
+        writerLeaf.objectiveMeasureStatus = true;
+        writerLeaf.objectiveNormalizedMeasure = 1;
         writerCluster.objectiveMeasureStatus = true;
         writerCluster.objectiveNormalizedMeasure = 1;
         writerCluster.objectiveSatisfiedStatus = true;

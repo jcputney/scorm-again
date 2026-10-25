@@ -971,6 +971,13 @@ export class TerminationHandler {
       activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
     }
 
+    // @spec SCORM 2004 SN 4th Ed. RB.1.2.a / UP.4 / SM.7
+    // Decide the inactive cluster before its write map transfers the result.
+    // No read phase here: an inactive read/write map would restore the previous global value.
+    if (activity.children.length > 0) {
+      this.rollupProcess.rollupActivity(activity);
+    }
+
     // A write map transfers the terminating attempt's final status, including
     // unknown status, before other activities read the shared objective.
     const writeTargets = this.rollupProcess.syncTerminatedActivityObjectives(
@@ -1002,7 +1009,12 @@ export class TerminationHandler {
 
     // Trigger rollup after global objective sync
     // Rollup calculates satisfaction and completion based on children and global state
-    this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap);
+    // Roll up a cluster itself now that its attempt is inactive (RB.1.5, UP.4).
+    this.rollupProcess.overallRollupProcess(
+      activity,
+      this.globalObjectiveMap,
+      activity.children.length > 0,
+    );
 
     // Rollup can recalculate an active cluster's primary objective from its
     // children. Reapply only the fields written by this terminating descendant

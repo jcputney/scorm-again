@@ -1,3 +1,5 @@
+import { ObjectiveEvaluationContext } from "../../../../../src/cmi/scorm2004/sequencing/objectives/objective_evaluation_context";
+import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   GlobalObjective,
@@ -1409,4 +1411,107 @@ describe("GlobalObjectiveSynchronizer", () => {
       expect(objective2.satisfiedStatus).toBe(true);
     });
   });
+});
+
+describe("measure satisfaction deferral", () => {
+  function setup(active = true, msia = false) {
+    const activity = new Activity("writer", "Writer");
+    activity.addChild(new Activity("leaf", "Leaf"));
+    activity.isActive = active;
+    activity.applyRollupConsiderations({ measureSatisfactionIfActive: msia });
+    const objective = new ActivityObjective("primary", {
+      isPrimary: true,
+      satisfiedByMeasure: true,
+      minNormalizedMeasure: 0.6,
+      mapInfo: [
+        {
+          targetObjectiveID: "shared",
+          readSatisfiedStatus: false,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: false,
+          writeNormalizedMeasure: true,
+        },
+      ],
+    });
+    activity.primaryObjective = objective;
+    objective.measureStatus = true;
+    objective.normalizedMeasure = 1;
+    objective.satisfiedStatus = !active || msia;
+    objective.progressStatus = !active || msia;
+    objective.applyToActivity(activity);
+    return { activity, objective, sync: new GlobalObjectiveSynchronizer() };
+  }
+
+  it("projects deferred satisfaction as unknown without mutating the live writer or global", () => {
+    const { activity, objective } = setup();
+    const root = new Activity("root", "Root");
+    const reader = new Activity("reader", "Reader");
+    root.addChild(activity);
+    root.addChild(reader);
+    reader.primaryObjective = new ActivityObjective("reader-primary", {
+      isPrimary: true,
+      mapInfo: [
+        {
+          targetObjectiveID: "shared",
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: false,
+          readNormalizedMeasure: false,
+          writeNormalizedMeasure: false,
+        },
+      ],
+    });
+    const tree = new ActivityTree(root);
+    tree.currentActivity = activity.children[0];
+    const global = createGlobalObjective();
+    const context = new ObjectiveEvaluationContext(tree, new Map([["shared", global]]));
+    const view = context.project(reader);
+    expect(view).not.toBe(reader);
+    expect(view.objectiveSatisfiedStatusKnown).toBe(false);
+    expect(global.satisfiedStatusKnown).toBe(false);
+    expect(activity.isActive).toBe(true);
+    expect(objective.measureStatus).toBe(true);
+  });
+
+  it.each([true, false])(
+    "preserves prior satisfied knowledge=%s while deferred on an evaluation view",
+    (known) => {
+      const { activity, sync } = setup();
+      const global = createGlobalObjective({ satisfiedStatus: known, satisfiedStatusKnown: known });
+      const view = activity.createObjectiveEvaluationView();
+      expect(view.isActive).toBe(true);
+      expect(view.rollupConsiderations.measureSatisfactionIfActive).toBe(false);
+      const targets = sync.syncTerminatedActivityWritePhase(view, new Map([["shared", global]]));
+      expect(global.satisfiedStatus).toBe(known);
+      expect(global.satisfiedStatusKnown).toBe(known);
+      expect(targets.satisfiedStatus.has("shared")).toBe(false);
+      expect(global.normalizedMeasure).toBe(1);
+      expect(global.normalizedMeasureKnown).toBe(true);
+      expect(targets.normalizedMeasure.has("shared")).toBe(true);
+    },
+  );
+
+  it.each([
+    [true, true],
+    [false, false],
+  ])("writes decided satisfaction active=%s msia=%s", (active, msia) => {
+    const { activity, sync } = setup(active, msia);
+    const global = createGlobalObjective();
+    const targets = sync.syncTerminatedActivityWritePhase(activity, new Map([["shared", global]]));
+    expect(global.satisfiedStatusKnown).toBe(true);
+    expect(global.satisfiedStatus).toBe(true);
+    expect(targets.satisfiedStatus.has("shared")).toBe(true);
+  });
+
+  it.each([true, false])(
+    "writes measure without derived satisfaction, prior knowledge=%s",
+    (known) => {
+      const { activity, objective, sync } = setup();
+      const global = createGlobalObjective({ satisfiedStatus: known, satisfiedStatusKnown: known });
+      sync.syncObjectiveState(activity, objective, objective.mapInfo[0], global);
+      expect(global.normalizedMeasureKnown).toBe(true);
+      expect(global.normalizedMeasure).toBe(1);
+      expect(global.satisfiedStatusKnown).toBe(known);
+      expect(global.satisfiedStatus).toBe(known);
+    },
+  );
 });
