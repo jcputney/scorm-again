@@ -2132,6 +2132,161 @@ class EventService {
   }
 }
 
+class SynchronousHttpService {
+  settings;
+  error_codes;
+  /**
+   * Constructor for SynchronousHttpService
+   * @param {InternalSettings} settings - The settings object
+   * @param {ErrorCode} error_codes - The error codes object
+   */
+  constructor(settings, error_codes) {
+    this.settings = settings;
+    this.error_codes = error_codes;
+  }
+  /**
+   * Sends synchronous HTTP requests to the LMS
+   * @param {string} url - The URL endpoint to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+   * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
+   * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
+   * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
+   * @return {ResultObject} - The result of the request (synchronous)
+   *
+   * @remarks
+   * The apiLog and processListeners parameters are part of the IHttpService interface contract
+   * but are not used by SynchronousHttpService because:
+   * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
+   * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
+   * - AsynchronousHttpService uses these parameters to handle background request results
+   */
+  processHttpRequest(url, params, immediate = false, _apiLog, _processListeners, metadata, _onRequestComplete) {
+    if (immediate) {
+      return this._handleImmediateRequest(url, params, metadata);
+    }
+    return this._performSyncXHR(url, params, metadata);
+  }
+  /**
+   * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @return {ResultObject} - The result based on beacon success
+   * @private
+   */
+  _handleImmediateRequest(url, params, metadata) {
+    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+      return this._performSyncXHR(url, params, metadata);
+    }
+    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+    const requestPayload = handledPayload ?? params;
+    const { body } = this._prepareRequestBody(requestPayload);
+    const beaconContentType = this.settings.terminationCommitContentType;
+    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
+    return {
+      result: beaconSuccess ? "true" : "false",
+      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
+    };
+  }
+  _warnIfBeaconContentTypeUnsafe(url, contentType) {
+    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+      this.settings.onLogMessage?.(
+        LogLevelEnum.WARN,
+        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`
+      );
+    }
+  }
+  /**
+   * Performs a synchronous XMLHttpRequest
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @return {ResultObject} - The result of the request
+   * @private
+   */
+  _performSyncXHR(url, params, metadata) {
+    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+    const requestPayload = handledPayload ?? params;
+    const { body, contentType } = this._prepareRequestBody(requestPayload);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url, false);
+    xhr.setRequestHeader("Content-Type", contentType);
+    Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, String(value));
+    });
+    if (this.settings.xhrWithCredentials) {
+      xhr.withCredentials = true;
+    }
+    try {
+      xhr.send(body);
+      return this.settings.xhrResponseHandler(xhr);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return {
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+        errorMessage: message
+      };
+    }
+  }
+  performAsyncRequest(url, params, metadata) {
+    return new Promise((resolve) => {
+      const failure = (error) => resolve({
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+        ...error instanceof Error ? { errorMessage: error.message } : {}
+      });
+      try {
+        const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+        const requestPayload = handledPayload ?? params;
+        const { body, contentType } = this._prepareRequestBody(requestPayload);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", contentType);
+        Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
+          xhr.setRequestHeader(key, String(value));
+        });
+        if (this.settings.xhrWithCredentials) {
+          xhr.withCredentials = true;
+        }
+        xhr.onload = () => {
+          try {
+            resolve(this.settings.xhrResponseHandler(xhr));
+          } catch (error) {
+            failure(error);
+          }
+        };
+        xhr.onerror = () => failure();
+        xhr.ontimeout = () => failure();
+        xhr.send(body);
+      } catch (error) {
+        failure(error);
+      }
+    });
+  }
+  /**
+   * Prepares the request body and content type based on params type
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Object} - Object containing body and contentType
+   * @private
+   */
+  _prepareRequestBody(params) {
+    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+    const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+    return { body, contentType };
+  }
+  /**
+   * Updates the service settings
+   * @param {InternalSettings} settings - The new settings
+   */
+  updateSettings(settings) {
+    this.settings = settings;
+  }
+}
+
 class OfflineStorageService {
   /**
    * Constructor for OfflineStorageService
@@ -2139,8 +2294,12 @@ class OfflineStorageService {
    * @param {ErrorCode} error_codes - The error codes object
    * @param {Function} apiLog - The logging function
    */
-  constructor(settings, error_codes, apiLog) {
+  constructor(settings, error_codes, apiLog, httpService, getLearnerId = () => "", processListeners = () => {
+  }) {
     this.apiLog = apiLog;
+    this.httpService = httpService;
+    this.getLearnerId = getLearnerId;
+    this.processListeners = processListeners;
     this.settings = settings;
     this.error_codes = error_codes;
     this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -2150,6 +2309,9 @@ class OfflineStorageService {
     window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
   apiLog;
+  httpService;
+  getLearnerId;
+  processListeners;
   settings;
   error_codes;
   storeName = "scorm_again_offline_data";
@@ -2165,23 +2327,7 @@ class OfflineStorageService {
     const wasOnline = this.isOnline;
     this.isOnline = navigator.onLine;
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        }
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -2221,23 +2367,7 @@ class OfflineStorageService {
       LogLevelEnum.INFO
     );
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        }
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -2245,6 +2375,36 @@ class OfflineStorageService {
         LogLevelEnum.INFO
       );
     }
+  }
+  /**
+   * Sync queued data when the device comes back online.
+   */
+  syncAfterReconnect() {
+    if (!this.hasQueuedData(this.settings.courseId)) {
+      this.apiLog(
+        "OfflineStorageService",
+        "Device is back online, nothing to sync",
+        LogLevelEnum.INFO
+      );
+      return;
+    }
+    this.apiLog(
+      "OfflineStorageService",
+      "Device is back online, attempting to sync...",
+      LogLevelEnum.INFO
+    );
+    this.syncOfflineData().then(
+      (success) => {
+        if (success) {
+          this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+        } else {
+          this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+        }
+      },
+      (error) => {
+        this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+      }
+    );
   }
   /**
    * Store commit data offline
@@ -2258,6 +2418,7 @@ class OfflineStorageService {
       const queueItem = {
         id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         courseId,
+        learnerId: metadata?.learnerId ?? this.getLearnerId(),
         timestamp: Date.now(),
         data: commitData,
         syncAttempts: 0,
@@ -2309,6 +2470,10 @@ class OfflineStorageService {
       return null;
     }
   }
+  getPendingOfflineData(courseId, learnerId) {
+    const queue = this.getFromStorage(this.syncQueue) || [];
+    return queue.filter((item) => item.courseId === courseId && item.learnerId === learnerId).map((item) => item.data);
+  }
   /**
    * Synchronize offline data with the LMS when connection is available
    * @returns {Promise<boolean>} - Success status of synchronization
@@ -2318,19 +2483,30 @@ class OfflineStorageService {
       return false;
     }
     this.syncInProgress = true;
+    let started = false;
+    let success = false;
     try {
       const syncQueue = this.getFromStorage(this.syncQueue) || [];
-      if (syncQueue.length === 0) {
-        this.syncInProgress = false;
-        return true;
+      const learnerId = this.getLearnerId();
+      const matches = (item) => item.courseId === this.settings.courseId && (item.learnerId === void 0 || item.learnerId === learnerId);
+      const matchingCount = syncQueue.filter(matches).length;
+      if (matchingCount === 0) {
+        return false;
       }
+      started = true;
+      this.processListeners("OfflineDataSyncing");
+      let allAccepted = true;
       this.apiLog(
         "OfflineStorageService",
-        `Found ${syncQueue.length} items to sync`,
+        `Found ${matchingCount} items to sync`,
         LogLevelEnum.INFO
       );
       const remainingQueue = [];
       for (const item of syncQueue) {
+        if (!matches(item)) {
+          remainingQueue.push(item);
+          continue;
+        }
         const maxAttempts = this.settings.maxSyncAttempts ?? 5;
         if (item.syncAttempts >= maxAttempts) {
           this.apiLog(
@@ -2338,6 +2514,7 @@ class OfflineStorageService {
             `Removing abandoned item ${item.id} after ${maxAttempts} failed sync attempts`,
             LogLevelEnum.WARN
           );
+          allAccepted = false;
           continue;
         }
         try {
@@ -2352,6 +2529,7 @@ class OfflineStorageService {
               LogLevelEnum.INFO
             );
           } else {
+            allAccepted = false;
             item.syncAttempts++;
             remainingQueue.push(item);
             this.apiLog(
@@ -2361,6 +2539,7 @@ class OfflineStorageService {
             );
           }
         } catch (error) {
+          allAccepted = false;
           item.syncAttempts++;
           remainingQueue.push(item);
           this.apiLog(
@@ -2371,21 +2550,34 @@ class OfflineStorageService {
         }
       }
       this.saveToStorage(this.syncQueue, remainingQueue);
+      for (const courseId of new Set(syncQueue.filter(matches).map((item) => item.courseId))) {
+        if (!remainingQueue.some((item) => item.courseId === courseId)) {
+          this.removeFromStorage(`${this.storeName}_${courseId}`);
+        }
+      }
       this.apiLog(
         "OfflineStorageService",
         `Sync completed. ${syncQueue.length - remainingQueue.length} items synced, ${remainingQueue.length} items remaining`,
         LogLevelEnum.INFO
       );
-      this.syncInProgress = false;
-      return true;
+      success = allAccepted;
+      return success;
     } catch (error) {
+      if (!started) {
+        started = true;
+        this.processListeners("OfflineDataSyncing");
+      }
       this.apiLog(
         "OfflineStorageService",
         `Error during sync process: ${error}`,
         LogLevelEnum.ERROR
       );
-      this.syncInProgress = false;
       return false;
+    } finally {
+      this.syncInProgress = false;
+      if (started) {
+        this.processListeners(success ? "OfflineDataSynced" : "OfflineDataSyncFailed");
+      }
     }
   }
   /**
@@ -2404,19 +2596,50 @@ class OfflineStorageService {
     }
     try {
       const lmsCommitUrl = String(configuredCommitUrl);
-      const processedData = this.settings.requestHandler(data, {
+      const requestUrl = metadata?.isTerminateCommit && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+      const commitMetadata = {
         isTerminateCommit: metadata?.isTerminateCommit ?? false,
         trigger: "offline-replay",
         ...metadata?.sequence !== void 0 ? { sequence: metadata.sequence } : {}
-      });
-      const requestUrl = metadata?.isTerminateCommit && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+      };
+      const httpService = this.httpService;
+      if (httpService instanceof SynchronousHttpService && !("reportsRequestCompletion" in httpService && httpService.reportsRequestCompletion)) {
+        return await httpService.performAsyncRequest(requestUrl, data, commitMetadata);
+      }
+      if (httpService) {
+        return await new Promise((resolve, reject) => {
+          try {
+            const result2 = httpService.processHttpRequest(
+              requestUrl,
+              data,
+              false,
+              this.apiLog,
+              (event, _element, errorCode) => {
+                if (event === "CommitSuccess") resolve({ result: "true", errorCode: 0 });
+                if (event === "CommitError") resolve({ result: "false", errorCode });
+              },
+              commitMetadata,
+              // A deferring service settles each request through this callback. If it sent
+              // no commit event first, the replay counts as failed and stays queued.
+              () => resolve({
+                result: "false",
+                errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391
+              })
+            );
+            if (!httpService.reportsRequestCompletion) resolve(result2);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+      const processedData = this.settings.requestHandler(data, commitMetadata) ?? data;
       const init = {
         method: "POST",
         mode: this.settings.fetchMode,
-        body: JSON.stringify(processedData),
+        body: Array.isArray(processedData) ? processedData.join("&") : JSON.stringify(processedData),
         headers: {
           ...this.settings.xhrHeaders,
-          "Content-Type": this.settings.commitRequestDataType
+          "Content-Type": Array.isArray(processedData) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType
         }
       };
       if (this.settings.xhrWithCredentials) {
@@ -2488,14 +2711,33 @@ class OfflineStorageService {
       throw error;
     }
   }
+  removeFromStorage(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        throw new Error("storage quota exceeded - localStorage is full", { cause: error });
+      }
+      throw error;
+    }
+  }
   /**
    * Check if there is pending offline data for a course
    * @param {string} courseId - Identifier for the course
    * @returns {Promise<boolean>} - Whether there is pending data
    */
   async hasPendingOfflineData(courseId) {
+    return this.hasQueuedData(courseId);
+  }
+  /**
+   * Check for queued data matching the course and current learner.
+   */
+  hasQueuedData(courseId) {
     const queue = this.getFromStorage(this.syncQueue) || [];
-    return queue.some((item) => item.courseId === courseId);
+    const learnerId = this.getLearnerId();
+    return queue.some(
+      (item) => item.courseId === courseId && (item.learnerId === void 0 || item.learnerId === learnerId)
+    );
   }
   /**
    * Update the service settings
@@ -2816,126 +3058,6 @@ class SerializationService {
   }
 }
 
-class SynchronousHttpService {
-  settings;
-  error_codes;
-  /**
-   * Constructor for SynchronousHttpService
-   * @param {InternalSettings} settings - The settings object
-   * @param {ErrorCode} error_codes - The error codes object
-   */
-  constructor(settings, error_codes) {
-    this.settings = settings;
-    this.error_codes = error_codes;
-  }
-  /**
-   * Sends synchronous HTTP requests to the LMS
-   * @param {string} url - The URL endpoint to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-   * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
-   * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
-   * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
-   * @param {CommitMetadata} metadata - Metadata describing the captured commit
-   * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
-   * @return {ResultObject} - The result of the request (synchronous)
-   *
-   * @remarks
-   * The apiLog and processListeners parameters are part of the IHttpService interface contract
-   * but are not used by SynchronousHttpService because:
-   * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
-   * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
-   * - AsynchronousHttpService uses these parameters to handle background request results
-   */
-  processHttpRequest(url, params, immediate = false, _apiLog, _processListeners, metadata, _onRequestComplete) {
-    if (immediate) {
-      return this._handleImmediateRequest(url, params, metadata);
-    }
-    return this._performSyncXHR(url, params, metadata);
-  }
-  /**
-   * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
-   * @param {string} url - The URL to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @param {CommitMetadata} metadata - Metadata describing the captured commit
-   * @return {ResultObject} - The result based on beacon success
-   * @private
-   */
-  _handleImmediateRequest(url, params, metadata) {
-    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
-      return this._performSyncXHR(url, params, metadata);
-    }
-    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-    const requestPayload = handledPayload ?? params;
-    const { body } = this._prepareRequestBody(requestPayload);
-    const beaconContentType = this.settings.terminationCommitContentType;
-    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
-    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
-    return {
-      result: beaconSuccess ? "true" : "false",
-      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
-    };
-  }
-  _warnIfBeaconContentTypeUnsafe(url, contentType) {
-    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
-      this.settings.onLogMessage?.(
-        LogLevelEnum.WARN,
-        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`
-      );
-    }
-  }
-  /**
-   * Performs a synchronous XMLHttpRequest
-   * @param {string} url - The URL to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @param {CommitMetadata} metadata - Metadata describing the captured commit
-   * @return {ResultObject} - The result of the request
-   * @private
-   */
-  _performSyncXHR(url, params, metadata) {
-    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-    const requestPayload = handledPayload ?? params;
-    const { body, contentType } = this._prepareRequestBody(requestPayload);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url, false);
-    xhr.setRequestHeader("Content-Type", contentType);
-    Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
-      xhr.setRequestHeader(key, String(value));
-    });
-    if (this.settings.xhrWithCredentials) {
-      xhr.withCredentials = true;
-    }
-    try {
-      xhr.send(body);
-      return this.settings.xhrResponseHandler(xhr);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      return {
-        result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
-        errorMessage: message
-      };
-    }
-  }
-  /**
-   * Prepares the request body and content type based on params type
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @return {Object} - Object containing body and contentType
-   * @private
-   */
-  _prepareRequestBody(params) {
-    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
-    const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
-    return { body, contentType };
-  }
-  /**
-   * Updates the service settings
-   * @param {InternalSettings} settings - The new settings
-   */
-  updateSettings(settings) {
-    this.settings = settings;
-  }
-}
-
 function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
   return checkValidFormat(
     CMIElement,
@@ -3146,7 +3268,10 @@ class BaseAPI {
       this._offlineStorageService = offlineStorageService || new OfflineStorageService(
         this.settings,
         this._error_codes,
-        (functionName, message, level, element) => this.apiLog(functionName, message, level, element)
+        (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
+        this._httpService,
+        () => this.getOfflineLearnerId(),
+        (event) => this.processListeners(event)
       );
       if (this.settings.courseId) {
         this._courseId = this.settings.courseId;
@@ -3163,35 +3288,14 @@ class BaseAPI {
                 );
                 return this._offlineStorageService?.syncOfflineData();
               }
-            }).then((syncSuccess) => {
-              if (syncSuccess) {
-                this.processListeners("OfflineDataSynced");
-              } else if (syncSuccess === false) {
-                this.processListeners("OfflineDataSyncFailed");
-              }
             }).catch((error) => {
               this.apiLog(
                 "BeforeTerminate",
                 `Error syncing offline data: ${error}`,
                 LogLevelEnum.ERROR
               );
-              this.processListeners("OfflineDataSyncFailed");
             });
           }
-        });
-      }
-      if (this._offlineStorageService && this._courseId) {
-        this._offlineStorageService.getOfflineData(this._courseId).then((offlineData) => {
-          if (offlineData) {
-            this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
-            this.loadFromJSON(offlineData.runtimeData);
-          }
-        }).catch((error) => {
-          this.apiLog(
-            "constructor",
-            `Error retrieving offline data: ${error}`,
-            LogLevelEnum.ERROR
-          );
         });
       }
     }
@@ -3268,6 +3372,62 @@ class BaseAPI {
       }
     }
   }
+  getOfflineLearnerId() {
+    return this.getCMIValue("core" in this.cmi ? "cmi.core.student_id" : "cmi.learner_id") || "";
+  }
+  restoreOfflineData() {
+    if (!this.settings.enableOfflineSupport || !this._courseId || !this.isNotInitialized()) {
+      return;
+    }
+    try {
+      const pending = this._offlineStorageService?.getPendingOfflineData?.(
+        this._courseId,
+        this.getOfflineLearnerId()
+      ) ?? [];
+      if (pending.length) this.cmi.initialize();
+      const restoreValue = (element, value) => {
+        if (!/^cmi\.(core\.)?(session_time|exit)$/.test(element) && !/^cmi\.comments_from_lms(\.|$)/.test(element)) {
+          try {
+            this.setCMIValue(element, value);
+          } catch {
+          }
+        }
+      };
+      for (const data of pending) {
+        try {
+          const runtimeData = Array.isArray(data) ? data : data.runtimeData ?? data;
+          if (Array.isArray(runtimeData)) {
+            this.apiLog("Initialize", "Skipping restore of params payload", LogLevelEnum.WARN);
+          } else if (runtimeData.cmi) {
+            this._serializationService.loadFromFlattenedJSON(
+              flatten({ cmi: runtimeData.cmi }),
+              "",
+              restoreValue,
+              () => true,
+              () => {
+              }
+            );
+          } else {
+            const cmiData = Object.fromEntries(
+              Object.entries(runtimeData).filter(([key]) => key.startsWith("cmi."))
+            );
+            this._serializationService.loadFromFlattenedJSON(
+              cmiData,
+              "",
+              restoreValue,
+              () => true,
+              () => {
+              }
+            );
+          }
+        } catch (error) {
+          this.apiLog("Initialize", `Error restoring offline data: ${error}`, LogLevelEnum.ERROR);
+        }
+      }
+    } catch (error) {
+      this.apiLog("Initialize", `Error restoring offline data: ${error}`, LogLevelEnum.ERROR);
+    }
+  }
   /**
    * Initialize the API
    * @param {string} callbackName
@@ -3300,7 +3460,6 @@ class BaseAPI {
             void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                this.processListeners("OfflineDataSynced");
               }
             });
           }
@@ -3577,7 +3736,6 @@ class BaseAPI {
             void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                this.processListeners("OfflineDataSynced");
               } else {
                 this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
               }
@@ -4112,23 +4270,11 @@ class BaseAPI {
           "Device is offline, storing data locally",
           LogLevelEnum.INFO
         );
-        if (finalParams && typeof finalParams === "object" && "cmi" in finalParams) {
-          return this._offlineStorageService.storeOffline(
-            this._courseId,
-            finalParams,
-            { isTerminateCommit: immediate, sequence }
-          );
-        } else {
-          this.apiLog(
-            "processHttpRequest",
-            "Invalid commit data format for offline storage",
-            LogLevelEnum.ERROR
-          );
-          return {
-            result: global_constants.SCORM_FALSE,
-            errorCode: this._error_codes.GENERAL ?? 101
-          };
-        }
+        return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
+          learnerId: this.getOfflineLearnerId(),
+          isTerminateCommit: immediate,
+          sequence
+        });
       }
       const apiLog = (functionName, message, level, element) => this.apiLog(functionName, message, level, element);
       const processListeners = (functionName, CMIElement, value) => {
@@ -6095,6 +6241,7 @@ class Scorm12API extends BaseAPI {
       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
       return global_constants.SCORM_FALSE;
     }
+    this.restoreOfflineData();
     this.cmi.initialize();
     if (this.cmi.core.lesson_status) {
       this.statusSetByModule = true;

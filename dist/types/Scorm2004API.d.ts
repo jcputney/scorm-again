@@ -63,6 +63,7 @@ declare class Scorm2004API extends BaseAPI {
     lmsGetErrorString(CMIErrorCode: string | number): string;
     lmsGetDiagnostic(CMIErrorCode: string | number): string;
     loadFromJSON(json: StringKeyMap, CMIElement?: string): void;
+    protected restoreOfflineData(): void;
     setCMIValue(CMIElement: string, value: any): string;
     private currentActivityAllowsGlobalObjectiveWrites;
     getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null;

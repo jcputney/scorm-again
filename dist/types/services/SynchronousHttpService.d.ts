@@ -10,6 +10,7 @@ export declare class SynchronousHttpService implements IHttpService {
     private _handleImmediateRequest;
     private _warnIfBeaconContentTypeUnsafe;
     private _performSyncXHR;
+    performAsyncRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, metadata?: CommitMetadata): Promise<ResultObject>;
     private _prepareRequestBody;
     updateSettings(settings: InternalSettings): void;
 }

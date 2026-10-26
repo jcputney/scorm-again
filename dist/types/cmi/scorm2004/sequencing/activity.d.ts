@@ -81,6 +81,8 @@ export interface RollupStatusSnapshot {
     objectiveSatisfiedStatus: boolean;
     attemptProgressStatus: boolean;
     attemptCompletionStatus: boolean;
+    attemptCompletionAmount: number;
+    attemptCompletionAmountStatus: boolean;
 }
 export declare class ActivityObjective {
     private _id;

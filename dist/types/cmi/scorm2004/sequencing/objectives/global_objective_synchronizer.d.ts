@@ -70,6 +70,7 @@ export declare class GlobalObjectiveSynchronizer {
     private applyGlobalObjectiveReadState;
     ensureGlobalObjectiveEntry(globalObjectives: Map<string, GlobalObjective>, targetId: string, objective: ActivityObjective): GlobalObjective;
     createDefaultMapInfo(objective: ActivityObjective): ObjectiveMapInfo;
+    private isMeasureSatisfactionDeferred;
     private hasKnownSatisfiedStatus;
     private canWriteGlobalObjectives;
     getLocalObjectiveState(activity: Activity, objective: ActivityObjective, isPrimary: boolean): LocalObjectiveState;

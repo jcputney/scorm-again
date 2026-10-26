@@ -49,11 +49,13 @@ export interface ILoggingService {
     debug(logMessage: string): void;
 }
 export interface IOfflineStorageService {
-    storeOffline(courseId: string, commitData: CommitObject, metadata?: {
+    storeOffline(courseId: string, commitData: CommitObject | StringKeyMap | Array<any>, metadata?: {
+        learnerId?: string;
         isTerminateCommit?: boolean;
         sequence?: number;
     }): ResultObject;
-    getOfflineData(courseId: string): Promise<CommitObject | null>;
+    getPendingOfflineData?(courseId: string, learnerId: string): (CommitObject | StringKeyMap | Array<any>)[];
+    getOfflineData(courseId: string): Promise<CommitObject | StringKeyMap | Array<any> | null>;
     syncOfflineData(): Promise<boolean>;
     hasPendingOfflineData(courseId: string): Promise<boolean>;
     isDeviceOnline(): boolean;

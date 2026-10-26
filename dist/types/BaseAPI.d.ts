@@ -29,6 +29,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     protected get loggingService(): ILoggingService;
     abstract reset(settings?: Settings, options?: ResetOptions): void;
     commonReset(settings?: Settings, options?: ResetOptions): void;
+    protected getOfflineLearnerId(): string;
+    protected restoreOfflineData(): void;
     initialize(callbackName: string, initializeMessage?: string, terminationMessage?: string): string;
     abstract lmsInitialize(parameter?: string): string;
     abstract lmsFinish(parameter?: string): string;

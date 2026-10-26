@@ -6,7 +6,7 @@
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$b(arr) {
+  function _array_with_holes$c(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _array_without_holes$d(arr) {
@@ -17,7 +17,7 @@
           return Array.from(iter);
       }
   }
-  function _iterable_to_array_limit$b(arr, i) {
+  function _iterable_to_array_limit$c(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -41,14 +41,14 @@
       }
       return _arr;
   }
-  function _non_iterable_rest$b() {
+  function _non_iterable_rest$c() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$d() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _sliced_to_array$b(arr, i) {
-      return _array_with_holes$b(arr) || _iterable_to_array_limit$b(arr, i) || _unsupported_iterable_to_array$k(arr, i) || _non_iterable_rest$b();
+  function _sliced_to_array$c(arr, i) {
+      return _array_with_holes$c(arr) || _iterable_to_array_limit$c(arr, i) || _unsupported_iterable_to_array$k(arr, i) || _non_iterable_rest$c();
   }
   function _to_consumable_array$d(arr) {
       return _array_without_holes$d(arr) || _iterable_to_array$d(arr) || _unsupported_iterable_to_array$k(arr) || _non_iterable_spread$d();
@@ -117,7 +117,7 @@
       var remainder = seconds;
       var designationEntries = Object.entries(designations);
       designationEntries.forEach(function(param) {
-          var _param = _sliced_to_array$b(param, 2), designationsKey = _param[0], current_seconds = _param[1];
+          var _param = _sliced_to_array$c(param, 2), designationsKey = _param[0], current_seconds = _param[1];
           var value = Math.floor(remainder / current_seconds);
           remainder = remainder % current_seconds;
           if (countDecimals(remainder) > 2) {
@@ -177,7 +177,7 @@
       if (!duration || !(duration === null || duration === void 0 ? void 0 : (_duration_match = duration.match) === null || _duration_match === void 0 ? void 0 : _duration_match.call(duration, durationRegex))) {
           return 0;
       }
-      var _ref1 = _sliced_to_array$b((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
+      var _ref1 = _sliced_to_array$c((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
       var result = 0;
       result += Number(seconds) || 0;
       result += Number(minutes) * 60 || 0;
@@ -1067,7 +1067,7 @@
       return Scorm2004ValidationError;
   }(ValidationError);
 
-  function _define_property$k(obj, key, value) {
+  function _define_property$l(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -1078,7 +1078,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$k(target) {
+  function _object_spread$l(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -1088,7 +1088,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$k(target, key, source[key]);
+              _define_property$l(target, key, source[key]);
           });
       }
       return target;
@@ -1141,7 +1141,7 @@
       VALUE_OUT_OF_RANGE: 101,
       DEPENDENCY_NOT_ESTABLISHED: 101
   };
-  var scorm12_errors = _object_spread_props$a(_object_spread$k({}, global_errors), {
+  var scorm12_errors = _object_spread_props$a(_object_spread$l({}, global_errors), {
       TERMINATION_BEFORE_INIT: 301,
       RETRIEVE_BEFORE_INIT: 301,
       STORE_BEFORE_INIT: 301,
@@ -1162,7 +1162,7 @@
       VALUE_OUT_OF_RANGE: 405,
       DEPENDENCY_NOT_ESTABLISHED: 408
   });
-  var scorm2004_errors = _object_spread_props$a(_object_spread$k({}, global_errors), {
+  var scorm2004_errors = _object_spread_props$a(_object_spread$l({}, global_errors), {
       INITIALIZATION_FAILED: 102,
       INITIALIZED: 103,
       TERMINATED: 104,
@@ -2050,7 +2050,7 @@
       }
   };
 
-  function _define_property$j(obj, key, value) {
+  function _define_property$k(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -2061,7 +2061,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$j(target) {
+  function _object_spread$k(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -2071,7 +2071,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$j(target, key, source[key]);
+              _define_property$k(target, key, source[key]);
           });
       }
       return target;
@@ -2167,7 +2167,7 @@
   var SuspendExceptions = {
       "SB.2.15-1": "Cannot suspend root"
   };
-  _object_spread$j({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
+  _object_spread$k({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
 
   function _class_call_check$1f(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -7890,7 +7890,7 @@
       if (protoProps) _defineProperties$10(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$i(obj, key, value) {
+  function _define_property$j(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -7901,7 +7901,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$i(target) {
+  function _object_spread$j(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -7911,7 +7911,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$i(target, key, source[key]);
+              _define_property$j(target, key, source[key]);
           });
       }
       return target;
@@ -8033,7 +8033,7 @@
      * @param {ActivityDeliveryCallbacks} callbacks - The new callbacks
      */ key: "updateCallbacks",
               value: function updateCallbacks(callbacks) {
-                  this.callbacks = _object_spread$i({}, this.callbacks, callbacks);
+                  this.callbacks = _object_spread$j({}, this.callbacks, callbacks);
               }
           },
           {
@@ -8096,7 +8096,7 @@
       if (protoProps) _defineProperties$$(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$h(obj, key, value) {
+  function _define_property$i(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -8113,7 +8113,7 @@
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _object_spread$h(target) {
+  function _object_spread$i(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -8123,7 +8123,7 @@
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$h(target, key, source[key]);
+              _define_property$i(target, key, source[key]);
           });
       }
       return target;
@@ -8440,7 +8440,7 @@
                       method: "POST",
                       mode: this.settings.fetchMode,
                       body: body,
-                      headers: _object_spread_props$9(_object_spread$h({}, this.settings.xhrHeaders), {
+                      headers: _object_spread_props$9(_object_spread$i({}, this.settings.xhrHeaders), {
                           "Content-Type": contentType
                       }),
                       keepalive: true
@@ -8603,7 +8603,7 @@
                                       result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391;
                                   }
                                   if (!this._isSuccessResponse(response, result)) {
-                                      result.errorDetails = _object_spread$h({
+                                      result.errorDetails = _object_spread$i({
                                           status: response.status,
                                           statusText: response.statusText,
                                           url: response.url
@@ -9823,6 +9823,302 @@
       return EventService;
   }();
 
+  function _array_like_to_array$g(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_with_holes$b(arr) {
+      if (Array.isArray(arr)) return arr;
+  }
+  function _class_call_check$W(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$W(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$W(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _define_property$h(obj, key, value) {
+      if (key in obj) {
+          Object.defineProperty(obj, key, {
+              value: value,
+              enumerable: true,
+              configurable: true,
+              writable: true
+          });
+      } else obj[key] = value;
+      return obj;
+  }
+  function _instanceof$c(left, right) {
+      "@swc/helpers - instanceof";
+      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
+          return !!right[Symbol.hasInstance](left);
+      } else return left instanceof right;
+  }
+  function _iterable_to_array_limit$b(arr, i) {
+      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+      if (_i == null) return;
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _s, _e;
+      try {
+          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
+              _arr.push(_s.value);
+              if (i && _arr.length === i) break;
+          }
+      } catch (err) {
+          _d = true;
+          _e = err;
+      } finally{
+          try {
+              if (!_n && _i["return"] != null) _i["return"]();
+          } finally{
+              if (_d) throw _e;
+          }
+      }
+      return _arr;
+  }
+  function _non_iterable_rest$b() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _object_spread$h(target) {
+      for(var i = 1; i < arguments.length; i++){
+          var source = arguments[i] != null ? arguments[i] : {};
+          var ownKeys = Object.keys(source);
+          if (typeof Object.getOwnPropertySymbols === "function") {
+              ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function(sym) {
+                  return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+              }));
+          }
+          ownKeys.forEach(function(key) {
+              _define_property$h(target, key, source[key]);
+          });
+      }
+      return target;
+  }
+  function _sliced_to_array$b(arr, i) {
+      return _array_with_holes$b(arr) || _iterable_to_array_limit$b(arr, i) || _unsupported_iterable_to_array$g(arr, i) || _non_iterable_rest$b();
+  }
+  function _type_of$T(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$g(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
+  }
+  var __defProp$R = Object.defineProperty;
+  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$R(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$R = function __publicField(obj, key, value) {
+      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var SynchronousHttpService = /*#__PURE__*/ function() {
+      function SynchronousHttpService(settings, error_codes) {
+          _class_call_check$W(this, SynchronousHttpService);
+          __publicField$R(this, "settings");
+          __publicField$R(this, "error_codes");
+          this.settings = settings;
+          this.error_codes = error_codes;
+      }
+      _create_class$W(SynchronousHttpService, [
+          {
+              /**
+     * Sends synchronous HTTP requests to the LMS
+     * @param {string} url - The URL endpoint to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+     * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
+     * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
+     * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
+     * @return {ResultObject} - The result of the request (synchronous)
+     *
+     * @remarks
+     * The apiLog and processListeners parameters are part of the IHttpService interface contract
+     * but are not used by SynchronousHttpService because:
+     * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
+     * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
+     * - AsynchronousHttpService uses these parameters to handle background request results
+     */ key: "processHttpRequest",
+              value: function processHttpRequest(url, params) {
+                  var immediate = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, metadata = arguments.length > 5 ? arguments[5] : void 0;
+                  if (immediate) {
+                      return this._handleImmediateRequest(url, params, metadata);
+                  }
+                  return this._performSyncXHR(url, params, metadata);
+              }
+          },
+          {
+              /**
+     * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @return {ResultObject} - The result based on beacon success
+     * @private
+     */ key: "_handleImmediateRequest",
+              value: function _handleImmediateRequest(url, params, metadata) {
+                  if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+                      return this._performSyncXHR(url, params, metadata);
+                  }
+                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
+                  var body = this._prepareRequestBody(requestPayload).body;
+                  var beaconContentType = this.settings.terminationCommitContentType;
+                  this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
+                  var beaconSuccess = navigator.sendBeacon(url, new Blob([
+                      body
+                  ], {
+                      type: beaconContentType
+                  }));
+                  return {
+                      result: beaconSuccess ? "true" : "false",
+                      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
+                  };
+              }
+          },
+          {
+              key: "_warnIfBeaconContentTypeUnsafe",
+              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
+                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+                      var _this_settings_onLogMessage, _this_settings;
+                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
+                  }
+              }
+          },
+          {
+              /**
+     * Performs a synchronous XMLHttpRequest
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @return {ResultObject} - The result of the request
+     * @private
+     */ key: "_performSyncXHR",
+              value: function _performSyncXHR(url, params, metadata) {
+                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
+                  var _this__prepareRequestBody = this._prepareRequestBody(requestPayload), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
+                  var xhr = new XMLHttpRequest();
+                  xhr.open("POST", url, false);
+                  xhr.setRequestHeader("Content-Type", contentType);
+                  Object.entries(this.settings.xhrHeaders).forEach(function(param) {
+                      var _param = _sliced_to_array$b(param, 2), key = _param[0], value = _param[1];
+                      xhr.setRequestHeader(key, String(value));
+                  });
+                  if (this.settings.xhrWithCredentials) {
+                      xhr.withCredentials = true;
+                  }
+                  try {
+                      xhr.send(body);
+                      return this.settings.xhrResponseHandler(xhr);
+                  } catch (e) {
+                      var message = _instanceof$c(e, Error) ? e.message : String(e);
+                      return {
+                          result: global_constants.SCORM_FALSE,
+                          errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+                          errorMessage: message
+                      };
+                  }
+              }
+          },
+          {
+              key: "performAsyncRequest",
+              value: function performAsyncRequest(url, params, metadata) {
+                  var _this = this;
+                  return new Promise(function(resolve) {
+                      var failure = function failure(error) {
+                          return resolve(_object_spread$h({
+                              result: global_constants.SCORM_FALSE,
+                              errorCode: _this.error_codes.GENERAL_COMMIT_FAILURE || 391
+                          }, _instanceof$c(error, Error) ? {
+                              errorMessage: error.message
+                          } : {}));
+                      };
+                      try {
+                          var handledPayload = metadata === void 0 ? _this.settings.requestHandler(params) : _this.settings.requestHandler(params, metadata);
+                          var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
+                          var _this__prepareRequestBody = _this._prepareRequestBody(requestPayload), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
+                          var xhr = new XMLHttpRequest();
+                          xhr.open("POST", url, true);
+                          xhr.setRequestHeader("Content-Type", contentType);
+                          Object.entries(_this.settings.xhrHeaders).forEach(function(param) {
+                              var _param = _sliced_to_array$b(param, 2), key = _param[0], value = _param[1];
+                              xhr.setRequestHeader(key, String(value));
+                          });
+                          if (_this.settings.xhrWithCredentials) {
+                              xhr.withCredentials = true;
+                          }
+                          xhr.onload = function() {
+                              try {
+                                  resolve(_this.settings.xhrResponseHandler(xhr));
+                              } catch (error) {
+                                  failure(error);
+                              }
+                          };
+                          xhr.onerror = function() {
+                              return failure();
+                          };
+                          xhr.ontimeout = function() {
+                              return failure();
+                          };
+                          xhr.send(body);
+                      } catch (error) {
+                          failure(error);
+                      }
+                  });
+              }
+          },
+          {
+              /**
+     * Prepares the request body and content type based on params type
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Object} - Object containing body and contentType
+     * @private
+     */ key: "_prepareRequestBody",
+              value: function _prepareRequestBody(params) {
+                  var body = _instanceof$c(params, Array) ? params.join("&") : JSON.stringify(params);
+                  var contentType = _instanceof$c(params, Array) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+                  return {
+                      body: body,
+                      contentType: contentType
+                  };
+              }
+          },
+          {
+              /**
+     * Updates the service settings
+     * @param {InternalSettings} settings - The new settings
+     */ key: "updateSettings",
+              value: function updateSettings(settings) {
+                  this.settings = settings;
+              }
+          }
+      ]);
+      return SynchronousHttpService;
+  }();
+
   function asyncGeneratorStep$2(gen, resolve, reject, _next, _throw, key, arg) {
       try {
           var info = gen[key](arg);
@@ -9849,10 +10145,10 @@
           });
       };
   }
-  function _class_call_check$W(instance, Constructor) {
+  function _class_call_check$V(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$W(target, props) {
+  function _defineProperties$V(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -9861,8 +10157,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$W(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$W(Constructor.prototype, protoProps);
+  function _create_class$V(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$g(obj, key, value) {
@@ -9876,7 +10172,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _instanceof$c(left, right) {
+  function _instanceof$b(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -10014,34 +10310,40 @@
           };
       }
   }
-  function _type_of$T(obj) {
+  function _type_of$S(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$R = Object.defineProperty;
-  var __defNormalProp$R = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$R(obj, key, {
+  var __defProp$Q = Object.defineProperty;
+  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$Q(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$R = function __publicField(obj, key, value) {
-      return __defNormalProp$R(obj, (typeof key === "undefined" ? "undefined" : _type_of$T(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$Q = function __publicField(obj, key, value) {
+      return __defNormalProp$Q(obj, (typeof key === "undefined" ? "undefined" : _type_of$S(key)) !== "symbol" ? key + "" : key, value);
   };
   var OfflineStorageService = /*#__PURE__*/ function() {
-      function OfflineStorageService(settings, error_codes, apiLog) {
-          _class_call_check$W(this, OfflineStorageService);
-          __publicField$R(this, "apiLog", apiLog);
-          __publicField$R(this, "settings");
-          __publicField$R(this, "error_codes");
-          __publicField$R(this, "storeName", "scorm_again_offline_data");
-          __publicField$R(this, "syncQueue", "scorm_again_sync_queue");
-          __publicField$R(this, "isOnline", navigator.onLine);
-          __publicField$R(this, "syncInProgress", false);
-          __publicField$R(this, "boundOnlineStatusChangeHandler");
-          __publicField$R(this, "boundCustomNetworkStatusHandler");
+      function OfflineStorageService(settings, error_codes, apiLog, httpService) {
+          var getLearnerId = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : function() {
+              return "";
+          }, processListeners = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : function() {};
+          _class_call_check$V(this, OfflineStorageService);
+          __publicField$Q(this, "apiLog", apiLog);
+          __publicField$Q(this, "httpService", httpService);
+          __publicField$Q(this, "getLearnerId", getLearnerId);
+          __publicField$Q(this, "processListeners", processListeners);
+          __publicField$Q(this, "settings");
+          __publicField$Q(this, "error_codes");
+          __publicField$Q(this, "storeName", "scorm_again_offline_data");
+          __publicField$Q(this, "syncQueue", "scorm_again_sync_queue");
+          __publicField$Q(this, "isOnline", navigator.onLine);
+          __publicField$Q(this, "syncInProgress", false);
+          __publicField$Q(this, "boundOnlineStatusChangeHandler");
+          __publicField$Q(this, "boundCustomNetworkStatusHandler");
           this.settings = settings;
           this.error_codes = error_codes;
           this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -10050,26 +10352,16 @@
           window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
           window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
       }
-      _create_class$W(OfflineStorageService, [
+      _create_class$V(OfflineStorageService, [
           {
               /**
      * Handle changes in online status
      */ key: "handleOnlineStatusChange",
               value: function handleOnlineStatusChange() {
-                  var _this = this;
                   var wasOnline = this.isOnline;
                   this.isOnline = navigator.onLine;
                   if (!wasOnline && this.isOnline) {
-                      this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
-                      this.syncOfflineData().then(function(success) {
-                          if (success) {
-                              _this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-                          } else {
-                              _this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-                          }
-                      }, function(error) {
-                          _this.apiLog("OfflineStorageService", "Error during sync: ".concat(error), LogLevelEnum.ERROR);
-                      });
+                      this.syncAfterReconnect();
                   } else if (wasOnline && !this.isOnline) {
                       this.apiLog("OfflineStorageService", "Device is offline, data will be stored locally", LogLevelEnum.INFO);
                   }
@@ -10082,8 +10374,7 @@
      * @param {Event} event - The custom event containing network status
      */ key: "handleCustomNetworkStatus",
               value: function handleCustomNetworkStatus(event) {
-                  var _this = this;
-                  if (!_instanceof$c(event, CustomEvent)) {
+                  if (!_instanceof$b(event, CustomEvent)) {
                       this.apiLog("OfflineStorageService", "Invalid network status event received", LogLevelEnum.WARN);
                       return;
                   }
@@ -10096,19 +10387,32 @@
                   this.isOnline = online;
                   this.apiLog("OfflineStorageService", "Network status updated via custom event: ".concat(online ? "online" : "offline"), LogLevelEnum.INFO);
                   if (!wasOnline && this.isOnline) {
-                      this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
-                      this.syncOfflineData().then(function(success) {
-                          if (success) {
-                              _this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-                          } else {
-                              _this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-                          }
-                      }, function(error) {
-                          _this.apiLog("OfflineStorageService", "Error during sync: ".concat(error), LogLevelEnum.ERROR);
-                      });
+                      this.syncAfterReconnect();
                   } else if (wasOnline && !this.isOnline) {
                       this.apiLog("OfflineStorageService", "Device is offline, data will be stored locally", LogLevelEnum.INFO);
                   }
+              }
+          },
+          {
+              /**
+     * Sync queued data when the device comes back online.
+     */ key: "syncAfterReconnect",
+              value: function syncAfterReconnect() {
+                  var _this = this;
+                  if (!this.hasQueuedData(this.settings.courseId)) {
+                      this.apiLog("OfflineStorageService", "Device is back online, nothing to sync", LogLevelEnum.INFO);
+                      return;
+                  }
+                  this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
+                  this.syncOfflineData().then(function(success) {
+                      if (success) {
+                          _this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+                      } else {
+                          _this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+                      }
+                  }, function(error) {
+                      _this.apiLog("OfflineStorageService", "Error during sync: ".concat(error), LogLevelEnum.ERROR);
+                  });
               }
           },
           {
@@ -10121,9 +10425,11 @@
      */ key: "storeOffline",
               value: function storeOffline(courseId, commitData, metadata) {
                   try {
+                      var _ref;
                       var queueItem = _object_spread$g({
                           id: "".concat(courseId, "_").concat(Date.now(), "_").concat(Math.random().toString(36).substring(2, 9)),
                           courseId: courseId,
+                          learnerId: (_ref = metadata === null || metadata === void 0 ? void 0 : metadata.learnerId) !== null && _ref !== void 0 ? _ref : this.getLearnerId(),
                           timestamp: Date.now(),
                           data: commitData,
                           syncAttempts: 0
@@ -10143,7 +10449,7 @@
                       };
                   } catch (error) {
                       var _this_error_codes_GENERAL;
-                      var errorMessage = _instanceof$c(error, Error) ? error.message : String(error);
+                      var errorMessage = _instanceof$b(error, Error) ? error.message : String(error);
                       var isQuotaError = errorMessage.includes("storage quota");
                       this.apiLog("OfflineStorageService", isQuotaError ? "storage quota exceeded - cannot store offline data for course ".concat(courseId) : "Error storing offline data: ".concat(error), LogLevelEnum.ERROR);
                       return {
@@ -10184,16 +10490,28 @@
               }
           },
           {
+              key: "getPendingOfflineData",
+              value: function getPendingOfflineData(courseId, learnerId) {
+                  var queue = this.getFromStorage(this.syncQueue) || [];
+                  return queue.filter(function(item) {
+                      return item.courseId === courseId && item.learnerId === learnerId;
+                  }).map(function(item) {
+                      return item.data;
+                  });
+              }
+          },
+          {
               key: "syncOfflineData",
               value: /**
      * Synchronize offline data with the LMS when connection is available
      * @returns {Promise<boolean>} - Success status of synchronization
      */ function syncOfflineData() {
                   return _async_to_generator$2(function() {
-                      var syncQueue, remainingQueue, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, item, _this_settings_maxSyncAttempts, maxAttempts, syncResult, error, err, error1;
+                      var _this, started, success, syncQueue, learnerId, matches, matchingCount, allAccepted, remainingQueue, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, item, _this_settings_maxSyncAttempts, maxAttempts, syncResult, error, err, _iteratorNormalCompletion1, _didIteratorError1, _iteratorError1, _this1, _loop, _iterator1, _step1, error1;
                       return _ts_generator$2(this, function(_state) {
                           switch(_state.label){
                               case 0:
+                                  _this = this;
                                   if (this.syncInProgress || !this.isOnline) {
                                       return [
                                           2,
@@ -10201,23 +10519,32 @@
                                       ];
                                   }
                                   this.syncInProgress = true;
+                                  started = false;
+                                  success = false;
                                   _state.label = 1;
                               case 1:
                                   _state.trys.push([
                                       1,
                                       12,
-                                      ,
-                                      13
+                                      13,
+                                      14
                                   ]);
                                   syncQueue = this.getFromStorage(this.syncQueue) || [];
-                                  if (syncQueue.length === 0) {
-                                      this.syncInProgress = false;
+                                  learnerId = this.getLearnerId();
+                                  matches = function matches(item) {
+                                      return item.courseId === _this.settings.courseId && (item.learnerId === void 0 || item.learnerId === learnerId);
+                                  };
+                                  matchingCount = syncQueue.filter(matches).length;
+                                  if (matchingCount === 0) {
                                       return [
                                           2,
-                                          true
+                                          false
                                       ];
                                   }
-                                  this.apiLog("OfflineStorageService", "Found ".concat(syncQueue.length, " items to sync"), LogLevelEnum.INFO);
+                                  started = true;
+                                  this.processListeners("OfflineDataSyncing");
+                                  allAccepted = true;
+                                  this.apiLog("OfflineStorageService", "Found ".concat(matchingCount, " items to sync"), LogLevelEnum.INFO);
                                   remainingQueue = [];
                                   _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                                   _state.label = 2;
@@ -10236,9 +10563,17 @@
                                       8
                                   ];
                                   item = _step.value;
+                                  if (!matches(item)) {
+                                      remainingQueue.push(item);
+                                      return [
+                                          3,
+                                          7
+                                      ];
+                                  }
                                   maxAttempts = (_this_settings_maxSyncAttempts = this.settings.maxSyncAttempts) !== null && _this_settings_maxSyncAttempts !== void 0 ? _this_settings_maxSyncAttempts : 5;
                                   if (item.syncAttempts >= maxAttempts) {
                                       this.apiLog("OfflineStorageService", "Removing abandoned item ".concat(item.id, " after ").concat(maxAttempts, " failed sync attempts"), LogLevelEnum.WARN);
+                                      allAccepted = false;
                                       return [
                                           3,
                                           7
@@ -10265,6 +10600,7 @@
                                   if (syncResult.result === true || syncResult.result === global_constants.SCORM_TRUE) {
                                       this.apiLog("OfflineStorageService", "Successfully synced item ".concat(item.id), LogLevelEnum.INFO);
                                   } else {
+                                      allAccepted = false;
                                       item.syncAttempts++;
                                       remainingQueue.push(item);
                                       this.apiLog("OfflineStorageService", "Failed to sync item ".concat(item.id, ", attempt #").concat(item.syncAttempts), LogLevelEnum.WARN);
@@ -10275,6 +10611,7 @@
                                   ];
                               case 6:
                                   error = _state.sent();
+                                  allAccepted = false;
                                   item.syncAttempts++;
                                   remainingQueue.push(item);
                                   this.apiLog("OfflineStorageService", "Error syncing item ".concat(item.id, ": ").concat(error), LogLevelEnum.ERROR);
@@ -10316,21 +10653,59 @@
                                   ];
                               case 11:
                                   this.saveToStorage(this.syncQueue, remainingQueue);
+                                  _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                                  try {
+                                      _loop = function() {
+                                          var courseId = _step1.value;
+                                          if (!remainingQueue.some(function(item) {
+                                              return item.courseId === courseId;
+                                          })) {
+                                              _this1.removeFromStorage("".concat(_this1.storeName, "_").concat(courseId));
+                                          }
+                                      };
+                                      for(_iterator1 = new Set(syncQueue.filter(matches).map(function(item) {
+                                          return item.courseId;
+                                      }))[Symbol.iterator](); !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true)_this1 = this, _loop();
+                                  } catch (err) {
+                                      _didIteratorError1 = true;
+                                      _iteratorError1 = err;
+                                  } finally{
+                                      try {
+                                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                              _iterator1.return();
+                                          }
+                                      } finally{
+                                          if (_didIteratorError1) {
+                                              throw _iteratorError1;
+                                          }
+                                      }
+                                  }
                                   this.apiLog("OfflineStorageService", "Sync completed. ".concat(syncQueue.length - remainingQueue.length, " items synced, ").concat(remainingQueue.length, " items remaining"), LogLevelEnum.INFO);
-                                  this.syncInProgress = false;
+                                  success = allAccepted;
                                   return [
                                       2,
-                                      true
+                                      success
                                   ];
                               case 12:
                                   error1 = _state.sent();
+                                  if (!started) {
+                                      started = true;
+                                      this.processListeners("OfflineDataSyncing");
+                                  }
                                   this.apiLog("OfflineStorageService", "Error during sync process: ".concat(error1), LogLevelEnum.ERROR);
-                                  this.syncInProgress = false;
                                   return [
                                       2,
                                       false
                                   ];
                               case 13:
+                                  this.syncInProgress = false;
+                                  if (started) {
+                                      this.processListeners(success ? "OfflineDataSynced" : "OfflineDataSyncFailed");
+                                  }
+                                  return [
+                                      7
+                                  ];
+                              case 14:
                                   return [
                                       2
                                   ];
@@ -10348,10 +10723,11 @@
      * @returns {Promise<ResultObject>} - Result of the sync operation
      */ function sendDataToLMS(data, metadata) {
                   return _async_to_generator$2(function() {
-                      var configuredCommitUrl, _ref, lmsCommitUrl, processedData, requestUrl, init, response, result, _tmp, error;
+                      var _this, configuredCommitUrl, _ref, _this_settings_requestHandler, lmsCommitUrl, requestUrl, commitMetadata, httpService, processedData, init, response, result, _tmp, error;
                       return _ts_generator$2(this, function(_state) {
                           switch(_state.label){
                               case 0:
+                                  _this = this;
                                   configuredCommitUrl = this.settings.lmsCommitUrl;
                                   if (!configuredCommitUrl) {
                                       return [
@@ -10366,24 +10742,77 @@
                               case 1:
                                   _state.trys.push([
                                       1,
-                                      7,
+                                      11,
                                       ,
-                                      8
+                                      12
                                   ]);
                                   lmsCommitUrl = String(configuredCommitUrl);
-                                  processedData = this.settings.requestHandler(data, _object_spread$g({
+                                  requestUrl = (metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+                                  commitMetadata = _object_spread$g({
                                       isTerminateCommit: (_ref = metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) !== null && _ref !== void 0 ? _ref : false,
                                       trigger: "offline-replay"
                                   }, (metadata === null || metadata === void 0 ? void 0 : metadata.sequence) !== void 0 ? {
                                       sequence: metadata.sequence
-                                  } : {}));
-                                  requestUrl = (metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+                                  } : {});
+                                  httpService = this.httpService;
+                                  if (!(_instanceof$b(httpService, SynchronousHttpService) && !("reportsRequestCompletion" in httpService && httpService.reportsRequestCompletion))) return [
+                                      3,
+                                      3
+                                  ];
+                                  return [
+                                      4,
+                                      httpService.performAsyncRequest(requestUrl, data, commitMetadata)
+                                  ];
+                              case 2:
+                                  return [
+                                      2,
+                                      _state.sent()
+                                  ];
+                              case 3:
+                                  if (!httpService) return [
+                                      3,
+                                      5
+                                  ];
+                                  return [
+                                      4,
+                                      new Promise(function(resolve, reject) {
+                                          try {
+                                              var result2 = httpService.processHttpRequest(requestUrl, data, false, _this.apiLog, function(event, _element, errorCode) {
+                                                  if (event === "CommitSuccess") resolve({
+                                                      result: "true",
+                                                      errorCode: 0
+                                                  });
+                                                  if (event === "CommitError") resolve({
+                                                      result: "false",
+                                                      errorCode: errorCode
+                                                  });
+                                              }, commitMetadata, // A deferring service settles each request through this callback. If it sent
+                                              // no commit event first, the replay counts as failed and stays queued.
+                                              function() {
+                                                  return resolve({
+                                                      result: "false",
+                                                      errorCode: _this.error_codes.GENERAL_COMMIT_FAILURE || 391
+                                                  });
+                                              });
+                                              if (!httpService.reportsRequestCompletion) resolve(result2);
+                                          } catch (error) {
+                                              reject(error);
+                                          }
+                                      })
+                                  ];
+                              case 4:
+                                  return [
+                                      2,
+                                      _state.sent()
+                                  ];
+                              case 5:
+                                  processedData = (_this_settings_requestHandler = this.settings.requestHandler(data, commitMetadata)) !== null && _this_settings_requestHandler !== void 0 ? _this_settings_requestHandler : data;
                                   init = {
                                       method: "POST",
                                       mode: this.settings.fetchMode,
-                                      body: JSON.stringify(processedData),
+                                      body: Array.isArray(processedData) ? processedData.join("&") : JSON.stringify(processedData),
                                       headers: _object_spread_props$8(_object_spread$g({}, this.settings.xhrHeaders), {
-                                          "Content-Type": this.settings.commitRequestDataType
+                                          "Content-Type": Array.isArray(processedData) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType
                                       })
                                   };
                                   if (this.settings.xhrWithCredentials) {
@@ -10393,31 +10822,31 @@
                                       4,
                                       fetch(requestUrl, init)
                                   ];
-                              case 2:
+                              case 6:
                                   response = _state.sent();
                                   if (!(typeof this.settings.responseHandler === "function")) return [
                                       3,
-                                      4
+                                      8
                                   ];
                                   return [
                                       4,
                                       this.settings.responseHandler(response)
                                   ];
-                              case 3:
+                              case 7:
                                   _tmp = _state.sent();
                                   return [
                                       3,
-                                      6
+                                      10
                                   ];
-                              case 4:
+                              case 8:
                                   return [
                                       4,
                                       response.json()
                                   ];
-                              case 5:
+                              case 9:
                                   _tmp = _state.sent();
-                                  _state.label = 6;
-                              case 6:
+                                  _state.label = 10;
+                              case 10:
                                   result = _tmp;
                                   if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
                                       if (!Object.hasOwnProperty.call(result, "errorCode")) {
@@ -10436,7 +10865,7 @@
                                           result
                                       ];
                                   }
-                              case 7:
+                              case 11:
                                   error = _state.sent();
                                   this.apiLog("OfflineStorageService", "Error sending data to LMS: ".concat(error), LogLevelEnum.ERROR);
                                   return [
@@ -10446,7 +10875,7 @@
                                           errorCode: this.error_codes.GENERAL || 101
                                       }
                                   ];
-                              case 8:
+                              case 12:
                                   return [
                                       2
                                   ];
@@ -10495,7 +10924,22 @@
                   try {
                       localStorage.setItem(key, JSON.stringify(data));
                   } catch (error) {
-                      if (_instanceof$c(error, DOMException) && error.name === "QuotaExceededError") {
+                      if (_instanceof$b(error, DOMException) && error.name === "QuotaExceededError") {
+                          throw new Error("storage quota exceeded - localStorage is full", {
+                              cause: error
+                          });
+                      }
+                      throw error;
+                  }
+              }
+          },
+          {
+              key: "removeFromStorage",
+              value: function removeFromStorage(key) {
+                  try {
+                      localStorage.removeItem(key);
+                  } catch (error) {
+                      if (_instanceof$b(error, DOMException) && error.name === "QuotaExceededError") {
                           throw new Error("storage quota exceeded - localStorage is full", {
                               cause: error
                           });
@@ -10512,17 +10956,25 @@
      * @returns {Promise<boolean>} - Whether there is pending data
      */ function hasPendingOfflineData(courseId) {
                   return _async_to_generator$2(function() {
-                      var queue;
                       return _ts_generator$2(this, function(_state) {
-                          queue = this.getFromStorage(this.syncQueue) || [];
                           return [
                               2,
-                              queue.some(function(item) {
-                                  return item.courseId === courseId;
-                              })
+                              this.hasQueuedData(courseId)
                           ];
                       });
                   }).call(this);
+              }
+          },
+          {
+              /**
+     * Check for queued data matching the course and current learner.
+     */ key: "hasQueuedData",
+              value: function hasQueuedData(courseId) {
+                  var queue = this.getFromStorage(this.syncQueue) || [];
+                  var learnerId = this.getLearnerId();
+                  return queue.some(function(item) {
+                      return item.courseId === courseId && (item.learnerId === void 0 || item.learnerId === learnerId);
+                  });
               }
           },
           {
@@ -10549,7 +11001,7 @@
       return OfflineStorageService;
   }();
 
-  function _type_of$S(obj) {
+  function _type_of$R(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -10569,7 +11021,7 @@
   }, // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   function(CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$S(value), "]");
+      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$R(value), "]");
       return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
   }, // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
   {
@@ -10616,10 +11068,10 @@
       derived = _get_prototype_of$r(derived);
       return _possible_constructor_return$r(_this, _is_native_reflect_construct$r() ? Reflect.construct(derived, args || [], _get_prototype_of$r(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$V(instance, Constructor) {
+  function _class_call_check$U(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$V(target, props) {
+  function _defineProperties$U(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -10628,8 +11080,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$V(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$V(Constructor.prototype, protoProps);
+  function _create_class$U(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$r(o) {
@@ -10651,7 +11103,7 @@
       });
       if (superClass) _set_prototype_of$r(subClass, superClass);
   }
-  function _instanceof$b(left, right) {
+  function _instanceof$a(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -10666,7 +11118,7 @@
       })();
   }
   function _possible_constructor_return$r(self, call) {
-      if (call && (_type_of$R(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$Q(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$r(self);
   }
   function _set_prototype_of$r(o, p) {
@@ -10676,21 +11128,21 @@
       };
       return _set_prototype_of$r(o, p);
   }
-  function _type_of$R(obj) {
+  function _type_of$Q(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$Q = Object.defineProperty;
-  var __defNormalProp$Q = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$Q(obj, key, {
+  var __defProp$P = Object.defineProperty;
+  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$P(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$Q = function __publicField(obj, key, value) {
-      return __defNormalProp$Q(obj, (typeof key === "undefined" ? "undefined" : _type_of$R(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$P = function __publicField(obj, key, value) {
+      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupActionType = /* @__PURE__ */ function(RollupActionType2) {
       RollupActionType2["SATISFIED"] = "satisfied";
@@ -10719,20 +11171,20 @@
       _inherits$r(RollupCondition, BaseCMI);
       function RollupCondition() {
           var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", parameters = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : /* @__PURE__ */ new Map(), operator = arguments.length > 2 && arguments[2] !== void 0 /* NO_OP */  ? arguments[2] : "noOp";
-          _class_call_check$V(this, RollupCondition);
+          _class_call_check$U(this, RollupCondition);
           var _this;
           _this = _call_super$r(this, RollupCondition, [
               "rollupCondition"
           ]);
-          __publicField$Q(_this, "_condition", "always" /* ALWAYS */ );
-          __publicField$Q(_this, "_parameters", /* @__PURE__ */ new Map());
-          __publicField$Q(_this, "_operator", "noOp" /* NO_OP */ );
+          __publicField$P(_this, "_condition", "always" /* ALWAYS */ );
+          __publicField$P(_this, "_parameters", /* @__PURE__ */ new Map());
+          __publicField$P(_this, "_operator", "noOp" /* NO_OP */ );
           _this._condition = condition;
           _this._parameters = parameters;
           _this._operator = operator;
           return _this;
       }
-      _create_class$V(RollupCondition, [
+      _create_class$U(RollupCondition, [
           {
               /**
      * Called when the API needs to be reset
@@ -10897,17 +11349,17 @@
       _inherits$r(RollupRule, BaseCMI);
       function RollupRule() {
           var action = arguments.length > 0 && arguments[0] !== void 0 /* SATISFIED */  ? arguments[0] : "satisfied", consideration = arguments.length > 1 && arguments[1] !== void 0 /* ALL */  ? arguments[1] : "all", minimumCount = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0, minimumPercent = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : 0, conditionCombination = arguments.length > 4 && arguments[4] !== void 0 /* ANY */  ? arguments[4] : "any";
-          _class_call_check$V(this, RollupRule);
+          _class_call_check$U(this, RollupRule);
           var _this;
           _this = _call_super$r(this, RollupRule, [
               "rollupRule"
           ]);
-          __publicField$Q(_this, "_conditions", []);
-          __publicField$Q(_this, "_action", "satisfied" /* SATISFIED */ );
-          __publicField$Q(_this, "_consideration", "all" /* ALL */ );
-          __publicField$Q(_this, "_minimumCount", 0);
-          __publicField$Q(_this, "_minimumPercent", 0);
-          __publicField$Q(_this, "conditionCombination", "any" /* ANY */ );
+          __publicField$P(_this, "_conditions", []);
+          __publicField$P(_this, "_action", "satisfied" /* SATISFIED */ );
+          __publicField$P(_this, "_consideration", "all" /* ALL */ );
+          __publicField$P(_this, "_minimumCount", 0);
+          __publicField$P(_this, "_minimumPercent", 0);
+          __publicField$P(_this, "conditionCombination", "any" /* ANY */ );
           _this._action = action;
           _this._consideration = consideration;
           _this._minimumCount = minimumCount;
@@ -10915,7 +11367,7 @@
           _this.conditionCombination = conditionCombination;
           return _this;
       }
-      _create_class$V(RollupRule, [
+      _create_class$U(RollupRule, [
           {
               /**
      * Called when the API needs to be reset
@@ -10940,7 +11392,7 @@
      * @param {RollupCondition} condition - The condition to add
      */ key: "addCondition",
               value: function addCondition(condition) {
-                  if (!_instanceof$b(condition, RollupCondition)) {
+                  if (!_instanceof$a(condition, RollupCondition)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".conditions", scorm2004_errors.TYPE_MISMATCH);
                   }
                   this._conditions.push(condition);
@@ -11092,15 +11544,15 @@
   var RollupRules = /*#__PURE__*/ function(BaseCMI) {
       _inherits$r(RollupRules, BaseCMI);
       function RollupRules() {
-          _class_call_check$V(this, RollupRules);
+          _class_call_check$U(this, RollupRules);
           var _this;
           _this = _call_super$r(this, RollupRules, [
               "rollupRules"
           ]);
-          __publicField$Q(_this, "_rules", []);
+          __publicField$P(_this, "_rules", []);
           return _this;
       }
-      _create_class$V(RollupRules, [
+      _create_class$U(RollupRules, [
           {
               /**
      * Called when the API needs to be reset
@@ -11125,7 +11577,7 @@
      * @param {RollupRule} rule - The rule to add
      */ key: "addRule",
               value: function addRule(rule) {
-                  if (!_instanceof$b(rule, RollupRule)) {
+                  if (!_instanceof$a(rule, RollupRule)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".rules", scorm2004_errors.TYPE_MISMATCH);
                   }
                   this._rules.push(rule);
@@ -11348,13 +11800,13 @@
       return RollupRules;
   }(BaseCMI);
 
-  function _array_like_to_array$g(arr, len) {
+  function _array_like_to_array$f(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$9(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$g(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
   }
   function _assert_this_initialized$q(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -11364,10 +11816,10 @@
       derived = _get_prototype_of$q(derived);
       return _possible_constructor_return$q(_this, _is_native_reflect_construct$q() ? Reflect.construct(derived, args || [], _get_prototype_of$q(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$U(instance, Constructor) {
+  function _class_call_check$T(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$U(target, props) {
+  function _defineProperties$T(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -11376,9 +11828,9 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$U(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$U(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$U(Constructor, staticProps);
+  function _create_class$T(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$T(Constructor, staticProps);
       return Constructor;
   }
   function _define_property$f(obj, key, value) {
@@ -11424,7 +11876,7 @@
       });
       if (superClass) _set_prototype_of$q(subClass, superClass);
   }
-  function _instanceof$a(left, right) {
+  function _instanceof$9(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -11462,7 +11914,7 @@
       return target;
   }
   function _possible_constructor_return$q(self, call) {
-      if (call && (_type_of$Q(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$P(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$q(self);
   }
   function _set_prototype_of$q(o, p) {
@@ -11480,67 +11932,67 @@
       return object;
   }
   function _to_consumable_array$9(arr) {
-      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$g(arr) || _non_iterable_spread$9();
+      return _array_without_holes$9(arr) || _iterable_to_array$9(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$9();
   }
-  function _type_of$Q(obj) {
+  function _type_of$P(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$g(o, minLen) {
+  function _unsupported_iterable_to_array$f(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$g(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$g(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
   }
-  var __defProp$P = Object.defineProperty;
-  var __defNormalProp$P = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$P(obj, key, {
+  var __defProp$O = Object.defineProperty;
+  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$O(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$P = function __publicField(obj, key, value) {
-      return __defNormalProp$P(obj, (typeof key === "undefined" ? "undefined" : _type_of$Q(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$O = function __publicField(obj, key, value) {
+      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityObjective = /*#__PURE__*/ function() {
       function ActivityObjective(id) {
           var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-          _class_call_check$U(this, ActivityObjective);
+          _class_call_check$T(this, ActivityObjective);
           var _options_description, _options_satisfiedByMeasure, _options_minNormalizedMeasure, _options_isPrimary;
-          __publicField$P(this, "_id");
-          __publicField$P(this, "_description");
-          __publicField$P(this, "_satisfiedByMeasure");
-          __publicField$P(this, "_minNormalizedMeasure");
-          __publicField$P(this, "_mapInfo");
-          __publicField$P(this, "_isPrimary");
-          __publicField$P(this, "_satisfiedStatus", false);
-          __publicField$P(this, "_satisfiedStatusKnown", false);
+          __publicField$O(this, "_id");
+          __publicField$O(this, "_description");
+          __publicField$O(this, "_satisfiedByMeasure");
+          __publicField$O(this, "_minNormalizedMeasure");
+          __publicField$O(this, "_mapInfo");
+          __publicField$O(this, "_isPrimary");
+          __publicField$O(this, "_satisfiedStatus", false);
+          __publicField$O(this, "_satisfiedStatusKnown", false);
           // Note: measureStatus has no dirty flag because it is not synchronized to global
           // objectives. It serves as a validity gate for other synced properties.
-          __publicField$P(this, "_measureStatus", false);
-          __publicField$P(this, "_normalizedMeasure", 0);
-          __publicField$P(this, "_rawScore", "");
-          __publicField$P(this, "_rawScoreKnown", false);
-          __publicField$P(this, "_minScore", "");
-          __publicField$P(this, "_minScoreKnown", false);
-          __publicField$P(this, "_maxScore", "");
-          __publicField$P(this, "_maxScoreKnown", false);
-          __publicField$P(this, "_progressMeasure", 0);
-          __publicField$P(this, "_progressMeasureStatus", false);
-          __publicField$P(this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$P(this, "_progressStatus", false);
+          __publicField$O(this, "_measureStatus", false);
+          __publicField$O(this, "_normalizedMeasure", 0);
+          __publicField$O(this, "_rawScore", "");
+          __publicField$O(this, "_rawScoreKnown", false);
+          __publicField$O(this, "_minScore", "");
+          __publicField$O(this, "_minScoreKnown", false);
+          __publicField$O(this, "_maxScore", "");
+          __publicField$O(this, "_maxScoreKnown", false);
+          __publicField$O(this, "_progressMeasure", 0);
+          __publicField$O(this, "_progressMeasureStatus", false);
+          __publicField$O(this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$O(this, "_progressStatus", false);
           // Dirty flags for tracking which properties have been modified locally
-          __publicField$P(this, "_satisfiedStatusDirty", false);
-          __publicField$P(this, "_normalizedMeasureDirty", false);
-          __publicField$P(this, "_completionStatusDirty", false);
-          __publicField$P(this, "_progressMeasureDirty", false);
-          __publicField$P(this, "_rawScoreDirty", false);
-          __publicField$P(this, "_minScoreDirty", false);
-          __publicField$P(this, "_maxScoreDirty", false);
+          __publicField$O(this, "_satisfiedStatusDirty", false);
+          __publicField$O(this, "_normalizedMeasureDirty", false);
+          __publicField$O(this, "_completionStatusDirty", false);
+          __publicField$O(this, "_progressMeasureDirty", false);
+          __publicField$O(this, "_rawScoreDirty", false);
+          __publicField$O(this, "_minScoreDirty", false);
+          __publicField$O(this, "_maxScoreDirty", false);
           this._id = id;
           this._description = (_options_description = options.description) !== null && _options_description !== void 0 ? _options_description : null;
           this._satisfiedByMeasure = (_options_satisfiedByMeasure = options.satisfiedByMeasure) !== null && _options_satisfiedByMeasure !== void 0 ? _options_satisfiedByMeasure : false;
@@ -11548,7 +12000,7 @@
           this._mapInfo = options.mapInfo ? _to_consumable_array$9(options.mapInfo) : [];
           this._isPrimary = (_options_isPrimary = options.isPrimary) !== null && _options_isPrimary !== void 0 ? _options_isPrimary : false;
       }
-      _create_class$U(ActivityObjective, [
+      _create_class$T(ActivityObjective, [
           {
               key: "id",
               get: function get() {
@@ -12071,94 +12523,94 @@
       _inherits$q(Activity, BaseCMI);
       function Activity() {
           var id = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : "", title = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "";
-          _class_call_check$U(this, Activity);
+          _class_call_check$T(this, Activity);
           var _this;
           _this = _call_super$q(this, Activity, [
               "activity"
           ]);
-          __publicField$P(_this, "_id", "");
-          __publicField$P(_this, "_title", "");
-          __publicField$P(_this, "_children", []);
-          __publicField$P(_this, "_parent", null);
-          __publicField$P(_this, "_isVisible", true);
-          __publicField$P(_this, "_isActive", false);
-          __publicField$P(_this, "_isSuspended", false);
+          __publicField$O(_this, "_id", "");
+          __publicField$O(_this, "_title", "");
+          __publicField$O(_this, "_children", []);
+          __publicField$O(_this, "_parent", null);
+          __publicField$O(_this, "_isVisible", true);
+          __publicField$O(_this, "_isActive", false);
+          __publicField$O(_this, "_isSuspended", false);
           // Transient delivery context. This is deliberately excluded from persisted activity state.
-          __publicField$P(_this, "_deliveryWasResumed", false);
-          __publicField$P(_this, "_isCompleted", false);
-          __publicField$P(_this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$P(_this, "_successStatus", SuccessStatus.UNKNOWN);
-          __publicField$P(_this, "_attemptCount", 0);
-          __publicField$P(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
-          __publicField$P(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
-          __publicField$P(_this, "_attemptCompletionAmount", 0);
-          __publicField$P(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
-          __publicField$P(_this, "_attemptExperiencedDuration", "PT0H0M0S");
-          __publicField$P(_this, "_activityAbsoluteDuration", "PT0H0M0S");
-          __publicField$P(_this, "_activityExperiencedDuration", "PT0H0M0S");
+          __publicField$O(_this, "_deliveryWasResumed", false);
+          __publicField$O(_this, "_isCompleted", false);
+          __publicField$O(_this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$O(_this, "_successStatus", SuccessStatus.UNKNOWN);
+          __publicField$O(_this, "_attemptCount", 0);
+          __publicField$O(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
+          __publicField$O(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
+          __publicField$O(_this, "_attemptCompletionAmount", 0);
+          __publicField$O(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
+          __publicField$O(_this, "_attemptExperiencedDuration", "PT0H0M0S");
+          __publicField$O(_this, "_activityAbsoluteDuration", "PT0H0M0S");
+          __publicField$O(_this, "_activityExperiencedDuration", "PT0H0M0S");
           // Duration tracking fields (separate from limits) - actual calculated values
-          __publicField$P(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$P(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
-          __publicField$P(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$P(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
+          __publicField$O(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$O(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
+          __publicField$O(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$O(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
           // Timestamp tracking for duration calculation
-          __publicField$P(_this, "_activityStartTimestampUtc", null);
-          __publicField$P(_this, "_attemptStartTimestampUtc", null);
-          __publicField$P(_this, "_activityEndedDate", null);
-          __publicField$P(_this, "_objectiveSatisfiedStatus", false);
-          __publicField$P(_this, "_objectiveSatisfiedStatusKnown", false);
-          __publicField$P(_this, "_objectiveMeasureStatus", false);
-          __publicField$P(_this, "_objectiveNormalizedMeasure", 0);
-          __publicField$P(_this, "_scaledPassingScore", 1);
+          __publicField$O(_this, "_activityStartTimestampUtc", null);
+          __publicField$O(_this, "_attemptStartTimestampUtc", null);
+          __publicField$O(_this, "_activityEndedDate", null);
+          __publicField$O(_this, "_objectiveSatisfiedStatus", false);
+          __publicField$O(_this, "_objectiveSatisfiedStatusKnown", false);
+          __publicField$O(_this, "_objectiveMeasureStatus", false);
+          __publicField$O(_this, "_objectiveNormalizedMeasure", 0);
+          __publicField$O(_this, "_scaledPassingScore", 1);
           // SCORM default minimum normalized measure
           // Dirty flags for tracking which activity-level objective properties have been modified locally
-          __publicField$P(_this, "_objectiveSatisfiedStatusDirty", false);
-          __publicField$P(_this, "_objectiveNormalizedMeasureDirty", false);
-          __publicField$P(_this, "_objectiveMeasureStatusDirty", false);
-          __publicField$P(_this, "_progressMeasure", 0);
-          __publicField$P(_this, "_progressMeasureStatus", false);
-          __publicField$P(_this, "_location", "");
-          __publicField$P(_this, "_attemptAbsoluteStartTime", "");
-          __publicField$P(_this, "_learnerPrefs", null);
-          __publicField$P(_this, "_activityAttemptActive", false);
-          __publicField$P(_this, "_isHiddenFromChoice", false);
-          __publicField$P(_this, "_isAvailable", true);
-          __publicField$P(_this, "_hideLmsUi", []);
-          __publicField$P(_this, "_auxiliaryResources", []);
-          __publicField$P(_this, "_sharedDataMaps", []);
-          __publicField$P(_this, "_attemptLimit", null);
-          __publicField$P(_this, "_attemptAbsoluteDurationLimit", null);
-          __publicField$P(_this, "_activityAbsoluteDurationLimit", null);
-          __publicField$P(_this, "_timeLimitAction", null);
-          __publicField$P(_this, "_timeLimitDuration", null);
-          __publicField$P(_this, "_beginTimeLimit", null);
-          __publicField$P(_this, "_endTimeLimit", null);
-          __publicField$P(_this, "_launchData", "");
-          __publicField$P(_this, "_credit", "credit");
-          __publicField$P(_this, "_maxTimeAllowed", "");
-          __publicField$P(_this, "_completionThreshold", "");
-          __publicField$P(_this, "_sequencingControls");
-          __publicField$P(_this, "_sequencingRules");
-          __publicField$P(_this, "_rollupRules");
-          __publicField$P(_this, "_processedChildren", null);
-          __publicField$P(_this, "_isNewAttempt", false);
-          __publicField$P(_this, "_primaryObjective", null);
-          __publicField$P(_this, "_objectives", []);
-          __publicField$P(_this, "_rollupConsiderations", {
+          __publicField$O(_this, "_objectiveSatisfiedStatusDirty", false);
+          __publicField$O(_this, "_objectiveNormalizedMeasureDirty", false);
+          __publicField$O(_this, "_objectiveMeasureStatusDirty", false);
+          __publicField$O(_this, "_progressMeasure", 0);
+          __publicField$O(_this, "_progressMeasureStatus", false);
+          __publicField$O(_this, "_location", "");
+          __publicField$O(_this, "_attemptAbsoluteStartTime", "");
+          __publicField$O(_this, "_learnerPrefs", null);
+          __publicField$O(_this, "_activityAttemptActive", false);
+          __publicField$O(_this, "_isHiddenFromChoice", false);
+          __publicField$O(_this, "_isAvailable", true);
+          __publicField$O(_this, "_hideLmsUi", []);
+          __publicField$O(_this, "_auxiliaryResources", []);
+          __publicField$O(_this, "_sharedDataMaps", []);
+          __publicField$O(_this, "_attemptLimit", null);
+          __publicField$O(_this, "_attemptAbsoluteDurationLimit", null);
+          __publicField$O(_this, "_activityAbsoluteDurationLimit", null);
+          __publicField$O(_this, "_timeLimitAction", null);
+          __publicField$O(_this, "_timeLimitDuration", null);
+          __publicField$O(_this, "_beginTimeLimit", null);
+          __publicField$O(_this, "_endTimeLimit", null);
+          __publicField$O(_this, "_launchData", "");
+          __publicField$O(_this, "_credit", "credit");
+          __publicField$O(_this, "_maxTimeAllowed", "");
+          __publicField$O(_this, "_completionThreshold", "");
+          __publicField$O(_this, "_sequencingControls");
+          __publicField$O(_this, "_sequencingRules");
+          __publicField$O(_this, "_rollupRules");
+          __publicField$O(_this, "_processedChildren", null);
+          __publicField$O(_this, "_isNewAttempt", false);
+          __publicField$O(_this, "_primaryObjective", null);
+          __publicField$O(_this, "_objectives", []);
+          __publicField$O(_this, "_rollupConsiderations", {
               requiredForSatisfied: "always",
               requiredForNotSatisfied: "always",
               requiredForCompleted: "always",
               requiredForIncomplete: "always",
               measureSatisfactionIfActive: true
           });
-          __publicField$P(_this, "_wasSkipped", false);
-          __publicField$P(_this, "_attemptProgressStatus", false);
-          __publicField$P(_this, "_wasAutoCompleted", false);
-          __publicField$P(_this, "_wasAutoSatisfied", false);
-          __publicField$P(_this, "_completedByMeasure", false);
-          __publicField$P(_this, "_minProgressMeasure", 1);
-          __publicField$P(_this, "_progressWeight", 1);
-          __publicField$P(_this, "_attemptCompletionAmountStatus", false);
+          __publicField$O(_this, "_wasSkipped", false);
+          __publicField$O(_this, "_attemptProgressStatus", false);
+          __publicField$O(_this, "_wasAutoCompleted", false);
+          __publicField$O(_this, "_wasAutoSatisfied", false);
+          __publicField$O(_this, "_completedByMeasure", false);
+          __publicField$O(_this, "_minProgressMeasure", 1);
+          __publicField$O(_this, "_progressWeight", 1);
+          __publicField$O(_this, "_attemptCompletionAmountStatus", false);
           _this._id = id;
           _this._title = title;
           _this._sequencingControls = new SequencingControls();
@@ -12168,7 +12620,7 @@
           _this._objectives = [];
           return _this;
       }
-      _create_class$U(Activity, [
+      _create_class$T(Activity, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
@@ -12338,7 +12790,7 @@
      * @param {Activity} child - The child activity to add
      */ key: "addChild",
               value: function addChild(child) {
-                  if (!_instanceof$a(child, Activity)) {
+                  if (!_instanceof$9(child, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".children", scorm2004_errors.TYPE_MISMATCH);
                   }
                   child._parent = this;
@@ -14292,10 +14744,12 @@
                   return {
                       measureStatus: this._objectiveMeasureStatus,
                       normalizedMeasure: this._objectiveNormalizedMeasure,
-                      objectiveProgressStatus: this._objectiveSatisfiedStatus !== null && this._objectiveSatisfiedStatus !== void 0,
+                      objectiveProgressStatus: this._objectiveSatisfiedStatusKnown,
                       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
                       attemptProgressStatus: this._completionStatus !== CompletionStatus.UNKNOWN,
-                      attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED
+                      attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED,
+                      attemptCompletionAmount: this._attemptCompletionAmount,
+                      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus
                   };
               }
           },
@@ -14351,17 +14805,17 @@
      * @return {boolean} - True if statuses are equal (no change), false if different
      */ function compareRollupStatus(prior, current) {
                   var EPSILON = 1e-4;
-                  return prior.measureStatus === current.measureStatus && Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON && prior.objectiveProgressStatus === current.objectiveProgressStatus && prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus && prior.attemptProgressStatus === current.attemptProgressStatus && prior.attemptCompletionStatus === current.attemptCompletionStatus;
+                  return prior.measureStatus === current.measureStatus && Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON && prior.objectiveProgressStatus === current.objectiveProgressStatus && prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus && prior.attemptProgressStatus === current.attemptProgressStatus && prior.attemptCompletionStatus === current.attemptCompletionStatus && prior.attemptCompletionAmount === current.attemptCompletionAmount && prior.attemptCompletionAmountStatus === current.attemptCompletionAmountStatus;
               }
           }
       ]);
       return Activity;
   }(BaseCMI);
 
-  function _class_call_check$T(instance, Constructor) {
+  function _class_call_check$S(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$T(target, props) {
+  function _defineProperties$S(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14370,15 +14824,15 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$T(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$T(Constructor.prototype, protoProps);
+  function _create_class$S(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
       return Constructor;
   }
   var RollupChildFilter = /*#__PURE__*/ function() {
       function RollupChildFilter() {
-          _class_call_check$T(this, RollupChildFilter);
+          _class_call_check$S(this, RollupChildFilter);
       }
-      _create_class$T(RollupChildFilter, [
+      _create_class$S(RollupChildFilter, [
           {
               /**
      * Check Child For Rollup Subprocess
@@ -14451,13 +14905,12 @@
      * @param children - Child activities to filter
      * @param rollupType - Type of rollup ("objective" | "progress")
      * @param mode - Rollup action mode
-     * @param considerations - Parent-level rollup considerations config
      * @returns Filtered array of children that should contribute to rollup
      */ key: "filterChildrenForRequirement",
-              value: function filterChildrenForRequirement(children, rollupType, mode, considerations) {
+              value: function filterChildrenForRequirement(children, rollupType, mode) {
                   var _this = this;
                   return children.filter(function(child) {
-                      return _this.shouldIncludeChildForRollup(child, rollupType, mode, considerations);
+                      return _this.shouldIncludeChildForRollup(child, rollupType, mode);
                   });
               }
           },
@@ -14468,23 +14921,16 @@
      * @param child - Child activity to check
      * @param rollupType - Type of rollup ("objective" | "progress")
      * @param mode - Rollup action mode
-     * @param considerations - Parent-level rollup considerations config
      * @returns True if child should be included
      */ key: "shouldIncludeChildForRollup",
-              value: function shouldIncludeChildForRollup(child, rollupType, mode, considerations) {
-                  if (!this.checkChildForRollupSubprocess(child, rollupType, mode)) {
-                      return false;
-                  }
-                  if (rollupType === "objective" && !considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-                      return false;
-                  }
-                  return true;
+              value: function shouldIncludeChildForRollup(child, rollupType, mode) {
+                  return this.checkChildForRollupSubprocess(child, rollupType, mode);
               }
           },
           {
               /**
      * Check if child is satisfied for rollup
-     * Evaluates objective satisfaction status and success status
+     * Evaluates objective satisfaction status for the current parent attempt
      *
      * @param child - Child activity to check
      * @returns True if child is considered satisfied
@@ -14493,19 +14939,7 @@
                   if (child.objectiveInfoAvailableInCurrentParentAttempt === false) {
                       return false;
                   }
-                  if (child.objectiveSatisfiedStatus === true) {
-                      return true;
-                  }
-                  if (child.objectiveSatisfiedStatus === false) {
-                      return false;
-                  }
-                  if (child.successStatus === SuccessStatus.PASSED) {
-                      return true;
-                  }
-                  if (child.successStatus === SuccessStatus.FAILED) {
-                      return false;
-                  }
-                  return false;
+                  return child.objectiveSatisfiedStatus;
               }
           },
           {
@@ -14604,10 +15038,10 @@
       return RollupChildFilter;
   }();
 
-  function _class_call_check$S(instance, Constructor) {
+  function _class_call_check$R(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$S(target, props) {
+  function _defineProperties$R(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14616,40 +15050,40 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$S(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$S(Constructor.prototype, protoProps);
+  function _create_class$R(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$P(obj) {
+  function _type_of$O(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$O = Object.defineProperty;
-  var __defNormalProp$O = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$O(obj, key, {
+  var __defProp$N = Object.defineProperty;
+  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$N(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$O = function __publicField(obj, key, value) {
-      return __defNormalProp$O(obj, (typeof key === "undefined" ? "undefined" : _type_of$P(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$N = function __publicField(obj, key, value) {
+      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupRuleEvaluator = /*#__PURE__*/ function() {
       function RollupRuleEvaluator(childFilter) {
           var clock = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-          _class_call_check$S(this, RollupRuleEvaluator);
-          __publicField$O(this, "childFilter");
-          __publicField$O(this, "now");
-          __publicField$O(this, "getAttemptElapsedSeconds");
+          _class_call_check$R(this, RollupRuleEvaluator);
+          __publicField$N(this, "childFilter");
+          __publicField$N(this, "now");
+          __publicField$N(this, "getAttemptElapsedSeconds");
           this.childFilter = childFilter;
           this.now = clock.now || function() {
               return /* @__PURE__ */ new Date();
           };
           this.getAttemptElapsedSeconds = clock.getAttemptElapsedSeconds || null;
       }
-      _create_class$S(RollupRuleEvaluator, [
+      _create_class$R(RollupRuleEvaluator, [
           {
               /**
      * Evaluate a rollup rule
@@ -14803,10 +15237,10 @@
       return RollupRuleEvaluator;
   }();
 
-  function _class_call_check$R(instance, Constructor) {
+  function _class_call_check$Q(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$R(target, props) {
+  function _defineProperties$Q(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -14815,15 +15249,15 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$R(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$R(Constructor.prototype, protoProps);
+  function _create_class$Q(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
       return Constructor;
   }
   var MeasureRollupProcessor = /*#__PURE__*/ function() {
       function MeasureRollupProcessor(_childFilter, _eventCallback) {
-          _class_call_check$R(this, MeasureRollupProcessor);
+          _class_call_check$Q(this, MeasureRollupProcessor);
       }
-      _create_class$R(MeasureRollupProcessor, [
+      _create_class$Q(MeasureRollupProcessor, [
           {
               /**
      * Measure Rollup Process
@@ -14832,16 +15266,13 @@
      *
      * @spec SN Book: RB.1.1 (Measure Rollup Process)
      * @param activity - The parent activity
-     * @returns Array of identified activity clusters (for cross-cluster processing)
      */ key: "measureRollupProcess",
               value: function measureRollupProcess(activity) {
                   var children = activity.getAvailableChildren();
                   if (children.length === 0) {
                       activity.objectiveMeasureStatus = false;
-                      return [];
+                      return;
                   }
-                  var rollupConsiderations = activity.rollupConsiderations;
-                  var contributingChildren = [];
                   var counted = 0;
                   var total = 0;
                   var validData = false;
@@ -14852,13 +15283,7 @@
                           if (child.sequencingControls.tracked === false) {
                               continue;
                           }
-                          if (!rollupConsiderations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-                              continue;
-                          }
                           var hasKnownMeasure = child.objectiveInfoAvailableInCurrentParentAttempt !== false && child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null;
-                          if (hasKnownMeasure) {
-                              contributingChildren.push(child);
-                          }
                           var weight = child.sequencingControls.objectiveMeasureWeight;
                           if (weight <= 0) {
                               continue;
@@ -14891,7 +15316,6 @@
                   } else {
                       activity.objectiveMeasureStatus = false;
                   }
-                  return this.identifyActivityClusters(contributingChildren);
               }
           },
           {
@@ -14948,50 +15372,15 @@
                       activity.attemptCompletionAmountStatus = true;
                   }
               }
-          },
-          {
-              /**
-     * Identify Activity Clusters
-     * Identifies clusters among child activities for cross-cluster dependency processing
-     *
-     * @param children - Child activities to analyze
-     * @returns Array of identified clusters
-     */ key: "identifyActivityClusters",
-              value: function identifyActivityClusters(children) {
-                  var clusters = [];
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          if (child.children.length > 0 && child.sequencingControls.flow) {
-                              clusters.push(child);
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return clusters;
-              }
           }
       ]);
       return MeasureRollupProcessor;
   }();
 
-  function _class_call_check$Q(instance, Constructor) {
+  function _class_call_check$P(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$Q(target, props) {
+  function _defineProperties$P(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15000,37 +15389,37 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$Q(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$Q(Constructor.prototype, protoProps);
+  function _create_class$P(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$O(obj) {
+  function _type_of$N(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$N = Object.defineProperty;
-  var __defNormalProp$N = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$N(obj, key, {
+  var __defProp$M = Object.defineProperty;
+  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$M(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$N = function __publicField(obj, key, value) {
-      return __defNormalProp$N(obj, (typeof key === "undefined" ? "undefined" : _type_of$O(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$M = function __publicField(obj, key, value) {
+      return __defNormalProp$M(obj, (typeof key === "undefined" ? "undefined" : _type_of$N(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveRollupProcessor = /*#__PURE__*/ function() {
       function ObjectiveRollupProcessor(childFilter, ruleEvaluator, eventCallback) {
-          _class_call_check$Q(this, ObjectiveRollupProcessor);
-          __publicField$N(this, "childFilter");
-          __publicField$N(this, "ruleEvaluator");
-          __publicField$N(this, "eventCallback");
+          _class_call_check$P(this, ObjectiveRollupProcessor);
+          __publicField$M(this, "childFilter");
+          __publicField$M(this, "ruleEvaluator");
+          __publicField$M(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$Q(ObjectiveRollupProcessor, [
+      _create_class$P(ObjectiveRollupProcessor, [
           {
               /**
      * Objective Rollup Process
@@ -15040,17 +15429,27 @@
      * @param activity - The parent activity
      */ key: "objectiveRollupProcess",
               value: function objectiveRollupProcess(activity) {
+                  var _activity_primaryObjective;
                   var rollupRules = activity.rollupRules;
+                  if ((_activity_primaryObjective = activity.primaryObjective) === null || _activity_primaryObjective === void 0 ? void 0 : _activity_primaryObjective.satisfiedByMeasure) {
+                      var measureResult = this.objectiveRollupUsingMeasure(activity);
+                      if (measureResult === null) {
+                          activity.objectiveSatisfiedStatusKnown = false;
+                          activity.successStatus = SuccessStatus.UNKNOWN;
+                      } else {
+                          activity.objectiveSatisfiedStatus = measureResult;
+                      }
+                      this.syncPrimaryObjectiveFromActivity(activity);
+                      return;
+                  }
                   var ruleResult = this.objectiveRollupUsingRules(activity, rollupRules.rules);
                   if (ruleResult !== null) {
                       activity.objectiveSatisfiedStatus = ruleResult;
                       this.syncPrimaryObjectiveFromActivity(activity);
-                      return;
                   }
-                  var measureResult = this.objectiveRollupUsingMeasure(activity);
-                  if (measureResult !== null) {
-                      activity.objectiveSatisfiedStatus = measureResult;
-                      this.syncPrimaryObjectiveFromActivity(activity);
+                  if (rollupRules.rules.some(function(rule) {
+                      return rule.action === RollupActionType.SATISFIED || rule.action === RollupActionType.NOT_SATISFIED;
+                  })) {
                       return;
                   }
                   var defaultResult = this.objectiveRollupUsingDefault(activity);
@@ -15138,16 +15537,18 @@
                   if (!(primaryObjective === null || primaryObjective === void 0 ? void 0 : primaryObjective.satisfiedByMeasure) || !activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
                       return null;
                   }
+                  if (activity.isActive && !activity.rollupConsiderations.measureSatisfactionIfActive) {
+                      return null;
+                  }
                   return activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
               }
           },
           {
               /**
      * Objective Rollup Using Default
-     * For default rollup (no explicit rules), a child is included only if it
-     * passes BOTH requiredForSatisfied AND requiredForNotSatisfied considerations.
-     * This ensures symmetric exclusion: setting either consideration excludes
-     * the child from the entire objective rollup evaluation.
+     * For default rollup (no explicit rules), the "not satisfied" check uses the
+     * children that pass requiredForNotSatisfied, and the "satisfied" check uses
+     * the children that pass requiredForSatisfied.
      *
      * A contributing child's objective status may itself be unknown (e.g. it has
      * never been attempted in this parent attempt). Per RB.1.4 (Rollup Rule
@@ -15161,9 +15562,9 @@
      * "any")
      * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
      * @param activity - The parent activity
-     * @returns True if all contributing children are known-satisfied, false if
-     * any contributing child is known-not-satisfied, or null if there is no
-     * information to roll up (no contributors, or none with a known status)
+     * @returns True if every child included for "satisfied" is known-satisfied,
+     * otherwise false if any child included for "not satisfied" is
+     * known-not-satisfied, otherwise null (no information to roll up)
      */ key: "objectiveRollupUsingDefault",
               value: function objectiveRollupUsingDefault(activity) {
                   var _this = this;
@@ -15171,47 +15572,23 @@
                   if (children.length === 0) {
                       return null;
                   }
-                  var considerations = activity.rollupConsiderations;
-                  var contributors = children.filter(function(child) {
-                      if (!_this.childFilter.checkChildForRollupSubprocess(child, "objective", "satisfied") || !_this.childFilter.checkChildForRollupSubprocess(child, "objective", "notSatisfied")) {
-                          return false;
-                      }
-                      if (!considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-                          return false;
-                      }
-                      return true;
-                  });
-                  if (contributors.length === 0) {
+                  var notSatisfiedChildren = this.childFilter.filterChildrenForRequirement(children, "objective", "notSatisfied");
+                  var satisfiedChildren = this.childFilter.filterChildrenForRequirement(children, "objective", "satisfied");
+                  if (notSatisfiedChildren.length === 0 && satisfiedChildren.length === 0) {
                       return null;
                   }
-                  var sawUnknownContributor = false;
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = contributors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          if (!this.childFilter.isChildObjectiveStatusKnownForRollup(child)) {
-                              sawUnknownContributor = true;
-                              continue;
-                          }
-                          if (!this.childFilter.isChildSatisfiedForRollup(child)) {
-                              return false;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
+                  var result = null;
+                  if (notSatisfiedChildren.some(function(child) {
+                      return _this.childFilter.isChildObjectiveStatusKnownForRollup(child) && !_this.childFilter.isChildSatisfiedForRollup(child);
+                  })) {
+                      result = false;
                   }
-                  return sawUnknownContributor ? null : true;
+                  if (satisfiedChildren.length > 0 && satisfiedChildren.every(function(child) {
+                      return _this.childFilter.isChildObjectiveStatusKnownForRollup(child) && _this.childFilter.isChildSatisfiedForRollup(child);
+                  })) {
+                      result = true;
+                  }
+                  return result;
               }
           },
           {
@@ -15241,10 +15618,10 @@
       return ObjectiveRollupProcessor;
   }();
 
-  function _class_call_check$P(instance, Constructor) {
+  function _class_call_check$O(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$P(target, props) {
+  function _defineProperties$O(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15253,39 +15630,39 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$P(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$P(Constructor.prototype, protoProps);
+  function _create_class$O(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$N(obj) {
+  function _type_of$M(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$M = Object.defineProperty;
-  var __defNormalProp$M = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$M(obj, key, {
+  var __defProp$L = Object.defineProperty;
+  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$L(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$M = function __publicField(obj, key, value) {
-      return __defNormalProp$M(obj, (typeof key === "undefined" ? "undefined" : _type_of$N(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$L = function __publicField(obj, key, value) {
+      return __defNormalProp$L(obj, (typeof key === "undefined" ? "undefined" : _type_of$M(key)) !== "symbol" ? key + "" : key, value);
   };
   var ProgressRollupProcessor = /*#__PURE__*/ function() {
       function ProgressRollupProcessor(childFilter, ruleEvaluator, objectiveProcessor, eventCallback) {
-          _class_call_check$P(this, ProgressRollupProcessor);
-          __publicField$M(this, "childFilter");
-          __publicField$M(this, "ruleEvaluator");
-          __publicField$M(this, "objectiveProcessor");
-          __publicField$M(this, "eventCallback");
+          _class_call_check$O(this, ProgressRollupProcessor);
+          __publicField$L(this, "childFilter");
+          __publicField$L(this, "ruleEvaluator");
+          __publicField$L(this, "objectiveProcessor");
+          __publicField$L(this, "eventCallback");
           this.childFilter = childFilter;
           this.ruleEvaluator = ruleEvaluator;
           this.objectiveProcessor = objectiveProcessor;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$P(ProgressRollupProcessor, [
+      _create_class$O(ProgressRollupProcessor, [
           {
               /**
      * Activity Progress Rollup Process
@@ -15359,46 +15736,30 @@
                       return;
                   }
                   var children = activity.getAvailableChildren();
-                  var contributors = children.filter(function(child) {
-                      return _this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && _this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete");
+                  var incompleteChildren = children.filter(function(child) {
+                      return _this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete");
                   });
-                  if (contributors.length === 0) {
+                  var completedChildren = children.filter(function(child) {
+                      return _this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed");
+                  });
+                  if (incompleteChildren.length === 0 && completedChildren.length === 0) {
                       return;
                   }
-                  var sawUnknownContributor = false;
-                  var _iteratorNormalCompletion2 = true, _didIteratorError2 = false, _iteratorError2 = undefined;
-                  try {
-                      for(var _iterator2 = contributors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true){
-                          var child = _step2.value;
-                          if (!this.childFilter.isChildCompletionStatusKnownForRollup(child)) {
-                              sawUnknownContributor = true;
-                              continue;
-                          }
-                          if (!this.childFilter.isChildCompletedForRollup(child)) {
-                              activity.completionStatus = CompletionStatus.INCOMPLETE;
-                              this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
-                              return;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError2 = true;
-                      _iteratorError2 = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-                              _iterator2.return();
-                          }
-                      } finally{
-                          if (_didIteratorError2) {
-                              throw _iteratorError2;
-                          }
-                      }
+                  var result = null;
+                  if (incompleteChildren.some(function(child) {
+                      return _this.childFilter.isChildCompletionStatusKnownForRollup(child) && !_this.childFilter.isChildCompletedForRollup(child);
+                  })) {
+                      result = CompletionStatus.INCOMPLETE;
                   }
-                  if (sawUnknownContributor) {
-                      return;
+                  if (completedChildren.length > 0 && completedChildren.every(function(child) {
+                      return _this.childFilter.isChildCompletionStatusKnownForRollup(child) && _this.childFilter.isChildCompletedForRollup(child);
+                  })) {
+                      result = CompletionStatus.COMPLETED;
                   }
-                  activity.completionStatus = CompletionStatus.COMPLETED;
-                  this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+                  if (result !== null) {
+                      activity.completionStatus = result;
+                      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+                  }
               }
           },
           {
@@ -15433,10 +15794,10 @@
       return ProgressRollupProcessor;
   }();
 
-  function _class_call_check$O(instance, Constructor) {
+  function _class_call_check$N(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$O(target, props) {
+  function _defineProperties$N(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15445,33 +15806,33 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$O(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$O(Constructor.prototype, protoProps);
+  function _create_class$N(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$M(obj) {
+  function _type_of$L(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$L = Object.defineProperty;
-  var __defNormalProp$L = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$L(obj, key, {
+  var __defProp$K = Object.defineProperty;
+  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$K(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$L = function __publicField(obj, key, value) {
-      return __defNormalProp$L(obj, (_type_of$M(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$K = function __publicField(obj, key, value) {
+      return __defNormalProp$K(obj, (_type_of$L(key)) !== "symbol" ? key + "" : key, value);
   };
   var DurationRollupProcessor = /*#__PURE__*/ function() {
       function DurationRollupProcessor(eventCallback) {
-          _class_call_check$O(this, DurationRollupProcessor);
-          __publicField$L(this, "eventCallback");
+          _class_call_check$N(this, DurationRollupProcessor);
+          __publicField$K(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$O(DurationRollupProcessor, [
+      _create_class$N(DurationRollupProcessor, [
           {
               /**
      * Duration Rollup Process
@@ -15582,10 +15943,10 @@
       return DurationRollupProcessor;
   }();
 
-  function _class_call_check$N(instance, Constructor) {
+  function _class_call_check$M(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$N(target, props) {
+  function _defineProperties$M(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -15594,40 +15955,40 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$N(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$N(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$N(Constructor, staticProps);
+  function _create_class$M(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$M(Constructor, staticProps);
       return Constructor;
   }
-  function _instanceof$9(left, right) {
+  function _instanceof$8(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$L(obj) {
+  function _type_of$K(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$K = Object.defineProperty;
-  var __defNormalProp$K = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$K(obj, key, {
+  var __defProp$J = Object.defineProperty;
+  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$J(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$K = function __publicField(obj, key, value) {
-      return __defNormalProp$K(obj, (_type_of$L(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$J = function __publicField(obj, key, value) {
+      return __defNormalProp$J(obj, (_type_of$K(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveSynchronizer = /*#__PURE__*/ function() {
       function GlobalObjectiveSynchronizer(eventCallback) {
-          _class_call_check$N(this, GlobalObjectiveSynchronizer);
-          __publicField$K(this, "eventCallback");
+          _class_call_check$M(this, GlobalObjectiveSynchronizer);
+          __publicField$J(this, "eventCallback");
           this.eventCallback = eventCallback || null;
       }
-      _create_class$N(GlobalObjectiveSynchronizer, [
+      _create_class$M(GlobalObjectiveSynchronizer, [
           {
               /**
      * Process global objective mapping for shared objectives
@@ -15705,7 +16066,7 @@
                       var _this_eventCallback2, _this2;
                       (_this_eventCallback2 = (_this2 = this).eventCallback) === null || _this_eventCallback2 === void 0 ? void 0 : _this_eventCallback2.call(_this2, "global_objective_processing_error", {
                           activityId: activity.id,
-                          error: _instanceof$9(error, Error) ? error.message : String(error)
+                          error: _instanceof$8(error, Error) ? error.message : String(error)
                       });
                       return [];
                   }
@@ -15768,7 +16129,7 @@
                                   var mapInfo = _step1.value;
                                   var targetId = mapInfo.targetObjectiveID || objective.id;
                                   var globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective);
-                                  if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective) && objective.isDirty("satisfiedStatus")) {
+                                  if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(activity, objective) && objective.isDirty("satisfiedStatus")) {
                                       globalObjective.satisfiedStatus = objective.satisfiedStatus;
                                       globalObjective.satisfiedStatusKnown = true;
                                       dirtyFieldsToClear.add("satisfiedStatus");
@@ -15892,9 +16253,9 @@
                                   var mapInfo = _step1.value;
                                   var targetId = mapInfo.targetObjectiveID || objective.id;
                                   var globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective);
-                                  if (mapInfo.writeSatisfiedStatus) {
+                                  if (mapInfo.writeSatisfiedStatus && !this.isMeasureSatisfactionDeferred(activity, objective)) {
                                       writeTargets.satisfiedStatus.add(targetId);
-                                      if (this.hasKnownSatisfiedStatus(objective)) {
+                                      if (this.hasKnownSatisfiedStatus(activity, objective)) {
                                           globalObjective.satisfiedStatus = objective.satisfiedStatus;
                                           globalObjective.satisfiedStatusKnown = true;
                                       } else {
@@ -16145,14 +16506,14 @@
                           objective.applyToActivity(activity);
                       }
                       if (this.canWriteGlobalObjectives(activity)) {
-                          if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective)) {
+                          if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(activity, objective)) {
                               globalObjective.satisfiedStatus = objective.satisfiedStatus;
                               globalObjective.satisfiedStatusKnown = true;
                           }
                           if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
                               globalObjective.normalizedMeasure = objective.normalizedMeasure;
                               globalObjective.normalizedMeasureKnown = true;
-                              if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
+                              if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure && !this.isMeasureSatisfactionDeferred(activity, objective)) {
                                   var _objective_minNormalizedMeasure;
                                   var threshold = (_objective_minNormalizedMeasure = objective.minNormalizedMeasure) !== null && _objective_minNormalizedMeasure !== void 0 ? _objective_minNormalizedMeasure : 1;
                                   globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
@@ -16195,7 +16556,7 @@
                       (_this_eventCallback1 = (_this1 = this).eventCallback) === null || _this_eventCallback1 === void 0 ? void 0 : _this_eventCallback1.call(_this1, "objective_sync_error", {
                           activityId: activity.id,
                           objectiveId: objective.id,
-                          error: _instanceof$9(error, Error) ? error.message : String(error),
+                          error: _instanceof$8(error, Error) ? error.message : String(error),
                           timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
@@ -16286,6 +16647,12 @@
               }
           },
           {
+              key: "isMeasureSatisfactionDeferred",
+              value: function isMeasureSatisfactionDeferred(activity, objective) {
+                  return objective.satisfiedByMeasure && activity.isActive && !activity.rollupConsiderations.measureSatisfactionIfActive;
+              }
+          },
+          {
               /**
      * Return whether the local objective has known satisfaction state to write.
      *
@@ -16293,7 +16660,10 @@
      * Status identifies whether Objective Satisfied Status is known; Objective
      * Measure Status is independent measure knowledge.
      */ key: "hasKnownSatisfiedStatus",
-              value: function hasKnownSatisfiedStatus(objective) {
+              value: function hasKnownSatisfiedStatus(activity, objective) {
+                  if (this.isMeasureSatisfactionDeferred(activity, objective)) {
+                      return false;
+                  }
                   if (objective.satisfiedByMeasure) {
                       return objective.measureStatus;
                   }
@@ -16412,7 +16782,7 @@
                       var _this_eventCallback, _this;
                       (_this_eventCallback = (_this = this).eventCallback) === null || _this_eventCallback === void 0 ? void 0 : _this_eventCallback.call(_this, "attempt_data_update_error", {
                           activityId: activity.id,
-                          error: _instanceof$9(error, Error) ? error.message : String(error),
+                          error: _instanceof$8(error, Error) ? error.message : String(error),
                           timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
@@ -16472,18 +16842,18 @@
       return GlobalObjectiveSynchronizer;
   }();
 
-  function _array_like_to_array$f(arr, len) {
+  function _array_like_to_array$e(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$8(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$f(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
   }
-  function _class_call_check$M(instance, Constructor) {
+  function _class_call_check$L(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$M(target, props) {
+  function _defineProperties$L(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16492,11 +16862,11 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$M(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$M(Constructor.prototype, protoProps);
+  function _create_class$L(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _instanceof$8(left, right) {
+  function _instanceof$7(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -16511,42 +16881,42 @@
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _to_consumable_array$8(arr) {
-      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$f(arr) || _non_iterable_spread$8();
+      return _array_without_holes$8(arr) || _iterable_to_array$8(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$8();
   }
-  function _type_of$K(obj) {
+  function _type_of$J(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$f(o, minLen) {
+  function _unsupported_iterable_to_array$e(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$f(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$f(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
   }
-  var __defProp$J = Object.defineProperty;
-  var __defNormalProp$J = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$J(obj, key, {
+  var __defProp$I = Object.defineProperty;
+  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$I(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$J = function __publicField(obj, key, value) {
-      return __defNormalProp$J(obj, (typeof key === "undefined" ? "undefined" : _type_of$K(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$I = function __publicField(obj, key, value) {
+      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupStateValidator = /*#__PURE__*/ function() {
       function RollupStateValidator(childFilter, eventCallback) {
-          _class_call_check$M(this, RollupStateValidator);
-          __publicField$J(this, "rollupStateLog", []);
-          __publicField$J(this, "childFilter");
-          __publicField$J(this, "eventCallback");
+          _class_call_check$L(this, RollupStateValidator);
+          __publicField$I(this, "rollupStateLog", []);
+          __publicField$I(this, "childFilter");
+          __publicField$I(this, "eventCallback");
           this.childFilter = childFilter;
           this.eventCallback = eventCallback || null;
       }
-      _create_class$M(RollupStateValidator, [
+      _create_class$L(RollupStateValidator, [
           {
               /**
      * Validate rollup state consistency across the activity tree
@@ -16582,7 +16952,7 @@
                       var _this_eventCallback3, _this3;
                       (_this_eventCallback3 = (_this3 = this).eventCallback) === null || _this_eventCallback3 === void 0 ? void 0 : _this_eventCallback3.call(_this3, "rollup_validation_error", {
                           activityId: rootActivity.id,
-                          error: _instanceof$8(error, Error) ? error.message : String(error)
+                          error: _instanceof$7(error, Error) ? error.message : String(error)
                       });
                       return false;
                   }
@@ -16690,10 +17060,10 @@
       return RollupStateValidator;
   }();
 
-  function _class_call_check$L(instance, Constructor) {
+  function _class_call_check$K(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$L(target, props) {
+  function _defineProperties$K(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16702,44 +17072,44 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$L(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$L(Constructor.prototype, protoProps);
+  function _create_class$K(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$K(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$J(obj) {
+  function _type_of$I(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$I = Object.defineProperty;
-  var __defNormalProp$I = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$I(obj, key, {
+  var __defProp$H = Object.defineProperty;
+  var __defNormalProp$H = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$H(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$I = function __publicField(obj, key, value) {
-      return __defNormalProp$I(obj, (typeof key === "undefined" ? "undefined" : _type_of$J(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$H = function __publicField(obj, key, value) {
+      return __defNormalProp$H(obj, (typeof key === "undefined" ? "undefined" : _type_of$I(key)) !== "symbol" ? key + "" : key, value);
   };
   var RollupProcess = /*#__PURE__*/ function() {
       function RollupProcess(eventCallback) {
           var clock = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-          _class_call_check$L(this, RollupProcess);
+          _class_call_check$K(this, RollupProcess);
           /**
        * Capability flag for hosts that supported older rollup behavior with a compatibility layer.
        * Rollup contribution controls belong to an activity as a child of its parent; they do not gate
        * calculation of the activity's own rolled-up state.
-       */ __publicField$I(this, "childContributionControlsApplyToParent", true);
-          __publicField$I(this, "childFilter");
-          __publicField$I(this, "ruleEvaluator");
-          __publicField$I(this, "measureProcessor");
-          __publicField$I(this, "objectiveProcessor");
-          __publicField$I(this, "progressProcessor");
-          __publicField$I(this, "durationProcessor");
-          __publicField$I(this, "globalObjectiveSynchronizer");
-          __publicField$I(this, "stateValidator");
-          __publicField$I(this, "eventCallback");
+       */ __publicField$H(this, "childContributionControlsApplyToParent", true);
+          __publicField$H(this, "childFilter");
+          __publicField$H(this, "ruleEvaluator");
+          __publicField$H(this, "measureProcessor");
+          __publicField$H(this, "objectiveProcessor");
+          __publicField$H(this, "progressProcessor");
+          __publicField$H(this, "durationProcessor");
+          __publicField$H(this, "globalObjectiveSynchronizer");
+          __publicField$H(this, "stateValidator");
+          __publicField$H(this, "eventCallback");
           this.eventCallback = eventCallback || null;
           this.childFilter = new RollupChildFilter();
           this.ruleEvaluator = new RollupRuleEvaluator(this.childFilter, clock);
@@ -16750,7 +17120,21 @@
           this.globalObjectiveSynchronizer = new GlobalObjectiveSynchronizer(eventCallback);
           this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
       }
-      _create_class$L(RollupProcess, [
+      _create_class$K(RollupProcess, [
+          {
+              /**
+     * Roll up one activity without duration rollup, ancestor traversal or global reads.
+     * @spec SCORM 2004 SN 4th Ed. RB.1.1 to RB.1.3
+     */ key: "rollupActivity",
+              value: function rollupActivity(activity) {
+                  if (activity.children.length > 0) {
+                      this.measureProcessor.measureRollupProcess(activity);
+                      this.measureProcessor.completionMeasureRollupProcess(activity);
+                  }
+                  this.objectiveProcessor.objectiveRollupProcess(activity);
+                  this.progressProcessor.activityProgressRollupProcess(activity);
+              }
+          },
           {
               /**
      * Overall Rollup Process
@@ -16759,11 +17143,14 @@
      *
      * @spec SN Book: RB.1.5 (Overall Rollup Process)
      * @param activity - The activity to start rollup from
+     * @param globalObjectives - Shared global objectives
+     * @param includeActivity - Start with the activity itself instead of its parent
      * @returns Array of activities that had status changes
      */ key: "overallRollupProcess",
               value: function overallRollupProcess(activity, globalObjectives) {
+                  var includeActivity = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
                   var affectedActivities = [];
-                  var currentActivity = activity.parent;
+                  var currentActivity = includeActivity ? activity : activity.parent;
                   var onlyDurationRollup = false;
                   var isFirst = true;
                   while(currentActivity){
@@ -16772,12 +17159,7 @@
                       }
                       if (!onlyDurationRollup) {
                           var beforeStatus = currentActivity.captureRollupStatus();
-                          if (currentActivity.children.length > 0) {
-                              this.measureProcessor.measureRollupProcess(currentActivity);
-                              this.measureProcessor.completionMeasureRollupProcess(currentActivity);
-                          }
-                          this.objectiveProcessor.objectiveRollupProcess(currentActivity);
-                          this.progressProcessor.activityProgressRollupProcess(currentActivity);
+                          this.rollupActivity(currentActivity);
                           if (globalObjectives) {
                               this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(currentActivity, globalObjectives);
                           }
@@ -16975,10 +17357,10 @@
       return RollupProcess;
   }();
 
-  function _class_call_check$K(instance, Constructor) {
+  function _class_call_check$J(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$K(target, props) {
+  function _defineProperties$J(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -16987,8 +17369,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$K(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$K(Constructor.prototype, protoProps);
+  function _create_class$J(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$J(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$e(obj, key, value) {
@@ -17017,32 +17399,32 @@
       }
       return target;
   }
-  function _type_of$I(obj) {
+  function _type_of$H(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$H = Object.defineProperty;
-  var __defNormalProp$H = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$H(obj, key, {
+  var __defProp$G = Object.defineProperty;
+  var __defNormalProp$G = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$G(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$H = function __publicField(obj, key, value) {
-      return __defNormalProp$H(obj, (typeof key === "undefined" ? "undefined" : _type_of$I(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$G = function __publicField(obj, key, value) {
+      return __defNormalProp$G(obj, (typeof key === "undefined" ? "undefined" : _type_of$H(key)) !== "symbol" ? key + "" : key, value);
   };
   var ObjectiveEvaluationContext = /*#__PURE__*/ function() {
       function ObjectiveEvaluationContext(activityTree, globalObjectives) {
-          _class_call_check$K(this, ObjectiveEvaluationContext);
-          __publicField$H(this, "activityTree", activityTree);
-          __publicField$H(this, "globalObjectives", globalObjectives);
-          __publicField$H(this, "synchronizer", new GlobalObjectiveSynchronizer());
-          __publicField$H(this, "treeQueries");
+          _class_call_check$J(this, ObjectiveEvaluationContext);
+          __publicField$G(this, "activityTree", activityTree);
+          __publicField$G(this, "globalObjectives", globalObjectives);
+          __publicField$G(this, "synchronizer", new GlobalObjectiveSynchronizer());
+          __publicField$G(this, "treeQueries");
           this.treeQueries = new ActivityTreeQueries(activityTree);
       }
-      _create_class$K(ObjectiveEvaluationContext, [
+      _create_class$J(ObjectiveEvaluationContext, [
           {
               /**
      * Overlay the old branch's write maps on copied global entries, then read them
@@ -17151,10 +17533,10 @@
       return storedCompletionStatus || CompletionStatus.UNKNOWN;
   }
 
-  function _class_call_check$J(instance, Constructor) {
+  function _class_call_check$I(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$J(target, props) {
+  function _defineProperties$I(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -17163,25 +17545,25 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$J(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$J(Constructor.prototype, protoProps);
+  function _create_class$I(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$I(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$H(obj) {
+  function _type_of$G(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$G = Object.defineProperty;
-  var __defNormalProp$G = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$G(obj, key, {
+  var __defProp$F = Object.defineProperty;
+  var __defNormalProp$F = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$F(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$G = function __publicField(obj, key, value) {
-      return __defNormalProp$G(obj, (_type_of$H(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$F = function __publicField(obj, key, value) {
+      return __defNormalProp$F(obj, (_type_of$G(key)) !== "symbol" ? key + "" : key, value);
   };
   var VALID_SUCCESS_STATUSES = [
       SuccessStatus.PASSED,
@@ -17208,11 +17590,11 @@
   }
   var RteDataTransferService = /*#__PURE__*/ function() {
       function RteDataTransferService(context) {
-          _class_call_check$J(this, RteDataTransferService);
-          __publicField$G(this, "context");
+          _class_call_check$I(this, RteDataTransferService);
+          __publicField$F(this, "context");
           this.context = context;
       }
-      _create_class$J(RteDataTransferService, [
+      _create_class$I(RteDataTransferService, [
           {
               /**
      * Transfer RTE Data to Activity
@@ -17501,10 +17883,10 @@
       return RteDataTransferService;
   }();
 
-  function _class_call_check$I(instance, Constructor) {
+  function _class_call_check$H(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$I(target, props) {
+  function _defineProperties$H(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -17513,8 +17895,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$I(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$I(Constructor.prototype, protoProps);
+  function _create_class$H(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$H(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$d(obj, key, value) {
@@ -17561,36 +17943,36 @@
       }
       return target;
   }
-  function _type_of$G(obj) {
+  function _type_of$F(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$F = Object.defineProperty;
-  var __defNormalProp$F = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$F(obj, key, {
+  var __defProp$E = Object.defineProperty;
+  var __defNormalProp$E = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$E(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$F = function __publicField(obj, key, value) {
-      return __defNormalProp$F(obj, (typeof key === "undefined" ? "undefined" : _type_of$G(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$E = function __publicField(obj, key, value) {
+      return __defNormalProp$E(obj, (typeof key === "undefined" ? "undefined" : _type_of$F(key)) !== "symbol" ? key + "" : key, value);
   };
   var TerminationHandler = /*#__PURE__*/ function() {
       function TerminationHandler(activityTree, sequencingProcess, rollupProcess, globalObjectiveMap) {
           var _this = this;
           var eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$I(this, TerminationHandler);
-          __publicField$F(this, "activityTree");
-          __publicField$F(this, "sequencingProcess");
-          __publicField$F(this, "rollupProcess");
-          __publicField$F(this, "globalObjectiveMap");
-          __publicField$F(this, "eventCallback");
-          __publicField$F(this, "getCMIData");
-          __publicField$F(this, "is4thEdition");
-          __publicField$F(this, "invalidateCacheCallback", null);
-          __publicField$F(this, "_rteDataTransferService");
+          _class_call_check$H(this, TerminationHandler);
+          __publicField$E(this, "activityTree");
+          __publicField$E(this, "sequencingProcess");
+          __publicField$E(this, "rollupProcess");
+          __publicField$E(this, "globalObjectiveMap");
+          __publicField$E(this, "eventCallback");
+          __publicField$E(this, "getCMIData");
+          __publicField$E(this, "is4thEdition");
+          __publicField$E(this, "invalidateCacheCallback", null);
+          __publicField$E(this, "_rteDataTransferService");
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
           this.rollupProcess = rollupProcess;
@@ -17606,7 +17988,7 @@
           };
           this._rteDataTransferService = new RteDataTransferService(rteContext);
       }
-      _create_class$I(TerminationHandler, [
+      _create_class$H(TerminationHandler, [
           {
               /**
      * Set callback to invalidate navigation cache after state changes
@@ -18414,6 +18796,9 @@
                   if (activity.successStatus === "unknown" && activity.objectiveSatisfiedStatus) {
                       activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
                   }
+                  if (activity.children.length > 0) {
+                      this.rollupProcess.rollupActivity(activity);
+                  }
                   var writeTargets = this.rollupProcess.syncTerminatedActivityObjectives(activity, this.globalObjectiveMap);
                   var activeAncestor = activity.parent;
                   while(activeAncestor){
@@ -18424,7 +18809,7 @@
                   }
                   var mappingRoot = this.activityTree.root || activity;
                   this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
-                  this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap);
+                  this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap, activity.children.length > 0);
                   activeAncestor = activity.parent;
                   while(activeAncestor){
                       if (activeAncestor.isActive) {
@@ -18483,18 +18868,18 @@
       return TerminationHandler;
   }();
 
-  function _array_like_to_array$e(arr, len) {
+  function _array_like_to_array$d(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$7(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$e(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$d(arr);
   }
-  function _class_call_check$H(instance, Constructor) {
+  function _class_call_check$G(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$H(target, props) {
+  function _defineProperties$G(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -18503,8 +18888,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$H(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$H(Constructor.prototype, protoProps);
+  function _create_class$G(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$G(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$c(obj, key, value) {
@@ -18542,38 +18927,38 @@
       return target;
   }
   function _to_consumable_array$7(arr) {
-      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$e(arr) || _non_iterable_spread$7();
+      return _array_without_holes$7(arr) || _iterable_to_array$7(arr) || _unsupported_iterable_to_array$d(arr) || _non_iterable_spread$7();
   }
-  function _type_of$F(obj) {
+  function _type_of$E(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$e(o, minLen) {
+  function _unsupported_iterable_to_array$d(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$e(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$e(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
   }
-  var __defProp$E = Object.defineProperty;
-  var __defNormalProp$E = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$E(obj, key, {
+  var __defProp$D = Object.defineProperty;
+  var __defNormalProp$D = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$D(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$E = function __publicField(obj, key, value) {
-      return __defNormalProp$E(obj, (typeof key === "undefined" ? "undefined" : _type_of$F(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$D = function __publicField(obj, key, value) {
+      return __defNormalProp$D(obj, (typeof key === "undefined" ? "undefined" : _type_of$E(key)) !== "symbol" ? key + "" : key, value);
   };
   var DeliveryRequest = function DeliveryRequest() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
-      _class_call_check$H(this, DeliveryRequest);
-      __publicField$E(this, "valid");
-      __publicField$E(this, "targetActivity");
-      __publicField$E(this, "exception");
+      _class_call_check$G(this, DeliveryRequest);
+      __publicField$D(this, "valid");
+      __publicField$D(this, "targetActivity");
+      __publicField$D(this, "exception");
       this.valid = valid;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -18581,22 +18966,22 @@
   var _DeliveryHandler = /*#__PURE__*/ function() {
       function _DeliveryHandler(activityTree, rollupProcess, globalObjectiveMap) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$H(this, _DeliveryHandler);
-          __publicField$E(this, "activityTree");
-          __publicField$E(this, "rollupProcess");
-          __publicField$E(this, "globalObjectiveMap");
-          __publicField$E(this, "adlNav");
-          __publicField$E(this, "eventCallback");
-          __publicField$E(this, "now");
-          __publicField$E(this, "defaultHideLmsUi");
-          __publicField$E(this, "defaultAuxiliaryResources");
-          __publicField$E(this, "_deliveryInProgress", false);
-          __publicField$E(this, "contentDelivered", false);
-          __publicField$E(this, "endAttemptCallback", null);
-          __publicField$E(this, "checkActivityCallback", null);
-          __publicField$E(this, "invalidateCacheCallback", null);
-          __publicField$E(this, "updateNavigationValidityCallback", null);
-          __publicField$E(this, "clearSuspendedActivityCallback", null);
+          _class_call_check$G(this, _DeliveryHandler);
+          __publicField$D(this, "activityTree");
+          __publicField$D(this, "rollupProcess");
+          __publicField$D(this, "globalObjectiveMap");
+          __publicField$D(this, "adlNav");
+          __publicField$D(this, "eventCallback");
+          __publicField$D(this, "now");
+          __publicField$D(this, "defaultHideLmsUi");
+          __publicField$D(this, "defaultAuxiliaryResources");
+          __publicField$D(this, "_deliveryInProgress", false);
+          __publicField$D(this, "contentDelivered", false);
+          __publicField$D(this, "endAttemptCallback", null);
+          __publicField$D(this, "checkActivityCallback", null);
+          __publicField$D(this, "invalidateCacheCallback", null);
+          __publicField$D(this, "updateNavigationValidityCallback", null);
+          __publicField$D(this, "clearSuspendedActivityCallback", null);
           this.activityTree = activityTree;
           this.rollupProcess = rollupProcess;
           this.globalObjectiveMap = globalObjectiveMap;
@@ -18610,7 +18995,7 @@
               return _object_spread$c({}, resource);
           }) : [];
       }
-      _create_class$H(_DeliveryHandler, [
+      _create_class$G(_DeliveryHandler, [
           {
               /** @spec SCORM 2004 SN 4th Ed. DB.2 / UP.4 - commit departed attempts through the coordinator. */ key: "setEndAttemptCallback",
               value: function setEndAttemptCallback(callback) {
@@ -19163,13 +19548,13 @@
       ]);
       return _DeliveryHandler;
   }();
-  __publicField$E(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$7(HIDE_LMS_UI_TOKENS));
+  __publicField$D(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$7(HIDE_LMS_UI_TOKENS));
   var DeliveryHandler = _DeliveryHandler;
 
-  function _class_call_check$G(instance, Constructor) {
+  function _class_call_check$F(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$G(target, props) {
+  function _defineProperties$F(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -19178,37 +19563,37 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$G(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$G(Constructor.prototype, protoProps);
+  function _create_class$F(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$E(obj) {
+  function _type_of$D(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$D = Object.defineProperty;
-  var __defNormalProp$D = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$D(obj, key, {
+  var __defProp$C = Object.defineProperty;
+  var __defNormalProp$C = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$C(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$D = function __publicField(obj, key, value) {
-      return __defNormalProp$D(obj, (typeof key === "undefined" ? "undefined" : _type_of$E(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$C = function __publicField(obj, key, value) {
+      return __defNormalProp$C(obj, (typeof key === "undefined" ? "undefined" : _type_of$D(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationLookAhead = /*#__PURE__*/ function() {
       function NavigationLookAhead(activityTree, sequencingProcess) {
-          _class_call_check$G(this, NavigationLookAhead);
-          __publicField$D(this, "activityTree");
-          __publicField$D(this, "sequencingProcess");
-          __publicField$D(this, "cache", null);
-          __publicField$D(this, "isDirty", true);
+          _class_call_check$F(this, NavigationLookAhead);
+          __publicField$C(this, "activityTree");
+          __publicField$C(this, "sequencingProcess");
+          __publicField$C(this, "cache", null);
+          __publicField$C(this, "isDirty", true);
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
       }
-      _create_class$G(NavigationLookAhead, [
+      _create_class$F(NavigationLookAhead, [
           {
               /**
      * Predict if Continue navigation would succeed from current activity
@@ -19592,10 +19977,10 @@
       return NavigationLookAhead;
   }();
 
-  function _class_call_check$F(instance, Constructor) {
+  function _class_call_check$E(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$F(target, props) {
+  function _defineProperties$E(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -19604,25 +19989,25 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$F(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$F(Constructor.prototype, protoProps);
+  function _create_class$E(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$E(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$D(obj) {
+  function _type_of$C(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$C = Object.defineProperty;
-  var __defNormalProp$C = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$C(obj, key, {
+  var __defProp$B = Object.defineProperty;
+  var __defNormalProp$B = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$B(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$C = function __publicField(obj, key, value) {
-      return __defNormalProp$C(obj, (typeof key === "undefined" ? "undefined" : _type_of$D(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$B = function __publicField(obj, key, value) {
+      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
   };
   var NavigationRequestType = /* @__PURE__ */ function(NavigationRequestType2) {
       NavigationRequestType2["START"] = "start";
@@ -19641,12 +20026,12 @@
   }(NavigationRequestType || {});
   var NavigationRequestResult = function NavigationRequestResult() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, terminationRequest = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, sequencingRequest = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, targetActivityId = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, exception = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null;
-      _class_call_check$F(this, NavigationRequestResult);
-      __publicField$C(this, "valid");
-      __publicField$C(this, "terminationRequest");
-      __publicField$C(this, "sequencingRequest");
-      __publicField$C(this, "targetActivityId");
-      __publicField$C(this, "exception");
+      _class_call_check$E(this, NavigationRequestResult);
+      __publicField$B(this, "valid");
+      __publicField$B(this, "terminationRequest");
+      __publicField$B(this, "sequencingRequest");
+      __publicField$B(this, "targetActivityId");
+      __publicField$B(this, "exception");
       this.valid = valid;
       this.terminationRequest = terminationRequest;
       this.sequencingRequest = sequencingRequest;
@@ -19656,21 +20041,21 @@
   var NavigationValidityService = /*#__PURE__*/ function() {
       function NavigationValidityService(activityTree, sequencingProcess) {
           var adlNav = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, eventCallback = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null;
-          _class_call_check$F(this, NavigationValidityService);
-          __publicField$C(this, "activityTree");
-          __publicField$C(this, "sequencingProcess");
-          __publicField$C(this, "adlNav");
-          __publicField$C(this, "eventCallback");
-          __publicField$C(this, "navigationLookAhead");
-          __publicField$C(this, "getEffectiveHideLmsUiCallback", null);
-          __publicField$C(this, "getEffectiveAuxiliaryResourcesCallback", null);
+          _class_call_check$E(this, NavigationValidityService);
+          __publicField$B(this, "activityTree");
+          __publicField$B(this, "sequencingProcess");
+          __publicField$B(this, "adlNav");
+          __publicField$B(this, "eventCallback");
+          __publicField$B(this, "navigationLookAhead");
+          __publicField$B(this, "getEffectiveHideLmsUiCallback", null);
+          __publicField$B(this, "getEffectiveAuxiliaryResourcesCallback", null);
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
           this.adlNav = adlNav;
           this.eventCallback = eventCallback;
           this.navigationLookAhead = new NavigationLookAhead(activityTree, sequencingProcess);
       }
-      _create_class$F(NavigationValidityService, [
+      _create_class$E(NavigationValidityService, [
           {
               /**
      * Set callback to get effective hideLmsUi
@@ -20474,7 +20859,7 @@
       return NavigationValidityService;
   }();
 
-  function _array_like_to_array$d(arr, len) {
+  function _array_like_to_array$c(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -20482,10 +20867,10 @@
   function _array_with_holes$a(arr) {
       if (Array.isArray(arr)) return arr;
   }
-  function _class_call_check$E(instance, Constructor) {
+  function _class_call_check$D(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$E(target, props) {
+  function _defineProperties$D(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -20494,8 +20879,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$E(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$E(Constructor.prototype, protoProps);
+  function _create_class$D(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$D(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$b(obj, key, value) {
@@ -20509,7 +20894,7 @@
       } else obj[key] = value;
       return obj;
   }
-  function _instanceof$7(left, right) {
+  function _instanceof$6(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -20576,40 +20961,40 @@
       return target;
   }
   function _sliced_to_array$a(arr, i) {
-      return _array_with_holes$a(arr) || _iterable_to_array_limit$a(arr, i) || _unsupported_iterable_to_array$d(arr, i) || _non_iterable_rest$a();
+      return _array_with_holes$a(arr) || _iterable_to_array_limit$a(arr, i) || _unsupported_iterable_to_array$c(arr, i) || _non_iterable_rest$a();
   }
-  function _type_of$C(obj) {
+  function _type_of$B(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$d(o, minLen) {
+  function _unsupported_iterable_to_array$c(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$d(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$d(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
   }
-  var __defProp$B = Object.defineProperty;
-  var __defNormalProp$B = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$B(obj, key, {
+  var __defProp$A = Object.defineProperty;
+  var __defNormalProp$A = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$A(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$B = function __publicField(obj, key, value) {
-      return __defNormalProp$B(obj, (typeof key === "undefined" ? "undefined" : _type_of$C(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$A = function __publicField(obj, key, value) {
+      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
   };
   var GlobalObjectiveService = /*#__PURE__*/ function() {
       function GlobalObjectiveService(eventCallback) {
-          _class_call_check$E(this, GlobalObjectiveService);
-          __publicField$B(this, "globalObjectiveMap", /* @__PURE__ */ new Map());
-          __publicField$B(this, "eventCallback", null);
+          _class_call_check$D(this, GlobalObjectiveService);
+          __publicField$A(this, "globalObjectiveMap", /* @__PURE__ */ new Map());
+          __publicField$A(this, "eventCallback", null);
           this.eventCallback = eventCallback || null;
       }
-      _create_class$E(GlobalObjectiveService, [
+      _create_class$D(GlobalObjectiveService, [
           {
               /**
      * Initialize Global Objective Map
@@ -20628,7 +21013,7 @@
                       });
                   } catch (error) {
                       this.fireEvent("onGlobalObjectiveMapError", {
-                          error: _instanceof$7(error, Error) ? error.message : String(error),
+                          error: _instanceof$6(error, Error) ? error.message : String(error),
                           timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
@@ -20793,7 +21178,7 @@
                   } catch (error) {
                       this.fireEvent("onGlobalObjectiveUpdateError", {
                           objectiveId: objectiveId,
-                          error: _instanceof$7(error, Error) ? error.message : String(error),
+                          error: _instanceof$6(error, Error) ? error.message : String(error),
                           timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
@@ -20932,10 +21317,10 @@
       return GlobalObjectiveService;
   }();
 
-  function _class_call_check$D(instance, Constructor) {
+  function _class_call_check$C(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$D(target, props) {
+  function _defineProperties$C(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -20944,52 +21329,52 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$D(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$D(Constructor.prototype, protoProps);
+  function _create_class$C(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$C(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _instanceof$6(left, right) {
+  function _instanceof$5(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _type_of$B(obj) {
+  function _type_of$A(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$A = Object.defineProperty;
-  var __defNormalProp$A = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$A(obj, key, {
+  var __defProp$z = Object.defineProperty;
+  var __defNormalProp$z = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$z(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$A = function __publicField(obj, key, value) {
-      return __defNormalProp$A(obj, (typeof key === "undefined" ? "undefined" : _type_of$B(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$z = function __publicField(obj, key, value) {
+      return __defNormalProp$z(obj, (typeof key === "undefined" ? "undefined" : _type_of$A(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingStateManager = /*#__PURE__*/ function() {
       function SequencingStateManager(activityTree, globalObjectiveService, rollupProcess) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null;
-          _class_call_check$D(this, SequencingStateManager);
-          __publicField$A(this, "activityTree");
-          __publicField$A(this, "globalObjectiveService");
-          __publicField$A(this, "rollupProcess");
-          __publicField$A(this, "adlNav");
-          __publicField$A(this, "eventCallback");
-          __publicField$A(this, "getEffectiveHideLmsUiCallback", null);
-          __publicField$A(this, "getEffectiveAuxiliaryResourcesCallback", null);
-          __publicField$A(this, "contentDeliveredGetter", null);
-          __publicField$A(this, "contentDeliveredSetter", null);
+          _class_call_check$C(this, SequencingStateManager);
+          __publicField$z(this, "activityTree");
+          __publicField$z(this, "globalObjectiveService");
+          __publicField$z(this, "rollupProcess");
+          __publicField$z(this, "adlNav");
+          __publicField$z(this, "eventCallback");
+          __publicField$z(this, "getEffectiveHideLmsUiCallback", null);
+          __publicField$z(this, "getEffectiveAuxiliaryResourcesCallback", null);
+          __publicField$z(this, "contentDeliveredGetter", null);
+          __publicField$z(this, "contentDeliveredSetter", null);
           this.activityTree = activityTree;
           this.globalObjectiveService = globalObjectiveService;
           this.rollupProcess = rollupProcess;
           this.adlNav = adlNav;
           this.eventCallback = eventCallback;
       }
-      _create_class$D(SequencingStateManager, [
+      _create_class$C(SequencingStateManager, [
           {
               /**
      * Set callback to get effective hideLmsUi
@@ -21423,7 +21808,7 @@
                       });
                   } catch (error) {
                       this.fireEvent("onSuspensionStateRestoreError", {
-                          error: _instanceof$6(error, Error) ? error.message : String(error),
+                          error: _instanceof$5(error, Error) ? error.message : String(error),
                           timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                       throw error;
@@ -21450,10 +21835,10 @@
       return SequencingStateManager;
   }();
 
-  function _class_call_check$C(instance, Constructor) {
+  function _class_call_check$B(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$C(target, props) {
+  function _defineProperties$B(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -21462,47 +21847,47 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$C(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$C(Constructor.prototype, protoProps);
+  function _create_class$B(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$B(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _type_of$A(obj) {
+  function _type_of$z(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$z = Object.defineProperty;
-  var __defNormalProp$z = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$z(obj, key, {
+  var __defProp$y = Object.defineProperty;
+  var __defNormalProp$y = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$y(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$z = function __publicField(obj, key, value) {
-      return __defNormalProp$z(obj, (typeof key === "undefined" ? "undefined" : _type_of$A(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$y = function __publicField(obj, key, value) {
+      return __defNormalProp$y(obj, (typeof key === "undefined" ? "undefined" : _type_of$z(key)) !== "symbol" ? key + "" : key, value);
   };
   var OverallSequencingProcess = /*#__PURE__*/ function() {
       function OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$C(this, OverallSequencingProcess);
+          _class_call_check$B(this, OverallSequencingProcess);
           // Core dependencies
-          __publicField$z(this, "activityTree");
-          __publicField$z(this, "sequencingProcess");
-          __publicField$z(this, "rollupProcess");
-          __publicField$z(this, "adlNav");
-          __publicField$z(this, "eventCallback", null);
+          __publicField$y(this, "activityTree");
+          __publicField$y(this, "sequencingProcess");
+          __publicField$y(this, "rollupProcess");
+          __publicField$y(this, "adlNav");
+          __publicField$y(this, "eventCallback", null);
           // Extracted services
-          __publicField$z(this, "terminationHandler");
-          __publicField$z(this, "deliveryHandler");
-          __publicField$z(this, "navigationValidityService");
-          __publicField$z(this, "globalObjectiveService");
-          __publicField$z(this, "stateManager");
-          __publicField$z(this, "deliveryValidator");
-          __publicField$z(this, "navigationLookAhead");
+          __publicField$y(this, "terminationHandler");
+          __publicField$y(this, "deliveryHandler");
+          __publicField$y(this, "navigationValidityService");
+          __publicField$y(this, "globalObjectiveService");
+          __publicField$y(this, "stateManager");
+          __publicField$y(this, "deliveryValidator");
+          __publicField$y(this, "navigationLookAhead");
           // Configuration
-          __publicField$z(this, "enhancedDeliveryValidation");
-          __publicField$z(this, "is4thEdition");
+          __publicField$y(this, "enhancedDeliveryValidation");
+          __publicField$y(this, "is4thEdition");
           this.activityTree = activityTree;
           this.sequencingProcess = sequencingProcess;
           this.rollupProcess = rollupProcess;
@@ -21543,7 +21928,7 @@
           this.navigationLookAhead = this.navigationValidityService.getNavigationLookAhead();
           this.setupCallbacks();
       }
-      _create_class$C(OverallSequencingProcess, [
+      _create_class$B(OverallSequencingProcess, [
           {
               /**
      * Set up callbacks between components
@@ -22072,10 +22457,10 @@
       derived = _get_prototype_of$p(derived);
       return _possible_constructor_return$p(_this, _is_native_reflect_construct$p() ? Reflect.construct(derived, args || [], _get_prototype_of$p(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$B(instance, Constructor) {
+  function _class_call_check$A(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$B(target, props) {
+  function _defineProperties$A(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -22084,8 +22469,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$B(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$B(Constructor.prototype, protoProps);
+  function _create_class$A(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$A(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get$a(target, property, receiver) {
@@ -22120,7 +22505,7 @@
       });
       if (superClass) _set_prototype_of$p(subClass, superClass);
   }
-  function _instanceof$5(left, right) {
+  function _instanceof$4(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -22135,7 +22520,7 @@
       })();
   }
   function _possible_constructor_return$p(self, call) {
-      if (call && (_type_of$z(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$y(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$p(self);
   }
   function _set_prototype_of$p(o, p) {
@@ -22152,40 +22537,40 @@
       }
       return object;
   }
-  function _type_of$z(obj) {
+  function _type_of$y(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$y = Object.defineProperty;
-  var __defNormalProp$y = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$y(obj, key, {
+  var __defProp$x = Object.defineProperty;
+  var __defNormalProp$x = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$x(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$y = function __publicField(obj, key, value) {
-      return __defNormalProp$y(obj, (typeof key === "undefined" ? "undefined" : _type_of$z(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$x = function __publicField(obj, key, value) {
+      return __defNormalProp$x(obj, (typeof key === "undefined" ? "undefined" : _type_of$y(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityTree = /*#__PURE__*/ function(BaseCMI) {
       _inherits$p(ActivityTree, BaseCMI);
       function ActivityTree(root) {
-          _class_call_check$B(this, ActivityTree);
+          _class_call_check$A(this, ActivityTree);
           var _this;
           _this = _call_super$p(this, ActivityTree, [
               "activityTree"
           ]);
-          __publicField$y(_this, "_root", null);
-          __publicField$y(_this, "_currentActivity", null);
-          __publicField$y(_this, "_suspendedActivity", null);
-          __publicField$y(_this, "_activities", /* @__PURE__ */ new Map());
+          __publicField$x(_this, "_root", null);
+          __publicField$x(_this, "_currentActivity", null);
+          __publicField$x(_this, "_suspendedActivity", null);
+          __publicField$x(_this, "_activities", /* @__PURE__ */ new Map());
           if (root) {
               _this.root = root;
           }
           return _this;
       }
-      _create_class$B(ActivityTree, [
+      _create_class$A(ActivityTree, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
@@ -22225,7 +22610,7 @@
      * Setter for root
      * @param {Activity} root
      */ function set(root) {
-                  if (root !== null && !_instanceof$5(root, Activity)) {
+                  if (root !== null && !_instanceof$4(root, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".root", scorm2004_errors.TYPE_MISMATCH);
                   }
                   this._activities.clear();
@@ -22278,7 +22663,7 @@
      * Setter for currentActivity
      * @param {Activity | null} activity
      */ function set(activity) {
-                  if (activity !== null && !_instanceof$5(activity, Activity)) {
+                  if (activity !== null && !_instanceof$4(activity, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
                   }
                   if (this._currentActivity) {
@@ -22310,7 +22695,7 @@
      * @param {Activity | null} activity - The activity to set as current
      */ key: "setCurrentActivityWithoutActivation",
               value: function setCurrentActivityWithoutActivation(activity) {
-                  if (activity !== null && !_instanceof$5(activity, Activity)) {
+                  if (activity !== null && !_instanceof$4(activity, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
                   }
                   if (this._currentActivity) {
@@ -22347,7 +22732,7 @@
      * Setter for suspendedActivity
      * @param {Activity | null} activity
      */ function set(activity) {
-                  if (activity !== null && !_instanceof$5(activity, Activity)) {
+                  if (activity !== null && !_instanceof$4(activity, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".suspendedActivity", scorm2004_errors.TYPE_MISMATCH);
                   }
                   if (this._suspendedActivity) {
@@ -22553,7 +22938,7 @@
       return ActivityTree;
   }(BaseCMI);
 
-  function _array_like_to_array$c(arr, len) {
+  function _array_like_to_array$b(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -22633,19 +23018,19 @@
       return target;
   }
   function _sliced_to_array$9(arr, i) {
-      return _array_with_holes$9(arr) || _iterable_to_array_limit$9(arr, i) || _unsupported_iterable_to_array$c(arr, i) || _non_iterable_rest$9();
+      return _array_with_holes$9(arr) || _iterable_to_array_limit$9(arr, i) || _unsupported_iterable_to_array$b(arr, i) || _non_iterable_rest$9();
   }
-  function _type_of$y(obj) {
+  function _type_of$x(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$c(o, minLen) {
+  function _unsupported_iterable_to_array$b(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$c(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$b(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$c(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$b(o, minLen);
   }
   var modelPrototypes = /* @__PURE__ */ new Set([
       Object.prototype,
@@ -22664,7 +23049,7 @@
       var seen = /* @__PURE__ */ new Map();
       var copy = function copy1(item) {
           if (typeof item === "function") throw new Error("Preview cannot copy callbacks");
-          if (item === null || (typeof item === "undefined" ? "undefined" : _type_of$y(item)) !== "object") return item;
+          if (item === null || (typeof item === "undefined" ? "undefined" : _type_of$x(item)) !== "object") return item;
           if (seen.has(item)) return seen.get(item);
           var prototype = Object.getPrototypeOf(item);
           if ([
@@ -22757,7 +23142,7 @@
       return copy(value);
   }
 
-  function _array_like_to_array$b(arr, len) {
+  function _array_like_to_array$a(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
@@ -22766,12 +23151,12 @@
       if (Array.isArray(arr)) return arr;
   }
   function _array_without_holes$6(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$b(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$a(arr);
   }
-  function _class_call_check$A(instance, Constructor) {
+  function _class_call_check$z(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$A(target, props) {
+  function _defineProperties$z(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -22780,8 +23165,8 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$A(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$A(Constructor.prototype, protoProps);
+  function _create_class$z(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$z(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$9(obj, key, value) {
@@ -22864,57 +23249,57 @@
       return target;
   }
   function _sliced_to_array$8(arr, i) {
-      return _array_with_holes$8(arr) || _iterable_to_array_limit$8(arr, i) || _unsupported_iterable_to_array$b(arr, i) || _non_iterable_rest$8();
+      return _array_with_holes$8(arr) || _iterable_to_array_limit$8(arr, i) || _unsupported_iterable_to_array$a(arr, i) || _non_iterable_rest$8();
   }
   function _to_consumable_array$6(arr) {
-      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$b(arr) || _non_iterable_spread$6();
+      return _array_without_holes$6(arr) || _iterable_to_array$6(arr) || _unsupported_iterable_to_array$a(arr) || _non_iterable_spread$6();
   }
-  function _type_of$x(obj) {
+  function _type_of$w(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$b(o, minLen) {
+  function _unsupported_iterable_to_array$a(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$b(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$a(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$b(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$a(o, minLen);
   }
-  var __defProp$x = Object.defineProperty;
-  var __defNormalProp$x = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$x(obj, key, {
+  var __defProp$w = Object.defineProperty;
+  var __defNormalProp$w = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$w(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$x = function __publicField(obj, key, value) {
-      return __defNormalProp$x(obj, (typeof key === "undefined" ? "undefined" : _type_of$x(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$w = function __publicField(obj, key, value) {
+      return __defNormalProp$w(obj, (typeof key === "undefined" ? "undefined" : _type_of$w(key)) !== "symbol" ? key + "" : key, value);
   };
   var SequencingService = /*#__PURE__*/ function() {
       function SequencingService(sequencing, cmi, adl, eventService, loggingService) {
           var _this = this;
           var configuration = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : {};
-          _class_call_check$A(this, SequencingService);
-          __publicField$x(this, "sequencing");
-          __publicField$x(this, "cmi");
-          __publicField$x(this, "adl");
-          __publicField$x(this, "eventService");
-          __publicField$x(this, "loggingService");
-          __publicField$x(this, "activityDeliveryService");
-          __publicField$x(this, "rollupProcess");
-          __publicField$x(this, "overallSequencingProcess", null);
-          __publicField$x(this, "sequencingProcess", null);
-          __publicField$x(this, "eventListeners", {});
-          __publicField$x(this, "configuration");
-          __publicField$x(this, "isInitialized", false);
-          __publicField$x(this, "navigationPreviewConfiguration", null);
-          __publicField$x(this, "isSequencingActive", false);
-          __publicField$x(this, "deliveryNotificationsInProgress", false);
-          __publicField$x(this, "lastCMIValues", /* @__PURE__ */ new Map());
-          __publicField$x(this, "lastSequencingResult", null);
+          _class_call_check$z(this, SequencingService);
+          __publicField$w(this, "sequencing");
+          __publicField$w(this, "cmi");
+          __publicField$w(this, "adl");
+          __publicField$w(this, "eventService");
+          __publicField$w(this, "loggingService");
+          __publicField$w(this, "activityDeliveryService");
+          __publicField$w(this, "rollupProcess");
+          __publicField$w(this, "overallSequencingProcess", null);
+          __publicField$w(this, "sequencingProcess", null);
+          __publicField$w(this, "eventListeners", {});
+          __publicField$w(this, "configuration");
+          __publicField$w(this, "isInitialized", false);
+          __publicField$w(this, "navigationPreviewConfiguration", null);
+          __publicField$w(this, "isSequencingActive", false);
+          __publicField$w(this, "deliveryNotificationsInProgress", false);
+          __publicField$w(this, "lastCMIValues", /* @__PURE__ */ new Map());
+          __publicField$w(this, "lastSequencingResult", null);
           this.sequencing = sequencing;
           this.cmi = cmi;
           this.adl = adl;
@@ -22952,7 +23337,7 @@
           this.setupCMIChangeWatchers();
           this.createSequencingProcesses();
       }
-      _create_class$A(SequencingService, [
+      _create_class$z(SequencingService, [
           {
               /**
      * The clock time-based rollup conditions (timeLimitExceeded,
@@ -23921,10 +24306,10 @@
       return SequencingService;
   }();
 
-  function _class_call_check$z(instance, Constructor) {
+  function _class_call_check$y(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$z(target, props) {
+  function _defineProperties$y(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -23933,15 +24318,15 @@
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$z(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$z(Constructor.prototype, protoProps);
+  function _create_class$y(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$y(Constructor.prototype, protoProps);
       return Constructor;
   }
   var SerializationService = /*#__PURE__*/ function() {
       function SerializationService() {
-          _class_call_check$z(this, SerializationService);
+          _class_call_check$y(this, SerializationService);
       }
-      _create_class$z(SerializationService, [
+      _create_class$y(SerializationService, [
           {
               /**
      * Loads CMI data from a flattened JSON object with special handling for arrays and ordering.
@@ -24209,229 +24594,6 @@
       return SerializationService;
   }();
 
-  function _array_like_to_array$a(arr, len) {
-      if (len == null || len > arr.length) len = arr.length;
-      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
-      return arr2;
-  }
-  function _array_with_holes$7(arr) {
-      if (Array.isArray(arr)) return arr;
-  }
-  function _class_call_check$y(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$y(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$y(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$y(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _instanceof$4(left, right) {
-      "@swc/helpers - instanceof";
-      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
-          return !!right[Symbol.hasInstance](left);
-      } else return left instanceof right;
-  }
-  function _iterable_to_array_limit$7(arr, i) {
-      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
-      if (_i == null) return;
-      var _arr = [];
-      var _n = true;
-      var _d = false;
-      var _s, _e;
-      try {
-          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
-              _arr.push(_s.value);
-              if (i && _arr.length === i) break;
-          }
-      } catch (err) {
-          _d = true;
-          _e = err;
-      } finally{
-          try {
-              if (!_n && _i["return"] != null) _i["return"]();
-          } finally{
-              if (_d) throw _e;
-          }
-      }
-      return _arr;
-  }
-  function _non_iterable_rest$7() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-  function _sliced_to_array$7(arr, i) {
-      return _array_with_holes$7(arr) || _iterable_to_array_limit$7(arr, i) || _unsupported_iterable_to_array$a(arr, i) || _non_iterable_rest$7();
-  }
-  function _type_of$w(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _unsupported_iterable_to_array$a(o, minLen) {
-      if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$a(o, minLen);
-      var n = Object.prototype.toString.call(o).slice(8, -1);
-      if (n === "Object" && o.constructor) n = o.constructor.name;
-      if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$a(o, minLen);
-  }
-  var __defProp$w = Object.defineProperty;
-  var __defNormalProp$w = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$w(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$w = function __publicField(obj, key, value) {
-      return __defNormalProp$w(obj, (typeof key === "undefined" ? "undefined" : _type_of$w(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var SynchronousHttpService = /*#__PURE__*/ function() {
-      function SynchronousHttpService(settings, error_codes) {
-          _class_call_check$y(this, SynchronousHttpService);
-          __publicField$w(this, "settings");
-          __publicField$w(this, "error_codes");
-          this.settings = settings;
-          this.error_codes = error_codes;
-      }
-      _create_class$y(SynchronousHttpService, [
-          {
-              /**
-     * Sends synchronous HTTP requests to the LMS
-     * @param {string} url - The URL endpoint to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-     * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
-     * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
-     * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
-     * @param {CommitMetadata} metadata - Metadata describing the captured commit
-     * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
-     * @return {ResultObject} - The result of the request (synchronous)
-     *
-     * @remarks
-     * The apiLog and processListeners parameters are part of the IHttpService interface contract
-     * but are not used by SynchronousHttpService because:
-     * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
-     * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
-     * - AsynchronousHttpService uses these parameters to handle background request results
-     */ key: "processHttpRequest",
-              value: function processHttpRequest(url, params) {
-                  var immediate = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, metadata = arguments.length > 5 ? arguments[5] : void 0;
-                  if (immediate) {
-                      return this._handleImmediateRequest(url, params, metadata);
-                  }
-                  return this._performSyncXHR(url, params, metadata);
-              }
-          },
-          {
-              /**
-     * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
-     * @param {string} url - The URL to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-     * @param {CommitMetadata} metadata - Metadata describing the captured commit
-     * @return {ResultObject} - The result based on beacon success
-     * @private
-     */ key: "_handleImmediateRequest",
-              value: function _handleImmediateRequest(url, params, metadata) {
-                  if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
-                      return this._performSyncXHR(url, params, metadata);
-                  }
-                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
-                  var body = this._prepareRequestBody(requestPayload).body;
-                  var beaconContentType = this.settings.terminationCommitContentType;
-                  this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
-                  var beaconSuccess = navigator.sendBeacon(url, new Blob([
-                      body
-                  ], {
-                      type: beaconContentType
-                  }));
-                  return {
-                      result: beaconSuccess ? "true" : "false",
-                      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
-                  };
-              }
-          },
-          {
-              key: "_warnIfBeaconContentTypeUnsafe",
-              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
-                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
-                      var _this_settings_onLogMessage, _this_settings;
-                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
-                  }
-              }
-          },
-          {
-              /**
-     * Performs a synchronous XMLHttpRequest
-     * @param {string} url - The URL to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-     * @param {CommitMetadata} metadata - Metadata describing the captured commit
-     * @return {ResultObject} - The result of the request
-     * @private
-     */ key: "_performSyncXHR",
-              value: function _performSyncXHR(url, params, metadata) {
-                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
-                  var _this__prepareRequestBody = this._prepareRequestBody(requestPayload), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
-                  var xhr = new XMLHttpRequest();
-                  xhr.open("POST", url, false);
-                  xhr.setRequestHeader("Content-Type", contentType);
-                  Object.entries(this.settings.xhrHeaders).forEach(function(param) {
-                      var _param = _sliced_to_array$7(param, 2), key = _param[0], value = _param[1];
-                      xhr.setRequestHeader(key, String(value));
-                  });
-                  if (this.settings.xhrWithCredentials) {
-                      xhr.withCredentials = true;
-                  }
-                  try {
-                      xhr.send(body);
-                      return this.settings.xhrResponseHandler(xhr);
-                  } catch (e) {
-                      var message = _instanceof$4(e, Error) ? e.message : String(e);
-                      return {
-                          result: global_constants.SCORM_FALSE,
-                          errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
-                          errorMessage: message
-                      };
-                  }
-              }
-          },
-          {
-              /**
-     * Prepares the request body and content type based on params type
-     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-     * @return {Object} - Object containing body and contentType
-     * @private
-     */ key: "_prepareRequestBody",
-              value: function _prepareRequestBody(params) {
-                  var body = _instanceof$4(params, Array) ? params.join("&") : JSON.stringify(params);
-                  var contentType = _instanceof$4(params, Array) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
-                  return {
-                      body: body,
-                      contentType: contentType
-                  };
-              }
-          },
-          {
-              /**
-     * Updates the service settings
-     * @param {InternalSettings} settings - The new settings
-     */ key: "updateSettings",
-              value: function updateSettings(settings) {
-                  this.settings = settings;
-              }
-          }
-      ]);
-      return SynchronousHttpService;
-  }();
-
   function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
       return checkValidFormat(CMIElement, value, regexPattern, scorm12_errors.TYPE_MISMATCH, Scorm12ValidationError, allowEmptyString);
   }
@@ -24568,6 +24730,9 @@
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
+  function _array_with_holes$7(arr) {
+      if (Array.isArray(arr)) return arr;
+  }
   function _array_without_holes$5(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$9(arr);
   }
@@ -24609,6 +24774,33 @@
           return Array.from(iter);
       }
   }
+  function _iterable_to_array_limit$7(arr, i) {
+      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+      if (_i == null) return;
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _s, _e;
+      try {
+          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
+              _arr.push(_s.value);
+              if (i && _arr.length === i) break;
+          }
+      } catch (err) {
+          _d = true;
+          _e = err;
+      } finally{
+          try {
+              if (!_n && _i["return"] != null) _i["return"]();
+          } finally{
+              if (_d) throw _e;
+          }
+      }
+      return _arr;
+  }
+  function _non_iterable_rest$7() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
   function _non_iterable_spread$5() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
@@ -24644,6 +24836,9 @@
           });
       }
       return target;
+  }
+  function _sliced_to_array$7(arr, i) {
+      return _array_with_holes$7(arr) || _iterable_to_array_limit$7(arr, i) || _unsupported_iterable_to_array$9(arr, i) || _non_iterable_rest$7();
   }
   function _to_consumable_array$5(arr) {
       return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$9(arr) || _non_iterable_spread$5();
@@ -24752,6 +24947,10 @@
           if (this.settings.enableOfflineSupport) {
               this._offlineStorageService = offlineStorageService || new OfflineStorageService(this.settings, this._error_codes, function(functionName, message, level, element) {
                   return _this.apiLog(functionName, message, level, element);
+              }, this._httpService, function() {
+                  return _this.getOfflineLearnerId();
+              }, function(event) {
+                  return _this.processListeners(event);
               });
               if (this.settings.courseId) {
                   this._courseId = this.settings.courseId;
@@ -24766,27 +24965,10 @@
                                   _this.apiLog("BeforeTerminate", "Syncing pending offline data before termination", LogLevelEnum.INFO);
                                   return (_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData();
                               }
-                          }).then(function(syncSuccess) {
-                              if (syncSuccess) {
-                                  _this.processListeners("OfflineDataSynced");
-                              } else if (syncSuccess === false) {
-                                  _this.processListeners("OfflineDataSyncFailed");
-                              }
                           }).catch(function(error) {
                               _this.apiLog("BeforeTerminate", "Error syncing offline data: ".concat(error), LogLevelEnum.ERROR);
-                              _this.processListeners("OfflineDataSyncFailed");
                           });
                       }
-                  });
-              }
-              if (this._offlineStorageService && this._courseId) {
-                  this._offlineStorageService.getOfflineData(this._courseId).then(function(offlineData) {
-                      if (offlineData) {
-                          _this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
-                          _this.loadFromJSON(offlineData.runtimeData);
-                      }
-                  }).catch(function(error) {
-                      _this.apiLog("constructor", "Error retrieving offline data: ".concat(error), LogLevelEnum.ERROR);
                   });
               }
           }
@@ -24890,6 +25072,78 @@
               }
           },
           {
+              key: "getOfflineLearnerId",
+              value: function getOfflineLearnerId() {
+                  return this.getCMIValue("core" in this.cmi ? "cmi.core.student_id" : "cmi.learner_id") || "";
+              }
+          },
+          {
+              key: "restoreOfflineData",
+              value: function restoreOfflineData() {
+                  var _this = this;
+                  if (!this.settings.enableOfflineSupport || !this._courseId || !this.isNotInitialized()) {
+                      return;
+                  }
+                  try {
+                      var _ref;
+                      var _this__offlineStorageService_getPendingOfflineData, _this__offlineStorageService;
+                      var pending = (_ref = (_this__offlineStorageService = this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : (_this__offlineStorageService_getPendingOfflineData = _this__offlineStorageService.getPendingOfflineData) === null || _this__offlineStorageService_getPendingOfflineData === void 0 ? void 0 : _this__offlineStorageService_getPendingOfflineData.call(_this__offlineStorageService, this._courseId, this.getOfflineLearnerId())) !== null && _ref !== void 0 ? _ref : [];
+                      if (pending.length) this.cmi.initialize();
+                      var restoreValue = function restoreValue(element, value) {
+                          if (!/^cmi\.(core\.)?(session_time|exit)$/.test(element) && !/^cmi\.comments_from_lms(\.|$)/.test(element)) {
+                              try {
+                                  _this.setCMIValue(element, value);
+                              } catch (unused) {}
+                          }
+                      };
+                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                      try {
+                          for(var _iterator = pending[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                              var data = _step.value;
+                              try {
+                                  var _data_runtimeData;
+                                  var runtimeData = Array.isArray(data) ? data : (_data_runtimeData = data.runtimeData) !== null && _data_runtimeData !== void 0 ? _data_runtimeData : data;
+                                  if (Array.isArray(runtimeData)) {
+                                      this.apiLog("Initialize", "Skipping restore of params payload", LogLevelEnum.WARN);
+                                  } else if (runtimeData.cmi) {
+                                      this._serializationService.loadFromFlattenedJSON(flatten({
+                                          cmi: runtimeData.cmi
+                                      }), "", restoreValue, function() {
+                                          return true;
+                                      }, function() {});
+                                  } else {
+                                      var cmiData = Object.fromEntries(Object.entries(runtimeData).filter(function(param) {
+                                          var _param = _sliced_to_array$7(param, 1), key = _param[0];
+                                          return key.startsWith("cmi.");
+                                      }));
+                                      this._serializationService.loadFromFlattenedJSON(cmiData, "", restoreValue, function() {
+                                          return true;
+                                      }, function() {});
+                                  }
+                              } catch (error) {
+                                  this.apiLog("Initialize", "Error restoring offline data: ".concat(error), LogLevelEnum.ERROR);
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError = true;
+                          _iteratorError = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                  _iterator.return();
+                              }
+                          } finally{
+                              if (_didIteratorError) {
+                                  throw _iteratorError;
+                              }
+                          }
+                      }
+                  } catch (error) {
+                      this.apiLog("Initialize", "Error restoring offline data: ".concat(error), LogLevelEnum.ERROR);
+                  }
+              }
+          },
+          {
               /**
      * Initialize the API
      * @param {string} callbackName
@@ -24920,7 +25174,6 @@
                                   void ((_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
                                       if (syncSuccess) {
                                           _this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                                          _this.processListeners("OfflineDataSynced");
                                       }
                                   }));
                               }
@@ -25221,7 +25474,6 @@
                                   void ((_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
                                       if (syncSuccess) {
                                           _this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                                          _this.processListeners("OfflineDataSynced");
                                       } else {
                                           _this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
                                       }
@@ -25795,19 +26047,11 @@
                       };
                       if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
                           this.apiLog("processHttpRequest", "Device is offline, storing data locally", LogLevelEnum.INFO);
-                          if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$v(finalParams)) === "object" && "cmi" in finalParams) {
-                              return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
-                                  isTerminateCommit: immediate,
-                                  sequence: sequence
-                              });
-                          } else {
-                              var _this__error_codes_GENERAL;
-                              this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
-                              return {
-                                  result: global_constants.SCORM_FALSE,
-                                  errorCode: (_this__error_codes_GENERAL = this._error_codes.GENERAL) !== null && _this__error_codes_GENERAL !== void 0 ? _this__error_codes_GENERAL : 101
-                              };
-                          }
+                          return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
+                              learnerId: this.getOfflineLearnerId(),
+                              isTerminateCommit: immediate,
+                              sequence: sequence
+                          });
                       }
                       var apiLog = function apiLog(functionName, message, level, element) {
                           return _this.apiLog(functionName, message, level, element);
@@ -28581,6 +28825,7 @@
                       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
                       return global_constants.SCORM_FALSE;
                   }
+                  this.restoreOfflineData();
                   this.cmi.initialize();
                   if (this.cmi.core.lesson_status) {
                       this.statusSetByModule = true;
@@ -38559,6 +38804,7 @@
                       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
                       return global_constants.SCORM_FALSE;
                   }
+                  this.restoreOfflineData();
                   this.cmi.initialize();
                   var result = this.initialize("Initialize", "LMS was already initialized!", "LMS is already finished!");
                   if (result === global_constants.SCORM_TRUE) {
@@ -38877,6 +39123,20 @@
                   this._restoringFromJSON = true;
                   try {
                       _get(_get_prototype_of(Scorm2004API.prototype), "loadFromJSON", this).call(this, json, CMIElement);
+                  } finally{
+                      this._restoringFromJSON = false;
+                  }
+              }
+          },
+          {
+              /**
+     * Offline restore replays queued commits through setCMIValue directly, so it needs the same
+     * global objective guard as loadFromJSON.
+     */ key: "restoreOfflineData",
+              value: function restoreOfflineData() {
+                  this._restoringFromJSON = true;
+                  try {
+                      _get(_get_prototype_of(Scorm2004API.prototype), "restoreOfflineData", this).call(this);
                   } finally{
                       this._restoringFromJSON = false;
                   }

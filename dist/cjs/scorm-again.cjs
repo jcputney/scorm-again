@@ -6672,6 +6672,161 @@ class EventService {
   }
 }
 
+class SynchronousHttpService {
+  settings;
+  error_codes;
+  /**
+   * Constructor for SynchronousHttpService
+   * @param {InternalSettings} settings - The settings object
+   * @param {ErrorCode} error_codes - The error codes object
+   */
+  constructor(settings, error_codes) {
+    this.settings = settings;
+    this.error_codes = error_codes;
+  }
+  /**
+   * Sends synchronous HTTP requests to the LMS
+   * @param {string} url - The URL endpoint to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+   * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
+   * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
+   * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
+   * @return {ResultObject} - The result of the request (synchronous)
+   *
+   * @remarks
+   * The apiLog and processListeners parameters are part of the IHttpService interface contract
+   * but are not used by SynchronousHttpService because:
+   * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
+   * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
+   * - AsynchronousHttpService uses these parameters to handle background request results
+   */
+  processHttpRequest(url, params, immediate = false, _apiLog, _processListeners, metadata, _onRequestComplete) {
+    if (immediate) {
+      return this._handleImmediateRequest(url, params, metadata);
+    }
+    return this._performSyncXHR(url, params, metadata);
+  }
+  /**
+   * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @return {ResultObject} - The result based on beacon success
+   * @private
+   */
+  _handleImmediateRequest(url, params, metadata) {
+    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+      return this._performSyncXHR(url, params, metadata);
+    }
+    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+    const requestPayload = handledPayload ?? params;
+    const { body } = this._prepareRequestBody(requestPayload);
+    const beaconContentType = this.settings.terminationCommitContentType;
+    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
+    return {
+      result: beaconSuccess ? "true" : "false",
+      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
+    };
+  }
+  _warnIfBeaconContentTypeUnsafe(url, contentType) {
+    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+      this.settings.onLogMessage?.(
+        LogLevelEnum.WARN,
+        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`
+      );
+    }
+  }
+  /**
+   * Performs a synchronous XMLHttpRequest
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {CommitMetadata} metadata - Metadata describing the captured commit
+   * @return {ResultObject} - The result of the request
+   * @private
+   */
+  _performSyncXHR(url, params, metadata) {
+    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+    const requestPayload = handledPayload ?? params;
+    const { body, contentType } = this._prepareRequestBody(requestPayload);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url, false);
+    xhr.setRequestHeader("Content-Type", contentType);
+    Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, String(value));
+    });
+    if (this.settings.xhrWithCredentials) {
+      xhr.withCredentials = true;
+    }
+    try {
+      xhr.send(body);
+      return this.settings.xhrResponseHandler(xhr);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return {
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+        errorMessage: message
+      };
+    }
+  }
+  performAsyncRequest(url, params, metadata) {
+    return new Promise((resolve) => {
+      const failure = (error) => resolve({
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+        ...error instanceof Error ? { errorMessage: error.message } : {}
+      });
+      try {
+        const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+        const requestPayload = handledPayload ?? params;
+        const { body, contentType } = this._prepareRequestBody(requestPayload);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", contentType);
+        Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
+          xhr.setRequestHeader(key, String(value));
+        });
+        if (this.settings.xhrWithCredentials) {
+          xhr.withCredentials = true;
+        }
+        xhr.onload = () => {
+          try {
+            resolve(this.settings.xhrResponseHandler(xhr));
+          } catch (error) {
+            failure(error);
+          }
+        };
+        xhr.onerror = () => failure();
+        xhr.ontimeout = () => failure();
+        xhr.send(body);
+      } catch (error) {
+        failure(error);
+      }
+    });
+  }
+  /**
+   * Prepares the request body and content type based on params type
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Object} - Object containing body and contentType
+   * @private
+   */
+  _prepareRequestBody(params) {
+    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+    const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+    return { body, contentType };
+  }
+  /**
+   * Updates the service settings
+   * @param {InternalSettings} settings - The new settings
+   */
+  updateSettings(settings) {
+    this.settings = settings;
+  }
+}
+
 class OfflineStorageService {
   /**
    * Constructor for OfflineStorageService
@@ -6679,8 +6834,12 @@ class OfflineStorageService {
    * @param {ErrorCode} error_codes - The error codes object
    * @param {Function} apiLog - The logging function
    */
-  constructor(settings, error_codes, apiLog) {
+  constructor(settings, error_codes, apiLog, httpService, getLearnerId = () => "", processListeners = () => {
+  }) {
     this.apiLog = apiLog;
+    this.httpService = httpService;
+    this.getLearnerId = getLearnerId;
+    this.processListeners = processListeners;
     this.settings = settings;
     this.error_codes = error_codes;
     this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -6690,6 +6849,9 @@ class OfflineStorageService {
     window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
   apiLog;
+  httpService;
+  getLearnerId;
+  processListeners;
   settings;
   error_codes;
   storeName = "scorm_again_offline_data";
@@ -6705,23 +6867,7 @@ class OfflineStorageService {
     const wasOnline = this.isOnline;
     this.isOnline = navigator.onLine;
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        }
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -6761,23 +6907,7 @@ class OfflineStorageService {
       LogLevelEnum.INFO
     );
     if (!wasOnline && this.isOnline) {
-      this.apiLog(
-        "OfflineStorageService",
-        "Device is back online, attempting to sync...",
-        LogLevelEnum.INFO
-      );
-      this.syncOfflineData().then(
-        (success) => {
-          if (success) {
-            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-          } else {
-            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-          }
-        },
-        (error) => {
-          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
-        }
-      );
+      this.syncAfterReconnect();
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -6785,6 +6915,36 @@ class OfflineStorageService {
         LogLevelEnum.INFO
       );
     }
+  }
+  /**
+   * Sync queued data when the device comes back online.
+   */
+  syncAfterReconnect() {
+    if (!this.hasQueuedData(this.settings.courseId)) {
+      this.apiLog(
+        "OfflineStorageService",
+        "Device is back online, nothing to sync",
+        LogLevelEnum.INFO
+      );
+      return;
+    }
+    this.apiLog(
+      "OfflineStorageService",
+      "Device is back online, attempting to sync...",
+      LogLevelEnum.INFO
+    );
+    this.syncOfflineData().then(
+      (success) => {
+        if (success) {
+          this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+        } else {
+          this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+        }
+      },
+      (error) => {
+        this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+      }
+    );
   }
   /**
    * Store commit data offline
@@ -6798,6 +6958,7 @@ class OfflineStorageService {
       const queueItem = {
         id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         courseId,
+        learnerId: metadata?.learnerId ?? this.getLearnerId(),
         timestamp: Date.now(),
         data: commitData,
         syncAttempts: 0,
@@ -6849,6 +7010,10 @@ class OfflineStorageService {
       return null;
     }
   }
+  getPendingOfflineData(courseId, learnerId) {
+    const queue = this.getFromStorage(this.syncQueue) || [];
+    return queue.filter((item) => item.courseId === courseId && item.learnerId === learnerId).map((item) => item.data);
+  }
   /**
    * Synchronize offline data with the LMS when connection is available
    * @returns {Promise<boolean>} - Success status of synchronization
@@ -6858,19 +7023,30 @@ class OfflineStorageService {
       return false;
     }
     this.syncInProgress = true;
+    let started = false;
+    let success = false;
     try {
       const syncQueue = this.getFromStorage(this.syncQueue) || [];
-      if (syncQueue.length === 0) {
-        this.syncInProgress = false;
-        return true;
+      const learnerId = this.getLearnerId();
+      const matches = (item) => item.courseId === this.settings.courseId && (item.learnerId === void 0 || item.learnerId === learnerId);
+      const matchingCount = syncQueue.filter(matches).length;
+      if (matchingCount === 0) {
+        return false;
       }
+      started = true;
+      this.processListeners("OfflineDataSyncing");
+      let allAccepted = true;
       this.apiLog(
         "OfflineStorageService",
-        `Found ${syncQueue.length} items to sync`,
+        `Found ${matchingCount} items to sync`,
         LogLevelEnum.INFO
       );
       const remainingQueue = [];
       for (const item of syncQueue) {
+        if (!matches(item)) {
+          remainingQueue.push(item);
+          continue;
+        }
         const maxAttempts = this.settings.maxSyncAttempts ?? 5;
         if (item.syncAttempts >= maxAttempts) {
           this.apiLog(
@@ -6878,6 +7054,7 @@ class OfflineStorageService {
             `Removing abandoned item ${item.id} after ${maxAttempts} failed sync attempts`,
             LogLevelEnum.WARN
           );
+          allAccepted = false;
           continue;
         }
         try {
@@ -6892,6 +7069,7 @@ class OfflineStorageService {
               LogLevelEnum.INFO
             );
           } else {
+            allAccepted = false;
             item.syncAttempts++;
             remainingQueue.push(item);
             this.apiLog(
@@ -6901,6 +7079,7 @@ class OfflineStorageService {
             );
           }
         } catch (error) {
+          allAccepted = false;
           item.syncAttempts++;
           remainingQueue.push(item);
           this.apiLog(
@@ -6911,21 +7090,34 @@ class OfflineStorageService {
         }
       }
       this.saveToStorage(this.syncQueue, remainingQueue);
+      for (const courseId of new Set(syncQueue.filter(matches).map((item) => item.courseId))) {
+        if (!remainingQueue.some((item) => item.courseId === courseId)) {
+          this.removeFromStorage(`${this.storeName}_${courseId}`);
+        }
+      }
       this.apiLog(
         "OfflineStorageService",
         `Sync completed. ${syncQueue.length - remainingQueue.length} items synced, ${remainingQueue.length} items remaining`,
         LogLevelEnum.INFO
       );
-      this.syncInProgress = false;
-      return true;
+      success = allAccepted;
+      return success;
     } catch (error) {
+      if (!started) {
+        started = true;
+        this.processListeners("OfflineDataSyncing");
+      }
       this.apiLog(
         "OfflineStorageService",
         `Error during sync process: ${error}`,
         LogLevelEnum.ERROR
       );
-      this.syncInProgress = false;
       return false;
+    } finally {
+      this.syncInProgress = false;
+      if (started) {
+        this.processListeners(success ? "OfflineDataSynced" : "OfflineDataSyncFailed");
+      }
     }
   }
   /**
@@ -6944,19 +7136,50 @@ class OfflineStorageService {
     }
     try {
       const lmsCommitUrl = String(configuredCommitUrl);
-      const processedData = this.settings.requestHandler(data, {
+      const requestUrl = metadata?.isTerminateCommit && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+      const commitMetadata = {
         isTerminateCommit: metadata?.isTerminateCommit ?? false,
         trigger: "offline-replay",
         ...metadata?.sequence !== void 0 ? { sequence: metadata.sequence } : {}
-      });
-      const requestUrl = metadata?.isTerminateCommit && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+      };
+      const httpService = this.httpService;
+      if (httpService instanceof SynchronousHttpService && !("reportsRequestCompletion" in httpService && httpService.reportsRequestCompletion)) {
+        return await httpService.performAsyncRequest(requestUrl, data, commitMetadata);
+      }
+      if (httpService) {
+        return await new Promise((resolve, reject) => {
+          try {
+            const result2 = httpService.processHttpRequest(
+              requestUrl,
+              data,
+              false,
+              this.apiLog,
+              (event, _element, errorCode) => {
+                if (event === "CommitSuccess") resolve({ result: "true", errorCode: 0 });
+                if (event === "CommitError") resolve({ result: "false", errorCode });
+              },
+              commitMetadata,
+              // A deferring service settles each request through this callback. If it sent
+              // no commit event first, the replay counts as failed and stays queued.
+              () => resolve({
+                result: "false",
+                errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391
+              })
+            );
+            if (!httpService.reportsRequestCompletion) resolve(result2);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+      const processedData = this.settings.requestHandler(data, commitMetadata) ?? data;
       const init = {
         method: "POST",
         mode: this.settings.fetchMode,
-        body: JSON.stringify(processedData),
+        body: Array.isArray(processedData) ? processedData.join("&") : JSON.stringify(processedData),
         headers: {
           ...this.settings.xhrHeaders,
-          "Content-Type": this.settings.commitRequestDataType
+          "Content-Type": Array.isArray(processedData) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType
         }
       };
       if (this.settings.xhrWithCredentials) {
@@ -7028,14 +7251,33 @@ class OfflineStorageService {
       throw error;
     }
   }
+  removeFromStorage(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        throw new Error("storage quota exceeded - localStorage is full", { cause: error });
+      }
+      throw error;
+    }
+  }
   /**
    * Check if there is pending offline data for a course
    * @param {string} courseId - Identifier for the course
    * @returns {Promise<boolean>} - Whether there is pending data
    */
   async hasPendingOfflineData(courseId) {
+    return this.hasQueuedData(courseId);
+  }
+  /**
+   * Check for queued data matching the course and current learner.
+   */
+  hasQueuedData(courseId) {
     const queue = this.getFromStorage(this.syncQueue) || [];
-    return queue.some((item) => item.courseId === courseId);
+    const learnerId = this.getLearnerId();
+    return queue.some(
+      (item) => item.courseId === courseId && (item.learnerId === void 0 || item.learnerId === learnerId)
+    );
   }
   /**
    * Update the service settings
@@ -10016,10 +10258,12 @@ class Activity extends BaseCMI {
     return {
       measureStatus: this._objectiveMeasureStatus,
       normalizedMeasure: this._objectiveNormalizedMeasure,
-      objectiveProgressStatus: this._objectiveSatisfiedStatus !== null && this._objectiveSatisfiedStatus !== void 0,
+      objectiveProgressStatus: this._objectiveSatisfiedStatusKnown,
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       attemptProgressStatus: this._completionStatus !== CompletionStatus.UNKNOWN,
-      attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED
+      attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED,
+      attemptCompletionAmount: this._attemptCompletionAmount,
+      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus
     };
   }
   /**
@@ -10031,7 +10275,7 @@ class Activity extends BaseCMI {
    */
   static compareRollupStatus(prior, current) {
     const EPSILON = 1e-4;
-    return prior.measureStatus === current.measureStatus && Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON && prior.objectiveProgressStatus === current.objectiveProgressStatus && prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus && prior.attemptProgressStatus === current.attemptProgressStatus && prior.attemptCompletionStatus === current.attemptCompletionStatus;
+    return prior.measureStatus === current.measureStatus && Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON && prior.objectiveProgressStatus === current.objectiveProgressStatus && prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus && prior.attemptProgressStatus === current.attemptProgressStatus && prior.attemptCompletionStatus === current.attemptCompletionStatus && prior.attemptCompletionAmount === current.attemptCompletionAmount && prior.attemptCompletionAmountStatus === current.attemptCompletionAmountStatus;
   }
   /**
    * Getter for hideLmsUi directives
@@ -10128,13 +10372,10 @@ class RollupChildFilter {
    * @param children - Child activities to filter
    * @param rollupType - Type of rollup ("objective" | "progress")
    * @param mode - Rollup action mode
-   * @param considerations - Parent-level rollup considerations config
    * @returns Filtered array of children that should contribute to rollup
    */
-  filterChildrenForRequirement(children, rollupType, mode, considerations) {
-    return children.filter(
-      (child) => this.shouldIncludeChildForRollup(child, rollupType, mode, considerations)
-    );
+  filterChildrenForRequirement(children, rollupType, mode) {
+    return children.filter((child) => this.shouldIncludeChildForRollup(child, rollupType, mode));
   }
   /**
    * Check if a specific child should be included in rollup
@@ -10142,21 +10383,14 @@ class RollupChildFilter {
    * @param child - Child activity to check
    * @param rollupType - Type of rollup ("objective" | "progress")
    * @param mode - Rollup action mode
-   * @param considerations - Parent-level rollup considerations config
    * @returns True if child should be included
    */
-  shouldIncludeChildForRollup(child, rollupType, mode, considerations) {
-    if (!this.checkChildForRollupSubprocess(child, rollupType, mode)) {
-      return false;
-    }
-    if (rollupType === "objective" && !considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-      return false;
-    }
-    return true;
+  shouldIncludeChildForRollup(child, rollupType, mode) {
+    return this.checkChildForRollupSubprocess(child, rollupType, mode);
   }
   /**
    * Check if child is satisfied for rollup
-   * Evaluates objective satisfaction status and success status
+   * Evaluates objective satisfaction status for the current parent attempt
    *
    * @param child - Child activity to check
    * @returns True if child is considered satisfied
@@ -10165,19 +10399,7 @@ class RollupChildFilter {
     if (child.objectiveInfoAvailableInCurrentParentAttempt === false) {
       return false;
     }
-    if (child.objectiveSatisfiedStatus === true) {
-      return true;
-    }
-    if (child.objectiveSatisfiedStatus === false) {
-      return false;
-    }
-    if (child.successStatus === SuccessStatus.PASSED) {
-      return true;
-    }
-    if (child.successStatus === SuccessStatus.FAILED) {
-      return false;
-    }
-    return false;
+    return child.objectiveSatisfiedStatus;
   }
   /**
    * Check if a child's objective satisfaction status is actually KNOWN, as opposed
@@ -10415,16 +10637,13 @@ class MeasureRollupProcessor {
    *
    * @spec SN Book: RB.1.1 (Measure Rollup Process)
    * @param activity - The parent activity
-   * @returns Array of identified activity clusters (for cross-cluster processing)
    */
   measureRollupProcess(activity) {
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
       activity.objectiveMeasureStatus = false;
-      return [];
+      return;
     }
-    const rollupConsiderations = activity.rollupConsiderations;
-    const contributingChildren = [];
     let counted = 0;
     let total = 0;
     let validData = false;
@@ -10432,13 +10651,7 @@ class MeasureRollupProcessor {
       if (child.sequencingControls.tracked === false) {
         continue;
       }
-      if (!rollupConsiderations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-        continue;
-      }
       const hasKnownMeasure = child.objectiveInfoAvailableInCurrentParentAttempt !== false && child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null;
-      if (hasKnownMeasure) {
-        contributingChildren.push(child);
-      }
       const weight = child.sequencingControls.objectiveMeasureWeight;
       if (weight <= 0) {
         continue;
@@ -10457,7 +10670,6 @@ class MeasureRollupProcessor {
     } else {
       activity.objectiveMeasureStatus = false;
     }
-    return this.identifyActivityClusters(contributingChildren);
   }
   /**
    * Completion Measure Rollup Process
@@ -10493,22 +10705,6 @@ class MeasureRollupProcessor {
       activity.attemptCompletionAmountStatus = true;
     }
   }
-  /**
-   * Identify Activity Clusters
-   * Identifies clusters among child activities for cross-cluster dependency processing
-   *
-   * @param children - Child activities to analyze
-   * @returns Array of identified clusters
-   */
-  identifyActivityClusters(children) {
-    const clusters = [];
-    for (const child of children) {
-      if (child.children.length > 0 && child.sequencingControls.flow) {
-        clusters.push(child);
-      }
-    }
-    return clusters;
-  }
 }
 
 class ObjectiveRollupProcessor {
@@ -10536,16 +10732,25 @@ class ObjectiveRollupProcessor {
    */
   objectiveRollupProcess(activity) {
     const rollupRules = activity.rollupRules;
+    if (activity.primaryObjective?.satisfiedByMeasure) {
+      const measureResult = this.objectiveRollupUsingMeasure(activity);
+      if (measureResult === null) {
+        activity.objectiveSatisfiedStatusKnown = false;
+        activity.successStatus = SuccessStatus.UNKNOWN;
+      } else {
+        activity.objectiveSatisfiedStatus = measureResult;
+      }
+      this.syncPrimaryObjectiveFromActivity(activity);
+      return;
+    }
     const ruleResult = this.objectiveRollupUsingRules(activity, rollupRules.rules);
     if (ruleResult !== null) {
       activity.objectiveSatisfiedStatus = ruleResult;
       this.syncPrimaryObjectiveFromActivity(activity);
-      return;
     }
-    const measureResult = this.objectiveRollupUsingMeasure(activity);
-    if (measureResult !== null) {
-      activity.objectiveSatisfiedStatus = measureResult;
-      this.syncPrimaryObjectiveFromActivity(activity);
+    if (rollupRules.rules.some(
+      (rule) => rule.action === RollupActionType.SATISFIED || rule.action === RollupActionType.NOT_SATISFIED
+    )) {
       return;
     }
     const defaultResult = this.objectiveRollupUsingDefault(activity);
@@ -10593,14 +10798,16 @@ class ObjectiveRollupProcessor {
     if (!primaryObjective?.satisfiedByMeasure || !activity.objectiveMeasureStatus || activity.scaledPassingScore === null) {
       return null;
     }
+    if (activity.isActive && !activity.rollupConsiderations.measureSatisfactionIfActive) {
+      return null;
+    }
     return activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
   }
   /**
    * Objective Rollup Using Default
-   * For default rollup (no explicit rules), a child is included only if it
-   * passes BOTH requiredForSatisfied AND requiredForNotSatisfied considerations.
-   * This ensures symmetric exclusion: setting either consideration excludes
-   * the child from the entire objective rollup evaluation.
+   * For default rollup (no explicit rules), the "not satisfied" check uses the
+   * children that pass requiredForNotSatisfied, and the "satisfied" check uses
+   * the children that pass requiredForSatisfied.
    *
    * A contributing child's objective status may itself be unknown (e.g. it has
    * never been attempted in this parent attempt). Per RB.1.4 (Rollup Rule
@@ -10614,39 +10821,40 @@ class ObjectiveRollupProcessor {
    * "any")
    * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
    * @param activity - The parent activity
-   * @returns True if all contributing children are known-satisfied, false if
-   * any contributing child is known-not-satisfied, or null if there is no
-   * information to roll up (no contributors, or none with a known status)
+   * @returns True if every child included for "satisfied" is known-satisfied,
+   * otherwise false if any child included for "not satisfied" is
+   * known-not-satisfied, otherwise null (no information to roll up)
    */
   objectiveRollupUsingDefault(activity) {
     const children = activity.getAvailableChildren();
     if (children.length === 0) {
       return null;
     }
-    const considerations = activity.rollupConsiderations;
-    const contributors = children.filter((child) => {
-      if (!this.childFilter.checkChildForRollupSubprocess(child, "objective", "satisfied") || !this.childFilter.checkChildForRollupSubprocess(child, "objective", "notSatisfied")) {
-        return false;
-      }
-      if (!considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
-        return false;
-      }
-      return true;
-    });
-    if (contributors.length === 0) {
+    const notSatisfiedChildren = this.childFilter.filterChildrenForRequirement(
+      children,
+      "objective",
+      "notSatisfied"
+    );
+    const satisfiedChildren = this.childFilter.filterChildrenForRequirement(
+      children,
+      "objective",
+      "satisfied"
+    );
+    if (notSatisfiedChildren.length === 0 && satisfiedChildren.length === 0) {
       return null;
     }
-    let sawUnknownContributor = false;
-    for (const child of contributors) {
-      if (!this.childFilter.isChildObjectiveStatusKnownForRollup(child)) {
-        sawUnknownContributor = true;
-        continue;
-      }
-      if (!this.childFilter.isChildSatisfiedForRollup(child)) {
-        return false;
-      }
+    let result = null;
+    if (notSatisfiedChildren.some(
+      (child) => this.childFilter.isChildObjectiveStatusKnownForRollup(child) && !this.childFilter.isChildSatisfiedForRollup(child)
+    )) {
+      result = false;
     }
-    return sawUnknownContributor ? null : true;
+    if (satisfiedChildren.length > 0 && satisfiedChildren.every(
+      (child) => this.childFilter.isChildObjectiveStatusKnownForRollup(child) && this.childFilter.isChildSatisfiedForRollup(child)
+    )) {
+      result = true;
+    }
+    return result;
   }
   /**
    * Sync primary objective status from activity properties
@@ -10727,29 +10935,30 @@ class ProgressRollupProcessor {
       return;
     }
     const children = activity.getAvailableChildren();
-    const contributors = children.filter(
-      (child) => this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed") && this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete")
+    const incompleteChildren = children.filter(
+      (child) => this.childFilter.checkChildForRollupSubprocess(child, "progress", "incomplete")
     );
-    if (contributors.length === 0) {
+    const completedChildren = children.filter(
+      (child) => this.childFilter.checkChildForRollupSubprocess(child, "progress", "completed")
+    );
+    if (incompleteChildren.length === 0 && completedChildren.length === 0) {
       return;
     }
-    let sawUnknownContributor = false;
-    for (const child of contributors) {
-      if (!this.childFilter.isChildCompletionStatusKnownForRollup(child)) {
-        sawUnknownContributor = true;
-        continue;
-      }
-      if (!this.childFilter.isChildCompletedForRollup(child)) {
-        activity.completionStatus = CompletionStatus.INCOMPLETE;
-        this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
-        return;
-      }
+    let result = null;
+    if (incompleteChildren.some(
+      (child) => this.childFilter.isChildCompletionStatusKnownForRollup(child) && !this.childFilter.isChildCompletedForRollup(child)
+    )) {
+      result = CompletionStatus.INCOMPLETE;
     }
-    if (sawUnknownContributor) {
-      return;
+    if (completedChildren.length > 0 && completedChildren.every(
+      (child) => this.childFilter.isChildCompletionStatusKnownForRollup(child) && this.childFilter.isChildCompletedForRollup(child)
+    )) {
+      result = CompletionStatus.COMPLETED;
     }
-    activity.completionStatus = CompletionStatus.COMPLETED;
-    this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+    if (result !== null) {
+      activity.completionStatus = result;
+      this.objectiveProcessor.syncPrimaryObjectiveFromActivity(activity);
+    }
   }
   /**
    * Activity Progress Rollup Using Measure
@@ -10977,7 +11186,7 @@ class GlobalObjectiveSynchronizer {
           targetId,
           objective
         );
-        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective) && objective.isDirty("satisfiedStatus")) {
+        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(activity, objective) && objective.isDirty("satisfiedStatus")) {
           globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
           dirtyFieldsToClear.add("satisfiedStatus");
@@ -11051,9 +11260,9 @@ class GlobalObjectiveSynchronizer {
           targetId,
           objective
         );
-        if (mapInfo.writeSatisfiedStatus) {
+        if (mapInfo.writeSatisfiedStatus && !this.isMeasureSatisfactionDeferred(activity, objective)) {
           writeTargets.satisfiedStatus.add(targetId);
-          if (this.hasKnownSatisfiedStatus(objective)) {
+          if (this.hasKnownSatisfiedStatus(activity, objective)) {
             globalObjective.satisfiedStatus = objective.satisfiedStatus;
             globalObjective.satisfiedStatusKnown = true;
           } else {
@@ -11211,14 +11420,14 @@ class GlobalObjectiveSynchronizer {
         objective.applyToActivity(activity);
       }
       if (this.canWriteGlobalObjectives(activity)) {
-        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(objective)) {
+        if (mapInfo.writeSatisfiedStatus && this.hasKnownSatisfiedStatus(activity, objective)) {
           globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
         }
         if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
           globalObjective.normalizedMeasure = objective.normalizedMeasure;
           globalObjective.normalizedMeasureKnown = true;
-          if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure) {
+          if (mapInfo.writeSatisfiedStatus && objective.satisfiedByMeasure && !this.isMeasureSatisfactionDeferred(activity, objective)) {
             const threshold = objective.minNormalizedMeasure ?? 1;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
@@ -11388,6 +11597,9 @@ class GlobalObjectiveSynchronizer {
       updateAttemptData: objective.isPrimary
     };
   }
+  isMeasureSatisfactionDeferred(activity, objective) {
+    return objective.satisfiedByMeasure && activity.isActive && !activity.rollupConsiderations.measureSatisfactionIfActive;
+  }
   /**
    * Return whether the local objective has known satisfaction state to write.
    *
@@ -11395,7 +11607,10 @@ class GlobalObjectiveSynchronizer {
    * Status identifies whether Objective Satisfied Status is known; Objective
    * Measure Status is independent measure knowledge.
    */
-  hasKnownSatisfiedStatus(objective) {
+  hasKnownSatisfiedStatus(activity, objective) {
+    if (this.isMeasureSatisfactionDeferred(activity, objective)) {
+      return false;
+    }
     if (objective.satisfiedByMeasure) {
       return objective.measureStatus;
     }
@@ -11691,17 +11906,31 @@ class RollupProcess {
     this.stateValidator = new RollupStateValidator(this.childFilter, eventCallback);
   }
   /**
+   * Roll up one activity without duration rollup, ancestor traversal or global reads.
+   * @spec SCORM 2004 SN 4th Ed. RB.1.1 to RB.1.3
+   */
+  rollupActivity(activity) {
+    if (activity.children.length > 0) {
+      this.measureProcessor.measureRollupProcess(activity);
+      this.measureProcessor.completionMeasureRollupProcess(activity);
+    }
+    this.objectiveProcessor.objectiveRollupProcess(activity);
+    this.progressProcessor.activityProgressRollupProcess(activity);
+  }
+  /**
    * Overall Rollup Process
    * Performs rollup from a given activity up through its ancestors
    * OPTIMIZATION: Stops propagating rollup when status stops changing (SCORM 2004 4.6.1)
    *
    * @spec SN Book: RB.1.5 (Overall Rollup Process)
    * @param activity - The activity to start rollup from
+   * @param globalObjectives - Shared global objectives
+   * @param includeActivity - Start with the activity itself instead of its parent
    * @returns Array of activities that had status changes
    */
-  overallRollupProcess(activity, globalObjectives) {
+  overallRollupProcess(activity, globalObjectives, includeActivity = false) {
     const affectedActivities = [];
-    let currentActivity = activity.parent;
+    let currentActivity = includeActivity ? activity : activity.parent;
     let onlyDurationRollup = false;
     let isFirst = true;
     while (currentActivity) {
@@ -11710,12 +11939,7 @@ class RollupProcess {
       }
       if (!onlyDurationRollup) {
         const beforeStatus = currentActivity.captureRollupStatus();
-        if (currentActivity.children.length > 0) {
-          this.measureProcessor.measureRollupProcess(currentActivity);
-          this.measureProcessor.completionMeasureRollupProcess(currentActivity);
-        }
-        this.objectiveProcessor.objectiveRollupProcess(currentActivity);
-        this.progressProcessor.activityProgressRollupProcess(currentActivity);
+        this.rollupActivity(currentActivity);
         if (globalObjectives) {
           this.globalObjectiveSynchronizer.syncGlobalObjectivesReadPhase(
             currentActivity,
@@ -12865,6 +13089,9 @@ class TerminationHandler {
     if (activity.successStatus === "unknown" && activity.objectiveSatisfiedStatus) {
       activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
     }
+    if (activity.children.length > 0) {
+      this.rollupProcess.rollupActivity(activity);
+    }
     const writeTargets = this.rollupProcess.syncTerminatedActivityObjectives(
       activity,
       this.globalObjectiveMap
@@ -12882,7 +13109,11 @@ class TerminationHandler {
     }
     const mappingRoot = this.activityTree.root || activity;
     this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
-    this.rollupProcess.overallRollupProcess(activity, this.globalObjectiveMap);
+    this.rollupProcess.overallRollupProcess(
+      activity,
+      this.globalObjectiveMap,
+      activity.children.length > 0
+    );
     activeAncestor = activity.parent;
     while (activeAncestor) {
       if (activeAncestor.isActive) {
@@ -17042,126 +17273,6 @@ class SerializationService {
   }
 }
 
-class SynchronousHttpService {
-  settings;
-  error_codes;
-  /**
-   * Constructor for SynchronousHttpService
-   * @param {InternalSettings} settings - The settings object
-   * @param {ErrorCode} error_codes - The error codes object
-   */
-  constructor(settings, error_codes) {
-    this.settings = settings;
-    this.error_codes = error_codes;
-  }
-  /**
-   * Sends synchronous HTTP requests to the LMS
-   * @param {string} url - The URL endpoint to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-   * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
-   * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
-   * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
-   * @param {CommitMetadata} metadata - Metadata describing the captured commit
-   * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
-   * @return {ResultObject} - The result of the request (synchronous)
-   *
-   * @remarks
-   * The apiLog and processListeners parameters are part of the IHttpService interface contract
-   * but are not used by SynchronousHttpService because:
-   * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
-   * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
-   * - AsynchronousHttpService uses these parameters to handle background request results
-   */
-  processHttpRequest(url, params, immediate = false, _apiLog, _processListeners, metadata, _onRequestComplete) {
-    if (immediate) {
-      return this._handleImmediateRequest(url, params, metadata);
-    }
-    return this._performSyncXHR(url, params, metadata);
-  }
-  /**
-   * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
-   * @param {string} url - The URL to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @param {CommitMetadata} metadata - Metadata describing the captured commit
-   * @return {ResultObject} - The result based on beacon success
-   * @private
-   */
-  _handleImmediateRequest(url, params, metadata) {
-    if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
-      return this._performSyncXHR(url, params, metadata);
-    }
-    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-    const requestPayload = handledPayload ?? params;
-    const { body } = this._prepareRequestBody(requestPayload);
-    const beaconContentType = this.settings.terminationCommitContentType;
-    this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
-    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: beaconContentType }));
-    return {
-      result: beaconSuccess ? "true" : "false",
-      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
-    };
-  }
-  _warnIfBeaconContentTypeUnsafe(url, contentType) {
-    if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
-      this.settings.onLogMessage?.(
-        LogLevelEnum.WARN,
-        `sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "${contentType}" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.`
-      );
-    }
-  }
-  /**
-   * Performs a synchronous XMLHttpRequest
-   * @param {string} url - The URL to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @param {CommitMetadata} metadata - Metadata describing the captured commit
-   * @return {ResultObject} - The result of the request
-   * @private
-   */
-  _performSyncXHR(url, params, metadata) {
-    const handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-    const requestPayload = handledPayload ?? params;
-    const { body, contentType } = this._prepareRequestBody(requestPayload);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url, false);
-    xhr.setRequestHeader("Content-Type", contentType);
-    Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
-      xhr.setRequestHeader(key, String(value));
-    });
-    if (this.settings.xhrWithCredentials) {
-      xhr.withCredentials = true;
-    }
-    try {
-      xhr.send(body);
-      return this.settings.xhrResponseHandler(xhr);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      return {
-        result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
-        errorMessage: message
-      };
-    }
-  }
-  /**
-   * Prepares the request body and content type based on params type
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @return {Object} - Object containing body and contentType
-   * @private
-   */
-  _prepareRequestBody(params) {
-    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
-    const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
-    return { body, contentType };
-  }
-  /**
-   * Updates the service settings
-   * @param {InternalSettings} settings - The new settings
-   */
-  updateSettings(settings) {
-    this.settings = settings;
-  }
-}
-
 function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
   return checkValidFormat(
     CMIElement,
@@ -17372,7 +17483,10 @@ class BaseAPI {
       this._offlineStorageService = offlineStorageService || new OfflineStorageService(
         this.settings,
         this._error_codes,
-        (functionName, message, level, element) => this.apiLog(functionName, message, level, element)
+        (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
+        this._httpService,
+        () => this.getOfflineLearnerId(),
+        (event) => this.processListeners(event)
       );
       if (this.settings.courseId) {
         this._courseId = this.settings.courseId;
@@ -17389,35 +17503,14 @@ class BaseAPI {
                 );
                 return this._offlineStorageService?.syncOfflineData();
               }
-            }).then((syncSuccess) => {
-              if (syncSuccess) {
-                this.processListeners("OfflineDataSynced");
-              } else if (syncSuccess === false) {
-                this.processListeners("OfflineDataSyncFailed");
-              }
             }).catch((error) => {
               this.apiLog(
                 "BeforeTerminate",
                 `Error syncing offline data: ${error}`,
                 LogLevelEnum.ERROR
               );
-              this.processListeners("OfflineDataSyncFailed");
             });
           }
-        });
-      }
-      if (this._offlineStorageService && this._courseId) {
-        this._offlineStorageService.getOfflineData(this._courseId).then((offlineData) => {
-          if (offlineData) {
-            this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
-            this.loadFromJSON(offlineData.runtimeData);
-          }
-        }).catch((error) => {
-          this.apiLog(
-            "constructor",
-            `Error retrieving offline data: ${error}`,
-            LogLevelEnum.ERROR
-          );
         });
       }
     }
@@ -17494,6 +17587,62 @@ class BaseAPI {
       }
     }
   }
+  getOfflineLearnerId() {
+    return this.getCMIValue("core" in this.cmi ? "cmi.core.student_id" : "cmi.learner_id") || "";
+  }
+  restoreOfflineData() {
+    if (!this.settings.enableOfflineSupport || !this._courseId || !this.isNotInitialized()) {
+      return;
+    }
+    try {
+      const pending = this._offlineStorageService?.getPendingOfflineData?.(
+        this._courseId,
+        this.getOfflineLearnerId()
+      ) ?? [];
+      if (pending.length) this.cmi.initialize();
+      const restoreValue = (element, value) => {
+        if (!/^cmi\.(core\.)?(session_time|exit)$/.test(element) && !/^cmi\.comments_from_lms(\.|$)/.test(element)) {
+          try {
+            this.setCMIValue(element, value);
+          } catch {
+          }
+        }
+      };
+      for (const data of pending) {
+        try {
+          const runtimeData = Array.isArray(data) ? data : data.runtimeData ?? data;
+          if (Array.isArray(runtimeData)) {
+            this.apiLog("Initialize", "Skipping restore of params payload", LogLevelEnum.WARN);
+          } else if (runtimeData.cmi) {
+            this._serializationService.loadFromFlattenedJSON(
+              flatten({ cmi: runtimeData.cmi }),
+              "",
+              restoreValue,
+              () => true,
+              () => {
+              }
+            );
+          } else {
+            const cmiData = Object.fromEntries(
+              Object.entries(runtimeData).filter(([key]) => key.startsWith("cmi."))
+            );
+            this._serializationService.loadFromFlattenedJSON(
+              cmiData,
+              "",
+              restoreValue,
+              () => true,
+              () => {
+              }
+            );
+          }
+        } catch (error) {
+          this.apiLog("Initialize", `Error restoring offline data: ${error}`, LogLevelEnum.ERROR);
+        }
+      }
+    } catch (error) {
+      this.apiLog("Initialize", `Error restoring offline data: ${error}`, LogLevelEnum.ERROR);
+    }
+  }
   /**
    * Initialize the API
    * @param {string} callbackName
@@ -17526,7 +17675,6 @@ class BaseAPI {
             void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                this.processListeners("OfflineDataSynced");
               }
             });
           }
@@ -17803,7 +17951,6 @@ class BaseAPI {
             void this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
                 this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                this.processListeners("OfflineDataSynced");
               } else {
                 this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
               }
@@ -18338,23 +18485,11 @@ class BaseAPI {
           "Device is offline, storing data locally",
           LogLevelEnum.INFO
         );
-        if (finalParams && typeof finalParams === "object" && "cmi" in finalParams) {
-          return this._offlineStorageService.storeOffline(
-            this._courseId,
-            finalParams,
-            { isTerminateCommit: immediate, sequence }
-          );
-        } else {
-          this.apiLog(
-            "processHttpRequest",
-            "Invalid commit data format for offline storage",
-            LogLevelEnum.ERROR
-          );
-          return {
-            result: global_constants.SCORM_FALSE,
-            errorCode: this._error_codes.GENERAL ?? 101
-          };
-        }
+        return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
+          learnerId: this.getOfflineLearnerId(),
+          isTerminateCommit: immediate,
+          sequence
+        });
       }
       const apiLog = (functionName, message, level, element) => this.apiLog(functionName, message, level, element);
       const processListeners = (functionName, CMIElement, value) => {
@@ -20321,6 +20456,7 @@ class Scorm12API extends BaseAPI {
       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
       return global_constants.SCORM_FALSE;
     }
+    this.restoreOfflineData();
     this.cmi.initialize();
     if (this.cmi.core.lesson_status) {
       this.statusSetByModule = true;
@@ -26946,6 +27082,7 @@ class Scorm2004API extends BaseAPI {
       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
       return global_constants.SCORM_FALSE;
     }
+    this.restoreOfflineData();
     this.cmi.initialize();
     const result = this.initialize(
       "Initialize",
@@ -27240,6 +27377,18 @@ class Scorm2004API extends BaseAPI {
     this._restoringFromJSON = true;
     try {
       super.loadFromJSON(json, CMIElement);
+    } finally {
+      this._restoringFromJSON = false;
+    }
+  }
+  /**
+   * Offline restore replays queued commits through setCMIValue directly, so it needs the same
+   * global objective guard as loadFromJSON.
+   */
+  restoreOfflineData() {
+    this._restoringFromJSON = true;
+    try {
+      super.restoreOfflineData();
     } finally {
       this._restoringFromJSON = false;
     }

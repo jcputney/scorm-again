@@ -20,7 +20,8 @@ export declare class RollupProcess {
     private stateValidator;
     private eventCallback;
     constructor(eventCallback?: EventCallback, clock?: RollupClockOptions);
-    overallRollupProcess(activity: Activity, globalObjectives?: Map<string, GlobalObjective>): Activity[];
+    rollupActivity(activity: Activity): void;
+    overallRollupProcess(activity: Activity, globalObjectives?: Map<string, GlobalObjective>, includeActivity?: boolean): Activity[];
     validateRollupStateConsistency(rootActivity: Activity): boolean;
     processGlobalObjectiveMapping(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
     syncTerminatedActivityObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): GlobalObjectiveWriteTargets;

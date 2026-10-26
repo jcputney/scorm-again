@@ -6,7 +6,7 @@ this.Scorm12API = (function () {
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
-  function _array_with_holes$2(arr) {
+  function _array_with_holes$3(arr) {
       if (Array.isArray(arr)) return arr;
   }
   function _array_without_holes$5(arr) {
@@ -17,7 +17,7 @@ this.Scorm12API = (function () {
           return Array.from(iter);
       }
   }
-  function _iterable_to_array_limit$2(arr, i) {
+  function _iterable_to_array_limit$3(arr, i) {
       var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
       if (_i == null) return;
       var _arr = [];
@@ -41,14 +41,14 @@ this.Scorm12API = (function () {
       }
       return _arr;
   }
-  function _non_iterable_rest$2() {
+  function _non_iterable_rest$3() {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
   function _non_iterable_spread$5() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _sliced_to_array$2(arr, i) {
-      return _array_with_holes$2(arr) || _iterable_to_array_limit$2(arr, i) || _unsupported_iterable_to_array$7(arr, i) || _non_iterable_rest$2();
+  function _sliced_to_array$3(arr, i) {
+      return _array_with_holes$3(arr) || _iterable_to_array_limit$3(arr, i) || _unsupported_iterable_to_array$7(arr, i) || _non_iterable_rest$3();
   }
   function _to_consumable_array$5(arr) {
       return _array_without_holes$5(arr) || _iterable_to_array$5(arr) || _unsupported_iterable_to_array$7(arr) || _non_iterable_spread$5();
@@ -138,7 +138,7 @@ this.Scorm12API = (function () {
       if (!duration || !(duration === null || duration === void 0 ? void 0 : (_duration_match = duration.match) === null || _duration_match === void 0 ? void 0 : _duration_match.call(duration, durationRegex))) {
           return 0;
       }
-      var _ref1 = _sliced_to_array$2((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
+      var _ref1 = _sliced_to_array$3((_ref = (_exec = (_this = new RegExp(durationRegex)).exec) === null || _exec === void 0 ? void 0 : _exec.call(_this, duration)) !== null && _ref !== void 0 ? _ref : [], 8), years = _ref1[1], months = _ref1[2], weeks = _ref1[3], days = _ref1[4], hours = _ref1[5], minutes = _ref1[6], seconds = _ref1[7];
       var result = 0;
       result += Number(seconds) || 0;
       result += Number(minutes) * 60 || 0;
@@ -956,7 +956,7 @@ this.Scorm12API = (function () {
       return Scorm2004ValidationError;
   }(ValidationError);
 
-  function _define_property$7(obj, key, value) {
+  function _define_property$8(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -967,7 +967,7 @@ this.Scorm12API = (function () {
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$7(target) {
+  function _object_spread$8(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -977,7 +977,7 @@ this.Scorm12API = (function () {
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$7(target, key, source[key]);
+              _define_property$8(target, key, source[key]);
           });
       }
       return target;
@@ -1030,7 +1030,7 @@ this.Scorm12API = (function () {
       VALUE_OUT_OF_RANGE: 101,
       DEPENDENCY_NOT_ESTABLISHED: 101
   };
-  var scorm12_errors = _object_spread_props$3(_object_spread$7({}, global_errors), {
+  var scorm12_errors = _object_spread_props$3(_object_spread$8({}, global_errors), {
       TERMINATION_BEFORE_INIT: 301,
       RETRIEVE_BEFORE_INIT: 301,
       STORE_BEFORE_INIT: 301,
@@ -1051,7 +1051,7 @@ this.Scorm12API = (function () {
       VALUE_OUT_OF_RANGE: 405,
       DEPENDENCY_NOT_ESTABLISHED: 408
   });
-  var scorm2004_errors = _object_spread_props$3(_object_spread$7({}, global_errors), {
+  var scorm2004_errors = _object_spread_props$3(_object_spread$8({}, global_errors), {
       INITIALIZATION_FAILED: 102,
       INITIALIZED: 103,
       TERMINATED: 104,
@@ -1778,7 +1778,7 @@ this.Scorm12API = (function () {
       /** progress_range - Progress measure range 0 to 1 (RTE 4.1.8) */ progress_range: "0#1"
   };
 
-  function _define_property$6(obj, key, value) {
+  function _define_property$7(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -1789,7 +1789,7 @@ this.Scorm12API = (function () {
       } else obj[key] = value;
       return obj;
   }
-  function _object_spread$6(target) {
+  function _object_spread$7(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -1799,7 +1799,7 @@ this.Scorm12API = (function () {
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$6(target, key, source[key]);
+              _define_property$7(target, key, source[key]);
           });
       }
       return target;
@@ -1895,7 +1895,7 @@ this.Scorm12API = (function () {
   var SuspendExceptions = {
       "SB.2.15-1": "Cannot suspend root"
   };
-  _object_spread$6({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
+  _object_spread$7({}, NavigationExceptions, TerminationExceptions, FlowTreeTraversalExceptions, FlowActivityTraversalExceptions, ContinueExceptions, PreviousExceptions, ChoiceExceptions, ChoiceTraversalExceptions, RetryExceptions, ExitExceptions, SequencingRequestExceptions, JumpExceptions, StartExceptions, ResumeExceptions, SuspendExceptions);
 
   function _class_call_check$r(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -3997,7 +3997,7 @@ this.Scorm12API = (function () {
       if (protoProps) _defineProperties$m(Constructor.prototype, protoProps);
       return Constructor;
   }
-  function _define_property$5(obj, key, value) {
+  function _define_property$6(obj, key, value) {
       if (key in obj) {
           Object.defineProperty(obj, key, {
               value: value,
@@ -4014,7 +4014,7 @@ this.Scorm12API = (function () {
           return !!right[Symbol.hasInstance](left);
       } else return left instanceof right;
   }
-  function _object_spread$5(target) {
+  function _object_spread$6(target) {
       for(var i = 1; i < arguments.length; i++){
           var source = arguments[i] != null ? arguments[i] : {};
           var ownKeys = Object.keys(source);
@@ -4024,7 +4024,7 @@ this.Scorm12API = (function () {
               }));
           }
           ownKeys.forEach(function(key) {
-              _define_property$5(target, key, source[key]);
+              _define_property$6(target, key, source[key]);
           });
       }
       return target;
@@ -4341,7 +4341,7 @@ this.Scorm12API = (function () {
                       method: "POST",
                       mode: this.settings.fetchMode,
                       body: body,
-                      headers: _object_spread_props$2(_object_spread$5({}, this.settings.xhrHeaders), {
+                      headers: _object_spread_props$2(_object_spread$6({}, this.settings.xhrHeaders), {
                           "Content-Type": contentType
                       }),
                       keepalive: true
@@ -4504,7 +4504,7 @@ this.Scorm12API = (function () {
                                       result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391;
                                   }
                                   if (!this._isSuccessResponse(response, result)) {
-                                      result.errorDetails = _object_spread$5({
+                                      result.errorDetails = _object_spread$6({
                                           status: response.status,
                                           statusText: response.statusText,
                                           url: response.url
@@ -5724,6 +5724,302 @@ this.Scorm12API = (function () {
       return EventService;
   }();
 
+  function _array_like_to_array$4(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+      return arr2;
+  }
+  function _array_with_holes$2(arr) {
+      if (Array.isArray(arr)) return arr;
+  }
+  function _class_call_check$h(instance, Constructor) {
+      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties$h(target, props) {
+      for(var i = 0; i < props.length; i++){
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+      }
+  }
+  function _create_class$h(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$h(Constructor.prototype, protoProps);
+      return Constructor;
+  }
+  function _define_property$5(obj, key, value) {
+      if (key in obj) {
+          Object.defineProperty(obj, key, {
+              value: value,
+              enumerable: true,
+              configurable: true,
+              writable: true
+          });
+      } else obj[key] = value;
+      return obj;
+  }
+  function _instanceof$5(left, right) {
+      "@swc/helpers - instanceof";
+      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
+          return !!right[Symbol.hasInstance](left);
+      } else return left instanceof right;
+  }
+  function _iterable_to_array_limit$2(arr, i) {
+      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+      if (_i == null) return;
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _s, _e;
+      try {
+          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
+              _arr.push(_s.value);
+              if (i && _arr.length === i) break;
+          }
+      } catch (err) {
+          _d = true;
+          _e = err;
+      } finally{
+          try {
+              if (!_n && _i["return"] != null) _i["return"]();
+          } finally{
+              if (_d) throw _e;
+          }
+      }
+      return _arr;
+  }
+  function _non_iterable_rest$2() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _object_spread$5(target) {
+      for(var i = 1; i < arguments.length; i++){
+          var source = arguments[i] != null ? arguments[i] : {};
+          var ownKeys = Object.keys(source);
+          if (typeof Object.getOwnPropertySymbols === "function") {
+              ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function(sym) {
+                  return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+              }));
+          }
+          ownKeys.forEach(function(key) {
+              _define_property$5(target, key, source[key]);
+          });
+      }
+      return target;
+  }
+  function _sliced_to_array$2(arr, i) {
+      return _array_with_holes$2(arr) || _iterable_to_array_limit$2(arr, i) || _unsupported_iterable_to_array$4(arr, i) || _non_iterable_rest$2();
+  }
+  function _type_of$g(obj) {
+      "@swc/helpers - typeof";
+      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  }
+  function _unsupported_iterable_to_array$4(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _array_like_to_array$4(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(n);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$4(o, minLen);
+  }
+  var __defProp$f = Object.defineProperty;
+  var __defNormalProp$f = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$f(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: value
+      }) : obj[key] = value;
+  };
+  var __publicField$f = function __publicField(obj, key, value) {
+      return __defNormalProp$f(obj, (typeof key === "undefined" ? "undefined" : _type_of$g(key)) !== "symbol" ? key + "" : key, value);
+  };
+  var SynchronousHttpService = /*#__PURE__*/ function() {
+      function SynchronousHttpService(settings, error_codes) {
+          _class_call_check$h(this, SynchronousHttpService);
+          __publicField$f(this, "settings");
+          __publicField$f(this, "error_codes");
+          this.settings = settings;
+          this.error_codes = error_codes;
+      }
+      _create_class$h(SynchronousHttpService, [
+          {
+              /**
+     * Sends synchronous HTTP requests to the LMS
+     * @param {string} url - The URL endpoint to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+     * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
+     * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
+     * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
+     * @return {ResultObject} - The result of the request (synchronous)
+     *
+     * @remarks
+     * The apiLog and processListeners parameters are part of the IHttpService interface contract
+     * but are not used by SynchronousHttpService because:
+     * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
+     * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
+     * - AsynchronousHttpService uses these parameters to handle background request results
+     */ key: "processHttpRequest",
+              value: function processHttpRequest(url, params) {
+                  var immediate = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, metadata = arguments.length > 5 ? arguments[5] : void 0;
+                  if (immediate) {
+                      return this._handleImmediateRequest(url, params, metadata);
+                  }
+                  return this._performSyncXHR(url, params, metadata);
+              }
+          },
+          {
+              /**
+     * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @return {ResultObject} - The result based on beacon success
+     * @private
+     */ key: "_handleImmediateRequest",
+              value: function _handleImmediateRequest(url, params, metadata) {
+                  if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
+                      return this._performSyncXHR(url, params, metadata);
+                  }
+                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
+                  var body = this._prepareRequestBody(requestPayload).body;
+                  var beaconContentType = this.settings.terminationCommitContentType;
+                  this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
+                  var beaconSuccess = navigator.sendBeacon(url, new Blob([
+                      body
+                  ], {
+                      type: beaconContentType
+                  }));
+                  return {
+                      result: beaconSuccess ? "true" : "false",
+                      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
+                  };
+              }
+          },
+          {
+              key: "_warnIfBeaconContentTypeUnsafe",
+              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
+                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
+                      var _this_settings_onLogMessage, _this_settings;
+                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
+                  }
+              }
+          },
+          {
+              /**
+     * Performs a synchronous XMLHttpRequest
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {CommitMetadata} metadata - Metadata describing the captured commit
+     * @return {ResultObject} - The result of the request
+     * @private
+     */ key: "_performSyncXHR",
+              value: function _performSyncXHR(url, params, metadata) {
+                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
+                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
+                  var _this__prepareRequestBody = this._prepareRequestBody(requestPayload), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
+                  var xhr = new XMLHttpRequest();
+                  xhr.open("POST", url, false);
+                  xhr.setRequestHeader("Content-Type", contentType);
+                  Object.entries(this.settings.xhrHeaders).forEach(function(param) {
+                      var _param = _sliced_to_array$2(param, 2), key = _param[0], value = _param[1];
+                      xhr.setRequestHeader(key, String(value));
+                  });
+                  if (this.settings.xhrWithCredentials) {
+                      xhr.withCredentials = true;
+                  }
+                  try {
+                      xhr.send(body);
+                      return this.settings.xhrResponseHandler(xhr);
+                  } catch (e) {
+                      var message = _instanceof$5(e, Error) ? e.message : String(e);
+                      return {
+                          result: global_constants.SCORM_FALSE,
+                          errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+                          errorMessage: message
+                      };
+                  }
+              }
+          },
+          {
+              key: "performAsyncRequest",
+              value: function performAsyncRequest(url, params, metadata) {
+                  var _this = this;
+                  return new Promise(function(resolve) {
+                      var failure = function failure(error) {
+                          return resolve(_object_spread$5({
+                              result: global_constants.SCORM_FALSE,
+                              errorCode: _this.error_codes.GENERAL_COMMIT_FAILURE || 391
+                          }, _instanceof$5(error, Error) ? {
+                              errorMessage: error.message
+                          } : {}));
+                      };
+                      try {
+                          var handledPayload = metadata === void 0 ? _this.settings.requestHandler(params) : _this.settings.requestHandler(params, metadata);
+                          var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
+                          var _this__prepareRequestBody = _this._prepareRequestBody(requestPayload), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
+                          var xhr = new XMLHttpRequest();
+                          xhr.open("POST", url, true);
+                          xhr.setRequestHeader("Content-Type", contentType);
+                          Object.entries(_this.settings.xhrHeaders).forEach(function(param) {
+                              var _param = _sliced_to_array$2(param, 2), key = _param[0], value = _param[1];
+                              xhr.setRequestHeader(key, String(value));
+                          });
+                          if (_this.settings.xhrWithCredentials) {
+                              xhr.withCredentials = true;
+                          }
+                          xhr.onload = function() {
+                              try {
+                                  resolve(_this.settings.xhrResponseHandler(xhr));
+                              } catch (error) {
+                                  failure(error);
+                              }
+                          };
+                          xhr.onerror = function() {
+                              return failure();
+                          };
+                          xhr.ontimeout = function() {
+                              return failure();
+                          };
+                          xhr.send(body);
+                      } catch (error) {
+                          failure(error);
+                      }
+                  });
+              }
+          },
+          {
+              /**
+     * Prepares the request body and content type based on params type
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Object} - Object containing body and contentType
+     * @private
+     */ key: "_prepareRequestBody",
+              value: function _prepareRequestBody(params) {
+                  var body = _instanceof$5(params, Array) ? params.join("&") : JSON.stringify(params);
+                  var contentType = _instanceof$5(params, Array) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+                  return {
+                      body: body,
+                      contentType: contentType
+                  };
+              }
+          },
+          {
+              /**
+     * Updates the service settings
+     * @param {InternalSettings} settings - The new settings
+     */ key: "updateSettings",
+              value: function updateSettings(settings) {
+                  this.settings = settings;
+              }
+          }
+      ]);
+      return SynchronousHttpService;
+  }();
+
   function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
       try {
           var info = gen[key](arg);
@@ -5750,10 +6046,10 @@ this.Scorm12API = (function () {
           });
       };
   }
-  function _class_call_check$h(instance, Constructor) {
+  function _class_call_check$g(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$h(target, props) {
+  function _defineProperties$g(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -5762,8 +6058,8 @@ this.Scorm12API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$h(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$h(Constructor.prototype, protoProps);
+  function _create_class$g(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$g(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$4(obj, key, value) {
@@ -5777,7 +6073,7 @@ this.Scorm12API = (function () {
       } else obj[key] = value;
       return obj;
   }
-  function _instanceof$5(left, right) {
+  function _instanceof$4(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -5915,34 +6211,40 @@ this.Scorm12API = (function () {
           };
       }
   }
-  function _type_of$g(obj) {
+  function _type_of$f(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$f = Object.defineProperty;
-  var __defNormalProp$f = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$f(obj, key, {
+  var __defProp$e = Object.defineProperty;
+  var __defNormalProp$e = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$e(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$f = function __publicField(obj, key, value) {
-      return __defNormalProp$f(obj, (typeof key === "undefined" ? "undefined" : _type_of$g(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$e = function __publicField(obj, key, value) {
+      return __defNormalProp$e(obj, (typeof key === "undefined" ? "undefined" : _type_of$f(key)) !== "symbol" ? key + "" : key, value);
   };
   var OfflineStorageService = /*#__PURE__*/ function() {
-      function OfflineStorageService(settings, error_codes, apiLog) {
-          _class_call_check$h(this, OfflineStorageService);
-          __publicField$f(this, "apiLog", apiLog);
-          __publicField$f(this, "settings");
-          __publicField$f(this, "error_codes");
-          __publicField$f(this, "storeName", "scorm_again_offline_data");
-          __publicField$f(this, "syncQueue", "scorm_again_sync_queue");
-          __publicField$f(this, "isOnline", navigator.onLine);
-          __publicField$f(this, "syncInProgress", false);
-          __publicField$f(this, "boundOnlineStatusChangeHandler");
-          __publicField$f(this, "boundCustomNetworkStatusHandler");
+      function OfflineStorageService(settings, error_codes, apiLog, httpService) {
+          var getLearnerId = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : function() {
+              return "";
+          }, processListeners = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : function() {};
+          _class_call_check$g(this, OfflineStorageService);
+          __publicField$e(this, "apiLog", apiLog);
+          __publicField$e(this, "httpService", httpService);
+          __publicField$e(this, "getLearnerId", getLearnerId);
+          __publicField$e(this, "processListeners", processListeners);
+          __publicField$e(this, "settings");
+          __publicField$e(this, "error_codes");
+          __publicField$e(this, "storeName", "scorm_again_offline_data");
+          __publicField$e(this, "syncQueue", "scorm_again_sync_queue");
+          __publicField$e(this, "isOnline", navigator.onLine);
+          __publicField$e(this, "syncInProgress", false);
+          __publicField$e(this, "boundOnlineStatusChangeHandler");
+          __publicField$e(this, "boundCustomNetworkStatusHandler");
           this.settings = settings;
           this.error_codes = error_codes;
           this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
@@ -5951,26 +6253,16 @@ this.Scorm12API = (function () {
           window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
           window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
       }
-      _create_class$h(OfflineStorageService, [
+      _create_class$g(OfflineStorageService, [
           {
               /**
      * Handle changes in online status
      */ key: "handleOnlineStatusChange",
               value: function handleOnlineStatusChange() {
-                  var _this = this;
                   var wasOnline = this.isOnline;
                   this.isOnline = navigator.onLine;
                   if (!wasOnline && this.isOnline) {
-                      this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
-                      this.syncOfflineData().then(function(success) {
-                          if (success) {
-                              _this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-                          } else {
-                              _this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-                          }
-                      }, function(error) {
-                          _this.apiLog("OfflineStorageService", "Error during sync: ".concat(error), LogLevelEnum.ERROR);
-                      });
+                      this.syncAfterReconnect();
                   } else if (wasOnline && !this.isOnline) {
                       this.apiLog("OfflineStorageService", "Device is offline, data will be stored locally", LogLevelEnum.INFO);
                   }
@@ -5983,8 +6275,7 @@ this.Scorm12API = (function () {
      * @param {Event} event - The custom event containing network status
      */ key: "handleCustomNetworkStatus",
               value: function handleCustomNetworkStatus(event) {
-                  var _this = this;
-                  if (!_instanceof$5(event, CustomEvent)) {
+                  if (!_instanceof$4(event, CustomEvent)) {
                       this.apiLog("OfflineStorageService", "Invalid network status event received", LogLevelEnum.WARN);
                       return;
                   }
@@ -5997,19 +6288,32 @@ this.Scorm12API = (function () {
                   this.isOnline = online;
                   this.apiLog("OfflineStorageService", "Network status updated via custom event: ".concat(online ? "online" : "offline"), LogLevelEnum.INFO);
                   if (!wasOnline && this.isOnline) {
-                      this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
-                      this.syncOfflineData().then(function(success) {
-                          if (success) {
-                              _this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
-                          } else {
-                              _this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
-                          }
-                      }, function(error) {
-                          _this.apiLog("OfflineStorageService", "Error during sync: ".concat(error), LogLevelEnum.ERROR);
-                      });
+                      this.syncAfterReconnect();
                   } else if (wasOnline && !this.isOnline) {
                       this.apiLog("OfflineStorageService", "Device is offline, data will be stored locally", LogLevelEnum.INFO);
                   }
+              }
+          },
+          {
+              /**
+     * Sync queued data when the device comes back online.
+     */ key: "syncAfterReconnect",
+              value: function syncAfterReconnect() {
+                  var _this = this;
+                  if (!this.hasQueuedData(this.settings.courseId)) {
+                      this.apiLog("OfflineStorageService", "Device is back online, nothing to sync", LogLevelEnum.INFO);
+                      return;
+                  }
+                  this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
+                  this.syncOfflineData().then(function(success) {
+                      if (success) {
+                          _this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+                      } else {
+                          _this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+                      }
+                  }, function(error) {
+                      _this.apiLog("OfflineStorageService", "Error during sync: ".concat(error), LogLevelEnum.ERROR);
+                  });
               }
           },
           {
@@ -6022,9 +6326,11 @@ this.Scorm12API = (function () {
      */ key: "storeOffline",
               value: function storeOffline(courseId, commitData, metadata) {
                   try {
+                      var _ref;
                       var queueItem = _object_spread$4({
                           id: "".concat(courseId, "_").concat(Date.now(), "_").concat(Math.random().toString(36).substring(2, 9)),
                           courseId: courseId,
+                          learnerId: (_ref = metadata === null || metadata === void 0 ? void 0 : metadata.learnerId) !== null && _ref !== void 0 ? _ref : this.getLearnerId(),
                           timestamp: Date.now(),
                           data: commitData,
                           syncAttempts: 0
@@ -6044,7 +6350,7 @@ this.Scorm12API = (function () {
                       };
                   } catch (error) {
                       var _this_error_codes_GENERAL;
-                      var errorMessage = _instanceof$5(error, Error) ? error.message : String(error);
+                      var errorMessage = _instanceof$4(error, Error) ? error.message : String(error);
                       var isQuotaError = errorMessage.includes("storage quota");
                       this.apiLog("OfflineStorageService", isQuotaError ? "storage quota exceeded - cannot store offline data for course ".concat(courseId) : "Error storing offline data: ".concat(error), LogLevelEnum.ERROR);
                       return {
@@ -6085,16 +6391,28 @@ this.Scorm12API = (function () {
               }
           },
           {
+              key: "getPendingOfflineData",
+              value: function getPendingOfflineData(courseId, learnerId) {
+                  var queue = this.getFromStorage(this.syncQueue) || [];
+                  return queue.filter(function(item) {
+                      return item.courseId === courseId && item.learnerId === learnerId;
+                  }).map(function(item) {
+                      return item.data;
+                  });
+              }
+          },
+          {
               key: "syncOfflineData",
               value: /**
      * Synchronize offline data with the LMS when connection is available
      * @returns {Promise<boolean>} - Success status of synchronization
      */ function syncOfflineData() {
                   return _async_to_generator(function() {
-                      var syncQueue, remainingQueue, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, item, _this_settings_maxSyncAttempts, maxAttempts, syncResult, error, err, error1;
+                      var _this, started, success, syncQueue, learnerId, matches, matchingCount, allAccepted, remainingQueue, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, item, _this_settings_maxSyncAttempts, maxAttempts, syncResult, error, err, _iteratorNormalCompletion1, _didIteratorError1, _iteratorError1, _this1, _loop, _iterator1, _step1, error1;
                       return _ts_generator(this, function(_state) {
                           switch(_state.label){
                               case 0:
+                                  _this = this;
                                   if (this.syncInProgress || !this.isOnline) {
                                       return [
                                           2,
@@ -6102,23 +6420,32 @@ this.Scorm12API = (function () {
                                       ];
                                   }
                                   this.syncInProgress = true;
+                                  started = false;
+                                  success = false;
                                   _state.label = 1;
                               case 1:
                                   _state.trys.push([
                                       1,
                                       12,
-                                      ,
-                                      13
+                                      13,
+                                      14
                                   ]);
                                   syncQueue = this.getFromStorage(this.syncQueue) || [];
-                                  if (syncQueue.length === 0) {
-                                      this.syncInProgress = false;
+                                  learnerId = this.getLearnerId();
+                                  matches = function matches(item) {
+                                      return item.courseId === _this.settings.courseId && (item.learnerId === void 0 || item.learnerId === learnerId);
+                                  };
+                                  matchingCount = syncQueue.filter(matches).length;
+                                  if (matchingCount === 0) {
                                       return [
                                           2,
-                                          true
+                                          false
                                       ];
                                   }
-                                  this.apiLog("OfflineStorageService", "Found ".concat(syncQueue.length, " items to sync"), LogLevelEnum.INFO);
+                                  started = true;
+                                  this.processListeners("OfflineDataSyncing");
+                                  allAccepted = true;
+                                  this.apiLog("OfflineStorageService", "Found ".concat(matchingCount, " items to sync"), LogLevelEnum.INFO);
                                   remainingQueue = [];
                                   _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
                                   _state.label = 2;
@@ -6137,9 +6464,17 @@ this.Scorm12API = (function () {
                                       8
                                   ];
                                   item = _step.value;
+                                  if (!matches(item)) {
+                                      remainingQueue.push(item);
+                                      return [
+                                          3,
+                                          7
+                                      ];
+                                  }
                                   maxAttempts = (_this_settings_maxSyncAttempts = this.settings.maxSyncAttempts) !== null && _this_settings_maxSyncAttempts !== void 0 ? _this_settings_maxSyncAttempts : 5;
                                   if (item.syncAttempts >= maxAttempts) {
                                       this.apiLog("OfflineStorageService", "Removing abandoned item ".concat(item.id, " after ").concat(maxAttempts, " failed sync attempts"), LogLevelEnum.WARN);
+                                      allAccepted = false;
                                       return [
                                           3,
                                           7
@@ -6166,6 +6501,7 @@ this.Scorm12API = (function () {
                                   if (syncResult.result === true || syncResult.result === global_constants.SCORM_TRUE) {
                                       this.apiLog("OfflineStorageService", "Successfully synced item ".concat(item.id), LogLevelEnum.INFO);
                                   } else {
+                                      allAccepted = false;
                                       item.syncAttempts++;
                                       remainingQueue.push(item);
                                       this.apiLog("OfflineStorageService", "Failed to sync item ".concat(item.id, ", attempt #").concat(item.syncAttempts), LogLevelEnum.WARN);
@@ -6176,6 +6512,7 @@ this.Scorm12API = (function () {
                                   ];
                               case 6:
                                   error = _state.sent();
+                                  allAccepted = false;
                                   item.syncAttempts++;
                                   remainingQueue.push(item);
                                   this.apiLog("OfflineStorageService", "Error syncing item ".concat(item.id, ": ").concat(error), LogLevelEnum.ERROR);
@@ -6217,21 +6554,59 @@ this.Scorm12API = (function () {
                                   ];
                               case 11:
                                   this.saveToStorage(this.syncQueue, remainingQueue);
+                                  _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
+                                  try {
+                                      _loop = function() {
+                                          var courseId = _step1.value;
+                                          if (!remainingQueue.some(function(item) {
+                                              return item.courseId === courseId;
+                                          })) {
+                                              _this1.removeFromStorage("".concat(_this1.storeName, "_").concat(courseId));
+                                          }
+                                      };
+                                      for(_iterator1 = new Set(syncQueue.filter(matches).map(function(item) {
+                                          return item.courseId;
+                                      }))[Symbol.iterator](); !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true)_this1 = this, _loop();
+                                  } catch (err) {
+                                      _didIteratorError1 = true;
+                                      _iteratorError1 = err;
+                                  } finally{
+                                      try {
+                                          if (!_iteratorNormalCompletion1 && _iterator1.return != null) {
+                                              _iterator1.return();
+                                          }
+                                      } finally{
+                                          if (_didIteratorError1) {
+                                              throw _iteratorError1;
+                                          }
+                                      }
+                                  }
                                   this.apiLog("OfflineStorageService", "Sync completed. ".concat(syncQueue.length - remainingQueue.length, " items synced, ").concat(remainingQueue.length, " items remaining"), LogLevelEnum.INFO);
-                                  this.syncInProgress = false;
+                                  success = allAccepted;
                                   return [
                                       2,
-                                      true
+                                      success
                                   ];
                               case 12:
                                   error1 = _state.sent();
+                                  if (!started) {
+                                      started = true;
+                                      this.processListeners("OfflineDataSyncing");
+                                  }
                                   this.apiLog("OfflineStorageService", "Error during sync process: ".concat(error1), LogLevelEnum.ERROR);
-                                  this.syncInProgress = false;
                                   return [
                                       2,
                                       false
                                   ];
                               case 13:
+                                  this.syncInProgress = false;
+                                  if (started) {
+                                      this.processListeners(success ? "OfflineDataSynced" : "OfflineDataSyncFailed");
+                                  }
+                                  return [
+                                      7
+                                  ];
+                              case 14:
                                   return [
                                       2
                                   ];
@@ -6249,10 +6624,11 @@ this.Scorm12API = (function () {
      * @returns {Promise<ResultObject>} - Result of the sync operation
      */ function sendDataToLMS(data, metadata) {
                   return _async_to_generator(function() {
-                      var configuredCommitUrl, _ref, lmsCommitUrl, processedData, requestUrl, init, response, result, _tmp, error;
+                      var _this, configuredCommitUrl, _ref, _this_settings_requestHandler, lmsCommitUrl, requestUrl, commitMetadata, httpService, processedData, init, response, result, _tmp, error;
                       return _ts_generator(this, function(_state) {
                           switch(_state.label){
                               case 0:
+                                  _this = this;
                                   configuredCommitUrl = this.settings.lmsCommitUrl;
                                   if (!configuredCommitUrl) {
                                       return [
@@ -6267,24 +6643,77 @@ this.Scorm12API = (function () {
                               case 1:
                                   _state.trys.push([
                                       1,
-                                      7,
+                                      11,
                                       ,
-                                      8
+                                      12
                                   ]);
                                   lmsCommitUrl = String(configuredCommitUrl);
-                                  processedData = this.settings.requestHandler(data, _object_spread$4({
+                                  requestUrl = (metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+                                  commitMetadata = _object_spread$4({
                                       isTerminateCommit: (_ref = metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) !== null && _ref !== void 0 ? _ref : false,
                                       trigger: "offline-replay"
                                   }, (metadata === null || metadata === void 0 ? void 0 : metadata.sequence) !== void 0 ? {
                                       sequence: metadata.sequence
-                                  } : {}));
-                                  requestUrl = (metadata === null || metadata === void 0 ? void 0 : metadata.isTerminateCommit) && this.settings.terminateCommitParam ? appendQueryParam(lmsCommitUrl, this.settings.terminateCommitParam, "true") : lmsCommitUrl;
+                                  } : {});
+                                  httpService = this.httpService;
+                                  if (!(_instanceof$4(httpService, SynchronousHttpService) && !("reportsRequestCompletion" in httpService && httpService.reportsRequestCompletion))) return [
+                                      3,
+                                      3
+                                  ];
+                                  return [
+                                      4,
+                                      httpService.performAsyncRequest(requestUrl, data, commitMetadata)
+                                  ];
+                              case 2:
+                                  return [
+                                      2,
+                                      _state.sent()
+                                  ];
+                              case 3:
+                                  if (!httpService) return [
+                                      3,
+                                      5
+                                  ];
+                                  return [
+                                      4,
+                                      new Promise(function(resolve, reject) {
+                                          try {
+                                              var result2 = httpService.processHttpRequest(requestUrl, data, false, _this.apiLog, function(event, _element, errorCode) {
+                                                  if (event === "CommitSuccess") resolve({
+                                                      result: "true",
+                                                      errorCode: 0
+                                                  });
+                                                  if (event === "CommitError") resolve({
+                                                      result: "false",
+                                                      errorCode: errorCode
+                                                  });
+                                              }, commitMetadata, // A deferring service settles each request through this callback. If it sent
+                                              // no commit event first, the replay counts as failed and stays queued.
+                                              function() {
+                                                  return resolve({
+                                                      result: "false",
+                                                      errorCode: _this.error_codes.GENERAL_COMMIT_FAILURE || 391
+                                                  });
+                                              });
+                                              if (!httpService.reportsRequestCompletion) resolve(result2);
+                                          } catch (error) {
+                                              reject(error);
+                                          }
+                                      })
+                                  ];
+                              case 4:
+                                  return [
+                                      2,
+                                      _state.sent()
+                                  ];
+                              case 5:
+                                  processedData = (_this_settings_requestHandler = this.settings.requestHandler(data, commitMetadata)) !== null && _this_settings_requestHandler !== void 0 ? _this_settings_requestHandler : data;
                                   init = {
                                       method: "POST",
                                       mode: this.settings.fetchMode,
-                                      body: JSON.stringify(processedData),
+                                      body: Array.isArray(processedData) ? processedData.join("&") : JSON.stringify(processedData),
                                       headers: _object_spread_props$1(_object_spread$4({}, this.settings.xhrHeaders), {
-                                          "Content-Type": this.settings.commitRequestDataType
+                                          "Content-Type": Array.isArray(processedData) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType
                                       })
                                   };
                                   if (this.settings.xhrWithCredentials) {
@@ -6294,31 +6723,31 @@ this.Scorm12API = (function () {
                                       4,
                                       fetch(requestUrl, init)
                                   ];
-                              case 2:
+                              case 6:
                                   response = _state.sent();
                                   if (!(typeof this.settings.responseHandler === "function")) return [
                                       3,
-                                      4
+                                      8
                                   ];
                                   return [
                                       4,
                                       this.settings.responseHandler(response)
                                   ];
-                              case 3:
+                              case 7:
                                   _tmp = _state.sent();
                                   return [
                                       3,
-                                      6
+                                      10
                                   ];
-                              case 4:
+                              case 8:
                                   return [
                                       4,
                                       response.json()
                                   ];
-                              case 5:
+                              case 9:
                                   _tmp = _state.sent();
-                                  _state.label = 6;
-                              case 6:
+                                  _state.label = 10;
+                              case 10:
                                   result = _tmp;
                                   if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
                                       if (!Object.hasOwnProperty.call(result, "errorCode")) {
@@ -6337,7 +6766,7 @@ this.Scorm12API = (function () {
                                           result
                                       ];
                                   }
-                              case 7:
+                              case 11:
                                   error = _state.sent();
                                   this.apiLog("OfflineStorageService", "Error sending data to LMS: ".concat(error), LogLevelEnum.ERROR);
                                   return [
@@ -6347,7 +6776,7 @@ this.Scorm12API = (function () {
                                           errorCode: this.error_codes.GENERAL || 101
                                       }
                                   ];
-                              case 8:
+                              case 12:
                                   return [
                                       2
                                   ];
@@ -6396,7 +6825,22 @@ this.Scorm12API = (function () {
                   try {
                       localStorage.setItem(key, JSON.stringify(data));
                   } catch (error) {
-                      if (_instanceof$5(error, DOMException) && error.name === "QuotaExceededError") {
+                      if (_instanceof$4(error, DOMException) && error.name === "QuotaExceededError") {
+                          throw new Error("storage quota exceeded - localStorage is full", {
+                              cause: error
+                          });
+                      }
+                      throw error;
+                  }
+              }
+          },
+          {
+              key: "removeFromStorage",
+              value: function removeFromStorage(key) {
+                  try {
+                      localStorage.removeItem(key);
+                  } catch (error) {
+                      if (_instanceof$4(error, DOMException) && error.name === "QuotaExceededError") {
                           throw new Error("storage quota exceeded - localStorage is full", {
                               cause: error
                           });
@@ -6413,17 +6857,25 @@ this.Scorm12API = (function () {
      * @returns {Promise<boolean>} - Whether there is pending data
      */ function hasPendingOfflineData(courseId) {
                   return _async_to_generator(function() {
-                      var queue;
                       return _ts_generator(this, function(_state) {
-                          queue = this.getFromStorage(this.syncQueue) || [];
                           return [
                               2,
-                              queue.some(function(item) {
-                                  return item.courseId === courseId;
-                              })
+                              this.hasQueuedData(courseId)
                           ];
                       });
                   }).call(this);
+              }
+          },
+          {
+              /**
+     * Check for queued data matching the course and current learner.
+     */ key: "hasQueuedData",
+              value: function hasQueuedData(courseId) {
+                  var queue = this.getFromStorage(this.syncQueue) || [];
+                  var learnerId = this.getLearnerId();
+                  return queue.some(function(item) {
+                      return item.courseId === courseId && (item.learnerId === void 0 || item.learnerId === learnerId);
+                  });
               }
           },
           {
@@ -6450,7 +6902,7 @@ this.Scorm12API = (function () {
       return OfflineStorageService;
   }();
 
-  function _type_of$f(obj) {
+  function _type_of$e(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
@@ -6470,7 +6922,7 @@ this.Scorm12API = (function () {
   }, // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   function(CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$f(value), "]");
+      var valueKey = typeof value === "string" ? value : "[".concat(typeof value === "undefined" ? "undefined" : _type_of$e(value), "]");
       return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
   }, // Normal capped CMI values and regexes fit within 2000 characters; large uncapped values bypass caching.
   {
@@ -6514,10 +6966,10 @@ this.Scorm12API = (function () {
       derived = _get_prototype_of$b(derived);
       return _possible_constructor_return$b(_this, _is_native_reflect_construct$b() ? Reflect.construct(derived, args || [], _get_prototype_of$b(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$g(instance, Constructor) {
+  function _class_call_check$f(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$g(target, props) {
+  function _defineProperties$f(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -6526,8 +6978,8 @@ this.Scorm12API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$g(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$g(Constructor.prototype, protoProps);
+  function _create_class$f(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$f(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get_prototype_of$b(o) {
@@ -6549,7 +7001,7 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$b(subClass, superClass);
   }
-  function _instanceof$4(left, right) {
+  function _instanceof$3(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -6564,7 +7016,7 @@ this.Scorm12API = (function () {
       })();
   }
   function _possible_constructor_return$b(self, call) {
-      if (call && (_type_of$e(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$d(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$b(self);
   }
   function _set_prototype_of$b(o, p) {
@@ -6574,21 +7026,21 @@ this.Scorm12API = (function () {
       };
       return _set_prototype_of$b(o, p);
   }
-  function _type_of$e(obj) {
+  function _type_of$d(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$e = Object.defineProperty;
-  var __defNormalProp$e = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$e(obj, key, {
+  var __defProp$d = Object.defineProperty;
+  var __defNormalProp$d = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$d(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$e = function __publicField(obj, key, value) {
-      return __defNormalProp$e(obj, (typeof key === "undefined" ? "undefined" : _type_of$e(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$d = function __publicField(obj, key, value) {
+      return __defNormalProp$d(obj, (typeof key === "undefined" ? "undefined" : _type_of$d(key)) !== "symbol" ? key + "" : key, value);
   };
   function normalizeMinimumPercent(minimumPercent) {
       return minimumPercent > 1 ? minimumPercent / 100 : minimumPercent;
@@ -6597,20 +7049,20 @@ this.Scorm12API = (function () {
       _inherits$b(RollupCondition, BaseCMI);
       function RollupCondition() {
           var condition = arguments.length > 0 && arguments[0] !== void 0 /* ALWAYS */  ? arguments[0] : "always", parameters = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : /* @__PURE__ */ new Map(), operator = arguments.length > 2 && arguments[2] !== void 0 /* NO_OP */  ? arguments[2] : "noOp";
-          _class_call_check$g(this, RollupCondition);
+          _class_call_check$f(this, RollupCondition);
           var _this;
           _this = _call_super$b(this, RollupCondition, [
               "rollupCondition"
           ]);
-          __publicField$e(_this, "_condition", "always" /* ALWAYS */ );
-          __publicField$e(_this, "_parameters", /* @__PURE__ */ new Map());
-          __publicField$e(_this, "_operator", "noOp" /* NO_OP */ );
+          __publicField$d(_this, "_condition", "always" /* ALWAYS */ );
+          __publicField$d(_this, "_parameters", /* @__PURE__ */ new Map());
+          __publicField$d(_this, "_operator", "noOp" /* NO_OP */ );
           _this._condition = condition;
           _this._parameters = parameters;
           _this._operator = operator;
           return _this;
       }
-      _create_class$g(RollupCondition, [
+      _create_class$f(RollupCondition, [
           {
               /**
      * Called when the API needs to be reset
@@ -6775,17 +7227,17 @@ this.Scorm12API = (function () {
       _inherits$b(RollupRule, BaseCMI);
       function RollupRule() {
           var action = arguments.length > 0 && arguments[0] !== void 0 /* SATISFIED */  ? arguments[0] : "satisfied", consideration = arguments.length > 1 && arguments[1] !== void 0 /* ALL */  ? arguments[1] : "all", minimumCount = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0, minimumPercent = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : 0, conditionCombination = arguments.length > 4 && arguments[4] !== void 0 /* ANY */  ? arguments[4] : "any";
-          _class_call_check$g(this, RollupRule);
+          _class_call_check$f(this, RollupRule);
           var _this;
           _this = _call_super$b(this, RollupRule, [
               "rollupRule"
           ]);
-          __publicField$e(_this, "_conditions", []);
-          __publicField$e(_this, "_action", "satisfied" /* SATISFIED */ );
-          __publicField$e(_this, "_consideration", "all" /* ALL */ );
-          __publicField$e(_this, "_minimumCount", 0);
-          __publicField$e(_this, "_minimumPercent", 0);
-          __publicField$e(_this, "conditionCombination", "any" /* ANY */ );
+          __publicField$d(_this, "_conditions", []);
+          __publicField$d(_this, "_action", "satisfied" /* SATISFIED */ );
+          __publicField$d(_this, "_consideration", "all" /* ALL */ );
+          __publicField$d(_this, "_minimumCount", 0);
+          __publicField$d(_this, "_minimumPercent", 0);
+          __publicField$d(_this, "conditionCombination", "any" /* ANY */ );
           _this._action = action;
           _this._consideration = consideration;
           _this._minimumCount = minimumCount;
@@ -6793,7 +7245,7 @@ this.Scorm12API = (function () {
           _this.conditionCombination = conditionCombination;
           return _this;
       }
-      _create_class$g(RollupRule, [
+      _create_class$f(RollupRule, [
           {
               /**
      * Called when the API needs to be reset
@@ -6818,7 +7270,7 @@ this.Scorm12API = (function () {
      * @param {RollupCondition} condition - The condition to add
      */ key: "addCondition",
               value: function addCondition(condition) {
-                  if (!_instanceof$4(condition, RollupCondition)) {
+                  if (!_instanceof$3(condition, RollupCondition)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".conditions", scorm2004_errors.TYPE_MISMATCH);
                   }
                   this._conditions.push(condition);
@@ -6970,15 +7422,15 @@ this.Scorm12API = (function () {
   var RollupRules = /*#__PURE__*/ function(BaseCMI) {
       _inherits$b(RollupRules, BaseCMI);
       function RollupRules() {
-          _class_call_check$g(this, RollupRules);
+          _class_call_check$f(this, RollupRules);
           var _this;
           _this = _call_super$b(this, RollupRules, [
               "rollupRules"
           ]);
-          __publicField$e(_this, "_rules", []);
+          __publicField$d(_this, "_rules", []);
           return _this;
       }
-      _create_class$g(RollupRules, [
+      _create_class$f(RollupRules, [
           {
               /**
      * Called when the API needs to be reset
@@ -7003,7 +7455,7 @@ this.Scorm12API = (function () {
      * @param {RollupRule} rule - The rule to add
      */ key: "addRule",
               value: function addRule(rule) {
-                  if (!_instanceof$4(rule, RollupRule)) {
+                  if (!_instanceof$3(rule, RollupRule)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".rules", scorm2004_errors.TYPE_MISMATCH);
                   }
                   this._rules.push(rule);
@@ -7226,13 +7678,13 @@ this.Scorm12API = (function () {
       return RollupRules;
   }(BaseCMI);
 
-  function _array_like_to_array$4(arr, len) {
+  function _array_like_to_array$3(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$2(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$4(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$3(arr);
   }
   function _assert_this_initialized$a(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -7242,10 +7694,10 @@ this.Scorm12API = (function () {
       derived = _get_prototype_of$a(derived);
       return _possible_constructor_return$a(_this, _is_native_reflect_construct$a() ? Reflect.construct(derived, args || [], _get_prototype_of$a(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$f(instance, Constructor) {
+  function _class_call_check$e(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$f(target, props) {
+  function _defineProperties$e(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -7254,9 +7706,9 @@ this.Scorm12API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$f(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$f(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties$f(Constructor, staticProps);
+  function _create_class$e(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$e(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties$e(Constructor, staticProps);
       return Constructor;
   }
   function _define_property$3(obj, key, value) {
@@ -7302,7 +7754,7 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$a(subClass, superClass);
   }
-  function _instanceof$3(left, right) {
+  function _instanceof$2(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -7340,7 +7792,7 @@ this.Scorm12API = (function () {
       return target;
   }
   function _possible_constructor_return$a(self, call) {
-      if (call && (_type_of$d(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$c(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$a(self);
   }
   function _set_prototype_of$a(o, p) {
@@ -7358,67 +7810,67 @@ this.Scorm12API = (function () {
       return object;
   }
   function _to_consumable_array$2(arr) {
-      return _array_without_holes$2(arr) || _iterable_to_array$2(arr) || _unsupported_iterable_to_array$4(arr) || _non_iterable_spread$2();
+      return _array_without_holes$2(arr) || _iterable_to_array$2(arr) || _unsupported_iterable_to_array$3(arr) || _non_iterable_spread$2();
   }
-  function _type_of$d(obj) {
+  function _type_of$c(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$4(o, minLen) {
+  function _unsupported_iterable_to_array$3(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$4(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$3(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$4(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$3(o, minLen);
   }
-  var __defProp$d = Object.defineProperty;
-  var __defNormalProp$d = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$d(obj, key, {
+  var __defProp$c = Object.defineProperty;
+  var __defNormalProp$c = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$c(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$d = function __publicField(obj, key, value) {
-      return __defNormalProp$d(obj, (typeof key === "undefined" ? "undefined" : _type_of$d(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$c = function __publicField(obj, key, value) {
+      return __defNormalProp$c(obj, (typeof key === "undefined" ? "undefined" : _type_of$c(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityObjective = /*#__PURE__*/ function() {
       function ActivityObjective(id) {
           var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-          _class_call_check$f(this, ActivityObjective);
+          _class_call_check$e(this, ActivityObjective);
           var _options_description, _options_satisfiedByMeasure, _options_minNormalizedMeasure, _options_isPrimary;
-          __publicField$d(this, "_id");
-          __publicField$d(this, "_description");
-          __publicField$d(this, "_satisfiedByMeasure");
-          __publicField$d(this, "_minNormalizedMeasure");
-          __publicField$d(this, "_mapInfo");
-          __publicField$d(this, "_isPrimary");
-          __publicField$d(this, "_satisfiedStatus", false);
-          __publicField$d(this, "_satisfiedStatusKnown", false);
+          __publicField$c(this, "_id");
+          __publicField$c(this, "_description");
+          __publicField$c(this, "_satisfiedByMeasure");
+          __publicField$c(this, "_minNormalizedMeasure");
+          __publicField$c(this, "_mapInfo");
+          __publicField$c(this, "_isPrimary");
+          __publicField$c(this, "_satisfiedStatus", false);
+          __publicField$c(this, "_satisfiedStatusKnown", false);
           // Note: measureStatus has no dirty flag because it is not synchronized to global
           // objectives. It serves as a validity gate for other synced properties.
-          __publicField$d(this, "_measureStatus", false);
-          __publicField$d(this, "_normalizedMeasure", 0);
-          __publicField$d(this, "_rawScore", "");
-          __publicField$d(this, "_rawScoreKnown", false);
-          __publicField$d(this, "_minScore", "");
-          __publicField$d(this, "_minScoreKnown", false);
-          __publicField$d(this, "_maxScore", "");
-          __publicField$d(this, "_maxScoreKnown", false);
-          __publicField$d(this, "_progressMeasure", 0);
-          __publicField$d(this, "_progressMeasureStatus", false);
-          __publicField$d(this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$d(this, "_progressStatus", false);
+          __publicField$c(this, "_measureStatus", false);
+          __publicField$c(this, "_normalizedMeasure", 0);
+          __publicField$c(this, "_rawScore", "");
+          __publicField$c(this, "_rawScoreKnown", false);
+          __publicField$c(this, "_minScore", "");
+          __publicField$c(this, "_minScoreKnown", false);
+          __publicField$c(this, "_maxScore", "");
+          __publicField$c(this, "_maxScoreKnown", false);
+          __publicField$c(this, "_progressMeasure", 0);
+          __publicField$c(this, "_progressMeasureStatus", false);
+          __publicField$c(this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$c(this, "_progressStatus", false);
           // Dirty flags for tracking which properties have been modified locally
-          __publicField$d(this, "_satisfiedStatusDirty", false);
-          __publicField$d(this, "_normalizedMeasureDirty", false);
-          __publicField$d(this, "_completionStatusDirty", false);
-          __publicField$d(this, "_progressMeasureDirty", false);
-          __publicField$d(this, "_rawScoreDirty", false);
-          __publicField$d(this, "_minScoreDirty", false);
-          __publicField$d(this, "_maxScoreDirty", false);
+          __publicField$c(this, "_satisfiedStatusDirty", false);
+          __publicField$c(this, "_normalizedMeasureDirty", false);
+          __publicField$c(this, "_completionStatusDirty", false);
+          __publicField$c(this, "_progressMeasureDirty", false);
+          __publicField$c(this, "_rawScoreDirty", false);
+          __publicField$c(this, "_minScoreDirty", false);
+          __publicField$c(this, "_maxScoreDirty", false);
           this._id = id;
           this._description = (_options_description = options.description) !== null && _options_description !== void 0 ? _options_description : null;
           this._satisfiedByMeasure = (_options_satisfiedByMeasure = options.satisfiedByMeasure) !== null && _options_satisfiedByMeasure !== void 0 ? _options_satisfiedByMeasure : false;
@@ -7426,7 +7878,7 @@ this.Scorm12API = (function () {
           this._mapInfo = options.mapInfo ? _to_consumable_array$2(options.mapInfo) : [];
           this._isPrimary = (_options_isPrimary = options.isPrimary) !== null && _options_isPrimary !== void 0 ? _options_isPrimary : false;
       }
-      _create_class$f(ActivityObjective, [
+      _create_class$e(ActivityObjective, [
           {
               key: "id",
               get: function get() {
@@ -7949,94 +8401,94 @@ this.Scorm12API = (function () {
       _inherits$a(Activity, BaseCMI);
       function Activity() {
           var id = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : "", title = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "";
-          _class_call_check$f(this, Activity);
+          _class_call_check$e(this, Activity);
           var _this;
           _this = _call_super$a(this, Activity, [
               "activity"
           ]);
-          __publicField$d(_this, "_id", "");
-          __publicField$d(_this, "_title", "");
-          __publicField$d(_this, "_children", []);
-          __publicField$d(_this, "_parent", null);
-          __publicField$d(_this, "_isVisible", true);
-          __publicField$d(_this, "_isActive", false);
-          __publicField$d(_this, "_isSuspended", false);
+          __publicField$c(_this, "_id", "");
+          __publicField$c(_this, "_title", "");
+          __publicField$c(_this, "_children", []);
+          __publicField$c(_this, "_parent", null);
+          __publicField$c(_this, "_isVisible", true);
+          __publicField$c(_this, "_isActive", false);
+          __publicField$c(_this, "_isSuspended", false);
           // Transient delivery context. This is deliberately excluded from persisted activity state.
-          __publicField$d(_this, "_deliveryWasResumed", false);
-          __publicField$d(_this, "_isCompleted", false);
-          __publicField$d(_this, "_completionStatus", CompletionStatus.UNKNOWN);
-          __publicField$d(_this, "_successStatus", SuccessStatus.UNKNOWN);
-          __publicField$d(_this, "_attemptCount", 0);
-          __publicField$d(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
-          __publicField$d(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
-          __publicField$d(_this, "_attemptCompletionAmount", 0);
-          __publicField$d(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
-          __publicField$d(_this, "_attemptExperiencedDuration", "PT0H0M0S");
-          __publicField$d(_this, "_activityAbsoluteDuration", "PT0H0M0S");
-          __publicField$d(_this, "_activityExperiencedDuration", "PT0H0M0S");
+          __publicField$c(_this, "_deliveryWasResumed", false);
+          __publicField$c(_this, "_isCompleted", false);
+          __publicField$c(_this, "_completionStatus", CompletionStatus.UNKNOWN);
+          __publicField$c(_this, "_successStatus", SuccessStatus.UNKNOWN);
+          __publicField$c(_this, "_attemptCount", 0);
+          __publicField$c(_this, "_objectiveInfoAvailableInCurrentParentAttempt", true);
+          __publicField$c(_this, "_progressInfoAvailableInCurrentParentAttempt", true);
+          __publicField$c(_this, "_attemptCompletionAmount", 0);
+          __publicField$c(_this, "_attemptAbsoluteDuration", "PT0H0M0S");
+          __publicField$c(_this, "_attemptExperiencedDuration", "PT0H0M0S");
+          __publicField$c(_this, "_activityAbsoluteDuration", "PT0H0M0S");
+          __publicField$c(_this, "_activityExperiencedDuration", "PT0H0M0S");
           // Duration tracking fields (separate from limits) - actual calculated values
-          __publicField$d(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$d(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
-          __publicField$d(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
-          __publicField$d(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
+          __publicField$c(_this, "_attemptAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$c(_this, "_attemptExperiencedDurationValue", "PT0H0M0S");
+          __publicField$c(_this, "_activityAbsoluteDurationValue", "PT0H0M0S");
+          __publicField$c(_this, "_activityExperiencedDurationValue", "PT0H0M0S");
           // Timestamp tracking for duration calculation
-          __publicField$d(_this, "_activityStartTimestampUtc", null);
-          __publicField$d(_this, "_attemptStartTimestampUtc", null);
-          __publicField$d(_this, "_activityEndedDate", null);
-          __publicField$d(_this, "_objectiveSatisfiedStatus", false);
-          __publicField$d(_this, "_objectiveSatisfiedStatusKnown", false);
-          __publicField$d(_this, "_objectiveMeasureStatus", false);
-          __publicField$d(_this, "_objectiveNormalizedMeasure", 0);
-          __publicField$d(_this, "_scaledPassingScore", 1);
+          __publicField$c(_this, "_activityStartTimestampUtc", null);
+          __publicField$c(_this, "_attemptStartTimestampUtc", null);
+          __publicField$c(_this, "_activityEndedDate", null);
+          __publicField$c(_this, "_objectiveSatisfiedStatus", false);
+          __publicField$c(_this, "_objectiveSatisfiedStatusKnown", false);
+          __publicField$c(_this, "_objectiveMeasureStatus", false);
+          __publicField$c(_this, "_objectiveNormalizedMeasure", 0);
+          __publicField$c(_this, "_scaledPassingScore", 1);
           // SCORM default minimum normalized measure
           // Dirty flags for tracking which activity-level objective properties have been modified locally
-          __publicField$d(_this, "_objectiveSatisfiedStatusDirty", false);
-          __publicField$d(_this, "_objectiveNormalizedMeasureDirty", false);
-          __publicField$d(_this, "_objectiveMeasureStatusDirty", false);
-          __publicField$d(_this, "_progressMeasure", 0);
-          __publicField$d(_this, "_progressMeasureStatus", false);
-          __publicField$d(_this, "_location", "");
-          __publicField$d(_this, "_attemptAbsoluteStartTime", "");
-          __publicField$d(_this, "_learnerPrefs", null);
-          __publicField$d(_this, "_activityAttemptActive", false);
-          __publicField$d(_this, "_isHiddenFromChoice", false);
-          __publicField$d(_this, "_isAvailable", true);
-          __publicField$d(_this, "_hideLmsUi", []);
-          __publicField$d(_this, "_auxiliaryResources", []);
-          __publicField$d(_this, "_sharedDataMaps", []);
-          __publicField$d(_this, "_attemptLimit", null);
-          __publicField$d(_this, "_attemptAbsoluteDurationLimit", null);
-          __publicField$d(_this, "_activityAbsoluteDurationLimit", null);
-          __publicField$d(_this, "_timeLimitAction", null);
-          __publicField$d(_this, "_timeLimitDuration", null);
-          __publicField$d(_this, "_beginTimeLimit", null);
-          __publicField$d(_this, "_endTimeLimit", null);
-          __publicField$d(_this, "_launchData", "");
-          __publicField$d(_this, "_credit", "credit");
-          __publicField$d(_this, "_maxTimeAllowed", "");
-          __publicField$d(_this, "_completionThreshold", "");
-          __publicField$d(_this, "_sequencingControls");
-          __publicField$d(_this, "_sequencingRules");
-          __publicField$d(_this, "_rollupRules");
-          __publicField$d(_this, "_processedChildren", null);
-          __publicField$d(_this, "_isNewAttempt", false);
-          __publicField$d(_this, "_primaryObjective", null);
-          __publicField$d(_this, "_objectives", []);
-          __publicField$d(_this, "_rollupConsiderations", {
+          __publicField$c(_this, "_objectiveSatisfiedStatusDirty", false);
+          __publicField$c(_this, "_objectiveNormalizedMeasureDirty", false);
+          __publicField$c(_this, "_objectiveMeasureStatusDirty", false);
+          __publicField$c(_this, "_progressMeasure", 0);
+          __publicField$c(_this, "_progressMeasureStatus", false);
+          __publicField$c(_this, "_location", "");
+          __publicField$c(_this, "_attemptAbsoluteStartTime", "");
+          __publicField$c(_this, "_learnerPrefs", null);
+          __publicField$c(_this, "_activityAttemptActive", false);
+          __publicField$c(_this, "_isHiddenFromChoice", false);
+          __publicField$c(_this, "_isAvailable", true);
+          __publicField$c(_this, "_hideLmsUi", []);
+          __publicField$c(_this, "_auxiliaryResources", []);
+          __publicField$c(_this, "_sharedDataMaps", []);
+          __publicField$c(_this, "_attemptLimit", null);
+          __publicField$c(_this, "_attemptAbsoluteDurationLimit", null);
+          __publicField$c(_this, "_activityAbsoluteDurationLimit", null);
+          __publicField$c(_this, "_timeLimitAction", null);
+          __publicField$c(_this, "_timeLimitDuration", null);
+          __publicField$c(_this, "_beginTimeLimit", null);
+          __publicField$c(_this, "_endTimeLimit", null);
+          __publicField$c(_this, "_launchData", "");
+          __publicField$c(_this, "_credit", "credit");
+          __publicField$c(_this, "_maxTimeAllowed", "");
+          __publicField$c(_this, "_completionThreshold", "");
+          __publicField$c(_this, "_sequencingControls");
+          __publicField$c(_this, "_sequencingRules");
+          __publicField$c(_this, "_rollupRules");
+          __publicField$c(_this, "_processedChildren", null);
+          __publicField$c(_this, "_isNewAttempt", false);
+          __publicField$c(_this, "_primaryObjective", null);
+          __publicField$c(_this, "_objectives", []);
+          __publicField$c(_this, "_rollupConsiderations", {
               requiredForSatisfied: "always",
               requiredForNotSatisfied: "always",
               requiredForCompleted: "always",
               requiredForIncomplete: "always",
               measureSatisfactionIfActive: true
           });
-          __publicField$d(_this, "_wasSkipped", false);
-          __publicField$d(_this, "_attemptProgressStatus", false);
-          __publicField$d(_this, "_wasAutoCompleted", false);
-          __publicField$d(_this, "_wasAutoSatisfied", false);
-          __publicField$d(_this, "_completedByMeasure", false);
-          __publicField$d(_this, "_minProgressMeasure", 1);
-          __publicField$d(_this, "_progressWeight", 1);
-          __publicField$d(_this, "_attemptCompletionAmountStatus", false);
+          __publicField$c(_this, "_wasSkipped", false);
+          __publicField$c(_this, "_attemptProgressStatus", false);
+          __publicField$c(_this, "_wasAutoCompleted", false);
+          __publicField$c(_this, "_wasAutoSatisfied", false);
+          __publicField$c(_this, "_completedByMeasure", false);
+          __publicField$c(_this, "_minProgressMeasure", 1);
+          __publicField$c(_this, "_progressWeight", 1);
+          __publicField$c(_this, "_attemptCompletionAmountStatus", false);
           _this._id = id;
           _this._title = title;
           _this._sequencingControls = new SequencingControls();
@@ -8046,7 +8498,7 @@ this.Scorm12API = (function () {
           _this._objectives = [];
           return _this;
       }
-      _create_class$f(Activity, [
+      _create_class$e(Activity, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
@@ -8216,7 +8668,7 @@ this.Scorm12API = (function () {
      * @param {Activity} child - The child activity to add
      */ key: "addChild",
               value: function addChild(child) {
-                  if (!_instanceof$3(child, Activity)) {
+                  if (!_instanceof$2(child, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".children", scorm2004_errors.TYPE_MISMATCH);
                   }
                   child._parent = this;
@@ -10170,10 +10622,12 @@ this.Scorm12API = (function () {
                   return {
                       measureStatus: this._objectiveMeasureStatus,
                       normalizedMeasure: this._objectiveNormalizedMeasure,
-                      objectiveProgressStatus: this._objectiveSatisfiedStatus !== null && this._objectiveSatisfiedStatus !== void 0,
+                      objectiveProgressStatus: this._objectiveSatisfiedStatusKnown,
                       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
                       attemptProgressStatus: this._completionStatus !== CompletionStatus.UNKNOWN,
-                      attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED
+                      attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED,
+                      attemptCompletionAmount: this._attemptCompletionAmount,
+                      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus
                   };
               }
           },
@@ -10229,25 +10683,25 @@ this.Scorm12API = (function () {
      * @return {boolean} - True if statuses are equal (no change), false if different
      */ function compareRollupStatus(prior, current) {
                   var EPSILON = 1e-4;
-                  return prior.measureStatus === current.measureStatus && Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON && prior.objectiveProgressStatus === current.objectiveProgressStatus && prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus && prior.attemptProgressStatus === current.attemptProgressStatus && prior.attemptCompletionStatus === current.attemptCompletionStatus;
+                  return prior.measureStatus === current.measureStatus && Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON && prior.objectiveProgressStatus === current.objectiveProgressStatus && prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus && prior.attemptProgressStatus === current.attemptProgressStatus && prior.attemptCompletionStatus === current.attemptCompletionStatus && prior.attemptCompletionAmount === current.attemptCompletionAmount && prior.attemptCompletionAmountStatus === current.attemptCompletionAmountStatus;
               }
           }
       ]);
       return Activity;
   }(BaseCMI);
 
-  function _array_like_to_array$3(arr, len) {
+  function _array_like_to_array$2(arr, len) {
       if (len == null || len > arr.length) len = arr.length;
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
   function _array_without_holes$1(arr) {
-      if (Array.isArray(arr)) return _array_like_to_array$3(arr);
+      if (Array.isArray(arr)) return _array_like_to_array$2(arr);
   }
-  function _class_call_check$e(instance, Constructor) {
+  function _class_call_check$d(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$e(target, props) {
+  function _defineProperties$d(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -10256,8 +10710,8 @@ this.Scorm12API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$e(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$e(Constructor.prototype, protoProps);
+  function _create_class$d(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$d(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _define_property$2(obj, key, value) {
@@ -10295,38 +10749,38 @@ this.Scorm12API = (function () {
       return target;
   }
   function _to_consumable_array$1(arr) {
-      return _array_without_holes$1(arr) || _iterable_to_array$1(arr) || _unsupported_iterable_to_array$3(arr) || _non_iterable_spread$1();
+      return _array_without_holes$1(arr) || _iterable_to_array$1(arr) || _unsupported_iterable_to_array$2(arr) || _non_iterable_spread$1();
   }
-  function _type_of$c(obj) {
+  function _type_of$b(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  function _unsupported_iterable_to_array$3(o, minLen) {
+  function _unsupported_iterable_to_array$2(o, minLen) {
       if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$3(o, minLen);
+      if (typeof o === "string") return _array_like_to_array$2(o, minLen);
       var n = Object.prototype.toString.call(o).slice(8, -1);
       if (n === "Object" && o.constructor) n = o.constructor.name;
       if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$3(o, minLen);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$2(o, minLen);
   }
-  var __defProp$c = Object.defineProperty;
-  var __defNormalProp$c = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$c(obj, key, {
+  var __defProp$b = Object.defineProperty;
+  var __defNormalProp$b = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$b(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$c = function __publicField(obj, key, value) {
-      return __defNormalProp$c(obj, (typeof key === "undefined" ? "undefined" : _type_of$c(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$b = function __publicField(obj, key, value) {
+      return __defNormalProp$b(obj, (typeof key === "undefined" ? "undefined" : _type_of$b(key)) !== "symbol" ? key + "" : key, value);
   };
   var DeliveryRequest = function DeliveryRequest() {
       var valid = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false, targetActivity = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, exception = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
-      _class_call_check$e(this, DeliveryRequest);
-      __publicField$c(this, "valid");
-      __publicField$c(this, "targetActivity");
-      __publicField$c(this, "exception");
+      _class_call_check$d(this, DeliveryRequest);
+      __publicField$b(this, "valid");
+      __publicField$b(this, "targetActivity");
+      __publicField$b(this, "exception");
       this.valid = valid;
       this.targetActivity = targetActivity;
       this.exception = exception;
@@ -10334,22 +10788,22 @@ this.Scorm12API = (function () {
   var _DeliveryHandler = /*#__PURE__*/ function() {
       function _DeliveryHandler(activityTree, rollupProcess, globalObjectiveMap) {
           var adlNav = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null, eventCallback = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : null, options = arguments.length > 5 ? arguments[5] : void 0;
-          _class_call_check$e(this, _DeliveryHandler);
-          __publicField$c(this, "activityTree");
-          __publicField$c(this, "rollupProcess");
-          __publicField$c(this, "globalObjectiveMap");
-          __publicField$c(this, "adlNav");
-          __publicField$c(this, "eventCallback");
-          __publicField$c(this, "now");
-          __publicField$c(this, "defaultHideLmsUi");
-          __publicField$c(this, "defaultAuxiliaryResources");
-          __publicField$c(this, "_deliveryInProgress", false);
-          __publicField$c(this, "contentDelivered", false);
-          __publicField$c(this, "endAttemptCallback", null);
-          __publicField$c(this, "checkActivityCallback", null);
-          __publicField$c(this, "invalidateCacheCallback", null);
-          __publicField$c(this, "updateNavigationValidityCallback", null);
-          __publicField$c(this, "clearSuspendedActivityCallback", null);
+          _class_call_check$d(this, _DeliveryHandler);
+          __publicField$b(this, "activityTree");
+          __publicField$b(this, "rollupProcess");
+          __publicField$b(this, "globalObjectiveMap");
+          __publicField$b(this, "adlNav");
+          __publicField$b(this, "eventCallback");
+          __publicField$b(this, "now");
+          __publicField$b(this, "defaultHideLmsUi");
+          __publicField$b(this, "defaultAuxiliaryResources");
+          __publicField$b(this, "_deliveryInProgress", false);
+          __publicField$b(this, "contentDelivered", false);
+          __publicField$b(this, "endAttemptCallback", null);
+          __publicField$b(this, "checkActivityCallback", null);
+          __publicField$b(this, "invalidateCacheCallback", null);
+          __publicField$b(this, "updateNavigationValidityCallback", null);
+          __publicField$b(this, "clearSuspendedActivityCallback", null);
           this.activityTree = activityTree;
           this.rollupProcess = rollupProcess;
           this.globalObjectiveMap = globalObjectiveMap;
@@ -10363,7 +10817,7 @@ this.Scorm12API = (function () {
               return _object_spread$2({}, resource);
           }) : [];
       }
-      _create_class$e(_DeliveryHandler, [
+      _create_class$d(_DeliveryHandler, [
           {
               /** @spec SCORM 2004 SN 4th Ed. DB.2 / UP.4 - commit departed attempts through the coordinator. */ key: "setEndAttemptCallback",
               value: function setEndAttemptCallback(callback) {
@@ -10916,7 +11370,7 @@ this.Scorm12API = (function () {
       ]);
       return _DeliveryHandler;
   }();
-  __publicField$c(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$1(HIDE_LMS_UI_TOKENS));
+  __publicField$b(_DeliveryHandler, "HIDE_LMS_UI_ORDER", _to_consumable_array$1(HIDE_LMS_UI_TOKENS));
 
   function _assert_this_initialized$9(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -10926,10 +11380,10 @@ this.Scorm12API = (function () {
       derived = _get_prototype_of$9(derived);
       return _possible_constructor_return$9(_this, _is_native_reflect_construct$9() ? Reflect.construct(derived, args || [], _get_prototype_of$9(_this).constructor) : derived.apply(_this, args));
   }
-  function _class_call_check$d(instance, Constructor) {
+  function _class_call_check$c(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$d(target, props) {
+  function _defineProperties$c(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -10938,8 +11392,8 @@ this.Scorm12API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$d(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$d(Constructor.prototype, protoProps);
+  function _create_class$c(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$c(Constructor.prototype, protoProps);
       return Constructor;
   }
   function _get$3(target, property, receiver) {
@@ -10974,7 +11428,7 @@ this.Scorm12API = (function () {
       });
       if (superClass) _set_prototype_of$9(subClass, superClass);
   }
-  function _instanceof$2(left, right) {
+  function _instanceof$1(left, right) {
       "@swc/helpers - instanceof";
       if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
           return !!right[Symbol.hasInstance](left);
@@ -10989,7 +11443,7 @@ this.Scorm12API = (function () {
       })();
   }
   function _possible_constructor_return$9(self, call) {
-      if (call && (_type_of$b(call) === "object" || typeof call === "function")) return call;
+      if (call && (_type_of$a(call) === "object" || typeof call === "function")) return call;
       return _assert_this_initialized$9(self);
   }
   function _set_prototype_of$9(o, p) {
@@ -11006,40 +11460,40 @@ this.Scorm12API = (function () {
       }
       return object;
   }
-  function _type_of$b(obj) {
+  function _type_of$a(obj) {
       "@swc/helpers - typeof";
       return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
   }
-  var __defProp$b = Object.defineProperty;
-  var __defNormalProp$b = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$b(obj, key, {
+  var __defProp$a = Object.defineProperty;
+  var __defNormalProp$a = function __defNormalProp(obj, key, value) {
+      return key in obj ? __defProp$a(obj, key, {
           enumerable: true,
           configurable: true,
           writable: true,
           value: value
       }) : obj[key] = value;
   };
-  var __publicField$b = function __publicField(obj, key, value) {
-      return __defNormalProp$b(obj, (typeof key === "undefined" ? "undefined" : _type_of$b(key)) !== "symbol" ? key + "" : key, value);
+  var __publicField$a = function __publicField(obj, key, value) {
+      return __defNormalProp$a(obj, (typeof key === "undefined" ? "undefined" : _type_of$a(key)) !== "symbol" ? key + "" : key, value);
   };
   var ActivityTree = /*#__PURE__*/ function(BaseCMI) {
       _inherits$9(ActivityTree, BaseCMI);
       function ActivityTree(root) {
-          _class_call_check$d(this, ActivityTree);
+          _class_call_check$c(this, ActivityTree);
           var _this;
           _this = _call_super$9(this, ActivityTree, [
               "activityTree"
           ]);
-          __publicField$b(_this, "_root", null);
-          __publicField$b(_this, "_currentActivity", null);
-          __publicField$b(_this, "_suspendedActivity", null);
-          __publicField$b(_this, "_activities", /* @__PURE__ */ new Map());
+          __publicField$a(_this, "_root", null);
+          __publicField$a(_this, "_currentActivity", null);
+          __publicField$a(_this, "_suspendedActivity", null);
+          __publicField$a(_this, "_activities", /* @__PURE__ */ new Map());
           if (root) {
               _this.root = root;
           }
           return _this;
       }
-      _create_class$d(ActivityTree, [
+      _create_class$c(ActivityTree, [
           {
               /**
      * Called when the API has been initialized after the CMI has been created
@@ -11079,7 +11533,7 @@ this.Scorm12API = (function () {
      * Setter for root
      * @param {Activity} root
      */ function set(root) {
-                  if (root !== null && !_instanceof$2(root, Activity)) {
+                  if (root !== null && !_instanceof$1(root, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".root", scorm2004_errors.TYPE_MISMATCH);
                   }
                   this._activities.clear();
@@ -11132,7 +11586,7 @@ this.Scorm12API = (function () {
      * Setter for currentActivity
      * @param {Activity | null} activity
      */ function set(activity) {
-                  if (activity !== null && !_instanceof$2(activity, Activity)) {
+                  if (activity !== null && !_instanceof$1(activity, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
                   }
                   if (this._currentActivity) {
@@ -11164,7 +11618,7 @@ this.Scorm12API = (function () {
      * @param {Activity | null} activity - The activity to set as current
      */ key: "setCurrentActivityWithoutActivation",
               value: function setCurrentActivityWithoutActivation(activity) {
-                  if (activity !== null && !_instanceof$2(activity, Activity)) {
+                  if (activity !== null && !_instanceof$1(activity, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors.TYPE_MISMATCH);
                   }
                   if (this._currentActivity) {
@@ -11201,7 +11655,7 @@ this.Scorm12API = (function () {
      * Setter for suspendedActivity
      * @param {Activity | null} activity
      */ function set(activity) {
-                  if (activity !== null && !_instanceof$2(activity, Activity)) {
+                  if (activity !== null && !_instanceof$1(activity, Activity)) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".suspendedActivity", scorm2004_errors.TYPE_MISMATCH);
                   }
                   if (this._suspendedActivity) {
@@ -11421,10 +11875,10 @@ this.Scorm12API = (function () {
       RollupRules.prototype
   ]);
 
-  function _class_call_check$c(instance, Constructor) {
+  function _class_call_check$b(instance, Constructor) {
       if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
   }
-  function _defineProperties$c(target, props) {
+  function _defineProperties$b(target, props) {
       for(var i = 0; i < props.length; i++){
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
@@ -11433,15 +11887,15 @@ this.Scorm12API = (function () {
           Object.defineProperty(target, descriptor.key, descriptor);
       }
   }
-  function _create_class$c(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$c(Constructor.prototype, protoProps);
+  function _create_class$b(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties$b(Constructor.prototype, protoProps);
       return Constructor;
   }
   var SerializationService = /*#__PURE__*/ function() {
       function SerializationService() {
-          _class_call_check$c(this, SerializationService);
+          _class_call_check$b(this, SerializationService);
       }
-      _create_class$c(SerializationService, [
+      _create_class$b(SerializationService, [
           {
               /**
      * Loads CMI data from a flattened JSON object with special handling for arrays and ordering.
@@ -11709,229 +12163,6 @@ this.Scorm12API = (function () {
       return SerializationService;
   }();
 
-  function _array_like_to_array$2(arr, len) {
-      if (len == null || len > arr.length) len = arr.length;
-      for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
-      return arr2;
-  }
-  function _array_with_holes$1(arr) {
-      if (Array.isArray(arr)) return arr;
-  }
-  function _class_call_check$b(instance, Constructor) {
-      if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-  }
-  function _defineProperties$b(target, props) {
-      for(var i = 0; i < props.length; i++){
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-      }
-  }
-  function _create_class$b(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties$b(Constructor.prototype, protoProps);
-      return Constructor;
-  }
-  function _instanceof$1(left, right) {
-      "@swc/helpers - instanceof";
-      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
-          return !!right[Symbol.hasInstance](left);
-      } else return left instanceof right;
-  }
-  function _iterable_to_array_limit$1(arr, i) {
-      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
-      if (_i == null) return;
-      var _arr = [];
-      var _n = true;
-      var _d = false;
-      var _s, _e;
-      try {
-          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
-              _arr.push(_s.value);
-              if (i && _arr.length === i) break;
-          }
-      } catch (err) {
-          _d = true;
-          _e = err;
-      } finally{
-          try {
-              if (!_n && _i["return"] != null) _i["return"]();
-          } finally{
-              if (_d) throw _e;
-          }
-      }
-      return _arr;
-  }
-  function _non_iterable_rest$1() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-  function _sliced_to_array$1(arr, i) {
-      return _array_with_holes$1(arr) || _iterable_to_array_limit$1(arr, i) || _unsupported_iterable_to_array$2(arr, i) || _non_iterable_rest$1();
-  }
-  function _type_of$a(obj) {
-      "@swc/helpers - typeof";
-      return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  }
-  function _unsupported_iterable_to_array$2(o, minLen) {
-      if (!o) return;
-      if (typeof o === "string") return _array_like_to_array$2(o, minLen);
-      var n = Object.prototype.toString.call(o).slice(8, -1);
-      if (n === "Object" && o.constructor) n = o.constructor.name;
-      if (n === "Map" || n === "Set") return Array.from(n);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _array_like_to_array$2(o, minLen);
-  }
-  var __defProp$a = Object.defineProperty;
-  var __defNormalProp$a = function __defNormalProp(obj, key, value) {
-      return key in obj ? __defProp$a(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value: value
-      }) : obj[key] = value;
-  };
-  var __publicField$a = function __publicField(obj, key, value) {
-      return __defNormalProp$a(obj, (typeof key === "undefined" ? "undefined" : _type_of$a(key)) !== "symbol" ? key + "" : key, value);
-  };
-  var SynchronousHttpService = /*#__PURE__*/ function() {
-      function SynchronousHttpService(settings, error_codes) {
-          _class_call_check$b(this, SynchronousHttpService);
-          __publicField$a(this, "settings");
-          __publicField$a(this, "error_codes");
-          this.settings = settings;
-          this.error_codes = error_codes;
-      }
-      _create_class$b(SynchronousHttpService, [
-          {
-              /**
-     * Sends synchronous HTTP requests to the LMS
-     * @param {string} url - The URL endpoint to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-     * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
-     * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
-     * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
-     * @param {CommitMetadata} metadata - Metadata describing the captured commit
-     * @param {Function} _onRequestComplete - Completion callback (unused because requests settle before return)
-     * @return {ResultObject} - The result of the request (synchronous)
-     *
-     * @remarks
-     * The apiLog and processListeners parameters are part of the IHttpService interface contract
-     * but are not used by SynchronousHttpService because:
-     * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
-     * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
-     * - AsynchronousHttpService uses these parameters to handle background request results
-     */ key: "processHttpRequest",
-              value: function processHttpRequest(url, params) {
-                  var immediate = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, metadata = arguments.length > 5 ? arguments[5] : void 0;
-                  if (immediate) {
-                      return this._handleImmediateRequest(url, params, metadata);
-                  }
-                  return this._performSyncXHR(url, params, metadata);
-              }
-          },
-          {
-              /**
-     * Handles an immediate request using sendBeacon, or a synchronous XHR when sendBeacon is missing
-     * @param {string} url - The URL to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-     * @param {CommitMetadata} metadata - Metadata describing the captured commit
-     * @return {ResultObject} - The result based on beacon success
-     * @private
-     */ key: "_handleImmediateRequest",
-              value: function _handleImmediateRequest(url, params, metadata) {
-                  if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
-                      return this._performSyncXHR(url, params, metadata);
-                  }
-                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
-                  var body = this._prepareRequestBody(requestPayload).body;
-                  var beaconContentType = this.settings.terminationCommitContentType;
-                  this._warnIfBeaconContentTypeUnsafe(url, beaconContentType);
-                  var beaconSuccess = navigator.sendBeacon(url, new Blob([
-                      body
-                  ], {
-                      type: beaconContentType
-                  }));
-                  return {
-                      result: beaconSuccess ? "true" : "false",
-                      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
-                  };
-              }
-          },
-          {
-              key: "_warnIfBeaconContentTypeUnsafe",
-              value: function _warnIfBeaconContentTypeUnsafe(url, contentType) {
-                  if (isCrossOriginUrl(url) && !isCorsSafelistedContentType(contentType)) {
-                      var _this_settings_onLogMessage, _this_settings;
-                      (_this_settings_onLogMessage = (_this_settings = this.settings).onLogMessage) === null || _this_settings_onLogMessage === void 0 ? void 0 : _this_settings_onLogMessage.call(_this_settings, LogLevelEnum.WARN, 'sendBeacon to cross-origin URL with non-CORS-safelisted Content-Type "'.concat(contentType, '" may be silently dropped by the browser (Beacon cannot preflight). Use fetch (useAsynchronousCommits + asyncModeBeaconBehavior:"never") for cross-origin JSON/auth on terminate.'));
-                  }
-              }
-          },
-          {
-              /**
-     * Performs a synchronous XMLHttpRequest
-     * @param {string} url - The URL to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-     * @param {CommitMetadata} metadata - Metadata describing the captured commit
-     * @return {ResultObject} - The result of the request
-     * @private
-     */ key: "_performSyncXHR",
-              value: function _performSyncXHR(url, params, metadata) {
-                  var handledPayload = metadata === void 0 ? this.settings.requestHandler(params) : this.settings.requestHandler(params, metadata);
-                  var requestPayload = handledPayload !== null && handledPayload !== void 0 ? handledPayload : params;
-                  var _this__prepareRequestBody = this._prepareRequestBody(requestPayload), body = _this__prepareRequestBody.body, contentType = _this__prepareRequestBody.contentType;
-                  var xhr = new XMLHttpRequest();
-                  xhr.open("POST", url, false);
-                  xhr.setRequestHeader("Content-Type", contentType);
-                  Object.entries(this.settings.xhrHeaders).forEach(function(param) {
-                      var _param = _sliced_to_array$1(param, 2), key = _param[0], value = _param[1];
-                      xhr.setRequestHeader(key, String(value));
-                  });
-                  if (this.settings.xhrWithCredentials) {
-                      xhr.withCredentials = true;
-                  }
-                  try {
-                      xhr.send(body);
-                      return this.settings.xhrResponseHandler(xhr);
-                  } catch (e) {
-                      var message = _instanceof$1(e, Error) ? e.message : String(e);
-                      return {
-                          result: global_constants.SCORM_FALSE,
-                          errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
-                          errorMessage: message
-                      };
-                  }
-              }
-          },
-          {
-              /**
-     * Prepares the request body and content type based on params type
-     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-     * @return {Object} - Object containing body and contentType
-     * @private
-     */ key: "_prepareRequestBody",
-              value: function _prepareRequestBody(params) {
-                  var body = _instanceof$1(params, Array) ? params.join("&") : JSON.stringify(params);
-                  var contentType = _instanceof$1(params, Array) ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
-                  return {
-                      body: body,
-                      contentType: contentType
-                  };
-              }
-          },
-          {
-              /**
-     * Updates the service settings
-     * @param {InternalSettings} settings - The new settings
-     */ key: "updateSettings",
-              value: function updateSettings(settings) {
-                  this.settings = settings;
-              }
-          }
-      ]);
-      return SynchronousHttpService;
-  }();
-
   function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
       return checkValidFormat(CMIElement, value, regexPattern, scorm12_errors.TYPE_MISMATCH, Scorm12ValidationError, allowEmptyString);
   }
@@ -12068,6 +12299,9 @@ this.Scorm12API = (function () {
       for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
       return arr2;
   }
+  function _array_with_holes$1(arr) {
+      if (Array.isArray(arr)) return arr;
+  }
   function _array_without_holes(arr) {
       if (Array.isArray(arr)) return _array_like_to_array$1(arr);
   }
@@ -12109,6 +12343,33 @@ this.Scorm12API = (function () {
           return Array.from(iter);
       }
   }
+  function _iterable_to_array_limit$1(arr, i) {
+      var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+      if (_i == null) return;
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _s, _e;
+      try {
+          for(_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true){
+              _arr.push(_s.value);
+              if (i && _arr.length === i) break;
+          }
+      } catch (err) {
+          _d = true;
+          _e = err;
+      } finally{
+          try {
+              if (!_n && _i["return"] != null) _i["return"]();
+          } finally{
+              if (_d) throw _e;
+          }
+      }
+      return _arr;
+  }
+  function _non_iterable_rest$1() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
   function _non_iterable_spread() {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
@@ -12144,6 +12405,9 @@ this.Scorm12API = (function () {
           });
       }
       return target;
+  }
+  function _sliced_to_array$1(arr, i) {
+      return _array_with_holes$1(arr) || _iterable_to_array_limit$1(arr, i) || _unsupported_iterable_to_array$1(arr, i) || _non_iterable_rest$1();
   }
   function _to_consumable_array(arr) {
       return _array_without_holes(arr) || _iterable_to_array(arr) || _unsupported_iterable_to_array$1(arr) || _non_iterable_spread();
@@ -12252,6 +12516,10 @@ this.Scorm12API = (function () {
           if (this.settings.enableOfflineSupport) {
               this._offlineStorageService = offlineStorageService || new OfflineStorageService(this.settings, this._error_codes, function(functionName, message, level, element) {
                   return _this.apiLog(functionName, message, level, element);
+              }, this._httpService, function() {
+                  return _this.getOfflineLearnerId();
+              }, function(event) {
+                  return _this.processListeners(event);
               });
               if (this.settings.courseId) {
                   this._courseId = this.settings.courseId;
@@ -12266,27 +12534,10 @@ this.Scorm12API = (function () {
                                   _this.apiLog("BeforeTerminate", "Syncing pending offline data before termination", LogLevelEnum.INFO);
                                   return (_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData();
                               }
-                          }).then(function(syncSuccess) {
-                              if (syncSuccess) {
-                                  _this.processListeners("OfflineDataSynced");
-                              } else if (syncSuccess === false) {
-                                  _this.processListeners("OfflineDataSyncFailed");
-                              }
                           }).catch(function(error) {
                               _this.apiLog("BeforeTerminate", "Error syncing offline data: ".concat(error), LogLevelEnum.ERROR);
-                              _this.processListeners("OfflineDataSyncFailed");
                           });
                       }
-                  });
-              }
-              if (this._offlineStorageService && this._courseId) {
-                  this._offlineStorageService.getOfflineData(this._courseId).then(function(offlineData) {
-                      if (offlineData) {
-                          _this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
-                          _this.loadFromJSON(offlineData.runtimeData);
-                      }
-                  }).catch(function(error) {
-                      _this.apiLog("constructor", "Error retrieving offline data: ".concat(error), LogLevelEnum.ERROR);
                   });
               }
           }
@@ -12390,6 +12641,78 @@ this.Scorm12API = (function () {
               }
           },
           {
+              key: "getOfflineLearnerId",
+              value: function getOfflineLearnerId() {
+                  return this.getCMIValue("core" in this.cmi ? "cmi.core.student_id" : "cmi.learner_id") || "";
+              }
+          },
+          {
+              key: "restoreOfflineData",
+              value: function restoreOfflineData() {
+                  var _this = this;
+                  if (!this.settings.enableOfflineSupport || !this._courseId || !this.isNotInitialized()) {
+                      return;
+                  }
+                  try {
+                      var _ref;
+                      var _this__offlineStorageService_getPendingOfflineData, _this__offlineStorageService;
+                      var pending = (_ref = (_this__offlineStorageService = this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : (_this__offlineStorageService_getPendingOfflineData = _this__offlineStorageService.getPendingOfflineData) === null || _this__offlineStorageService_getPendingOfflineData === void 0 ? void 0 : _this__offlineStorageService_getPendingOfflineData.call(_this__offlineStorageService, this._courseId, this.getOfflineLearnerId())) !== null && _ref !== void 0 ? _ref : [];
+                      if (pending.length) this.cmi.initialize();
+                      var restoreValue = function restoreValue(element, value) {
+                          if (!/^cmi\.(core\.)?(session_time|exit)$/.test(element) && !/^cmi\.comments_from_lms(\.|$)/.test(element)) {
+                              try {
+                                  _this.setCMIValue(element, value);
+                              } catch (unused) {}
+                          }
+                      };
+                      var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                      try {
+                          for(var _iterator = pending[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                              var data = _step.value;
+                              try {
+                                  var _data_runtimeData;
+                                  var runtimeData = Array.isArray(data) ? data : (_data_runtimeData = data.runtimeData) !== null && _data_runtimeData !== void 0 ? _data_runtimeData : data;
+                                  if (Array.isArray(runtimeData)) {
+                                      this.apiLog("Initialize", "Skipping restore of params payload", LogLevelEnum.WARN);
+                                  } else if (runtimeData.cmi) {
+                                      this._serializationService.loadFromFlattenedJSON(flatten({
+                                          cmi: runtimeData.cmi
+                                      }), "", restoreValue, function() {
+                                          return true;
+                                      }, function() {});
+                                  } else {
+                                      var cmiData = Object.fromEntries(Object.entries(runtimeData).filter(function(param) {
+                                          var _param = _sliced_to_array$1(param, 1), key = _param[0];
+                                          return key.startsWith("cmi.");
+                                      }));
+                                      this._serializationService.loadFromFlattenedJSON(cmiData, "", restoreValue, function() {
+                                          return true;
+                                      }, function() {});
+                                  }
+                              } catch (error) {
+                                  this.apiLog("Initialize", "Error restoring offline data: ".concat(error), LogLevelEnum.ERROR);
+                              }
+                          }
+                      } catch (err) {
+                          _didIteratorError = true;
+                          _iteratorError = err;
+                      } finally{
+                          try {
+                              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                  _iterator.return();
+                              }
+                          } finally{
+                              if (_didIteratorError) {
+                                  throw _iteratorError;
+                              }
+                          }
+                      }
+                  } catch (error) {
+                      this.apiLog("Initialize", "Error restoring offline data: ".concat(error), LogLevelEnum.ERROR);
+                  }
+              }
+          },
+          {
               /**
      * Initialize the API
      * @param {string} callbackName
@@ -12420,7 +12743,6 @@ this.Scorm12API = (function () {
                                   void ((_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
                                       if (syncSuccess) {
                                           _this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                                          _this.processListeners("OfflineDataSynced");
                                       }
                                   }));
                               }
@@ -12721,7 +13043,6 @@ this.Scorm12API = (function () {
                                   void ((_this__offlineStorageService = _this._offlineStorageService) === null || _this__offlineStorageService === void 0 ? void 0 : _this__offlineStorageService.syncOfflineData().then(function(syncSuccess) {
                                       if (syncSuccess) {
                                           _this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
-                                          _this.processListeners("OfflineDataSynced");
                                       } else {
                                           _this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
                                       }
@@ -13295,19 +13616,11 @@ this.Scorm12API = (function () {
                       };
                       if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
                           this.apiLog("processHttpRequest", "Device is offline, storing data locally", LogLevelEnum.INFO);
-                          if (finalParams && (typeof finalParams === "undefined" ? "undefined" : _type_of$9(finalParams)) === "object" && "cmi" in finalParams) {
-                              return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
-                                  isTerminateCommit: immediate,
-                                  sequence: sequence
-                              });
-                          } else {
-                              var _this__error_codes_GENERAL;
-                              this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
-                              return {
-                                  result: global_constants.SCORM_FALSE,
-                                  errorCode: (_this__error_codes_GENERAL = this._error_codes.GENERAL) !== null && _this__error_codes_GENERAL !== void 0 ? _this__error_codes_GENERAL : 101
-                              };
-                          }
+                          return this._offlineStorageService.storeOffline(this._courseId, finalParams, {
+                              learnerId: this.getOfflineLearnerId(),
+                              isTerminateCommit: immediate,
+                              sequence: sequence
+                          });
                       }
                       var apiLog = function apiLog(functionName, message, level, element) {
                           return _this.apiLog(functionName, message, level, element);
@@ -16081,6 +16394,7 @@ this.Scorm12API = (function () {
                       this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
                       return global_constants.SCORM_FALSE;
                   }
+                  this.restoreOfflineData();
                   this.cmi.initialize();
                   if (this.cmi.core.lesson_status) {
                       this.statusSetByModule = true;

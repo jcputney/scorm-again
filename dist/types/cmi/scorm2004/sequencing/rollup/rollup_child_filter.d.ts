@@ -1,10 +1,10 @@
-import { Activity, RollupConsiderationsConfig } from "../activity.js";
+import { Activity } from "../activity.js";
 export type RollupType = "objective" | "progress";
 export type RollupAction = "satisfied" | "notSatisfied" | "completed" | "incomplete";
 export declare class RollupChildFilter {
     checkChildForRollupSubprocess(child: Activity, rollupType: RollupType, rollupAction?: RollupAction): boolean;
-    filterChildrenForRequirement(children: Activity[], rollupType: "objective" | "progress", mode: RollupAction, considerations: RollupConsiderationsConfig): Activity[];
-    shouldIncludeChildForRollup(child: Activity, rollupType: "objective" | "progress", mode: RollupAction, considerations: RollupConsiderationsConfig): boolean;
+    filterChildrenForRequirement(children: Activity[], rollupType: "objective" | "progress", mode: RollupAction): Activity[];
+    shouldIncludeChildForRollup(child: Activity, rollupType: "objective" | "progress", mode: RollupAction): boolean;
     isChildSatisfiedForRollup(child: Activity): boolean;
     isChildObjectiveStatusKnownForRollup(child: Activity): boolean;
     isChildCompletedForRollup(child: Activity): boolean;
