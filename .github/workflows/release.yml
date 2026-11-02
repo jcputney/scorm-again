@@ -364,7 +364,7 @@ jobs:
 
       # Commit version bump to master
       - name: Commit version bump
-        uses: stefanzweifel/git-auto-commit-action@v7.2.0
+        uses: stefanzweifel/git-auto-commit-action@v7.2.1
         with:
           commit_message: "[skip ci] Bump version to ${{ steps.next_version.outputs.next_version }}"
           file_pattern: "package.json package-lock.json"
