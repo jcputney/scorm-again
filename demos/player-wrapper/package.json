@@ -10,9 +10,9 @@
     "start:2004-sequenced": "npx serve scorm2004-sequenced -p 3003"
   },
   "dependencies": {
-    "scorm-again": "^2.0.0"
+    "scorm-again": "^3.5.0"
   },
   "devDependencies": {
-    "serve": "^14.2.0"
+    "serve": "^14.2.8"
   }
 }
