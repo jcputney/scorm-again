@@ -66,39 +66,24 @@ export default defineConfig({
     }
   },
   /* Configure projects for major browsers */
-  projects: process.env.CI
-    ? [
-      {
-        name: "chromium",
-        use: { ...devices["Desktop Chrome"] }
-      },
-      {
-        name: "firefox",
-        use: { ...devices["Desktop Firefox"] }
-      },
-      {
-        name: "player-wrapper-demos",
-        testMatch: "test/integration/demos/player-wrapper.spec.ts"
-      }
-    ]
-    : [
-      {
-        name: "chromium",
-        use: { ...devices["Desktop Chrome"] }
-      },
-      {
-        name: "firefox",
-        use: { ...devices["Desktop Firefox"] }
-      },
-      {
-        name: "webkit",
-        use: { ...devices["Desktop Safari"] }
-      },
-      {
-        name: "player-wrapper-demos",
-        testMatch: "test/integration/demos/player-wrapper.spec.ts"
-      }
-    ],
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] }
+    },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] }
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] }
+    },
+    {
+      name: "player-wrapper-demos",
+      testMatch: "test/integration/demos/player-wrapper.spec.ts"
+    }
+  ],
   /* Run local server before starting the tests */
   webServer: skipWebServer
     ? undefined
