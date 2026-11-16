@@ -9,7 +9,10 @@ const bridge = readFileSync(
 );
 
 for (const version of ["1.2", "2004"] as const) {
-  test(`mobile bridge: SCORM ${version}`, async ({ page }) => {
+  test(`mobile bridge: SCORM ${version}`, async ({ page, browserName }) => {
+    // Playwright 1.64.1 WebKit does not pass synchronous XHRs through page.route,
+    // so the commit route below never sees the default synchronous commits.
+    test.fixme(browserName === "webkit", "Playwright WebKit does not route synchronous XHR");
     const is12 = version === "1.2";
     const apiName = is12 ? "API" : "API_1484_11";
     const module = is12 ? "RuntimeBasicCalls_SCORM12" : "RuntimeBasicCalls_SCORM20043rdEdition";
