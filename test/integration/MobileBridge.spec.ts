@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import type { AddressInfo } from "node:net";
+import { createMockLmsServer, type MockLmsServer } from "./mock-lms-server.js";
 
 // CI downloads dist from the build job before running integration tests.
 const bundle = readFileSync(new URL("../../dist/scorm-again.js", import.meta.url), "utf8");
@@ -8,23 +10,33 @@ const bridge = readFileSync(
   "utf8",
 );
 
+// Each test gets its own mock LMS, so the shared one's resets and history stay
+// with the specs that use them.
+let lms: MockLmsServer | undefined;
+test.afterEach(async () => {
+  await lms?.stop();
+  lms = undefined;
+});
+
 for (const version of ["1.2", "2004"] as const) {
-  test(`mobile bridge: SCORM ${version}`, async ({ page, browserName }) => {
-    // Playwright 1.64.1 WebKit does not pass synchronous XHRs through page.route,
-    // so the commit route below never sees the default synchronous commits.
-    test.fixme(browserName === "webkit", "Playwright WebKit does not route synchronous XHR");
+  test(`mobile bridge: SCORM ${version}`, async ({ page }) => {
     const is12 = version === "1.2";
     const apiName = is12 ? "API" : "API_1484_11";
     const module = is12 ? "RuntimeBasicCalls_SCORM12" : "RuntimeBasicCalls_SCORM20043rdEdition";
+    lms = await createMockLmsServer(0);
+    const commitUrl = `http://localhost:${(lms.server.address() as AddressInfo).port}/lms/commit`;
     const requests: string[] = [];
-    await page.route("**/mobile-lms/commit", async (route) => {
-      requests.push(route.request().postData() || "");
-      await route.fulfill({ json: { result: "true", errorCode: 0 } });
+    // Watch commits instead of routing them: Playwright's WebKit does not pass
+    // synchronous XHRs, the default commit transport, through page.route.
+    page.on("request", (request) => {
+      if (request.method() === "POST" && request.url().startsWith(commitUrl)) {
+        requests.push(request.postData() || "");
+      }
     });
     const config = {
       version,
       settings: {
-        lmsCommitUrl: "http://localhost:3000/mobile-lms/commit",
+        lmsCommitUrl: commitUrl,
         enableOfflineSupport: true,
         courseId: `mobile-${version}`,
         logLevel: 1,
@@ -42,17 +54,17 @@ for (const version of ["1.2", "2004"] as const) {
         ${bundle}
         window.scormBridgeConfig = ${JSON.stringify(config)};
         ${bridge}
+        // Report the network state as a native app does. Playwright's WebKit can
+        // start with navigator.onLine false, which would queue every commit.
+        window.dispatchEvent(new CustomEvent("scorm-again:network-status", { detail: { online: true } }));
       }`,
     });
     // These SCOs keep a global API variable of their own. Keep the LMS API
-    // in a parent document, just as a native launcher does.
-    await page.route("**/mobile-launcher", (route) =>
-      route.fulfill({
-        contentType: "text/html",
-        body: `<!doctype html><iframe title="Course" src="/test/integration/modules/${module}/shared/launchpage.html"></iframe>`,
-      }),
-    );
-    await page.goto("/mobile-launcher");
+    // in a parent document, just as a native launcher does. Serve that document
+    // from the real server: Chromium blocks requests to the loopback mock LMS
+    // from a page that page.route served.
+    const sco = `/test/integration/modules/${module}/shared/launchpage.html`;
+    await page.goto(`/test/integration/wrappers/mobile-launcher.html?sco=${sco}`);
     const messages = () => page.evaluate(() => (window as any).nativeMessages);
     await expect
       .poll(messages)

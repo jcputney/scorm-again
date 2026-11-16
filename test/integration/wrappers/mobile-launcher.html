@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mobile launcher</title>
+  </head>
+  <body>
+    <!-- No API here: like a native app's WebView, the test injects it with an init script. -->
+    <iframe title="Course"></iframe>
+    <script>
+      document.querySelector("iframe").src = new URLSearchParams(location.search).get("sco");
+    </script>
+  </body>
+</html>
