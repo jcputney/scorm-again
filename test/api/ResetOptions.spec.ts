@@ -12,6 +12,18 @@ const apis = [
     seed: { cmi: { core: { total_time: "00:00:12" } } },
     savedTime: "00:00:12",
     zeroTime: "00:00:00",
+    launch: {
+      student_data: {
+        mastery_score: "80",
+        max_time_allowed: "01:00:00",
+        time_limit_action: "exit,message",
+      },
+    },
+    launchValues: {
+      "cmi.student_data.mastery_score": "80",
+      "cmi.student_data.max_time_allowed": "01:00:00",
+      "cmi.student_data.time_limit_action": "exit,message",
+    },
   },
   {
     version: "SCORM 2004",
@@ -22,6 +34,20 @@ const apis = [
     seed: { cmi: { total_time: "PT12S" } },
     savedTime: "PT12S",
     zeroTime: "PT0S",
+    launch: {
+      scaled_passing_score: "0.8",
+      completion_threshold: "0.7",
+      max_time_allowed: "PT1H",
+      time_limit_action: "exit,message",
+      launch_data: "outgoing",
+    },
+    launchValues: {
+      "cmi.scaled_passing_score": "0.8",
+      "cmi.completion_threshold": "0.7",
+      "cmi.max_time_allowed": "PT1H",
+      "cmi.time_limit_action": "exit,message",
+      "cmi.launch_data": "outgoing",
+    },
   },
 ];
 
@@ -43,6 +69,41 @@ describe.each(apis)("$version reset options", (config) => {
       expect(api.lmsGetValue(config.totalTime)).toBe(config.savedTime);
     },
   );
+
+  it.each([undefined, {}, { clearLaunchData: false }])(
+    "preserves launch data by default with options %j",
+    (options) => {
+      const api = config.create();
+      api.loadFromJSON({ cmi: config.launch });
+      expect(api.lmsInitialize()).toBe("true");
+      api.reset(undefined, options);
+      expect(api.lmsInitialize()).toBe("true");
+      for (const [field, value] of Object.entries(config.launchValues)) {
+        expect(api.lmsGetValue(field), field).toBe(value);
+      }
+    },
+  );
+
+  it("clears launch data to fresh defaults and accepts new host launch data", () => {
+    const fresh = config.create();
+    expect(fresh.lmsInitialize()).toBe("true");
+    const api = config.create();
+    api.loadFromJSON({ cmi: config.launch });
+    expect(api.lmsInitialize()).toBe("true");
+    api.reset(undefined, { clearLaunchData: true });
+    expect(api.settings).not.toHaveProperty("clearLaunchData");
+    expect(api.lmsInitialize()).toBe("true");
+    for (const field of Object.keys(config.launchValues)) {
+      expect(api.lmsGetValue(field), field).toBe(fresh.lmsGetValue(field));
+    }
+
+    api.reset(undefined, { clearLaunchData: true });
+    api.loadFromJSON({ cmi: config.launch });
+    expect(api.lmsInitialize()).toBe("true");
+    for (const [field, value] of Object.entries(config.launchValues)) {
+      expect(api.lmsGetValue(field), field).toBe(value);
+    }
+  });
 
   it.each([
     { preserveListeners: true, resetTotalTime: false },
@@ -118,5 +179,33 @@ describe("SCORM 2004 SCO transitions", () => {
       ["cmi.location", "second"],
     ]);
     expect(deliveries).toEqual(["sco1", "sco2"]);
+  });
+});
+
+describe("SCORM 2004 clearing launch data with sequencing", () => {
+  it("reapplies the current activity completion threshold after clearing", () => {
+    const api = new Scorm2004API({
+      logLevel: 5,
+      sequencing: {
+        activityTree: {
+          id: "root",
+          sequencingControls: { flow: true },
+          children: [
+            {
+              id: "sco",
+              completionThreshold: { completedByMeasure: true, minProgressMeasure: 0.5 },
+            },
+          ],
+        },
+      },
+    });
+    api.loadFromJSON({ cmi: { completion_threshold: "0.9", launch_data: "outgoing" } });
+    expect(api.processNavigationRequest("start")).toBe(true);
+    expect(api.Initialize("")).toBe("true");
+    api.reset(undefined, { clearLaunchData: true });
+    expect(api.cmi.completion_threshold).toBe("0.5");
+    expect(api.Initialize("")).toBe("true");
+    expect(api.GetValue("cmi.completion_threshold")).toBe("0.5");
+    expect(api.GetValue("cmi.launch_data")).toBe("");
   });
 });

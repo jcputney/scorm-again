@@ -122,6 +122,9 @@ class Scorm12API extends BaseAPI {
     this.commonReset(settings, options);
 
     this.cmi?.reset();
+    if (options?.clearLaunchData === true) {
+      this.cmi.student_data.reset(true);
+    }
     if (options?.resetTotalTime === true) {
       this.cmi.core.total_time = "00:00:00";
     }

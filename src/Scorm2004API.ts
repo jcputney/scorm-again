@@ -259,7 +259,7 @@ class Scorm2004API extends BaseAPI {
     this.commonReset(settings, options);
     this._runtimeSetCMIElements.clear();
 
-    this.cmi?.reset();
+    this.cmi?.reset(options?.clearLaunchData === true);
     if (options?.resetTotalTime === true) {
       this.cmi.total_time = "PT0S";
     }

@@ -100,10 +100,13 @@ export class CMIContent extends BaseCMI {
   /**
    * Reset the content properties
    */
-  reset(): void {
+  reset(clearLaunchData = false): void {
     this._initialized = false;
+    if (clearLaunchData) {
+      this._launch_data = "";
+    }
     this._location = "";
-    // Don't reset launch_data as it's read-only after initialization
+    // Preserve launch_data unless explicitly requested.
     this._suspend_data = "";
   }
 }
