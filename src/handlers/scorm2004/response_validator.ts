@@ -218,7 +218,7 @@ export class Scorm2004ResponseValidator {
     const formatRegex = new RegExp(response.format);
     for (let i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++) {
       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
-        nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
+        nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i], i === 0);
       }
 
       if (response?.delimiter2) {
@@ -318,9 +318,9 @@ export class Scorm2004ResponseValidator {
    * @param {string} node - The node string with potential prefixes
    * @return {*} The node with prefixes removed
    */
-  removeCorrectResponsePrefixes(CMIElement: string, node: string): any {
+  removeCorrectResponsePrefixes(CMIElement: string, node: string, firstItem = true): any {
     try {
-      return stripCorrectResponsePrefixes(node);
+      return stripCorrectResponsePrefixes(node, undefined, firstItem);
     } catch {
       this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH!, `${node}`);
       return node;

@@ -35,6 +35,8 @@ const accepted: [string, string, string][] = [
     "{case_matters=false}Paris",
     "{case_matters=true}{lang=en}Paris",
     "{lang=en}Paris",
+    "{lang=en}{order_matters=true}Paris",
+    "{lang=en}{case_matters=true}Paris",
     "Paris, France",
     newline,
     crlf,
@@ -129,10 +131,8 @@ describe("SCORM 2004 interaction values", () => {
     ...rejected,
     ["fill-in", pattern, "{lang=en}{lang=fr}Paris"],
     ["long-fill-in", pattern, "{order_matters=true}Paris"],
-    ["long-fill-in", pattern, "{lang=en}{order_matters=true}Paris"],
     ["long-fill-in", pattern, "{case_matters=yes}Paris"],
     ["long-fill-in", pattern, "{case_matters=true}{case_matters=false}Paris"],
-    ["long-fill-in", pattern, "{lang=en}{case_matters=true}Paris"],
     // Records joined by a bare comma are not split once the value uses [.]
     ["matching", pattern, "1[.]a,2[.]b"],
     ["matching", "learner_response", "1[.]a,2[.]b"],
@@ -153,17 +153,15 @@ describe("SCORM 2004 interaction values", () => {
     expect(api.GetValue("cmi.comments_from_learner.0.comment")).toBe(value);
   });
 
-  it.each([
-    "{order_matters=true}Paris",
-    "{lang=en}{order_matters=true}Paris",
-    "{case_matters=yes}Paris",
-    "{lang=en}{case_matters=true}Paris",
-  ])("rejects long-fill-in pattern %j on the correct response object", (value) => {
-    const correctResponse = new CMIInteractionsCorrectResponsesObject("long-fill-in");
-    expect(() => {
-      correctResponse.pattern = value;
-    }).toThrow(Scorm2004ValidationError);
-  });
+  it.each(["{order_matters=true}Paris", "{case_matters=yes}Paris"])(
+    "rejects long-fill-in pattern %j on the correct response object",
+    (value) => {
+      const correctResponse = new CMIInteractionsCorrectResponsesObject("long-fill-in");
+      expect(() => {
+        correctResponse.pattern = value;
+      }).toThrow(Scorm2004ValidationError);
+    },
+  );
 
   it("rejects a malformed comment language tag", () => {
     const api = createAPI();

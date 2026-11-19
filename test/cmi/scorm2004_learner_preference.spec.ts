@@ -143,11 +143,12 @@ describe("SCORM 2004 CMILearnerPreference Tests", () => {
         }).toThrow();
       });
 
-      it("should reject zero delivery_speed (spec requires > 0)", () => {
+      it("should accept zero delivery_speed (SCORM 2004 range includes zero)", () => {
         const learnerPreference = new CMILearnerPreference();
-        expect(() => {
-          learnerPreference.delivery_speed = "0";
-        }).toThrow();
+        for (const value of ["0", "0.0"]) {
+          learnerPreference.delivery_speed = value;
+          expect(learnerPreference.delivery_speed).toBe(value);
+        }
       });
     });
 

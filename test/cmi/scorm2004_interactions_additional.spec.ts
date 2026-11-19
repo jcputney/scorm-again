@@ -195,7 +195,7 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         interaction.id = "interaction-1";
         interaction.type = "other";
 
-        // Create a string with 4001 characters (more than the max of 4000)
+        // SPM is a minimum supported size, not a maximum.
         const tooLongResponse = "a".repeat(4001);
 
         expect(() => {
@@ -479,15 +479,16 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         }).not.toThrow();
       });
 
-      it("should reject a pattern that's too long", () => {
+      it("should accept a correct response beyond the 4000-character SPM", () => {
         const correctResponse = new CMIInteractionsCorrectResponsesObject("long-fill-in");
 
-        // Create a string with 4001 characters (more than the max of 4000)
+        // SPM is a minimum supported size, not a maximum.
         const tooLongPattern = "a".repeat(4001);
 
         expect(() => {
           correctResponse.pattern = tooLongPattern;
-        }).toThrow();
+        }).not.toThrow();
+        expect(correctResponse.pattern).toBe(tooLongPattern);
       });
     });
 

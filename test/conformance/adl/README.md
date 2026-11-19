@@ -143,6 +143,24 @@ deferred to a follow-up increment.
 
 ## Conformance findings
 
+**Deliberate leniency.** scorm-again accepts some data that the ADL DMI script
+expects to fail, because real content sends it. These steps are left out of
+the hand-written fixtures:
+
+- Timestamps: years 1970–9999 (ADL rejects `2039`), fractions of 3–6 digits,
+  and a time zone after `hh:mm`, after the seconds or after the fraction, so
+  JavaScript `toISOString()` output is valid. ADL rejects
+  `2004-04-01T09:45Z`, `2004-04-01T09:45:58Z` and `2004-04-01T09:45:58.025`.
+- Durations without the `T` designator, such as `P1Y6M14D4H15M6.34S`, or with
+  nothing after it, such as `P1Y6M14DT`.
+- Identifiers that start with `urn:` are not checked as URNs (ADL rejects
+  `urn:` and `urn:adl:lms Test/OBJ01`).
+- Choice responses may contain `{`, `}`, `[` and `]` (ADL rejects
+  `{}{[]}{}{[]}{}`).
+- Setting an `interactions.n` or `objectives.n` element on an existing entry
+  whose `id` is unset, and SCO writes to `cmi.comments_from_lms.n.*`, are
+  accepted (ADL expects 408 and 404).
+
 **1. `GetValue` did not reset a stale error code on success (SCORM 2004) — FIXED.**
 ADL `API.properties` Act3V1 step 19 (`GET->c~LOC->test->0`) requires the current
 error code to be `0` after a successful `GetValue`, even though the prior step

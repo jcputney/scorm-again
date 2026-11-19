@@ -1389,7 +1389,7 @@ describe("SCORM 2004 API Tests", () => {
       const scorm2004API = basicApi();
       const input = "{lang=en}{order_matters=true}{case_matters=false}correctResponse";
       const result = scorm2004API["_responseValidator"].removeCorrectResponsePrefixes("api", input);
-      expect(result).toBe("correctResponse");
+      expect(result).toBe("{order_matters=true}{case_matters=false}correctResponse");
     });
 
     it("should throw an error for invalid order_matters value", () => {

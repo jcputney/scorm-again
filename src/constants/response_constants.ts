@@ -110,14 +110,16 @@ export const CorrectResponses: Responses = {
     delimiter: "[,]",
     unique: false,
     duplicate: false,
-    format: scorm2004_regex.CMILangString250cr,
+    // SPM is a minimum supported size, not a maximum on localized text.
+    format: scorm2004_regex.CMILangString,
   },
   "long-fill-in": {
     max: 1,
     delimiter: "",
     unique: false,
     duplicate: true,
-    format: scorm2004_regex.CMILangString4000,
+    // Property-looking text after {lang=...} is part of the response.
+    format: scorm2004_regex.CMILangString,
   },
   matching: {
     max: 36,
