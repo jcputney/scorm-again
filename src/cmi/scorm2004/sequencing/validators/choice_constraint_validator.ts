@@ -113,13 +113,14 @@ export class ChoiceConstraintValidator {
         return { valid: false, exception: "SB.2.9-4" };
       }
 
-      // Check preventActivation constraint at parent level
+      /** @spec ADL CM-17a: only inactive ancestors prevent descendant activation, including previously attempted targets. */
       // This applies even when there's no current activity
-      if (activity.parent && activity.parent.sequencingControls.preventActivation) {
-        // Target must have been previously attempted
-        if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
-          return { valid: false, exception: "SB.2.9-6" };
-        }
+      if (
+        activity.parent &&
+        !activity.parent.isActive &&
+        activity.parent.sequencingControls.preventActivation
+      ) {
+        return { valid: false, exception: "SB.2.9-6" };
       }
 
       activity = activity.parent;
@@ -170,6 +171,9 @@ export class ChoiceConstraintValidator {
     currentActivity: Activity,
     targetActivity: Activity
   ): ConstraintValidationResult {
+    const constrained = validateConstrainedChoice(currentActivity, targetActivity);
+    if (!constrained) return { valid: false, exception: "SB.2.9-7" };
+
     let ancestorActivity: Activity | null = targetActivity.parent;
 
     while (ancestorActivity) {
@@ -236,26 +240,8 @@ export class ChoiceConstraintValidator {
       }
     }
 
-    // Priority 3: Check constrainChoice constraint
-    if (ancestor.sequencingControls.constrainChoice) {
-      // Cannot skip forward beyond next sibling
-      if (targetIndex > currentIndex + 1) {
-        return { valid: false, exception: "SB.2.9-7" };
-      }
-
-      // Cannot go backward to incomplete activity
-      if (targetIndex < currentIndex) {
-        if (
-          targetActivity.completionStatus !== "completed" &&
-          (targetActivity.completionStatus as string) !== "passed"
-        ) {
-          return { valid: false, exception: "SB.2.9-7" };
-        }
-      }
-    }
-
     // Check preventActivation constraint
-    if (ancestor.sequencingControls.preventActivation) {
+    if (!ancestor.isActive && ancestor.sequencingControls.preventActivation) {
       if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
         return { valid: false, exception: "SB.2.9-6" };
       }
@@ -595,4 +581,58 @@ export class ChoiceConstraintValidator {
       targetActivity.attemptCount >= targetActivity.attemptLimit
     );
   }
+}
+
+/**
+ * SB.2.9: only ancestors of the current activity below the common ancestor constrain choice.
+ * The nearest constrained activity bounds the target to its logical neighbour's
+ * subtree; completion and active state do not change that boundary.
+ */
+export function validateConstrainedChoice(
+  current: Activity,
+  target: Activity,
+): boolean {
+  const currentPath: Activity[] = [];
+  let node: Activity | null = current;
+  while (node) {
+    currentPath.push(node);
+    node = node.parent;
+  }
+  let common: Activity | null = target;
+  while (common && !currentPath.includes(common)) common = common.parent;
+  if (!common) return false;
+  const contains = (ancestor: Activity, activity: Activity): boolean => {
+    let cursor: Activity | null = activity;
+    while (cursor) {
+      if (cursor === ancestor) return true;
+      cursor = cursor.parent;
+    }
+    return false;
+  };
+  const constrained = currentPath
+    .slice(1, currentPath.indexOf(common))
+    .find((activity) => activity.sequencingControls.constrainChoice);
+  if (
+    !constrained ||
+    contains(constrained, target) ||
+    contains(target, constrained)
+  )
+    return true;
+  // Determine direction at the branches below the common ancestor.
+  const branch = (activity: Activity): Activity => {
+    while (activity.parent && activity.parent !== common)
+      activity = activity.parent;
+    return activity;
+  };
+  const forward =
+    common.children.indexOf(branch(target)) >
+    common.children.indexOf(branch(current));
+  node = constrained;
+  while (node?.parent) {
+    const siblings = node.parent.children;
+    const neighbour = siblings[siblings.indexOf(node) + (forward ? 1 : -1)];
+    if (neighbour) return contains(neighbour, target);
+    node = node.parent;
+  }
+  return false;
 }

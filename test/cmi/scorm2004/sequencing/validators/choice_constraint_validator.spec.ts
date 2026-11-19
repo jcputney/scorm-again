@@ -186,7 +186,8 @@ describe("ChoiceConstraintValidator", () => {
     });
 
     describe("constrainChoice constraint", () => {
-      it("should return invalid when trying to skip forward beyond next sibling", () => {
+      it("should return valid when trying to skip forward beyond next sibling", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
         // Add another lesson to have 3 siblings
         const lesson2b = new Activity("lesson2b", "Lesson 2b");
         chapter1.addChild(lesson2b);
@@ -196,8 +197,8 @@ describe("ChoiceConstraintValidator", () => {
 
         // Try to skip from lesson1 to lesson2b (skipping lesson2)
         const result = validator.validateAncestorConstraints(lesson1, lesson2b);
-        expect(result.valid).toBe(false);
-        expect(result.exception).toBe("SB.2.9-7");
+        expect(result.valid).toBe(true);
+        expect(result.exception).toBeNull();
       });
 
       it("should return valid when navigating to immediate next sibling", () => {
@@ -208,14 +209,15 @@ describe("ChoiceConstraintValidator", () => {
         expect(result.valid).toBe(true);
       });
 
-      it("should return invalid when navigating backward to incomplete activity", () => {
+      it("should return valid when navigating backward to incomplete activity", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
         chapter1.sequencingControls.constrainChoice = true;
         lesson2.isActive = true;
         lesson1.completionStatus = "incomplete" as any;
 
         const result = validator.validateAncestorConstraints(lesson2, lesson1);
-        expect(result.valid).toBe(false);
-        expect(result.exception).toBe("SB.2.9-7");
+        expect(result.valid).toBe(true);
+        expect(result.exception).toBeNull();
       });
 
       it("should return valid when navigating backward to completed activity", () => {
@@ -632,21 +634,25 @@ describe("ChoiceConstraintValidator", () => {
       expect(result.exception).toBe("SB.2.9-6");
     });
 
-    it("should allow choice to attempted activity when ancestor has preventActivation", () => {
+    it("should refuse choice to attempted activity when ancestor has preventActivation", () => {
+      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
       chapter1.sequencingControls.preventActivation = true;
       lesson2.attemptCount = 1;
 
       const result = validator.validateChoice(null, lesson2);
-      expect(result.valid).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("SB.2.9-6");
     });
 
-    it("should allow choice to active activity when ancestor has preventActivation", () => {
+    it("should refuse choice to active activity when ancestor has preventActivation", () => {
+      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
       chapter1.sequencingControls.preventActivation = true;
       lesson2.attemptCount = 0;
       lesson2.isActive = true;
 
       const result = validator.validateChoice(null, lesson2);
-      expect(result.valid).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("SB.2.9-6");
     });
   });
 
@@ -670,6 +676,7 @@ describe("ChoiceConstraintValidator", () => {
 
   describe("integration scenarios", () => {
     it("should validate complex multi-level constraint scenario", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       // Setup: forwardOnly at root, constrainChoice at chapter1
       root.sequencingControls.forwardOnly = true;
       chapter1.sequencingControls.constrainChoice = true;
@@ -685,9 +692,9 @@ describe("ChoiceConstraintValidator", () => {
       // With constrainChoice, backward to incomplete triggers SB.2.9-7
       lesson2.isActive = true;
       const backward = validator.validateChoice(lesson2, lesson1);
-      expect(backward.valid).toBe(false);
-      // constrainChoice check happens at chapter1 level before forwardOnly at root
-      expect(backward.exception).toBe("SB.2.9-7");
+      expect(backward.valid).toBe(true);
+
+      expect(backward.exception).toBeNull();
     });
 
     it("should enforce forwardOnly when constrainChoice is not set", () => {

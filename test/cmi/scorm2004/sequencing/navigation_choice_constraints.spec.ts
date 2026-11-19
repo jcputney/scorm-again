@@ -64,15 +64,16 @@ describe("OverallSequencingProcess choice constraints", () => {
     overall = new OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess);
   });
 
-  it("blocks choice outside constrained branch", () => {
+  it("allows choice outside constrained branch", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
     root.sequencingControls.constrainChoice = true;
 
     activityTree.currentActivity = leafA1;
 
     const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, leafB1.id);
 
-    expect(result.valid).toBe(false);
-    expect(result.exception).toBe("NB.2.1-11");
+    expect(result.valid).toBe(true);
+    expect(result.exception).toBeNull();
   });
 
   it("allows choice within constrained branch", () => {
@@ -119,14 +120,15 @@ describe("OverallSequencingProcess choice constraints", () => {
     expect(result.exception).toBe("NB.2.1-11");
   });
 
-  it("blocks branch switch when preventActivation is set on ancestor", () => {
+  it("allows branch switch when preventActivation is set on ancestor", () => {
+      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
     root.sequencingControls.preventActivation = true;
     activityTree.currentActivity = leafA1;
 
     const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, leafB1.id);
 
-    expect(result.valid).toBe(false);
-    expect(result.exception).toBe("NB.2.1-11");
+    expect(result.valid).toBe(true);
+    expect(result.exception).toBeNull();
   });
 
   it("allows choice into a branch with an active attempt when preventActivation is set", () => {
@@ -146,14 +148,15 @@ describe("OverallSequencingProcess choice constraints", () => {
     expect(result.targetActivity).toBe(leafB1);
   });
 
-  it("blocks sibling choice when preventActivation is set on cluster", () => {
+  it("allows sibling choice when preventActivation is set on cluster", () => {
+      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
     clusterA.sequencingControls.preventActivation = true;
     activityTree.currentActivity = leafA1;
 
     const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, leafA2.id);
 
-    expect(result.valid).toBe(false);
-    expect(result.exception).toBe("NB.2.1-11");
+    expect(result.valid).toBe(true);
+    expect(result.exception).toBeNull();
   });
 
   it("allows choice past sibling skipped by precondition rule", () => {
