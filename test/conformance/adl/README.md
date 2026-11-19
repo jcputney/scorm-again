@@ -193,7 +193,7 @@ read-before-set returning `""` for a no-default element.
 Deliberate boundaries of the gate (verified, not bugs):
 - **Array `.id` is intentionally excluded** from `NO_DEFAULT_2004_ELEMENTS`
   (`objectives.N.id`, `interactions.N.id`, `interactions.N.objectives.N.id`).
-  Reading a *missing* array entry already yields 403 during traversal; a
+  Reading a *missing* array entry yields 301 during traversal (ADL DMI); a
   materialized-but-id-empty row is a separate concern. Reading an unset `.id`
   therefore still returns `""`/0 (conservative under-coverage, never a false 403).
 - **An LMS that seeds an explicit empty string** for a no-default element via

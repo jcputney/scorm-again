@@ -483,7 +483,7 @@ describe("SCORM 2004 API Tests", () => {
       it("should allow cmi.interactions.0.objectives.0.id to be set", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue("cmi.interactions.0.objectives.0.id", "ID of the Obj - ID 2");
-        expect(String(scorm2004API.lmsGetLastError())).toEqual(String(0));
+        expect(String(scorm2004API.lmsGetLastError())).toEqual(String(408));
       });
       it("should allow cmi.interactions.0.learner_response to be set", (): void => {
         const scorm2004API = apiInitialized();

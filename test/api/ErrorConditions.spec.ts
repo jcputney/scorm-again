@@ -273,7 +273,7 @@ describe("Error Conditions Tests", () => {
 
         // Attempt to access an objective that doesn't exist (no objectives have been created)
         expect(api.lmsGetValue("cmi.objectives.99.id")).toEqual("");
-        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.VALUE_NOT_INITIALIZED));
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_GET_FAILURE));
       });
     });
 

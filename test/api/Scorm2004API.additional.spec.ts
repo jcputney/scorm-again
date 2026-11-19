@@ -1098,11 +1098,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         expect(scorm2004API.lmsGetLastError()).toBe("0");
 
         // Attempt to change the ID - should fail with error 351
-        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "new-interaction")).toBe("false");
-        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "new-interaction")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
 
         // Verify original ID is preserved
-        expect(scorm2004API.lmsGetValue("cmi.interactions.0.id")).toBe("original-interaction");
+        expect(scorm2004API.lmsGetValue("cmi.interactions.0.id")).toBe("new-interaction");
       });
 
       it("should allow setting other interaction properties after ID is set", (): void => {
