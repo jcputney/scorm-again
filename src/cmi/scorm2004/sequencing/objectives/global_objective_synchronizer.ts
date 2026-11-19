@@ -710,6 +710,13 @@ export class GlobalObjectiveSynchronizer {
       globalObjective.progressMeasureKnown
     ) {
       readState.progressMeasure = globalObjective.progressMeasure;
+      /** @spec ADL CTS CO-02a: completedByMeasure derives completion from a read progress measure. */
+      if (activity.completedByMeasure) {
+        readState.completionStatus =
+          globalObjective.progressMeasure >= activity.minProgressMeasure
+            ? CompletionStatus.COMPLETED
+            : CompletionStatus.INCOMPLETE;
+      }
     }
 
     // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Raw Score

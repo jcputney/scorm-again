@@ -58,13 +58,17 @@ export enum RuleActionType {
 
 export type RuleConditionEvaluation = boolean | "unknown";
 
-const OBJECTIVE_TRACKING_CONDITIONS = new Set<RuleConditionType>([
+const TRACKING_CONDITIONS = new Set<RuleConditionType>([
   RuleConditionType.SATISFIED,
   RuleConditionType.OBJECTIVE_SATISFIED,
   RuleConditionType.OBJECTIVE_STATUS_KNOWN,
   RuleConditionType.OBJECTIVE_MEASURE_KNOWN,
   RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
   RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
+  RuleConditionType.COMPLETED,
+  RuleConditionType.ACTIVITY_COMPLETED,
+  RuleConditionType.PROGRESS_KNOWN,
+  RuleConditionType.ACTIVITY_PROGRESS_KNOWN,
 ]);
 
 export function kleeneNot(value: RuleConditionEvaluation): RuleConditionEvaluation {
@@ -258,7 +262,7 @@ export class RuleCondition extends BaseCMI {
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
 
-    // @spec SCORM 2004 SN: objective tracking information for an activity with
+    // @spec SCORM 2004 SN: objective and activity tracking information for an activity with
     // deliveryControls.tracked=false is unavailable to its sequencing rules.
     // The SM.1 useCurrentAttempt* flags govern whether child tracking participates in
     // parent rollup; they do not hide an activity's own mapped/preserved tracking from
@@ -266,7 +270,7 @@ export class RuleCondition extends BaseCMI {
     // @spec SCORM 2004 4th Ed. TR OB-03b steps 6-7 and SN UP.2.1/SB.2.2
     if (
       (activity.sequencingControls?.tracked === false &&
-        OBJECTIVE_TRACKING_CONDITIONS.has(this._condition))
+        TRACKING_CONDITIONS.has(this._condition))
     ) {
       result = "unknown";
     } else
