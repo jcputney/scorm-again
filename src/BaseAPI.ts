@@ -924,6 +924,10 @@ export default abstract class BaseAPI implements IBaseAPI {
       // This is a no-op if lastErrorCode is already "0"
       try {
         returnValue = this.getCMIValue(CMIElement);
+        if (returnValue !== null && typeof returnValue === "object") {
+          this.throwSCORMError(CMIElement, this._error_codes.UNDEFINED_DATA_MODEL ?? 401);
+          returnValue = "";
+        }
       } catch (e) {
         returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
@@ -991,7 +995,11 @@ export default abstract class BaseAPI implements IBaseAPI {
       // Only reset the error code if there's no error and checkTerminated is true
       // This is a no-op if lastErrorCode is already "0"
       try {
-        returnValue = this.setCMIValue(CMIElement, value);
+        if (this.isContainerElement(CMIElement)) {
+          this.throwSCORMError(CMIElement, this._error_codes.UNDEFINED_DATA_MODEL ?? 401);
+        } else {
+          returnValue = this.setCMIValue(CMIElement, value);
+        }
       } catch (e) {
         returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
@@ -1023,6 +1031,26 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
 
     return returnValue;
+  }
+
+  /**
+   * Inspect stored model objects without invoking leaf getters (which may be
+   * write-only). This public SetValue guard must not affect LMS loading or the
+   * internal value-access service. Missing array rows are left to normal creation.
+   */
+  private isContainerElement(element: string): boolean {
+    let target: unknown = this;
+    for (const attribute of element.split(".")) {
+      if (target === null || typeof target !== "object") return false;
+      if (target instanceof CMIArray && /^\d+$/.test(attribute)) {
+        target = target.childArray[Number(attribute)];
+        continue;
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(target, attribute);
+      if (!descriptor || !("value" in descriptor)) return false;
+      target = descriptor.value;
+    }
+    return target !== null && typeof target === "object";
   }
 
   /**
