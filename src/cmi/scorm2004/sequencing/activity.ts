@@ -1650,35 +1650,35 @@ export class Activity extends BaseCMI {
   }
 
   /**
-   * Getter for attemptAbsoluteDuration (alias for limit)
+   * Getter for attemptAbsoluteDuration (alias for actual calculated duration)
    * @return {string}
    */
   get attemptAbsoluteDuration(): string {
-    return this._attemptAbsoluteDurationLimit || "PT0H0M0S";
+    return this._attemptAbsoluteDurationValue;
   }
 
   /**
-   * Setter for attemptAbsoluteDuration
+   * Setter for attemptAbsoluteDuration (actual calculated duration)
    * @param {string} duration
    */
   set attemptAbsoluteDuration(duration: string) {
-    this._attemptAbsoluteDurationLimit = duration;
+    this.attemptAbsoluteDurationValue = duration;
   }
 
   /**
-   * Getter for activityAbsoluteDuration (alias for limit)
+   * Getter for activityAbsoluteDuration (alias for actual calculated duration)
    * @return {string}
    */
   get activityAbsoluteDuration(): string {
-    return this._activityAbsoluteDurationLimit || "PT0H0M0S";
+    return this._activityAbsoluteDurationValue;
   }
 
   /**
-   * Setter for activityAbsoluteDuration
+   * Setter for activityAbsoluteDuration (actual calculated duration)
    * @param {string} duration
    */
   set activityAbsoluteDuration(duration: string) {
-    this._activityAbsoluteDurationLimit = duration;
+    this.activityAbsoluteDurationValue = duration;
   }
 
   /**

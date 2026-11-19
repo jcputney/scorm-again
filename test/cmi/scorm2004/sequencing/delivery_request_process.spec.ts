@@ -359,6 +359,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Set parent (child1) to have exceeded attempt duration limit
       child1.attemptAbsoluteDurationLimit = "PT1S"; // 1 second
+      child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString(); // Started 2 seconds ago
       child1.isActive = true;
 
@@ -405,6 +406,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
     it("should reject delivery when ancestor has violated attempt duration limit", () => {
       // Set parent to have exceeded attempt duration limit
       child1.attemptAbsoluteDurationLimit = "PT1S"; // 1 second
+      child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString(); // Started 2 seconds ago
       child1.isActive = true;
 
@@ -442,6 +444,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       // Verify that path validation includes root activity
       // Use duration limit which is checked in delivery, not navigation
       root.attemptAbsoluteDurationLimit = "PT1S";
+      root.attemptAbsoluteDurationValue = "PT2S";
       root.attemptStartTime = new Date(Date.now() - 2000).toISOString();
       root.isActive = true;
 
@@ -461,6 +464,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Middle level (child1) has duration violation
       child1.attemptAbsoluteDurationLimit = "PT1S";
+      child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
       child1.isActive = true;
 
@@ -497,6 +501,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Target activity has duration violation
       grandchild1.attemptAbsoluteDurationLimit = "PT1S";
+      grandchild1.attemptAbsoluteDurationValue = "PT2S";
       grandchild1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
       grandchild1.isActive = true;
 
@@ -518,6 +523,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Set duration violation at intermediate level (child1)
       child1.attemptAbsoluteDurationLimit = "PT1S";
+      child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
       child1.isActive = true;
 
@@ -540,6 +546,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Set parent to have duration violation
       child1.attemptAbsoluteDurationLimit = "PT1S";
+      child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
       child1.isActive = true;
 

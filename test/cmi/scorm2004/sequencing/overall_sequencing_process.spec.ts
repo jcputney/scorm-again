@@ -1386,7 +1386,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
         grandchild2.attemptLimit = limit;
         grandchild2.attemptCount = count;
         grandchild2.attemptAbsoluteDurationLimit = "PT10S";
-        vi.spyOn(grandchild2, "attemptAbsoluteDuration", "get").mockReturnValue(absolute);
+        grandchild2.attemptAbsoluteDurationValue = absolute;
         grandchild2.attemptExperiencedDuration = experienced;
         expect(overallProcess.predictJumpEnabled(grandchild2.id)).toBe(expected);
         const result = overallProcess.processNavigationRequest(NavigationRequestType.JUMP, grandchild2.id);

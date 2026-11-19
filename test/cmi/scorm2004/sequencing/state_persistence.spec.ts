@@ -190,9 +190,9 @@ describe("State Persistence (Multi-Session Support)", () => {
       const state = overallProcess.getSequencingState();
       const lesson1State = state.activityStates["lesson1"];
 
-      expect(lesson1State.attemptAbsoluteDuration).toBe("PT1H30M0S");
+      expect(lesson1State.attemptAbsoluteDurationValue).toBe("PT1H30M0S");
       expect(lesson1State.attemptExperiencedDuration).toBe("PT1H15M0S");
-      expect(lesson1State.activityAbsoluteDuration).toBe("PT2H0M0S");
+      expect(lesson1State.activityAbsoluteDurationValue).toBe("PT2H0M0S");
     });
 
     it("should capture navigation state", () => {
