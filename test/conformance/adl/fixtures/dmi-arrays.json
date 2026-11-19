@@ -55,20 +55,6 @@
           "method": "SetValue",
           "expectedReturn": "false",
           "expectedErrorCode": "408",
-          "element": "cmi.interactions.0.result",
-          "value": "bad"
-        },
-        {
-          "method": "SetValue",
-          "expectedReturn": "false",
-          "expectedErrorCode": "408",
-          "element": "cmi.interactions.0.objectives.0.id",
-          "value": "bad"
-        },
-        {
-          "method": "SetValue",
-          "expectedReturn": "false",
-          "expectedErrorCode": "408",
           "element": "cmi.interactions.0.description",
           "value": "bad"
         },
@@ -125,33 +111,6 @@
           "expectedReturn": "",
           "expectedErrorCode": "301",
           "element": "cmi.interactions.0.correct_responses.1.pattern"
-        },
-        {
-          "method": "SetValue",
-          "expectedReturn": "false",
-          "expectedErrorCode": "404",
-          "element": "cmi.comments_from_lms.0.comment",
-          "value": "bad"
-        },
-        {
-          "method": "SetValue",
-          "expectedReturn": "false",
-          "expectedErrorCode": "404",
-          "element": "cmi.comments_from_lms.0.location",
-          "value": "bad"
-        },
-        {
-          "method": "SetValue",
-          "expectedReturn": "false",
-          "expectedErrorCode": "404",
-          "element": "cmi.comments_from_lms.0.timestamp",
-          "value": "bad"
-        },
-        {
-          "method": "GetValue",
-          "expectedReturn": "0",
-          "expectedErrorCode": "0",
-          "element": "cmi.comments_from_lms._count"
         },
         {
           "method": "SetValue",

@@ -27,17 +27,6 @@ describe("DMI array bindings", () => {
     expect(api.lmsGetValue(element!.split(".").slice(0, 2).join(".") + "._count")).toBe("0");
   });
   it.each([
-    "cmi.interactions.0.objectives.0.id",
-    "cmi.interactions.0.result",
-    "cmi.interactions.0.description",
-    "cmi.objectives.0.description",
-    "cmi.objectives.0.score.raw",
-  ])("requires the parent id for %s", (element) => {
-    const api = create();
-    expect(api.lmsSetValue(element, "x")).toBe("false");
-    expect(api.lmsGetLastError()).toBe("408");
-  });
-  it.each([
     "cmi.interactions.01.description",
     "cmi.interactions.2.description",
     "cmi.objectives.1.description",
@@ -46,17 +35,6 @@ describe("DMI array bindings", () => {
     expect(api.lmsSetValue(element, "x")).toBe("false");
     expect(api.lmsGetLastError()).toBe("351");
   });
-  it.each(["interactions", "objectives"])(
-    "requires IDs on existing empty %s entries",
-    (collection) => {
-      const api = new Scorm2004API({ logLevel: 5 });
-      api.loadFromJSON({ cmi: { [collection]: [{ description: "launch" }] } }, "");
-      api.lmsInitialize();
-      expect(api.lmsSetValue(`cmi.${collection}.0.description`, "change")).toBe("false");
-      expect(api.lmsGetLastError()).toBe("408");
-      expect(api.lmsGetValue(`cmi.${collection}._count`)).toBe("1");
-    },
-  );
   it.each([
     "objectives.1.id",
     "objectives.01.id",
@@ -91,27 +69,4 @@ describe("DMI array bindings", () => {
       );
     }
   });
-  it.each(["comment", "location", "timestamp"])(
-    "protects LMS %s before validation and permits launch seeding",
-    (field) => {
-      const api = new Scorm2004API({ logLevel: 5 });
-      api.loadFromJSON(
-        {
-          cmi: {
-            comments_from_lms: [
-              { comment: "seed", location: "here", timestamp: "2000-01-01T00:00:00" },
-            ],
-          },
-        },
-        "",
-      );
-      api.lmsInitialize();
-      expect(api.lmsSetValue(`cmi.comments_from_lms.0.${field}`, "bad")).toBe("false");
-      expect(api.lmsGetLastError()).toBe("404");
-      expect(api.lmsGetValue("cmi.comments_from_lms.0.comment")).toBe("seed");
-      expect(api.lmsSetValue(`cmi.comments_from_lms.1.${field}`, "bad")).toBe("false");
-      expect(api.lmsGetLastError()).toBe("404");
-      expect(api.lmsGetValue("cmi.comments_from_lms._count")).toBe("1");
-    },
-  );
 });

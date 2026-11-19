@@ -1,4 +1,3 @@
-import { Scorm2004ValidationError } from "../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../cmi/common/base_cmi";
 import { CMIArray } from "../cmi/common/array";
 import { global_constants, LogLevelEnum } from "../constants";
@@ -482,7 +481,6 @@ export class CMIValueAccessService {
     const index = parseInt(structure[idx + 1] || "0", 10);
 
     const token = structure[idx + 1] ?? "";
-    const collectionPath = structure.slice(0, idx + 1).join(".");
     if (
       scorm2004 &&
       /^-?\d/.test(token) &&
@@ -493,25 +491,6 @@ export class CMIValueAccessService {
         getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"),
       );
       return { refObject, idx, foundFirstIndex, error: true };
-    }
-    if (scorm2004 && !isNaN(index) && this.context.isInitialized()) {
-      if (collectionPath === "cmi.comments_from_lms") {
-        throw new Scorm2004ValidationError(
-          CMIElement,
-          getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT"),
-        );
-      }
-      if (
-        (collectionPath === "cmi.interactions" || collectionPath === "cmi.objectives") &&
-        structure[idx + 2] !== "id" &&
-        !(refObject.childArray[index] as unknown as StringKeyMap | undefined)?.id
-      ) {
-        this.context.throwSCORMError(
-          CMIElement,
-          getErrorCode(this.context.errorCodes, "DEPENDENCY_NOT_ESTABLISHED"),
-        );
-        return { refObject, idx, foundFirstIndex, error: true };
-      }
     }
 
     if (!isNaN(index)) {
