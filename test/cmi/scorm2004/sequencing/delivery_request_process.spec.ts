@@ -352,6 +352,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
   });
 
   describe("Activity Path Validation (DB.1.1)", () => {
+    /** @spec SN UP.1: limit rejection fixtures must have no active or suspended attempt. */
     it("should validate path includes checking all ancestors, not just target", () => {
       // This test demonstrates that path validation checks ancestors
       // by setting up an ancestor with a duration limit violation
@@ -361,7 +362,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.attemptAbsoluteDurationLimit = "PT1S"; // 1 second
       child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString(); // Started 2 seconds ago
-      child1.isActive = true;
+      child1.isActive = false;
 
       // Try to deliver grandchild1 (child of child1)
       const result = overallProcess.processNavigationRequest(
@@ -408,7 +409,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.attemptAbsoluteDurationLimit = "PT1S"; // 1 second
       child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString(); // Started 2 seconds ago
-      child1.isActive = true;
+      child1.isActive = false;
 
       // Try to deliver grandchild1
       const result = overallProcess.processNavigationRequest(
@@ -446,7 +447,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       root.attemptAbsoluteDurationLimit = "PT1S";
       root.attemptAbsoluteDurationValue = "PT2S";
       root.attemptStartTime = new Date(Date.now() - 2000).toISOString();
-      root.isActive = true;
+      root.isActive = false;
 
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
@@ -466,7 +467,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.attemptAbsoluteDurationLimit = "PT1S";
       child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
-      child1.isActive = true;
+      child1.isActive = false;
 
       grandchild1.isAvailable = true;
 
@@ -503,7 +504,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       grandchild1.attemptAbsoluteDurationLimit = "PT1S";
       grandchild1.attemptAbsoluteDurationValue = "PT2S";
       grandchild1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
-      grandchild1.isActive = true;
+      grandchild1.isActive = false;
 
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
@@ -525,7 +526,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.attemptAbsoluteDurationLimit = "PT1S";
       child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
-      child1.isActive = true;
+      child1.isActive = false;
 
       // Try to deliver great-grandchild (3 levels deep)
       const result = overallProcess.processNavigationRequest(
@@ -548,7 +549,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.attemptAbsoluteDurationLimit = "PT1S";
       child1.attemptAbsoluteDurationValue = "PT2S";
       child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
-      child1.isActive = true;
+      child1.isActive = false;
 
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,

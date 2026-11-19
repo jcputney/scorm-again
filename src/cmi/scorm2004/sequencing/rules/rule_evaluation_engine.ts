@@ -211,9 +211,9 @@ export class RuleEvaluationEngine {
    * @return {boolean} - True if limit conditions are violated
    */
   public checkLimitConditions(activity: Activity): boolean {
-    // @spec SCORM 2004 4th Ed. SN UP.1 step 1: a suspended activity has an attempt in progress
+    // @spec SCORM 2004 4th Ed. SN UP.1 step 1: an active or suspended activity has an attempt in progress
     // and is not subject to limit conditions; only a new attempt is (SB.2.6 Resume All, DB.2).
-    if (activity.isSuspended) {
+    if (activity.isActive || activity.isSuspended) {
       return false;
     }
 
