@@ -63,9 +63,14 @@ describe("DMI array bindings", () => {
   it("allows rewriting interaction IDs but preserves objective IDs", () => {
     const api = create();
     for (const collection of ["interactions", "objectives"]) {
+      const rewritable = collection === "interactions";
       expect(api.lmsSetValue(`cmi.${collection}.0.id`, "urn:first")).toBe("true");
       expect(api.lmsSetValue(`cmi.${collection}.0.id`, "urn:second")).toBe(
-        collection === "interactions" ? "true" : "false",
+        rewritable ? "true" : "false",
+      );
+      expect(api.lmsGetLastError()).toBe(rewritable ? "0" : "351");
+      expect(api.lmsGetValue(`cmi.${collection}.0.id`)).toBe(
+        rewritable ? "urn:second" : "urn:first",
       );
     }
   });
