@@ -550,7 +550,8 @@ describe("SequencingProcess", () => {
   });
 
   describe("choice request edge cases", () => {
-    it("should reject choice blocked by constrainChoice", () => {
+    it("should allow choice under a constrained common ancestor", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const child1 = new Activity("child1", "Child 1");
@@ -584,8 +585,8 @@ describe("SequencingProcess", () => {
         "child3"
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     });
 
     it("should reject choice when parent has flow=false", () => {
@@ -2188,7 +2189,8 @@ describe("SequencingProcess", () => {
   });
 
   describe("validateChoicePathConstraints edge cases", () => {
-    it("should block backward choice to incomplete activity with constrainChoice", () => {
+    it("should allow backward choice to incomplete activity with constrainChoice", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const child1 = new Activity("child1", "Child 1");
@@ -2223,7 +2225,7 @@ describe("SequencingProcess", () => {
         "child1"
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.exception).toBeNull();
     });
 
     it("should allow backward choice to completed activity with constrainChoice", () => {
@@ -2266,7 +2268,8 @@ describe("SequencingProcess", () => {
       expect(result.targetActivity?.id).toBe("child1");
     });
 
-    it("should block unattempted activity when preventActivation is enabled at ancestor", () => {
+    it("should allow unattempted activity when preventActivation is enabled at ancestor", () => {
+      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const parent = new Activity("parent", "Parent");
@@ -2304,7 +2307,7 @@ describe("SequencingProcess", () => {
         "child2"
       );
 
-      expect(result.exception).toBe("SB.2.9-6");
+      expect(result.exception).toBeNull();
     });
 
     it("should allow previously attempted activity with preventActivation", () => {
@@ -3600,10 +3603,11 @@ describe("SequencingProcess", () => {
      * SCORM 2004 SB.2.9-7: Constrained Choice Backward Navigation
      * When constrainChoice is true, backward navigation (choosing an earlier sibling)
      * is only allowed if the target activity is completed or passed.
-     * This test verifies that attempting to navigate backward to an INCOMPLETE
-     * activity when constrainChoice=true returns exception SB.2.9-7
+     * CM-16: constrainChoice on the common ancestor permits backward choice,
+     * including an incomplete target.
      */
-    it("should return SB.2.9-7 for backward choice to incomplete activity with constrainChoice (SB.2.9)", () => {
+    it("should allow backward choice to incomplete activity with constrainChoice (SB.2.9)", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const child1 = new Activity("child1", "Child 1");
@@ -3640,16 +3644,15 @@ describe("SequencingProcess", () => {
       );
 
       // Attempt backward choice from child3 to child1 (incomplete)
-      // Per SB.2.9, this should be blocked because target is not completed
+
       const result = process.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "child1"
       );
 
-      // SB.2.9-7: "Activity is not available for a choice sequencing request"
-      // This is the expected exception when constrainChoice blocks backward navigation
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      // CM-16 Act3V1: backward choice under a constrained common ancestor succeeds.
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     });
 
     /**
@@ -3810,6 +3813,7 @@ describe("SequencingProcess", () => {
      * The backward choice to incomplete leaf1a triggers SB.2.9 validation
      */
     it("should validate constrainChoice at each ancestor level", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const cluster1 = new Activity("cluster1", "Cluster 1");
@@ -3851,22 +3855,20 @@ describe("SequencingProcess", () => {
         new ADLNav()
       );
 
-      // Backward choice within cluster with constrainChoice should be blocked
-      // Could be blocked by constrainChoice (SB.2.9-7) or other constraints
       const result = process.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "leaf1a"
       );
 
-      // The choice is blocked - verify the constraint was applied
-      expect(result.exception).toBeTruthy();
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     });
 
     /**
      * Test preventActivation constraint at nested ancestor level
      */
     it("should validate preventActivation at each ancestor level", () => {
+      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const cluster1 = new Activity("cluster1", "Cluster 1");
@@ -3907,14 +3909,13 @@ describe("SequencingProcess", () => {
         new ADLNav()
       );
 
-      // Choice to unattempted sibling should be blocked by preventActivation
       const result = process.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "leaf1b"
       );
 
-      expect(result.exception).toBe("SB.2.9-6");
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     });
 
     /**
@@ -4014,6 +4015,7 @@ describe("SequencingProcess", () => {
      * completionStatus against both "completed" and "passed" values
      */
     it("should check both completed and passed in constrainChoice backward validation", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const tree = new ActivityTree();
       const root = new Activity("root", "Root");
       const child1 = new Activity("child1", "Child 1");
@@ -4049,15 +4051,14 @@ describe("SequencingProcess", () => {
         new ADLNav()
       );
 
-      // Backward choice to "unknown" completionStatus should be blocked
       const result = process.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "child1"
       );
 
-      // With constrainChoice and incomplete target, should block with SB.2.9-7
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      // The common ancestor's constrainChoice does not depend on target completion.
+      expect(result.exception).toBeNull();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     });
   });
 });

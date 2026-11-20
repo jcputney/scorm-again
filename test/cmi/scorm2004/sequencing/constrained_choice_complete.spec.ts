@@ -104,7 +104,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
       expect(result.targetActivity).toBe(leaf1B);
     });
 
-    it("blocks choice to skip forward beyond next sibling", () => {
+    it("allows choice to skip forward beyond next sibling", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       activityTree.currentActivity = leaf1A;
       leaf1A.isActive = false;
 
@@ -113,8 +114,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf1C.id
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBeNull();
+      expect(result.targetActivity).toBe(leaf1C);
     });
 
     it("allows choice to same activity (retry scenario)", () => {
@@ -144,7 +145,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
       expect(result.targetActivity).toBe(leaf1A);
     });
 
-    it("blocks backward choice to incomplete activities", () => {
+    it("allows backward choice to incomplete activities", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       activityTree.currentActivity = leaf1B;
       leaf1B.isActive = false;
       leaf1A.completionStatus = "incomplete";
@@ -154,8 +156,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf1A.id
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBeNull();
+      expect(result.targetActivity).toBe(leaf1A);
     });
   });
 
@@ -192,7 +194,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
       expect(result.targetActivity).toBe(leaf1B);
     });
 
-    it("blocks forward choice skipping past next sibling", () => {
+    it("allows forward choice skipping past next sibling", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       activityTree.currentActivity = leaf1A;
       leaf1A.isActive = false;
 
@@ -201,8 +204,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf1C.id
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBeNull();
+      expect(result.targetActivity).toBe(leaf1C);
     });
   });
 
@@ -227,6 +230,7 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
     });
 
     it("allows choice past mandatory completed activity", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       activityTree.currentActivity = leaf1A;
       leaf1A.isActive = false;
       leaf1B.completionStatus = "completed";
@@ -237,8 +241,7 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf1C.id
       );
 
-      // Still blocked by constrainChoice (can't skip forward)
-      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.exception).toBeNull();
     });
 
     it("allows choice to mandatory incomplete activity itself", () => {
@@ -280,17 +283,17 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
     });
 
     it("validates constraints at parent level within same cluster", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       activityTree.currentActivity = leaf1A;
       leaf1A.isActive = false;
 
-      // Try to skip to leaf1C - should be blocked by cluster1 constrainChoice
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         leaf1C.id
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBeNull();
+      expect(result.targetActivity).toBe(leaf1C);
     });
 
     it("checks constraints at ALL ancestor levels", () => {
@@ -337,6 +340,7 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
     });
 
     it("validates constraints when choosing into nested cluster", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       activityTree.currentActivity = leaf1A;
       leaf1A.isActive = false;
 
@@ -345,9 +349,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         nestedLeaf.id
       );
 
-      // Should be blocked - can't skip from leaf1A to nestedLeaf (beyond next sibling)
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBeNull();
+      expect(result.targetActivity).toBe(nestedLeaf);
     });
 
     it("allows choice within nested cluster when parent allows", () => {
@@ -449,7 +452,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
       expect(result.exception).toBe("SB.2.9-6");
     });
 
-    it("validates exception code SB.2.9-7 for constrained choice boundary", () => {
+    it("excludes the common ancestor from the constrained choice boundary", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       cluster1.sequencingControls.constrainChoice = true;
       activityTree.currentActivity = leaf1A;
       leaf1A.isActive = false;
@@ -459,7 +463,7 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf1C.id
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.exception).toBeNull();
     });
   });
 
@@ -479,7 +483,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
       expect(result.targetActivity).toBe(leaf2A);
     });
 
-    it("blocks choice out of constrained cluster when root constrains", () => {
+    it("allows choice out of constrained cluster when root constrains", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       cluster1.sequencingControls.constrainChoice = false;
       root.sequencingControls.constrainChoice = true;
       activityTree.currentActivity = leaf1A;
@@ -490,9 +495,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf3A.id
       );
 
-      // Should be blocked - can't skip from cluster1 to cluster3
-      expect(result.exception).toBe("SB.2.9-7");
-      expect(result.targetActivity).toBeNull();
+      expect(result.exception).toBeNull();
+      expect(result.targetActivity).toBe(leaf3A);
     });
 
     it("allows choice to next cluster when at boundary", () => {
@@ -544,7 +548,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
       expect(result.targetActivity).toBe(leaf1B);
     });
 
-    it("blocks skipping forward even with forwardOnly", () => {
+    it("allows skipping forward even with forwardOnly", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       cluster1.sequencingControls.constrainChoice = true;
       cluster1.sequencingControls.forwardOnly = true;
       activityTree.currentActivity = leaf1A;
@@ -556,7 +561,7 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf1C.id
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.exception).toBeNull();
     });
   });
 
@@ -580,7 +585,8 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
       expect(result.targetActivity).toBe(leaf1A);
     });
 
-    it("blocks backward choice to unknown status activities", () => {
+    it("allows backward choice to unknown status activities", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       cluster1.sequencingControls.forwardOnly = false;
       activityTree.currentActivity = leaf1B;
       leaf1B.isActive = false;
@@ -591,7 +597,7 @@ describe("Complete Constrained Choice Support (SB.2.9)", () => {
         leaf1A.id
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.exception).toBeNull();
     });
   });
 

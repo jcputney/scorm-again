@@ -1,3 +1,4 @@
+import { findPreventingActivationAncestor, validateConstrainedChoice } from "../validators/choice_constraint_validator";
 import { Activity } from "../activity";
 import { ActivityTree } from "../activity_tree";
 import { SequencingProcess, SequencingRequestType } from "../sequencing_process";
@@ -459,6 +460,10 @@ export class NavigationValidityService {
       return { valid: false, exception: "NB.2.1-11" };
     }
 
+    if (findPreventingActivationAncestor(targetActivity)) {
+      return { valid: false, exception: "NB.2.1-11" };
+    }
+
     if (currentActivity) {
       const commonAncestor = this.findCommonAncestor(
         currentActivity,
@@ -562,48 +567,8 @@ export class NavigationValidityService {
     targetActivity: Activity,
     commonAncestor: Activity
   ): { valid: boolean; exception: string | null } {
-    // Check constrainChoice at the common ancestor and above in the path
-    let ancestor: Activity | null = commonAncestor;
-    while (ancestor) {
-      if (
-        ancestor.sequencingControls?.constrainChoice ||
-        ancestor.sequencingControls?.preventActivation
-      ) {
-        const currentBranch = this.findChildContaining(
-          ancestor,
-          currentActivity
-        );
-        if (!currentBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-
-        if (targetActivity === ancestor) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-
-        const targetBranch = this.findChildContaining(ancestor, targetActivity);
-        if (!targetBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-
-        if (
-          ancestor.sequencingControls?.constrainChoice &&
-          targetBranch !== currentBranch
-        ) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-
-        if (
-          ancestor.sequencingControls?.preventActivation &&
-          targetBranch !== currentBranch
-        ) {
-          if (this.requiresNewActivation(targetBranch, targetActivity)) {
-            return { valid: false, exception: "NB.2.1-11" };
-          }
-        }
-      }
-
-      ancestor = ancestor.parent;
+    if (!validateConstrainedChoice(currentActivity, targetActivity)) {
+      return { valid: false, exception: "NB.2.1-11" };
     }
 
     return this.validateAncestors(commonAncestor, currentActivity, targetActivity);
@@ -819,35 +784,6 @@ export class NavigationValidityService {
     }
 
     return { valid: true, exception: null };
-  }
-
-  private requiresNewActivation(
-    branchRoot: Activity,
-    targetActivity: Activity
-  ): boolean {
-    if (this.branchHasActiveAttempt(branchRoot)) {
-      return false;
-    }
-
-    if (targetActivity.activityAttemptActive || targetActivity.isActive) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private branchHasActiveAttempt(activity: Activity): boolean {
-    if (activity.activityAttemptActive || activity.isActive) {
-      return true;
-    }
-
-    for (const child of activity.children) {
-      if (this.branchHasActiveAttempt(child)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /** Helper: mandatory activity detection (mirrors SequencingProcess behavior) */

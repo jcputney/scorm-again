@@ -196,6 +196,7 @@ describe("Navigation Validity - Complex Activity States", () => {
     });
 
     it("should handle constrainChoice at multiple levels", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const root = new Activity("root", "Root", false);
       root.sequencingControls = new SequencingControls();
       root.sequencingControls.constrainChoice = true;
@@ -225,10 +226,11 @@ describe("Navigation Validity - Complex Activity States", () => {
         "a3"
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.exception).toBeNull();
     });
 
     it("should handle preventActivation with complex tree structure", () => {
+      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
       const root = new Activity("root", "Root", false);
       const cluster = new Activity("cluster", "Cluster", false);
       cluster.sequencingControls = new SequencingControls();
@@ -255,7 +257,7 @@ describe("Navigation Validity - Complex Activity States", () => {
         "b"
       );
 
-      expect(result.exception).toBe("SB.2.9-6");
+      expect(result.exception).toBeNull();
     });
   });
 
@@ -541,6 +543,7 @@ describe("Navigation Validity - Complex Activity States", () => {
     });
 
     it("should validate constraints when navigating between nested clusters", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const root = new Activity("root", "Root", false);
       root.sequencingControls = new SequencingControls();
       root.sequencingControls.choice = true;
@@ -577,7 +580,7 @@ describe("Navigation Validity - Complex Activity States", () => {
         "b3"
       );
 
-      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.exception).toBeNull();
     });
   });
 });

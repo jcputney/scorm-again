@@ -21,6 +21,7 @@ import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_p
 describe("Choice Flow Subprocess Edge Cases (REQ-NAV-009)", () => {
   describe("multi-level tree traversals", () => {
     it("should validate constrained choice across multiple cluster levels", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       // Create a 3-level deep tree
       const root = new Activity("root", "Root");
       const cluster1 = new Activity("cluster1", "Cluster 1");
@@ -67,16 +68,16 @@ describe("Choice Flow Subprocess Edge Cases (REQ-NAV-009)", () => {
       expect(result1.valid).toBe(true);
       expect(result1.targetActivity?.id).toBe("leaf3");
 
-      // Choice to leaf1 (outside cluster2 branch) should be invalid with constrainChoice at root
       const result2 = process.processNavigationRequest(
         NavigationRequestType.CHOICE,
         "leaf1"
       );
-      expect(result2.valid).toBe(false);
-      expect(result2.exception).toBe("NB.2.1-11");
+      expect(result2.valid).toBe(true);
+      expect(result2.exception).toBeNull();
     });
 
     it("should handle deeply nested constrained choice validation", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       // Create a 4-level deep tree to test deep constraint propagation
       const root = new Activity("root", "Root");
       const level1 = new Activity("level1", "Level 1");
@@ -127,8 +128,8 @@ describe("Choice Flow Subprocess Edge Cases (REQ-NAV-009)", () => {
         NavigationRequestType.CHOICE,
         "leafC"
       );
-      expect(result2.valid).toBe(false);
-      expect(result2.exception).toBe("NB.2.1-11");
+      expect(result2.valid).toBe(true);
+      expect(result2.exception).toBeNull();
     });
 
     it("should allow choice across branches when constrainChoice is false at all levels", () => {
@@ -469,6 +470,7 @@ describe("Choice Flow Subprocess Edge Cases (REQ-NAV-009)", () => {
 
   describe("constrained choice with complex tree structures", () => {
     it("should handle constrained choice with sibling clusters", () => {
+      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
       const root = new Activity("root", "Root");
       const clusterA = new Activity("clusterA", "Cluster A");
       const clusterB = new Activity("clusterB", "Cluster B");
@@ -512,18 +514,17 @@ describe("Choice Flow Subprocess Edge Cases (REQ-NAV-009)", () => {
       );
       expect(result1.valid).toBe(true);
 
-      // Choice outside clusterB branch should be blocked by constrainChoice
       const result2 = process.processNavigationRequest(
         NavigationRequestType.CHOICE,
         "leafA"
       );
-      expect(result2.valid).toBe(false);
+      expect(result2.valid).toBe(true);
 
       const result3 = process.processNavigationRequest(
         NavigationRequestType.CHOICE,
         "leafC"
       );
-      expect(result3.valid).toBe(false);
+      expect(result3.valid).toBe(true);
     });
 
     it("should handle choice with mixed forwardOnly and constrainChoice", () => {
