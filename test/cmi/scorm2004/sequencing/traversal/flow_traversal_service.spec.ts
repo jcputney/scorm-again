@@ -482,6 +482,22 @@ describe("FlowTraversalService", () => {
   });
 
   describe("checkActivityProcess", () => {
+    it.each([true, false])(
+      "checks Disabled independently when ignoring Skip: disabled=%s (UP.5)",
+      (disabled) => {
+        const actions = disabled
+          ? [RuleActionType.SKIP, RuleActionType.STOP_FORWARD_TRAVERSAL, RuleActionType.DISABLED]
+          : [RuleActionType.SKIP];
+        for (const action of actions) {
+          const rule = new SequencingRule(action);
+          rule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+          chapter1.sequencingRules.addPreConditionRule(rule);
+        }
+        expect(service.checkActivityProcess(chapter1, true)).toBe(!disabled);
+        expect(chapter1.wasSkipped).toBe(false);
+      },
+    );
+
     it("should return true for available, visible leaf activity", () => {
       expect(service.checkActivityProcess(lesson1)).toBe(true);
     });
