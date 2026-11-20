@@ -9,6 +9,7 @@ import {
   SequencingRule,
 } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
+import { RetryRequestHandler } from "../../../../../src/cmi/scorm2004/sequencing/handlers/retry_request_handler";
 import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 
 describe("FlowTraversalService", () => {
@@ -47,6 +48,81 @@ describe("FlowTraversalService", () => {
     activityTree = new ActivityTree(root);
     ruleEngine = new RuleEvaluationEngine();
     service = new FlowTraversalService(activityTree, ruleEngine);
+  });
+
+  describe("backward entry into a forwardOnly cluster", () => {
+    const skip = (activity: Activity) => {
+      const rule = new SequencingRule(RuleActionType.SKIP);
+      rule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+      activity.sequencingRules.addPreConditionRule(rule);
+    };
+
+    beforeEach(() => {
+      root.sequencingControls.flow = true;
+      chapter1.sequencingControls.flow = true;
+      chapter1.sequencingControls.forwardOnly = true;
+    });
+
+    it("keeps Retry bounded when every child is skipped", () => {
+      skip(lesson1);
+      skip(lesson2);
+      // Original traversal stops at the boundary with no exception or session end.
+      const result = service.findFirstDeliverableActivityResult(chapter1, chapter1);
+      expect(result.deliverable).toBe(false);
+      expect(result.identifiedActivity).toBe(lesson2);
+      expect(result.exception).toBeNull();
+      expect(result.endSequencingSession).toBe(false);
+
+      chapter1.isActive = false;
+      chapter1.isSuspended = false;
+      const retry = new RetryRequestHandler(activityTree, service).handleRetry(chapter1);
+      expect(retry.deliveryRequest).toBe("doNotDeliver");
+      expect(retry.exception).toBe("SB.2.10-3");
+    });
+
+    it("still delivers the first non-skipped child when entered backward", () => {
+      skip(lesson1);
+      const result = service.flowSubprocess(chapter2, FlowSubprocessMode.BACKWARD);
+      expect(result.deliverable).toBe(true);
+      expect(result.identifiedActivity).toBe(lesson2);
+    });
+
+    it("checks the cluster parent's forwardOnly constraint when reversing", () => {
+      root.sequencingControls.forwardOnly = true;
+      // SB.2.2 continuation after skipping the last direct child, with
+      // Previous Direction Backward retained from entering chapter1.
+      const result = service["continueFlowActivityTraversal"](
+        lesson2,
+        FlowSubprocessMode.FORWARD,
+        true,
+        chapter1,
+        true,
+      );
+      expect(result.deliverable).toBe(false);
+      expect(result.exception).toBe("SB.2.1-4");
+      expect(result.endSequencingSession).toBe(false);
+    });
+
+    it("reports beginning-of-tree exhaustion after reversing", () => {
+      skip(lesson1);
+      skip(lesson2);
+      const result = service.flowSubprocess(chapter2, FlowSubprocessMode.BACKWARD);
+      expect(result.deliverable).toBe(false);
+      expect(result.exception).toBe("SB.2.1-3");
+      expect(result.endSequencingSession).toBe(false);
+    });
+
+    it("keeps the boundary when skipped leaves are inside a non-skipped cluster", () => {
+      const nested = new Activity("nested", "Nested");
+      lesson2.addChild(nested);
+      lesson2.sequencingControls.flow = true;
+      skip(lesson1);
+      skip(nested);
+      const result = service.flowSubprocess(chapter2, FlowSubprocessMode.BACKWARD);
+      expect(result.deliverable).toBe(false);
+      expect(result.exception).toBeNull();
+      expect(result.endSequencingSession).toBe(false);
+    });
   });
 
   describe("flowTreeTraversalSubprocess", () => {
