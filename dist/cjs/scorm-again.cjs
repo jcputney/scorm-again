@@ -1504,13 +1504,17 @@ var RuleActionType = /* @__PURE__ */ ((RuleActionType2) => {
   RuleActionType2["EXIT"] = "exit";
   return RuleActionType2;
 })(RuleActionType || {});
-const OBJECTIVE_TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
+const TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
   "satisfied" /* SATISFIED */,
   "objectiveSatisfied" /* OBJECTIVE_SATISFIED */,
   "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */,
   "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */,
   "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */,
-  "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */
+  "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */,
+  "completed" /* COMPLETED */,
+  "activityCompleted" /* ACTIVITY_COMPLETED */,
+  "progressKnown" /* PROGRESS_KNOWN */,
+  "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */
 ]);
 function kleeneNot(value) {
   if (value === "unknown") {
@@ -1666,7 +1670,7 @@ class RuleCondition extends BaseCMI {
     let result;
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
-    if (activity.sequencingControls?.tracked === false && OBJECTIVE_TRACKING_CONDITIONS.has(this._condition)) {
+    if (activity.sequencingControls?.tracked === false && TRACKING_CONDITIONS.has(this._condition)) {
       result = "unknown";
     } else
       switch (this._condition) {
@@ -11353,6 +11357,7 @@ class GlobalObjectiveSynchronizer {
     const beforeObjectiveSatisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
     const objectives = activity.getAllObjectives();
     for (const objective of objectives) {
+      const mappedProgressMeasure = writeTargets ? void 0 : this.getMappedProgressMeasure(objective, globalObjectives);
       for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         const freshlyWroteSatisfiedStatus = writeTargets?.satisfiedStatus.has(targetId) ?? false;
@@ -11376,7 +11381,8 @@ class GlobalObjectiveSynchronizer {
             restrictToFreshWrites: false,
             allowSatisfiedStatus: true,
             allowNormalizedMeasure: true
-          } : void 0
+          } : void 0,
+          mappedProgressMeasure
         );
         this.applyGlobalObjectiveReadState(objective, readState);
         if (isPrimary) {
@@ -11402,6 +11408,7 @@ class GlobalObjectiveSynchronizer {
   synchronizeGlobalObjectives(activity, globalObjectives) {
     const objectives = activity.getAllObjectives();
     for (const objective of objectives) {
+      const mappedProgressMeasure = this.getMappedProgressMeasure(objective, globalObjectives);
       for (const mapInfo of objective.mapInfo) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
         const globalObjective = this.ensureGlobalObjectiveEntry(
@@ -11409,7 +11416,13 @@ class GlobalObjectiveSynchronizer {
           targetId,
           objective
         );
-        this.syncObjectiveState(activity, objective, mapInfo, globalObjective);
+        this.syncObjectiveState(
+          activity,
+          objective,
+          mapInfo,
+          globalObjective,
+          mappedProgressMeasure
+        );
       }
     }
   }
@@ -11425,7 +11438,7 @@ class GlobalObjectiveSynchronizer {
    * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo read/write synchronization
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo synchronization
    */
-  syncObjectiveState(activity, objective, mapInfo, globalObjective) {
+  syncObjectiveState(activity, objective, mapInfo, globalObjective, mappedProgressMeasure) {
     try {
       const isPrimary = objective.isPrimary;
       const localObjective = this.getLocalObjectiveState(activity, objective, isPrimary);
@@ -11433,7 +11446,9 @@ class GlobalObjectiveSynchronizer {
         activity,
         objective,
         mapInfo,
-        globalObjective
+        globalObjective,
+        void 0,
+        mappedProgressMeasure
       );
       this.applyGlobalObjectiveReadState(objective, readState);
       if (objective.isPrimary) {
@@ -11493,13 +11508,24 @@ class GlobalObjectiveSynchronizer {
       });
     }
   }
+  /** Collect only known progress measures read by this objective, never stale local state. */
+  getMappedProgressMeasure(objective, globalObjectives) {
+    let progressMeasure;
+    for (const mapInfo of objective.mapInfo) {
+      const globalObjective = globalObjectives.get(mapInfo.targetObjectiveID || objective.id);
+      if (mapInfo.readProgressMeasure && globalObjective?.progressMeasureKnown) {
+        progressMeasure = globalObjective.progressMeasure;
+      }
+    }
+    return progressMeasure;
+  }
   /**
    * Project a global objective through one local objective's read mapInfo.
    *
    * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to mapped global objective fields
    * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps are independent fields
    */
-  static getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective, options) {
+  static getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective, options, mappedProgressMeasure) {
     const readState = {};
     const suppressSatisfiedRead = activity.isActive && mapInfo.writeSatisfiedStatus && !options?.allowSatisfiedStatus;
     const suppressMeasureRead = activity.isActive && mapInfo.writeNormalizedMeasure && !options?.allowNormalizedMeasure;
@@ -11527,6 +11553,12 @@ class GlobalObjectiveSynchronizer {
     }
     if (!options?.restrictToFreshWrites && mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
       readState.progressMeasure = globalObjective.progressMeasure;
+    }
+    const progressMeasure = mappedProgressMeasure ?? readState.progressMeasure;
+    if (!options?.restrictToFreshWrites && progressMeasure !== void 0) {
+      if (activity.completedByMeasure) {
+        readState.completionStatus = progressMeasure >= activity.minProgressMeasure ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
+      }
     }
     if (!options?.restrictToFreshWrites && mapInfo.readRawScore && globalObjective.rawScoreKnown) {
       readState.rawScore = globalObjective.rawScore;

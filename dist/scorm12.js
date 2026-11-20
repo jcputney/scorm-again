@@ -2138,13 +2138,17 @@ this.Scorm12API = (function () {
   var __publicField$n = function __publicField(obj, key, value) {
       return __defNormalProp$n(obj, (typeof key === "undefined" ? "undefined" : _type_of$o(key)) !== "symbol" ? key + "" : key, value);
   };
-  var OBJECTIVE_TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
+  var TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
       "satisfied" /* SATISFIED */ ,
       "objectiveSatisfied" /* OBJECTIVE_SATISFIED */ ,
       "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ ,
       "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */ ,
       "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ ,
-      "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ 
+      "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ ,
+      "completed" /* COMPLETED */ ,
+      "activityCompleted" /* ACTIVITY_COMPLETED */ ,
+      "progressKnown" /* PROGRESS_KNOWN */ ,
+      "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */ 
   ]);
   function kleeneNot(value) {
       if (value === "unknown") {
@@ -2336,7 +2340,7 @@ this.Scorm12API = (function () {
                   var result;
                   var hasReferencedObjective = this._referencedObjective !== null;
                   var referencedObjective = this.resolveReferencedObjective(activity);
-                  if (((_activity_sequencingControls = activity.sequencingControls) === null || _activity_sequencingControls === void 0 ? void 0 : _activity_sequencingControls.tracked) === false && OBJECTIVE_TRACKING_CONDITIONS.has(this._condition)) {
+                  if (((_activity_sequencingControls = activity.sequencingControls) === null || _activity_sequencingControls === void 0 ? void 0 : _activity_sequencingControls.tracked) === false && TRACKING_CONDITIONS.has(this._condition)) {
                       result = "unknown";
                   } else switch(this._condition){
                       case "satisfied" /* SATISFIED */ :

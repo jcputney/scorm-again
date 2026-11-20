@@ -65,8 +65,9 @@ export declare class GlobalObjectiveSynchronizer {
     syncFreshlyWrittenGlobalObjectivesReadPhase(activity: Activity, globalObjectives: Map<string, GlobalObjective>, writeTargets: GlobalObjectiveWriteTargets): boolean;
     private syncGlobalObjectivesReadPhaseInternal;
     synchronizeGlobalObjectives(activity: Activity, globalObjectives: Map<string, GlobalObjective>): void;
-    syncObjectiveState(activity: Activity, objective: ActivityObjective, mapInfo: ObjectiveMapInfo, globalObjective: GlobalObjective): void;
-    static getGlobalObjectiveReadState(activity: Activity, objective: ActivityObjective, mapInfo: ObjectiveMapInfo, globalObjective: GlobalObjective, options?: GlobalObjectiveReadOptions): ActivityObjectiveReadState;
+    syncObjectiveState(activity: Activity, objective: ActivityObjective, mapInfo: ObjectiveMapInfo, globalObjective: GlobalObjective, mappedProgressMeasure?: number): void;
+    private getMappedProgressMeasure;
+    static getGlobalObjectiveReadState(activity: Activity, objective: ActivityObjective, mapInfo: ObjectiveMapInfo, globalObjective: GlobalObjective, options?: GlobalObjectiveReadOptions, mappedProgressMeasure?: number): ActivityObjectiveReadState;
     private applyGlobalObjectiveReadState;
     ensureGlobalObjectiveEntry(globalObjectives: Map<string, GlobalObjective>, targetId: string, objective: ActivityObjective): GlobalObjective;
     createDefaultMapInfo(objective: ActivityObjective): ObjectiveMapInfo;

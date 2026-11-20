@@ -2252,13 +2252,17 @@ this.Scorm2004API = (function () {
       RuleActionType2["EXIT"] = "exit";
       return RuleActionType2;
   }(RuleActionType || {});
-  var OBJECTIVE_TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
+  var TRACKING_CONDITIONS = /* @__PURE__ */ new Set([
       "satisfied" /* SATISFIED */ ,
       "objectiveSatisfied" /* OBJECTIVE_SATISFIED */ ,
       "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */ ,
       "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */ ,
       "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */ ,
-      "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ 
+      "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */ ,
+      "completed" /* COMPLETED */ ,
+      "activityCompleted" /* ACTIVITY_COMPLETED */ ,
+      "progressKnown" /* PROGRESS_KNOWN */ ,
+      "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */ 
   ]);
   function kleeneNot(value) {
       if (value === "unknown") {
@@ -2450,7 +2454,7 @@ this.Scorm2004API = (function () {
                   var result;
                   var hasReferencedObjective = this._referencedObjective !== null;
                   var referencedObjective = this.resolveReferencedObjective(activity);
-                  if (((_activity_sequencingControls = activity.sequencingControls) === null || _activity_sequencingControls === void 0 ? void 0 : _activity_sequencingControls.tracked) === false && OBJECTIVE_TRACKING_CONDITIONS.has(this._condition)) {
+                  if (((_activity_sequencingControls = activity.sequencingControls) === null || _activity_sequencingControls === void 0 ? void 0 : _activity_sequencingControls.tracked) === false && TRACKING_CONDITIONS.has(this._condition)) {
                       result = "unknown";
                   } else switch(this._condition){
                       case "satisfied" /* SATISFIED */ :
@@ -16228,6 +16232,7 @@ this.Scorm2004API = (function () {
                   try {
                       for(var _iterator = objectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var objective = _step.value;
+                          var mappedProgressMeasure = writeTargets ? void 0 : this.getMappedProgressMeasure(objective, globalObjectives);
                           var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
                           try {
                               for(var _iterator1 = objective.mapInfo[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
@@ -16251,7 +16256,7 @@ this.Scorm2004API = (function () {
                                       restrictToFreshWrites: false,
                                       allowSatisfiedStatus: true,
                                       allowNormalizedMeasure: true
-                                  } : void 0);
+                                  } : void 0, mappedProgressMeasure);
                                   this.applyGlobalObjectiveReadState(objective, readState);
                                   if (isPrimary) {
                                       objective.applyToActivity(activity);
@@ -16309,13 +16314,14 @@ this.Scorm2004API = (function () {
                   try {
                       for(var _iterator = objectives[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
                           var objective = _step.value;
+                          var mappedProgressMeasure = this.getMappedProgressMeasure(objective, globalObjectives);
                           var _iteratorNormalCompletion1 = true, _didIteratorError1 = false, _iteratorError1 = undefined;
                           try {
                               for(var _iterator1 = objective.mapInfo[Symbol.iterator](), _step1; !(_iteratorNormalCompletion1 = (_step1 = _iterator1.next()).done); _iteratorNormalCompletion1 = true){
                                   var mapInfo = _step1.value;
                                   var targetId = mapInfo.targetObjectiveID || objective.id;
                                   var globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective);
-                                  this.syncObjectiveState(activity, objective, mapInfo, globalObjective);
+                                  this.syncObjectiveState(activity, objective, mapInfo, globalObjective, mappedProgressMeasure);
                               }
                           } catch (err) {
                               _didIteratorError1 = true;
@@ -16361,12 +16367,12 @@ this.Scorm2004API = (function () {
      * @spec SCORM 2004 4th Ed. SN 3.10.3 - objective mapInfo read/write synchronization
      * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - score mapInfo synchronization
      */ key: "syncObjectiveState",
-              value: function syncObjectiveState(activity, objective, mapInfo, globalObjective) {
+              value: function syncObjectiveState(activity, objective, mapInfo, globalObjective, mappedProgressMeasure) {
                   try {
                       var _this_eventCallback, _this;
                       var isPrimary = objective.isPrimary;
                       var localObjective = this.getLocalObjectiveState(activity, objective, isPrimary);
-                      var readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective);
+                      var readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective, void 0, mappedProgressMeasure);
                       this.applyGlobalObjectiveReadState(objective, readState);
                       if (objective.isPrimary) {
                           objective.applyToActivity(activity);
@@ -16426,6 +16432,36 @@ this.Scorm2004API = (function () {
                           timestamp: (/* @__PURE__ */ new Date()).toISOString()
                       });
                   }
+              }
+          },
+          {
+              /** Collect only known progress measures read by this objective, never stale local state. */ key: "getMappedProgressMeasure",
+              value: function getMappedProgressMeasure(objective, globalObjectives) {
+                  var progressMeasure;
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = objective.mapInfo[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var mapInfo = _step.value;
+                          var globalObjective = globalObjectives.get(mapInfo.targetObjectiveID || objective.id);
+                          if (mapInfo.readProgressMeasure && (globalObjective === null || globalObjective === void 0 ? void 0 : globalObjective.progressMeasureKnown)) {
+                              progressMeasure = globalObjective.progressMeasure;
+                          }
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return progressMeasure;
               }
           },
           {
@@ -16662,7 +16698,7 @@ this.Scorm2004API = (function () {
      *
      * @spec SCORM 2004 4th Ed. SN 3.10.3 - read maps provide access to mapped global objective fields
      * @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - raw/min/max score read maps are independent fields
-     */ function getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective, options) {
+     */ function getGlobalObjectiveReadState(activity, objective, mapInfo, globalObjective, options, mappedProgressMeasure) {
                   var readState = {};
                   var suppressSatisfiedRead = activity.isActive && mapInfo.writeSatisfiedStatus && !(options === null || options === void 0 ? void 0 : options.allowSatisfiedStatus);
                   var suppressMeasureRead = activity.isActive && mapInfo.writeNormalizedMeasure && !(options === null || options === void 0 ? void 0 : options.allowNormalizedMeasure);
@@ -16691,6 +16727,12 @@ this.Scorm2004API = (function () {
                   }
                   if (!(options === null || options === void 0 ? void 0 : options.restrictToFreshWrites) && mapInfo.readProgressMeasure && globalObjective.progressMeasureKnown) {
                       readState.progressMeasure = globalObjective.progressMeasure;
+                  }
+                  var progressMeasure = mappedProgressMeasure !== null && mappedProgressMeasure !== void 0 ? mappedProgressMeasure : readState.progressMeasure;
+                  if (!(options === null || options === void 0 ? void 0 : options.restrictToFreshWrites) && progressMeasure !== void 0) {
+                      if (activity.completedByMeasure) {
+                          readState.completionStatus = progressMeasure >= activity.minProgressMeasure ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
+                      }
                   }
                   if (!(options === null || options === void 0 ? void 0 : options.restrictToFreshWrites) && mapInfo.readRawScore && globalObjective.rawScoreKnown) {
                       readState.rawScore = globalObjective.rawScore;
