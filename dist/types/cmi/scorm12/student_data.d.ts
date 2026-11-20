@@ -5,7 +5,7 @@ export declare class CMIStudentData extends BaseCMI {
     private _max_time_allowed;
     private _time_limit_action;
     constructor(student_data_children?: string);
-    reset(): void;
+    reset(clearLaunchData?: boolean): void;
     get _children(): string;
     set _children(_children: string);
     get mastery_score(): string;

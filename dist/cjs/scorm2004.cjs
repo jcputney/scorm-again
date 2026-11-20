@@ -20432,8 +20432,11 @@ class CMIContent extends BaseCMI {
   /**
    * Reset the content properties
    */
-  reset() {
+  reset(clearLaunchData = false) {
     this._initialized = false;
+    if (clearLaunchData) {
+      this._launch_data = "";
+    }
     this._location = "";
     this._suspend_data = "";
   }
@@ -20562,8 +20565,12 @@ class CMISettings extends BaseCMI {
   /**
    * Reset the settings properties
    */
-  reset() {
+  reset(clearLaunchData = false) {
     this._initialized = false;
+    if (clearLaunchData) {
+      this._max_time_allowed = "";
+      this._time_limit_action = "continue,no message";
+    }
   }
 }
 
@@ -20655,8 +20662,12 @@ class CMIThresholds extends BaseCMI {
   /**
    * Reset the threshold properties
    */
-  reset() {
+  reset(clearLaunchData = false) {
     this._initialized = false;
+    if (clearLaunchData) {
+      this._scaled_passing_score = "";
+      this._completion_threshold = "";
+    }
   }
 }
 
@@ -20731,16 +20742,16 @@ class CMI extends BaseRootCMI {
    * - Global objectives (via mapInfo) must persist across SCO transitions
    * - SCO-specific data (location, entry, session, interactions) must be reset
    */
-  reset() {
+  reset(clearLaunchData = false) {
     this._initialized = false;
     this._start_time = void 0;
     this.metadata?.reset();
     this.learner?.reset();
     this.status?.reset();
     this.session?.reset();
-    this.content?.reset();
-    this.settings?.reset();
-    this.thresholds?.reset();
+    this.content?.reset(clearLaunchData);
+    this.settings?.reset(clearLaunchData);
+    this.thresholds?.reset(clearLaunchData);
     this.objectives?.reset(true);
     this.interactions?.reset(true);
     this.score?.reset();
@@ -24557,7 +24568,7 @@ class Scorm2004API extends BaseAPI {
   reset(settings, options) {
     this.commonReset(settings, options);
     this._runtimeSetCMIElements.clear();
-    this.cmi?.reset();
+    this.cmi?.reset(options?.clearLaunchData === true);
     if (options?.resetTotalTime === true) {
       this.cmi.total_time = "PT0S";
     }

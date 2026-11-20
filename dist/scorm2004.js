@@ -29033,7 +29033,11 @@ this.Scorm2004API = (function () {
      * Reset the content properties
      */ key: "reset",
               value: function reset() {
+                  var clearLaunchData = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
                   this._initialized = false;
+                  if (clearLaunchData) {
+                      this._launch_data = "";
+                  }
                   this._location = "";
                   this._suspend_data = "";
               }
@@ -29229,7 +29233,12 @@ this.Scorm2004API = (function () {
      * Reset the settings properties
      */ key: "reset",
               value: function reset() {
+                  var clearLaunchData = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
                   this._initialized = false;
+                  if (clearLaunchData) {
+                      this._max_time_allowed = "";
+                      this._time_limit_action = "continue,no message";
+                  }
               }
           }
       ]);
@@ -29398,7 +29407,12 @@ this.Scorm2004API = (function () {
      * Reset the threshold properties
      */ key: "reset",
               value: function reset() {
+                  var clearLaunchData = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
                   this._initialized = false;
+                  if (clearLaunchData) {
+                      this._scaled_passing_score = "";
+                      this._completion_threshold = "";
+                  }
               }
           }
       ]);
@@ -29583,6 +29597,7 @@ this.Scorm2004API = (function () {
      * - SCO-specific data (location, entry, session, interactions) must be reset
      */ key: "reset",
               value: function reset() {
+                  var clearLaunchData = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
                   var _this_metadata, _this_learner, _this_status, _this_session, _this_content, _this_settings, _this_thresholds, _this_objectives, _this_interactions, _this_score, _this_comments_from_learner, _this_comments_from_lms, _this_learner_preference;
                   this._initialized = false;
                   this._start_time = void 0;
@@ -29590,9 +29605,9 @@ this.Scorm2004API = (function () {
                   (_this_learner = this.learner) === null || _this_learner === void 0 ? void 0 : _this_learner.reset();
                   (_this_status = this.status) === null || _this_status === void 0 ? void 0 : _this_status.reset();
                   (_this_session = this.session) === null || _this_session === void 0 ? void 0 : _this_session.reset();
-                  (_this_content = this.content) === null || _this_content === void 0 ? void 0 : _this_content.reset();
-                  (_this_settings = this.settings) === null || _this_settings === void 0 ? void 0 : _this_settings.reset();
-                  (_this_thresholds = this.thresholds) === null || _this_thresholds === void 0 ? void 0 : _this_thresholds.reset();
+                  (_this_content = this.content) === null || _this_content === void 0 ? void 0 : _this_content.reset(clearLaunchData);
+                  (_this_settings = this.settings) === null || _this_settings === void 0 ? void 0 : _this_settings.reset(clearLaunchData);
+                  (_this_thresholds = this.thresholds) === null || _this_thresholds === void 0 ? void 0 : _this_thresholds.reset(clearLaunchData);
                   (_this_objectives = this.objectives) === null || _this_objectives === void 0 ? void 0 : _this_objectives.reset(true);
                   (_this_interactions = this.interactions) === null || _this_interactions === void 0 ? void 0 : _this_interactions.reset(true);
                   (_this_score = this.score) === null || _this_score === void 0 ? void 0 : _this_score.reset();
@@ -35515,7 +35530,7 @@ this.Scorm2004API = (function () {
                   var _this_cmi, _this_adl, _this__sequencing;
                   this.commonReset(settings, options);
                   this._runtimeSetCMIElements.clear();
-                  (_this_cmi = this.cmi) === null || _this_cmi === void 0 ? void 0 : _this_cmi.reset();
+                  (_this_cmi = this.cmi) === null || _this_cmi === void 0 ? void 0 : _this_cmi.reset((options === null || options === void 0 ? void 0 : options.clearLaunchData) === true);
                   if ((options === null || options === void 0 ? void 0 : options.resetTotalTime) === true) {
                       this.cmi.total_time = "PT0S";
                   }

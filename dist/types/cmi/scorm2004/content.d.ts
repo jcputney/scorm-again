@@ -10,6 +10,6 @@ export declare class CMIContent extends BaseCMI {
     set launch_data(launch_data: string);
     get suspend_data(): string;
     set suspend_data(suspend_data: string);
-    reset(): void;
+    reset(clearLaunchData?: boolean): void;
 }
 //# sourceMappingURL=content.d.ts.map

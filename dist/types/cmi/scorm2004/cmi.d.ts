@@ -20,7 +20,7 @@ export declare class CMI extends BaseRootCMI {
     interactions: CMIInteractions;
     objectives: CMIObjectives;
     initialize(): void;
-    reset(): void;
+    reset(clearLaunchData?: boolean): void;
     get _version(): string;
     set _version(_version: string);
     get _children(): string;

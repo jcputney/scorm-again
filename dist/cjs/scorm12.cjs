@@ -5239,8 +5239,13 @@ class CMIStudentData extends BaseCMI {
   /**
    * Called when the API has been reset
    */
-  reset() {
+  reset(clearLaunchData = false) {
     this._initialized = false;
+    if (clearLaunchData) {
+      this._mastery_score = "";
+      this._max_time_allowed = "";
+      this._time_limit_action = "";
+    }
   }
   /**
    * Getter for __children
@@ -6250,6 +6255,9 @@ class Scorm12API extends BaseAPI {
   reset(settings, options) {
     this.commonReset(settings, options);
     this.cmi?.reset();
+    if (options?.clearLaunchData === true) {
+      this.cmi.student_data.reset(true);
+    }
     if (options?.resetTotalTime === true) {
       this.cmi.core.total_time = "00:00:00";
     }

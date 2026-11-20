@@ -14900,7 +14900,13 @@ this.Scorm12API = (function () {
      * Called when the API has been reset
      */ key: "reset",
               value: function reset() {
+                  var clearLaunchData = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : false;
                   this._initialized = false;
+                  if (clearLaunchData) {
+                      this._mastery_score = "";
+                      this._max_time_allowed = "";
+                      this._time_limit_action = "";
+                  }
               }
           },
           {
@@ -16422,6 +16428,9 @@ this.Scorm12API = (function () {
                   var _this_cmi, _this_nav;
                   this.commonReset(settings, options);
                   (_this_cmi = this.cmi) === null || _this_cmi === void 0 ? void 0 : _this_cmi.reset();
+                  if ((options === null || options === void 0 ? void 0 : options.clearLaunchData) === true) {
+                      this.cmi.student_data.reset(true);
+                  }
                   if ((options === null || options === void 0 ? void 0 : options.resetTotalTime) === true) {
                       this.cmi.core.total_time = "00:00:00";
                   }

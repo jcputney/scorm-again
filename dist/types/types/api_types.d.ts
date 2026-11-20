@@ -18,6 +18,7 @@ export type CommitEventContext = {
 export type ResetOptions = {
     preserveListeners?: boolean;
     resetTotalTime?: boolean;
+    clearLaunchData?: boolean;
 };
 export type Settings = {
     autocommit?: boolean | undefined;

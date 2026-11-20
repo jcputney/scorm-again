@@ -7,6 +7,6 @@ export declare class CMIThresholds extends BaseCMI {
     set scaled_passing_score(scaled_passing_score: string);
     get completion_threshold(): string;
     set completion_threshold(completion_threshold: string);
-    reset(): void;
+    reset(clearLaunchData?: boolean): void;
 }
 //# sourceMappingURL=thresholds.d.ts.map
