@@ -129,9 +129,9 @@ export class ChoiceRequestHandler {
    * but require a deliverable descendant.
    */
   public predictClusterChoice(targetActivity: Activity): SequencingResult {
-    const skippedState = this.activityTree.getAllActivities().map(
-      (activity) => [activity, activity.wasSkipped] as const,
-    );
+    const skippedState = this.activityTree
+      .getAllActivities()
+      .map((activity) => [activity, activity.wasSkipped] as const);
     try {
       // Navigation constraints for the current activity are checked by the caller.
       return this.handleChoice(targetActivity.id, null, true);
