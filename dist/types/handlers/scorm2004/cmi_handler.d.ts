@@ -11,7 +11,7 @@ export declare class Scorm2004CMIHandler {
     private context;
     private responseValidator;
     constructor(context: CMIHandlerContext, responseValidator: Scorm2004ResponseValidator);
-    getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null;
+    getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean, shapeOnly?: boolean): BaseCMI | null;
     createCorrectResponsesObject(CMIElement: string, value: any): BaseCMI | null;
     evaluateCompletionStatus(): string;
     evaluateSuccessStatus(): string;

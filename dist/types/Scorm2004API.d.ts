@@ -66,7 +66,7 @@ declare class Scorm2004API extends BaseAPI {
     protected restoreOfflineData(): void;
     setCMIValue(CMIElement: string, value: any): string;
     private currentActivityAllowsGlobalObjectiveWrites;
-    getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null;
+    getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean, shapeOnly?: boolean): BaseCMI | null;
     validateCorrectResponse(CMIElement: string, value: any): void;
     private _peekCMIValue;
     getCMIValue(CMIElement: string): any;

@@ -25365,6 +25365,11 @@
                   if (this.checkState(checkTerminated, (_this__error_codes_RETRIEVE_BEFORE_INIT = this._error_codes.RETRIEVE_BEFORE_INIT) !== null && _this__error_codes_RETRIEVE_BEFORE_INIT !== void 0 ? _this__error_codes_RETRIEVE_BEFORE_INIT : 0, (_this__error_codes_RETRIEVE_AFTER_TERM = this._error_codes.RETRIEVE_AFTER_TERM) !== null && _this__error_codes_RETRIEVE_AFTER_TERM !== void 0 ? _this__error_codes_RETRIEVE_AFTER_TERM : 0)) {
                       try {
                           returnValue = this.getCMIValue(CMIElement);
+                          if (returnValue !== null && (typeof returnValue === "undefined" ? "undefined" : _type_of$v(returnValue)) === "object") {
+                              var _this__error_codes_UNDEFINED_DATA_MODEL;
+                              this.throwSCORMError(CMIElement, (_this__error_codes_UNDEFINED_DATA_MODEL = this._error_codes.UNDEFINED_DATA_MODEL) !== null && _this__error_codes_UNDEFINED_DATA_MODEL !== void 0 ? _this__error_codes_UNDEFINED_DATA_MODEL : 401);
+                              returnValue = "";
+                          }
                       } catch (e) {
                           returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
                       }
@@ -25406,7 +25411,12 @@
                   var returnValue = global_constants.SCORM_FALSE;
                   if (this.checkState(checkTerminated, (_this__error_codes_STORE_BEFORE_INIT = this._error_codes.STORE_BEFORE_INIT) !== null && _this__error_codes_STORE_BEFORE_INIT !== void 0 ? _this__error_codes_STORE_BEFORE_INIT : 0, (_this__error_codes_STORE_AFTER_TERM = this._error_codes.STORE_AFTER_TERM) !== null && _this__error_codes_STORE_AFTER_TERM !== void 0 ? _this__error_codes_STORE_AFTER_TERM : 0)) {
                       try {
-                          returnValue = this.setCMIValue(CMIElement, value);
+                          if (this.isContainerElement(CMIElement)) {
+                              var _this__error_codes_UNDEFINED_DATA_MODEL;
+                              this.throwSCORMError(CMIElement, (_this__error_codes_UNDEFINED_DATA_MODEL = this._error_codes.UNDEFINED_DATA_MODEL) !== null && _this__error_codes_UNDEFINED_DATA_MODEL !== void 0 ? _this__error_codes_UNDEFINED_DATA_MODEL : 401);
+                          } else {
+                              returnValue = this.setCMIValue(CMIElement, value);
+                          }
                       } catch (e) {
                           returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
                       }
@@ -25425,6 +25435,51 @@
                       this.clearSCORMError(returnValue);
                   }
                   return returnValue;
+              }
+          },
+          {
+              /**
+     * Inspect stored model objects without invoking leaf getters (which may be
+     * write-only). This public SetValue guard must not affect LMS loading or the
+     * internal value-access service. Missing rows are inspected using detached children.
+     */ key: "isContainerElement",
+              value: function isContainerElement(element) {
+                  var target = this;
+                  var foundFirstIndex = false;
+                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                  try {
+                      for(var _iterator = element.split(".")[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                          var attribute = _step.value;
+                          if (target === null || (typeof target === "undefined" ? "undefined" : _type_of$v(target)) !== "object") return false;
+                          if (_instanceof$3(target, CMIArray)) {
+                              var index = parseInt(attribute || "0", 10);
+                              if (!isNaN(index)) {
+                                  var _target_childArray_index;
+                                  if (index > target.childArray.length) return false;
+                                  target = (_target_childArray_index = target.childArray[index]) !== null && _target_childArray_index !== void 0 ? _target_childArray_index : this.getChildElement(element, "", foundFirstIndex, true);
+                                  foundFirstIndex = true;
+                                  continue;
+                              }
+                          }
+                          var descriptor = Object.getOwnPropertyDescriptor(target, attribute);
+                          if (!descriptor || !("value" in descriptor)) return false;
+                          target = descriptor.value;
+                      }
+                  } catch (err) {
+                      _didIteratorError = true;
+                      _iteratorError = err;
+                  } finally{
+                      try {
+                          if (!_iteratorNormalCompletion && _iterator.return != null) {
+                              _iterator.return();
+                          }
+                      } finally{
+                          if (_didIteratorError) {
+                              throw _iteratorError;
+                          }
+                      }
+                  }
+                  return target !== null && (typeof target === "undefined" ? "undefined" : _type_of$v(target)) === "object";
               }
           },
           {
@@ -34865,12 +34920,13 @@
      * @return {BaseCMI|null} The child element or null
      */ key: "getChildElement",
               value: function getChildElement(CMIElement, value, foundFirstIndex) {
+                  var shapeOnly = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
                   if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
                       return new CMIObjectivesObject();
                   }
                   if (foundFirstIndex) {
                       if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-                          return this.createCorrectResponsesObject(CMIElement, value);
+                          return shapeOnly ? new CMIInteractionsCorrectResponsesObject() : this.createCorrectResponsesObject(CMIElement, value);
                       } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
                           return new CMIInteractionsObjectivesObject();
                       }
@@ -39195,7 +39251,8 @@
      * @return {BaseCMI|null}
      */ key: "getChildElement",
               value: function getChildElement(CMIElement, value, foundFirstIndex) {
-                  return this._cmiHandler.getChildElement(CMIElement, value, foundFirstIndex);
+                  var shapeOnly = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : false;
+                  return this._cmiHandler.getChildElement(CMIElement, value, foundFirstIndex, shapeOnly);
               }
           },
           {

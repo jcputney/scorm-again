@@ -3615,6 +3615,10 @@ class BaseAPI {
     )) {
       try {
         returnValue = this.getCMIValue(CMIElement);
+        if (returnValue !== null && typeof returnValue === "object") {
+          this.throwSCORMError(CMIElement, this._error_codes.UNDEFINED_DATA_MODEL ?? 401);
+          returnValue = "";
+        }
       } catch (e) {
         returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
@@ -3657,7 +3661,11 @@ class BaseAPI {
       this._error_codes.STORE_AFTER_TERM ?? 0
     )) {
       try {
-        returnValue = this.setCMIValue(CMIElement, value);
+        if (this.isContainerElement(CMIElement)) {
+          this.throwSCORMError(CMIElement, this._error_codes.UNDEFINED_DATA_MODEL ?? 401);
+        } else {
+          returnValue = this.setCMIValue(CMIElement, value);
+        }
       } catch (e) {
         returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
@@ -3681,6 +3689,31 @@ class BaseAPI {
       this.clearSCORMError(returnValue);
     }
     return returnValue;
+  }
+  /**
+   * Inspect stored model objects without invoking leaf getters (which may be
+   * write-only). This public SetValue guard must not affect LMS loading or the
+   * internal value-access service. Missing rows are inspected using detached children.
+   */
+  isContainerElement(element) {
+    let target = this;
+    let foundFirstIndex = false;
+    for (const attribute of element.split(".")) {
+      if (target === null || typeof target !== "object") return false;
+      if (target instanceof CMIArray) {
+        const index = parseInt(attribute || "0", 10);
+        if (!isNaN(index)) {
+          if (index > target.childArray.length) return false;
+          target = target.childArray[index] ?? this.getChildElement(element, "", foundFirstIndex, true);
+          foundFirstIndex = true;
+          continue;
+        }
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(target, attribute);
+      if (!descriptor || !("value" in descriptor)) return false;
+      target = descriptor.value;
+    }
+    return target !== null && typeof target === "object";
   }
   /**
    * Orders LMS to store all content parameters

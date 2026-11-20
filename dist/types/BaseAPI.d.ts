@@ -41,7 +41,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     abstract lmsGetErrorString(CMIErrorCode: string | number): string;
     abstract lmsGetDiagnostic(CMIErrorCode: string | number): string;
     abstract validateCorrectResponse(_CMIElement: string, _value: any): void;
-    abstract getChildElement(_CMIElement: string, _value: any, _foundFirstIndex: boolean): BaseCMI | null;
+    abstract getChildElement(_CMIElement: string, _value: any, _foundFirstIndex: boolean, _shapeOnly?: boolean): BaseCMI | null;
     abstract storeData(_calculateTotalTime: boolean, _trigger?: CommitTrigger): ResultObject;
     abstract renderCommitCMI(_terminateCommit: boolean, _includeTotalTime?: boolean): StringKeyMap | Array<string>;
     abstract renderCommitObject(_terminateCommit: boolean, _includeTotalTime?: boolean): CommitObject;
@@ -56,6 +56,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     terminate(callbackName: string, checkTerminated: boolean): string;
     getValue(callbackName: string, checkTerminated: boolean, CMIElement: string): string;
     setValue(callbackName: string, commitCallback: string, checkTerminated: boolean, CMIElement: string, value: any): string;
+    private isContainerElement;
     commit(callbackName: string, checkTerminated?: boolean, trigger?: CommitTrigger): string;
     getLastError(callbackName: string): string;
     getErrorString(callbackName: string, CMIErrorCode: string | number): string;
