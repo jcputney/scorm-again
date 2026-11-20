@@ -14,6 +14,6 @@ export declare class Scorm2004ResponseValidator {
     validateCorrectResponse(CMIElement: string, interaction: CMIInteractionsObject, value: any): void;
     checkDuplicatedPattern(correct_response: CMIArray, current_index: number, value: any): boolean;
     checkCorrectResponseValue(CMIElement: string, interaction_type: string, nodes: Array<any>, value: any): void;
-    removeCorrectResponsePrefixes(CMIElement: string, node: string): any;
+    removeCorrectResponsePrefixes(CMIElement: string, node: string, firstItem?: boolean): any;
 }
 //# sourceMappingURL=response_validator.d.ts.map

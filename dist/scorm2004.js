@@ -1814,14 +1814,16 @@ this.Scorm2004API = (function () {
           delimiter: "[,]",
           unique: false,
           duplicate: false,
-          format: scorm2004_regex.CMILangString250cr
+          // SPM is a minimum supported size, not a maximum on localized text.
+          format: scorm2004_regex.CMILangString
       },
       "long-fill-in": {
           max: 1,
           delimiter: "",
           unique: false,
           duplicate: true,
-          format: scorm2004_regex.CMILangString4000
+          // Property-looking text after {lang=...} is part of the response.
+          format: scorm2004_regex.CMILangString
       },
       matching: {
           max: 36,
@@ -26224,9 +26226,6 @@ this.Scorm2004API = (function () {
      * @param {string} delivery_speed
      */ function set(delivery_speed) {
                   if (check2004ValidFormat(this._cmi_element + ".delivery_speed", delivery_speed, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".delivery_speed", delivery_speed, scorm2004_regex.speed_range)) {
-                      if (parseFloat(delivery_speed) === 0) {
-                          throw new Scorm2004ValidationError(this._cmi_element + ".delivery_speed", scorm2004_errors.VALUE_OUT_OF_RANGE);
-                      }
                       this._delivery_speed = delivery_speed;
                   }
               }
@@ -26951,6 +26950,7 @@ this.Scorm2004API = (function () {
       while(prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/)){
           var property = prefix[1];
           var value = prefix[2];
+          if (!firstItem && property !== "lang") break;
           var invalidValue = property === "lang" ? !new RegExp(scorm2004_regex.CMILang).test(value) : value !== "true" && value !== "false";
           var invalidPosition = type !== void 0 && (seen.has(property) || property !== "lang" && (!firstItem || seen.has("lang")) || type === "long-fill-in" && property === "order_matters" || type === "performance" && property !== "order_matters");
           if (invalidValue || invalidPosition) {
@@ -26958,6 +26958,7 @@ this.Scorm2004API = (function () {
           }
           seen.add(property);
           text = text.slice(prefix[0].length);
+          if (property === "lang" && !text.startsWith("{lang=")) break;
       }
       return text;
   }
@@ -31765,7 +31766,7 @@ this.Scorm2004API = (function () {
                   var formatRegex = new RegExp(response.format);
                   for(var i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++){
                       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
-                          nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
+                          nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i], i === 0);
                       }
                       if (response === null || response === void 0 ? void 0 : response.delimiter2) {
                           var values = interaction_type === "performance" ? splitFirstDelimited(nodes[i], response.delimiter2, allowBare) : splitDelimited(nodes[i], response.delimiter2, allowBare);
@@ -31821,8 +31822,9 @@ this.Scorm2004API = (function () {
      * @return {*} The node with prefixes removed
      */ key: "removeCorrectResponsePrefixes",
               value: function removeCorrectResponsePrefixes(CMIElement, node) {
+                  var firstItem = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
                   try {
-                      return stripCorrectResponsePrefixes(node);
+                      return stripCorrectResponsePrefixes(node, void 0, firstItem);
                   } catch (unused) {
                       this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, "".concat(node));
                       return node;

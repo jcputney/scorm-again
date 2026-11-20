@@ -1300,14 +1300,16 @@ const CorrectResponses = {
     delimiter: "[,]",
     unique: false,
     duplicate: false,
-    format: scorm2004_regex.CMILangString250cr
+    // SPM is a minimum supported size, not a maximum on localized text.
+    format: scorm2004_regex.CMILangString
   },
   "long-fill-in": {
     max: 1,
     delimiter: "",
     unique: false,
     duplicate: true,
-    format: scorm2004_regex.CMILangString4000
+    // Property-looking text after {lang=...} is part of the response.
+    format: scorm2004_regex.CMILangString
   },
   matching: {
     max: 36,
@@ -20945,12 +20947,6 @@ class CMILearnerPreference extends BaseCMI {
       delivery_speed,
       scorm2004_regex.speed_range
     )) {
-      if (parseFloat(delivery_speed) === 0) {
-        throw new Scorm2004ValidationError(
-          this._cmi_element + ".delivery_speed",
-          scorm2004_errors.VALUE_OUT_OF_RANGE
-        );
-      }
       this._delivery_speed = delivery_speed;
     }
   }
@@ -21517,6 +21513,7 @@ function stripCorrectResponsePrefixes(node, type, firstItem = true) {
   while (prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/)) {
     const property = prefix[1];
     const value = prefix[2];
+    if (!firstItem && property !== "lang") break;
     const invalidValue = property === "lang" ? !new RegExp(scorm2004_regex.CMILang).test(value) : value !== "true" && value !== "false";
     const invalidPosition = type !== void 0 && (seen.has(property) || property !== "lang" && (!firstItem || seen.has("lang")) || type === "long-fill-in" && property === "order_matters" || type === "performance" && property !== "order_matters");
     if (invalidValue || invalidPosition) {
@@ -21527,6 +21524,7 @@ function stripCorrectResponsePrefixes(node, type, firstItem = true) {
     }
     seen.add(property);
     text = text.slice(prefix[0].length);
+    if (property === "lang" && !text.startsWith("{lang=")) break;
   }
   return text;
 }
@@ -24526,7 +24524,7 @@ class Scorm2004ResponseValidator {
     const formatRegex = new RegExp(response.format);
     for (let i = 0; i < nodes.length && this.context.getLastErrorCode() === "0"; i++) {
       if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
-        nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
+        nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i], i === 0);
       }
       if (response?.delimiter2) {
         const values = interaction_type === "performance" ? splitFirstDelimited(nodes[i], response.delimiter2, allowBare) : splitDelimited(nodes[i], response.delimiter2, allowBare);
@@ -24605,9 +24603,9 @@ class Scorm2004ResponseValidator {
    * @param {string} node - The node string with potential prefixes
    * @return {*} The node with prefixes removed
    */
-  removeCorrectResponsePrefixes(CMIElement, node) {
+  removeCorrectResponsePrefixes(CMIElement, node, firstItem = true) {
     try {
-      return stripCorrectResponsePrefixes(node);
+      return stripCorrectResponsePrefixes(node, void 0, firstItem);
     } catch {
       this.context.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
       return node;
