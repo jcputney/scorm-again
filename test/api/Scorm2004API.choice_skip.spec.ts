@@ -130,13 +130,14 @@ describe("ADL choice and skip regressions (#1798)", () => {
 
   /** @spec ADL CM-04c manifest and all Act12V1 through Act13V1 commands; identifiers are case-sensitive. */
   it("chooses the skipped cluster itself but skips it when descending from its parent", () => {
-    const { api, delivered, initialize, terminate } = session(tree(true));
+    const { api, delivered, initialize, terminate, valid } = session(tree(true));
     expect(api.processNavigationRequest("choice", "activity_10")).toBe(true);
     const expected = ["activity_12", "activity_12", "activity_2", "activity_14", "activitY"];
     const targets = ["Activity", "activity", "activity_10", "activitY"];
     for (let i = 0; i < expected.length; i++) {
       expect(delivered).toEqual(expected.slice(0, i + 1));
       initialize();
+      if (i === 0) valid("choice.{target=Activity}", true, "choice", "Activity");
       terminate(i < targets.length ? `{target=${targets[i]}}choice` : "exitAll");
     }
     expect(delivered).toEqual(expected);

@@ -413,7 +413,7 @@ export class FlowTraversalService {
    * @return {boolean} - True when the Skipped rule set applies
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates only the Skipped sequencing rule set before cluster descent.
    */
-  private checkSkippedRuleSet(activity: Activity): boolean {
+  public checkSkippedRuleSet(activity: Activity): boolean {
     const skippedRules = activity.sequencingRules.preConditionRules.filter(
       (rule) => rule.action === RuleActionType.SKIP,
     );
@@ -453,7 +453,7 @@ export class FlowTraversalService {
             this.ruleEngine.checkSequencingRules(
               evaluationActivity,
               activity.sequencingRules.preConditionRules.filter(
-                (rule) => rule.action !== RuleActionType.SKIP,
+                (rule) => rule.action === RuleActionType.DISABLED,
               ),
             ) !== RuleActionType.DISABLED,
           wasSkipped: false,

@@ -40,6 +40,7 @@ export class ChoiceRequestHandler {
   public handleChoice(
     targetActivityId: string,
     currentActivity: Activity | null,
+    predictOnly: boolean = false,
   ): SequencingResult {
     const result = new SequencingResult();
 
@@ -106,7 +107,7 @@ export class ChoiceRequestHandler {
     // If target is not a leaf, use choice flow to find a deliverable leaf
     let deliveryTarget = targetActivity;
     if (targetActivity.children.length > 0) {
-      const flowResult = this.choiceFlowSubprocess(targetActivity);
+      const flowResult = this.choiceFlowSubprocess(targetActivity, predictOnly);
 
       if (!flowResult) {
         result.exception = "SB.2.9-7";
@@ -120,6 +121,25 @@ export class ChoiceRequestHandler {
     result.deliveryRequest = DeliveryRequestType.DELIVER;
     result.targetActivity = deliveryTarget;
     return result;
+  }
+
+  /**
+   * Preview cluster choice using the same target checks and descent as execution.
+   * @spec SN Book: SB.2.9 / SB.2.9.1 - ignore the chosen cluster's Skip set,
+   * but require a deliverable descendant.
+   */
+  public predictClusterChoice(targetActivity: Activity): SequencingResult {
+    const skippedState = this.activityTree.getAllActivities().map(
+      (activity) => [activity, activity.wasSkipped] as const,
+    );
+    try {
+      // Navigation constraints for the current activity are checked by the caller.
+      return this.handleChoice(targetActivity.id, null, true);
+    } finally {
+      for (const [activity, wasSkipped] of skippedState) {
+        activity.wasSkipped = wasSkipped;
+      }
+    }
   }
 
   /**
@@ -193,14 +213,17 @@ export class ChoiceRequestHandler {
    * @param {Activity} targetActivity - The target activity for the choice
    * @return {Activity | null} - The activity to deliver, or null if flow fails
    */
-  private choiceFlowSubprocess(targetActivity: Activity): Activity | null {
+  private choiceFlowSubprocess(
+    targetActivity: Activity,
+    predictOnly: boolean = false,
+  ): Activity | null {
     // If target is a leaf, it's the delivery candidate
     if (targetActivity.children.length === 0) {
       return targetActivity;
     }
 
     // If target is a cluster, traverse to find a deliverable leaf
-    return this.choiceFlowTreeTraversal(targetActivity);
+    return this.choiceFlowTreeTraversal(targetActivity, predictOnly);
   }
 
   /**
@@ -209,8 +232,12 @@ export class ChoiceRequestHandler {
    * @param {Activity} fromActivity - The cluster to traverse from
    * @return {Activity | null} - A leaf activity for delivery, or null
    */
-  private choiceFlowTreeTraversal(fromActivity: Activity): Activity | null {
-    this.traversalService.ensureSelectionAndRandomization(fromActivity);
+  private choiceFlowTreeTraversal(
+    fromActivity: Activity,
+    predictOnly: boolean = false,
+  ): Activity | null {
+    // Prediction reads the available child set without applying SR.1/SR.2.
+    if (!predictOnly) this.traversalService.ensureSelectionAndRandomization(fromActivity);
     const children = fromActivity.getAvailableChildren();
 
     // Validate children against constraints
@@ -222,7 +249,7 @@ export class ChoiceRequestHandler {
 
     // Find the first deliverable child
     for (const child of validChildren.validChildren) {
-      const traversalResult = this.enhancedChoiceTraversal(child);
+      const traversalResult = this.enhancedChoiceTraversal(child, false, predictOnly);
       if (traversalResult.activity) {
         return traversalResult.activity;
       }
@@ -241,6 +268,7 @@ export class ChoiceRequestHandler {
   private enhancedChoiceTraversal(
     activity: Activity,
     isBackwardTraversal: boolean = false,
+    predictOnly: boolean = false,
   ): ChoiceTraversalResult {
     // Cannot walk backward from root
     if (isBackwardTraversal && activity === this.activityTree.root) {
@@ -270,7 +298,11 @@ export class ChoiceRequestHandler {
 
     // @spec SN Book: SB.2.9.1 / SB.2.2 - Skip bypasses an entire candidate
     // cluster, not just its leaves (ADL CM-04b/c Activity 11).
-    if (activity.children.length > 0 && !this.traversalService.checkActivityProcess(activity)) {
+    if (
+      activity.children.length > 0 &&
+      (this.traversalService.checkSkippedRuleSet(activity) ||
+        !this.traversalService.checkActivityProcess(activity))
+    ) {
       return new ChoiceTraversalResult(null, null);
     }
 
@@ -292,7 +324,7 @@ export class ChoiceRequestHandler {
 
     // Traverse into cluster
     if (traversalValidation.canTraverseInto) {
-      const flowResult = this.choiceFlowTreeTraversal(activity);
+      const flowResult = this.choiceFlowTreeTraversal(activity, predictOnly);
       return new ChoiceTraversalResult(flowResult, null);
     }
 

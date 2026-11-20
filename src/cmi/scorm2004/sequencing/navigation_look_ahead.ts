@@ -330,7 +330,10 @@ export class NavigationLookAhead {
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - stopForwardTraversal does not block backward traversal.
    * @private
    */
-  private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean | null {
+  private isActivityPotentiallyDeliverableBackward(
+    activity: Activity,
+    forward: boolean = false,
+  ): boolean | null {
     // @spec SN Book: SB.2.2-1 - Flow=false on the candidate's parent
     // blocks traversal, including when the candidate is inside another cluster.
     if (activity.parent && !activity.parent.sequencingControls.flow) {
@@ -344,23 +347,35 @@ export class NavigationLookAhead {
 
     // Previous targets have settled state, so their preconditions can be checked.
     // Continue is predicted before End Attempt, which can change its next target's state.
-    const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(
-      activity,
-      this.sequencingProcess.now,
-      this.sequencingProcess.getAttemptElapsedSecondsHook,
-    );
-    if (preConditionResult === RuleActionType.SKIP) return false;
-    if (preConditionResult === RuleActionType.DISABLED) return null;
+    const matches = (action: RuleActionType) =>
+      activity.sequencingRules.preConditionRules.some(
+        (rule) =>
+          rule.action === action &&
+          rule.evaluate(
+            activity,
+            this.sequencingProcess.now,
+            this.sequencingProcess.getAttemptElapsedSecondsHook,
+          ),
+      );
+    // UP.2 is applied separately to each action's rule set (SB.2.2).
+    if (matches(RuleActionType.SKIP)) return false;
+    if (forward && activity.sequencingControls.stopForwardTraversal) return null;
+    if (matches(RuleActionType.DISABLED)) return null;
 
     if (activity.children.length === 0) {
       return true;
     }
 
-    // For clusters, check if any child is potentially deliverable
-    for (let i = activity.children.length - 1; i >= 0; i--) {
+    // SB.2.1 reverses backward entry into a forwardOnly cluster to Forward.
+    const childForward = forward || activity.sequencingControls.forwardOnly;
+    for (
+      let i = childForward ? 0 : activity.children.length - 1;
+      childForward ? i < activity.children.length : i >= 0;
+      i += childForward ? 1 : -1
+    ) {
       const child = activity.children[i];
       if (!child) continue;
-      const deliverable = this.isActivityPotentiallyDeliverableBackward(child);
+      const deliverable = this.isActivityPotentiallyDeliverableBackward(child, childForward);
       if (deliverable === null) return null;
       if (deliverable) return true;
     }
