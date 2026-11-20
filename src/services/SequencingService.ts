@@ -903,6 +903,10 @@ export class SequencingService {
                 `cmi.objectives.${objectiveIndex}.completion_status`,
               ) === true,
             progress_measure: cmiObjective.progress_measure,
+            progress_measure_was_set:
+              this.configuration.wasCMIElementSetByContent?.(
+                `cmi.objectives.${objectiveIndex}.progress_measure`,
+              ) === true,
             score: {
               scaled: cmiObjective.score?.scaled || "",
               raw: cmiObjective.score?.raw || "",

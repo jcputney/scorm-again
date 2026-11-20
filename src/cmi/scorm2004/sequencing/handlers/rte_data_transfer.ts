@@ -32,6 +32,7 @@ export interface CMIDataForTransfer {
       max?: string;
     };
     progress_measure?: string;
+    progress_measure_was_set?: boolean;
   }>;
 }
 
@@ -429,13 +430,16 @@ export class RteDataTransferService {
 
       // Transfer progress measure
       // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 4.2.1.2 - an untouched
-      // launch-seeded primary row must not replace progress reported for this attempt.
+      // launch-seeded primary row must not replace top-level progress. An explicit
+      // row write in this attempt takes precedence, including after a resumed launch.
       const topLevelPrimaryProgressWasSet =
         cmiData.progress_measure !== undefined && cmiData.progress_measure !== "";
       if (
         cmiObjective.progress_measure &&
         cmiObjective.progress_measure !== "" &&
-        (!isPrimaryObjective || !topLevelPrimaryProgressWasSet)
+        (cmiObjective.progress_measure_was_set === true ||
+          !isPrimaryObjective ||
+          !topLevelPrimaryProgressWasSet)
       ) {
         const progressMeasure = parseFloat(cmiObjective.progress_measure);
         if (!isNaN(progressMeasure)) {

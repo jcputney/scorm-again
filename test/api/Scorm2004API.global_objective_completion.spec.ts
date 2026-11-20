@@ -514,3 +514,146 @@ describe("ADL global objective completion", () => {
     ]);
   });
 });
+
+/** @spec SN UP.4: retain the deliberate CO-04c auto-completion difference (see ADL README). */
+describe("completedByMeasure End Attempt defaults with objective maps", () => {
+  for (const precedingStatus of ["incomplete", "completed"]) {
+    for (const variant of ["none", "write", "readCompletion", "readProgress"]) {
+      for (const completionSetByContent of [false, true]) {
+        for (const measure of [undefined, "0.4", "0.5"]) {
+          it(`${precedingStatus}, ${variant}, content=${completionSetByContent}, measure=${measure}`, () => {
+            const map = {
+              targetObjectiveID: "g",
+              readSatisfiedStatus: false,
+              readNormalizedMeasure: false,
+              readCompletionStatus: variant === "readCompletion" || variant === "readProgress",
+              readProgressMeasure: variant === "readProgress",
+              writeCompletionStatus: variant === "write",
+            };
+            const api = new Scorm2004API({
+              logLevel: 5,
+              sequencing: {
+                activityTree: {
+                  id: "root",
+                  title: "root",
+                  sequencingControls: flow,
+                  children: [
+                    leaf(1, {
+                      primaryObjective: {
+                        objectiveID: "PRIMARYOBJ",
+                        mapInfo: [
+                          {
+                            ...map,
+                            readCompletionStatus: false,
+                            readProgressMeasure: false,
+                            writeCompletionStatus: true,
+                          },
+                        ],
+                      },
+                    }),
+                    leaf(2, {
+                      primaryObjective: {
+                        objectiveID: "PRIMARYOBJ",
+                        mapInfo: variant === "none" ? [] : [map],
+                      },
+                      completionThreshold: { completedByMeasure: true, minProgressMeasure: 0.5 },
+                      sequencingControls: { completionSetByContent },
+                    }),
+                    leaf(3, { primaryObjective: objective("g") }),
+                  ],
+                },
+              },
+            });
+            expect(api.processNavigationRequest("start")).toBe(true);
+            expect(api.Initialize("")).toBe("true");
+            expect(api.SetValue("cmi.completion_status", precedingStatus)).toBe("true");
+            expect(api.SetValue("adl.nav.request", "continue")).toBe("true");
+            expect(api.Terminate("")).toBe("true");
+            api.reset();
+            expect(api.Initialize("")).toBe("true");
+            const a2 = api.getSequencingState().rootActivity.children[1];
+            expect(a2.completionStatus).not.toBe("completed");
+            expect(a2.isCompleted).toBe(false);
+            expect(api.GetValue("cmi.objectives.0.completion_status")).toBe(
+              map.readCompletionStatus ? precedingStatus : "unknown",
+            );
+            if (measure !== undefined)
+              expect(api.SetValue("cmi.progress_measure", measure)).toBe("true");
+            expect(api.SetValue("adl.nav.request", "continue")).toBe("true");
+            expect(api.Terminate("")).toBe("true");
+            const expected =
+              measure === undefined
+                ? completionSetByContent
+                  ? "incomplete"
+                  : "completed"
+                : Number(measure) >= 0.5
+                  ? "completed"
+                  : "incomplete";
+            const ended = api.getSequencingState().rootActivity.children[1];
+            expect(ended.completionStatus).toBe(expected);
+            expect(ended.isCompleted).toBe(expected === "completed");
+            if (variant === "write") {
+              api.reset();
+              expect(api.Initialize("")).toBe("true");
+              expect(api.GetValue("cmi.objectives.0.completion_status")).toBe(expected);
+            }
+          });
+        }
+      }
+    }
+  }
+});
+
+/** @spec RTE 4.2.17 / SN 4.2.1.4: a resumed SCO can update primary progress through its objective row. */
+describe("resumed primary objective progress writes", () => {
+  it.each([
+    ["0.2", "0.8", "completed"],
+    ["0.8", "0.2", "incomplete"],
+  ])(
+    "restored top-level %s yields to row write %s (%s)",
+    (savedMeasure, rowMeasure, completion) => {
+      const createApi = () =>
+        new Scorm2004API({
+          logLevel: 5,
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "root",
+              sequencingControls: flow,
+              children: [
+                leaf(1, {
+                  primaryObjective: { objectiveID: "PRIMARYOBJ" },
+                  completionThreshold: { completedByMeasure: true, minProgressMeasure: 0.5 },
+                }),
+                leaf(2),
+              ],
+            },
+          },
+        });
+      const original = createApi();
+      expect(original.processNavigationRequest("start")).toBe(true);
+      expect(original.Initialize("")).toBe("true");
+      expect(original.SetValue("cmi.progress_measure", savedMeasure)).toBe("true");
+      expect(original.SetValue("cmi.exit", "suspend")).toBe("true");
+      expect(original.SetValue("adl.nav.request", "suspendAll")).toBe("true");
+      expect(original.Terminate("")).toBe("true");
+
+      const restored = createApi();
+      expect(restored.deserializeSequencingState(original.serializeSequencingState())).toBe(true);
+      expect(restored.processNavigationRequest("resumeAll")).toBe(true);
+      restored.loadFromJSON({ entry: "resume", progress_measure: savedMeasure });
+      expect(restored.Initialize("")).toBe("true");
+      expect(restored.GetValue("cmi.entry")).toBe("resume");
+      expect(restored.GetValue("cmi.progress_measure")).toBe(savedMeasure);
+      expect(restored.GetValue("cmi.objectives.0.id")).toBe("PRIMARYOBJ");
+      expect(restored.SetValue("cmi.objectives.0.progress_measure", rowMeasure)).toBe("true");
+      expect(restored.SetValue("adl.nav.request", "continue")).toBe("true");
+      expect(restored.Terminate("")).toBe("true");
+      expect(restored.getSequencingState().rootActivity.children[0]).toMatchObject({
+        attemptCompletionAmount: Number(rowMeasure),
+        completionStatus: completion,
+        isCompleted: completion === "completed",
+      });
+    },
+  );
+});
