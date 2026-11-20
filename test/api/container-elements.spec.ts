@@ -17,6 +17,66 @@ const containers2004 = [
 const containers12 = ["cmi", "cmi.core", "cmi.interactions", "cmi.objectives"];
 
 describe("Public container element access", () => {
+  for (const version of ["2004", "1.2"] as const) {
+    const setup = () => {
+      const api =
+        version === "2004"
+          ? new Scorm2004API({ logLevel: LogLevelEnum.NONE })
+          : new Scorm12API({ logLevel: LogLevelEnum.NONE });
+      const set = (path: string, value: string) =>
+        api instanceof Scorm2004API ? api.SetValue(path, value) : api.LMSSetValue(path, value);
+      const error = () =>
+        api instanceof Scorm2004API ? api.GetLastError() : api.LMSGetLastError();
+      if (api instanceof Scorm2004API) api.Initialize("");
+      else api.LMSInitialize("");
+      return { api, set, error };
+    };
+
+    for (const index of ["0x", "00", "+0", "0e2", " 0"]) {
+      it(`${version} protects existing containers at index ${JSON.stringify(index)}`, () => {
+        const { api, set, error } = setup();
+        expect(set("cmi.objectives.0.id", "objective")).toBe("true");
+        expect(set("cmi.objectives.0.score.raw", "12")).toBe("true");
+        const row = api.cmi.objectives.childArray[0];
+        const before = JSON.stringify(row);
+        expect(set(`cmi.objectives.${index}.score`, "illegal")).toBe("false");
+        expect(error()).toBe("401");
+        expect(api.cmi.objectives.childArray[0]).toBe(row);
+        expect(JSON.stringify(row)).toBe(before);
+      });
+    }
+
+    for (const path of [
+      "cmi.objectives.0.score",
+      "cmi.interactions.0.objectives.0",
+      "cmi.interactions.0.correct_responses.0",
+    ]) {
+      it(`${version} rejects missing container ${path} without creating rows`, () => {
+        const { api, set, error } = setup();
+        expect(set(path, "illegal")).toBe("false");
+        expect(error()).toBe("401");
+        expect(api.cmi.objectives._count).toBe(0);
+        expect(api.cmi.interactions._count).toBe(0);
+      });
+    }
+
+    it(`${version} still creates missing rows for valid leaves`, () => {
+      const { api, set } = setup();
+      expect(set("cmi.objectives.0.id", "objective")).toBe("true");
+      expect(set("cmi.objectives.0.score.raw", "12")).toBe("true");
+      expect(set("cmi.interactions.0.id", "interaction")).toBe("true");
+      expect(set("cmi.interactions.0.objectives.0.id", "objective")).toBe("true");
+      expect(set("cmi.interactions.0.type", "true-false")).toBe("true");
+      expect(
+        set("cmi.interactions.0.correct_responses.0.pattern", version === "2004" ? "true" : "t"),
+      ).toBe("true");
+      expect(api.cmi.objectives._count).toBe(1);
+      expect(api.cmi.interactions._count).toBe(1);
+      expect(api.cmi.interactions.childArray[0]?.objectives._count).toBe(1);
+      expect(api.cmi.interactions.childArray[0]?.correct_responses._count).toBe(1);
+    });
+  }
+
   /** @spec SCORM 2004 RTE: collection records and their score subtrees are containers. */
   it("preserves materialized rows, LMS loading, and internal container reads", () => {
     const api = new Scorm2004API({ logLevel: LogLevelEnum.NONE });

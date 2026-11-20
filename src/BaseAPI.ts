@@ -674,6 +674,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     _CMIElement: string,
     _value: any,
     _foundFirstIndex: boolean,
+    _shapeOnly?: boolean,
   ): BaseCMI | null;
 
   /**
@@ -1036,15 +1037,23 @@ export default abstract class BaseAPI implements IBaseAPI {
   /**
    * Inspect stored model objects without invoking leaf getters (which may be
    * write-only). This public SetValue guard must not affect LMS loading or the
-   * internal value-access service. Missing array rows are left to normal creation.
+   * internal value-access service. Missing rows are inspected using detached children.
    */
   private isContainerElement(element: string): boolean {
     let target: unknown = this;
+    let foundFirstIndex = false;
     for (const attribute of element.split(".")) {
       if (target === null || typeof target !== "object") return false;
-      if (target instanceof CMIArray && /^\d+$/.test(attribute)) {
-        target = target.childArray[Number(attribute)];
-        continue;
+      if (target instanceof CMIArray) {
+        // Mirror handleSetArrayAccess, including its lenient index spellings.
+        const index = parseInt(attribute || "0", 10);
+        if (!isNaN(index)) {
+          if (index > target.childArray.length) return false;
+          target =
+            target.childArray[index] ?? this.getChildElement(element, "", foundFirstIndex, true);
+          foundFirstIndex = true;
+          continue;
+        }
       }
       const descriptor = Object.getOwnPropertyDescriptor(target, attribute);
       if (!descriptor || !("value" in descriptor)) return false;
