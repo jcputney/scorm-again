@@ -75,3 +75,49 @@ it.each([
   );
   expect(new RuleCondition(RuleConditionType.ALWAYS).evaluate(activity)).toBe(true);
 });
+
+/** Split read maps must have the same completion precedence as a single map. */
+it.each(["read phase", "combined"])("keeps measure precedence in %s", (mode) => {
+  for (const reverse of [false, true]) {
+    for (const known of [false, true]) {
+      for (const completedByMeasure of [false, true]) {
+        const activity = new Activity("reader");
+        activity.completedByMeasure = completedByMeasure;
+        activity.minProgressMeasure = 0.5;
+        const objective = new ActivityObjective("primary", { isPrimary: true });
+        objective.mapInfo = [
+          { targetObjectiveID: "progress", readProgressMeasure: true },
+          { targetObjectiveID: "completion", readCompletionStatus: true },
+        ];
+        if (reverse) objective.mapInfo.reverse();
+        activity.primaryObjective = objective;
+        // A stale local measure must not replace a directly read completion.
+        objective.progressMeasure = 0.8;
+        objective.progressMeasureStatus = true;
+        const globals = new Map<string, GlobalObjective>([
+          ["progress", { progressMeasureKnown: known, progressMeasure: 0.8 } as GlobalObjective],
+          [
+            "completion",
+            {
+              completionStatusKnown: true,
+              completionStatus: CompletionStatus.INCOMPLETE,
+            } as GlobalObjective,
+          ],
+        ]);
+        const synchronizer = new GlobalObjectiveSynchronizer();
+        if (mode === "read phase") {
+          synchronizer.syncGlobalObjectivesReadPhase(activity, globals);
+        } else {
+          synchronizer.synchronizeGlobalObjectives(activity, globals);
+        }
+        const expected =
+          known && completedByMeasure ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
+        expect(
+          objective.completionStatus,
+          `reverse=${reverse}, known=${known}, byMeasure=${completedByMeasure}`,
+        ).toBe(expected);
+        expect(activity.completionStatus).toBe(expected);
+      }
+    }
+  }
+});
