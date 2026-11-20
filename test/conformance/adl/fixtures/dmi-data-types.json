@@ -1,0 +1,554 @@
+{
+  "id": "DMI-data-types",
+  "scormVersion": "2004",
+  "source": "Hand-authored representative SET/GET cases from ADL SCORM 2004 4th Ed DMI.properties Act1V1-Act4V1; compact patterns retain the tested data types.",
+  "activities": [
+    {
+      "id": "timestamps",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.comments_from_learner.0.timestamp",
+          "value": "2004-04-01T09:45",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.comments_from_learner.0.timestamp",
+          "expectedReturn": "2004-04-01T09:45",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.comments_from_learner.0.timestamp",
+          "value": "2004-04-01T09:45:58.55+02:30",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.comments_from_learner.0.timestamp",
+          "expectedReturn": "2004-04-01T09:45:58.55+02:30",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "intervals",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.session_time",
+          "value": "P1Y6M14DT4H15M6.34S",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.latency",
+          "value": "P1Y6M14DT4H15M6.34S",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.latency",
+          "expectedReturn": "P1Y6M14DT4H15M6.34S",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "cmi.objectives.0.id",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.objectives.0.id",
+          "value": "urn:adl:lmsTest/OBJ01",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.objectives.0.id",
+          "expectedReturn": "urn:adl:lmsTest/OBJ01",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "cmi.interactions.0.id",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "urn:adl:lmsTest/OBJ01",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.id",
+          "expectedReturn": "urn:adl:lmsTest/OBJ01",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "cmi.interactions.0.objectives.0.id",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.objectives.0.id",
+          "value": "urn:adl:lmsTest/OBJ01",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.objectives.0.id",
+          "expectedReturn": "urn:adl:lmsTest/OBJ01",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "preferences",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.delivery_speed",
+          "value": "0.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.delivery_speed",
+          "expectedReturn": "0.0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.delivery_speed",
+          "value": "0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.delivery_speed",
+          "expectedReturn": "0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.delivery_speed",
+          "value": "50.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.delivery_speed",
+          "expectedReturn": "50.0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.delivery_speed",
+          "value": "-1.0",
+          "expectedReturn": "false",
+          "expectedErrorCode": "407"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.audio_level",
+          "value": "0.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.audio_level",
+          "expectedReturn": "0.0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.audio_level",
+          "value": "0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.audio_level",
+          "expectedReturn": "0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.audio_level",
+          "value": "50.0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.audio_level",
+          "expectedReturn": "50.0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.audio_level",
+          "value": "-1.0",
+          "expectedReturn": "false",
+          "expectedErrorCode": "407"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.audio_captioning",
+          "value": "-1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.audio_captioning",
+          "expectedReturn": "-1",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.audio_captioning",
+          "value": "0",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.audio_captioning",
+          "expectedReturn": "0",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference.audio_captioning",
+          "value": "1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference.audio_captioning",
+          "expectedReturn": "1",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "pattern-choice",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.type",
+          "value": "choice",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "a[,]b",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "expectedReturn": "a[,]b",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "pattern-sequencing",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.type",
+          "value": "sequencing",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "a[,]b",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "{}{[]}{}{[]}{}",
+          "expectedReturn": "false",
+          "expectedErrorCode": "406"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "expectedReturn": "a[,]b",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "pattern-likert",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.type",
+          "value": "likert",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "a",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "{}{[]}{}{[]}{}",
+          "expectedReturn": "false",
+          "expectedErrorCode": "406"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "expectedReturn": "a",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "pattern-matching",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.type",
+          "value": "matching",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "a[.]b",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "{}{[]}{}{[]}{}",
+          "expectedReturn": "false",
+          "expectedErrorCode": "406"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "expectedReturn": "a[.]b",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "pattern-performance",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.type",
+          "value": "performance",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "{order_matters=true}a[.]b",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "{}{[]}{}{[]}{}",
+          "expectedReturn": "false",
+          "expectedErrorCode": "406"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "expectedReturn": "{order_matters=true}a[.]b",
+          "expectedErrorCode": "0"
+        }
+      ]
+    },
+    {
+      "id": "pattern-fill-in",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.id",
+          "value": "INT1",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.type",
+          "value": "fill-in",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "{order_matters=true}a[,]{lang=eng}{case_matters=true}b",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "{}{[]}{}{[]}{}",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "expectedReturn": "{}{[]}{}{[]}{}",
+          "expectedErrorCode": "0"
+        }
+      ]
+    }
+  ]
+}

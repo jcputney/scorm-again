@@ -606,6 +606,8 @@ export function stripCorrectResponsePrefixes(
   while ((prefix = text.match(/^\{(lang|case_matters|order_matters)=([^}]*)\}/))) {
     const property = prefix[1]!;
     const value = prefix[2]!;
+    // Boolean properties apply to the whole response, only at its start.
+    if (!firstItem && property !== "lang") break;
     const invalidValue =
       property === "lang"
         ? !new RegExp(scorm2004_regex.CMILang).test(value)
@@ -624,6 +626,8 @@ export function stripCorrectResponsePrefixes(
     }
     seen.add(property);
     text = text.slice(prefix[0].length);
+    // A language prefix starts the localized text; later braces are literal content.
+    if (property === "lang" && !text.startsWith("{lang=")) break;
   }
   return text;
 }

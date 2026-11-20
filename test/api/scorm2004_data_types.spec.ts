@@ -105,9 +105,8 @@ describe("SCORM 2004 data types", () => {
   it.each(["audio_level", "delivery_speed"])("accepts unbounded %s", (element) => {
     set(`cmi.learner_preference.${element}`, "1000");
   });
-  it("still rejects zero delivery speed", () => {
-    expect(api.SetValue("cmi.learner_preference.delivery_speed", "0")).toBe("false");
-    expect(api.GetLastError()).toBe("407");
+  it("accepts zero delivery speed", () => {
+    set("cmi.learner_preference.delivery_speed", "0");
   });
 
   it.each([

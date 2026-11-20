@@ -315,3 +315,22 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
     });
   });
 });
+
+
+describe("DMI correct response patterns", () => {
+  it.each(["sequencing", "likert", "matching", "performance"])(
+    "%s rejects malformed identifier tokens", (type) => {
+      const response = new CMIInteractionsCorrectResponsesObject(type);
+      expect(() => { response.pattern = "{}{[]}{}{[]}{}"; }).toThrow(Scorm2004ValidationError);
+    },
+  );
+  it.each([
+    "{order_matters=true}a[,]{lang=eng}{case_matters=true}b",
+    "{lang=eng}{order_matters=true}{case_matters=invalid}a[,]b",
+    "{case_matters=true}{lang=eng}{order_matters=true}z",
+  ])("accepts localized fill-in text %s", (pattern) => {
+    const response = new CMIInteractionsCorrectResponsesObject("fill-in");
+    response.pattern = pattern;
+    expect(response.pattern).toBe(pattern);
+  });
+});
