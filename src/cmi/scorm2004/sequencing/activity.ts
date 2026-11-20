@@ -78,6 +78,7 @@ export interface ActivityObjectiveReadState extends ActivityObjectiveScoreState 
   normalizedMeasure?: number;
   normalizedMeasureKnown?: boolean;
   progressMeasure?: number;
+  progressMeasureKnown?: boolean;
   completionStatus?: CompletionStatus;
 }
 
@@ -583,6 +584,9 @@ export class ActivityObjective {
       this._completionStatus = state.completionStatus;
     }
 
+    if (state.progressMeasureKnown !== undefined) {
+      this._progressMeasureStatus = state.progressMeasureKnown;
+    }
     if (state.progressMeasure !== undefined) {
       this._progressMeasure = state.progressMeasure;
       this._progressMeasureStatus = true;
@@ -2185,7 +2189,18 @@ export class Activity extends BaseCMI {
     }
     this._progressMeasure = progressMeasure;
     this._progressMeasureStatus = progressMeasureStatus;
-    this._completionStatus = completionStatus;
+    // @spec SCORM 2004 4th Ed. SN 3.14, 4.2.1.4 and RB.1.3.a - Completed By Measure
+    // determines activity attempt completion, including unknown without a measure.
+    // SN 3.10.3 read maps retain the independent objective completion value.
+    this._completionStatus = this.completedByMeasure
+      ? progressMeasureStatus
+        ? progressMeasure >= this.minProgressMeasure
+          ? CompletionStatus.COMPLETED
+          : CompletionStatus.INCOMPLETE
+        : CompletionStatus.UNKNOWN
+      : completionStatus;
+    // @spec SCORM 2004 4th Ed. SN RB.1.4 - rollup tests attempt completion.
+    this._isCompleted = this._completionStatus === CompletionStatus.COMPLETED;
 
     if (this._primaryObjective) {
       this._primaryObjective.satisfiedStatus = satisfiedStatus;
