@@ -1,0 +1,147 @@
+{
+  "id": "DMI-container-elements",
+  "scormVersion": "2004",
+  "source": "Hand-authored from ADL SCORM 2004 DMI container SET/GET expectations: containers are not value-bearing data model elements (401).",
+  "activities": [
+    {
+      "id": "containers",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.objectives",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.objectives",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.interactions",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.interactions",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.comments_from_learner",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.comments_from_learner",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.comments_from_lms",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.comments_from_lms",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.learner_preference",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.learner_preference",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.score",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.score",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "adl",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "adl",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "adl.nav",
+          "expectedReturn": "false",
+          "expectedErrorCode": "401",
+          "value": "illegal"
+        },
+        {
+          "method": "GetValue",
+          "element": "adl.nav",
+          "expectedReturn": "",
+          "expectedErrorCode": "401"
+        },
+        {
+          "method": "SetValue",
+          "element": "cmi.location",
+          "value": "after",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "element": "cmi.location",
+          "expectedReturn": "after",
+          "expectedErrorCode": "0"
+        }
+      ]
+    }
+  ]
+}

@@ -1153,8 +1153,13 @@ class Scorm2004API extends BaseAPI {
    * @param {boolean} foundFirstIndex
    * @return {BaseCMI|null}
    */
-  getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null {
-    return this._cmiHandler.getChildElement(CMIElement, value, foundFirstIndex);
+  getChildElement(
+    CMIElement: string,
+    value: any,
+    foundFirstIndex: boolean,
+    shapeOnly = false,
+  ): BaseCMI | null {
+    return this._cmiHandler.getChildElement(CMIElement, value, foundFirstIndex, shapeOnly);
   }
 
   /**

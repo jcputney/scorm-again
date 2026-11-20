@@ -54,14 +54,17 @@ export class Scorm2004CMIHandler {
    * @param {boolean} foundFirstIndex - Whether the first index was found
    * @return {BaseCMI|null} The child element or null
    */
-  getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null {
+  getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean, shapeOnly = false): BaseCMI | null {
     if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       return new CMIObjectivesObject();
     }
 
     if (foundFirstIndex) {
       if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-        return this.createCorrectResponsesObject(CMIElement, value);
+        // Shape inspection must not run dependency checks or change API error state.
+        return shapeOnly
+          ? new CMIInteractionsCorrectResponsesObject()
+          : this.createCorrectResponsesObject(CMIElement, value);
       } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
         return new CMIInteractionsObjectivesObject();
       }
