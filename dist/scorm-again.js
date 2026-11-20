@@ -6537,12 +6537,13 @@
      * @spec SN Book: SB.2.2 steps 3, 5.1, 6 - only skipped candidates traverse onward; blocked candidates stop before cluster descent.
      */ key: "evaluateFlowActivity",
               value: function evaluateFlowActivity(activity, considerChildren, mode, forwardTraversalBoundary) {
+                  var enteredBackward = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : false;
                   var parent = activity.parent;
                   if (parent && !parent.sequencingControls.flow) {
                       return new FlowSubprocessResult(activity, false, "SB.2.2-1");
                   }
                   if (this.checkSkippedRuleSet(activity)) {
-                      return this.continueFlowActivityTraversal(activity, mode, true, forwardTraversalBoundary);
+                      return this.continueFlowActivityTraversal(activity, mode, true, forwardTraversalBoundary, enteredBackward);
                   }
                   if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
                       return new FlowSubprocessResult(activity, false, "SB.2.2-2");
@@ -6572,12 +6573,21 @@
      * @spec SN Book: SB.2.1 step 3.1 - preserve session end on genuine tree exhaustion.
      */ key: "continueFlowActivityTraversal",
               value: function continueFlowActivityTraversal(fromActivity, mode, skipChildren, forwardTraversalBoundary) {
+                  var enteredBackward = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : false;
+                  var _ref;
+                  var boundaryChildren = (_ref = forwardTraversalBoundary === null || forwardTraversalBoundary === void 0 ? void 0 : forwardTraversalBoundary.getAvailableChildren()) !== null && _ref !== void 0 ? _ref : [];
+                  if (enteredBackward && skipChildren && forwardTraversalBoundary && fromActivity.parent === forwardTraversalBoundary && fromActivity === boundaryChildren[boundaryChildren.length - 1]) {
+                      fromActivity = forwardTraversalBoundary;
+                      mode = FlowSubprocessMode.BACKWARD;
+                      forwardTraversalBoundary = null;
+                      enteredBackward = false;
+                  }
                   var traversalResult = this.flowTreeTraversalSubprocess(fromActivity, mode, skipChildren, forwardTraversalBoundary);
                   if (!traversalResult.activity) {
                       var exception = traversalResult.exception || (mode === FlowSubprocessMode.BACKWARD ? "SB.2.1-3" : fromActivity.children.length > 0 && fromActivity.getAvailableChildren().length === 0 ? "SB.2.1-2" : null);
                       return new FlowSubprocessResult(fromActivity, false, exception, traversalResult.endSequencingSession);
                   }
-                  return this.evaluateFlowActivity(traversalResult.activity, true, traversalResult.direction || mode, traversalResult.forwardOnlyCluster || forwardTraversalBoundary);
+                  return this.evaluateFlowActivity(traversalResult.activity, true, traversalResult.direction || mode, traversalResult.forwardOnlyCluster || forwardTraversalBoundary, !!traversalResult.forwardOnlyCluster || enteredBackward);
               }
           },
           {

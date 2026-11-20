@@ -4452,13 +4452,19 @@ class FlowTraversalService {
    * Evaluate a flow candidate while retaining its exception and session-end result.
    * @spec SN Book: SB.2.2 steps 3, 5.1, 6 - only skipped candidates traverse onward; blocked candidates stop before cluster descent.
    */
-  evaluateFlowActivity(activity, considerChildren, mode, forwardTraversalBoundary) {
+  evaluateFlowActivity(activity, considerChildren, mode, forwardTraversalBoundary, enteredBackward = false) {
     const parent = activity.parent;
     if (parent && !parent.sequencingControls.flow) {
       return new FlowSubprocessResult(activity, false, "SB.2.2-1");
     }
     if (this.checkSkippedRuleSet(activity)) {
-      return this.continueFlowActivityTraversal(activity, mode, true, forwardTraversalBoundary);
+      return this.continueFlowActivityTraversal(
+        activity,
+        mode,
+        true,
+        forwardTraversalBoundary,
+        enteredBackward
+      );
     }
     if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
       return new FlowSubprocessResult(activity, false, "SB.2.2-2");
@@ -4485,7 +4491,14 @@ class FlowTraversalService {
    * @spec SN Book: SB.2.2 steps 3, 6.3.3; SB.2.3 step 4.3 - propagate recursive results; only skip and cluster descent request another candidate.
    * @spec SN Book: SB.2.1 step 3.1 - preserve session end on genuine tree exhaustion.
    */
-  continueFlowActivityTraversal(fromActivity, mode, skipChildren, forwardTraversalBoundary) {
+  continueFlowActivityTraversal(fromActivity, mode, skipChildren, forwardTraversalBoundary, enteredBackward = false) {
+    const boundaryChildren = forwardTraversalBoundary?.getAvailableChildren() ?? [];
+    if (enteredBackward && skipChildren && forwardTraversalBoundary && fromActivity.parent === forwardTraversalBoundary && fromActivity === boundaryChildren[boundaryChildren.length - 1]) {
+      fromActivity = forwardTraversalBoundary;
+      mode = FlowSubprocessMode.BACKWARD;
+      forwardTraversalBoundary = null;
+      enteredBackward = false;
+    }
     const traversalResult = this.flowTreeTraversalSubprocess(
       fromActivity,
       mode,
@@ -4505,7 +4518,8 @@ class FlowTraversalService {
       traversalResult.activity,
       true,
       traversalResult.direction || mode,
-      traversalResult.forwardOnlyCluster || forwardTraversalBoundary
+      traversalResult.forwardOnlyCluster || forwardTraversalBoundary,
+      !!traversalResult.forwardOnlyCluster || enteredBackward
     );
   }
   /**
