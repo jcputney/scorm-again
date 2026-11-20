@@ -32,10 +32,19 @@ it.each([
     completionStatusKnown: true,
     completionStatus: measure < 0.5 ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE,
   } as GlobalObjective;
-  expect(
-    GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(activity, objective, map, global)
-      .completionStatus,
-  ).toBe(expected);
+  // @spec ADL CO-10 / SN 4.2.1.2: objective reads retain mapped completion;
+  // SN 4.2.1.4 applies the threshold to activity attempt completion instead.
+  const readState = GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
+    activity,
+    objective,
+    map,
+    global,
+  );
+  expect(readState.completionStatus).toBe(global.completionStatus);
+  activity.primaryObjective = objective;
+  objective.applyReadMappedState(readState);
+  objective.applyToActivity(activity);
+  expect(activity.completionStatus).toBe(expected);
   expect(
     GlobalObjectiveSynchronizer.getGlobalObjectiveReadState(
       activity,
@@ -110,12 +119,15 @@ it.each(["read phase", "combined"])("keeps measure precedence in %s", (mode) => 
         } else {
           synchronizer.synchronizeGlobalObjectives(activity, globals);
         }
-        const expected =
-          known && completedByMeasure ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
+        const expected = completedByMeasure
+          ? known
+            ? CompletionStatus.COMPLETED
+            : CompletionStatus.UNKNOWN
+          : CompletionStatus.INCOMPLETE;
         expect(
           objective.completionStatus,
           `reverse=${reverse}, known=${known}, byMeasure=${completedByMeasure}`,
-        ).toBe(expected);
+        ).toBe(CompletionStatus.INCOMPLETE);
         expect(activity.completionStatus).toBe(expected);
       }
     }

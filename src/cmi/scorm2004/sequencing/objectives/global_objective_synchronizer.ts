@@ -423,9 +423,6 @@ export class GlobalObjectiveSynchronizer {
     const objectives = activity.getAllObjectives();
 
     for (const objective of objectives) {
-      const mappedProgressMeasure = writeTargets
-        ? undefined
-        : this.getMappedProgressMeasure(objective, globalObjectives);
       // @spec SCORM 2004 4th Ed. SN 3.10.3: only explicitly mapped objectives
       // participate in the global read phase.
       for (const mapInfo of objective.mapInfo) {
@@ -460,7 +457,6 @@ export class GlobalObjectiveSynchronizer {
                   allowNormalizedMeasure: true,
                 }
               : undefined,
-          mappedProgressMeasure,
         );
         this.applyGlobalObjectiveReadState(objective, readState);
 
@@ -501,7 +497,6 @@ export class GlobalObjectiveSynchronizer {
     const objectives = activity.getAllObjectives();
 
     for (const objective of objectives) {
-      const mappedProgressMeasure = this.getMappedProgressMeasure(objective, globalObjectives);
       // @spec SCORM 2004 4th Ed. SN 3.10.3: combined synchronization follows
       // the same explicit-map boundary as the two-pass implementation.
       for (const mapInfo of objective.mapInfo) {
@@ -511,13 +506,7 @@ export class GlobalObjectiveSynchronizer {
           targetId,
           objective,
         );
-        this.syncObjectiveState(
-          activity,
-          objective,
-          mapInfo,
-          globalObjective,
-          mappedProgressMeasure,
-        );
+        this.syncObjectiveState(activity, objective, mapInfo, globalObjective);
       }
     }
   }
@@ -539,7 +528,6 @@ export class GlobalObjectiveSynchronizer {
     objective: ActivityObjective,
     mapInfo: ObjectiveMapInfo,
     globalObjective: GlobalObjective,
-    mappedProgressMeasure?: number,
   ): void {
     try {
       const isPrimary = objective.isPrimary;
@@ -550,8 +538,6 @@ export class GlobalObjectiveSynchronizer {
         objective,
         mapInfo,
         globalObjective,
-        undefined,
-        mappedProgressMeasure,
       );
       this.applyGlobalObjectiveReadState(objective, readState);
 
@@ -644,21 +630,6 @@ export class GlobalObjectiveSynchronizer {
     }
   }
 
-  /** Collect only known progress measures read by this objective, never stale local state. */
-  private getMappedProgressMeasure(
-    objective: ActivityObjective,
-    globalObjectives: Map<string, GlobalObjective>,
-  ): number | undefined {
-    let progressMeasure: number | undefined;
-    for (const mapInfo of objective.mapInfo) {
-      const globalObjective = globalObjectives.get(mapInfo.targetObjectiveID || objective.id);
-      if (mapInfo.readProgressMeasure && globalObjective?.progressMeasureKnown) {
-        progressMeasure = globalObjective.progressMeasure;
-      }
-    }
-    return progressMeasure;
-  }
-
   /**
    * Project a global objective through one local objective's read mapInfo.
    *
@@ -671,7 +642,6 @@ export class GlobalObjectiveSynchronizer {
     mapInfo: ObjectiveMapInfo,
     globalObjective: GlobalObjective,
     options?: GlobalObjectiveReadOptions,
-    mappedProgressMeasure?: number,
   ): ActivityObjectiveReadState {
     const readState: ActivityObjectiveReadState = {};
 
@@ -734,24 +704,18 @@ export class GlobalObjectiveSynchronizer {
 
     // @spec SCORM 2004 4th Ed. SN 3.10.3 Table 3.10.3a - Read Progress
     // Measure applies only when the mapped global progress measure is known.
-    if (
-      !options?.restrictToFreshWrites &&
-      mapInfo.readProgressMeasure &&
-      globalObjective.progressMeasureKnown
-    ) {
-      readState.progressMeasure = globalObjective.progressMeasure;
-    }
-
-    const progressMeasure = mappedProgressMeasure ?? readState.progressMeasure;
-    if (!options?.restrictToFreshWrites && progressMeasure !== undefined) {
-      /** @spec ADL CTS CO-02a: completedByMeasure derives completion from a read progress measure. */
-      if (activity.completedByMeasure) {
-        readState.completionStatus =
-          progressMeasure >= activity.minProgressMeasure
-            ? CompletionStatus.COMPLETED
-            : CompletionStatus.INCOMPLETE;
+    if (!options?.restrictToFreshWrites && mapInfo.readProgressMeasure) {
+      // @spec SCORM 2004 4th Ed. SN 4.2.1.4 - an unavailable mapped
+      // completion amount cannot make measure-based activity completion known.
+      readState.progressMeasureKnown = globalObjective.progressMeasureKnown;
+      if (globalObjective.progressMeasureKnown) {
+        readState.progressMeasure = globalObjective.progressMeasure;
       }
     }
+
+    // @spec SCORM 2004 4th Ed. SN 3.10.3 - completion and progress read maps
+    // expose independent objective fields. The activity's completion threshold
+    // is evaluated when projecting the primary objective onto activity tracking.
 
     // @spec SCORM 2004 4th Ed. ADLSEQ objectives extension - Read Raw Score
     // applies only when the mapped global raw score is known.
