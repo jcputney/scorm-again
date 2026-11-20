@@ -34,4 +34,6 @@ export declare class ChoiceConstraintValidator {
     hasTimeBoundaryViolation(targetActivity: Activity, now: Date): boolean;
     hasAttemptLimitViolation(targetActivity: Activity): boolean;
 }
+export declare function validateConstrainedChoice(current: Activity, target: Activity): boolean;
+export declare function findPreventingActivationAncestor(target: Activity): Activity | null;
 //# sourceMappingURL=choice_constraint_validator.d.ts.map

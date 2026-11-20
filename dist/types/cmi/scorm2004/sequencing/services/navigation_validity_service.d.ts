@@ -65,8 +65,6 @@ export declare class NavigationValidityService {
     activityContains(container: Activity, target: Activity): boolean;
     findCommonAncestor(activity1: Activity, activity2: Activity): Activity | null;
     private validateAncestors;
-    private requiresNewActivation;
-    private branchHasActiveAttempt;
     private isActivityMandatory;
     private isActivityCompleted;
     private evaluatePreConditionRulesForChoice;

@@ -3009,15 +3009,14 @@ class ChoiceConstraintValidator {
     if (targetActivity.parent && !targetActivity.parent.sequencingControls.choice) {
       return { valid: false, exception: "SB.2.9-5" };
     }
+    const preventingAncestor = findPreventingActivationAncestor(targetActivity);
     let activity = targetActivity;
     while (activity) {
       if (activity.isHiddenFromChoice) {
         return { valid: false, exception: "SB.2.9-4" };
       }
-      if (activity.parent && activity.parent.sequencingControls.preventActivation) {
-        if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
-          return { valid: false, exception: "SB.2.9-6" };
-        }
+      if (activity.parent && activity.parent === preventingAncestor) {
+        return { valid: false, exception: "SB.2.9-6" };
       }
       activity = activity.parent;
     }
@@ -3051,6 +3050,8 @@ class ChoiceConstraintValidator {
    * @return {ConstraintValidationResult} - Validation result
    */
   validateAncestorConstraints(currentActivity, targetActivity) {
+    const constrained = validateConstrainedChoice(currentActivity, targetActivity);
+    if (!constrained) return { valid: false, exception: "SB.2.9-7" };
     let ancestorActivity = targetActivity.parent;
     while (ancestorActivity) {
       const validation = this.validateConstraintsAtLevel(
@@ -3095,17 +3096,7 @@ class ChoiceConstraintValidator {
         }
       }
     }
-    if (ancestor.sequencingControls.constrainChoice) {
-      if (targetIndex > currentIndex + 1) {
-        return { valid: false, exception: "SB.2.9-7" };
-      }
-      if (targetIndex < currentIndex) {
-        if (targetActivity.completionStatus !== "completed" && targetActivity.completionStatus !== "passed") {
-          return { valid: false, exception: "SB.2.9-7" };
-        }
-      }
-    }
-    if (ancestor.sequencingControls.preventActivation) {
+    if (!ancestor.isActive && ancestor.sequencingControls.preventActivation) {
       if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
         return { valid: false, exception: "SB.2.9-6" };
       }
@@ -3350,6 +3341,52 @@ class ChoiceConstraintValidator {
   hasAttemptLimitViolation(targetActivity) {
     return !!(targetActivity.attemptLimit && targetActivity.attemptCount >= targetActivity.attemptLimit);
   }
+}
+function validateConstrainedChoice(current, target) {
+  const currentPath = [];
+  let node = current;
+  while (node) {
+    currentPath.push(node);
+    node = node.parent;
+  }
+  let common = target;
+  while (common && !currentPath.includes(common)) common = common.parent;
+  if (!common) return false;
+  const contains = (ancestor, activity) => {
+    let cursor = activity;
+    while (cursor) {
+      if (cursor === ancestor) return true;
+      cursor = cursor.parent;
+    }
+    return false;
+  };
+  const constrained = currentPath.slice(1, currentPath.indexOf(common)).find((activity) => activity.sequencingControls.constrainChoice);
+  if (!constrained || contains(constrained, target) || contains(target, constrained))
+    return true;
+  const branch = (activity) => {
+    while (activity.parent && activity.parent !== common)
+      activity = activity.parent;
+    return activity;
+  };
+  const forward = common.children.indexOf(branch(target)) > common.children.indexOf(branch(current));
+  node = constrained;
+  while (node?.parent) {
+    const siblings = node.parent.children;
+    const neighbour = siblings[siblings.indexOf(node) + (forward ? 1 : -1)];
+    if (neighbour) return contains(neighbour, target);
+    node = node.parent;
+  }
+  return false;
+}
+function findPreventingActivationAncestor(target) {
+  let ancestor = target.parent;
+  while (ancestor) {
+    if (!ancestor.isActive && ancestor.sequencingControls.preventActivation) {
+      return ancestor;
+    }
+    ancestor = ancestor.parent;
+  }
+  return null;
 }
 
 var SelectionTiming = /* @__PURE__ */ ((SelectionTiming2) => {
@@ -14000,6 +14037,9 @@ class NavigationValidityService {
     if (this.isActivityDisabled(targetActivity)) {
       return { valid: false, exception: "NB.2.1-11" };
     }
+    if (findPreventingActivationAncestor(targetActivity)) {
+      return { valid: false, exception: "NB.2.1-11" };
+    }
     if (currentActivity) {
       const commonAncestor = this.findCommonAncestor(
         currentActivity,
@@ -14067,33 +14107,8 @@ class NavigationValidityService {
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
   validateConstrainChoice(currentActivity, targetActivity, commonAncestor) {
-    let ancestor = commonAncestor;
-    while (ancestor) {
-      if (ancestor.sequencingControls?.constrainChoice || ancestor.sequencingControls?.preventActivation) {
-        const currentBranch = this.findChildContaining(
-          ancestor,
-          currentActivity
-        );
-        if (!currentBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-        if (targetActivity === ancestor) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-        const targetBranch = this.findChildContaining(ancestor, targetActivity);
-        if (!targetBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-        if (ancestor.sequencingControls?.constrainChoice && targetBranch !== currentBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
-        }
-        if (ancestor.sequencingControls?.preventActivation && targetBranch !== currentBranch) {
-          if (this.requiresNewActivation(targetBranch, targetActivity)) {
-            return { valid: false, exception: "NB.2.1-11" };
-          }
-        }
-      }
-      ancestor = ancestor.parent;
+    if (!validateConstrainedChoice(currentActivity, targetActivity)) {
+      return { valid: false, exception: "NB.2.1-11" };
     }
     return this.validateAncestors(commonAncestor, currentActivity, targetActivity);
   }
@@ -14237,26 +14252,6 @@ class NavigationValidityService {
       }
     }
     return { valid: true, exception: null };
-  }
-  requiresNewActivation(branchRoot, targetActivity) {
-    if (this.branchHasActiveAttempt(branchRoot)) {
-      return false;
-    }
-    if (targetActivity.activityAttemptActive || targetActivity.isActive) {
-      return false;
-    }
-    return true;
-  }
-  branchHasActiveAttempt(activity) {
-    if (activity.activityAttemptActive || activity.isActive) {
-      return true;
-    }
-    for (const child of activity.children) {
-      if (this.branchHasActiveAttempt(child)) {
-        return true;
-      }
-    }
-    return false;
   }
   /** Helper: mandatory activity detection (mirrors SequencingProcess behavior) */
   isActivityMandatory(activity) {

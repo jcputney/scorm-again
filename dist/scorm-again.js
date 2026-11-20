@@ -4952,6 +4952,7 @@
                           exception: "SB.2.9-5"
                       };
                   }
+                  var preventingAncestor = findPreventingActivationAncestor(targetActivity);
                   var activity = targetActivity;
                   while(activity){
                       if (activity.isHiddenFromChoice) {
@@ -4960,13 +4961,11 @@
                               exception: "SB.2.9-4"
                           };
                       }
-                      if (activity.parent && activity.parent.sequencingControls.preventActivation) {
-                          if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
-                              return {
-                                  valid: false,
-                                  exception: "SB.2.9-6"
-                              };
-                          }
+                      if (activity.parent && activity.parent === preventingAncestor) {
+                          return {
+                              valid: false,
+                              exception: "SB.2.9-6"
+                          };
                       }
                       activity = activity.parent;
                   }
@@ -5013,6 +5012,11 @@
      * @return {ConstraintValidationResult} - Validation result
      */ key: "validateAncestorConstraints",
               value: function validateAncestorConstraints(currentActivity, targetActivity) {
+                  var constrained = validateConstrainedChoice(currentActivity, targetActivity);
+                  if (!constrained) return {
+                      valid: false,
+                      exception: "SB.2.9-7"
+                  };
                   var ancestorActivity = targetActivity.parent;
                   while(ancestorActivity){
                       var validation = this.validateConstraintsAtLevel(ancestorActivity, currentActivity, targetActivity);
@@ -5070,23 +5074,7 @@
                           }
                       }
                   }
-                  if (ancestor.sequencingControls.constrainChoice) {
-                      if (targetIndex > currentIndex + 1) {
-                          return {
-                              valid: false,
-                              exception: "SB.2.9-7"
-                          };
-                      }
-                      if (targetIndex < currentIndex) {
-                          if (targetActivity.completionStatus !== "completed" && targetActivity.completionStatus !== "passed") {
-                              return {
-                                  valid: false,
-                                  exception: "SB.2.9-7"
-                              };
-                          }
-                      }
-                  }
-                  if (ancestor.sequencingControls.preventActivation) {
+                  if (!ancestor.isActive && ancestor.sequencingControls.preventActivation) {
                       if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
                           return {
                               valid: false,
@@ -5386,6 +5374,52 @@
       ]);
       return ChoiceConstraintValidator;
   }();
+  function validateConstrainedChoice(current, target) {
+      var currentPath = [];
+      var node = current;
+      while(node){
+          currentPath.push(node);
+          node = node.parent;
+      }
+      var common = target;
+      while(common && !currentPath.includes(common))common = common.parent;
+      if (!common) return false;
+      var contains = function contains(ancestor, activity) {
+          var cursor = activity;
+          while(cursor){
+              if (cursor === ancestor) return true;
+              cursor = cursor.parent;
+          }
+          return false;
+      };
+      var constrained = currentPath.slice(1, currentPath.indexOf(common)).find(function(activity) {
+          return activity.sequencingControls.constrainChoice;
+      });
+      if (!constrained || contains(constrained, target) || contains(target, constrained)) return true;
+      var branch = function branch(activity) {
+          while(activity.parent && activity.parent !== common)activity = activity.parent;
+          return activity;
+      };
+      var forward = common.children.indexOf(branch(target)) > common.children.indexOf(branch(current));
+      node = constrained;
+      while(node === null || node === void 0 ? void 0 : node.parent){
+          var siblings = node.parent.children;
+          var neighbour = siblings[siblings.indexOf(node) + (forward ? 1 : -1)];
+          if (neighbour) return contains(neighbour, target);
+          node = node.parent;
+      }
+      return false;
+  }
+  function findPreventingActivationAncestor(target) {
+      var ancestor = target.parent;
+      while(ancestor){
+          if (!ancestor.isActive && ancestor.sequencingControls.preventActivation) {
+              return ancestor;
+          }
+          ancestor = ancestor.parent;
+      }
+      return null;
+  }
 
   function _assert_this_initialized$s(self) {
       if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -20378,6 +20412,12 @@
                           exception: "NB.2.1-11"
                       };
                   }
+                  if (findPreventingActivationAncestor(targetActivity)) {
+                      return {
+                          valid: false,
+                          exception: "NB.2.1-11"
+                      };
+                  }
                   if (currentActivity) {
                       var commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
                       if (!commonAncestor) {
@@ -20460,47 +20500,11 @@
      * @return {{valid: boolean, exception: string | null}} - Validation result
      */ key: "validateConstrainChoice",
               value: function validateConstrainChoice(currentActivity, targetActivity, commonAncestor) {
-                  var ancestor = commonAncestor;
-                  while(ancestor){
-                      var _ancestor_sequencingControls, _ancestor_sequencingControls1;
-                      if (((_ancestor_sequencingControls = ancestor.sequencingControls) === null || _ancestor_sequencingControls === void 0 ? void 0 : _ancestor_sequencingControls.constrainChoice) || ((_ancestor_sequencingControls1 = ancestor.sequencingControls) === null || _ancestor_sequencingControls1 === void 0 ? void 0 : _ancestor_sequencingControls1.preventActivation)) {
-                          var _ancestor_sequencingControls2, _ancestor_sequencingControls3;
-                          var currentBranch = this.findChildContaining(ancestor, currentActivity);
-                          if (!currentBranch) {
-                              return {
-                                  valid: false,
-                                  exception: "NB.2.1-11"
-                              };
-                          }
-                          if (targetActivity === ancestor) {
-                              return {
-                                  valid: false,
-                                  exception: "NB.2.1-11"
-                              };
-                          }
-                          var targetBranch = this.findChildContaining(ancestor, targetActivity);
-                          if (!targetBranch) {
-                              return {
-                                  valid: false,
-                                  exception: "NB.2.1-11"
-                              };
-                          }
-                          if (((_ancestor_sequencingControls2 = ancestor.sequencingControls) === null || _ancestor_sequencingControls2 === void 0 ? void 0 : _ancestor_sequencingControls2.constrainChoice) && targetBranch !== currentBranch) {
-                              return {
-                                  valid: false,
-                                  exception: "NB.2.1-11"
-                              };
-                          }
-                          if (((_ancestor_sequencingControls3 = ancestor.sequencingControls) === null || _ancestor_sequencingControls3 === void 0 ? void 0 : _ancestor_sequencingControls3.preventActivation) && targetBranch !== currentBranch) {
-                              if (this.requiresNewActivation(targetBranch, targetActivity)) {
-                                  return {
-                                      valid: false,
-                                      exception: "NB.2.1-11"
-                                  };
-                              }
-                          }
-                      }
-                      ancestor = ancestor.parent;
+                  if (!validateConstrainedChoice(currentActivity, targetActivity)) {
+                      return {
+                          valid: false,
+                          exception: "NB.2.1-11"
+                      };
                   }
                   return this.validateAncestors(commonAncestor, currentActivity, targetActivity);
               }
@@ -20709,49 +20713,6 @@
                       valid: true,
                       exception: null
                   };
-              }
-          },
-          {
-              key: "requiresNewActivation",
-              value: function requiresNewActivation(branchRoot, targetActivity) {
-                  if (this.branchHasActiveAttempt(branchRoot)) {
-                      return false;
-                  }
-                  if (targetActivity.activityAttemptActive || targetActivity.isActive) {
-                      return false;
-                  }
-                  return true;
-              }
-          },
-          {
-              key: "branchHasActiveAttempt",
-              value: function branchHasActiveAttempt(activity) {
-                  if (activity.activityAttemptActive || activity.isActive) {
-                      return true;
-                  }
-                  var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
-                  try {
-                      for(var _iterator = activity.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
-                          var child = _step.value;
-                          if (this.branchHasActiveAttempt(child)) {
-                              return true;
-                          }
-                      }
-                  } catch (err) {
-                      _didIteratorError = true;
-                      _iteratorError = err;
-                  } finally{
-                      try {
-                          if (!_iteratorNormalCompletion && _iterator.return != null) {
-                              _iterator.return();
-                          }
-                      } finally{
-                          if (_didIteratorError) {
-                              throw _iteratorError;
-                          }
-                      }
-                  }
-                  return false;
               }
           },
           {
