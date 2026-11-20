@@ -165,12 +165,14 @@ the hand-written fixtures:
 book's wording where ADL's own implementation does something else. The ADL
 packages that test them are expected to differ:
 
-- An activity whose content leaves completion unknown is still auto-completed
-  when its attempt ends (UP.4), even when the SCO sets
-  `cmi.completion_status` to `unknown` explicitly. The same applies to a
-  `completedByMeasure` activity that reports no progress measure. ADL keeps
-  these activities unknown (CM-06, RU-19b, CO-04c). Changing this would stop
-  live content that sets `unknown` from counting as completed.
+- When `completionSetByContent` is false (the default), an activity whose
+  content leaves completion unknown is auto-completed when its attempt ends
+  (UP.4). This includes a SCO that sets `cmi.completion_status` to `unknown`
+  explicitly, and a `completedByMeasure` activity that reports no progress
+  measure. ADL keeps these activities unknown (CM-06, RU-19b, CO-04c).
+  Changing this would stop live content that sets `unknown` from counting as
+  completed. Setting `completionSetByContent` to true turns auto-completion
+  off, so completion stays unknown.
 - A rollup rule with `childActivitySet` of `all` or `none` doesn't fire when no
   child contributes to rollup, for example when every child is untracked
   (RB.1.4). ADL's implementation fires it (RU-11, and RU-15b, where the only
