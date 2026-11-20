@@ -304,6 +304,7 @@ export class FlowTraversalService {
     considerChildren: boolean,
     mode: FlowSubprocessMode,
     forwardTraversalBoundary: Activity | null,
+    enteredBackward: boolean = false,
   ): FlowSubprocessResult {
     const parent = activity.parent;
     if (parent && !parent.sequencingControls.flow) {
@@ -311,7 +312,13 @@ export class FlowTraversalService {
     }
 
     if (this.checkSkippedRuleSet(activity)) {
-      return this.continueFlowActivityTraversal(activity, mode, true, forwardTraversalBoundary);
+      return this.continueFlowActivityTraversal(
+        activity,
+        mode,
+        true,
+        forwardTraversalBoundary,
+        enteredBackward,
+      );
     }
 
     if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
@@ -350,7 +357,24 @@ export class FlowTraversalService {
     mode: FlowSubprocessMode,
     skipChildren: boolean,
     forwardTraversalBoundary: Activity | null,
+    enteredBackward: boolean = false,
   ): FlowSubprocessResult {
+    // SB.2.1 step 2: only direct skipped children retain Previous Direction
+    // Backward. Retry boundaries and descent into a non-skipped cluster do not.
+    const boundaryChildren = forwardTraversalBoundary?.getAvailableChildren() ?? [];
+    if (
+      enteredBackward &&
+      skipChildren &&
+      forwardTraversalBoundary &&
+      fromActivity.parent === forwardTraversalBoundary &&
+      fromActivity === boundaryChildren[boundaryChildren.length - 1]
+    ) {
+      fromActivity = forwardTraversalBoundary;
+      mode = FlowSubprocessMode.BACKWARD;
+      forwardTraversalBoundary = null;
+      enteredBackward = false;
+    }
+
     const traversalResult = this.flowTreeTraversalSubprocess(
       fromActivity,
       mode,
@@ -379,6 +403,7 @@ export class FlowTraversalService {
       true,
       traversalResult.direction || mode,
       traversalResult.forwardOnlyCluster || forwardTraversalBoundary,
+      !!traversalResult.forwardOnlyCluster || enteredBackward,
     );
   }
 
