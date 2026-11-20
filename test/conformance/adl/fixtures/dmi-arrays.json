@@ -1,0 +1,131 @@
+{
+  "id": "DMI-arrays",
+  "scormVersion": "2004",
+  "source": "Hand-authored representative DMI.properties bindings: Act1V1#77-91 (objectives), Act3V1#10,24,29,519,523-533 (interaction dependencies, indices and ID replacement), Act2V1#3459,3461,3463 (LMS comments). Reduced sequences preserve each dependency; invalid learner timestamps exercise failed-write atomicity.",
+  "activities": [
+    {
+      "id": "array-bindings",
+      "steps": [
+        {
+          "method": "Initialize",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0"
+        },
+        {
+          "method": "GetValue",
+          "expectedReturn": "",
+          "expectedErrorCode": "301",
+          "element": "cmi.objectives.0.id"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "false",
+          "expectedErrorCode": "408",
+          "element": "cmi.objectives.0.description",
+          "value": "description"
+        },
+        {
+          "method": "GetValue",
+          "expectedReturn": "0",
+          "expectedErrorCode": "0",
+          "element": "cmi.objectives._count"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0",
+          "element": "cmi.objectives.0.id",
+          "value": "urn:objective"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "false",
+          "expectedErrorCode": "351",
+          "element": "cmi.objectives.0.id",
+          "value": "urn:replacement"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "false",
+          "expectedErrorCode": "408",
+          "element": "cmi.interactions.0.timestamp",
+          "value": "bad"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "false",
+          "expectedErrorCode": "408",
+          "element": "cmi.interactions.0.description",
+          "value": "bad"
+        },
+        {
+          "method": "GetValue",
+          "expectedReturn": "0",
+          "expectedErrorCode": "0",
+          "element": "cmi.interactions._count"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "false",
+          "expectedErrorCode": "351",
+          "element": "cmi.interactions.01.description",
+          "value": "bad"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "false",
+          "expectedErrorCode": "351",
+          "element": "cmi.interactions.3.description",
+          "value": "bad"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0",
+          "element": "cmi.interactions.0.id",
+          "value": "urn:interaction"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0",
+          "element": "cmi.interactions.0.id",
+          "value": "urn:replacement"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0",
+          "element": "cmi.interactions.0.type",
+          "value": "true-false"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "true",
+          "expectedErrorCode": "0",
+          "element": "cmi.interactions.0.correct_responses.0.pattern",
+          "value": "true"
+        },
+        {
+          "method": "GetValue",
+          "expectedReturn": "",
+          "expectedErrorCode": "301",
+          "element": "cmi.interactions.0.correct_responses.1.pattern"
+        },
+        {
+          "method": "SetValue",
+          "expectedReturn": "false",
+          "expectedErrorCode": "406",
+          "element": "cmi.comments_from_learner.0.timestamp",
+          "value": "bad"
+        },
+        {
+          "method": "GetValue",
+          "expectedReturn": "0",
+          "expectedErrorCode": "0",
+          "element": "cmi.comments_from_learner._count"
+        }
+      ]
+    }
+  ]
+}

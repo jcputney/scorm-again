@@ -132,42 +132,51 @@ export class CMIValueAccessService {
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = this.getUndefinedDataModelErrorCode();
 
-    for (let idx = 0; idx < structure.length; idx++) {
-      const attribute = structure[idx]!;
+    const createdEntries: CMIArray[] = [];
+    try {
+      for (let idx = 0; idx < structure.length; idx++) {
+        const attribute = structure[idx]!;
 
-      if (idx === structure.length - 1) {
-        // Final attribute - set the value
-        returnValue = this.setFinalAttribute(
-          refObject,
-          attribute,
-          value,
-          CMIElement,
-          scorm2004,
-          invalidErrorCode,
-          invalidErrorMessage,
-        );
-        break;
-      } else {
-        // Intermediate attribute - traverse
-        const traverseResult = this.traverseToNextLevel(
-          refObject,
-          structure,
-          idx,
-          value,
-          CMIElement,
-          scorm2004,
-          foundFirstIndex,
-          invalidErrorCode,
-          invalidErrorMessage,
-        );
-
-        if (traverseResult.error) {
+        if (idx === structure.length - 1) {
+          // Final attribute - set the value
+          returnValue = this.setFinalAttribute(
+            refObject,
+            attribute,
+            value,
+            CMIElement,
+            scorm2004,
+            invalidErrorCode,
+            invalidErrorMessage,
+          );
           break;
-        }
+        } else {
+          // Intermediate attribute - traverse
+          const traverseResult = this.traverseToNextLevel(
+            refObject,
+            structure,
+            idx,
+            value,
+            CMIElement,
+            scorm2004,
+            foundFirstIndex,
+            invalidErrorCode,
+            invalidErrorMessage,
+            createdEntries,
+          );
 
-        refObject = traverseResult.refObject;
-        idx = traverseResult.idx;
-        foundFirstIndex = traverseResult.foundFirstIndex;
+          if (traverseResult.error) {
+            break;
+          }
+
+          refObject = traverseResult.refObject;
+          idx = traverseResult.idx;
+          foundFirstIndex = traverseResult.foundFirstIndex;
+        }
+      }
+    } finally {
+      // Failed writes must not publish newly constructed collection entries.
+      if (scorm2004 && returnValue !== global_constants.SCORM_TRUE) {
+        for (const collection of createdEntries.reverse()) collection.childArray.pop();
       }
     }
 
@@ -411,6 +420,7 @@ export class CMIValueAccessService {
     foundFirstIndex: boolean,
     invalidErrorCode: number,
     invalidErrorMessage: string,
+    createdEntries: CMIArray[],
   ): { refObject: StringKeyMap | BaseCMI; idx: number; foundFirstIndex: boolean; error: boolean } {
     const attribute = structure[idx];
 
@@ -440,6 +450,7 @@ export class CMIValueAccessService {
         foundFirstIndex,
         invalidErrorCode,
         invalidErrorMessage,
+        createdEntries,
       );
 
       if (arrayResult.error) {
@@ -465,8 +476,22 @@ export class CMIValueAccessService {
     foundFirstIndex: boolean,
     invalidErrorCode: number,
     invalidErrorMessage: string,
+    createdEntries: CMIArray[],
   ): { refObject: StringKeyMap | BaseCMI; idx: number; foundFirstIndex: boolean; error: boolean } {
     const index = parseInt(structure[idx + 1] || "0", 10);
+
+    const token = structure[idx + 1] ?? "";
+    if (
+      scorm2004 &&
+      /^-?\d/.test(token) &&
+      (!/^(0|[1-9]\d*)$/.test(token) || index > refObject.childArray.length)
+    ) {
+      this.context.throwSCORMError(
+        CMIElement,
+        getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"),
+      );
+      return { refObject, idx, foundFirstIndex, error: true };
+    }
 
     if (!isNaN(index)) {
       const item = refObject.childArray[index];
@@ -503,6 +528,7 @@ export class CMIValueAccessService {
         } else {
           if (refObject.initialized) newChild.initialize();
           refObject.childArray[index] = newChild;
+          createdEntries.push(refObject);
           return {
             refObject: newChild,
             idx: idx + 1,
@@ -622,7 +648,7 @@ export class CMIValueAccessService {
       } else if (scorm2004) {
         this.context.throwSCORMError(
           CMIElement,
-          getErrorCode(this.context.errorCodes, "VALUE_NOT_INITIALIZED"),
+          getErrorCode(this.context.errorCodes, "GENERAL_GET_FAILURE"),
           uninitializedErrorMessage,
         );
         return {

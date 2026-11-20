@@ -163,7 +163,6 @@ export class CMIInteractionsObject extends BaseCMI {
   /**
    * Setter for _id
    * Per SCORM 2004 RTE: identifier SHALL NOT be empty or contain only whitespace
-   * Per SCORM 2004 RTE Section 4.1.6: Once set, an interaction ID is immutable (error 351)
    * @param {string} id
    */
   set id(id: string) {
@@ -172,13 +171,6 @@ export class CMIInteractionsObject extends BaseCMI {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".id",
         scorm2004_errors.TYPE_MISMATCH as number,
-      );
-    }
-    // Per SCORM 2004 RTE: Once an interaction ID is set, it cannot be changed
-    if (this._idIsSet && this._id !== id) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".id",
-        scorm2004_errors.GENERAL_SET_FAILURE as number,
       );
     }
     if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {

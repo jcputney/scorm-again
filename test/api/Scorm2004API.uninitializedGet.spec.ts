@@ -141,7 +141,7 @@ describe("SCORM 2004 GetValue 403 (VALUE_NOT_INITIALIZED)", () => {
       onLogMessage.mockClear();
 
       expect(api.lmsGetValue("cmi.objectives.5.id")).toBe("");
-      expect(api.lmsGetLastError()).toBe("403");
+      expect(api.lmsGetLastError()).toBe("301");
       expect(getLogLevelsForElement(onLogMessage, "cmi.objectives.5.id")).toEqual([
         LogLevelEnum.ERROR,
         LogLevelEnum.ERROR,
