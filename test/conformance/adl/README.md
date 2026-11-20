@@ -161,9 +161,10 @@ the hand-written fixtures:
   whose `id` is unset, and SCO writes to `cmi.comments_from_lms.n.*`, are
   accepted (ADL expects 408 and 404).
 
-**Deliberate sequencing differences.** Two sequencing behaviours follow the SN
-book's wording where ADL's own implementation does something else. The ADL
-packages that test them are expected to differ:
+**Deliberate sequencing differences.** These sequencing behaviours differ from
+ADL's own implementation, either because they follow the SN book's wording or
+because live content depends on them. The ADL packages that test them are
+expected to differ:
 
 - When `completionSetByContent` is false (the default), an activity whose
   content leaves completion unknown is auto-completed when its attempt ends
@@ -175,8 +176,21 @@ packages that test them are expected to differ:
   off, so completion stays unknown.
 - A rollup rule with `childActivitySet` of `all` or `none` doesn't fire when no
   child contributes to rollup, for example when every child is untracked
-  (RB.1.4). ADL's implementation fires it (RU-11, and RU-15b, where the only
-  remaining child is skipped and so is left out of rollup).
+  (RB.1.4). ADL's implementation fires it (RU-11).
+- An `ifNotSkipped` rollup consideration leaves out a child only if it was
+  actually skipped. It doesn't re-check the child's Skip rules, as ADL does
+  (RU-15b). Combined with the rule above, re-checking would leave a
+  simple-remediation course incomplete after the learner passes every test,
+  because each passed test matches its Skip rule and is left out of rollup.
+- An `activityProgressKnown` condition that names an objective checks whether
+  that objective's completion is known. Prerequisite rules depend on this, for
+  example "disabled unless the previous SCO's objective is completed and its
+  progress is known". ADL checks the activity's own progress instead (CO-13a),
+  which would keep such an activity disabled for good.
+- After an Exit Parent, the parent's post-condition rules are evaluated too
+  (TB.2.3), so an Exit Parent can reach the root and fire the root's Retry
+  rule. ADL continues to the next activity instead (RU-13d).
+  `test/api/Scorm2004API.attempt_end_post_conditions.spec.ts` pins this.
 
 **1. `GetValue` did not reset a stale error code on success (SCORM 2004) — FIXED.**
 ADL `API.properties` Act3V1 step 19 (`GET->c~LOC->test->0`) requires the current
