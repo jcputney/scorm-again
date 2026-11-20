@@ -272,6 +272,8 @@ describe("branch attempts are committed only at delivery", () => {
     const { tree, overall, rollup } = createEngine();
     tree.currentActivity!.completionStatus = "completed";
     const prepared = overall.prepareNavigationRequest(NavigationRequestType.CONTINUE);
+    /** @spec SN UP.1: only an inactive, non-suspended ancestor can violate limits. */
+    tree.root!.isActive = false;
     tree.root!.attemptLimit = tree.root!.attemptCount;
     const globals = overall.getGlobalObjectiveMap();
     const before = clonePreviewState({ tree, globals });

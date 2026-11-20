@@ -468,6 +468,27 @@ describe("DeliveryValidator", () => {
   });
 
   describe("checkLimitConditions (UP.1)", () => {
+    /** @spec SCORM 2004 4th Ed. SN UP.1: an active attempt is in progress. */
+    it("passes for an active activity at its attempt limit", () => {
+      grandchild1.attemptLimit = 2;
+      grandchild1.attemptCount = 2;
+      grandchild1.isActive = true;
+      expect(validator.checkLimitConditions(grandchild1)).toBe(true);
+      expect(eventCallback).toHaveBeenCalledWith(
+        "onLimitConditionCheck",
+        expect.objectContaining({ result: true, attemptInProgress: true })
+      );
+    });
+
+    /** @spec SCORM 2004 4th Ed. SN UP.1: a new attempt must obey the attempt limit. */
+    it("fails for an inactive activity at its attempt limit", () => {
+      grandchild1.attemptLimit = 2;
+      grandchild1.attemptCount = 2;
+      grandchild1.isActive = false;
+      grandchild1.isSuspended = false;
+      expect(validator.checkLimitConditions(grandchild1)).toBe(false);
+    });
+
     it("should pass with no limits set", () => {
       const result = validator.checkLimitConditions(grandchild1);
       expect(result).toBe(true);

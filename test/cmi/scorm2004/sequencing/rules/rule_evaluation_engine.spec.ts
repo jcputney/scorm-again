@@ -238,6 +238,16 @@ describe("RuleEvaluationEngine", () => {
   });
 
   describe("checkLimitConditions", () => {
+    /** @spec SCORM 2004 4th Ed. SN UP.1: active attempts are exempt from limit checks. */
+    it("does not report a limit violation until the active attempt ends", () => {
+      activity.attemptLimit = 2;
+      activity.attemptCount = 2;
+      activity.isActive = true;
+      expect(engine.checkLimitConditions(activity)).toBe(false);
+      activity.isActive = false;
+      expect(engine.checkLimitConditions(activity)).toBe(true);
+    });
+
     it("should return false when no limits are set", () => {
       expect(engine.checkLimitConditions(activity)).toBe(false);
     });

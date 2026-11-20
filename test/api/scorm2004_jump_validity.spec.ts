@@ -89,6 +89,9 @@ describe("SCORM 2004 jump validity", () => {
     expect(jump(api, "quiz")).toBe("true");
     tree.root!.attemptLimit = 1;
     tree.root!.attemptCount = 1;
+    /** @spec SN UP.1: an active ancestor remains exempt until its attempt ends. */
+    expect(jump(api, "quiz")).toBe("true");
+    tree.root!.isActive = false;
     expect(jump(api, "quiz")).toBe("false");
   });
 
