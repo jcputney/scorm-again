@@ -90,10 +90,15 @@ export class ChoiceRequestHandler {
       }
     }
 
-    // The root-to-target visibility pass does not apply general preconditions to
-    // ancestors, but the explicitly selected activity must itself be deliverable.
-    // @spec SCORM 2004 SN 4th Ed. SB.2.9 choice traversal cases
-    if (!this.traversalService.checkActivityProcess(targetActivity)) {
+    // @spec SN Book: SB.2.9 / SB.2.9.1 / SB.2.9.2 - a chosen cluster enters
+    // flow with Consider Children true; its own Skip does not refuse choice.
+    // Candidates reached during descent still have their preconditions checked.
+    if (
+      !this.traversalService.checkActivityProcess(
+        targetActivity,
+        targetActivity.children.length > 0,
+      )
+    ) {
       result.exception = "SB.2.9-5";
       return result;
     }
@@ -260,6 +265,12 @@ export class ChoiceRequestHandler {
     // Validate traversal constraints
     const traversalValidation = this.constraintValidator.validateTraversalConstraints(activity);
     if (!traversalValidation.canTraverse) {
+      return new ChoiceTraversalResult(null, null);
+    }
+
+    // @spec SN Book: SB.2.9.1 / SB.2.2 - Skip bypasses an entire candidate
+    // cluster, not just its leaves (ADL CM-04b/c Activity 11).
+    if (activity.children.length > 0 && !this.traversalService.checkActivityProcess(activity)) {
       return new ChoiceTraversalResult(null, null);
     }
 

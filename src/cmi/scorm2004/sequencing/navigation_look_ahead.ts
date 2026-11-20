@@ -242,8 +242,12 @@ export class NavigationLookAhead {
       // Uses simpler check for backward navigation (reviewing previously visited content)
       for (let i = currentIndex - 1; i >= 0; i--) {
         const sibling = siblings[i];
-        if (sibling && this.isActivityPotentiallyDeliverableBackward(sibling)) {
-          return true;
+        if (sibling) {
+          const deliverable = this.isActivityPotentiallyDeliverableBackward(sibling);
+          // @spec SN Book: SB.2.2 - a blocked candidate stops flow; only Skip
+          // permits searching earlier candidates (ADL CM-04b).
+          if (deliverable === null) return false;
+          if (deliverable) return true;
         }
       }
     }
@@ -321,12 +325,17 @@ export class NavigationLookAhead {
   /**
    * Check if activity is potentially deliverable for backward navigation (Previous)
    * @param {Activity} activity - Activity to check
-   * @return {boolean} - True if potentially deliverable
+   * @return {boolean | null} - True if deliverable, false to continue past Skip, null if blocked
    * @spec SN Book: UP.2 (Sequencing Rules Check Process) - evaluates preconditions to exclude skipped and disabled backward flow candidates.
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - stopForwardTraversal does not block backward traversal.
    * @private
    */
-  private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean {
+  private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean | null {
+    // @spec SN Book: SB.2.2-1 - Flow=false on the candidate's parent
+    // blocks traversal, including when the candidate is inside another cluster.
+    if (activity.parent && !activity.parent.sequencingControls.flow) {
+      return null;
+    }
     // Visibility and hidden-from-choice only affect choice presentation. Flow
     // navigation can still deliver the activity.
     if (!activity.isAvailable) {
@@ -340,22 +349,20 @@ export class NavigationLookAhead {
       this.sequencingProcess.now,
       this.sequencingProcess.getAttemptElapsedSecondsHook,
     );
-    if (
-      preConditionResult === RuleActionType.SKIP ||
-      preConditionResult === RuleActionType.DISABLED
-    ) {
-      return false;
-    }
+    if (preConditionResult === RuleActionType.SKIP) return false;
+    if (preConditionResult === RuleActionType.DISABLED) return null;
 
     if (activity.children.length === 0) {
       return true;
     }
 
     // For clusters, check if any child is potentially deliverable
-    for (const child of activity.children) {
-      if (this.isActivityPotentiallyDeliverableBackward(child)) {
-        return true;
-      }
+    for (let i = activity.children.length - 1; i >= 0; i--) {
+      const child = activity.children[i];
+      if (!child) continue;
+      const deliverable = this.isActivityPotentiallyDeliverableBackward(child);
+      if (deliverable === null) return null;
+      if (deliverable) return true;
     }
 
     return false;
