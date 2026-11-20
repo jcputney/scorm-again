@@ -311,7 +311,7 @@ export class DeliveryValidator {
       // Only check if there's an actual non-zero limit
       if (limitDuration > 0) {
         const currentDuration = getDurationAsSeconds(
-          activity.attemptAbsoluteDuration || "PT0H0M0S",
+          activity.attemptAbsoluteDurationValue || "PT0H0M0S",
           scorm2004_regex.CMITimespan
         );
         if (currentDuration >= limitDuration) {
@@ -331,7 +331,7 @@ export class DeliveryValidator {
       // Only check if there's an actual non-zero limit
       if (limitDuration > 0) {
         const currentDuration = getDurationAsSeconds(
-          activity.activityAbsoluteDuration || "PT0H0M0S",
+          activity.activityAbsoluteDurationValue || "PT0H0M0S",
           scorm2004_regex.CMITimespan
         );
         if (currentDuration >= limitDuration) {

@@ -22,9 +22,11 @@ export interface ActivityStateData {
   attemptCompletionAmount: number;
   /** @spec SN Book RB.1.1.b - completion measure rollup depends on whether the persisted measure is known. */
   attemptCompletionAmountStatus: boolean;
-  attemptAbsoluteDuration: string;
+  attemptAbsoluteDuration?: string;
+  attemptAbsoluteDurationValue?: string;
   attemptExperiencedDuration: string;
-  activityAbsoluteDuration: string;
+  activityAbsoluteDuration?: string;
+  activityAbsoluteDurationValue?: string;
   activityExperiencedDuration: string;
   objectiveSatisfiedStatus: boolean;
   /** @spec SCORM 2004 4th Ed. SN TM.1: unknown objective progress must survive session restore. */
@@ -292,9 +294,9 @@ export class SequencingStateManager {
           activity.progressInfoAvailableInCurrentParentAttempt,
         attemptCompletionAmount: activity.attemptCompletionAmount,
         attemptCompletionAmountStatus: activity.attemptCompletionAmountStatus,
-        attemptAbsoluteDuration: activity.attemptAbsoluteDuration,
+        attemptAbsoluteDurationValue: activity.attemptAbsoluteDurationValue,
         attemptExperiencedDuration: activity.attemptExperiencedDuration,
-        activityAbsoluteDuration: activity.activityAbsoluteDuration,
+        activityAbsoluteDurationValue: activity.activityAbsoluteDurationValue,
         activityExperiencedDuration: activity.activityExperiencedDuration,
         objectiveSatisfiedStatus: activity.objectiveSatisfiedStatus,
         objectiveSatisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
@@ -354,9 +356,12 @@ export class SequencingStateManager {
           state.progressInfoAvailableInCurrentParentAttempt ?? true;
         activity.attemptCompletionAmount = state.attemptCompletionAmount || 0;
         activity.attemptCompletionAmountStatus = state.attemptCompletionAmountStatus ?? false;
-        activity.attemptAbsoluteDuration = state.attemptAbsoluteDuration || "PT0H0M0S";
+        // 3.5.x saved configured limits under the legacy absolute-duration keys.
+        // Only restore explicit Value keys; treating a legacy limit as elapsed time
+        // would immediately exhaust the limit and block delivery.
+        activity.attemptAbsoluteDurationValue = state.attemptAbsoluteDurationValue || "PT0H0M0S";
         activity.attemptExperiencedDuration = state.attemptExperiencedDuration || "PT0H0M0S";
-        activity.activityAbsoluteDuration = state.activityAbsoluteDuration || "PT0H0M0S";
+        activity.activityAbsoluteDurationValue = state.activityAbsoluteDurationValue || "PT0H0M0S";
         activity.activityExperiencedDuration = state.activityExperiencedDuration || "PT0H0M0S";
         activity.objectiveSatisfiedStatus = state.objectiveSatisfiedStatus || false;
         // @spec SCORM 2004 4th Ed. SN TM.1: restoring a false value must not

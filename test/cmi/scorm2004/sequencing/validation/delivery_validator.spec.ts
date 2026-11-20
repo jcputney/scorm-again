@@ -517,6 +517,18 @@ describe("DeliveryValidator", () => {
       expect(validator.checkLimitConditions(grandchild1)).toBe(false);
     });
 
+    /** @spec SN Book DB.1.1: compare actual elapsed duration against each configured limit. */
+    it.each(["attempt", "activity"] as const)("checks real %s duration below, at and above the limit", (kind) => {
+      grandchild1[`${kind}AbsoluteDurationLimit`] = "PT2H";
+      grandchild1[`${kind}AbsoluteDuration`] = "PT1H";
+      expect(grandchild1[`${kind}AbsoluteDurationValue`]).toBe("PT1H");
+      expect(grandchild1[`${kind}AbsoluteDurationLimit`]).toBe("PT2H");
+      for (const [duration, allowed] of [["PT1H", true], ["PT2H", false], ["PT3H", false]] as const) {
+        grandchild1[`${kind}AbsoluteDurationValue`] = duration;
+        expect(validator.checkLimitConditions(grandchild1)).toBe(allowed);
+      }
+    });
+
     it("should fail when attempt duration limit exceeded", () => {
       grandchild1.attemptAbsoluteDurationLimit = "PT1H0M0S"; // 1 hour
       grandchild1.attemptAbsoluteDuration = "PT2H0M0S"; // 2 hours
@@ -533,13 +545,10 @@ describe("DeliveryValidator", () => {
     });
 
     it("should check duration limits", () => {
-      // The Activity class maps attemptAbsoluteDuration to the same field as limit
-      // so we can only test the limit check exists
       grandchild1.attemptAbsoluteDurationLimit = "PT1H0M0S";
 
       const result = validator.checkLimitConditions(grandchild1);
-      // Result depends on internal implementation
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(true);
     });
 
     it("should fail when activity duration limit exceeded", () => {
@@ -558,11 +567,10 @@ describe("DeliveryValidator", () => {
     });
 
     it("should check activity duration limits", () => {
-      // Similar to attempt duration, the Activity class maps activityAbsoluteDuration to the same field as limit
       grandchild1.activityAbsoluteDurationLimit = "PT1H0M0S";
 
       const result = validator.checkLimitConditions(grandchild1);
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(true);
     });
 
     it("should fail when begin time not yet reached", () => {

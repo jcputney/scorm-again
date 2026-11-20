@@ -83,9 +83,9 @@ describe("SCORM 2004 jump validity", () => {
     expect(jump(api, "quiz")).toBe("true");
     const quiz = tree.getActivity("quiz")!;
     quiz.attemptAbsoluteDurationLimit = "PT1S";
-    vi.spyOn(quiz, "attemptAbsoluteDuration", "get").mockReturnValue("PT2S");
+    quiz.attemptAbsoluteDurationValue = "PT2S";
     expect(jump(api, "quiz")).toBe("false");
-    vi.spyOn(quiz, "attemptAbsoluteDuration", "get").mockReturnValue("PT0S");
+    quiz.attemptAbsoluteDurationValue = "PT0S";
     expect(jump(api, "quiz")).toBe("true");
     tree.root!.attemptLimit = 1;
     tree.root!.attemptCount = 1;
