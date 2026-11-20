@@ -2010,7 +2010,7 @@ class RuleEvaluationEngine {
    * @return {boolean} - True if limit conditions are violated
    */
   checkLimitConditions(activity) {
-    if (activity.isSuspended) {
+    if (activity.isActive || activity.isSuspended) {
       return false;
     }
     if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
@@ -2332,7 +2332,7 @@ class DeliveryValidator {
   checkLimitConditions(activity, emitEvent = true) {
     let result = true;
     let failureReason = "";
-    if (activity.isSuspended) {
+    if (activity.isActive || activity.isSuspended) {
       if (emitEvent) this.fireEvent("onLimitConditionCheck", {
         activity,
         result: true,

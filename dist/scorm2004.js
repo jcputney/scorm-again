@@ -3215,7 +3215,7 @@ this.Scorm2004API = (function () {
      * @return {boolean} - True if limit conditions are violated
      */ key: "checkLimitConditions",
               value: function checkLimitConditions(activity) {
-                  if (activity.isSuspended) {
+                  if (activity.isActive || activity.isSuspended) {
                       return false;
                   }
                   if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
@@ -3700,7 +3700,7 @@ this.Scorm2004API = (function () {
                   var emitEvent = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
                   var result = true;
                   var failureReason = "";
-                  if (activity.isSuspended) {
+                  if (activity.isActive || activity.isSuspended) {
                       if (emitEvent) this.fireEvent("onLimitConditionCheck", {
                           activity: activity,
                           result: true,
