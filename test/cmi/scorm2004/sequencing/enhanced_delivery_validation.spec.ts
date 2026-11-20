@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -12,7 +12,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
@@ -63,7 +63,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         activityTree,
         sequencingProcess,
         rollupProcess,
-        adlNav
+        adlNav,
       );
     });
 
@@ -93,7 +93,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         rollupProcess,
         adlNav,
         null, // eventCallback
-        { enhancedDeliveryValidation: true }
+        { enhancedDeliveryValidation: true },
       );
     });
 
@@ -149,7 +149,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         rollupProcess,
         adlNav,
         null,
-        { now: () => fixedDate }
+        { now: () => fixedDate },
       );
     });
 
@@ -238,7 +238,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         activityTree,
         sequencingProcess,
         rollupProcess,
-        adlNav
+        adlNav,
       );
     });
 
@@ -277,7 +277,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         activityTree,
         sequencingProcess,
         rollupProcess,
-        adlNav
+        adlNav,
       );
     });
 
@@ -326,7 +326,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         adlNav,
         (eventType, data) => {
           eventsCaptured.push({ type: eventType, data });
-        }
+        },
       );
     });
 
@@ -349,7 +349,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
     it("should fire activity delivery event", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.START);
 
-      const deliveryEvent = eventsCaptured.find(e => e.type === "onActivityDelivery");
+      const deliveryEvent = eventsCaptured.find((e) => e.type === "onActivityDelivery");
       expect(deliveryEvent).toBeDefined();
     });
 
@@ -365,7 +365,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.START);
 
       // Navigation validity update event should be fired
-      const navEvent = eventsCaptured.find(e => e.type === "onNavigationValidityUpdate");
+      const navEvent = eventsCaptured.find((e) => e.type === "onNavigationValidityUpdate");
       expect(navEvent).toBeDefined();
     });
   });
@@ -378,7 +378,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         activityTree,
         sequencingProcess,
         rollupProcess,
-        adlNav
+        adlNav,
       );
     });
 
@@ -389,7 +389,9 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
       expect(activityTree.currentActivity?.id).toBe("lesson1");
 
       // Suspend - this should set suspended activity
-      const suspendResult = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+      const suspendResult = overallProcess.processNavigationRequest(
+        NavigationRequestType.SUSPEND_ALL,
+      );
       expect(suspendResult.valid).toBe(true);
 
       // Suspended activity should be set
@@ -414,7 +416,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         (eventType, data) => {
           eventsCaptured.push({ type: eventType, data });
         },
-        { enhancedDeliveryValidation: true }
+        { enhancedDeliveryValidation: true },
       );
     });
 
@@ -453,7 +455,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
         rollupProcess,
         adlNav,
         null,
-        { now: customClock }
+        { now: customClock },
       );
 
       // Set begin time in the "past" (relative to our injected future time)

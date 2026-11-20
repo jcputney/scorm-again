@@ -41,17 +41,10 @@ export {
 } from "./types";
 
 // State Tracker
-export {
-  ScoStateTracker,
-  StateChangeListener,
-  ScormCmiData,
-} from "./sco_state_tracker";
+export { ScoStateTracker, StateChangeListener, ScormCmiData } from "./sco_state_tracker";
 
 // Sequencer
-export {
-  Scorm12Sequencer,
-  ScoAvailabilityFilter,
-} from "./scorm12_sequencer";
+export { Scorm12Sequencer, ScoAvailabilityFilter } from "./scorm12_sequencer";
 
 // Rollup Calculator
 export { CourseRollupCalculator } from "./course_rollup_calculator";

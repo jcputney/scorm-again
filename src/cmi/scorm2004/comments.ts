@@ -2,11 +2,7 @@ import { CMIArray } from "../common/array";
 import { BaseCMI } from "../common/base_cmi";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat } from "./validation";
-import {
-  scorm2004_constants,
-  scorm2004_errors,
-  scorm2004_regex,
-} from "../../constants";
+import { scorm2004_constants, scorm2004_errors, scorm2004_regex } from "../../constants";
 
 /**
  * Class representing SCORM 2004's cmi.comments_from_lms object

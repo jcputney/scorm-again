@@ -17,7 +17,7 @@ import { RuleActionType } from "../sequencing_rules";
 export class ExitRequestHandler {
   constructor(
     private activityTree: ActivityTree,
-    private ruleEngine: RuleEvaluationEngine
+    private ruleEngine: RuleEvaluationEngine,
   ) {}
 
   /**
@@ -116,10 +116,7 @@ export class ExitRequestHandler {
    * @param {Activity} activity - The activity
    * @param {boolean} skipExitRules - Whether to skip exit rules
    */
-  public terminateDescendentAttempts(
-    activity: Activity,
-    skipExitRules: boolean = false
-  ): void {
+  public terminateDescendentAttempts(activity: Activity, skipExitRules: boolean = false): void {
     // Apply Exit Action Rules (TB.2.1)
     let exitAction = null;
     if (!skipExitRules) {

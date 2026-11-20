@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -40,17 +40,13 @@ describe("Navigation Request Process (NB.2.1)", () => {
     root.sequencingControls.choice = true;
     child1.sequencingControls.flow = true;
     child1.sequencingControls.choice = true;
-    child2.sequencingControls.flow = false;  // Leaf activity - no flow
+    child2.sequencingControls.flow = false; // Leaf activity - no flow
     child2.sequencingControls.choice = true;
 
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
 
-    overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
-    );
+    overallProcess = new OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess);
   });
 
   describe("NB.2.1-1: Start Request Validation", () => {
@@ -200,11 +196,11 @@ describe("Navigation Request Process (NB.2.1)", () => {
       child2.isAvailable = true;
       child2.isHiddenFromChoice = false;
       child2.attemptLimit = null; // No attempt limit
-      child2.attemptCount = 0;    // No attempts yet
+      child2.attemptCount = 0; // No attempts yet
 
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       expect(result.valid).toBe(true);
@@ -220,7 +216,7 @@ describe("Navigation Request Process (NB.2.1)", () => {
     it("should reject CHOICE with non-existent target", () => {
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "nonexistent"
+        "nonexistent",
       );
 
       expect(result.valid).toBe(false);
@@ -233,7 +229,7 @@ describe("Navigation Request Process (NB.2.1)", () => {
 
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.valid).toBe(false);
@@ -245,7 +241,7 @@ describe("Navigation Request Process (NB.2.1)", () => {
 
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "lesson1"
+        "lesson1",
       );
 
       expect(result.valid).toBe(true);
@@ -255,10 +251,7 @@ describe("Navigation Request Process (NB.2.1)", () => {
 
   describe("NB.2.1-12: Jump Request Validation", () => {
     it("should validate JUMP with valid target", () => {
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.JUMP,
-        "lesson2"
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.JUMP, "lesson2");
 
       expect(result.valid).toBe(true);
     });
@@ -546,7 +539,7 @@ describe("Navigation Request Process (NB.2.1)", () => {
         const deepProcess = new OverallSequencingProcess(
           deepTree,
           new SequencingProcess(deepTree),
-          rollupProcess
+          rollupProcess,
         );
 
         const result = deepProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
@@ -642,20 +635,14 @@ describe("Navigation Request Process (NB.2.1)", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = false;
 
-      let result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson2"
-      );
+      let result = overallProcess.processNavigationRequest(NavigationRequestType.CHOICE, "lesson2");
 
       expect(result.valid).toBe(true);
 
       // Without current activity - no termination needed
       activityTree.currentActivity = null;
 
-      result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
-      );
+      result = overallProcess.processNavigationRequest(NavigationRequestType.CHOICE, "lesson1");
 
       expect(result.valid).toBe(true);
     });

@@ -96,7 +96,11 @@ export class CMISettings extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     }
-    if (!/^(exit,message|exit,no message|continue,message|continue,no message)$/.test(time_limit_action)) {
+    if (
+      !/^(exit,message|exit,no message|continue,message|continue,no message)$/.test(
+        time_limit_action,
+      )
+    ) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".time_limit_action",
         scorm2004_errors.TYPE_MISMATCH as number,

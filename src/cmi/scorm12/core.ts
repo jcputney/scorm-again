@@ -2,16 +2,8 @@ import { BaseCMI } from "../common/base_cmi";
 import { CMIScore } from "../common/score";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat } from "../scorm12/validation";
-import {
-  scorm12_constants,
-  scorm12_errors,
-  scorm12_regex,
-} from "../../constants";
-import {
-  addHHMMSSTimeStrings,
-  getSecondsAsHHMMSS,
-  getTimeAsSeconds,
-} from "../../utilities";
+import { scorm12_constants, scorm12_errors, scorm12_regex } from "../../constants";
+import { addHHMMSSTimeStrings, getSecondsAsHHMMSS, getTimeAsSeconds } from "../../utilities";
 
 /**
  * Class representing the `cmi.core` object
@@ -318,7 +310,11 @@ export class CMICore extends BaseCMI {
       );
     } else {
       if (
-        check12ValidFormat(this._cmi_element + ".lesson_mode", lesson_mode, scorm12_regex.CMILessonMode)
+        check12ValidFormat(
+          this._cmi_element + ".lesson_mode",
+          lesson_mode,
+          scorm12_regex.CMILessonMode,
+        )
       ) {
         this._lesson_mode = lesson_mode;
       }

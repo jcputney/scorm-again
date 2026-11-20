@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -10,7 +10,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 function ruleWithConditions(
@@ -93,7 +93,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2 (a cluster)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should deliver the first leaf in module2 (lesson3)
@@ -112,7 +112,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2 with no available children
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should fail with no activity available
@@ -130,7 +130,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should skip hidden lesson3 and deliver lesson4
@@ -148,7 +148,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should skip unavailable lesson3 and deliver lesson4
@@ -167,7 +167,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module1 (same branch as current activity)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module1"
+        "module1",
       );
 
       // Should be allowed - same branch
@@ -186,7 +186,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Try to choose module2 (different branch)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // This depends on implementation - constrainChoice on module1 only
@@ -207,7 +207,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Try to choose module2 (different branch with constrainChoice)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // With constrainChoice at root, choice outside current branch should be blocked
@@ -228,7 +228,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2 (forward from module1)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Forward choice should be allowed
@@ -246,7 +246,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should allow choice when no current activity
@@ -266,7 +266,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // lesson3 should still be deliverable for choice
@@ -303,7 +303,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should flow through subModule to reach deepLesson
@@ -325,7 +325,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should fail - no deliverable activity found
@@ -347,7 +347,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should skip lesson3 due to SKIP rule and deliver lesson4
@@ -367,7 +367,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should skip disabled lesson3 and deliver lesson4
@@ -386,7 +386,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should skip hidden lesson3 and deliver lesson4
@@ -407,7 +407,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should skip lesson3 due to attempt limit and deliver lesson4
@@ -428,7 +428,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should fail - all children have exceeded attempt limits
@@ -450,7 +450,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Cluster flow delivers first available child; time limit is checked at delivery
@@ -471,7 +471,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Choose module2
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Cluster flow delivers first available child; time limit is checked at delivery
@@ -491,7 +491,7 @@ describe("Choice Flow to Cluster Activities", () => {
       // Try to choose lesson3 (child of module2 with choice=false)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       // Should be blocked by choice control

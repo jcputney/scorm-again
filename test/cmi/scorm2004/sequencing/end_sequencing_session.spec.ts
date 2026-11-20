@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
@@ -16,7 +16,7 @@ import {
   RuleCondition,
   RuleConditionType,
   RuleConditionOperator,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { ADLNav } from "../../../../src";
 
@@ -79,7 +79,7 @@ describe("EndSequencingSession Handling", () => {
       sequencingProcess,
       rollupProcess,
       adlNav,
-      eventCallback as (any)
+      eventCallback as any,
     );
   });
 
@@ -90,9 +90,7 @@ describe("EndSequencingSession Handling", () => {
       sco3.isActive = false; // Terminate it
 
       // Execute: Press Continue
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: Should have exception but also endSequencingSession flag
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -108,9 +106,7 @@ describe("EndSequencingSession Handling", () => {
       root.isActive = true; // Root should be terminated
 
       // Execute: Continue past end
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: Root should be terminated per SB.2.1 step 3.1.1
       expect(result.endSequencingSession).toBe(true);
@@ -125,9 +121,7 @@ describe("EndSequencingSession Handling", () => {
       sco1.isActive = false; // Terminate it
 
       // Execute: Press Previous
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       // Verify: Should fail but NOT end session
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -142,14 +136,14 @@ describe("EndSequencingSession Handling", () => {
       sco1.isActive = false;
 
       const previousResult = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
+        SequencingRequestType.PREVIOUS,
       );
 
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
       const continueResult = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
+        SequencingRequestType.CONTINUE,
       );
 
       // Both fail, but only continue at end should set endSequencingSession
@@ -165,9 +159,7 @@ describe("EndSequencingSession Handling", () => {
       sco2.isActive = false;
 
       // Execute: Continue
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: Should succeed and NOT end session
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -182,9 +174,7 @@ describe("EndSequencingSession Handling", () => {
       sco2.isActive = false;
 
       // Execute: Previous
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       // Verify: Should succeed and NOT end session
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -201,9 +191,7 @@ describe("EndSequencingSession Handling", () => {
       sco3.isActive = false;
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: flowTreeTraversalSubprocess should have set endSequencingSession
       expect(result.endSequencingSession).toBe(true);
@@ -233,9 +221,7 @@ describe("EndSequencingSession Handling", () => {
       deepSco.isActive = false;
 
       // Execute
-      const result = nestedProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = nestedProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: Should detect end even in nested structure
       expect(result.endSequencingSession).toBe(true);
@@ -247,9 +233,7 @@ describe("EndSequencingSession Handling", () => {
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       expect(result.endSequencingSession).toBe(true);
     });
@@ -273,8 +257,8 @@ describe("EndSequencingSession Handling", () => {
         "onSequencingSessionEnd",
         expect.objectContaining({
           reason: "end_of_content",
-          exception: "SB.2.7-2"
-        })
+          exception: "SB.2.7-2",
+        }),
       );
       expect(delivery.valid).toBe(true);
       expect(delivery.targetActivity).toBeNull();
@@ -286,9 +270,7 @@ describe("EndSequencingSession Handling", () => {
       sco2.isActive = true;
       eventCallback.mockClear();
 
-      const prepared = overallProcess.prepareNavigationRequest(
-        NavigationRequestType.SUSPEND_ALL,
-      );
+      const prepared = overallProcess.prepareNavigationRequest(NavigationRequestType.SUSPEND_ALL);
 
       expect(prepared).not.toBeNull();
       expect(prepared?.navResult.terminationRequest).toBe(SequencingRequestType.SUSPEND_ALL);
@@ -323,7 +305,7 @@ describe("EndSequencingSession Handling", () => {
 
       // Verify: onSequencingSessionEnd event should NOT fire
       const sessionEndCalls = eventCallback.mock.calls.filter(
-        (call) => call[0] === "onSequencingSessionEnd"
+        (call) => call[0] === "onSequencingSessionEnd",
       );
       expect(sessionEndCalls).toHaveLength(0);
     });
@@ -342,7 +324,7 @@ describe("EndSequencingSession Handling", () => {
 
       // Verify: onSequencingSessionEnd event should NOT fire (backward at beginning doesn't end session)
       const sessionEndCalls = eventCallback.mock.calls.filter(
-        (call) => call[0] === "onSequencingSessionEnd"
+        (call) => call[0] === "onSequencingSessionEnd",
       );
       expect(sessionEndCalls).toHaveLength(0);
     });
@@ -362,8 +344,8 @@ describe("EndSequencingSession Handling", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "onSequencingSessionEnd",
         expect.objectContaining({
-          navigationRequest: NavigationRequestType.CONTINUE
-        })
+          navigationRequest: NavigationRequestType.CONTINUE,
+        }),
       );
     });
 
@@ -381,9 +363,7 @@ describe("EndSequencingSession Handling", () => {
       sco3.isActive = true;
       eventCallback.mockClear();
 
-      const delivery = overallProcess.processNavigationRequest(
-        NavigationRequestType.CONTINUE
-      );
+      const delivery = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
 
       expect(delivery.valid).toBe(true);
       expect(delivery.targetActivity).toBeNull();
@@ -393,8 +373,8 @@ describe("EndSequencingSession Handling", () => {
         "onSequencingSessionEnd",
         expect.objectContaining({
           reason: "exit_all",
-          navigationRequest: NavigationRequestType.CONTINUE
-        })
+          navigationRequest: NavigationRequestType.CONTINUE,
+        }),
       );
     });
   });
@@ -428,10 +408,7 @@ describe("EndSequencingSession Handling", () => {
         expect(result.targetActivity).toBeNull();
         expect(activityTree.currentActivity).toBe(sco1);
         expect(root.isActive).toBe(true);
-        expect(eventCallback).not.toHaveBeenCalledWith(
-          "onSequencingSessionEnd",
-          expect.anything(),
-        );
+        expect(eventCallback).not.toHaveBeenCalledWith("onSequencingSessionEnd", expect.anything());
         expect(eventCallback).not.toHaveBeenCalledWith("onActivityDelivery", expect.anything());
       },
     );
@@ -534,10 +511,7 @@ describe("EndSequencingSession Handling", () => {
         expect(blocked.targetActivity).toBeNull();
         expect(activityTree.currentActivity).toBe(sco1);
         expect(root.isActive).toBe(true);
-        expect(eventCallback).not.toHaveBeenCalledWith(
-          "onSequencingSessionEnd",
-          expect.anything(),
-        );
+        expect(eventCallback).not.toHaveBeenCalledWith("onSequencingSessionEnd", expect.anything());
         expect(eventCallback).not.toHaveBeenCalledWith("onActivityDelivery", expect.anything());
 
         expect(
@@ -555,10 +529,7 @@ describe("EndSequencingSession Handling", () => {
           satisfiedStatus: true,
           satisfiedStatusKnown: true,
         });
-        expect(eventCallback).not.toHaveBeenCalledWith(
-          "onSequencingSessionEnd",
-          expect.anything(),
-        );
+        expect(eventCallback).not.toHaveBeenCalledWith("onSequencingSessionEnd", expect.anything());
       },
     );
   });
@@ -570,9 +541,7 @@ describe("EndSequencingSession Handling", () => {
       activityTree.currentActivity = sco1;
       sco1.isActive = false;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: Should fail due to flow control, not end of session
       expect(result.exception).toBe("SB.2.7-2");
@@ -584,9 +553,7 @@ describe("EndSequencingSession Handling", () => {
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: End of session still detected
       expect(result.endSequencingSession).toBe(true);
@@ -596,9 +563,7 @@ describe("EndSequencingSession Handling", () => {
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: SequencingResult has the field
       expect(result).toHaveProperty("endSequencingSession");
@@ -619,9 +584,7 @@ describe("EndSequencingSession Handling", () => {
       singleTree.currentActivity = singleSco;
       singleSco.isActive = false;
 
-      const result = singleProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = singleProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       expect(result.endSequencingSession).toBe(true);
     });
@@ -653,9 +616,7 @@ describe("EndSequencingSession Handling", () => {
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: Both exception and flag are present
       expect(result.exception).toBeTruthy();
@@ -666,9 +627,7 @@ describe("EndSequencingSession Handling", () => {
       activityTree.currentActivity = sco1;
       sco1.isActive = false;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
 
       // Verify: Default is false when session doesn't end
       expect(result.endSequencingSession).toBe(false);
@@ -680,25 +639,19 @@ describe("EndSequencingSession Handling", () => {
       sco1.isActive = false;
 
       // Navigate through all
-      let result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      let result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
       expect(result.endSequencingSession).toBe(false);
 
       activityTree.currentActivity = sco2;
       sco2.isActive = false;
 
-      result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
       expect(result.endSequencingSession).toBe(false);
 
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
-      result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE
-      );
+      result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
       expect(result.endSequencingSession).toBe(true);
     });
   });
@@ -708,9 +661,7 @@ describe("EndSequencingSession Handling", () => {
       activityTree.currentActivity = sco3;
       sco3.isActive = false;
 
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CONTINUE
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
 
       // End of forward flow is a successful terminal outcome, not a navigation failure.
       expect(result.valid).toBe(true);
@@ -739,10 +690,7 @@ describe("EndSequencingSession Handling", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
 
       // Verify event was fired
-      expect(eventCallback).toHaveBeenCalledWith(
-        "onSequencingSessionEnd",
-        expect.any(Object)
-      );
+      expect(eventCallback).toHaveBeenCalledWith("onSequencingSessionEnd", expect.any(Object));
     });
   });
 });

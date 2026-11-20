@@ -18,10 +18,7 @@ export type ModuleConfig = {
  *
  * Note: This function should be called within an existing test.describe block
  */
-export function scorm2004NavigationTests(
-  wrapper: WrapperConfig,
-  module: ModuleConfig
-) {
+export function scorm2004NavigationTests(wrapper: WrapperConfig, module: ModuleConfig) {
   // Tests are added to the current describe block context
   test("should handle navigation requests", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
@@ -36,10 +33,7 @@ export function scorm2004NavigationTests(
 
       // Set navigation request - use "continue" (without underscore) as per SCORM spec
       // The regex allows both "_continue" and "continue", but "continue" is the standard
-      results.setContinue = window.API_1484_11.lmsSetValue(
-        "adl.nav.request",
-        "continue"
-      );
+      results.setContinue = window.API_1484_11.lmsSetValue("adl.nav.request", "continue");
       // adl.nav.request is write-only per SCORM 2004 spec - GetValue returns "" with error 405
       results.getContinue = window.API_1484_11.lmsGetValue("adl.nav.request");
       results.getContinueError = window.API_1484_11.lmsGetLastError();
@@ -50,10 +44,7 @@ export function scorm2004NavigationTests(
       results.getNoneError = window.API_1484_11.lmsGetLastError();
 
       // Test invalid navigation request
-      results.setInvalid = window.API_1484_11.lmsSetValue(
-        "adl.nav.request",
-        "invalid_request"
-      );
+      results.setInvalid = window.API_1484_11.lmsSetValue("adl.nav.request", "invalid_request");
       results.getInvalidError = window.API_1484_11.lmsGetLastError();
 
       return results;
@@ -139,8 +130,8 @@ export function scorm2004NavigationTests(
     // Wait for wrapper to initialize
     await page.waitForTimeout(1000);
 
-    const continueButton = page.locator("button[data-directive=\"continue\"]");
-    const previousButton = page.locator("button[data-directive=\"previous\"]");
+    const continueButton = page.locator('button[data-directive="continue"]');
+    const previousButton = page.locator('button[data-directive="previous"]');
 
     if (module.hasSequencing === false) {
       // For non-sequenced modules, navigation buttons should be hidden
@@ -179,8 +170,8 @@ export function scorm2004NavigationTests(
     // Wait for wrapper to initialize
     await page.waitForTimeout(1000);
 
-    const abandonButton = page.locator("button[data-directive=\"abandon\"]");
-    const suspendAllButton = page.locator("button[data-directive=\"suspendAll\"]");
+    const abandonButton = page.locator('button[data-directive="abandon"]');
+    const suspendAllButton = page.locator('button[data-directive="suspendAll"]');
 
     if (module.hasSequencing === false) {
       // For non-sequenced modules, these buttons should be hidden
@@ -215,8 +206,8 @@ export function scorm2004NavigationTests(
     await ensureApiInitialized(page);
 
     // Check that exitAll and abandonAll buttons are hidden by default
-    const exitAllButton = page.locator("button[data-directive=\"exitAll\"]");
-    const abandonAllButton = page.locator("button[data-directive=\"abandonAll\"]");
+    const exitAllButton = page.locator('button[data-directive="exitAll"]');
+    const abandonAllButton = page.locator('button[data-directive="abandonAll"]');
 
     // These buttons should be hidden (as per wrapper defaults)
     const exitAllHidden = await exitAllButton.evaluate((el) => {
@@ -230,4 +221,3 @@ export function scorm2004NavigationTests(
     expect(abandonAllHidden).toBe(true);
   });
 }
-

@@ -58,7 +58,7 @@ test.describe("SCORM 1.2 Multi-SCO Demo", () => {
 
   test("initializes with first SCO loaded", async ({ page }) => {
     // Verify first SCO is highlighted in menu
-    const firstBtn = page.locator("[data-sco-id=\"sco1\"]");
+    const firstBtn = page.locator('[data-sco-id="sco1"]');
     await expect(firstBtn).toHaveAttribute("aria-current", "true");
 
     // Verify SCO frame has content
@@ -71,7 +71,7 @@ test.describe("SCORM 1.2 Multi-SCO Demo", () => {
     expect(progress).toBe(0);
   });
 
-  test("status badge shows \"Not Started\"", async ({ page }) => {
+  test('status badge shows "Not Started"', async ({ page }) => {
     const badge = page.locator("#course-status");
     await expect(badge).toContainText("Not Started");
   });
@@ -109,7 +109,7 @@ test.describe("SCORM 1.2 Multi-SCO Demo", () => {
     await waitForScoLoad(page);
 
     // Verify SCO 2 is now current
-    const secondBtn = page.locator("[data-sco-id=\"sco2\"]");
+    const secondBtn = page.locator('[data-sco-id="sco2"]');
     await expect(secondBtn).toHaveAttribute("aria-current", "true");
 
     // Verify frame shows SCO 2 content
@@ -127,7 +127,7 @@ test.describe("SCORM 1.2 Multi-SCO Demo", () => {
     await waitForScoLoad(page);
 
     // Verify SCO 1 is now current
-    const firstBtn = page.locator("[data-sco-id=\"sco1\"]");
+    const firstBtn = page.locator('[data-sco-id="sco1"]');
     await expect(firstBtn).toHaveAttribute("aria-current", "true");
   });
 
@@ -136,7 +136,7 @@ test.describe("SCORM 1.2 Multi-SCO Demo", () => {
     await clickMenuSco(page, "sco3");
 
     // Verify SCO 3 is current
-    const thirdBtn = page.locator("[data-sco-id=\"sco3\"]");
+    const thirdBtn = page.locator('[data-sco-id="sco3"]');
     await expect(thirdBtn).toHaveAttribute("aria-current", "true");
 
     // Verify frame shows SCO 3 content
@@ -154,7 +154,7 @@ test.describe("SCORM 1.2 Multi-SCO Demo", () => {
       await expect(page.locator(`[data-sco-id="${scoId}"] .menu-item-icon`)).toHaveAttribute(
         "data-status",
         "passed",
-        { timeout: 3000 }
+        { timeout: 3000 },
       );
     }
 
@@ -217,13 +217,13 @@ test.describe("SCORM 2004 Simple Demo", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${BASE_URL}/scorm2004-simple/`);
     // Wait for menu to be populated
-    await page.locator("[data-sco-id=\"sco1\"]").waitFor({ timeout: 10000 });
+    await page.locator('[data-sco-id="sco1"]').waitFor({ timeout: 10000 });
     // Wait for frame to load
     await page.waitForTimeout(1000);
   });
 
   test("initializes with first SCO loaded", async ({ page }) => {
-    const firstBtn = page.locator("[data-sco-id=\"sco1\"]");
+    const firstBtn = page.locator('[data-sco-id="sco1"]');
     await expect(firstBtn).toHaveAttribute("aria-current", "true");
   });
 
@@ -249,7 +249,7 @@ test.describe("SCORM 2004 Simple Demo", () => {
     await page.waitForTimeout(500);
 
     // Verify score in menu shows percentage
-    const scoreText = await page.locator("[data-sco-id=\"sco1\"] .menu-item-score").textContent();
+    const scoreText = await page.locator('[data-sco-id="sco1"] .menu-item-score').textContent();
     expect(scoreText).toContain("85%");
   });
 
@@ -266,7 +266,7 @@ test.describe("SCORM 2004 Simple Demo", () => {
     await waitForScoLoad(page);
 
     // Verify now on SCO 2
-    const secondBtn = page.locator("[data-sco-id=\"sco2\"]");
+    const secondBtn = page.locator('[data-sco-id="sco2"]');
     await expect(secondBtn).toHaveAttribute("aria-current", "true");
   });
 });
@@ -290,7 +290,9 @@ test.describe("SCORM 2004 Sequenced Demo", () => {
     await expect(frame.locator("h1")).toContainText("Lesson 1");
   });
 
-  test("reset keeps player callbacks working once per event across SCO deliveries", async ({ page }) => {
+  test("reset keeps player callbacks working once per event across SCO deliveries", async ({
+    page,
+  }) => {
     await page.evaluate(() => localStorage.setItem("scorm-player-debug", "true"));
     const messages: string[] = [];
     page.on("console", (message) => messages.push(message.text()));
@@ -299,9 +301,7 @@ test.describe("SCORM 2004 Sequenced Demo", () => {
 
     for (const [index, title] of ["Basics", "Deep Dive"].entries()) {
       await page.frameLocator("#sco-frame").locator(".btn-pass").click();
-      await expect
-        .poll(() => count("SetValue: cmi.completion_status = completed"))
-        .toBe(index + 1);
+      await expect.poll(() => count("SetValue: cmi.completion_status = completed")).toBe(index + 1);
       await page.frameLocator("#sco-frame").locator("#btn-next").click();
       await expect(page.frameLocator("#sco-frame").locator("h1")).toContainText(title);
       await expect.poll(() => count("Initialize called")).toBe(index + 1);
@@ -395,7 +395,7 @@ test.describe("SCORM 2004 Sequenced Demo", () => {
     await waitForScoLoad(page);
 
     // Click on module2-lesson1 (should be available via choice)
-    const targetActivity = page.locator("[data-activity-id=\"module2-lesson1\"]");
+    const targetActivity = page.locator('[data-activity-id="module2-lesson1"]');
     await targetActivity.click();
     await waitForScoLoad(page);
 
@@ -430,7 +430,7 @@ test.describe("SCORM 2004 Sequenced Demo", () => {
     await waitForScoLoad(page);
 
     // Module 1 parent should show completed/passed status after both children complete
-    const module1Icon = page.locator("[data-activity-id=\"module1\"] .menu-item-icon");
+    const module1Icon = page.locator('[data-activity-id="module1"] .menu-item-icon');
     const status = await module1Icon.getAttribute("data-status");
     expect(["completed", "passed"]).toContain(status);
   });
@@ -440,11 +440,11 @@ test.describe("SCORM 2004 Sequenced Demo", () => {
     await waitForScoLoad(page);
 
     // The first leaf activity should be highlighted as current
-    const firstLeaf = page.locator("[data-activity-id=\"module1-lesson1\"]");
+    const firstLeaf = page.locator('[data-activity-id="module1-lesson1"]');
     await expect(firstLeaf).toHaveAttribute("aria-current", "true", { timeout: 5000 });
 
     // Other activities should not be current
-    const otherActivity = page.locator("[data-activity-id=\"module2-lesson1\"]");
+    const otherActivity = page.locator('[data-activity-id="module2-lesson1"]');
     await expect(otherActivity).toHaveAttribute("aria-current", "false");
   });
 
@@ -500,7 +500,7 @@ test.describe("Accessibility", () => {
     await page.goto(`${BASE_URL}/scorm12-multi-sco/`);
     await waitForScoLoad(page);
 
-    const currentBtn = page.locator("[aria-current=\"true\"]");
+    const currentBtn = page.locator('[aria-current="true"]');
     await expect(currentBtn).toHaveCount(1);
   });
 });

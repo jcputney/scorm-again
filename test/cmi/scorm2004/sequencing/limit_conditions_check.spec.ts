@@ -3,7 +3,7 @@ import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 
 describe("Limit Conditions Check Process (UP.1)", () => {
@@ -45,7 +45,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should fail due to attempt limit
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should not deliver due to limit exceeded
@@ -68,9 +68,8 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should succeed
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
-
 
       // Should deliver successfully
       expect(result.deliveryRequest).toBe("deliver");
@@ -93,7 +92,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should succeed
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should deliver successfully
@@ -117,7 +116,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should fail due to duration limit
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should not deliver due to limit exceeded
@@ -138,7 +137,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should succeed
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should deliver successfully
@@ -160,7 +159,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should succeed (just under limit)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should deliver successfully
@@ -184,7 +183,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should fail due to duration limit
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should not deliver due to limit exceeded
@@ -205,7 +204,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should succeed
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should deliver successfully
@@ -235,7 +234,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should fail due to attempt limit
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should not deliver due to attempt limit exceeded
@@ -260,7 +259,7 @@ describe("Limit Conditions Check Process (UP.1)", () => {
       // Try to deliver activity - should succeed
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "test"
+        "test",
       );
 
       // Should deliver successfully

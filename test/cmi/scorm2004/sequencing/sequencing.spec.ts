@@ -54,7 +54,6 @@ describe("Sequencing", () => {
     });
   });
 
-
   describe("getCurrentActivity", () => {
     it("should return current activity from activity tree", () => {
       const activity = new Activity("test", "Test Activity");
@@ -134,7 +133,8 @@ describe("Sequencing", () => {
       sequencing.activityTree.root = root;
 
       const callOrder: Activity[] = [];
-      const processRollupSpy = vi.spyOn(sequencing.rollupRules, "processRollup")
+      const processRollupSpy = vi
+        .spyOn(sequencing.rollupRules, "processRollup")
         .mockImplementation((activity: Activity) => {
           callOrder.push(activity);
         });
@@ -196,7 +196,6 @@ describe("Sequencing", () => {
     });
   });
 
-
   describe("adlNav setter", () => {
     it("should store ADLNav reference when set", () => {
       const adlNav = new ADLNav();
@@ -212,7 +211,6 @@ describe("Sequencing", () => {
       expect(sequencing.adlNav).toBeNull();
     });
   });
-
 
   describe("toJSON", () => {
     it("should return JSON representation", () => {

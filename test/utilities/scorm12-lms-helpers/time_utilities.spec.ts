@@ -6,7 +6,7 @@ import {
   formatScormTime,
   hasExceededTimeLimit,
   parseScormTime,
-  scormTimeToHumanReadable
+  scormTimeToHumanReadable,
 } from "../../../src/utilities/scorm12-lms-helpers/time_utilities";
 
 describe("SCORM 1.2 Time Utilities", () => {
@@ -90,9 +90,7 @@ describe("SCORM 1.2 Time Utilities", () => {
     });
 
     it("should return positive when first is larger", () => {
-      expect(compareScormTime("0001:00:00.00", "0000:30:00.00")).toBeGreaterThan(
-        0
-      );
+      expect(compareScormTime("0001:00:00.00", "0000:30:00.00")).toBeGreaterThan(0);
     });
 
     it("should return zero when equal", () => {

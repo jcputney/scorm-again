@@ -3,9 +3,7 @@ import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {
-  OverallSequencingProcess
-} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 describe("SCORM 2004 Sequencing Integration", () => {
   let rootActivity: Activity;
@@ -43,7 +41,7 @@ describe("SCORM 2004 Sequencing Integration", () => {
     overallSequencingProcess = new OverallSequencingProcess(
       activityTree,
       sequencingProcess,
-      rollupProcess
+      rollupProcess,
     );
   });
 
@@ -83,7 +81,7 @@ describe("SCORM 2004 Sequencing Integration", () => {
       writeSatisfiedStatus: true,
       readNormalizedMeasure: true,
       writeNormalizedMeasure: true,
-      satisfiedByMeasure: true
+      satisfiedByMeasure: true,
     });
 
     expect(() => {
@@ -136,7 +134,7 @@ describe("SCORM 2004 Sequencing Integration", () => {
     // Update a global objective
     overallSequencingProcess.updateGlobalObjective("test_sync", {
       satisfiedStatus: true,
-      normalizedMeasure: 0.85
+      normalizedMeasure: 0.85,
     });
 
     const updatedMap = overallSequencingProcess.getGlobalObjectiveMap();

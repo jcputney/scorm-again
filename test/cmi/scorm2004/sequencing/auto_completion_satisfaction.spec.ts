@@ -2,9 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import {
-  OverallSequencingProcess
-} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
@@ -41,7 +39,7 @@ describe("Auto-Completion and Auto-Satisfaction Logic", () => {
       activityTree,
       sequencingRules,
       sequencingControls,
-      adlNav
+      adlNav,
     );
 
     rollupProcess = new RollupProcess();
@@ -50,7 +48,7 @@ describe("Auto-Completion and Auto-Satisfaction Logic", () => {
       activityTree,
       sequencingProcess,
       rollupProcess,
-      adlNav
+      adlNav,
     );
   });
 

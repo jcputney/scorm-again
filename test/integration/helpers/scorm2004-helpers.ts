@@ -9,7 +9,7 @@ import {
   setCmiValueFromModule as setCmiValueFromModuleCommon,
   verifyApiAccessibleFromModule as verifyApiAccessibleFromModuleCommon,
   waitForModuleFrame as waitForModuleFrameCommon,
-  waitForPageReady
+  waitForPageReady,
 } from "./scorm-common-helpers";
 
 /**
@@ -31,8 +31,8 @@ const DEFAULT_SEQUENCING = {
   hideLmsUi: ["exitAll", "abandonAll"],
   auxiliaryResources: [
     { resourceId: "urn:scorm-again:help", purpose: "help" },
-    { resourceId: "urn:scorm-again:glossary", purpose: "glossary" }
-  ]
+    { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
+  ],
 };
 
 const DEFAULT_CMI = {
@@ -45,10 +45,10 @@ const DEFAULT_CMI = {
   score: {
     raw: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   time_limit_action: "exit,message",
-  max_time_allowed: "PT1H"
+  max_time_allowed: "PT1H",
 };
 
 /**
@@ -69,7 +69,7 @@ export class CommitRequestTracker {
       url: request.url(),
       method: request.method(),
       postData: postData || {},
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -114,7 +114,7 @@ export async function setupCommitMocking(
     success?: boolean;
     delay?: number;
     errorCode?: number;
-  } = {}
+  } = {},
 ): Promise<void> {
   const { success = true, delay = 0, errorCode = 0 } = options;
 
@@ -127,18 +127,18 @@ export async function setupCommitMocking(
 
     const response = success
       ? {
-        result: "true",
-        errorCode: errorCode
-      }
+          result: "true",
+          errorCode: errorCode,
+        }
       : {
-        result: "false",
-        errorCode: errorCode || 101
-      };
+          result: "false",
+          errorCode: errorCode || 101,
+        };
 
     await route.fulfill({
       status: success ? 200 : 500,
       contentType: "application/json",
-      body: JSON.stringify(response)
+      body: JSON.stringify(response),
     });
   });
 }
@@ -148,20 +148,17 @@ export async function setupCommitMocking(
  */
 export async function configureApiForHttpCommits(
   page: Page,
-  commitUrl: string = "http://localhost:3000/api/commit"
+  commitUrl: string = "http://localhost:3000/api/commit",
 ): Promise<void> {
-  await page.evaluate(
-    (url) => {
-      if (window.API_1484_11) {
-        (window.API_1484_11 as any).settings = {
-          ...(window.API_1484_11 as any).settings,
-          lmsCommitUrl: url,
-          useAsynchronousCommits: true
-        };
-      }
-    },
-    commitUrl
-  );
+  await page.evaluate((url) => {
+    if (window.API_1484_11) {
+      (window.API_1484_11 as any).settings = {
+        ...(window.API_1484_11 as any).settings,
+        lmsCommitUrl: url,
+        useAsynchronousCommits: true,
+      };
+    }
+  }, commitUrl);
 }
 
 /**
@@ -173,7 +170,7 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
   // Inject RecordTest on wrapper window
   // The launchpage.html has its own RecordTest, but we'll ensure the API is accessible
   await page.evaluate(() => {
-    (window as any).RecordTest = function(score: number) {
+    (window as any).RecordTest = function (score: number) {
       // Find API via parent chain (like the module's API discovery does)
       let api = (window as any).API_1484_11;
       if (!api) {
@@ -207,14 +204,14 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
     };
 
     // RecordQuestion function to record individual question interactions (SCORM 2004)
-    (window as any).RecordQuestion = function(
+    (window as any).RecordQuestion = function (
       id: string,
       text: string,
       type: string,
       learnerResponse: string,
       correctAnswer: string,
       wasCorrect: boolean,
-      objectiveId: string
+      objectiveId: string,
     ) {
       // Find API via parent chain
       let api = (window as any).API_1484_11;
@@ -238,7 +235,10 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
         api.SetValue(`cmi.interactions.${interactionIndex}.id`, id);
         api.SetValue(`cmi.interactions.${interactionIndex}.type`, type);
         api.SetValue(`cmi.interactions.${interactionIndex}.learner_response`, learnerResponse);
-        api.SetValue(`cmi.interactions.${interactionIndex}.result`, wasCorrect ? "correct" : "incorrect");
+        api.SetValue(
+          `cmi.interactions.${interactionIndex}.result`,
+          wasCorrect ? "correct" : "incorrect",
+        );
         api.SetValue(`cmi.interactions.${interactionIndex}.description`, text);
 
         // Set timestamp
@@ -271,7 +271,7 @@ export async function injectQuizFunctionsIntoModuleFrame(page: Page): Promise<vo
       try {
         // Override the launchpage.html's RecordTest function
         // The quiz template calls parent.RecordTest, where parent is the launchpage.html window
-        (iframe.contentWindow as any).RecordTest = function(score: number) {
+        (iframe.contentWindow as any).RecordTest = function (score: number) {
           // Find API via parent chain
           let api = null;
           let win: any = iframe.contentWindow;
@@ -309,14 +309,14 @@ export async function injectQuizFunctionsIntoModuleFrame(page: Page): Promise<vo
         };
 
         // RecordQuestion function to record individual question interactions (SCORM 2004)
-        (iframe.contentWindow as any).RecordQuestion = function(
+        (iframe.contentWindow as any).RecordQuestion = function (
           id: string,
           text: string,
           type: string,
           learnerResponse: string,
           correctAnswer: string,
           wasCorrect: boolean,
-          objectiveId: string
+          objectiveId: string,
         ) {
           // Find API via parent chain
           let api = null;
@@ -345,7 +345,10 @@ export async function injectQuizFunctionsIntoModuleFrame(page: Page): Promise<vo
             api.SetValue(`cmi.interactions.${interactionIndex}.id`, id);
             api.SetValue(`cmi.interactions.${interactionIndex}.type`, type);
             api.SetValue(`cmi.interactions.${interactionIndex}.learner_response`, learnerResponse);
-            api.SetValue(`cmi.interactions.${interactionIndex}.result`, wasCorrect ? "correct" : "incorrect");
+            api.SetValue(
+              `cmi.interactions.${interactionIndex}.result`,
+              wasCorrect ? "correct" : "incorrect",
+            );
             api.SetValue(`cmi.interactions.${interactionIndex}.description`, text);
 
             // Set timestamp
@@ -377,7 +380,7 @@ export async function injectQuizFunctionsIntoModuleFrame(page: Page): Promise<vo
 export async function evaluateInModuleFrame(
   page: Page,
   moduleFrame: FrameLocator,
-  fn: () => any
+  fn: () => any,
 ): Promise<any> {
   return await page.evaluate((fnString) => {
     const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
@@ -395,7 +398,7 @@ export async function evaluateInModuleFrame(
  */
 export async function waitForModuleFrame(
   page: Page,
-  timeout: number = 5000
+  timeout: number = 5000,
 ): Promise<FrameLocator> {
   await waitForModuleFrameCommon(page, timeout);
   return page.frameLocator("#moduleFrame");
@@ -414,7 +417,7 @@ export async function verifyApiAccessibleFromModule(page: Page): Promise<boolean
 export async function setCmiValueFromModule(
   page: Page,
   element: string,
-  value: string
+  value: string,
 ): Promise<void> {
   return setCmiValueFromModuleCommon(page, SCORM2004_API_NAME, element, value);
 }
@@ -429,11 +432,7 @@ export async function getCmiValue(page: Page, element: string): Promise<string> 
 /**
  * Set CMI value (SCORM 2004)
  */
-export async function setCmiValue(
-  page: Page,
-  element: string,
-  value: string
-): Promise<string> {
+export async function setCmiValue(page: Page, element: string, value: string): Promise<string> {
   return setCmiValueCommon(page, SCORM2004_API_NAME, element, value);
 }
 
@@ -442,7 +441,7 @@ export async function setCmiValue(
  */
 export async function answerQuizQuestions(
   moduleFrame: FrameLocator,
-  answers: Array<{ questionIndex: number; answerIndex: number }>
+  answers: Array<{ questionIndex: number; answerIndex: number }>,
 ): Promise<void> {
   // Use page.evaluate since FrameLocator doesn't have evaluate
   // We'll click the elements directly using the locator
@@ -463,7 +462,7 @@ export async function answerQuizQuestions(
  * Submit quiz in module frame
  */
 export async function submitQuiz(moduleFrame: FrameLocator): Promise<void> {
-  await moduleFrame.locator("input[type=\"button\"][value=\"Submit Answers\"]").click();
+  await moduleFrame.locator('input[type="button"][value="Submit Answers"]').click();
 }
 
 /**
@@ -473,7 +472,7 @@ export async function submitQuiz(moduleFrame: FrameLocator): Promise<void> {
  */
 export async function navigateThroughContentSCO(
   page: Page,
-  moduleFrame: FrameLocator
+  moduleFrame: FrameLocator,
 ): Promise<void> {
   // Detect browser type for Firefox-specific timeouts
   const browserName = page.context().browser()?.browserType().name() || "chromium";
@@ -481,21 +480,26 @@ export async function navigateThroughContentSCO(
   const buttonTimeout = isFirefox ? 20000 : 10000;
 
   // Wait for Next button to be available (indicates module has loaded)
-  const nextButton = moduleFrame.locator(
-    "#butNext, " +
-    "input[type=\"button\"][value*=\"Next\"], " +
-    "input[type=\"button\"][value*=\"next\"], " +
-    "button:has-text(\"Next\"), " +
-    "button:has-text(\"next\")"
-  ).first();
+  const nextButton = moduleFrame
+    .locator(
+      "#butNext, " +
+        'input[type="button"][value*="Next"], ' +
+        'input[type="button"][value*="next"], ' +
+        'button:has-text("Next"), ' +
+        'button:has-text("next")',
+    )
+    .first();
 
   // Wait for the button to be visible (module has loaded)
   // Firefox needs extra time for the module's JavaScript to initialize
   // If button never appears within timeout, the module might not have navigation
-  const buttonVisible = await nextButton.waitFor({
-    state: "visible",
-    timeout: buttonTimeout
-  }).then(() => true).catch(() => false);
+  const buttonVisible = await nextButton
+    .waitFor({
+      state: "visible",
+      timeout: buttonTimeout,
+    })
+    .then(() => true)
+    .catch(() => false);
 
   if (!buttonVisible) {
     // No navigation button found - module might not have interactive navigation
@@ -513,7 +517,7 @@ export async function navigateThroughContentSCO(
   const maxTotalTime = isFirefox ? 45000 : 30000; // Max total time for navigation
   const navigationStartTime = Date.now();
 
-  while (hasNext && attempts < maxAttempts && (Date.now() - navigationStartTime) < maxTotalTime) {
+  while (hasNext && attempts < maxAttempts && Date.now() - navigationStartTime < maxTotalTime) {
     attempts++;
 
     // Check if page is still open (Firefox might close it if something goes wrong)
@@ -537,7 +541,7 @@ export async function navigateThroughContentSCO(
       // Wait up to 5 seconds for button to become enabled (Firefox needs extra time)
       const enabledWaitTime = isFirefox ? 5000 : 2000;
       const enabledStartTime = Date.now();
-      while (!isEnabled && (Date.now() - enabledStartTime) < enabledWaitTime) {
+      while (!isEnabled && Date.now() - enabledStartTime < enabledWaitTime) {
         await page.waitForTimeout(100);
         isEnabled = await nextButton.isEnabled().catch(() => false);
       }
@@ -570,50 +574,63 @@ export async function navigateThroughContentSCO(
     const pageLoadTimeout = isFirefox ? 8000 : 5000;
     await Promise.race([
       // Wait for location to change (if it was set before)
-      locationBefore ? page.waitForFunction(
-        (loc) => {
-          const api = (window as any).API_1484_11;
-          if (!api) return false;
-          const currentLoc = api.lmsGetValue("cmi.location");
-          return currentLoc !== loc && currentLoc !== "";
-        },
-        locationBefore,
-        { timeout: pageLoadTimeout }
-      ).catch(() => null) : Promise.resolve(null),
+      locationBefore
+        ? page
+            .waitForFunction(
+              (loc) => {
+                const api = (window as any).API_1484_11;
+                if (!api) return false;
+                const currentLoc = api.lmsGetValue("cmi.location");
+                return currentLoc !== loc && currentLoc !== "";
+              },
+              locationBefore,
+              { timeout: pageLoadTimeout },
+            )
+            .catch(() => null)
+        : Promise.resolve(null),
       // Wait for location to be set (if it wasn't set before)
-      !locationBefore ? page.waitForFunction(
-        () => {
-          const api = (window as any).API_1484_11;
-          if (!api) return false;
-          const currentLoc = api.lmsGetValue("cmi.location");
-          return currentLoc !== "";
-        },
-        { timeout: pageLoadTimeout }
-      ).catch(() => null) : Promise.resolve(null),
+      !locationBefore
+        ? page
+            .waitForFunction(
+              () => {
+                const api = (window as any).API_1484_11;
+                if (!api) return false;
+                const currentLoc = api.lmsGetValue("cmi.location");
+                return currentLoc !== "";
+              },
+              { timeout: pageLoadTimeout },
+            )
+            .catch(() => null)
+        : Promise.resolve(null),
       // Wait for button to become disabled (we're on last page)
-      page.waitForFunction(
-        () => {
-          const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
-          if (!iframe?.contentWindow) return false;
-          try {
-            const btn = iframe.contentWindow.document.querySelector<HTMLButtonElement>("#butNext");
-            return btn?.disabled === true;
-          } catch {
-            return false;
-          }
-        },
-        { timeout: pageLoadTimeout }
-      ).catch(() => null),
+      page
+        .waitForFunction(
+          () => {
+            const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
+            if (!iframe?.contentWindow) return false;
+            try {
+              const btn =
+                iframe.contentWindow.document.querySelector<HTMLButtonElement>("#butNext");
+              return btn?.disabled === true;
+            } catch {
+              return false;
+            }
+          },
+          { timeout: pageLoadTimeout },
+        )
+        .catch(() => null),
       // Wait for completion status to be set
-      page.waitForFunction(
-        () => {
-          const api = (window as any).API_1484_11;
-          if (!api) return false;
-          const status = api.lmsGetValue("cmi.completion_status");
-          return status === "completed" || status === "passed";
-        },
-        { timeout: pageLoadTimeout }
-      ).catch(() => null)
+      page
+        .waitForFunction(
+          () => {
+            const api = (window as any).API_1484_11;
+            if (!api) return false;
+            const status = api.lmsGetValue("cmi.completion_status");
+            return status === "completed" || status === "passed";
+          },
+          { timeout: pageLoadTimeout },
+        )
+        .catch(() => null),
     ]);
 
     // Give the module a moment to update after navigation
@@ -638,22 +655,27 @@ export async function navigateThroughContentSCO(
   // Also check if we're on the last page (Next button is disabled)
   // Only check if page is still open
   if (!page.isClosed()) {
-    const isOnLastPage = await nextButton.isEnabled().catch(() => true).then(enabled => !enabled);
+    const isOnLastPage = await nextButton
+      .isEnabled()
+      .catch(() => true)
+      .then((enabled) => !enabled);
 
     if (isOnLastPage) {
       // We're on the last page - wait for completion to be set
       const completionTimeout = isFirefox ? 15000 : 10000;
-      await page.waitForFunction(
-        () => {
-          const api = (window as any).API_1484_11;
-          if (!api) return false;
-          const status = api.lmsGetValue("cmi.completion_status");
-          return status === "completed" || status === "passed";
-        },
-        { timeout: completionTimeout }
-      ).catch(() => {
-        // Completion might not be set yet - that's okay, we'll check it in verifyContentSCOCompletion
-      });
+      await page
+        .waitForFunction(
+          () => {
+            const api = (window as any).API_1484_11;
+            if (!api) return false;
+            const status = api.lmsGetValue("cmi.completion_status");
+            return status === "completed" || status === "passed";
+          },
+          { timeout: completionTimeout },
+        )
+        .catch(() => {
+          // Completion might not be set yet - that's okay, we'll check it in verifyContentSCOCompletion
+        });
     }
   }
 }
@@ -662,9 +684,7 @@ export async function navigateThroughContentSCO(
  * Complete a content SCO by navigating through all pages
  * This lets the module's own code set completion_status and success_status
  */
-export async function completeContentSCO(
-  page: Page
-): Promise<void> {
+export async function completeContentSCO(page: Page): Promise<void> {
   const moduleFrame = await waitForModuleFrame(page);
   await navigateThroughContentSCO(page, moduleFrame);
 }
@@ -688,11 +708,11 @@ async function getQuizContentFrame(page: Page, moduleFrame: FrameLocator): Promi
     () => {
       const moduleFrame = document.getElementById("moduleFrame") as HTMLIFrameElement | null;
       const contentFrame = moduleFrame?.contentDocument?.getElementById(
-        "contentFrame"
+        "contentFrame",
       ) as HTMLIFrameElement | null;
       return Boolean(contentFrame?.contentDocument?.body);
     },
-    { timeout: iframeTimeout }
+    { timeout: iframeTimeout },
   );
 
   // Additional wait for Firefox - iframe may exist but not be ready
@@ -707,22 +727,37 @@ async function getQuizContentFrame(page: Page, moduleFrame: FrameLocator): Promi
   // Firefox needs more time for nested iframe content to load
   // Wait for any quiz indicator to appear (question, form, heading)
   await Promise.race([
-    contentFrame.locator("div.question").first().waitFor({
-      state: "visible",
-      timeout: contentTimeout
-    }).catch(() => null),
-    contentFrame.locator("form#frmTest, form").first().waitFor({
-      state: "visible",
-      timeout: contentTimeout
-    }).catch(() => null),
-    contentFrame.locator("h1").first().waitFor({
-      state: "visible",
-      timeout: contentTimeout
-    }).catch(() => null),
-    contentFrame.locator("body").waitFor({
-      state: "attached",
-      timeout: contentTimeout
-    }).catch(() => null)
+    contentFrame
+      .locator("div.question")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: contentTimeout,
+      })
+      .catch(() => null),
+    contentFrame
+      .locator("form#frmTest, form")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: contentTimeout,
+      })
+      .catch(() => null),
+    contentFrame
+      .locator("h1")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: contentTimeout,
+      })
+      .catch(() => null),
+    contentFrame
+      .locator("body")
+      .waitFor({
+        state: "attached",
+        timeout: contentTimeout,
+      })
+      .catch(() => null),
   ]);
 
   // Additional wait for Firefox to ensure content is fully loaded
@@ -758,10 +793,7 @@ async function getQuizContentFrame(page: Page, moduleFrame: FrameLocator): Promi
  * Answer quiz questions correctly by finding and clicking the correct answers
  * The assessment template marks correct answers with class "correctAnswer"
  */
-export async function answerQuizCorrectly(
-  page: Page,
-  moduleFrame: FrameLocator
-): Promise<void> {
+export async function answerQuizCorrectly(page: Page, moduleFrame: FrameLocator): Promise<void> {
   // Detect browser type for Firefox-specific timeouts
   const browserName = page.context().browser()?.browserType().name() || "chromium";
   const isFirefox = browserName === "firefox";
@@ -775,18 +807,30 @@ export async function answerQuizCorrectly(
   // Firefox needs more time for nested iframe content to render
   // Try multiple selectors to find quiz content
   await Promise.race([
-    contentFrame.locator("div.question").first().waitFor({
-      state: "visible",
-      timeout: quizWaitTimeout
-    }).catch(() => null),
-    contentFrame.locator("div.correctAnswer").first().waitFor({
-      state: "visible",
-      timeout: quizWaitTimeout
-    }).catch(() => null),
-    contentFrame.locator("form#frmTest, form").first().waitFor({
-      state: "visible",
-      timeout: quizWaitTimeout
-    }).catch(() => null)
+    contentFrame
+      .locator("div.question")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: quizWaitTimeout,
+      })
+      .catch(() => null),
+    contentFrame
+      .locator("div.correctAnswer")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: quizWaitTimeout,
+      })
+      .catch(() => null),
+    contentFrame
+      .locator("form#frmTest, form")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: quizWaitTimeout,
+      })
+      .catch(() => null),
   ]);
 
   // Additional wait for Firefox to ensure DOM is fully ready
@@ -833,7 +877,7 @@ export async function answerQuizCorrectly(
       if (count > 0) break;
     } catch (e) {
       // If count fails, wait and retry
-      if (retry < maxRetries - 1 && (Date.now() - startTime) < maxTotalTime) {
+      if (retry < maxRetries - 1 && Date.now() - startTime < maxTotalTime) {
         const waitTime = Math.min(isFirefox ? 2000 : 1000, maxTotalTime - (Date.now() - startTime));
         if (waitTime > 0) {
           await page.waitForTimeout(waitTime);
@@ -847,7 +891,7 @@ export async function answerQuizCorrectly(
       throw e;
     }
 
-    if (count === 0 && retry < maxRetries - 1 && (Date.now() - startTime) < maxTotalTime) {
+    if (count === 0 && retry < maxRetries - 1 && Date.now() - startTime < maxTotalTime) {
       const waitTime = Math.min(isFirefox ? 2000 : 1000, maxTotalTime - (Date.now() - startTime));
       if (waitTime > 0) {
         await page.waitForTimeout(waitTime);
@@ -887,8 +931,11 @@ export async function answerQuizCorrectly(
         questionCount = await questions.count();
         if (questionCount > 0) break;
       } catch (e) {
-        if (retry < maxRetries - 1 && (Date.now() - questionStartTime) < questionMaxTime) {
-          const waitTime = Math.min(isFirefox ? 2000 : 1000, questionMaxTime - (Date.now() - questionStartTime));
+        if (retry < maxRetries - 1 && Date.now() - questionStartTime < questionMaxTime) {
+          const waitTime = Math.min(
+            isFirefox ? 2000 : 1000,
+            questionMaxTime - (Date.now() - questionStartTime),
+          );
           if (waitTime > 0) {
             await page.waitForTimeout(waitTime);
           }
@@ -897,7 +944,10 @@ export async function answerQuizCorrectly(
         // On last retry or timeout, if it's a timeout, don't throw immediately - try one more check
         if (e instanceof Error && (e.message.includes("timeout") || e.message.includes("closed"))) {
           // Wait one more time and try if we have time
-          const waitTime = Math.min(isFirefox ? 2000 : 1000, questionMaxTime - (Date.now() - questionStartTime));
+          const waitTime = Math.min(
+            isFirefox ? 2000 : 1000,
+            questionMaxTime - (Date.now() - questionStartTime),
+          );
           if (waitTime > 0) {
             await page.waitForTimeout(waitTime);
             try {
@@ -911,8 +961,15 @@ export async function answerQuizCorrectly(
         throw e;
       }
 
-      if (questionCount === 0 && retry < maxRetries - 1 && (Date.now() - questionStartTime) < questionMaxTime) {
-        const waitTime = Math.min(isFirefox ? 2000 : 1000, questionMaxTime - (Date.now() - questionStartTime));
+      if (
+        questionCount === 0 &&
+        retry < maxRetries - 1 &&
+        Date.now() - questionStartTime < questionMaxTime
+      ) {
+        const waitTime = Math.min(
+          isFirefox ? 2000 : 1000,
+          questionMaxTime - (Date.now() - questionStartTime),
+        );
         if (waitTime > 0) {
           await page.waitForTimeout(waitTime);
         }
@@ -921,7 +978,7 @@ export async function answerQuizCorrectly(
 
     if (questionCount === 0) {
       // Last attempt: wait a bit more and try one final time if we have time
-      if (isFirefox && (Date.now() - questionStartTime) < questionMaxTime) {
+      if (isFirefox && Date.now() - questionStartTime < questionMaxTime) {
         const waitTime = Math.min(2000, questionMaxTime - (Date.now() - questionStartTime));
         if (waitTime > 0) {
           await page.waitForTimeout(waitTime);
@@ -965,7 +1022,9 @@ export async function answerQuizCorrectly(
     if (count === 0) {
       // Still no correct answers - this is unusual but might be a different quiz structure
       // Let's try to find any answer inputs and hope for the best
-      const allAnswers = contentFrame.locator("div.question input[type=\"radio\"], div.question input[type=\"text\"]");
+      const allAnswers = contentFrame.locator(
+        'div.question input[type="radio"], div.question input[type="text"]',
+      );
       const answerCount = await allAnswers.count().catch(() => 0);
       if (answerCount === 0) {
         throw new Error("No quiz answer inputs found - quiz structure may be unexpected");
@@ -985,7 +1044,7 @@ export async function answerQuizCorrectly(
 
       // Within each correct answer div, find the input (radio button or text input)
       const correctDiv = correctAnswerDivs.nth(i);
-      const input = correctDiv.locator("input[type=\"radio\"], input[type=\"text\"]");
+      const input = correctDiv.locator('input[type="radio"], input[type="text"]');
 
       // Firefox needs more time for elements to be ready
       const inputTimeout = isFirefox ? 5000 : 2000;
@@ -1070,10 +1129,7 @@ export async function answerQuizCorrectly(
  * Answer quiz questions incorrectly by finding and clicking wrong answers
  * This is used to test failure scenarios and remediation behavior
  */
-export async function answerQuizIncorrectly(
-  page: Page,
-  moduleFrame: FrameLocator
-): Promise<void> {
+export async function answerQuizIncorrectly(page: Page, moduleFrame: FrameLocator): Promise<void> {
   // Detect browser type for Firefox-specific timeouts
   const browserName = page.context().browser()?.browserType().name() || "chromium";
   const isFirefox = browserName === "firefox";
@@ -1086,14 +1142,22 @@ export async function answerQuizIncorrectly(
   // Wait for quiz questions to be visible (quiz has loaded)
   // Firefox needs more time for nested iframe content to render
   await Promise.race([
-    contentFrame.locator("div.question").first().waitFor({
-      state: "visible",
-      timeout: quizWaitTimeout
-    }).catch(() => null),
-    contentFrame.locator("form#frmTest, form").first().waitFor({
-      state: "visible",
-      timeout: quizWaitTimeout
-    }).catch(() => null)
+    contentFrame
+      .locator("div.question")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: quizWaitTimeout,
+      })
+      .catch(() => null),
+    contentFrame
+      .locator("form#frmTest, form")
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: quizWaitTimeout,
+      })
+      .catch(() => null),
   ]);
 
   // Additional wait for Firefox to ensure DOM is fully ready
@@ -1131,7 +1195,7 @@ export async function answerQuizIncorrectly(
         questionCount = await questionDivs.count();
         if (questionCount > 0) break;
       } catch (e) {
-        if (retry < maxRetries - 1 && (Date.now() - startTime) < maxTotalTime) {
+        if (retry < maxRetries - 1 && Date.now() - startTime < maxTotalTime) {
           continue;
         }
         // On last retry or timeout, throw the error
@@ -1159,17 +1223,17 @@ export async function answerQuizIncorrectly(
       if (answerCount > 0) {
         // Find the correct answer div (has class "correctAnswer")
         const correctAnswerDiv = questionDiv.locator("div.correctAnswer");
-        const correctExists = await correctAnswerDiv.count() > 0;
+        const correctExists = (await correctAnswerDiv.count()) > 0;
 
         if (correctExists) {
           // Find an incorrect answer (any answer div that's NOT the correct one)
           // We'll click the first non-correct answer
           const incorrectAnswerDiv = questionDiv.locator("div.answer").first();
-          const incorrectExists = await incorrectAnswerDiv.count() > 0;
+          const incorrectExists = (await incorrectAnswerDiv.count()) > 0;
 
           if (incorrectExists) {
             // Click the first incorrect answer
-            const input = incorrectAnswerDiv.locator("input[type=\"radio\"]");
+            const input = incorrectAnswerDiv.locator('input[type="radio"]');
             if (isFirefox) {
               await input.scrollIntoViewIfNeeded().catch(() => null);
               await page.waitForTimeout(200);
@@ -1179,8 +1243,8 @@ export async function answerQuizIncorrectly(
             // If no incorrect answer div exists, try clicking a different correct answer
             // (this shouldn't happen, but handle it gracefully)
             const allAnswers = questionDiv.locator("div.correctAnswer");
-            if (await allAnswers.count() > 1) {
-              const answerInput = allAnswers.nth(1).locator("input[type=\"radio\"]");
+            if ((await allAnswers.count()) > 1) {
+              const answerInput = allAnswers.nth(1).locator('input[type="radio"]');
               if (isFirefox) {
                 await answerInput.scrollIntoViewIfNeeded().catch(() => null);
                 await page.waitForTimeout(200);
@@ -1190,7 +1254,7 @@ export async function answerQuizIncorrectly(
           }
         } else {
           // No correct answer marked, just click the first answer
-          const firstInput = questionDiv.locator("input[type=\"radio\"]").first();
+          const firstInput = questionDiv.locator('input[type="radio"]').first();
           if (isFirefox) {
             await firstInput.scrollIntoViewIfNeeded().catch(() => null);
             await page.waitForTimeout(200);
@@ -1199,8 +1263,8 @@ export async function answerQuizIncorrectly(
         }
       } else {
         // For numeric questions, enter a wrong value
-        const textInput = questionDiv.locator("input[type=\"text\"]");
-        const inputExists = await textInput.count() > 0;
+        const textInput = questionDiv.locator('input[type="text"]');
+        const inputExists = (await textInput.count()) > 0;
         if (inputExists) {
           // Enter a clearly wrong value (like 999)
           await textInput.fill("999", { timeout: inputTimeout });
@@ -1222,10 +1286,10 @@ export async function answerQuizIncorrectly(
  */
 export async function exitScorm2004Course(
   page: Page,
-  { preserveProgress = true }: { preserveProgress?: boolean } = {}
+  { preserveProgress = true }: { preserveProgress?: boolean } = {},
 ): Promise<void> {
   const moduleFrame = page.frameLocator("#moduleFrame");
-  const exitButton = moduleFrame.locator("button:has-text(\"Exit\"), input[value*=\"Exit\"]");
+  const exitButton = moduleFrame.locator('button:has-text("Exit"), input[value*="Exit"]');
   const visible = await exitButton.isVisible({ timeout: 3000 }).catch(() => false);
   if (!visible) {
     throw new Error("Exit button not available in module frame");
@@ -1261,8 +1325,8 @@ export async function exitScorm2004Course(
 export async function completeAssessmentSCO(
   page: Page,
   shouldPass: boolean = true,
-  passThreshold: number = 70
-): Promise<{ score: number, successStatus: string, completionStatus: string }> {
+  passThreshold: number = 70,
+): Promise<{ score: number; successStatus: string; completionStatus: string }> {
   // Inject quiz functions (RecordTest, RecordQuestion) if not already available
   // These are needed for the quiz template to submit scores
   await injectQuizFunctions(page);
@@ -1286,12 +1350,14 @@ export async function completeAssessmentSCO(
 
   // Submit the quiz (submit button is in the contentFrame)
   const contentFrame = await getQuizContentFrame(page, moduleFrame);
-  const submitButton = contentFrame.locator(
-    "input[type=\"button\"][value*=\"Submit\"], " +
-    "input[type=\"button\"][value*=\"submit\"], " +
-    "button:has-text(\"Submit\"), " +
-    "button:has-text(\"submit\")"
-  ).first();
+  const submitButton = contentFrame
+    .locator(
+      'input[type="button"][value*="Submit"], ' +
+        'input[type="button"][value*="submit"], ' +
+        'button:has-text("Submit"), ' +
+        'button:has-text("submit")',
+    )
+    .first();
 
   // Wait for submit button to be visible and clickable
   // Firefox needs more time for button to appear
@@ -1314,46 +1380,58 @@ export async function completeAssessmentSCO(
   const quizProcessTimeout = isFirefox ? 30000 : 15000;
   await Promise.race([
     // Wait for score to be set (if it wasn't set before)
-    scoreBefore === "" ? page.waitForFunction(
-      () => {
-        const api = (window as any).API_1484_11;
-        if (!api) return false;
-        const score = api.lmsGetValue("cmi.score.raw");
-        return score !== "" && score !== null;
-      },
-      { timeout: quizProcessTimeout }
-    ).catch(() => null) : Promise.resolve(null),
+    scoreBefore === ""
+      ? page
+          .waitForFunction(
+            () => {
+              const api = (window as any).API_1484_11;
+              if (!api) return false;
+              const score = api.lmsGetValue("cmi.score.raw");
+              return score !== "" && score !== null;
+            },
+            { timeout: quizProcessTimeout },
+          )
+          .catch(() => null)
+      : Promise.resolve(null),
     // Wait for score to change (if it was set before)
-    scoreBefore !== "" ? page.waitForFunction(
-      (before) => {
-        const api = (window as any).API_1484_11;
-        if (!api) return false;
-        const score = api.lmsGetValue("cmi.score.raw");
-        return score !== before && score !== "";
-      },
-      scoreBefore,
-      { timeout: quizProcessTimeout }
-    ).catch(() => null) : Promise.resolve(null),
+    scoreBefore !== ""
+      ? page
+          .waitForFunction(
+            (before) => {
+              const api = (window as any).API_1484_11;
+              if (!api) return false;
+              const score = api.lmsGetValue("cmi.score.raw");
+              return score !== before && score !== "";
+            },
+            scoreBefore,
+            { timeout: quizProcessTimeout },
+          )
+          .catch(() => null)
+      : Promise.resolve(null),
     // Wait for success_status to be set (indicates quiz was processed)
-    page.waitForFunction(
-      () => {
-        const api = (window as any).API_1484_11;
-        if (!api) return false;
-        const status = api.lmsGetValue("cmi.success_status");
-        return status === "passed" || status === "failed";
-      },
-      { timeout: quizProcessTimeout }
-    ).catch(() => null),
+    page
+      .waitForFunction(
+        () => {
+          const api = (window as any).API_1484_11;
+          if (!api) return false;
+          const status = api.lmsGetValue("cmi.success_status");
+          return status === "passed" || status === "failed";
+        },
+        { timeout: quizProcessTimeout },
+      )
+      .catch(() => null),
     // Wait for completion_status to be set (indicates quiz was processed)
-    page.waitForFunction(
-      () => {
-        const api = (window as any).API_1484_11;
-        if (!api) return false;
-        const status = api.lmsGetValue("cmi.completion_status");
-        return status === "completed";
-      },
-      { timeout: quizProcessTimeout }
-    ).catch(() => null)
+    page
+      .waitForFunction(
+        () => {
+          const api = (window as any).API_1484_11;
+          if (!api) return false;
+          const status = api.lmsGetValue("cmi.completion_status");
+          return status === "completed";
+        },
+        { timeout: quizProcessTimeout },
+      )
+      .catch(() => null),
   ]);
 
   // Give it a moment for the API to update (Firefox needs more time)
@@ -1369,7 +1447,7 @@ export async function completeAssessmentSCO(
   return {
     score: scoreRaw ? parseInt(scoreRaw, 10) : 0,
     successStatus,
-    completionStatus
+    completionStatus,
   };
 }
 
@@ -1424,9 +1502,7 @@ export async function verifyInteractionsRecorded(page: Page): Promise<
         id: window.API_1484_11.lmsGetValue(`cmi.interactions.${i}.id`),
         type: window.API_1484_11.lmsGetValue(`cmi.interactions.${i}.type`),
         result: window.API_1484_11.lmsGetValue(`cmi.interactions.${i}.result`),
-        learnerResponse: window.API_1484_11.lmsGetValue(
-          `cmi.interactions.${i}.learner_response`
-        )
+        learnerResponse: window.API_1484_11.lmsGetValue(`cmi.interactions.${i}.learner_response`),
       });
     }
     return interactions;
@@ -1476,11 +1552,11 @@ export async function initializeSequencedModule(
   page: Page,
   wrapperPath: string,
   modulePath: string,
-  options: SequencedModuleOptions = {}
+  options: SequencedModuleOptions = {},
 ): Promise<void> {
   const sequencing = {
     ...DEFAULT_SEQUENCING,
-    ...(options.sequencingOverrides ?? {})
+    ...(options.sequencingOverrides ?? {}),
   };
 
   if (options.activityTree) {
@@ -1496,13 +1572,13 @@ export async function initializeSequencedModule(
       autocommit: true,
       logLevel: 1,
       mastery_override: false,
-      ...(options.apiOptions ?? {})
+      ...(options.apiOptions ?? {}),
     },
     sequencing,
     initialCmi: {
       ...DEFAULT_CMI,
-      ...(options.initialCmi ?? {})
-    }
+      ...(options.initialCmi ?? {}),
+    },
   });
 
   // Dismiss bookmark resume dialogs - the launchpage shows a confirm() dialog
@@ -1516,15 +1592,14 @@ export async function initializeSequencedModule(
   await page.goto(`${wrapperPath}?module=${modulePath}`);
   await waitForPageReady(page);
   await ensureApiInitialized(page);
-  await waitForModuleFrameCommon(page).catch(() => {
-  });
+  await waitForModuleFrameCommon(page).catch(() => {});
   await injectQuizFunctions(page);
   await page.waitForFunction(
     () => {
       const api = (window as any).API_1484_11;
       return api && typeof api.lmsGetValue === "function";
     },
-    { timeout: 5000 }
+    { timeout: 5000 },
   );
 }
 
@@ -1535,7 +1610,7 @@ export async function initializeSequencedModule(
 export async function injectSequencingConfig(
   page: Page,
   activityTree: any,
-  sequencingControls: any
+  sequencingControls: any,
 ): Promise<void> {
   await page.evaluate(
     ({ activityTree, sequencingControls }) => {
@@ -1560,9 +1635,9 @@ export async function injectSequencingConfig(
             hideLmsUi: ["exitAll", "abandonAll"],
             auxiliaryResources: [
               { resourceId: "urn:scorm-again:help", purpose: "help" },
-              { resourceId: "urn:scorm-again:glossary", purpose: "glossary" }
-            ]
-          }
+              { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
+            ],
+          },
         });
 
         // Load initial CMI data
@@ -1577,9 +1652,9 @@ export async function injectSequencingConfig(
             score: {
               raw: 0,
               min: 0,
-              max: 100
-            }
-          }
+              max: 100,
+            },
+          },
         });
 
         // Replace the API instance on wrapper window
@@ -1610,7 +1685,7 @@ export async function injectSequencingConfig(
         console.error("Scorm2004API not found in window");
       }
     },
-    { activityTree, sequencingControls }
+    { activityTree, sequencingControls },
   );
 }
 
@@ -1624,7 +1699,7 @@ export async function injectSequencingConfig(
 export async function initializeModule(
   page: Page,
   wrapperPath: string,
-  modulePath: string
+  modulePath: string,
 ): Promise<void> {
   await page.goto(`${wrapperPath}?module=${modulePath}`);
   await waitForPageReady(page);
@@ -1634,9 +1709,11 @@ export async function initializeModule(
   await page.waitForFunction(
     () => {
       const api = (window as any).API_1484_11 || (window as any).API;
-      return api && (typeof api.lmsGetValue === "function" || typeof api.LMSGetValue === "function");
+      return (
+        api && (typeof api.lmsGetValue === "function" || typeof api.LMSGetValue === "function")
+      );
     },
-    { timeout: 5000 }
+    { timeout: 5000 },
   );
 }
 
@@ -1652,24 +1729,26 @@ export async function initializeModule(
 export async function verifyAssessmentResults(
   page: Page,
   expectedPass: boolean,
-  passThreshold: number = 70
+  passThreshold: number = 70,
 ): Promise<{
   score: number;
   successStatus: string;
   completionStatus: string;
 }> {
   // Wait for score to be set (if not already set)
-  await page.waitForFunction(
-    () => {
-      const api = (window as any).API_1484_11;
-      if (!api) return false;
-      const score = api.lmsGetValue("cmi.score.raw");
-      return score !== "" && score !== null;
-    },
-    { timeout: 5000 }
-  ).catch(() => {
-    // Score might already be set or might not be set yet
-  });
+  await page
+    .waitForFunction(
+      () => {
+        const api = (window as any).API_1484_11;
+        if (!api) return false;
+        const score = api.lmsGetValue("cmi.score.raw");
+        return score !== "" && score !== null;
+      },
+      { timeout: 5000 },
+    )
+    .catch(() => {
+      // Score might already be set or might not be set yet
+    });
 
   const scoreRaw = await getCmiValue(page, "cmi.score.raw");
   const score = scoreRaw ? parseInt(scoreRaw, 10) : 0;
@@ -1714,7 +1793,7 @@ export async function verifyAssessmentResults(
 export async function getNavigationValidity(
   page: Page,
   requestType: "continue" | "previous" | "choice" | "jump",
-  targetActivityId?: string
+  targetActivityId?: string,
 ): Promise<string> {
   return await page.evaluate(
     ({ type, target }) => {
@@ -1732,7 +1811,7 @@ export async function getNavigationValidity(
       }
       return "unknown";
     },
-    { type: requestType, target: targetActivityId }
+    { type: requestType, target: targetActivityId },
   );
 }
 
@@ -1749,17 +1828,19 @@ export async function verifyContentSCOCompletion(page: Page): Promise<{
   location: string;
 }> {
   // Wait for completion status to be set
-  await page.waitForFunction(
-    () => {
-      const api = (window as any).API_1484_11;
-      if (!api) return false;
-      const status = api.lmsGetValue("cmi.completion_status");
-      return status === "completed" || status === "passed" || status === "incomplete";
-    },
-    { timeout: 10000 }
-  ).catch(() => {
-    // Completion might already be set or might not be set yet
-  });
+  await page
+    .waitForFunction(
+      () => {
+        const api = (window as any).API_1484_11;
+        if (!api) return false;
+        const status = api.lmsGetValue("cmi.completion_status");
+        return status === "completed" || status === "passed" || status === "incomplete";
+      },
+      { timeout: 10000 },
+    )
+    .catch(() => {
+      // Completion might already be set or might not be set yet
+    });
 
   const completionStatus = await getCmiValue(page, "cmi.completion_status");
   const successStatus = await getCmiValue(page, "cmi.success_status");
@@ -1776,7 +1857,9 @@ export async function verifyContentSCOCompletion(page: Page): Promise<{
   // The important thing is that completion_status was set
   if (location === "" && completionStatus === "not attempted") {
     // Neither location nor completion was set - this indicates navigation didn't work
-    throw new Error("Content navigation did not complete - location and completion_status were not set");
+    throw new Error(
+      "Content navigation did not complete - location and completion_status were not set",
+    );
   }
 
   return { completionStatus, successStatus, location };
@@ -1789,12 +1872,12 @@ export function getWrapperConfigs() {
   return [
     {
       name: "Standard",
-      path: "/test/integration/wrappers/scorm2004-wrapper.html"
+      path: "/test/integration/wrappers/scorm2004-wrapper.html",
     },
     {
       name: "ESM",
-      path: "/test/integration/wrappers/scorm2004-wrapper-esm.html"
-    }
+      path: "/test/integration/wrappers/scorm2004-wrapper-esm.html",
+    },
   ];
 }
 
@@ -1837,21 +1920,27 @@ export async function clickSequencingButton(page: Page, directive: string): Prom
     enabled = await button.isEnabled();
   } catch (error) {
     if (page.isClosed()) {
-      throw new Error(`Page was closed while checking sequencing button ${directive} enabled state`);
+      throw new Error(
+        `Page was closed while checking sequencing button ${directive} enabled state`,
+      );
     }
     throw error;
   }
 
-  while (!enabled && (Date.now() - startTime) < maxWait) {
+  while (!enabled && Date.now() - startTime < maxWait) {
     if (page.isClosed()) {
-      throw new Error(`Page was closed while waiting for sequencing button ${directive} to become enabled`);
+      throw new Error(
+        `Page was closed while waiting for sequencing button ${directive} to become enabled`,
+      );
     }
     await page.waitForTimeout(100);
     try {
       enabled = await button.isEnabled();
     } catch (error) {
       if (page.isClosed()) {
-        throw new Error(`Page was closed while checking sequencing button ${directive} enabled state`);
+        throw new Error(
+          `Page was closed while checking sequencing button ${directive} enabled state`,
+        );
       }
       // If element is detached, button might have been removed
       if (error instanceof Error && error.message.includes("detached")) {
@@ -1909,7 +1998,7 @@ export async function requestContentNavigation(page: Page, directive: string): P
       exitAll: "_exitAll",
       abandon: "_abandon",
       abandonAll: "_abandonAll",
-      suspendAll: "_suspendAll"
+      suspendAll: "_suspendAll",
     };
     const request = requestMap[requestedDirective];
     if (!api || !request) {
@@ -1945,7 +2034,7 @@ export async function waitForScoContent(page: Page, contentKey: string): Promise
         return Boolean(frame?.src.includes(key));
       },
       contentKey,
-      { timeout: 10000 }
+      { timeout: 10000 },
     )
     .catch(async (error) => {
       const debugInfo = await page.evaluate(() => {
@@ -1956,20 +2045,20 @@ export async function waitForScoContent(page: Page, contentKey: string): Promise
           navRequest: api?.adl?.nav?.request || null,
           completionStatus: api?.cmi?.completion_status || null,
           successStatus: api?.cmi?.success_status || null,
-          lastSequencingResult: state?.lastSequencingResult || null
+          lastSequencingResult: state?.lastSequencingResult || null,
         };
       });
       throw new Error(
         `Timed out waiting for SCO content '${contentKey}'. Sequencing state: ${JSON.stringify(
-          debugInfo
-        )}\nOriginal error: ${error}`
+          debugInfo,
+        )}\nOriginal error: ${error}`,
       );
     });
 }
 
 export async function advanceScoPages(page: Page, steps: number): Promise<void> {
   const moduleFrame = page.frameLocator("#moduleFrame");
-  const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+  const nextButton = moduleFrame.locator('button:has-text("Next"), input[value*="Next"]').first();
 
   for (let i = 0; i < steps; i++) {
     const visible = await nextButton.isVisible({ timeout: 2000 }).catch(() => false);
@@ -1981,19 +2070,22 @@ export async function advanceScoPages(page: Page, steps: number): Promise<void> 
 }
 
 export async function requestChoiceNavigation(page: Page, activityId: string): Promise<void> {
-  await page.evaluate(({ target }) => {
-    const api = (window as any).API_1484_11;
-    if (!api) {
-      return;
-    }
-    api.lmsSetValue("adl.nav.request", `choice.{target=${target}}`);
-    if (typeof api.processNavigationRequest === "function") {
-      // Pass target as string, not as object
-      api.processNavigationRequest("choice", target);
-    } else if (typeof api.Commit === "function") {
-      api.Commit("");
-    }
-  }, { target: activityId });
+  await page.evaluate(
+    ({ target }) => {
+      const api = (window as any).API_1484_11;
+      if (!api) {
+        return;
+      }
+      api.lmsSetValue("adl.nav.request", `choice.{target=${target}}`);
+      if (typeof api.processNavigationRequest === "function") {
+        // Pass target as string, not as object
+        api.processNavigationRequest("choice", target);
+      } else if (typeof api.Commit === "function") {
+        api.Commit("");
+      }
+    },
+    { target: activityId },
+  );
 
   await page.waitForTimeout(500);
 }
@@ -2001,7 +2093,7 @@ export async function requestChoiceNavigation(page: Page, activityId: string): P
 export async function waitForCurrentActivity(
   page: Page,
   activityId: string,
-  timeout: number = 10000
+  timeout: number = 10000,
 ): Promise<void> {
   await page.waitForFunction(
     (target) => {
@@ -2010,13 +2102,13 @@ export async function waitForCurrentActivity(
       return state?.currentActivity?.id === target;
     },
     activityId,
-    { timeout }
+    { timeout },
   );
 }
 
 export async function getObjectiveStatus(
   page: Page,
-  objectiveId: string
+  objectiveId: string,
 ): Promise<{ success: string; completion: string } | null> {
   return await page.evaluate((targetId) => {
     const api = (window as any).API_1484_11;
@@ -2027,7 +2119,7 @@ export async function getObjectiveStatus(
       if (id === targetId) {
         return {
           success: api.lmsGetValue(`cmi.objectives.${i}.success_status`),
-          completion: api.lmsGetValue(`cmi.objectives.${i}.completion_status`)
+          completion: api.lmsGetValue(`cmi.objectives.${i}.completion_status`),
         };
       }
     }
@@ -2042,7 +2134,7 @@ export async function getObjectiveStatus(
  */
 export async function getGlobalObjectiveStatus(
   page: Page,
-  objectiveId: string
+  objectiveId: string,
 ): Promise<{
   satisfiedStatus: boolean | null;
   normalizedMeasure: number | null;
@@ -2086,7 +2178,7 @@ export async function getGlobalObjectiveStatus(
 export async function expectCurrentActivity(
   page: Page,
   expectedActivityId: string,
-  timeout: number = 10000
+  timeout: number = 10000,
 ): Promise<void> {
   const startTime = Date.now();
   let lastActivityId: string | null = null;
@@ -2106,7 +2198,7 @@ export async function expectCurrentActivity(
   }
 
   throw new Error(
-    `Expected current activity to be "${expectedActivityId}" but was "${lastActivityId}" after ${timeout}ms`
+    `Expected current activity to be "${expectedActivityId}" but was "${lastActivityId}" after ${timeout}ms`,
   );
 }
 
@@ -2120,13 +2212,13 @@ export async function expectNavigationValid(
   page: Page,
   directive: "continue" | "previous" | "choice",
   expected: "true" | "false" | "unknown",
-  targetActivityId?: string
+  targetActivityId?: string,
 ): Promise<void> {
   const actual = await getNavigationValidity(page, directive, targetActivityId);
 
   if (actual !== expected) {
     throw new Error(
-      `Expected navigation "${directive}"${targetActivityId ? ` to ${targetActivityId}` : ""} to be "${expected}" but was "${actual}"`
+      `Expected navigation "${directive}"${targetActivityId ? ` to ${targetActivityId}` : ""} to be "${expected}" but was "${actual}"`,
     );
   }
 }
@@ -2143,17 +2235,15 @@ export async function expectCourseComplete(page: Page): Promise<void> {
 
     return {
       completionStatus: root?.completionStatus || api?.lmsGetValue?.("cmi.completion_status"),
-      successStatus: root?.successStatus || api?.lmsGetValue?.("cmi.success_status")
+      successStatus: root?.successStatus || api?.lmsGetValue?.("cmi.success_status"),
     };
   });
 
-  const isComplete =
-    status.completionStatus === "completed" ||
-    status.successStatus === "passed";
+  const isComplete = status.completionStatus === "completed" || status.successStatus === "passed";
 
   if (!isComplete) {
     throw new Error(
-      `Expected course to be complete but completion_status="${status.completionStatus}", success_status="${status.successStatus}"`
+      `Expected course to be complete but completion_status="${status.completionStatus}", success_status="${status.successStatus}"`,
     );
   }
 }
@@ -2164,7 +2254,7 @@ export async function expectCourseComplete(page: Page): Promise<void> {
 export async function expectActivityStatus(
   page: Page,
   activityId: string,
-  expected: { completion?: string; success?: string }
+  expected: { completion?: string; success?: string },
 ): Promise<void> {
   const actual = await page.evaluate((targetId) => {
     const api = (window as any).API_1484_11;
@@ -2188,7 +2278,7 @@ export async function expectActivityStatus(
 
     return {
       completion: activity.completionStatus || "unknown",
-      success: activity.successStatus || "unknown"
+      success: activity.successStatus || "unknown",
     };
   }, activityId);
 
@@ -2198,13 +2288,13 @@ export async function expectActivityStatus(
 
   if (expected.completion && actual.completion !== expected.completion) {
     throw new Error(
-      `Expected activity "${activityId}" completion to be "${expected.completion}" but was "${actual.completion}"`
+      `Expected activity "${activityId}" completion to be "${expected.completion}" but was "${actual.completion}"`,
     );
   }
 
   if (expected.success && actual.success !== expected.success) {
     throw new Error(
-      `Expected activity "${activityId}" success to be "${expected.success}" but was "${actual.success}"`
+      `Expected activity "${activityId}" success to be "${expected.success}" but was "${actual.success}"`,
     );
   }
 }
@@ -2212,16 +2302,13 @@ export async function expectActivityStatus(
 /**
  * Assert that navigation to an activity is blocked (for forced sequential tests).
  */
-export async function expectNavigationBlocked(
-  page: Page,
-  targetActivityId: string
-): Promise<void> {
+export async function expectNavigationBlocked(page: Page, targetActivityId: string): Promise<void> {
   // Check that choice navigation to this activity is not valid
   const validity = await getNavigationValidity(page, "choice", targetActivityId);
 
   if (validity === "true") {
     throw new Error(
-      `Expected navigation to "${targetActivityId}" to be blocked but it was allowed`
+      `Expected navigation to "${targetActivityId}" to be blocked but it was allowed`,
     );
   }
 }
@@ -2232,7 +2319,7 @@ export async function expectNavigationBlocked(
 export async function expectModuleContent(
   page: Page,
   contentIdentifier: string,
-  timeout: number = 10000
+  timeout: number = 10000,
 ): Promise<void> {
   await page.waitForFunction(
     (identifier) => {
@@ -2241,7 +2328,7 @@ export async function expectModuleContent(
       return frame.src.includes(identifier);
     },
     contentIdentifier,
-    { timeout }
+    { timeout },
   );
 }
 

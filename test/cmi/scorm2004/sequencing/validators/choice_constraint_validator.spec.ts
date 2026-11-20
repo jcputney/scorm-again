@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  ChoiceConstraintValidator
-} from "../../../../../src/cmi/scorm2004/sequencing/validators/choice_constraint_validator";
-import {
-  ActivityTreeQueries
-} from "../../../../../src/cmi/scorm2004/sequencing/utils/activity_tree_queries";
+import { ChoiceConstraintValidator } from "../../../../../src/cmi/scorm2004/sequencing/validators/choice_constraint_validator";
+import { ActivityTreeQueries } from "../../../../../src/cmi/scorm2004/sequencing/utils/activity_tree_queries";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../../src/cmi/scorm2004/sequencing/activity_tree";
 
@@ -187,7 +183,7 @@ describe("ChoiceConstraintValidator", () => {
 
     describe("constrainChoice constraint", () => {
       it("should return valid when trying to skip forward beyond next sibling", () => {
-      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
+        // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
         // Add another lesson to have 3 siblings
         const lesson2b = new Activity("lesson2b", "Lesson 2b");
         chapter1.addChild(lesson2b);
@@ -210,7 +206,7 @@ describe("ChoiceConstraintValidator", () => {
       });
 
       it("should return valid when navigating backward to incomplete activity", () => {
-      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
+        // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
         chapter1.sequencingControls.constrainChoice = true;
         lesson2.isActive = true;
         lesson1.completionStatus = "incomplete" as any;

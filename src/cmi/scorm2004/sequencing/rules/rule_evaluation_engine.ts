@@ -1,8 +1,5 @@
 import { Activity } from "../activity";
-import {
-  SequencingRule,
-  RuleActionType,
-} from "../sequencing_rules";
+import { SequencingRule, RuleActionType } from "../sequencing_rules";
 import { SequencingRequestType } from "./sequencing_request_types";
 import { getDurationAsSeconds } from "../../../../utilities";
 import { scorm2004_regex } from "../../../../constants/regex";
@@ -59,10 +56,7 @@ export class RuleEvaluationEngine {
    * @param {SequencingRule[]} rules - The rules to evaluate
    * @return {RuleActionType | null} - The action to take, or null if no rules apply
    */
-  public checkSequencingRules(
-    activity: Activity,
-    rules: SequencingRule[]
-  ): RuleActionType | null {
+  public checkSequencingRules(activity: Activity, rules: SequencingRule[]): RuleActionType | null {
     for (const rule of rules) {
       if (this.checkRuleSubprocess(activity, rule)) {
         return rule.action;
@@ -91,7 +85,7 @@ export class RuleEvaluationEngine {
   public evaluateExitRules(activity: Activity): RuleActionType | null {
     const exitAction = this.checkSequencingRules(
       activity,
-      activity.sequencingRules.exitConditionRules
+      activity.sequencingRules.exitConditionRules,
     );
 
     // Only certain actions are valid for exit condition rules
@@ -115,7 +109,7 @@ export class RuleEvaluationEngine {
   public evaluatePostConditionAction(activity: Activity): RuleActionType | null {
     const postAction = this.checkSequencingRules(
       activity,
-      activity.sequencingRules.postConditionRules
+      activity.sequencingRules.postConditionRules,
     );
 
     // Only certain actions are valid for post-condition rules
@@ -126,7 +120,7 @@ export class RuleEvaluationEngine {
       RuleActionType.RETRY_ALL,
       RuleActionType.CONTINUE,
       RuleActionType.PREVIOUS,
-      RuleActionType.STOP_FORWARD_TRAVERSAL
+      RuleActionType.STOP_FORWARD_TRAVERSAL,
     ];
 
     if (postAction && validActions.includes(postAction)) {
@@ -147,7 +141,7 @@ export class RuleEvaluationEngine {
     if (!postAction) {
       return {
         sequencingRequest: null,
-        terminationRequest: null
+        terminationRequest: null,
       };
     }
 
@@ -155,37 +149,37 @@ export class RuleEvaluationEngine {
       case RuleActionType.EXIT_PARENT:
         return {
           sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_PARENT
+          terminationRequest: SequencingRequestType.EXIT_PARENT,
         };
 
       case RuleActionType.EXIT_ALL:
         return {
           sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_ALL
+          terminationRequest: SequencingRequestType.EXIT_ALL,
         };
 
       case RuleActionType.RETRY:
         return {
           sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       case RuleActionType.RETRY_ALL:
         return {
           sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: SequencingRequestType.EXIT_ALL
+          terminationRequest: SequencingRequestType.EXIT_ALL,
         };
 
       case RuleActionType.CONTINUE:
         return {
           sequencingRequest: SequencingRequestType.CONTINUE,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       case RuleActionType.PREVIOUS:
         return {
           sequencingRequest: SequencingRequestType.PREVIOUS,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       case RuleActionType.STOP_FORWARD_TRAVERSAL:
@@ -193,13 +187,13 @@ export class RuleEvaluationEngine {
         activity.sequencingControls.stopForwardTraversal = true;
         return {
           sequencingRequest: null,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       default:
         return {
           sequencingRequest: null,
-          terminationRequest: null
+          terminationRequest: null,
         };
     }
   }
@@ -382,15 +376,16 @@ export class RuleEvaluationEngine {
     // Check pre-condition rules
     const preConditionResult = this.checkSequencingRules(
       activity,
-      activity.sequencingRules.preConditionRules
+      activity.sequencingRules.preConditionRules,
     );
 
     const wasSkipped = preConditionResult === RuleActionType.SKIP;
 
     return {
-      canDeliver: preConditionResult !== RuleActionType.SKIP &&
-                  preConditionResult !== RuleActionType.DISABLED,
-      wasSkipped
+      canDeliver:
+        preConditionResult !== RuleActionType.SKIP &&
+        preConditionResult !== RuleActionType.DISABLED,
+      wasSkipped,
     };
   }
 }

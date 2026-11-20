@@ -4,11 +4,9 @@ import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {
-  OverallSequencingProcess
-} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 /**
  * Fix double-increment bug on RETRY requests

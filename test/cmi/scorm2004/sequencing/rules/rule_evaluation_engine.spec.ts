@@ -1,16 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  RuleEvaluationEngine
-} from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
-import {
-  SequencingRequestType
-} from "../../../../../src/cmi/scorm2004/sequencing/rules/sequencing_request_types";
+import { RuleEvaluationEngine } from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
+import { SequencingRequestType } from "../../../../../src/cmi/scorm2004/sequencing/rules/sequencing_request_types";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("RuleEvaluationEngine", () => {
@@ -279,7 +275,7 @@ describe("RuleEvaluationEngine", () => {
 
     it("should return true when attempt duration limit is exceeded", () => {
       activity.attemptAbsoluteDurationLimit = "PT1H"; // 1 hour
-      activity.attemptExperiencedDuration = "PT2H";   // 2 hours
+      activity.attemptExperiencedDuration = "PT2H"; // 2 hours
 
       expect(engine.checkLimitConditions(activity)).toBe(true);
     });
@@ -347,7 +343,7 @@ describe("RuleEvaluationEngine", () => {
     it("should use hook when provided", () => {
       const hook = vi.fn().mockReturnValue(120);
       const engineWithHook = new RuleEvaluationEngine({
-        getAttemptElapsedSecondsHook: hook
+        getAttemptElapsedSecondsHook: hook,
       });
 
       const result = engineWithHook.getElapsedSeconds(activity);
@@ -362,7 +358,7 @@ describe("RuleEvaluationEngine", () => {
       activity.attemptAbsoluteStartTime = start.toISOString();
 
       const engineWithTime = new RuleEvaluationEngine({
-        now: () => now
+        now: () => now,
       });
 
       const result = engineWithTime.getElapsedSeconds(activity);
@@ -377,7 +373,7 @@ describe("RuleEvaluationEngine", () => {
       const engineWithBadHook = new RuleEvaluationEngine({
         getAttemptElapsedSecondsHook: () => {
           throw new Error("oops");
-        }
+        },
       });
 
       expect(engineWithBadHook.getElapsedSeconds(activity)).toBe(0);
@@ -484,10 +480,14 @@ it("uses the constructor elapsed hook for timeLimitExceeded pre-conditions", () 
     rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
     activity.sequencingRules.preConditionRules.push(rule);
     const engine = new RuleEvaluationEngine({ getAttemptElapsedSecondsHook: () => 30 });
-    expect(engine.checkSequencingRules(activity, activity.sequencingRules.preConditionRules)).toBe(null);
+    expect(engine.checkSequencingRules(activity, activity.sequencingRules.preConditionRules)).toBe(
+      null,
+    );
     RuleCondition.setElapsedSecondsHook(() => 30);
     const expired = new RuleEvaluationEngine({ getAttemptElapsedSecondsHook: () => 120 });
-    expect(expired.checkSequencingRules(activity, activity.sequencingRules.preConditionRules)).toBe(RuleActionType.DISABLED);
+    expect(expired.checkSequencingRules(activity, activity.sequencingRules.preConditionRules)).toBe(
+      RuleActionType.DISABLED,
+    );
   } finally {
     RuleCondition.setElapsedSecondsHook(undefined);
   }

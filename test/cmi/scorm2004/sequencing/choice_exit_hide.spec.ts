@@ -5,7 +5,7 @@ import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequ
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 /**
@@ -109,10 +109,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // Try to navigate to sibling within same cluster
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity1_2.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity1_2.id);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity).toBe(activity1_2);
@@ -128,10 +125,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // Try to navigate to activity2_1 (child of cluster2, sibling of cluster1)
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_1.id);
 
       // Navigation Request Process returns NB.2.1-11 for choiceExit violations
       expect(result.exception).toBe("NB.2.1-11");
@@ -148,10 +142,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // Try to navigate to activity2_2 (cousin - child of parent's sibling)
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_2.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_2.id);
 
       // Navigation Request Process returns NB.2.1-11 for choiceExit violations
       expect(result.exception).toBe("NB.2.1-11");
@@ -168,10 +159,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // Navigate to another activity within same cluster (not exiting)
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity1_2.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity1_2.id);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity).toBe(activity1_2);
@@ -183,10 +171,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // Navigate to cousin activity
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_1.id);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity).toBe(activity2_1);
@@ -203,10 +188,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_2.isActive = true;
 
       // Try to exit to cluster2's child - should be blocked by cluster1's choiceExit=false
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_1.id);
 
       // Navigation Request Process returns NB.2.1-11 for choiceExit violations
       expect(result.exception).toBe("NB.2.1-11");
@@ -223,10 +205,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
 
       // Navigate to sibling within same cluster (not to deepActivity which requires
       // skipping mandatory intermediate activities)
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity1_2.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity1_2.id);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity).toBe(activity1_2);
@@ -242,10 +221,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       deepActivity.isActive = true;
 
       // Try to exit to activity2_1 (outside cluster1)
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_1.id);
 
       // Navigation Request Process returns NB.2.1-11 for choiceExit violations
       expect(result.exception).toBe("NB.2.1-11");
@@ -261,10 +237,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // Should be able to exit to cluster2
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_1.id);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity).toBe(activity2_1);
@@ -280,10 +253,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // Try to choose hidden activity
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity1_2.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity1_2.id);
 
       // Navigation Request Process returns NB.2.1-11 for hidden activities
       expect(result.exception).toBe("NB.2.1-11");
@@ -318,10 +288,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity2_1.isActive = true;
 
       // Should NOT be able to choose child because parent is hidden
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity1_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity1_1.id);
 
       // Navigation Request Process returns NB.2.1-11 for hidden ancestors
       expect(result.exception).toBe("NB.2.1-11");
@@ -353,10 +320,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activityTree.currentActivity = activity1_1;
       activity1_1.isActive = true;
 
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity1_2.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity1_2.id);
 
       // Navigation Request Process returns NB.2.1-11 for hidden activities
       expect(result.exception).toBe("NB.2.1-11");
@@ -378,7 +342,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       // Try to choose hidden activity within same cluster
       const result1 = overall.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        activity1_2.id
+        activity1_2.id,
       );
       // Navigation Request Process returns NB.2.1-11 for hidden activities
       expect(result1.exception).toBe("NB.2.1-11");
@@ -386,7 +350,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       // Try to choose activity outside cluster
       const result2 = overall.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        activity2_1.id
+        activity2_1.id,
       );
       // Navigation Request Process returns NB.2.1-11 for choiceExit violations
       expect(result2.exception).toBe("NB.2.1-11");
@@ -394,7 +358,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       // Try to choose non-hidden activity within cluster
       const result3 = overall.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        activity1_3.id
+        activity1_3.id,
       );
       expect(result3.exception).toBeNull(); // Should succeed
     });
@@ -424,10 +388,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activityTree.currentActivity = activity1_1;
       activity1_1.isActive = true;
 
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        root.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, root.id);
 
       expect(result.exception).toBeNull();
     });
@@ -463,10 +424,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       deepActivity.isActive = true;
 
       // Try to exit to activity2_1 (outside both constraints)
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_1.id);
 
       // Navigation Request Process returns NB.2.1-11 for choiceExit violations
       expect(result.exception).toBe("NB.2.1-11");
@@ -480,10 +438,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
       activity1_1.isActive = true;
 
       // All activities are in root's subtree, so should be reachable
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity2_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity2_1.id);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity).toBe(activity2_1);
@@ -499,10 +454,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
 
       // Should be able to navigate to sibling within same cluster
       // (navigating back to activity1_1 which is before deepCluster, no mandatory skipping)
-      const result = overall.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        activity1_1.id
-      );
+      const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, activity1_1.id);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity).toBe(activity1_1);
@@ -525,7 +477,7 @@ describe("ChoiceExit and HiddenFromChoice Validation", () => {
 
       const availableChoices = sequencingProcess.getAvailableChoices();
 
-      expect(availableChoices.map(activity => activity.id)).toEqual([root.id]);
+      expect(availableChoices.map((activity) => activity.id)).toEqual([root.id]);
     });
 
     it("should handle no current activity when getting available choices", () => {

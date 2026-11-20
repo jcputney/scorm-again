@@ -3,11 +3,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import {
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
@@ -56,7 +56,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       activityTree,
       sequencingProcess,
       rollupProcess,
-      adlNav
+      adlNav,
     );
   });
 
@@ -72,7 +72,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       const result = overallProcess.terminationRequestProcess(
         SequencingRequestType.EXIT,
         false,
-        "logout"
+        "logout",
       );
 
       // Should be treated as EXIT_ALL
@@ -87,11 +87,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       lesson1.isActive = true;
 
       // Process termination with logout
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       // Should have exited all - no current activity
       expect(activityTree.currentActivity).toBe(null);
@@ -104,7 +100,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       const result = overallProcess.terminationRequestProcess(
         SequencingRequestType.EXIT,
         false,
-        "logout"
+        "logout",
       );
 
       // Session should be completely ended
@@ -124,7 +120,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       const normalResult = overallProcess.terminationRequestProcess(
         SequencingRequestType.EXIT,
         false,
-        "normal"
+        "normal",
       );
       expect(normalResult.valid).toBe(true);
       expect(activityTree.currentActivity).toBe(lesson1);
@@ -137,7 +133,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       const logoutResult = overallProcess.terminationRequestProcess(
         SequencingRequestType.EXIT,
         false,
-        "logout"
+        "logout",
       );
       expect(logoutResult.valid).toBe(true);
       expect(activityTree.currentActivity).toBe(null);
@@ -148,11 +144,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       lesson1.isActive = true;
 
       // Suspend should preserve state for resume
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.SUSPEND_ALL,
-        false,
-        "suspend"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.SUSPEND_ALL, false, "suspend");
 
       const suspendedAfterSuspend = activityTree.suspendedActivity;
       expect(suspendedAfterSuspend).toBe(lesson1);
@@ -163,11 +155,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       lesson1.isActive = true;
 
       // Logout should end session completely
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       expect(activityTree.currentActivity).toBe(null);
     });
@@ -180,7 +168,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       const result = overallProcess.terminationRequestProcess(
         SequencingRequestType.EXIT,
         false,
-        ""
+        "",
       );
 
       expect(result.valid).toBe(true);
@@ -193,7 +181,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       const result = overallProcess.terminationRequestProcess(
         SequencingRequestType.EXIT,
         false,
-        "time-out"
+        "time-out",
       );
 
       expect(result.valid).toBe(true);
@@ -205,11 +193,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       activityTree.currentActivity = lesson1;
       lesson1.isActive = true;
 
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       expect(activityTree.currentActivity).toBe(null);
     });
@@ -219,11 +203,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       activityTree.currentActivity = lesson2;
       lesson2.isActive = true;
 
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       expect(activityTree.currentActivity).toBe(null);
     });
@@ -237,11 +217,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       activityTree.currentActivity = subLesson;
       subLesson.isActive = true;
 
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       expect(activityTree.currentActivity).toBe(null);
     });
@@ -254,11 +230,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       activityTree.currentActivity = lesson1;
       lesson1.isActive = true;
 
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       // Rollup should have been called
       expect(rollupSpy).toHaveBeenCalled();
@@ -269,11 +241,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       lesson1.isActive = true;
       lesson1.completionStatus = "completed";
 
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       // Completion status should be preserved
       expect(lesson1.completionStatus).toBe("completed");
@@ -284,11 +252,7 @@ describe("Logout Exit Handling (REQ-NAV-025)", () => {
       lesson1.isActive = true;
       lesson1.successStatus = "passed";
 
-      overallProcess.terminationRequestProcess(
-        SequencingRequestType.EXIT,
-        false,
-        "logout"
-      );
+      overallProcess.terminationRequestProcess(SequencingRequestType.EXIT, false, "logout");
 
       // Success status should be preserved
       expect(lesson1.successStatus).toBe("passed");

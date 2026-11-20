@@ -130,10 +130,7 @@ function beginVisit(api: Scorm2004API): void {
   expect(api.lmsInitialize("")).toBe("true");
 }
 
-function finishAndContinue(
-  api: Scorm2004API,
-  successStatus?: "passed" | "failed",
-): void {
+function finishAndContinue(api: Scorm2004API, successStatus?: "passed" | "failed"): void {
   expect(api.lmsSetValue("cmi.completion_status", "completed")).toBe("true");
   if (successStatus) {
     expect(api.lmsSetValue("cmi.success_status", successStatus)).toBe("true");

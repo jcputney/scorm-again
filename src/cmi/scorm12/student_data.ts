@@ -1,18 +1,9 @@
 import { BaseCMI } from "../common/base_cmi";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat, check12ValidRange } from "./validation";
-import {
-  scorm12_constants,
-  scorm12_errors,
-  scorm12_regex,
-  scorm2004_regex,
-} from "../../constants";
+import { scorm12_constants, scorm12_errors, scorm12_regex, scorm2004_regex } from "../../constants";
 import { validationService } from "../../services";
-import {
-  getDurationAsSeconds,
-  getSecondsAsHHMMSS,
-  getTimeAsSeconds,
-} from "../../utilities";
+import { getDurationAsSeconds, getSecondsAsHHMMSS, getTimeAsSeconds } from "../../utilities";
 
 /**
  * Parses time values in either SCORM 1.2 (HH:MM:SS) or ISO 8601 (PT...) format

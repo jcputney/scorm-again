@@ -4,7 +4,7 @@ import { FlowTraversalService } from "../traversal/flow_traversal_service";
 import {
   SequencingResult,
   DeliveryRequestType,
-  FlowSubprocessMode
+  FlowSubprocessMode,
 } from "../rules/sequencing_request_types";
 
 /**
@@ -19,7 +19,7 @@ import {
 export class FlowRequestHandler {
   constructor(
     private activityTree: ActivityTree,
-    private traversalService: FlowTraversalService
+    private traversalService: FlowTraversalService,
   ) {}
 
   /**
@@ -109,7 +109,7 @@ export class FlowRequestHandler {
     // Use flow subprocess to find next deliverable
     const flowResult = this.traversalService.flowSubprocess(
       currentActivity,
-      FlowSubprocessMode.FORWARD
+      FlowSubprocessMode.FORWARD,
     );
 
     // Propagate endSequencingSession flag
@@ -158,7 +158,7 @@ export class FlowRequestHandler {
     // Use flow subprocess to find previous deliverable
     const flowResult = this.traversalService.flowSubprocess(
       currentActivity,
-      FlowSubprocessMode.BACKWARD
+      FlowSubprocessMode.BACKWARD,
     );
 
     // Check if we found a deliverable activity

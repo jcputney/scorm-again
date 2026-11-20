@@ -4,11 +4,7 @@
 import { CMIScore } from "../common/score";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
-import {
-  scorm2004_constants,
-  scorm2004_errors,
-  scorm2004_regex,
-} from "../../constants";
+import { scorm2004_constants, scorm2004_errors, scorm2004_regex } from "../../constants";
 import { ScoreObject } from "../../types";
 
 export class Scorm2004CMIScore extends CMIScore {

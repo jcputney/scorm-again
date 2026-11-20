@@ -31,9 +31,8 @@ export interface FlowTreeTraversalResult {
  * - Finding the first deliverable activity from a cluster
  */
 export class FlowTraversalService {
-  private activityEvaluationCallback:
-    | ((activity: Activity, target: Activity) => Activity)
-    | null = null;
+  private activityEvaluationCallback: ((activity: Activity, target: Activity) => Activity) | null =
+    null;
 
   constructor(
     private activityTree: ActivityTree,
@@ -418,8 +417,10 @@ export class FlowTraversalService {
       (rule) => rule.action === RuleActionType.SKIP,
     );
     const wasSkipped =
-      this.ruleEngine.checkSequencingRules(this.getActivityForEvaluation(activity), skippedRules) ===
-      RuleActionType.SKIP;
+      this.ruleEngine.checkSequencingRules(
+        this.getActivityForEvaluation(activity),
+        skippedRules,
+      ) === RuleActionType.SKIP;
 
     activity.wasSkipped = wasSkipped;
 

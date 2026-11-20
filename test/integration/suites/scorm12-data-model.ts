@@ -3,7 +3,7 @@ import {
   ensureApiInitialized,
   getCmiValue,
   setCmiValue,
-  waitForPageReady
+  waitForPageReady,
 } from "../helpers/scorm-common-helpers";
 
 export type WrapperConfig = {
@@ -23,10 +23,7 @@ export type ModuleConfig = {
  *
  * Note: This function should be called within an existing test.describe block
  */
-export function scorm12DataModelTests(
-  wrapper: WrapperConfig,
-  module: ModuleConfig
-) {
+export function scorm12DataModelTests(wrapper: WrapperConfig, module: ModuleConfig) {
   test("should handle data model interactions correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
     await waitForPageReady(page);
@@ -38,7 +35,7 @@ export function scorm12DataModelTests(
       page,
       module.apiName,
       "cmi.core.lesson_location",
-      "page-1"
+      "page-1",
     );
     expect(locationResult).toBe("true");
 
@@ -50,7 +47,7 @@ export function scorm12DataModelTests(
       page,
       module.apiName,
       "cmi.core.lesson_status",
-      "incomplete"
+      "incomplete",
     );
     expect(statusResult).toBe("true");
 
@@ -58,12 +55,7 @@ export function scorm12DataModelTests(
     expect(status).toBe("incomplete");
 
     // Test score
-    const scoreRawResult = await setCmiValue(
-      page,
-      module.apiName,
-      "cmi.core.score.raw",
-      "85"
-    );
+    const scoreRawResult = await setCmiValue(page, module.apiName, "cmi.core.score.raw", "85");
     expect(scoreRawResult).toBe("true");
 
     const scoreRaw = await getCmiValue(page, module.apiName, "cmi.core.score.raw");
@@ -95,7 +87,7 @@ export function scorm12DataModelTests(
     const timeLimitAction = await getCmiValue(
       page,
       module.apiName,
-      "cmi.student_data.time_limit_action"
+      "cmi.student_data.time_limit_action",
     );
     expect(typeof timeLimitAction === "string").toBe(true);
   });
@@ -111,7 +103,7 @@ export function scorm12DataModelTests(
       page,
       module.apiName,
       "cmi.student_preference.audio",
-      "1"
+      "1",
     );
     expect(audioResult).toBe("true");
 
@@ -123,7 +115,7 @@ export function scorm12DataModelTests(
       page,
       module.apiName,
       "cmi.student_preference.language",
-      "en-US"
+      "en-US",
     );
     expect(languageResult).toBe("true");
 
@@ -135,7 +127,7 @@ export function scorm12DataModelTests(
       page,
       module.apiName,
       "cmi.student_preference.speed",
-      "1"
+      "1",
     );
     expect(speedResult).toBe("true");
 
@@ -143,12 +135,7 @@ export function scorm12DataModelTests(
     expect(speed).toBe("1");
 
     // Test text preference
-    const textResult = await setCmiValue(
-      page,
-      module.apiName,
-      "cmi.student_preference.text",
-      "1"
-    );
+    const textResult = await setCmiValue(page, module.apiName, "cmi.student_preference.text", "1");
     expect(textResult).toBe("true");
 
     const text = await getCmiValue(page, module.apiName, "cmi.student_preference.text");
@@ -173,7 +160,7 @@ export function scorm12DataModelTests(
       page,
       module.apiName,
       "cmi.core.student_id",
-      "999999"
+      "999999",
     );
     expect(setStudentIdResult).toBe("false");
 
@@ -218,12 +205,7 @@ export function scorm12DataModelTests(
     const validStatuses = ["passed", "completed", "failed", "incomplete", "browsed"];
 
     for (const status of validStatuses) {
-      const result = await setCmiValue(
-        page,
-        module.apiName,
-        "cmi.core.lesson_status",
-        status
-      );
+      const result = await setCmiValue(page, module.apiName, "cmi.core.lesson_status", status);
       expect(result).toBe("true");
 
       const lessonStatus = await getCmiValue(page, module.apiName, "cmi.core.lesson_status");
@@ -273,7 +255,7 @@ export function scorm12DataModelTests(
       // student_response is also write-only
       results.setStudentResponse = window.API.LMSSetValue(
         "cmi.interactions.0.student_response",
-        "answer_1"
+        "answer_1",
       );
       results.getStudentResponse = window.API.LMSGetValue("cmi.interactions.0.student_response");
       results.getStudentResponseError = window.API.LMSGetLastError();
@@ -290,11 +272,11 @@ export function scorm12DataModelTests(
       // correct_responses pattern is also write-only in SCORM 1.2
       results.setCorrectResponse = window.API.LMSSetValue(
         "cmi.interactions.0.correct_responses.0.pattern",
-        "answer_1"
+        "answer_1",
       );
       // Try to get pattern - should return error code (write-only element)
       results.getCorrectResponse = window.API.LMSGetValue(
-        "cmi.interactions.0.correct_responses.0.pattern"
+        "cmi.interactions.0.correct_responses.0.pattern",
       );
       results.getCorrectResponseError = window.API.LMSGetLastError();
 
@@ -361,7 +343,7 @@ export function scorm12DataModelTests(
       page,
       module.apiName,
       "cmi.comments",
-      "This is a test comment"
+      "This is a test comment",
     );
     expect(commentsResult).toBe("true");
 
@@ -369,4 +351,3 @@ export function scorm12DataModelTests(
     expect(comments).toBe("This is a test comment");
   });
 }
-

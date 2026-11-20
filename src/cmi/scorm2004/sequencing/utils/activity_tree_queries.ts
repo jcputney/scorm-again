@@ -49,7 +49,7 @@ export class ActivityTreeQueries {
    */
   public findCommonAncestor(
     activity1: Activity | null,
-    activity2: Activity | null
+    activity2: Activity | null,
   ): Activity | null {
     if (!activity1 || !activity2) {
       return null;

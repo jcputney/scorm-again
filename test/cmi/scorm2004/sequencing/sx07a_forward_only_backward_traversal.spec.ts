@@ -98,9 +98,7 @@ describe("ADL CTS SX-07a forwardOnly backward traversal", () => {
     expect(currentActivityId(api)).toBe("activity_2");
 
     expect(
-      terminateWithNavigationRequest(api, "_continue", [
-        ["cmi.completion_status", "incomplete"],
-      ]),
+      terminateWithNavigationRequest(api, "_continue", [["cmi.completion_status", "incomplete"]]),
     ).toBe("activity_3");
 
     prepareNextVisit(api);

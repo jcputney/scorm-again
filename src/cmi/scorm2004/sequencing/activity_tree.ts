@@ -285,17 +285,17 @@ export class ActivityTree extends BaseCMI {
     if (!activity.parent) {
       return null;
     }
-    let siblings = useAvailableChildren 
-      ? activity.parent.getAvailableChildren() 
+    let siblings = useAvailableChildren
+      ? activity.parent.getAvailableChildren()
       : activity.parent.children;
     let index = siblings.indexOf(activity);
-    
+
     // Fallback: if not found in available children, try raw children
     if (index === -1 && useAvailableChildren) {
       siblings = activity.parent.children;
       index = siblings.indexOf(activity);
     }
-    
+
     if (index === -1 || index === siblings.length - 1) {
       return null;
     }
@@ -312,17 +312,17 @@ export class ActivityTree extends BaseCMI {
     if (!activity.parent) {
       return null;
     }
-    let siblings = useAvailableChildren 
-      ? activity.parent.getAvailableChildren() 
+    let siblings = useAvailableChildren
+      ? activity.parent.getAvailableChildren()
       : activity.parent.children;
     let index = siblings.indexOf(activity);
-    
+
     // Fallback: if not found in available children, try raw children
     if (index === -1 && useAvailableChildren) {
       siblings = activity.parent.children;
       index = siblings.indexOf(activity);
     }
-    
+
     if (index <= 0) {
       return null;
     }
@@ -336,9 +336,7 @@ export class ActivityTree extends BaseCMI {
    * @return {Activity | null} - The first child of the activity, or null if it has no children
    */
   getFirstChild(activity: Activity, useAvailableChildren: boolean = true): Activity | null {
-    const children = useAvailableChildren 
-      ? activity.getAvailableChildren() 
-      : activity.children;
+    const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
     if (children.length === 0) {
       return null;
     }
@@ -352,9 +350,7 @@ export class ActivityTree extends BaseCMI {
    * @return {Activity | null} - The last child of the activity, or null if it has no children
    */
   getLastChild(activity: Activity, useAvailableChildren: boolean = true): Activity | null {
-    const children = useAvailableChildren 
-      ? activity.getAvailableChildren() 
-      : activity.children;
+    const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
     if (children.length === 0) {
       return null;
     }

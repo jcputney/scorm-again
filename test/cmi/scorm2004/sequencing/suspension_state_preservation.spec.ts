@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import {
-  OverallSequencingProcess
-} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { CompletionStatus } from "../../../../src/constants/enums";
@@ -18,11 +16,7 @@ describe("Suspension State Preservation", () => {
     activityTree = new ActivityTree();
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
-    overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
-    );
+    overallProcess = new OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess);
   });
 
   describe("Global Objective Value Preservation", () => {
@@ -34,13 +28,15 @@ describe("Suspension State Preservation", () => {
       // Create objective with global mapping
       const objective = new ActivityObjective("obj1", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_obj1",
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: true,
-          writeNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_obj1",
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
 
       child1.primaryObjective = objective;
@@ -57,7 +53,7 @@ describe("Suspension State Preservation", () => {
         satisfiedStatus: true,
         normalizedMeasure: 0.85,
         satisfiedStatusKnown: true,
-        normalizedMeasureKnown: true
+        normalizedMeasureKnown: true,
       });
 
       // Capture suspension state
@@ -71,7 +67,7 @@ describe("Suspension State Preservation", () => {
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         newSequencingProcess,
-        newRollupProcess
+        newRollupProcess,
       );
 
       // Rebuild tree structure for restore
@@ -79,13 +75,15 @@ describe("Suspension State Preservation", () => {
       const newChild1 = new Activity("child1", "Child 1");
       const newObjective = new ActivityObjective("obj1", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_obj1",
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: true,
-          writeNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_obj1",
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       newChild1.primaryObjective = newObjective;
       newRoot.addChild(newChild1);
@@ -110,20 +108,24 @@ describe("Suspension State Preservation", () => {
       // Both reference same global objective
       const obj1 = new ActivityObjective("obj1", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "shared_global",
-          writeSatisfiedStatus: true,
-          writeNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "shared_global",
+            writeSatisfiedStatus: true,
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
 
       const obj2 = new ActivityObjective("obj2", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "shared_global",
-          readSatisfiedStatus: true,
-          readNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "shared_global",
+            readSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+          },
+        ],
       });
 
       child1.primaryObjective = obj1;
@@ -137,7 +139,7 @@ describe("Suspension State Preservation", () => {
         satisfiedStatus: true,
         normalizedMeasure: 0.92,
         satisfiedStatusKnown: true,
-        normalizedMeasureKnown: true
+        normalizedMeasureKnown: true,
       });
 
       // Suspend and restore
@@ -150,7 +152,7 @@ describe("Suspension State Preservation", () => {
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         newSequencingProcess,
-        newRollupProcess
+        newRollupProcess,
       );
 
       const newRoot = new Activity("root", "Root");
@@ -158,19 +160,23 @@ describe("Suspension State Preservation", () => {
       const newChild2 = new Activity("child2", "Child 2");
       const newObj1 = new ActivityObjective("obj1", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "shared_global",
-          writeSatisfiedStatus: true,
-          writeNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "shared_global",
+            writeSatisfiedStatus: true,
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       const newObj2 = new ActivityObjective("obj2", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "shared_global",
-          readSatisfiedStatus: true,
-          readNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "shared_global",
+            readSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+          },
+        ],
       });
       newChild1.primaryObjective = newObj1;
       newChild2.primaryObjective = newObj2;
@@ -193,15 +199,17 @@ describe("Suspension State Preservation", () => {
 
       const objective = new ActivityObjective("obj", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "mapped_obj",
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: false,
-          writeNormalizedMeasure: true,
-          readProgressMeasure: true,
-          writeProgressMeasure: false
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "mapped_obj",
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: false,
+            writeNormalizedMeasure: true,
+            readProgressMeasure: true,
+            writeProgressMeasure: false,
+          },
+        ],
       });
 
       child.primaryObjective = objective;
@@ -214,15 +222,17 @@ describe("Suspension State Preservation", () => {
       const newChild = new Activity("child", "Child");
       const newObj = new ActivityObjective("obj", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "mapped_obj",
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: false,
-          writeNormalizedMeasure: true,
-          readProgressMeasure: true,
-          writeProgressMeasure: false
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "mapped_obj",
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: false,
+            writeNormalizedMeasure: true,
+            readProgressMeasure: true,
+            writeProgressMeasure: false,
+          },
+        ],
       });
       newChild.primaryObjective = newObj;
       newRoot.addChild(newChild);
@@ -517,7 +527,7 @@ describe("Suspension State Preservation", () => {
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         newSequencingProcess,
-        newRollupProcess
+        newRollupProcess,
       );
 
       const newRoot = new Activity("root", "Root");
@@ -648,7 +658,7 @@ describe("Suspension State Preservation", () => {
       const objective = new ActivityObjective("obj1", {
         isPrimary: true,
         satisfiedByMeasure: true,
-        minNormalizedMeasure: 0.7
+        minNormalizedMeasure: 0.7,
       });
 
       activity.primaryObjective = objective;
@@ -664,7 +674,7 @@ describe("Suspension State Preservation", () => {
       const newObjective = new ActivityObjective("obj1", {
         isPrimary: true,
         satisfiedByMeasure: true,
-        minNormalizedMeasure: 0.7
+        minNormalizedMeasure: 0.7,
       });
       newActivity.primaryObjective = newObjective;
 

@@ -429,10 +429,10 @@ describe("ADL Classes", () => {
       // Use internal API to set choice and jump values (keys must be in NAVTarget format)
       adlNavRequestValid.choice = {
         "{target=target1}": "true",
-        "{target=target2}": "false"
+        "{target=target2}": "false",
       };
       adlNavRequestValid.jump = {
-        "{target=jumpTarget}": "unknown"
+        "{target=jumpTarget}": "unknown",
       };
 
       const result = adlNavRequestValid.toJSON();
@@ -441,13 +441,13 @@ describe("ADL Classes", () => {
       expect(result).toHaveProperty("choice");
       expect(result.choice).toEqual({
         "{target=target1}": NAVBoolean.TRUE,
-        "{target=target2}": NAVBoolean.FALSE
+        "{target=target2}": NAVBoolean.FALSE,
       });
 
       // Verify jump property is serialized
       expect(result).toHaveProperty("jump");
       expect(result.jump).toEqual({
-        "{target=jumpTarget}": NAVBoolean.UNKNOWN
+        "{target=jumpTarget}": NAVBoolean.UNKNOWN,
       });
     });
   });
@@ -491,15 +491,17 @@ describe("ADL Classes", () => {
       // Mock sequencing with predictChoiceEnabled
       const mockSequencing = {
         overallSequencingProcess: {
-          predictChoiceEnabled: vi.fn().mockReturnValue(true)
-        }
+          predictChoiceEnabled: vi.fn().mockReturnValue(true),
+        },
       };
 
       adlNav.sequencing = mockSequencing as any;
 
       const result = (choice as any)._isTargetValid("some_target");
       expect(result).toBe("true");
-      expect(mockSequencing.overallSequencingProcess.predictChoiceEnabled).toHaveBeenCalledWith("some_target");
+      expect(mockSequencing.overallSequencingProcess.predictChoiceEnabled).toHaveBeenCalledWith(
+        "some_target",
+      );
     });
 
     it("should fall back to static values when sequencing unavailable", () => {
@@ -519,9 +521,9 @@ describe("ADL Classes", () => {
       const choice = adlNav.request_valid.choice;
 
       const values = {
-        "target1": NAVBoolean.TRUE,
-        "target2": NAVBoolean.FALSE,
-        "target3": NAVBoolean.UNKNOWN
+        target1: NAVBoolean.TRUE,
+        target2: NAVBoolean.FALSE,
+        target3: NAVBoolean.UNKNOWN,
       };
       (choice as any).setAll(values);
 
@@ -575,8 +577,8 @@ describe("ADL Classes", () => {
       // Mock sequencing with activity tree
       const mockSequencing = {
         activityTree: {
-          getActivity: vi.fn().mockReturnValue({ id: "target1" })
-        }
+          getActivity: vi.fn().mockReturnValue({ id: "target1" }),
+        },
       };
 
       adlNav.sequencing = mockSequencing as any;
@@ -593,8 +595,8 @@ describe("ADL Classes", () => {
       // Mock sequencing with activity tree returning null
       const mockSequencing = {
         activityTree: {
-          getActivity: vi.fn().mockReturnValue(null)
-        }
+          getActivity: vi.fn().mockReturnValue(null),
+        },
       };
 
       adlNav.sequencing = mockSequencing as any;
@@ -618,8 +620,8 @@ describe("ADL Classes", () => {
       const jump = adlNav.request_valid.jump;
 
       const values = {
-        "target1": NAVBoolean.TRUE,
-        "target2": NAVBoolean.FALSE
+        target1: NAVBoolean.TRUE,
+        target2: NAVBoolean.FALSE,
       };
       (jump as any).setAll(values);
 

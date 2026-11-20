@@ -19,12 +19,7 @@
  * ```
  */
 
-import {
-  RollupOptions,
-  CourseRollupResult,
-  LessonStatus,
-  DEFAULT_ROLLUP_OPTIONS,
-} from "./types";
+import { RollupOptions, CourseRollupResult, LessonStatus, DEFAULT_ROLLUP_OPTIONS } from "./types";
 import { ScoStateTracker } from "./sco_state_tracker";
 import { addScormTime } from "./time_utilities";
 
@@ -41,10 +36,7 @@ export class CourseRollupCalculator {
    * @param stateTracker The state tracker containing SCO states
    * @param options Rollup calculation options
    */
-  constructor(
-    stateTracker: ScoStateTracker,
-    options: Partial<RollupOptions> = {},
-  ) {
+  constructor(stateTracker: ScoStateTracker, options: Partial<RollupOptions> = {}) {
     this._stateTracker = stateTracker;
     this._options = { ...DEFAULT_ROLLUP_OPTIONS, ...options };
   }
@@ -74,18 +66,10 @@ export class CourseRollupCalculator {
     }
 
     // Calculate completion
-    const completedStatuses = this._options.completedStatuses ?? [
-      "passed",
-      "completed",
-      "failed",
-    ];
-    const completedScos = states.filter((s) =>
-      completedStatuses.includes(s.lessonStatus),
-    );
+    const completedStatuses = this._options.completedStatuses ?? ["passed", "completed", "failed"];
+    const completedScos = states.filter((s) => completedStatuses.includes(s.lessonStatus));
     const completedCount = completedScos.length;
-    const completionPercentage = Math.round(
-      (completedCount / states.length) * 100,
-    );
+    const completionPercentage = Math.round((completedCount / states.length) * 100);
 
     // Calculate score
     const score = this._calculateScore(states);
@@ -135,14 +119,8 @@ export class CourseRollupCalculator {
     const states = this._stateTracker.getAllStates();
     if (states.length === 0) return 0;
 
-    const completedStatuses = this._options.completedStatuses ?? [
-      "passed",
-      "completed",
-      "failed",
-    ];
-    const completedCount = states.filter((s) =>
-      completedStatuses.includes(s.lessonStatus),
-    ).length;
+    const completedStatuses = this._options.completedStatuses ?? ["passed", "completed", "failed"];
+    const completedCount = states.filter((s) => completedStatuses.includes(s.lessonStatus)).length;
 
     return Math.round((completedCount / states.length) * 100);
   }
@@ -154,14 +132,8 @@ export class CourseRollupCalculator {
     const states = this._stateTracker.getAllStates();
     if (states.length === 0) return false;
 
-    const completedStatuses = this._options.completedStatuses ?? [
-      "passed",
-      "completed",
-      "failed",
-    ];
-    const completedCount = states.filter((s) =>
-      completedStatuses.includes(s.lessonStatus),
-    ).length;
+    const completedStatuses = this._options.completedStatuses ?? ["passed", "completed", "failed"];
+    const completedCount = states.filter((s) => completedStatuses.includes(s.lessonStatus)).length;
 
     switch (this._options.completionMethod) {
       case "all":
@@ -207,9 +179,7 @@ export class CourseRollupCalculator {
 
   // Private calculation methods
 
-  private _calculateScore(
-    states: ReturnType<ScoStateTracker["getAllStates"]>,
-  ): number | undefined {
+  private _calculateScore(states: ReturnType<ScoStateTracker["getAllStates"]>): number | undefined {
     // Get SCOs with valid scores
     const scosWithScores = states.filter(
       (s) => s.score.scaled !== undefined || s.score.raw !== undefined,
@@ -234,10 +204,7 @@ export class CourseRollupCalculator {
 
     switch (this._options.scoreMethod) {
       case "average":
-        return (
-          normalizedScores.reduce((sum, s) => sum + s.score, 0) /
-          normalizedScores.length
-        );
+        return normalizedScores.reduce((sum, s) => sum + s.score, 0) / normalizedScores.length;
 
       case "weighted": {
         const weights = this._options.weights ?? new Map();
@@ -270,14 +237,10 @@ export class CourseRollupCalculator {
         // Return score of last completed SCO
         const lastCompleted = states
           .filter(
-            (s) =>
-              (s.score.scaled !== undefined || s.score.raw !== undefined) &&
-              s.lastAccessTime,
+            (s) => (s.score.scaled !== undefined || s.score.raw !== undefined) && s.lastAccessTime,
           )
           .sort(
-            (a, b) =>
-              (b.lastAccessTime?.getTime() ?? 0) -
-              (a.lastAccessTime?.getTime() ?? 0),
+            (a, b) => (b.lastAccessTime?.getTime() ?? 0) - (a.lastAccessTime?.getTime() ?? 0),
           )[0];
 
         if (lastCompleted) {
@@ -288,16 +251,11 @@ export class CourseRollupCalculator {
       }
 
       default:
-        return (
-          normalizedScores.reduce((sum, s) => sum + s.score, 0) /
-          normalizedScores.length
-        );
+        return normalizedScores.reduce((sum, s) => sum + s.score, 0) / normalizedScores.length;
     }
   }
 
-  private _calculateTotalTime(
-    states: ReturnType<ScoStateTracker["getAllStates"]>,
-  ): string {
+  private _calculateTotalTime(states: ReturnType<ScoStateTracker["getAllStates"]>): string {
     let totalTime = "0000:00:00.00";
 
     for (const state of states) {
