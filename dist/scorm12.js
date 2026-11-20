@@ -4665,19 +4665,45 @@ this.Scorm12API = (function () {
                   var foundFirstIndex = false;
                   var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
                   var invalidErrorCode = this.getUndefinedDataModelErrorCode();
-                  for(var idx = 0; idx < structure.length; idx++){
-                      var attribute = structure[idx];
-                      if (idx === structure.length - 1) {
-                          returnValue = this.setFinalAttribute(refObject, attribute, value, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage);
-                          break;
-                      } else {
-                          var traverseResult = this.traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage);
-                          if (traverseResult.error) {
+                  var createdEntries = [];
+                  try {
+                      for(var idx = 0; idx < structure.length; idx++){
+                          var attribute = structure[idx];
+                          if (idx === structure.length - 1) {
+                              returnValue = this.setFinalAttribute(refObject, attribute, value, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage);
                               break;
+                          } else {
+                              var traverseResult = this.traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries);
+                              if (traverseResult.error) {
+                                  break;
+                              }
+                              refObject = traverseResult.refObject;
+                              idx = traverseResult.idx;
+                              foundFirstIndex = traverseResult.foundFirstIndex;
                           }
-                          refObject = traverseResult.refObject;
-                          idx = traverseResult.idx;
-                          foundFirstIndex = traverseResult.foundFirstIndex;
+                      }
+                  } finally{
+                      if (scorm2004 && returnValue !== global_constants.SCORM_TRUE) {
+                          var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                          try {
+                              for(var _iterator = createdEntries.reverse()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                                  var collection = _step.value;
+                                  collection.childArray.pop();
+                              }
+                          } catch (err) {
+                              _didIteratorError = true;
+                              _iteratorError = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                      _iterator.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError) {
+                                      throw _iteratorError;
+                                  }
+                              }
+                          }
                       }
                   }
                   if (returnValue === global_constants.SCORM_FALSE) {
@@ -4804,7 +4830,7 @@ this.Scorm12API = (function () {
               /**
      * Traverses to the next level in the CMI path
      */ key: "traverseToNextLevel",
-              value: function traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage) {
+              value: function traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries) {
                   var attribute = structure[idx];
                   if (typeof attribute === "undefined" || !this.context.checkObjectHasProperty(refObject, attribute)) {
                       this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
@@ -4826,7 +4852,7 @@ this.Scorm12API = (function () {
                       };
                   }
                   if (_instanceof$7(refObject, CMIArray)) {
-                      var arrayResult = this.handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage);
+                      var arrayResult = this.handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries);
                       if (arrayResult.error) {
                           return {
                               refObject: refObject,
@@ -4849,8 +4875,19 @@ this.Scorm12API = (function () {
               /**
      * Handles array access during set operations
      */ key: "handleSetArrayAccess",
-              value: function handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage) {
+              value: function handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries) {
+                  var _structure_;
                   var index = parseInt(structure[idx + 1] || "0", 10);
+                  var token = (_structure_ = structure[idx + 1]) !== null && _structure_ !== void 0 ? _structure_ : "";
+                  if (scorm2004 && /^-?\d/.test(token) && (!/^(0|[1-9]\d*)$/.test(token) || index > refObject.childArray.length)) {
+                      this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"));
+                      return {
+                          refObject: refObject,
+                          idx: idx,
+                          foundFirstIndex: foundFirstIndex,
+                          error: true
+                      };
+                  }
                   if (!isNaN(index)) {
                       var item = refObject.childArray[index];
                       if (item) {
@@ -4885,6 +4922,7 @@ this.Scorm12API = (function () {
                           } else {
                               if (refObject.initialized) newChild.initialize();
                               refObject.childArray[index] = newChild;
+                              createdEntries.push(refObject);
                               return {
                                   refObject: newChild,
                                   idx: idx + 1,
@@ -4969,7 +5007,7 @@ this.Scorm12API = (function () {
                               error: false
                           };
                       } else if (scorm2004) {
-                          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "VALUE_NOT_INITIALIZED"), uninitializedErrorMessage);
+                          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_GET_FAILURE"), uninitializedErrorMessage);
                           return {
                               refObject: refObject,
                               idx: idx,

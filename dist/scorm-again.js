@@ -8766,19 +8766,45 @@
                   var foundFirstIndex = false;
                   var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
                   var invalidErrorCode = this.getUndefinedDataModelErrorCode();
-                  for(var idx = 0; idx < structure.length; idx++){
-                      var attribute = structure[idx];
-                      if (idx === structure.length - 1) {
-                          returnValue = this.setFinalAttribute(refObject, attribute, value, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage);
-                          break;
-                      } else {
-                          var traverseResult = this.traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage);
-                          if (traverseResult.error) {
+                  var createdEntries = [];
+                  try {
+                      for(var idx = 0; idx < structure.length; idx++){
+                          var attribute = structure[idx];
+                          if (idx === structure.length - 1) {
+                              returnValue = this.setFinalAttribute(refObject, attribute, value, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage);
                               break;
+                          } else {
+                              var traverseResult = this.traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries);
+                              if (traverseResult.error) {
+                                  break;
+                              }
+                              refObject = traverseResult.refObject;
+                              idx = traverseResult.idx;
+                              foundFirstIndex = traverseResult.foundFirstIndex;
                           }
-                          refObject = traverseResult.refObject;
-                          idx = traverseResult.idx;
-                          foundFirstIndex = traverseResult.foundFirstIndex;
+                      }
+                  } finally{
+                      if (scorm2004 && returnValue !== global_constants.SCORM_TRUE) {
+                          var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
+                          try {
+                              for(var _iterator = createdEntries.reverse()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true){
+                                  var collection = _step.value;
+                                  collection.childArray.pop();
+                              }
+                          } catch (err) {
+                              _didIteratorError = true;
+                              _iteratorError = err;
+                          } finally{
+                              try {
+                                  if (!_iteratorNormalCompletion && _iterator.return != null) {
+                                      _iterator.return();
+                                  }
+                              } finally{
+                                  if (_didIteratorError) {
+                                      throw _iteratorError;
+                                  }
+                              }
+                          }
                       }
                   }
                   if (returnValue === global_constants.SCORM_FALSE) {
@@ -8905,7 +8931,7 @@
               /**
      * Traverses to the next level in the CMI path
      */ key: "traverseToNextLevel",
-              value: function traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage) {
+              value: function traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries) {
                   var attribute = structure[idx];
                   if (typeof attribute === "undefined" || !this.context.checkObjectHasProperty(refObject, attribute)) {
                       this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
@@ -8927,7 +8953,7 @@
                       };
                   }
                   if (_instanceof$e(refObject, CMIArray)) {
-                      var arrayResult = this.handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage);
+                      var arrayResult = this.handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries);
                       if (arrayResult.error) {
                           return {
                               refObject: refObject,
@@ -8950,8 +8976,19 @@
               /**
      * Handles array access during set operations
      */ key: "handleSetArrayAccess",
-              value: function handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage) {
+              value: function handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage, createdEntries) {
+                  var _structure_;
                   var index = parseInt(structure[idx + 1] || "0", 10);
+                  var token = (_structure_ = structure[idx + 1]) !== null && _structure_ !== void 0 ? _structure_ : "";
+                  if (scorm2004 && /^-?\d/.test(token) && (!/^(0|[1-9]\d*)$/.test(token) || index > refObject.childArray.length)) {
+                      this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"));
+                      return {
+                          refObject: refObject,
+                          idx: idx,
+                          foundFirstIndex: foundFirstIndex,
+                          error: true
+                      };
+                  }
                   if (!isNaN(index)) {
                       var item = refObject.childArray[index];
                       if (item) {
@@ -8986,6 +9023,7 @@
                           } else {
                               if (refObject.initialized) newChild.initialize();
                               refObject.childArray[index] = newChild;
+                              createdEntries.push(refObject);
                               return {
                                   refObject: newChild,
                                   idx: idx + 1,
@@ -9070,7 +9108,7 @@
                               error: false
                           };
                       } else if (scorm2004) {
-                          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "VALUE_NOT_INITIALIZED"), uninitializedErrorMessage);
+                          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_GET_FAILURE"), uninitializedErrorMessage);
                           return {
                               refObject: refObject,
                               idx: idx,
@@ -29909,14 +29947,10 @@
               set: /**
      * Setter for _id
      * Per SCORM 2004 RTE: identifier SHALL NOT be empty or contain only whitespace
-     * Per SCORM 2004 RTE Section 4.1.6: Once set, an interaction ID is immutable (error 351)
      * @param {string} id
      */ function set(id) {
                   if (id === "" || id.trim() === "") {
                       throw new Scorm2004ValidationError(this._cmi_element + ".id", scorm2004_errors.TYPE_MISMATCH);
-                  }
-                  if (this._idIsSet && this._id !== id) {
-                      throw new Scorm2004ValidationError(this._cmi_element + ".id", scorm2004_errors.GENERAL_SET_FAILURE);
                   }
                   if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
                       this._id = id;
