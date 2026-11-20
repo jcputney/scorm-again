@@ -117,7 +117,8 @@ export class RollupRuleEvaluator {
     // and "none" rules vacuously true even when no child matches.
     // @spec SCORM 2004 4th Ed. SN RB.1.4 and TR RU-02a / RU-02b
     // RB.1.4 step 1.2.4: no rule fires when no child is included (the ADL fork returns true for
-    // "all" and "none" here).
+    // "all" and "none" here, which ADL CTS RU-11 expects). Kept on purpose; see the deliberate
+    // sequencing differences in test/conformance/adl/README.md.
     switch (rule.consideration) {
       case RollupConsiderationType.ALL:
         return contributingChildren > 0 && satisfiedCount === contributingChildren;

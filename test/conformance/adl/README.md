@@ -161,6 +161,20 @@ the hand-written fixtures:
   whose `id` is unset, and SCO writes to `cmi.comments_from_lms.n.*`, are
   accepted (ADL expects 408 and 404).
 
+**Deliberate sequencing differences.** Two sequencing behaviours follow the SN
+book's wording where ADL's own implementation does something else. The ADL
+packages that test them are expected to differ:
+
+- An activity whose content leaves completion unknown is still auto-completed
+  when its attempt ends (UP.4), even when the SCO sets
+  `cmi.completion_status` to `unknown` explicitly. The same applies to a
+  `completedByMeasure` activity that reports no progress measure. ADL keeps
+  these activities unknown (CM-06, RU-19b, CO-04c). Changing this would stop
+  live content that sets `unknown` from counting as completed.
+- A rollup rule with `childActivitySet` of `all` or `none` doesn't fire when no
+  child contributes to rollup, for example when every child is untracked
+  (RB.1.4). ADL's implementation fires it (RU-11).
+
 **1. `GetValue` did not reset a stale error code on success (SCORM 2004) — FIXED.**
 ADL `API.properties` Act3V1 step 19 (`GET->c~LOC->test->0`) requires the current
 error code to be `0` after a successful `GetValue`, even though the prior step
