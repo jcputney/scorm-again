@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
-import { ActivitySettings } from "../../src/types/sequencing_types";
+import { NavigationValidityUpdate, ActivitySettings } from "../../src/types/sequencing_types";
 
 const leaf = (n: number) => ({ id: `activity_${n}`, title: `Activity ${n}` });
 const cm17: ActivitySettings = {
@@ -73,11 +73,15 @@ const cm07: ActivitySettings = {
 };
 function session(activityTree: ActivitySettings) {
   const delivered: string[] = [];
+  const validity: NavigationValidityUpdate[] = [];
   const api = new Scorm2004API({
     logLevel: 5,
     sequencing: {
       activityTree,
-      eventListeners: { onActivityDelivery: (activity) => delivered.push(activity.id) },
+      eventListeners: {
+        onActivityDelivery: (activity) => delivered.push(activity.id),
+        onNavigationValidityUpdate: (update) => validity.push(update),
+      },
     },
   });
   const valid = (answers: Record<number, boolean>) => {
@@ -100,7 +104,7 @@ function session(activityTree: ActivitySettings) {
     api.reset();
     expect(api.Initialize("")).toBe("true");
   };
-  return { api, delivered, valid, terminate, initialize };
+  return { api, delivered, validity, valid, terminate, initialize };
 }
 
 describe("ADL choice activation regressions (#1797)", () => {
@@ -329,4 +333,48 @@ it("ports every CM-17b delivery and UIA answer", () => {
     if (index < steps.length - 1) initialize();
   }
   expect(delivered).toEqual(steps.map((s) => s.delivery));
+});
+
+describe("request_valid agrees with preventActivation choice delivery", () => {
+  it.each([false, true])(
+    "refuses an attempted descendant after its cluster becomes inactive (exit=%s)",
+    (exit) => {
+      const { api, delivered, validity, terminate, initialize } = session(cm17);
+      expect(api.processNavigationRequest("choice", "activity_2")).toBe(true);
+      expect(api.Initialize("")).toBe("true");
+      terminate("{target=activity_8}choice");
+      initialize();
+      expect(validity.at(-1)!.choice.activity_3).toBe("false");
+      if (exit) expect(api.processNavigationRequest("exit")).toBe(true);
+      const cluster = api.getSequencingState().rootActivity!.children[1]!;
+      expect(cluster.isActive).toBe(false);
+      expect(cluster.children[0]!.attemptCount).toBeGreaterThan(0);
+      expect(api.GetValue("adl.nav.request_valid.choice.{target=activity_3}")).toBe("false");
+      const before = [...delivered];
+      expect(api.processNavigationRequest("choice", "activity_3")).toBe(false);
+      expect(delivered).toEqual(before);
+    },
+  );
+
+  it("delivers a descendant under an active preventActivation cluster", () => {
+    const { api, delivered, validity } = session(cm17);
+    expect(api.processNavigationRequest("choice", "activity_2")).toBe(true);
+    expect(api.Initialize("")).toBe("true");
+    expect(api.getSequencingState().rootActivity!.children[1]!.isActive).toBe(true);
+    expect(validity.at(-1)!.choice.activity_7).toBe("true");
+    expect(api.GetValue("adl.nav.request_valid.choice.{target=activity_7}")).toBe("true");
+    expect(api.processNavigationRequest("choice", "activity_7")).toBe(true);
+    expect(delivered.at(-1)).toBe("activity_7");
+  });
+
+  it("keeps the inactive flagged cluster itself selectable", () => {
+    const { api, delivered, validity } = session(cm17);
+    expect(api.processNavigationRequest("choice", "activity_8")).toBe(true);
+    expect(api.Initialize("")).toBe("true");
+    expect(api.getSequencingState().rootActivity!.children[1]!.isActive).toBe(false);
+    expect(validity.at(-1)!.choice.activity_2).toBe("true");
+    expect(api.GetValue("adl.nav.request_valid.choice.{target=activity_2}")).toBe("true");
+    expect(api.processNavigationRequest("choice", "activity_2")).toBe(true);
+    expect(delivered.at(-1)).toBe("activity_3");
+  });
 });

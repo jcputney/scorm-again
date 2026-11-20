@@ -106,6 +106,7 @@ export class ChoiceConstraintValidator {
       return { valid: false, exception: "SB.2.9-5" };
     }
 
+    const preventingAncestor = findPreventingActivationAncestor(targetActivity);
     let activity: Activity | null = targetActivity;
     while (activity) {
       // Check if activity is hidden from choice
@@ -117,8 +118,7 @@ export class ChoiceConstraintValidator {
       // This applies even when there's no current activity
       if (
         activity.parent &&
-        !activity.parent.isActive &&
-        activity.parent.sequencingControls.preventActivation
+        activity.parent === preventingAncestor
       ) {
         return { valid: false, exception: "SB.2.9-6" };
       }
@@ -635,4 +635,16 @@ export function validateConstrainedChoice(
     node = node.parent;
   }
   return false;
+}
+
+/** Inactive preventActivation ancestors protect descendants, including attempted targets. */
+export function findPreventingActivationAncestor(target: Activity): Activity | null {
+  let ancestor = target.parent;
+  while (ancestor) {
+    if (!ancestor.isActive && ancestor.sequencingControls.preventActivation) {
+      return ancestor;
+    }
+    ancestor = ancestor.parent;
+  }
+  return null;
 }

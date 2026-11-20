@@ -1,4 +1,4 @@
-import { validateConstrainedChoice } from "../validators/choice_constraint_validator";
+import { findPreventingActivationAncestor, validateConstrainedChoice } from "../validators/choice_constraint_validator";
 import { Activity } from "../activity";
 import { ActivityTree } from "../activity_tree";
 import { SequencingProcess, SequencingRequestType } from "../sequencing_process";
@@ -457,6 +457,10 @@ export class NavigationValidityService {
 
     // Check if target is disabled by precondition rules (e.g., DISABLED action with ALWAYS condition)
     if (this.isActivityDisabled(targetActivity)) {
+      return { valid: false, exception: "NB.2.1-11" };
+    }
+
+    if (findPreventingActivationAncestor(targetActivity)) {
       return { valid: false, exception: "NB.2.1-11" };
     }
 
