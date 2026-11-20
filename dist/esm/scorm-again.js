@@ -2577,7 +2577,7 @@ class DeliveryValidator {
       );
       if (limitDuration > 0) {
         const currentDuration = getDurationAsSeconds(
-          activity.attemptAbsoluteDuration || "PT0H0M0S",
+          activity.attemptAbsoluteDurationValue || "PT0H0M0S",
           scorm2004_regex.CMITimespan
         );
         if (currentDuration >= limitDuration) {
@@ -2593,7 +2593,7 @@ class DeliveryValidator {
       );
       if (limitDuration > 0) {
         const currentDuration = getDurationAsSeconds(
-          activity.activityAbsoluteDuration || "PT0H0M0S",
+          activity.activityAbsoluteDurationValue || "PT0H0M0S",
           scorm2004_regex.CMITimespan
         );
         if (currentDuration >= limitDuration) {
@@ -9271,32 +9271,32 @@ class Activity extends BaseCMI {
     this._activityExperiencedDuration = activityExperiencedDuration;
   }
   /**
-   * Getter for attemptAbsoluteDuration (alias for limit)
+   * Getter for attemptAbsoluteDuration (alias for actual calculated duration)
    * @return {string}
    */
   get attemptAbsoluteDuration() {
-    return this._attemptAbsoluteDurationLimit || "PT0H0M0S";
+    return this._attemptAbsoluteDurationValue;
   }
   /**
-   * Setter for attemptAbsoluteDuration
+   * Setter for attemptAbsoluteDuration (actual calculated duration)
    * @param {string} duration
    */
   set attemptAbsoluteDuration(duration) {
-    this._attemptAbsoluteDurationLimit = duration;
+    this.attemptAbsoluteDurationValue = duration;
   }
   /**
-   * Getter for activityAbsoluteDuration (alias for limit)
+   * Getter for activityAbsoluteDuration (alias for actual calculated duration)
    * @return {string}
    */
   get activityAbsoluteDuration() {
-    return this._activityAbsoluteDurationLimit || "PT0H0M0S";
+    return this._activityAbsoluteDurationValue;
   }
   /**
-   * Setter for activityAbsoluteDuration
+   * Setter for activityAbsoluteDuration (actual calculated duration)
    * @param {string} duration
    */
   set activityAbsoluteDuration(duration) {
-    this._activityAbsoluteDurationLimit = duration;
+    this.activityAbsoluteDurationValue = duration;
   }
   /**
    * Getter for attemptAbsoluteDurationValue (actual calculated duration)
@@ -14952,9 +14952,9 @@ class SequencingStateManager {
         progressInfoAvailableInCurrentParentAttempt: activity.progressInfoAvailableInCurrentParentAttempt,
         attemptCompletionAmount: activity.attemptCompletionAmount,
         attemptCompletionAmountStatus: activity.attemptCompletionAmountStatus,
-        attemptAbsoluteDuration: activity.attemptAbsoluteDuration,
+        attemptAbsoluteDurationValue: activity.attemptAbsoluteDurationValue,
         attemptExperiencedDuration: activity.attemptExperiencedDuration,
-        activityAbsoluteDuration: activity.activityAbsoluteDuration,
+        activityAbsoluteDurationValue: activity.activityAbsoluteDurationValue,
         activityExperiencedDuration: activity.activityExperiencedDuration,
         objectiveSatisfiedStatus: activity.objectiveSatisfiedStatus,
         objectiveSatisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
@@ -15003,9 +15003,9 @@ class SequencingStateManager {
         activity.progressInfoAvailableInCurrentParentAttempt = state.progressInfoAvailableInCurrentParentAttempt ?? true;
         activity.attemptCompletionAmount = state.attemptCompletionAmount || 0;
         activity.attemptCompletionAmountStatus = state.attemptCompletionAmountStatus ?? false;
-        activity.attemptAbsoluteDuration = state.attemptAbsoluteDuration || "PT0H0M0S";
+        activity.attemptAbsoluteDurationValue = state.attemptAbsoluteDurationValue || "PT0H0M0S";
         activity.attemptExperiencedDuration = state.attemptExperiencedDuration || "PT0H0M0S";
-        activity.activityAbsoluteDuration = state.activityAbsoluteDuration || "PT0H0M0S";
+        activity.activityAbsoluteDurationValue = state.activityAbsoluteDurationValue || "PT0H0M0S";
         activity.activityExperiencedDuration = state.activityExperiencedDuration || "PT0H0M0S";
         activity.objectiveSatisfiedStatus = state.objectiveSatisfiedStatus || false;
         activity.objectiveSatisfiedStatusKnown = state.objectiveSatisfiedStatusKnown ?? state.successStatus !== "unknown";

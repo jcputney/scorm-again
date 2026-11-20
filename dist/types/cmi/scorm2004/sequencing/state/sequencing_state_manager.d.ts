@@ -17,9 +17,11 @@ export interface ActivityStateData {
     progressInfoAvailableInCurrentParentAttempt?: boolean;
     attemptCompletionAmount: number;
     attemptCompletionAmountStatus: boolean;
-    attemptAbsoluteDuration: string;
+    attemptAbsoluteDuration?: string;
+    attemptAbsoluteDurationValue?: string;
     attemptExperiencedDuration: string;
-    activityAbsoluteDuration: string;
+    activityAbsoluteDuration?: string;
+    activityAbsoluteDurationValue?: string;
     activityExperiencedDuration: string;
     objectiveSatisfiedStatus: boolean;
     objectiveSatisfiedStatusKnown: boolean;

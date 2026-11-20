@@ -9423,31 +9423,31 @@ this.Scorm12API = (function () {
           {
               key: "attemptAbsoluteDuration",
               get: /**
-     * Getter for attemptAbsoluteDuration (alias for limit)
+     * Getter for attemptAbsoluteDuration (alias for actual calculated duration)
      * @return {string}
      */ function get() {
-                  return this._attemptAbsoluteDurationLimit || "PT0H0M0S";
+                  return this._attemptAbsoluteDurationValue;
               },
               set: /**
-     * Setter for attemptAbsoluteDuration
+     * Setter for attemptAbsoluteDuration (actual calculated duration)
      * @param {string} duration
      */ function set(duration) {
-                  this._attemptAbsoluteDurationLimit = duration;
+                  this.attemptAbsoluteDurationValue = duration;
               }
           },
           {
               key: "activityAbsoluteDuration",
               get: /**
-     * Getter for activityAbsoluteDuration (alias for limit)
+     * Getter for activityAbsoluteDuration (alias for actual calculated duration)
      * @return {string}
      */ function get() {
-                  return this._activityAbsoluteDurationLimit || "PT0H0M0S";
+                  return this._activityAbsoluteDurationValue;
               },
               set: /**
-     * Setter for activityAbsoluteDuration
+     * Setter for activityAbsoluteDuration (actual calculated duration)
      * @param {string} duration
      */ function set(duration) {
-                  this._activityAbsoluteDurationLimit = duration;
+                  this.activityAbsoluteDurationValue = duration;
               }
           },
           {

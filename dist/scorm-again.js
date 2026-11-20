@@ -3890,7 +3890,7 @@
                   if (result && activity.attemptAbsoluteDurationLimit) {
                       var limitDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
                       if (limitDuration > 0) {
-                          var currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+                          var currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationValue || "PT0H0M0S", scorm2004_regex.CMITimespan);
                           if (currentDuration >= limitDuration) {
                               result = false;
                               failureReason = "Attempt duration limit exceeded";
@@ -3900,7 +3900,7 @@
                   if (result && activity.activityAbsoluteDurationLimit) {
                       var limitDuration1 = getDurationAsSeconds(activity.activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
                       if (limitDuration1 > 0) {
-                          var currentDuration1 = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+                          var currentDuration1 = getDurationAsSeconds(activity.activityAbsoluteDurationValue || "PT0H0M0S", scorm2004_regex.CMITimespan);
                           if (currentDuration1 >= limitDuration1) {
                               result = false;
                               failureReason = "Activity duration limit exceeded";
@@ -13545,31 +13545,31 @@
           {
               key: "attemptAbsoluteDuration",
               get: /**
-     * Getter for attemptAbsoluteDuration (alias for limit)
+     * Getter for attemptAbsoluteDuration (alias for actual calculated duration)
      * @return {string}
      */ function get() {
-                  return this._attemptAbsoluteDurationLimit || "PT0H0M0S";
+                  return this._attemptAbsoluteDurationValue;
               },
               set: /**
-     * Setter for attemptAbsoluteDuration
+     * Setter for attemptAbsoluteDuration (actual calculated duration)
      * @param {string} duration
      */ function set(duration) {
-                  this._attemptAbsoluteDurationLimit = duration;
+                  this.attemptAbsoluteDurationValue = duration;
               }
           },
           {
               key: "activityAbsoluteDuration",
               get: /**
-     * Getter for activityAbsoluteDuration (alias for limit)
+     * Getter for activityAbsoluteDuration (alias for actual calculated duration)
      * @return {string}
      */ function get() {
-                  return this._activityAbsoluteDurationLimit || "PT0H0M0S";
+                  return this._activityAbsoluteDurationValue;
               },
               set: /**
-     * Setter for activityAbsoluteDuration
+     * Setter for activityAbsoluteDuration (actual calculated duration)
      * @param {string} duration
      */ function set(duration) {
-                  this._activityAbsoluteDurationLimit = duration;
+                  this.activityAbsoluteDurationValue = duration;
               }
           },
           {
@@ -21507,9 +21507,9 @@
                           progressInfoAvailableInCurrentParentAttempt: activity.progressInfoAvailableInCurrentParentAttempt,
                           attemptCompletionAmount: activity.attemptCompletionAmount,
                           attemptCompletionAmountStatus: activity.attemptCompletionAmountStatus,
-                          attemptAbsoluteDuration: activity.attemptAbsoluteDuration,
+                          attemptAbsoluteDurationValue: activity.attemptAbsoluteDurationValue,
                           attemptExperiencedDuration: activity.attemptExperiencedDuration,
-                          activityAbsoluteDuration: activity.activityAbsoluteDuration,
+                          activityAbsoluteDurationValue: activity.activityAbsoluteDurationValue,
                           activityExperiencedDuration: activity.activityExperiencedDuration,
                           objectiveSatisfiedStatus: activity.objectiveSatisfiedStatus,
                           objectiveSatisfiedStatusKnown: activity.objectiveSatisfiedStatusKnown,
@@ -21588,9 +21588,9 @@
                           activity.progressInfoAvailableInCurrentParentAttempt = (_state_progressInfoAvailableInCurrentParentAttempt = state.progressInfoAvailableInCurrentParentAttempt) !== null && _state_progressInfoAvailableInCurrentParentAttempt !== void 0 ? _state_progressInfoAvailableInCurrentParentAttempt : true;
                           activity.attemptCompletionAmount = state.attemptCompletionAmount || 0;
                           activity.attemptCompletionAmountStatus = (_state_attemptCompletionAmountStatus = state.attemptCompletionAmountStatus) !== null && _state_attemptCompletionAmountStatus !== void 0 ? _state_attemptCompletionAmountStatus : false;
-                          activity.attemptAbsoluteDuration = state.attemptAbsoluteDuration || "PT0H0M0S";
+                          activity.attemptAbsoluteDurationValue = state.attemptAbsoluteDurationValue || "PT0H0M0S";
                           activity.attemptExperiencedDuration = state.attemptExperiencedDuration || "PT0H0M0S";
-                          activity.activityAbsoluteDuration = state.activityAbsoluteDuration || "PT0H0M0S";
+                          activity.activityAbsoluteDurationValue = state.activityAbsoluteDurationValue || "PT0H0M0S";
                           activity.activityExperiencedDuration = state.activityExperiencedDuration || "PT0H0M0S";
                           activity.objectiveSatisfiedStatus = state.objectiveSatisfiedStatus || false;
                           activity.objectiveSatisfiedStatusKnown = (_state_objectiveSatisfiedStatusKnown = state.objectiveSatisfiedStatusKnown) !== null && _state_objectiveSatisfiedStatusKnown !== void 0 ? _state_objectiveSatisfiedStatusKnown : state.successStatus !== "unknown";
