@@ -173,7 +173,8 @@ packages that test them are expected to differ:
   live content that sets `unknown` from counting as completed.
 - A rollup rule with `childActivitySet` of `all` or `none` doesn't fire when no
   child contributes to rollup, for example when every child is untracked
-  (RB.1.4). ADL's implementation fires it (RU-11).
+  (RB.1.4). ADL's implementation fires it (RU-11, and RU-15b, where the only
+  remaining child is skipped and so is left out of rollup).
 
 **1. `GetValue` did not reset a stale error code on success (SCORM 2004) — FIXED.**
 ADL `API.properties` Act3V1 step 19 (`GET->c~LOC->test->0`) requires the current
