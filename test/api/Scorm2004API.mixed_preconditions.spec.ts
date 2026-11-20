@@ -84,6 +84,23 @@ describe("independent precondition rule sets", () => {
     },
   );
 
+  it("Previous ignores a Disabled child that selection left out (SR.1)", () => {
+    const { api, delivered, check } = session([
+      {
+        ...leaf("cluster"),
+        sequencingControls: { flow: true },
+        children: [leaf("A"), { ...leaf("B"), sequencingRules: rules("disabled") }],
+      },
+      leaf("current"),
+    ]);
+    const cluster = api.getSequencingState().rootActivity!.children[0]!;
+    cluster.setProcessedChildren([cluster.children[0]!]);
+    expect(api.processNavigationRequest("choice", "current")).toBe(true);
+    expect(api.Initialize("")).toBe("true");
+    check("previous", true);
+    expect(delivered[delivered.length - 1]).toBe("A");
+  });
+
   it.each([true, false])(
     "chosen Skip cluster checks Disabled independently: disabled=%s (UP.5)",
     (disabled) => {

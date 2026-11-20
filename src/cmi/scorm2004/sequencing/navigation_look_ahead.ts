@@ -368,12 +368,14 @@ export class NavigationLookAhead {
 
     // SB.2.1 reverses backward entry into a forwardOnly cluster to Forward.
     const childForward = forward || activity.sequencingControls.forwardOnly;
+    // Flow traverses the children left after selection and randomization (SR.1/SR.2).
+    const children = activity.getAvailableChildren();
     for (
-      let i = childForward ? 0 : activity.children.length - 1;
-      childForward ? i < activity.children.length : i >= 0;
+      let i = childForward ? 0 : children.length - 1;
+      childForward ? i < children.length : i >= 0;
       i += childForward ? 1 : -1
     ) {
-      const child = activity.children[i];
+      const child = children[i];
       if (!child) continue;
       const deliverable = this.isActivityPotentiallyDeliverableBackward(child, childForward);
       if (deliverable === null) return null;
