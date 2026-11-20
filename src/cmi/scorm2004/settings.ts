@@ -146,8 +146,12 @@ export class CMISettings extends BaseCMI {
   /**
    * Reset the settings properties
    */
-  reset(): void {
+  reset(clearLaunchData = false): void {
     this._initialized = false;
-    // Don't reset these properties as they are read-only after initialization
+    if (clearLaunchData) {
+      this._max_time_allowed = "";
+      this._time_limit_action = "continue,no message";
+    }
+    // Preserve launch data unless explicitly requested.
   }
 }

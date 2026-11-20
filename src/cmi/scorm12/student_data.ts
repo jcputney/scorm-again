@@ -73,8 +73,13 @@ export class CMIStudentData extends BaseCMI {
   /**
    * Called when the API has been reset
    */
-  reset(): void {
+  reset(clearLaunchData = false): void {
     this._initialized = false;
+    if (clearLaunchData) {
+      this._mastery_score = "";
+      this._max_time_allowed = "";
+      this._time_limit_action = "";
+    }
   }
 
   /**

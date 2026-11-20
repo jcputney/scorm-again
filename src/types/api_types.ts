@@ -28,6 +28,8 @@ export type ResetOptions = {
   preserveListeners?: boolean;
   /** Clear the outgoing SCO's total time before loading the next SCO. Defaults to false. */
   resetTotalTime?: boolean;
+  /** Clear the outgoing SCO's LMS-supplied launch data before loading the next SCO. Defaults to false. */
+  clearLaunchData?: boolean;
 };
 
 /**

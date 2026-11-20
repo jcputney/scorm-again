@@ -105,7 +105,7 @@ export class CMI extends BaseRootCMI {
    * - Global objectives (via mapInfo) must persist across SCO transitions
    * - SCO-specific data (location, entry, session, interactions) must be reset
    */
-  reset() {
+  reset(clearLaunchData = false) {
     this._initialized = false;
     this._start_time = undefined;
 
@@ -114,9 +114,9 @@ export class CMI extends BaseRootCMI {
     this.learner?.reset();
     this.status?.reset();
     this.session?.reset();
-    this.content?.reset();
-    this.settings?.reset();
-    this.thresholds?.reset();
+    this.content?.reset(clearLaunchData);
+    this.settings?.reset(clearLaunchData);
+    this.thresholds?.reset(clearLaunchData);
 
     // Reset original complex objects
     // objectives.reset(true) - wipe the array completely so restoreGlobalObjectivesToCMI

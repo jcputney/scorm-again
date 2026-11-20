@@ -116,8 +116,12 @@ export class CMIThresholds extends BaseCMI {
   /**
    * Reset the threshold properties
    */
-  reset(): void {
+  reset(clearLaunchData = false): void {
     this._initialized = false;
-    // Don't reset these properties as they are read-only after initialization
+    if (clearLaunchData) {
+      this._scaled_passing_score = "";
+      this._completion_threshold = "";
+    }
+    // Preserve launch data unless explicitly requested.
   }
 }
