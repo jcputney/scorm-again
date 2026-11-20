@@ -656,10 +656,7 @@ describe("SCORM 2004 sequencing objective delivery seeding", () => {
     expect(api.getSequencingState().currentActivity?.id).toBe("activity_2");
     expect(previousScoObjective?.completionStatus).toBe("completed");
     expect(
-      api
-        .getSequencingService()
-        ?.getOverallSequencingProcess()
-        ?.predictChoiceEnabled("activity_2"),
+      api.getSequencingService()?.getOverallSequencingProcess()?.predictChoiceEnabled("activity_2"),
     ).toBe(true);
 
     prepareNextVisit(api);

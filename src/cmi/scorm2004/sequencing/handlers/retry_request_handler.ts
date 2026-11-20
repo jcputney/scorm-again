@@ -1,10 +1,7 @@
 import { Activity } from "../activity";
 import { ActivityTree } from "../activity_tree";
 import { FlowTraversalService } from "../traversal/flow_traversal_service";
-import {
-  SequencingResult,
-  DeliveryRequestType
-} from "../rules/sequencing_request_types";
+import { SequencingResult, DeliveryRequestType } from "../rules/sequencing_request_types";
 
 /**
  * RetryRequestHandler - Handles retry sequencing requests
@@ -16,7 +13,7 @@ import {
 export class RetryRequestHandler {
   constructor(
     private activityTree: ActivityTree,
-    private traversalService: FlowTraversalService
+    private traversalService: FlowTraversalService,
   ) {}
 
   /**

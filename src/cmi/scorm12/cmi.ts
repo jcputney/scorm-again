@@ -6,11 +6,7 @@ import { CMIObjectives } from "./objectives";
 import { CMIStudentData } from "./student_data";
 import { CMIStudentPreference } from "./student_preference";
 import { CMIInteractions } from "./interactions";
-import {
-  scorm12_constants,
-  scorm12_errors,
-  scorm12_regex,
-} from "../../constants";
+import { scorm12_constants, scorm12_errors, scorm12_regex } from "../../constants";
 
 /**
  * Class representing the cmi object for SCORM 1.2
@@ -122,7 +118,7 @@ export class CMI extends BaseRootCMI {
       objectives: this.objectives,
       student_data: this.student_data,
       student_preference: this.student_preference,
-      interactions: this.interactions
+      interactions: this.interactions,
     };
     this.jsonString = false;
     return result;
@@ -143,7 +139,7 @@ export class CMI extends BaseRootCMI {
   set _version(_version: string) {
     throw new Scorm12ValidationError(
       this._cmi_element + "._version",
-      scorm12_errors.INVALID_SET_VALUE as number
+      scorm12_errors.INVALID_SET_VALUE as number,
     );
   }
 
@@ -162,7 +158,7 @@ export class CMI extends BaseRootCMI {
   set _children(_children: string) {
     throw new Scorm12ValidationError(
       this._cmi_element + "._children",
-      scorm12_errors.INVALID_SET_VALUE as number
+      scorm12_errors.INVALID_SET_VALUE as number,
     );
   }
 
@@ -215,7 +211,7 @@ export class CMI extends BaseRootCMI {
     if (this.initialized) {
       throw new Scorm12ValidationError(
         this._cmi_element + ".launch_data",
-        scorm12_errors.READ_ONLY_ELEMENT as number
+        scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._launch_data = launch_data;
@@ -240,7 +236,7 @@ export class CMI extends BaseRootCMI {
         this._cmi_element + ".comments",
         comments,
         scorm12_regex.CMIString4096,
-        true
+        true,
       )
     ) {
       this._comments = comments;
@@ -263,7 +259,7 @@ export class CMI extends BaseRootCMI {
     if (this.initialized) {
       throw new Scorm12ValidationError(
         this._cmi_element + ".comments_from_lms",
-        scorm12_errors.READ_ONLY_ELEMENT as number
+        scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._comments_from_lms = comments_from_lms;

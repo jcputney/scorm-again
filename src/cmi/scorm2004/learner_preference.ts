@@ -4,11 +4,7 @@
 import { BaseCMI } from "../common/base_cmi";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
-import {
-  scorm2004_constants,
-  scorm2004_errors,
-  scorm2004_regex,
-} from "../../constants";
+import { scorm2004_constants, scorm2004_errors, scorm2004_regex } from "../../constants";
 
 export class CMILearnerPreference extends BaseCMI {
   private __children = scorm2004_constants.student_preference_children;
@@ -94,7 +90,9 @@ export class CMILearnerPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language: string) {
-    if (check2004ValidFormat(this._cmi_element + ".language", language, scorm2004_regex.CMILang, true)) {
+    if (
+      check2004ValidFormat(this._cmi_element + ".language", language, scorm2004_regex.CMILang, true)
+    ) {
       this._language = language;
     }
   }

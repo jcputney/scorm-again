@@ -3,11 +3,7 @@ import { BaseCMI } from "../common/base_cmi";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { Scorm2004CMIScore } from "./score";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
-import {
-  scorm2004_constants,
-  scorm2004_errors,
-  scorm2004_regex,
-} from "../../constants";
+import { scorm2004_constants, scorm2004_errors, scorm2004_regex } from "../../constants";
 
 /**
  * Class representing SCORM 2004's `cmi.objectives` object
@@ -40,9 +36,7 @@ export class CMIObjectives extends CMIArray {
    * Find an objective by its ID
    */
   public findObjectiveById(id: string): CMIObjectivesObject | undefined {
-    return (this.childArray as CMIObjectivesObject[]).find(
-      (objective) => objective.id === id,
-    );
+    return (this.childArray as CMIObjectivesObject[]).find((objective) => objective.id === id);
   }
 
   /**
@@ -330,7 +324,8 @@ export class CMIObjectivesObject extends BaseCMI {
     if (typeof data.id === "string") this.id = data.id;
     if (typeof data.success_status === "string") this.success_status = data.success_status;
     if (typeof data.completion_status === "string") this.completion_status = data.completion_status;
-    if (typeof data.progress_measure !== "undefined") this.progress_measure = String(data.progress_measure);
+    if (typeof data.progress_measure !== "undefined")
+      this.progress_measure = String(data.progress_measure);
     if (typeof data.description === "string") this.description = data.description;
     if (data.score && typeof data.score === "object") {
       if (typeof data.score.scaled !== "undefined") this.score.scaled = String(data.score.scaled);

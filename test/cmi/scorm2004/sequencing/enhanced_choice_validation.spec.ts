@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -10,7 +10,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 function ruleWithConditions(
@@ -71,7 +71,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -86,7 +86,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Choice to lesson2 (same cluster) should work
       const result1 = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result1.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -101,7 +101,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson1"
+        "lesson1",
       );
 
       // Should allow choice to completed activity
@@ -119,7 +119,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Try to go back to lesson1
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.PREVIOUS,
-        null
+        null,
       );
 
       // Previous should be blocked by forwardOnly
@@ -136,7 +136,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -156,7 +156,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Choice to completed activity may be allowed depending on implementation
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson1"
+        "lesson1",
       );
 
       // This verifies the choice flow validation path is exercised
@@ -174,7 +174,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       // Should not deliver unavailable activity
@@ -190,7 +190,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.exception).toBe("SB.2.9-4");
@@ -205,7 +205,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson1"
+        "lesson1",
       );
 
       // Choice should be blocked
@@ -224,7 +224,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -238,7 +238,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       // @spec SCORM 2004 4th Ed. SN SB.2.9 - module2 controls choice
@@ -262,7 +262,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       // Path includes hidden module2
@@ -284,7 +284,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Choose module2 (a cluster)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should flow into module2 and deliver first leaf (lesson3)
@@ -308,7 +308,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Should fail - no deliverable activity in module2
@@ -327,7 +327,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       // Should block due to attempt limit - activity check fails
@@ -346,7 +346,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // The time limit check is in limit conditions - verify path is exercised
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       // Result depends on whether limit conditions are checked during choice
@@ -364,7 +364,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result).toBeDefined();
@@ -383,7 +383,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       // Activity with skip rule should not be deliverable
@@ -401,7 +401,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       // Disabled activity should not be deliverable
@@ -419,7 +419,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       // Should be blocked - hidden from choice
@@ -437,7 +437,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.JUMP,
-        "lesson3"
+        "lesson3",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -452,7 +452,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.JUMP,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.exception).toBe("SB.2.13-3");
@@ -463,7 +463,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.JUMP,
-        "nonexistent"
+        "nonexistent",
       );
 
       expect(result.exception).toBe("SB.2.13-1");
@@ -551,7 +551,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
 
       lesson1.objectiveMeasureStatus = true;
@@ -569,7 +569,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params
+        params,
       );
 
       lesson1.objectiveMeasureStatus = true;
@@ -592,7 +592,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       lesson1.isCompleted = true;
 
       // Both conditions must be true
-      expect(rule.conditions.every(c => c.evaluate(lesson1))).toBe(true);
+      expect(rule.conditions.every((c) => c.evaluate(lesson1))).toBe(true);
     });
 
     it("should evaluate ANY conditions (OR logic)", () => {
@@ -606,7 +606,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       testActivity.isCompleted = false; // COMPLETED is false
 
       // At least one condition must be true (ATTEMPTED is true)
-      expect(rule.conditions.some(c => c.evaluate(testActivity))).toBe(true);
+      expect(rule.conditions.some((c) => c.evaluate(testActivity))).toBe(true);
     });
 
     it("should evaluate ANY conditions false when none match", () => {
@@ -618,7 +618,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       lesson1.isCompleted = false;
 
       // None of the conditions are true
-      expect(rule.conditions.some(c => c.evaluate(lesson1))).toBe(false);
+      expect(rule.conditions.some((c) => c.evaluate(lesson1))).toBe(false);
     });
   });
 
@@ -631,7 +631,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Common ancestor should be root
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       // Choice should succeed through common ancestor (root)
@@ -646,7 +646,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Common ancestor should be module1
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -661,7 +661,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -675,7 +675,7 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Choice within same cluster (lesson2) should still work
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2"
+        "lesson2",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -692,14 +692,16 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       // Try to choose activity outside of module1
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       // The choice sequencing request process handles targeting
       // choiceExit blocks exit, not the choice itself in this implementation
       expect(result).toBeDefined();
       // Verify the flow was exercised and a decision was made
-      expect([DeliveryRequestType.DELIVER, DeliveryRequestType.DO_NOT_DELIVER]).toContain(result.deliveryRequest);
+      expect([DeliveryRequestType.DELIVER, DeliveryRequestType.DO_NOT_DELIVER]).toContain(
+        result.deliveryRequest,
+      );
     });
   });
 });

@@ -3,14 +3,14 @@ import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionOperator,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 
@@ -208,9 +208,7 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
     it("should handle objective measure conditions", () => {
       // Add post-condition rule based on objective measure
       const continueRule = new SequencingRule(RuleActionType.CONTINUE);
-      const measureCondition = new RuleCondition(
-        RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN
-      );
+      const measureCondition = new RuleCondition(RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN);
       measureCondition.parameters.set("threshold", 0.8);
       continueRule.addCondition(measureCondition);
       childActivity1.sequencingRules.addPostConditionRule(continueRule);
@@ -232,9 +230,7 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       // Add post-condition rule based on attempt limit
       // SCORM 2004 specifies attemptLimit is a property of the activity itself
       const exitRule = new SequencingRule(RuleActionType.EXIT_PARENT);
-      const attemptCondition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED
-      );
+      const attemptCondition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       exitRule.addCondition(attemptCondition);
       childActivity1.sequencingRules.addPostConditionRule(exitRule);
       childActivity1.attemptLimit = 3;

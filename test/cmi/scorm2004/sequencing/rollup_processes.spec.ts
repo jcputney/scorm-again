@@ -7,7 +7,7 @@ import {
   RollupConditionCombination,
   RollupConditionType,
   RollupConsiderationType,
-  RollupRule
+  RollupRule,
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 
@@ -295,10 +295,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     describe("Objective Rollup Using Rules (RB.1.2.b)", () => {
       it("should apply satisfied rollup rule", () => {
         // Create "all satisfied" rule
-        const rule = new RollupRule(
-          RollupActionType.SATISFIED,
-          RollupConsiderationType.ALL
-        );
+        const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
         rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
         parent.rollupRules.addRule(rule);
 
@@ -313,10 +310,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
       it("should apply not satisfied rollup rule", () => {
         // Create "any not satisfied" rule
-        const rule = new RollupRule(
-          RollupActionType.NOT_SATISFIED,
-          RollupConsiderationType.ANY
-        );
+        const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
         rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
         parent.rollupRules.addRule(rule);
 
@@ -333,7 +327,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // Create "at least 2 satisfied" rule
         const rule = new RollupRule(
           RollupActionType.SATISFIED,
-          RollupConsiderationType.AT_LEAST_COUNT
+          RollupConsiderationType.AT_LEAST_COUNT,
         );
         rule.minimumCount = 2;
         rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
@@ -352,7 +346,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // Create "at least 50% satisfied" rule
         const rule = new RollupRule(
           RollupActionType.SATISFIED,
-          RollupConsiderationType.AT_LEAST_PERCENT
+          RollupConsiderationType.AT_LEAST_PERCENT,
         );
         rule.minimumPercent = 0.5;
         rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
@@ -407,10 +401,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
   describe("Activity Progress Rollup Process (RB.1.3)", () => {
     it("should apply completed rollup rule", () => {
       // Create "all completed" rule
-      const rule = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
 
@@ -426,10 +417,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
     it("should apply incomplete rollup rule", () => {
       // Create "any incomplete" rule
-      const rule = new RollupRule(
-        RollupActionType.INCOMPLETE,
-        RollupConsiderationType.ANY
-      );
+      const rule = new RollupRule(RollupActionType.INCOMPLETE, RollupConsiderationType.ANY);
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
 
@@ -454,10 +442,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
 
     it("should handle progress known condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.PROGRESS_KNOWN));
       parent.rollupRules.addRule(rule);
 
@@ -589,7 +574,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         RollupConsiderationType.ALL,
         0,
         0,
-        RollupConditionCombination.ALL
+        RollupConditionCombination.ALL,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
@@ -610,10 +595,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
 
     it("should evaluate conditions with ANY consideration", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ANY);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -627,10 +609,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
 
     it("should evaluate conditions with NONE consideration", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.NONE
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.NONE);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -645,10 +624,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
 
     it("should handle attempted/not attempted conditions", () => {
-      const rule = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.ATTEMPTED));
       parent.rollupRules.addRule(rule);
 
@@ -663,13 +639,10 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
 
     it("should handle measure threshold conditions", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       const condition = new RollupCondition(
         RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
-        new Map([["threshold", 0.7]])
+        new Map([["threshold", 0.7]]),
       );
       rule.addCondition(condition);
       parent.rollupRules.addRule(rule);
@@ -691,17 +664,11 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
   describe("Complex rollup scenarios", () => {
     it("should handle multiple rollup rules with priority", () => {
       // Rule 1: If all satisfied, mark as satisfied
-      const rule1 = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule1 = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule1.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
 
       // Rule 2: If any not satisfied, mark as not satisfied (takes precedence)
-      const rule2 = new RollupRule(
-        RollupActionType.NOT_SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const rule2 = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
       const notSatisfiedCondition = new RollupCondition(RollupConditionType.SATISFIED);
       rule2.addCondition(notSatisfiedCondition);
 
@@ -886,7 +853,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       level4.addChild(level5);
 
       // Enable rollup for all
-      [level1, level2, level3, level4, level5].forEach(activity => {
+      [level1, level2, level3, level4, level5].forEach((activity) => {
         activity.sequencingControls.rollupObjectiveSatisfied = true;
         activity.sequencingControls.rollupProgressCompletion = true;
       });
@@ -992,7 +959,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       parent.primaryObjective = new ActivityObjective("primary", {
         isPrimary: true,
         satisfiedByMeasure: true,
-        minNormalizedMeasure: 0.7
+        minNormalizedMeasure: 0.7,
       });
       parent.applyRollupConsiderations({ measureSatisfactionIfActive: false });
       for (const child of [child1, child2, child3]) {
@@ -1038,10 +1005,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       ruleParent.sequencingControls.rollupObjectiveSatisfied = true;
 
       // Create "all satisfied" rule (RB.1.2.b - rule-based rollup)
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       ruleParent.rollupRules.addRule(rule);
 
@@ -1418,17 +1382,16 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       it("should create global objective entries from activity objectives", () => {
         const activity = new Activity("activity1", "Activity 1");
         activity.addObjective(
-          new ActivityObjective(
-            "obj1",
-            {
-              isPrimary: false,
-              mapInfo: [{
+          new ActivityObjective("obj1", {
+            isPrimary: false,
+            mapInfo: [
+              {
                 targetObjectiveID: "global_obj1",
                 writeSatisfiedStatus: true,
-                writeNormalizedMeasure: true
-              }]
-            }
-          )
+                writeNormalizedMeasure: true,
+              },
+            ],
+          }),
         );
 
         const objective = activity.getAllObjectives()[0];
@@ -1448,11 +1411,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "global_obj1",
-            writeSatisfiedStatus: true,
-            readSatisfiedStatus: false
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_obj1",
+              writeSatisfiedStatus: true,
+              readSatisfiedStatus: false,
+            },
+          ],
         });
         activity.addObjective(objective);
 
@@ -1473,10 +1438,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "global_obj1",
-            writeNormalizedMeasure: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_obj1",
+              writeNormalizedMeasure: true,
+            },
+          ],
         });
         activity.addObjective(objective);
 
@@ -1494,11 +1461,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "global_obj1",
-            readSatisfiedStatus: true,
-            writeSatisfiedStatus: false
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_obj1",
+              readSatisfiedStatus: true,
+              writeSatisfiedStatus: false,
+            },
+          ],
         });
         activity.addObjective(objective);
 
@@ -1508,7 +1477,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
           satisfiedStatus: true,
           satisfiedStatusKnown: true,
           normalizedMeasure: 0.9,
-          normalizedMeasureKnown: true
+          normalizedMeasureKnown: true,
         });
 
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -1524,17 +1493,19 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "global_obj1",
-            readNormalizedMeasure: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_obj1",
+              readNormalizedMeasure: true,
+            },
+          ],
         });
         activity.addObjective(objective);
 
         globalObjectives.set("global_obj1", {
           id: "global_obj1",
           normalizedMeasure: 0.88,
-          normalizedMeasureKnown: true
+          normalizedMeasureKnown: true,
         });
 
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -1548,18 +1519,20 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "global_obj1",
-            readProgressMeasure: true,
-            writeProgressMeasure: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_obj1",
+              readProgressMeasure: true,
+              writeProgressMeasure: true,
+            },
+          ],
         });
         activity.addObjective(objective);
 
         globalObjectives.set("global_obj1", {
           id: "global_obj1",
           progressMeasure: 0.65,
-          progressMeasureKnown: true
+          progressMeasureKnown: true,
         });
 
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -1573,18 +1546,20 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "global_obj1",
-            readCompletionStatus: true,
-            writeCompletionStatus: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_obj1",
+              readCompletionStatus: true,
+              writeCompletionStatus: true,
+            },
+          ],
         });
         activity.addObjective(objective);
 
         globalObjectives.set("global_obj1", {
           id: "global_obj1",
           completionStatus: "completed",
-          completionStatusKnown: true
+          completionStatusKnown: true,
         });
 
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -1605,11 +1580,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // child1 writes to global objective
         const obj1 = new ActivityObjective("obj1", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "shared_obj",
-            writeSatisfiedStatus: true,
-            writeNormalizedMeasure: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "shared_obj",
+              writeSatisfiedStatus: true,
+              writeNormalizedMeasure: true,
+            },
+          ],
         });
         obj1.satisfiedStatus = true;
         obj1.measureStatus = true;
@@ -1619,11 +1596,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // child2 reads from global objective
         const obj2 = new ActivityObjective("obj2", {
           isPrimary: false,
-          mapInfo: [{
-            targetObjectiveID: "shared_obj",
-            readSatisfiedStatus: true,
-            readNormalizedMeasure: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "shared_obj",
+              readSatisfiedStatus: true,
+              readNormalizedMeasure: true,
+            },
+          ],
         });
         child2Act.addObjective(obj2);
 
@@ -1647,10 +1626,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         targetCluster.addChild(target2);
 
         const sourceObjective = new ActivityObjective("source-objective", {
-          mapInfo: [{
-            targetObjectiveID: "shared-objective",
-            writeSatisfiedStatus: true,
-          }],
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-objective",
+              writeSatisfiedStatus: true,
+            },
+          ],
         });
         sourceObjective.satisfiedStatus = true;
         sourceObjective.satisfiedStatusKnown = true;
@@ -1659,11 +1640,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         for (const target of [target1, target2]) {
           target.primaryObjective = new ActivityObjective(`${target.id}-primary`, {
             isPrimary: true,
-            mapInfo: [{
-              targetObjectiveID: "shared-objective",
-              readSatisfiedStatus: true,
-              writeSatisfiedStatus: false,
-            }],
+            mapInfo: [
+              {
+                targetObjectiveID: "shared-objective",
+                readSatisfiedStatus: true,
+                writeSatisfiedStatus: false,
+              },
+            ],
           });
         }
 
@@ -1694,21 +1677,25 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
           isPrimary: true,
           satisfiedByMeasure: true,
           minNormalizedMeasure: 0.6,
-          mapInfo: [{
-            targetObjectiveID: "cluster-global",
-            readSatisfiedStatus: false,
-            writeSatisfiedStatus: true,
-            readNormalizedMeasure: true,
-            writeNormalizedMeasure: false,
-          }],
+          mapInfo: [
+            {
+              targetObjectiveID: "cluster-global",
+              readSatisfiedStatus: false,
+              writeSatisfiedStatus: true,
+              readNormalizedMeasure: true,
+              writeNormalizedMeasure: false,
+            },
+          ],
         });
         mappedChild.primaryObjective = new ActivityObjective("child-primary", {
           isPrimary: true,
-          mapInfo: [{
-            targetObjectiveID: "child-global",
-            readNormalizedMeasure: true,
-            writeNormalizedMeasure: false,
-          }],
+          mapInfo: [
+            {
+              targetObjectiveID: "child-global",
+              readNormalizedMeasure: true,
+              writeNormalizedMeasure: false,
+            },
+          ],
         });
         globalObjectives.set("cluster-global", {
           id: "cluster-global",
@@ -1745,11 +1732,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
         mappedCluster.primaryObjective = new ActivityObjective("assessment-satisfied", {
           isPrimary: true,
-          mapInfo: [{
-            targetObjectiveID: "assessment-global",
-            readSatisfiedStatus: true,
-            writeSatisfiedStatus: false,
-          }],
+          mapInfo: [
+            {
+              targetObjectiveID: "assessment-global",
+              readSatisfiedStatus: true,
+              writeSatisfiedStatus: false,
+            },
+          ],
         });
         globalObjectives.set("assessment-global", {
           id: "assessment-global",
@@ -1788,10 +1777,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
         const sourceObjective = new ActivityObjective("source-primary", {
           isPrimary: true,
-          mapInfo: [{
-            targetObjectiveID: "shared-measure",
-            writeNormalizedMeasure: true,
-          }],
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-measure",
+              writeNormalizedMeasure: true,
+            },
+          ],
         });
         sourceAct.primaryObjective = sourceObjective;
         sourceObjective.normalizedMeasure = 0.4;
@@ -1800,11 +1791,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
         const targetObjective = new ActivityObjective("target-primary", {
           isPrimary: true,
-          mapInfo: [{
-            targetObjectiveID: "shared-measure",
-            readNormalizedMeasure: true,
-            writeNormalizedMeasure: false,
-          }],
+          mapInfo: [
+            {
+              targetObjectiveID: "shared-measure",
+              readNormalizedMeasure: true,
+              writeNormalizedMeasure: false,
+            },
+          ],
         });
         untrackedTarget.primaryObjective = targetObjective;
         untrackedTarget.sequencingControls.tracked = false;
@@ -1828,10 +1821,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
           isPrimary: false,
           satisfiedByMeasure: true,
           minNormalizedMeasure: 0.7,
-          mapInfo: [{
-            targetObjectiveID: "global_obj1",
-            readNormalizedMeasure: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_obj1",
+              readNormalizedMeasure: true,
+            },
+          ],
         });
         activity.addObjective(objective);
 
@@ -1839,7 +1834,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
           id: "global_obj1",
           normalizedMeasure: 0.85,
           normalizedMeasureKnown: true,
-          satisfiedByMeasure: true
+          satisfiedByMeasure: true,
         });
 
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -1854,11 +1849,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         // ActivityObjective imported at top of file
         const primaryObj = new ActivityObjective("primary", {
           isPrimary: true,
-          mapInfo: [{
-            targetObjectiveID: "global_primary",
-            readSatisfiedStatus: true,
-            readNormalizedMeasure: true
-          }]
+          mapInfo: [
+            {
+              targetObjectiveID: "global_primary",
+              readSatisfiedStatus: true,
+              readNormalizedMeasure: true,
+            },
+          ],
         });
         activity.primaryObjective = primaryObj;
 
@@ -1867,7 +1864,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
           satisfiedStatus: true,
           satisfiedStatusKnown: true,
           normalizedMeasure: 0.95,
-          normalizedMeasureKnown: true
+          normalizedMeasureKnown: true,
         });
 
         rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -1881,7 +1878,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
         // ActivityObjective imported at top of file
         const objective = new ActivityObjective("obj1", {
-          isPrimary: false
+          isPrimary: false,
           // No mapInfo specified
         });
         objective.satisfiedStatus = true;
@@ -1907,8 +1904,10 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
         processWithEvents.processGlobalObjectiveMapping(activity, globalObjectives);
 
-        const startEvent = events.find(e => e.type === "global_objective_processing_started");
-        const completeEvent = events.find(e => e.type === "global_objective_processing_completed");
+        const startEvent = events.find((e) => e.type === "global_objective_processing_started");
+        const completeEvent = events.find(
+          (e) => e.type === "global_objective_processing_completed",
+        );
 
         expect(startEvent).toBeDefined();
         expect(completeEvent).toBeDefined();
@@ -1982,8 +1981,8 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
       processWithEvents.validateRollupStateConsistency(parent);
 
-      const startEvent = events.find(e => e.type === "rollup_validation_started");
-      const completeEvent = events.find(e => e.type === "rollup_validation_completed");
+      const startEvent = events.find((e) => e.type === "rollup_validation_started");
+      const completeEvent = events.find((e) => e.type === "rollup_validation_completed");
 
       expect(startEvent).toBeDefined();
     });
@@ -2184,7 +2183,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
       processWithEvents.overallRollupProcess(child1);
 
-      const durationEvent = events.find(e => e.type === "duration_rollup_completed");
+      const durationEvent = events.find((e) => e.type === "duration_rollup_completed");
       expect(durationEvent).toBeDefined();
       expect(durationEvent?.data.activityId).toBe(parent.id);
     });
@@ -2259,11 +2258,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          readSatisfiedStatus: true,
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            readSatisfiedStatus: true,
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
 
@@ -2273,7 +2274,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
         location: "page_5",
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2286,11 +2287,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          readSatisfiedStatus: true,
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            readSatisfiedStatus: true,
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
 
@@ -2300,7 +2303,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
         suspendData: "some_suspend_data",
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2313,11 +2316,13 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          readSatisfiedStatus: true,
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            readSatisfiedStatus: true,
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
       activity.isSuspended = true; // Initially suspended
@@ -2328,7 +2333,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
         suspendData: "", // Empty suspend data
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2343,10 +2348,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
 
@@ -2354,7 +2361,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       globalObjectives.set("global_primary", {
         id: "global_primary",
         attemptCount: 3,
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2368,10 +2375,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
 
@@ -2380,7 +2389,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         id: "global_primary",
         progressMeasure: 0.75,
         progressMeasureKnown: true,
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2394,10 +2403,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
 
@@ -2408,7 +2419,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         attemptExperiencedDuration: "PT1H15M",
         activityAbsoluteDuration: "PT2H",
         activityExperiencedDuration: "PT1H45M",
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2427,10 +2438,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
 
@@ -2439,7 +2452,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         id: "global_primary",
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2455,17 +2468,19 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // Add completion rollup rule
       const completionRule = new RollupRule(
         RollupActionType.COMPLETED,
-        RollupConsiderationType.ALL
+        RollupConsiderationType.ALL,
       );
       activity.rollupRules.addRule(completionRule);
 
       // ActivityObjective imported at top of file
       const primaryObj = new ActivityObjective("primary", {
         isPrimary: true,
-        mapInfo: [{
-          targetObjectiveID: "global_primary",
-          updateAttemptData: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_primary",
+            updateAttemptData: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
 
@@ -2474,7 +2489,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         id: "global_primary",
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
-        updateAttemptData: true
+        updateAttemptData: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -2490,10 +2505,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       // ActivityObjective imported at top of file
       const secondaryObj = new ActivityObjective("secondary", {
         isPrimary: false,
-        mapInfo: [{
-          targetObjectiveID: "global_secondary",
-          updateAttemptData: false // Explicitly disabled
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global_secondary",
+            updateAttemptData: false, // Explicitly disabled
+          },
+        ],
       });
       activity.addObjective(secondaryObj);
 
@@ -2502,7 +2519,7 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         id: "global_secondary",
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
-        location: "page_10"
+        location: "page_10",
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);

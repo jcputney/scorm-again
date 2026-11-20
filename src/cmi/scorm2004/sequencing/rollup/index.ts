@@ -7,16 +7,10 @@
 
 export { RollupChildFilter, RollupType, RollupAction } from "./rollup_child_filter";
 export { RollupRuleEvaluator } from "./rollup_rule_evaluator";
-export {
-  MeasureRollupProcessor,
-  EventCallback as MeasureEventCallback,
-} from "./measure_rollup";
+export { MeasureRollupProcessor, EventCallback as MeasureEventCallback } from "./measure_rollup";
 export {
   ObjectiveRollupProcessor,
   EventCallback as ObjectiveEventCallback,
 } from "./objective_rollup";
-export {
-  ProgressRollupProcessor,
-  EventCallback as ProgressEventCallback,
-} from "./progress_rollup";
+export { ProgressRollupProcessor, EventCallback as ProgressEventCallback } from "./progress_rollup";
 export { DurationRollupProcessor, EventCallback as DurationEventCallback } from "./duration_rollup";

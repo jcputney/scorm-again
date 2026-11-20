@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -11,7 +11,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("EXIT_PARENT State Consistency (OSP-03)", () => {
@@ -57,18 +57,15 @@ describe("EXIT_PARENT State Consistency (OSP-03)", () => {
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
 
-    overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
-    );
+    overallProcess = new OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess);
   });
 
   describe("Plain EXIT current activity state consistency", () => {
     it("should keep the terminated activity current when a post-condition does not trigger", () => {
       // Set up activity with post-condition that will NOT trigger
-      const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-        new SequencingRule(RuleActionType.CONTINUE);
+      const continueRule = (grandchild1.sequencingRules.postConditionRules[0] = new SequencingRule(
+        RuleActionType.CONTINUE,
+      ));
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;

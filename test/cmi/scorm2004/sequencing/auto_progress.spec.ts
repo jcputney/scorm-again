@@ -3,17 +3,15 @@ import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import {
-  OverallSequencingProcess
-} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 import { SequencingService } from "../../../../src/services/SequencingService";
@@ -68,7 +66,7 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
     overallSequencingProcess = new OverallSequencingProcess(
       activityTree,
       sequencingProcess,
-      rollupProcess
+      rollupProcess,
     );
   });
 
@@ -185,7 +183,7 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
         new SequencingService(sequencing, cmi, adl, eventService, loggingService, {
           autoProgressOnCompletion: true,
           autoRollupOnCMIChange: true,
-          validateNavigationRequests: true
+          validateNavigationRequests: true,
         });
       }).not.toThrow();
     });
@@ -200,14 +198,21 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
 
     it("should allow runtime configuration updates via updateConfiguration", () => {
       // Create sequencing service
-      const sequencingService = new SequencingService(sequencing, cmi, adl, eventService, loggingService, {
-        autoProgressOnCompletion: false
-      });
+      const sequencingService = new SequencingService(
+        sequencing,
+        cmi,
+        adl,
+        eventService,
+        loggingService,
+        {
+          autoProgressOnCompletion: false,
+        },
+      );
 
       // Update configuration - updateConfiguration is the public API
       expect(() => {
         sequencingService.updateConfiguration({
-          autoProgressOnCompletion: true
+          autoProgressOnCompletion: true,
         });
       }).not.toThrow();
 
@@ -230,7 +235,7 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
       // Process EXIT termination
       const terminationResult = (overallSequencingProcess as any).terminationRequestProcess(
         SequencingRequestType.EXIT,
-        false
+        false,
       );
 
       // Should be valid and include the continue sequencing request from post-condition
@@ -279,7 +284,7 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
       // Mock the termination request process
       const result = (overallSequencingProcess as any).handleExitTermination(
         childActivity1,
-        false // no existing sequencing request
+        false, // no existing sequencing request
       );
 
       // Should include continue from post-condition
@@ -302,7 +307,7 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
       // Process termination
       const result = (overallSequencingProcess as any).terminationRequestProcess(
         SequencingRequestType.EXIT,
-        false
+        false,
       );
 
       // Should return continue, not EXIT_PARENT
@@ -450,9 +455,7 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
     it("should handle measure-based conditions for auto-progress", () => {
       // Setup rule based on objective measure
       const continueRule = new SequencingRule(RuleActionType.CONTINUE);
-      const measureCondition = new RuleCondition(
-        RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN
-      );
+      const measureCondition = new RuleCondition(RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN);
       measureCondition.parameters.set("threshold", 0.7);
       continueRule.addCondition(measureCondition);
       childActivity1.sequencingRules.addPostConditionRule(continueRule);

@@ -330,11 +330,7 @@ export class OverallSequencingProcess {
         return {
           navigationRequest,
           navResult,
-          deliveryRequest: new DeliveryRequest(
-            false,
-            null,
-            termResult.exception || "TB.2.3-1",
-          ),
+          deliveryRequest: new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1"),
           sessionEndReason: null,
         };
       }

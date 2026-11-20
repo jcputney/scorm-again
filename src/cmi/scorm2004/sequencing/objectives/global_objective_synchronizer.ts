@@ -387,12 +387,7 @@ export class GlobalObjectiveSynchronizer {
     activity: Activity,
     globalObjectives: Map<string, GlobalObjective>,
   ): boolean {
-    return this.syncGlobalObjectivesReadPhaseInternal(
-      activity,
-      globalObjectives,
-      undefined,
-      true,
-    );
+    return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, undefined, true);
   }
 
   /**

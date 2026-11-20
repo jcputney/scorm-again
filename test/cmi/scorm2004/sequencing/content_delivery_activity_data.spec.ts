@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -53,7 +53,7 @@ describe("Content Delivery Environment Activity Data Subprocess (DB.2.2)", () =>
       activityTree,
       sequencingProcess,
       rollupProcess,
-      adlNav
+      adlNav,
     );
   });
 
@@ -118,7 +118,7 @@ describe("Content Delivery Environment Activity Data Subprocess (DB.2.2)", () =>
         deepTree,
         deepSequencingProcess,
         deepRollupProcess,
-        deepAdlNav
+        deepAdlNav,
       );
 
       // Start a session

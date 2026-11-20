@@ -9,12 +9,7 @@
  * SCORM 1.2 Lesson Status values
  */
 export type LessonStatus =
-  | "passed"
-  | "completed"
-  | "failed"
-  | "incomplete"
-  | "browsed"
-  | "not attempted";
+  "passed" | "completed" | "failed" | "incomplete" | "browsed" | "not attempted";
 
 /**
  * SCORM 1.2 Exit values that indicate what the SCO wants to do next

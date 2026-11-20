@@ -91,12 +91,12 @@ describe("CMIArray Sequential Index Validation", () => {
     it("should allow sequential setting in interactions.correct_responses array", () => {
       scorm12API.lmsSetValue("cmi.interactions.0.id", "int_0");
       scorm12API.lmsSetValue("cmi.interactions.0.type", "choice");
-      expect(
-        scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")
-      ).toBe("true");
-      expect(
-        scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b")
-      ).toBe("true");
+      expect(scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")).toBe(
+        "true",
+      );
+      expect(scorm12API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b")).toBe(
+        "true",
+      );
       expect(scorm12API.lmsGetLastError()).toBe("0");
     });
 
@@ -206,12 +206,12 @@ describe("CMIArray Sequential Index Validation", () => {
     it("should allow sequential setting in interactions.correct_responses array", () => {
       scorm2004API.lmsSetValue("cmi.interactions.0.id", "int_0");
       scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
-      expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")
-      ).toBe("true");
-      expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b")
-      ).toBe("true");
+      expect(scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")).toBe(
+        "true",
+      );
+      expect(scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "b")).toBe(
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toBe("0");
     });
 
@@ -219,7 +219,10 @@ describe("CMIArray Sequential Index Validation", () => {
       scorm2004API.lmsSetValue("cmi.interactions.0.id", "int_0");
       scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
       scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a");
-      const result = scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.3.pattern", "d");
+      const result = scorm2004API.lmsSetValue(
+        "cmi.interactions.0.correct_responses.3.pattern",
+        "d",
+      );
       expect(result).toBe("false");
       const errorCode = scorm2004API.lmsGetLastError();
       expect(errorCode).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));

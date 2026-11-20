@@ -4,7 +4,7 @@ import {
   RuleCondition,
   RuleConditionOperator,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SuccessStatus } from "../../../../src/constants/enums";
@@ -102,7 +102,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe(true);
     });
@@ -114,7 +114,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe(false);
     });
@@ -126,7 +126,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe("unknown");
     });
@@ -138,7 +138,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe(false); // Not greater, just equal
     });
@@ -152,7 +152,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe(true);
     });
@@ -164,7 +164,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe(false);
     });
@@ -176,7 +176,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe("unknown");
     });
@@ -414,7 +414,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       // First NOT: !attempted = false
       const notCondition = new RuleCondition(
         RuleConditionType.ATTEMPTED,
-        RuleConditionOperator.NOT
+        RuleConditionOperator.NOT,
       );
       const notResult = notCondition.evaluate(activity);
       expect(notResult).toBe(false);
@@ -508,8 +508,12 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
 
       // NOT A = false, NOT B = true, so (NOT A) OR (NOT B) = true
       const orRule = new SequencingRule(RuleActionType.SKIP, "any");
-      orRule.addCondition(new RuleCondition(RuleConditionType.ATTEMPTED, RuleConditionOperator.NOT)); // false
-      orRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED, RuleConditionOperator.NOT)); // true
+      orRule.addCondition(
+        new RuleCondition(RuleConditionType.ATTEMPTED, RuleConditionOperator.NOT),
+      ); // false
+      orRule.addCondition(
+        new RuleCondition(RuleConditionType.COMPLETED, RuleConditionOperator.NOT),
+      ); // true
       expect(orRule.evaluate(activity)).toBe(true);
 
       // Verify De Morgan's law: NOT(andResult) === orResult
@@ -530,8 +534,12 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
 
       // NOT A = true, NOT B = true, so (NOT A) AND (NOT B) = true
       const andRule = new SequencingRule(RuleActionType.SKIP, "all");
-      andRule.addCondition(new RuleCondition(RuleConditionType.ATTEMPTED, RuleConditionOperator.NOT)); // true
-      andRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED, RuleConditionOperator.NOT)); // true
+      andRule.addCondition(
+        new RuleCondition(RuleConditionType.ATTEMPTED, RuleConditionOperator.NOT),
+      ); // true
+      andRule.addCondition(
+        new RuleCondition(RuleConditionType.COMPLETED, RuleConditionOperator.NOT),
+      ); // true
       expect(andRule.evaluate(activity)).toBe(true);
 
       // Verify De Morgan's law: NOT(orResult) === andResult
@@ -580,7 +588,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       condition.referencedObjective = "obj1";
       expect(condition.evaluate(activity)).toBe(true);
@@ -594,7 +602,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       expect(condition.evaluate(activity)).toBe(true);
     });
@@ -653,7 +661,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const conditionGreater = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        paramsGreater
+        paramsGreater,
       );
       expect(conditionGreater.evaluate(activity)).toBe(false); // Not strictly greater
 
@@ -661,7 +669,7 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
       const conditionLess = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        paramsLess
+        paramsLess,
       );
       expect(conditionLess.evaluate(activity)).toBe(false); // Not strictly less
     });

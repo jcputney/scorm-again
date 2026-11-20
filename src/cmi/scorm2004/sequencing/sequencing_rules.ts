@@ -257,7 +257,12 @@ export class RuleCondition extends BaseCMI {
    * @return {RuleConditionEvaluation} - True, false, or unknown per SCORM 2004 4th Ed.
    */
   // Explicit null suppresses the legacy static hook for per-process evaluation.
-  evaluate(activity: Activity, now: () => Date = RuleCondition._now, getElapsedSeconds: ((activity: Activity) => number) | null | undefined = RuleCondition._getElapsedSecondsHook): RuleConditionEvaluation {
+  evaluate(
+    activity: Activity,
+    now: () => Date = RuleCondition._now,
+    getElapsedSeconds:
+      ((activity: Activity) => number) | null | undefined = RuleCondition._getElapsedSecondsHook,
+  ): RuleConditionEvaluation {
     let result: RuleConditionEvaluation;
     const hasReferencedObjective = this._referencedObjective !== null;
     const referencedObjective = this.resolveReferencedObjective(activity);
@@ -269,8 +274,8 @@ export class RuleCondition extends BaseCMI {
     // that activity's UP.2.1 precondition evaluation.
     // @spec SCORM 2004 4th Ed. TR OB-03b steps 6-7 and SN UP.2.1/SB.2.2
     if (
-      (activity.sequencingControls?.tracked === false &&
-        TRACKING_CONDITIONS.has(this._condition))
+      activity.sequencingControls?.tracked === false &&
+      TRACKING_CONDITIONS.has(this._condition)
     ) {
       result = "unknown";
     } else
@@ -552,7 +557,11 @@ export class SequencingRule extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rule for
    * @return {boolean} - True if the rule conditions are met, false otherwise
    */
-  evaluate(activity: Activity, now?: () => Date, getElapsedSeconds?: ((activity: Activity) => number) | null): boolean {
+  evaluate(
+    activity: Activity,
+    now?: () => Date,
+    getElapsedSeconds?: ((activity: Activity) => number) | null,
+  ): boolean {
     return (
       combineRuleConditionResults(
         this._conditions.map((condition) => condition.evaluate(activity, now, getElapsedSeconds)),
@@ -676,7 +685,11 @@ export class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluatePreConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: ((activity: Activity) => number) | null): RuleActionType | null {
+  evaluatePreConditionRules(
+    activity: Activity,
+    now?: () => Date,
+    getElapsedSeconds?: ((activity: Activity) => number) | null,
+  ): RuleActionType | null {
     for (const rule of this._preConditionRules) {
       if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
@@ -690,7 +703,11 @@ export class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluateExitConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: ((activity: Activity) => number) | null): RuleActionType | null {
+  evaluateExitConditionRules(
+    activity: Activity,
+    now?: () => Date,
+    getElapsedSeconds?: ((activity: Activity) => number) | null,
+  ): RuleActionType | null {
     for (const rule of this._exitConditionRules) {
       if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;
@@ -704,7 +721,11 @@ export class SequencingRules extends BaseCMI {
    * @param {Activity} activity - The activity to evaluate the rules for
    * @return {RuleActionType | null} - The action to take, or null if no rules are met
    */
-  evaluatePostConditionRules(activity: Activity, now?: () => Date, getElapsedSeconds?: ((activity: Activity) => number) | null): RuleActionType | null {
+  evaluatePostConditionRules(
+    activity: Activity,
+    now?: () => Date,
+    getElapsedSeconds?: ((activity: Activity) => number) | null,
+  ): RuleActionType | null {
     for (const rule of this._postConditionRules) {
       if (rule.evaluate(activity, now, getElapsedSeconds)) {
         return rule.action;

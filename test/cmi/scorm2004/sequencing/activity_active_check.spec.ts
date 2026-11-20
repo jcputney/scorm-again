@@ -6,7 +6,7 @@ import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequ
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 /**

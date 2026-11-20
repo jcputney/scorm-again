@@ -3,11 +3,7 @@ import { CMIScore } from "../common/score";
 import { CMIArray } from "../common/array";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat } from "./validation";
-import {
-  scorm12_constants,
-  scorm12_errors,
-  scorm12_regex,
-} from "../../constants";
+import { scorm12_constants, scorm12_errors, scorm12_regex } from "../../constants";
 
 /**
  * Class representing SCORM 1.2's `cmi.objectives` object

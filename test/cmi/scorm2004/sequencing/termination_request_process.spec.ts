@@ -1089,7 +1089,9 @@ it("uses the process elapsed hook at construction and after replacement", () => 
     const target = new Activity("clock-target", "Target");
     root.addChild(target);
     const tree = new ActivityTree(root);
-    const process = new SequencingProcess(tree, null, null, null, { getAttemptElapsedSeconds: inside });
+    const process = new SequencingProcess(tree, null, null, null, {
+      getAttemptElapsedSeconds: inside,
+    });
     target.attemptAbsoluteDurationLimit = "PT60S";
     const handler = new TerminationHandler(tree, process, new RollupProcess(), new Map());
     const rule = new SequencingRule(RuleActionType.EXIT_ALL);

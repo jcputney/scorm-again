@@ -4,18 +4,16 @@ import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
-import {
-  OverallSequencingProcess
-} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
@@ -80,7 +78,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
     overallSequencingProcess = new OverallSequencingProcess(
       activityTree,
       sequencingProcess,
-      rollupProcess
+      rollupProcess,
     );
   });
 
@@ -191,7 +189,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.PREVIOUS,
-        null
+        null,
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -205,7 +203,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.PREVIOUS,
-        null
+        null,
       );
 
       // Should succeed - can go back to leaf1
@@ -224,7 +222,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CONTINUE,
-        null
+        null,
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -238,7 +236,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CONTINUE,
-        null
+        null,
       );
 
       // Should not fail with SB.2.7-1 (may fail with other codes or succeed)
@@ -257,7 +255,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CONTINUE,
-        null
+        null,
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -274,7 +272,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CONTINUE,
-        null
+        null,
       );
 
       // Should not fail with SB.2.7-2
@@ -293,7 +291,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.PREVIOUS,
-        null
+        null,
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -312,7 +310,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.PREVIOUS,
-        null
+        null,
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -329,7 +327,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.PREVIOUS,
-        null
+        null,
       );
 
       // Should not fail with SB.2.8-2 due to forwardOnly
@@ -358,10 +356,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
       // Ensure at least one leaf is available
       leaf1.isAvailable = true;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START,
-        null
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START, null);
 
       // Should succeed
       if (result.deliveryRequest === DeliveryRequestType.DELIVER) {
@@ -384,7 +379,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CONTINUE,
-        null
+        null,
       );
 
       // Should fail because flow is disabled
@@ -402,10 +397,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
       leaf2.isAvailable = true;
       leaf3.isAvailable = true;
 
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START,
-        null
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START, null);
 
       // Should deliver leaf2 (skipping unavailable leaf1)
       if (result.deliveryRequest === DeliveryRequestType.DELIVER) {
@@ -425,7 +417,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
       // Try to continue (should fail with SB.2.7-1, not a generic error)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CONTINUE,
-        null
+        null,
       );
 
       expect(result.exception).toBe("SB.2.7-1");
@@ -442,7 +434,7 @@ describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
       // Try to continue (should reach end and fail)
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CONTINUE,
-        null
+        null,
       );
 
       // Should indicate end of sequence

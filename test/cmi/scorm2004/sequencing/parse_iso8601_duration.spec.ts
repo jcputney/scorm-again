@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   RuleCondition,
-  RuleConditionType
+  RuleConditionType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 

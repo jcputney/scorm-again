@@ -14,16 +14,13 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import {
-  Activity,
-  ActivityObjective
-} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RollupActionType,
   RollupCondition,
   RollupConditionType,
   RollupConsiderationType,
-  RollupRule
+  RollupRule,
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 
@@ -59,17 +56,11 @@ describe("Advanced Rollup Configuration Tests", () => {
   describe("REQ-ROLL-008: Multiple Rollup Rules on Single Activity", () => {
     it("should apply first matching rule when multiple rules present", () => {
       // Add multiple rules with different conditions
-      const rule1 = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule1 = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule1.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule1);
 
-      const rule2 = new RollupRule(
-        RollupActionType.NOT_SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const rule2 = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
       rule2.addCondition(new RollupCondition(RollupConditionType.ATTEMPTED));
       parent.rollupRules.addRule(rule2);
 
@@ -88,18 +79,12 @@ describe("Advanced Rollup Configuration Tests", () => {
 
     it("should apply second rule if first does not match", () => {
       // Rule 1: Requires all children to be NOT attempted (won't match)
-      const rule1 = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule1 = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule1.addCondition(new RollupCondition(RollupConditionType.NOT_ATTEMPTED));
       parent.rollupRules.addRule(rule1);
 
       // Rule 2: Requires at least one child to be attempted (will match)
-      const rule2 = new RollupRule(
-        RollupActionType.NOT_SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const rule2 = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ANY);
       rule2.addCondition(new RollupCondition(RollupConditionType.ATTEMPTED));
       parent.rollupRules.addRule(rule2);
 
@@ -115,10 +100,7 @@ describe("Advanced Rollup Configuration Tests", () => {
 
     it("should handle separate satisfaction and completion rules", () => {
       // Rule for satisfaction
-      const satisfiedRule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const satisfiedRule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       satisfiedRule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(satisfiedRule);
 
@@ -126,7 +108,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const completedRule = new RollupRule(
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        3
+        3,
       );
       completedRule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(completedRule);
@@ -153,16 +135,13 @@ describe("Advanced Rollup Configuration Tests", () => {
   describe("REQ-ROLL-009: Rule Ordering and Short-Circuit Evaluation", () => {
     it("should evaluate satisfied rules before not satisfied rules", () => {
       // This follows SCORM spec: satisfied rules checked first (RB.1.2.b)
-      const satisfiedRule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const satisfiedRule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ANY);
       satisfiedRule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(satisfiedRule);
 
       const notSatisfiedRule = new RollupRule(
         RollupActionType.NOT_SATISFIED,
-        RollupConsiderationType.ALL
+        RollupConsiderationType.ALL,
       );
       notSatisfiedRule.addCondition(new RollupCondition(RollupConditionType.ALWAYS));
       parent.rollupRules.addRule(notSatisfiedRule);
@@ -182,14 +161,14 @@ describe("Advanced Rollup Configuration Tests", () => {
       const completedRule = new RollupRule(
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        2
+        2,
       );
       completedRule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(completedRule);
 
       const incompleteRule = new RollupRule(
         RollupActionType.INCOMPLETE,
-        RollupConsiderationType.ALL
+        RollupConsiderationType.ALL,
       );
       incompleteRule.addCondition(new RollupCondition(RollupConditionType.ALWAYS));
       parent.rollupRules.addRule(incompleteRule);
@@ -209,15 +188,12 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule1 = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        2
+        2,
       );
       rule1.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule1);
 
-      const rule2 = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule2 = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule2.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule2);
 
@@ -239,10 +215,7 @@ describe("Advanced Rollup Configuration Tests", () => {
 
   describe("REQ-ROLL-010: ALL Consideration Type", () => {
     it("should require all children to satisfy condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -258,10 +231,7 @@ describe("Advanced Rollup Configuration Tests", () => {
     });
 
     it("should fail if any child does not satisfy condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
 
@@ -279,10 +249,7 @@ describe("Advanced Rollup Configuration Tests", () => {
     });
 
     it("should handle all consideration with multiple conditions", () => {
-      const rule = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.ALL);
       // Child must be both completed AND attempted
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       rule.addCondition(new RollupCondition(RollupConditionType.ATTEMPTED));
@@ -303,10 +270,7 @@ describe("Advanced Rollup Configuration Tests", () => {
 
   describe("REQ-ROLL-011: ANY Consideration Type", () => {
     it("should require at least one child to satisfy condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ANY);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -320,10 +284,7 @@ describe("Advanced Rollup Configuration Tests", () => {
     });
 
     it("should not apply rule if no children satisfy condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ANY);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -341,10 +302,7 @@ describe("Advanced Rollup Configuration Tests", () => {
     });
 
     it("should succeed with multiple satisfied children", () => {
-      const rule = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.ANY
-      );
+      const rule = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.ANY);
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
 
@@ -361,10 +319,7 @@ describe("Advanced Rollup Configuration Tests", () => {
 
   describe("REQ-ROLL-012: NONE Consideration Type", () => {
     it("should require no children to satisfy condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.NONE
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.NONE);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -380,10 +335,7 @@ describe("Advanced Rollup Configuration Tests", () => {
     });
 
     it("should fail if any child satisfies condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.NOT_SATISFIED,
-        RollupConsiderationType.NONE
-      );
+      const rule = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.NONE);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -398,10 +350,7 @@ describe("Advanced Rollup Configuration Tests", () => {
     });
 
     it("should handle none consideration with attempted condition", () => {
-      const rule = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.NONE
-      );
+      const rule = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.NONE);
       rule.addCondition(new RollupCondition(RollupConditionType.ATTEMPTED));
       parent.rollupRules.addRule(rule);
 
@@ -423,7 +372,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        3
+        3,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -445,7 +394,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        2
+        2,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
@@ -465,7 +414,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        3
+        3,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -486,7 +435,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        0
+        0,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -501,7 +450,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        5
+        5,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
@@ -521,7 +470,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        10 // More than 5 children
+        10, // More than 5 children
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -546,7 +495,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        60 // 60%
+        60, // 60%
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -569,7 +518,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        50 // 50%
+        50, // 50%
       );
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
@@ -590,7 +539,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        80 // 80%
+        80, // 80%
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -618,7 +567,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        0 // 0%
+        0, // 0%
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -635,7 +584,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        100 // 100%
+        100, // 100%
       );
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
@@ -656,7 +605,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        70 // 70%
+        70, // 70%
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -711,10 +660,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       emptyParent.sequencingControls.rollupObjectiveSatisfied = true;
       emptyParent.sequencingControls.rollupProgressCompletion = true;
 
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       emptyParent.rollupRules.addRule(rule);
 
@@ -732,10 +678,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       singleParent.sequencingControls.rollupObjectiveSatisfied = true;
       onlyChild.sequencingControls.rollupObjectiveSatisfied = true;
 
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       singleParent.rollupRules.addRule(rule);
 
@@ -759,7 +702,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        100
+        100,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       singleParent.rollupRules.addRule(rule);
@@ -775,13 +718,13 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        3
+        3,
       );
 
       // Condition 1: Objective measure greater than 0.7
       const params1 = new Map([["threshold", 0.7]]);
       rule.addCondition(
-        new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN, params1)
+        new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN, params1),
       );
 
       // Condition 2: Completed
@@ -817,10 +760,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         child.sequencingControls.rollupObjectiveSatisfied = false;
       });
 
-      const rule = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ALL);
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
 
@@ -843,7 +783,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        80
+        80,
       );
       satisfiedRule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(satisfiedRule);
@@ -853,7 +793,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        60
+        60,
       );
       completedRule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(completedRule);
@@ -887,24 +827,18 @@ describe("Advanced Rollup Configuration Tests", () => {
 
     it("should prioritize satisfied rules over not satisfied rules", () => {
       // Rule 1: Satisfied if ANY child has high score (checked first)
-      const rule1 = new RollupRule(
-        RollupActionType.SATISFIED,
-        RollupConsiderationType.ANY
-      );
+      const rule1 = new RollupRule(RollupActionType.SATISFIED, RollupConsiderationType.ANY);
       const params1 = new Map([["threshold", 0.9]]);
       rule1.addCondition(
-        new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN, params1)
+        new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN, params1),
       );
       parent.rollupRules.addRule(rule1);
 
       // Rule 2: Not Satisfied if ALL children have low score (checked after)
-      const rule2 = new RollupRule(
-        RollupActionType.NOT_SATISFIED,
-        RollupConsiderationType.ALL
-      );
+      const rule2 = new RollupRule(RollupActionType.NOT_SATISFIED, RollupConsiderationType.ALL);
       const params2 = new Map([["threshold", 0.5]]);
       rule2.addCondition(
-        new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN, params2)
+        new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN, params2),
       );
       parent.rollupRules.addRule(rule2);
 
@@ -931,7 +865,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        10 // Impossible with 5 children
+        10, // Impossible with 5 children
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule);
@@ -961,10 +895,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       }
       testParent1.sequencingControls.rollupProgressCompletion = true;
 
-      const rule1 = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.NONE
-      );
+      const rule1 = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.NONE);
       rule1.addCondition(new RollupCondition(RollupConditionType.ATTEMPTED));
       testParent1.rollupRules.addRule(rule1);
 
@@ -985,10 +916,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       testChild2a.sequencingControls.rollupProgressCompletion = true;
       testChild2b.sequencingControls.rollupProgressCompletion = true;
 
-      const rule2 = new RollupRule(
-        RollupActionType.COMPLETED,
-        RollupConsiderationType.NONE
-      );
+      const rule2 = new RollupRule(RollupActionType.COMPLETED, RollupConsiderationType.NONE);
       rule2.addCondition(new RollupCondition(RollupConditionType.ATTEMPTED));
       testParent2.rollupRules.addRule(rule2);
 
@@ -1009,7 +937,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       parent.primaryObjective = new ActivityObjective("primary", {
         isPrimary: true,
         satisfiedByMeasure: true,
-        minNormalizedMeasure: 0.7
+        minNormalizedMeasure: 0.7,
       });
       parent.scaledPassingScore = 0.7;
 
@@ -1050,7 +978,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        75
+        75,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       largeParent.rollupRules.addRule(rule);
@@ -1069,7 +997,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule = new RollupRule(
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        3
+        3,
       );
       rule.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule);
@@ -1089,7 +1017,7 @@ describe("Advanced Rollup Configuration Tests", () => {
       const rule1 = new RollupRule(
         RollupActionType.SATISFIED,
         RollupConsiderationType.AT_LEAST_COUNT,
-        3
+        3,
       );
       rule1.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
       parent.rollupRules.addRule(rule1);
@@ -1098,7 +1026,7 @@ describe("Advanced Rollup Configuration Tests", () => {
         RollupActionType.COMPLETED,
         RollupConsiderationType.AT_LEAST_PERCENT,
         0,
-        60
+        60,
       );
       rule2.addCondition(new RollupCondition(RollupConditionType.COMPLETED));
       parent.rollupRules.addRule(rule2);

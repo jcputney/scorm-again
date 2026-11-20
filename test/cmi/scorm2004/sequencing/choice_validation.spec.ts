@@ -7,7 +7,7 @@ import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_p
 import {
   NavigationRequestType,
   OverallSequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 /**
@@ -244,7 +244,10 @@ describe("PreOrPostTestRollup manifest structure", () => {
 
   beforeEach(() => {
     // Create activities matching the manifest structure
-    root = new Activity("golf_sample_default_org", "Golf Explained - Sequencing Pre or Post Test Rollup");
+    root = new Activity(
+      "golf_sample_default_org",
+      "Golf Explained - Sequencing Pre or Post Test Rollup",
+    );
     dummyItem = new Activity("dummy_item", "Dummy Item");
     pretestItem = new Activity("pretest_item", "Pre Test");
     contentWrapper = new Activity("content_wrapper", "Content Wrapper");
@@ -314,7 +317,10 @@ describe("PreOrPostTestRollup manifest structure", () => {
     activityTree.currentActivity = playingItem;
 
     // Navigate to handicapping_item (sibling under content_wrapper)
-    const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, handicappingItem.id);
+    const result = overall.processNavigationRequest(
+      NavigationRequestType.CHOICE,
+      handicappingItem.id,
+    );
 
     // Should succeed - both are children of content_wrapper which has choice=true
     expect(result.valid).toBe(true);
@@ -374,14 +380,17 @@ describe("PreOrPostTestRollup manifest structure", () => {
         if (i === j) continue;
 
         // Reset state for each test
-        siblings.forEach(s => s.isActive = false);
+        siblings.forEach((s) => (s.isActive = false));
         siblings[i].isActive = true;
         contentWrapper.isActive = true;
         dummyItem.isActive = true;
         root.isActive = true;
         activityTree.currentActivity = siblings[i];
 
-        const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, siblings[j].id);
+        const result = overall.processNavigationRequest(
+          NavigationRequestType.CHOICE,
+          siblings[j].id,
+        );
 
         expect(result.valid).toBe(true);
         expect(result.exception).toBeNull();

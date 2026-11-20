@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -10,7 +10,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
@@ -237,7 +237,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2_1"
+        "lesson2_1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -247,7 +247,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
     it("should fail if target doesn't exist (SB.2.9-1)", () => {
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "nonexistent"
+        "nonexistent",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -259,7 +259,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "orphan"
+        "orphan",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -269,7 +269,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
     it("should flow from the root when the learner chooses the root activity", () => {
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "root"
+        "root",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -282,7 +282,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2_1"
+        "lesson2_1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -294,7 +294,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2_1"
+        "lesson2_1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -307,7 +307,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2_1"
+        "lesson2_1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -317,7 +317,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
     it("should flow from cluster to leaf (SB.2.9-7)", () => {
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -331,7 +331,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2_1"
+        "lesson2_1",
       );
 
       // @spec SCORM 2004 4th Ed. SN SB.2.9 steps 3-4 - choice path
@@ -346,7 +346,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson2_1"
+        "lesson2_1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -514,7 +514,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
     it("should use choice flow subprocess for clusters", () => {
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module1"
+        "module1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -526,7 +526,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module1"
+        "module1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -539,7 +539,7 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module1"
+        "module1",
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);

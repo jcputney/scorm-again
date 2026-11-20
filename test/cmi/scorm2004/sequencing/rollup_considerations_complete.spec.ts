@@ -6,7 +6,7 @@ import {
   RollupCondition,
   RollupConditionType,
   RollupConsiderationType,
-  RollupRule
+  RollupRule,
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 

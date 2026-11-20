@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -44,7 +44,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       activityTree,
       sequencingRules,
       sequencingControls,
-      adlNav
+      adlNav,
     );
   });
 
@@ -79,9 +79,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       child2.isActive = false; // Must not be active for PREVIOUS to work
 
       // Request PREVIOUS - should find gc2 (last descendant of previous sibling)
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity?.id).toBe("gc2");
@@ -104,9 +102,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       child1.isActive = false;
 
       // Request PREVIOUS from first child - should return null (beginning of tree)
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       // Backward direction does NOT end session when reaching beginning
       expect(result.endSequencingSession).toBe(false);
@@ -143,9 +139,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       sibling.isActive = false;
 
       // Request PREVIOUS - should descend all the way down to child100
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity?.id).toBe("child100");
@@ -170,9 +164,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       root.children[999].isActive = false;
 
       // Request PREVIOUS - should find child999 (previous sibling)
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity?.id).toBe("child999");
@@ -207,9 +199,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       sibling.isActive = false;
 
       // Should succeed without issue
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity?.id).toBe("child500");
@@ -229,9 +219,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       onlyChild.isActive = false;
 
       // Request PREVIOUS - should reach beginning of tree
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       expect(result.endSequencingSession).toBe(false);
       expect(result.targetActivity).toBeNull();
@@ -256,9 +244,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
 
       // Request PREVIOUS - should be blocked by forwardOnly
       // The exception code may vary depending on validation path
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       // forwardOnly should prevent backward navigation with either exception
       expect(["SB.2.1-4", "SB.2.9-5"]).toContain(result.exception);
@@ -282,9 +268,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       child2.isActive = false;
 
       // child1 has no children, so descent should stop immediately
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity?.id).toBe("child1");
@@ -325,9 +309,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
 
       // Request PREVIOUS - should ascend to branch2's parent (root),
       // find branch1 as previous sibling, then descend to gc1
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
       expect(result.exception).toBeNull();
       expect(result.targetActivity?.id).toBe("gc1");
@@ -361,9 +343,7 @@ describe("SequencingProcess - Backward Traversal Safeguards", () => {
       sibling.isActive = false;
 
       const startTime = performance.now();
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
       const endTime = performance.now();
 
       expect(result.exception).toBeNull();

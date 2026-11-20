@@ -21,9 +21,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readSatisfiedStatus: true
-          }
-        ]
+            readSatisfiedStatus: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
 
@@ -37,7 +37,7 @@ describe("Global Objective Mapping Tests", () => {
         readSatisfiedStatus: true,
         writeSatisfiedStatus: false,
         readNormalizedMeasure: false,
-        writeNormalizedMeasure: false
+        writeNormalizedMeasure: false,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -57,9 +57,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readSatisfiedStatus: false
-          }
-        ]
+            readSatisfiedStatus: false,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.satisfiedStatus = false;
@@ -69,7 +69,7 @@ describe("Global Objective Mapping Tests", () => {
         id: "GLOBAL_OBJ",
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
-        readSatisfiedStatus: false
+        readSatisfiedStatus: false,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -85,9 +85,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readSatisfiedStatus: true
-          }
-        ]
+            readSatisfiedStatus: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.satisfiedStatus = false;
@@ -97,7 +97,7 @@ describe("Global Objective Mapping Tests", () => {
         id: "GLOBAL_OBJ",
         satisfiedStatus: true,
         satisfiedStatusKnown: false,
-        readSatisfiedStatus: true
+        readSatisfiedStatus: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -115,9 +115,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readNormalizedMeasure: true
-          }
-        ]
+            readNormalizedMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
 
@@ -127,7 +127,7 @@ describe("Global Objective Mapping Tests", () => {
         normalizedMeasure: 0.85,
         normalizedMeasureKnown: true,
         readNormalizedMeasure: true,
-        writeNormalizedMeasure: false
+        writeNormalizedMeasure: false,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -145,9 +145,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readNormalizedMeasure: false
-          }
-        ]
+            readNormalizedMeasure: false,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.normalizedMeasure = 0.5;
@@ -157,7 +157,7 @@ describe("Global Objective Mapping Tests", () => {
         id: "GLOBAL_OBJ",
         normalizedMeasure: 0.85,
         normalizedMeasureKnown: true,
-        readNormalizedMeasure: false
+        readNormalizedMeasure: false,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -176,9 +176,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readNormalizedMeasure: true
-          }
-        ]
+            readNormalizedMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
 
@@ -188,7 +188,7 @@ describe("Global Objective Mapping Tests", () => {
         normalizedMeasure: 0.85,
         normalizedMeasureKnown: true,
         satisfiedByMeasure: true,
-        readNormalizedMeasure: true
+        readNormalizedMeasure: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -207,9 +207,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readNormalizedMeasure: true
-          }
-        ]
+            readNormalizedMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
 
@@ -219,7 +219,7 @@ describe("Global Objective Mapping Tests", () => {
         normalizedMeasure: 0.5,
         normalizedMeasureKnown: true,
         satisfiedByMeasure: true,
-        readNormalizedMeasure: true
+        readNormalizedMeasure: true,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -237,9 +237,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            writeSatisfiedStatus: true
-          }
-        ]
+            writeSatisfiedStatus: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.satisfiedStatus = true;
@@ -262,9 +262,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            writeSatisfiedStatus: false
-          }
-        ]
+            writeSatisfiedStatus: false,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.satisfiedStatus = true;
@@ -275,7 +275,7 @@ describe("Global Objective Mapping Tests", () => {
         id: "GLOBAL_OBJ",
         satisfiedStatus: false,
         satisfiedStatusKnown: true,
-        writeSatisfiedStatus: false
+        writeSatisfiedStatus: false,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -292,9 +292,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            writeSatisfiedStatus: true
-          }
-        ]
+            writeSatisfiedStatus: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.satisfiedStatus = true;
@@ -318,9 +318,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            writeNormalizedMeasure: true
-          }
-        ]
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.normalizedMeasure = 0.75;
@@ -343,9 +343,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            writeNormalizedMeasure: false
-          }
-        ]
+            writeNormalizedMeasure: false,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.normalizedMeasure = 0.75;
@@ -356,7 +356,7 @@ describe("Global Objective Mapping Tests", () => {
         id: "GLOBAL_OBJ",
         normalizedMeasure: 0.5,
         normalizedMeasureKnown: true,
-        writeNormalizedMeasure: false
+        writeNormalizedMeasure: false,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
@@ -377,9 +377,9 @@ describe("Global Objective Mapping Tests", () => {
           {
             targetObjectiveID: "GLOBAL_OBJ",
             writeSatisfiedStatus: true,
-            writeNormalizedMeasure: true
-          }
-        ]
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.normalizedMeasure = 0.85;
@@ -409,9 +409,9 @@ describe("Global Objective Mapping Tests", () => {
           {
             targetObjectiveID: "SHARED_OBJECTIVE",
             writeNormalizedMeasure: true,
-            writeSatisfiedStatus: true
-          }
-        ]
+            writeSatisfiedStatus: true,
+          },
+        ],
       });
       activity1.primaryObjective = obj1;
       obj1.normalizedMeasure = 0.9;
@@ -427,9 +427,9 @@ describe("Global Objective Mapping Tests", () => {
           {
             targetObjectiveID: "SHARED_OBJECTIVE",
             readNormalizedMeasure: true,
-            readSatisfiedStatus: true
-          }
-        ]
+            readSatisfiedStatus: true,
+          },
+        ],
       });
       activity2.primaryObjective = obj2;
 
@@ -469,9 +469,9 @@ describe("Global Objective Mapping Tests", () => {
             readNormalizedMeasure: true,
             writeNormalizedMeasure: true,
             readSatisfiedStatus: true,
-            writeSatisfiedStatus: true
-          }
-        ]
+            writeSatisfiedStatus: true,
+          },
+        ],
       });
       activity1.primaryObjective = obj1;
       // Initialize from CMI data - marks objective as dirty so first write happens
@@ -513,9 +513,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_PRIMARY",
-            writeNormalizedMeasure: true
-          }
-        ]
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = primaryObj;
       primaryObj.normalizedMeasure = 0.8;
@@ -527,9 +527,9 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_SECONDARY",
-            writeNormalizedMeasure: true
-          }
-        ]
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       secondaryObj.normalizedMeasure = 0.6;
       secondaryObj.measureStatus = true;
@@ -558,9 +558,9 @@ describe("Global Objective Mapping Tests", () => {
           {
             targetObjectiveID: "COURSE_OBJECTIVE",
             readNormalizedMeasure: true,
-            writeNormalizedMeasure: true
-          }
-        ]
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       root.primaryObjective = rootObj;
       // Initialize from CMI data - marks objective as dirty so first write happens
@@ -601,9 +601,9 @@ describe("Global Objective Mapping Tests", () => {
           {
             targetObjectiveID: "GLOBAL_OBJ",
             readCompletionStatus: true,
-            writeCompletionStatus: true
-          }
-        ]
+            writeCompletionStatus: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.completionStatus = CompletionStatus.COMPLETED;
@@ -624,9 +624,9 @@ describe("Global Objective Mapping Tests", () => {
           {
             targetObjectiveID: "GLOBAL_OBJ",
             readProgressMeasure: true,
-            writeProgressMeasure: true
-          }
-        ]
+            writeProgressMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.progressMeasure = 0.75;
@@ -644,7 +644,7 @@ describe("Global Objective Mapping Tests", () => {
     it("should keep an objective local when no map info is provided", () => {
       const activity = new Activity("activity1");
       const objective = new ActivityObjective("obj1", {
-        isPrimary: true
+        isPrimary: true,
         // No mapInfo provided
       });
       activity.primaryObjective = objective;
@@ -667,13 +667,13 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ_A",
-            writeNormalizedMeasure: true
+            writeNormalizedMeasure: true,
           },
           {
             targetObjectiveID: "GLOBAL_OBJ_B",
-            writeNormalizedMeasure: true
-          }
-        ]
+            writeNormalizedMeasure: true,
+          },
+        ],
       });
       activity.primaryObjective = objective;
       objective.normalizedMeasure = 0.88;
@@ -697,10 +697,10 @@ describe("Global Objective Mapping Tests", () => {
         mapInfo: [
           {
             targetObjectiveID: "GLOBAL_OBJ",
-            readNormalizedMeasure: true
+            readNormalizedMeasure: true,
             // Note: no write permissions
-          }
-        ]
+          },
+        ],
       });
       activity.primaryObjective = objective;
 
@@ -712,7 +712,7 @@ describe("Global Objective Mapping Tests", () => {
         satisfiedStatus: true,
         satisfiedStatusKnown: true,
         readNormalizedMeasure: true,
-        writeNormalizedMeasure: false
+        writeNormalizedMeasure: false,
       });
 
       rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);

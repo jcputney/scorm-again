@@ -45,7 +45,6 @@ export class Sequencing extends BaseCMI {
     this._sequencingRules.initialize();
     this._sequencingControls.initialize();
     this._rollupRules.initialize();
-    
   }
 
   /**
@@ -183,7 +182,6 @@ export class Sequencing extends BaseCMI {
    */
   set adlNav(adlNav: ADLNav | null) {
     this._adlNav = adlNav;
-
   }
 
   /**
@@ -202,8 +200,6 @@ export class Sequencing extends BaseCMI {
     this._overallSequencingProcess = process;
   }
 
-
-
   /**
    * Process rollup for the entire activity tree
    */
@@ -217,7 +213,6 @@ export class Sequencing extends BaseCMI {
     // Process rollup from the bottom up
     this._processRollupRecursive(root);
   }
-
 
   /**
    * Process rollup recursively
@@ -233,7 +228,6 @@ export class Sequencing extends BaseCMI {
     // Process rollup for this activity
     this._rollupRules.processRollup(activity);
   }
-
 
   /**
    * Get the current activity

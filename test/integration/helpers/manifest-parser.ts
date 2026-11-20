@@ -130,7 +130,7 @@ export function parseManifest(manifestPath: string): ParsedManifest {
   // Parse organization-level sequencing controls
   const orgSequencing = orgElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "sequencing"
+    "sequencing",
   );
   let sequencingControls: SequencingControlsConfig | undefined;
   if (orgSequencing.length > 0) {
@@ -139,7 +139,7 @@ export function parseManifest(manifestPath: string): ParsedManifest {
 
   return {
     activityTree,
-    sequencingControls
+    sequencingControls,
   };
 }
 
@@ -147,16 +147,13 @@ export function parseManifest(manifestPath: string): ParsedManifest {
  * Parse sequencing collections from manifest
  */
 function parseSequencingCollections(
-  doc: Document
+  doc: Document,
 ): Map<string, SequencingRulesConfig & RollupRulesConfig> {
-  const collections = new Map<
-    string,
-    SequencingRulesConfig & RollupRulesConfig
-  >();
+  const collections = new Map<string, SequencingRulesConfig & RollupRulesConfig>();
 
   const collectionElements = doc.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "sequencingCollection"
+    "sequencingCollection",
   );
   if (collectionElements.length === 0) {
     return collections;
@@ -165,7 +162,7 @@ function parseSequencingCollections(
   const collection = collectionElements[0];
   const sequencingElements = collection.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "sequencing"
+    "sequencing",
   );
 
   for (let i = 0; i < sequencingElements.length; i++) {
@@ -178,11 +175,11 @@ function parseSequencingCollections(
     // Parse rollup rules
     const rollupRules = seqElement.getElementsByTagNameNS(
       "http://www.imsglobal.org/xsd/imsss",
-      "rollupRules"
+      "rollupRules",
     );
     if (rollupRules.length > 0) {
       config.objectiveMeasureWeight = parseFloat(
-        rollupRules[0].getAttribute("objectiveMeasureWeight") || "0"
+        rollupRules[0].getAttribute("objectiveMeasureWeight") || "0",
       );
     }
 
@@ -197,7 +194,7 @@ function parseSequencingCollections(
  */
 function parseActivityTree(
   orgElement: Element,
-  collections: Map<string, SequencingRulesConfig & RollupRulesConfig>
+  collections: Map<string, SequencingRulesConfig & RollupRulesConfig>,
 ): ActivityTreeConfig {
   const id = orgElement.getAttribute("identifier") || "";
   const titleElement = orgElement.getElementsByTagName("title")[0];
@@ -214,7 +211,7 @@ function parseActivityTree(
   return {
     id,
     title,
-    children
+    children,
   };
 }
 
@@ -223,7 +220,7 @@ function parseActivityTree(
  */
 function parseActivityItem(
   itemElement: Element,
-  collections: Map<string, SequencingRulesConfig & RollupRulesConfig>
+  collections: Map<string, SequencingRulesConfig & RollupRulesConfig>,
 ): ActivityTreeConfig {
   const id = itemElement.getAttribute("identifier") || "";
   const identifierref = itemElement.getAttribute("identifierref") || undefined;
@@ -243,7 +240,7 @@ function parseActivityItem(
   // Parse sequencing configuration
   const sequencingElement = itemElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "sequencing"
+    "sequencing",
   )[0];
 
   let sequencingRules: SequencingRulesConfig | undefined;
@@ -261,11 +258,11 @@ function parseActivityItem(
         sequencingRules = {
           preConditionRules: collection.preConditionRules,
           exitConditionRules: collection.exitConditionRules,
-          postConditionRules: collection.postConditionRules
+          postConditionRules: collection.postConditionRules,
         };
         rollupRules = {
           objectiveMeasureWeight: collection.objectiveMeasureWeight,
-          rollupRules: collection.rollupRules
+          rollupRules: collection.rollupRules,
         };
       }
     }
@@ -294,19 +291,17 @@ function parseActivityItem(
     sequencingRules,
     rollupRules,
     objectives,
-    sequencingCollectionRefs
+    sequencingCollectionRefs,
   };
 }
 
 /**
  * Parse sequencing rules from sequencing element
  */
-function parseSequencingRules(
-  sequencingElement: Element
-): SequencingRulesConfig | undefined {
+function parseSequencingRules(sequencingElement: Element): SequencingRulesConfig | undefined {
   const rulesElement = sequencingElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "sequencingRules"
+    "sequencingRules",
   )[0];
   if (!rulesElement) return undefined;
 
@@ -315,34 +310,28 @@ function parseSequencingRules(
   // Parse pre-condition rules
   const preRules = rulesElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "preConditionRule"
+    "preConditionRule",
   );
   if (preRules.length > 0) {
-    config.preConditionRules = Array.from(preRules).map((rule) =>
-      parseSequencingRule(rule)
-    );
+    config.preConditionRules = Array.from(preRules).map((rule) => parseSequencingRule(rule));
   }
 
   // Parse exit-condition rules
   const exitRules = rulesElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "exitConditionRule"
+    "exitConditionRule",
   );
   if (exitRules.length > 0) {
-    config.exitConditionRules = Array.from(exitRules).map((rule) =>
-      parseSequencingRule(rule)
-    );
+    config.exitConditionRules = Array.from(exitRules).map((rule) => parseSequencingRule(rule));
   }
 
   // Parse post-condition rules
   const postRules = rulesElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "postConditionRule"
+    "postConditionRule",
   );
   if (postRules.length > 0) {
-    config.postConditionRules = Array.from(postRules).map((rule) =>
-      parseSequencingRule(rule)
-    );
+    config.postConditionRules = Array.from(postRules).map((rule) => parseSequencingRule(rule));
   }
 
   return Object.keys(config).length > 0 ? config : undefined;
@@ -354,23 +343,21 @@ function parseSequencingRules(
 function parseSequencingRule(ruleElement: Element): SequencingRuleConfig {
   const actionElement = ruleElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "ruleAction"
+    "ruleAction",
   )[0];
   const action = actionElement?.getAttribute("action") || "";
 
   const conditionsElement = ruleElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "ruleConditions"
+    "ruleConditions",
   )[0];
   const conditionCombination =
-    (conditionsElement?.getAttribute("conditionCombination") as
-      | "all"
-      | "any") || "all";
+    (conditionsElement?.getAttribute("conditionCombination") as "all" | "any") || "all";
 
   const conditions: RuleConditionConfig[] = [];
   const conditionElements = conditionsElement?.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "ruleCondition"
+    "ruleCondition",
   );
   if (conditionElements) {
     for (let i = 0; i < conditionElements.length; i++) {
@@ -378,7 +365,7 @@ function parseSequencingRule(ruleElement: Element): SequencingRuleConfig {
       conditions.push({
         condition: cond.getAttribute("condition") || "",
         operator: (cond.getAttribute("operator") as "not" | "noOp") || "noOp",
-        referencedObjective: cond.getAttribute("referencedObjective") || undefined
+        referencedObjective: cond.getAttribute("referencedObjective") || undefined,
       });
     }
   }
@@ -386,29 +373,27 @@ function parseSequencingRule(ruleElement: Element): SequencingRuleConfig {
   return {
     action,
     conditionCombination,
-    conditions
+    conditions,
   };
 }
 
 /**
  * Parse rollup rules
  */
-function parseRollupRules(
-  sequencingElement: Element
-): RollupRulesConfig | undefined {
+function parseRollupRules(sequencingElement: Element): RollupRulesConfig | undefined {
   const rollupRulesElement = sequencingElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "rollupRules"
+    "rollupRules",
   )[0];
   if (!rollupRulesElement) return undefined;
 
   const objectiveMeasureWeight = parseFloat(
-    rollupRulesElement.getAttribute("objectiveMeasureWeight") || "0"
+    rollupRulesElement.getAttribute("objectiveMeasureWeight") || "0",
   );
 
   const rollupRuleElements = rollupRulesElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "rollupRule"
+    "rollupRule",
   );
   const rollupRules: RollupRuleConfig[] = [];
   for (let i = 0; i < rollupRuleElements.length; i++) {
@@ -420,23 +405,23 @@ function parseRollupRules(
     const conditions: RollupConditionConfig[] = [];
     const conditionsElement = rule.getElementsByTagNameNS(
       "http://www.imsglobal.org/xsd/imsss",
-      "rollupConditions"
+      "rollupConditions",
     )[0];
     if (conditionsElement) {
       const conditionElements = conditionsElement.getElementsByTagNameNS(
         "http://www.imsglobal.org/xsd/imsss",
-        "rollupCondition"
+        "rollupCondition",
       );
       for (let j = 0; j < conditionElements.length; j++) {
         conditions.push({
-          condition: conditionElements[j].getAttribute("condition") || ""
+          condition: conditionElements[j].getAttribute("condition") || "",
         });
       }
     }
 
     const actionElement = rule.getElementsByTagNameNS(
       "http://www.imsglobal.org/xsd/imsss",
-      "rollupAction"
+      "rollupAction",
     )[0];
     const action = actionElement?.getAttribute("action") || "";
 
@@ -444,13 +429,13 @@ function parseRollupRules(
       childActivitySet,
       conditionCombination,
       conditions,
-      action
+      action,
     });
   }
 
   return {
     objectiveMeasureWeight,
-    rollupRules: rollupRules.length > 0 ? rollupRules : undefined
+    rollupRules: rollupRules.length > 0 ? rollupRules : undefined,
   };
 }
 
@@ -461,14 +446,14 @@ function parseObjectives(sequencingElement: Element): ObjectiveConfig[] {
   const objectives: ObjectiveConfig[] = [];
   const objectivesElement = sequencingElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "objectives"
+    "objectives",
   )[0];
   if (!objectivesElement) return objectives;
 
   // Parse primary objective
   const primaryObjective = objectivesElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "primaryObjective"
+    "primaryObjective",
   )[0];
   if (primaryObjective) {
     const objectiveID = primaryObjective.getAttribute("objectiveID") || "";
@@ -476,14 +461,14 @@ function parseObjectives(sequencingElement: Element): ObjectiveConfig[] {
     objectives.push({
       objectiveID,
       isPrimary: true,
-      mapInfo
+      mapInfo,
     });
   }
 
   // Parse other objectives
   const objectiveElements = objectivesElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "objective"
+    "objective",
   );
   for (let i = 0; i < objectiveElements.length; i++) {
     const obj = objectiveElements[i];
@@ -492,7 +477,7 @@ function parseObjectives(sequencingElement: Element): ObjectiveConfig[] {
     objectives.push({
       objectiveID,
       isPrimary: false,
-      mapInfo
+      mapInfo,
     });
   }
 
@@ -502,45 +487,33 @@ function parseObjectives(sequencingElement: Element): ObjectiveConfig[] {
 /**
  * Parse mapInfo elements
  */
-function parseMapInfo(
-  objectiveElement: Element
-): ObjectiveMapInfoConfig[] | undefined {
+function parseMapInfo(objectiveElement: Element): ObjectiveMapInfoConfig[] | undefined {
   const mapInfoElements = objectiveElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "mapInfo"
+    "mapInfo",
   );
   if (mapInfoElements.length === 0) return undefined;
 
   return Array.from(mapInfoElements).map((mapInfo) => ({
     targetObjectiveID: mapInfo.getAttribute("targetObjectiveID") || "",
-    readSatisfiedStatus:
-      mapInfo.getAttribute("readSatisfiedStatus") === "true",
-    writeSatisfiedStatus:
-      mapInfo.getAttribute("writeSatisfiedStatus") === "true",
-    readNormalizedMeasure:
-      mapInfo.getAttribute("readNormalizedMeasure") === "true",
-    writeNormalizedMeasure:
-      mapInfo.getAttribute("writeNormalizedMeasure") === "true",
-    readCompletionStatus:
-      mapInfo.getAttribute("readCompletionStatus") === "true",
-    writeCompletionStatus:
-      mapInfo.getAttribute("writeCompletionStatus") === "true",
-    readProgressMeasure:
-      mapInfo.getAttribute("readProgressMeasure") === "true",
-    writeProgressMeasure:
-      mapInfo.getAttribute("writeProgressMeasure") === "true"
+    readSatisfiedStatus: mapInfo.getAttribute("readSatisfiedStatus") === "true",
+    writeSatisfiedStatus: mapInfo.getAttribute("writeSatisfiedStatus") === "true",
+    readNormalizedMeasure: mapInfo.getAttribute("readNormalizedMeasure") === "true",
+    writeNormalizedMeasure: mapInfo.getAttribute("writeNormalizedMeasure") === "true",
+    readCompletionStatus: mapInfo.getAttribute("readCompletionStatus") === "true",
+    writeCompletionStatus: mapInfo.getAttribute("writeCompletionStatus") === "true",
+    readProgressMeasure: mapInfo.getAttribute("readProgressMeasure") === "true",
+    writeProgressMeasure: mapInfo.getAttribute("writeProgressMeasure") === "true",
   }));
 }
 
 /**
  * Parse sequencing controls
  */
-function parseSequencingControls(
-  sequencingElement: Element
-): SequencingControlsConfig {
+function parseSequencingControls(sequencingElement: Element): SequencingControlsConfig {
   const controlMode = sequencingElement.getElementsByTagNameNS(
     "http://www.imsglobal.org/xsd/imsss",
-    "controlMode"
+    "controlMode",
   )[0];
   if (!controlMode) return {};
 
@@ -552,9 +525,6 @@ function parseSequencingControls(
     useCurrentAttemptObjectiveInfo:
       controlMode.getAttribute("useCurrentAttemptObjectiveInfo") === "true",
     useCurrentAttemptProgressInfo:
-      controlMode.getAttribute("useCurrentAttemptProgressInfo") === "true"
+      controlMode.getAttribute("useCurrentAttemptProgressInfo") === "true",
   };
 }
-
-
-
