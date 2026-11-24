@@ -2562,12 +2562,13 @@ class DeliveryValidator {
     let result = true;
     let failureReason = "";
     if (activity.isActive || activity.isSuspended) {
-      if (emitEvent) this.fireEvent("onLimitConditionCheck", {
-        activity,
-        result: true,
-        failureReason: "",
-        attemptInProgress: true
-      });
+      if (emitEvent)
+        this.fireEvent("onLimitConditionCheck", {
+          activity,
+          result: true,
+          failureReason: "",
+          attemptInProgress: true
+        });
       return true;
     }
     if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
@@ -2624,19 +2625,20 @@ class DeliveryValidator {
         failureReason = "Time limit expired";
       }
     }
-    if (emitEvent) this.fireEvent("onLimitConditionCheck", {
-      activity,
-      result,
-      failureReason,
-      checks: {
-        attemptLimit: activity.attemptLimit,
-        attemptCount: activity.attemptCount,
-        attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
-        activityDurationLimit: activity.activityAbsoluteDurationLimit,
-        beginTimeLimit: activity.beginTimeLimit,
-        endTimeLimit: activity.endTimeLimit
-      }
-    });
+    if (emitEvent)
+      this.fireEvent("onLimitConditionCheck", {
+        activity,
+        result,
+        failureReason,
+        checks: {
+          attemptLimit: activity.attemptLimit,
+          attemptCount: activity.attemptCount,
+          attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
+          activityDurationLimit: activity.activityAbsoluteDurationLimit,
+          beginTimeLimit: activity.beginTimeLimit,
+          endTimeLimit: activity.endTimeLimit
+        }
+      });
     return result;
   }
   /**
@@ -2711,9 +2713,7 @@ class DeliveryValidator {
         case "audio-codec":
           return !!document.createElement("audio").canPlayType;
         case "flash-plugin":
-          return navigator.plugins && Array.from(navigator.plugins).some(
-            (plugin) => plugin.name === "Shockwave Flash"
-          );
+          return navigator.plugins && Array.from(navigator.plugins).some((plugin) => plugin.name === "Shockwave Flash");
         case "java-runtime":
           return navigator.plugins && Array.from(navigator.plugins).some((plugin) => plugin.name === "Java");
         case "high-bandwidth":
@@ -2911,8 +2911,7 @@ class DeliveryValidator {
                 case "objectiveStatusKnown":
                 case "objectiveSatisfied": {
                   const objectiveId = condition.referencedObjectiveID || activity.id;
-                  if (!this.isObjectiveDependencySatisfied(objectiveId))
-                    satisfied = false;
+                  if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
                   break;
                 }
                 case "attemptLimitExceeded":
@@ -2937,12 +2936,9 @@ class DeliveryValidator {
           if (rule.conditions && rule.conditions.length > 0) {
             for (const condition of rule.conditions) {
               const conditionType = condition.conditionType || condition.condition;
-              if (["objectiveStatusKnown", "objectiveSatisfied"].includes(
-                conditionType
-              )) {
+              if (["objectiveStatusKnown", "objectiveSatisfied"].includes(conditionType)) {
                 const objectiveId = condition.referencedObjectiveID || activity.id;
-                if (!this.isObjectiveDependencySatisfied(objectiveId))
-                  satisfied = false;
+                if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
               }
             }
           }
@@ -3220,10 +3216,7 @@ class ChoiceConstraintValidator {
     if (!choiceExitValidation.valid) {
       return choiceExitValidation;
     }
-    const ancestorValidation = this.validateAncestorConstraints(
-      currentActivity,
-      targetActivity
-    );
+    const ancestorValidation = this.validateAncestorConstraints(currentActivity, targetActivity);
     if (!ancestorValidation.valid) {
       return ancestorValidation;
     }
@@ -3590,11 +3583,9 @@ function validateConstrainedChoice(current, target) {
     return false;
   };
   const constrained = currentPath.slice(1, currentPath.indexOf(common)).find((activity) => activity.sequencingControls.constrainChoice);
-  if (!constrained || contains(constrained, target) || contains(target, constrained))
-    return true;
+  if (!constrained || contains(constrained, target) || contains(target, constrained)) return true;
   const branch = (activity) => {
-    while (activity.parent && activity.parent !== common)
-      activity = activity.parent;
+    while (activity.parent && activity.parent !== common) activity = activity.parent;
     return activity;
   };
   const forward = common.children.indexOf(branch(target)) > common.children.indexOf(branch(current));
@@ -4530,7 +4521,10 @@ class FlowTraversalService {
     const skippedRules = activity.sequencingRules.preConditionRules.filter(
       (rule) => rule.action === RuleActionType.SKIP
     );
-    const wasSkipped = this.ruleEngine.checkSequencingRules(this.getActivityForEvaluation(activity), skippedRules) === RuleActionType.SKIP;
+    const wasSkipped = this.ruleEngine.checkSequencingRules(
+      this.getActivityForEvaluation(activity),
+      skippedRules
+    ) === RuleActionType.SKIP;
     activity.wasSkipped = wasSkipped;
     return wasSkipped;
   }
@@ -5417,7 +5411,10 @@ class SequencingProcess {
           () => this.ruleEngine
         );
         for (let activity = jumpTarget; activity; activity = activity.parent) {
-          const evaluationActivity = this.traversalService.getActivityForEvaluation(activity, jumpTarget);
+          const evaluationActivity = this.traversalService.getActivityForEvaluation(
+            activity,
+            jumpTarget
+          );
           if (!validator.checkActivity(activity, evaluationActivity, false)) {
             return { valid: false, exception: "DB.1.1-3" };
           }
@@ -11382,12 +11379,7 @@ class GlobalObjectiveSynchronizer {
    * @spec SCORM 2004 SN 4th Ed. DB.2 and 3.10.3 Objective Map read timing
    */
   syncGlobalObjectivesDeliveryReadPhase(activity, globalObjectives) {
-    return this.syncGlobalObjectivesReadPhaseInternal(
-      activity,
-      globalObjectives,
-      void 0,
-      true
-    );
+    return this.syncGlobalObjectivesReadPhaseInternal(activity, globalObjectives, void 0, true);
   }
   /**
    * Read only objective fields freshly written by a terminating descendant.
@@ -14070,12 +14062,7 @@ class NavigationValidityService {
     if (currentActivity !== null) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-1");
     }
-    return new NavigationRequestResult(
-      true,
-      null,
-      SequencingRequestType.START,
-      null
-    );
+    return new NavigationRequestResult(true, null, SequencingRequestType.START, null);
   }
   /**
    * Validate RESUME_ALL request
@@ -14087,12 +14074,7 @@ class NavigationValidityService {
     if (this.activityTree.suspendedActivity === null) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-3");
     }
-    return new NavigationRequestResult(
-      true,
-      null,
-      SequencingRequestType.RESUME_ALL,
-      null
-    );
+    return new NavigationRequestResult(true, null, SequencingRequestType.RESUME_ALL, null);
   }
   /**
    * Validate CONTINUE request
@@ -14124,13 +14106,7 @@ class NavigationValidityService {
     }
     const forwardOnlyValidation = this.validateForwardOnlyConstraints(currentActivity);
     if (!forwardOnlyValidation.valid) {
-      return new NavigationRequestResult(
-        false,
-        null,
-        null,
-        null,
-        forwardOnlyValidation.exception
-      );
+      return new NavigationRequestResult(false, null, null, null, forwardOnlyValidation.exception);
     }
     const previousTerminationRequest = currentActivity.isActive ? SequencingRequestType.EXIT : null;
     return new NavigationRequestResult(
@@ -14151,18 +14127,9 @@ class NavigationValidityService {
     if (!targetActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-10");
     }
-    const choiceValidation = this.validateChoicePath(
-      currentActivity,
-      targetActivity
-    );
+    const choiceValidation = this.validateChoicePath(currentActivity, targetActivity);
     if (!choiceValidation.valid) {
-      return new NavigationRequestResult(
-        false,
-        null,
-        null,
-        null,
-        choiceValidation.exception
-      );
+      return new NavigationRequestResult(false, null, null, null, choiceValidation.exception);
     }
     return new NavigationRequestResult(
       true,
@@ -14178,12 +14145,7 @@ class NavigationValidityService {
     if (!targetActivityId) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-12");
     }
-    return new NavigationRequestResult(
-      true,
-      null,
-      SequencingRequestType.JUMP,
-      targetActivityId
-    );
+    return new NavigationRequestResult(true, null, SequencingRequestType.JUMP, targetActivityId);
   }
   /**
    * Validate EXIT request
@@ -14193,19 +14155,9 @@ class NavigationValidityService {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-13");
     }
     if (currentActivity === this.activityTree.root) {
-      return new NavigationRequestResult(
-        true,
-        SequencingRequestType.EXIT_ALL,
-        null,
-        null
-      );
+      return new NavigationRequestResult(true, SequencingRequestType.EXIT_ALL, null, null);
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.EXIT,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.EXIT, null, null);
   }
   /**
    * Validate EXIT_ALL request
@@ -14214,12 +14166,7 @@ class NavigationValidityService {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-14");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.EXIT_ALL,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.EXIT_ALL, null, null);
   }
   /**
    * Validate ABANDON request
@@ -14228,12 +14175,7 @@ class NavigationValidityService {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-15");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.ABANDON,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.ABANDON, null, null);
   }
   /**
    * Validate ABANDON_ALL request
@@ -14242,12 +14184,7 @@ class NavigationValidityService {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-16");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.ABANDON_ALL,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.ABANDON_ALL, null, null);
   }
   /**
    * Validate SUSPEND_ALL request
@@ -14256,12 +14193,7 @@ class NavigationValidityService {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-17");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.SUSPEND_ALL,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.SUSPEND_ALL, null, null);
   }
   /**
    * Enhanced Complex Choice Path Validation
@@ -14284,10 +14216,7 @@ class NavigationValidityService {
       return { valid: false, exception: "NB.2.1-11" };
     }
     if (currentActivity) {
-      const commonAncestor = this.findCommonAncestor(
-        currentActivity,
-        targetActivity
-      );
+      const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
       if (!commonAncestor) {
         return { valid: false, exception: "NB.2.1-11" };
       }
@@ -14566,10 +14495,7 @@ class NavigationValidityService {
     const choiceMap = {};
     const jumpMap = {};
     for (const act of allActivities) {
-      const choiceRes = this.validateRequest(
-        "choice" /* CHOICE */,
-        act.id
-      );
+      const choiceRes = this.validateRequest("choice" /* CHOICE */, act.id);
       choiceMap[act.id] = choiceRes.valid ? "true" : "false";
       jumpMap[act.id] = this.predictJumpEnabled(act.id) ? "true" : "false";
     }
@@ -15441,11 +15367,7 @@ class OverallSequencingProcess {
         return {
           navigationRequest,
           navResult,
-          deliveryRequest: new DeliveryRequest(
-            false,
-            null,
-            termResult.exception || "TB.2.3-1"
-          ),
+          deliveryRequest: new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1"),
           sessionEndReason: null
         };
       }
@@ -19212,7 +19134,11 @@ class CMICore extends BaseCMI {
         scorm12_errors.READ_ONLY_ELEMENT
       );
     } else {
-      if (check12ValidFormat(this._cmi_element + ".lesson_mode", lesson_mode, scorm12_regex.CMILessonMode)) {
+      if (check12ValidFormat(
+        this._cmi_element + ".lesson_mode",
+        lesson_mode,
+        scorm12_regex.CMILessonMode
+      )) {
         this._lesson_mode = lesson_mode;
       }
     }
@@ -22040,9 +21966,7 @@ class CMIObjectives extends CMIArray {
    * Find an objective by its ID
    */
   findObjectiveById(id) {
-    return this.childArray.find(
-      (objective) => objective.id === id
-    );
+    return this.childArray.find((objective) => objective.id === id);
   }
   /**
    * Find objective by its index
@@ -22269,7 +22193,8 @@ class CMIObjectivesObject extends BaseCMI {
     if (typeof data.id === "string") this.id = data.id;
     if (typeof data.success_status === "string") this.success_status = data.success_status;
     if (typeof data.completion_status === "string") this.completion_status = data.completion_status;
-    if (typeof data.progress_measure !== "undefined") this.progress_measure = String(data.progress_measure);
+    if (typeof data.progress_measure !== "undefined")
+      this.progress_measure = String(data.progress_measure);
     if (typeof data.description === "string") this.description = data.description;
     if (data.score && typeof data.score === "object") {
       if (typeof data.score.scaled !== "undefined") this.score.scaled = String(data.score.scaled);
@@ -22798,7 +22723,9 @@ class CMISettings extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT
       );
     }
-    if (!/^(exit,message|exit,no message|continue,message|continue,no message)$/.test(time_limit_action)) {
+    if (!/^(exit,message|exit,no message|continue,message|continue,no message)$/.test(
+      time_limit_action
+    )) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".time_limit_action",
         scorm2004_errors.TYPE_MISMATCH

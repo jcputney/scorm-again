@@ -4956,7 +4956,11 @@ class CMICore extends BaseCMI {
         scorm12_errors.READ_ONLY_ELEMENT
       );
     } else {
-      if (check12ValidFormat(this._cmi_element + ".lesson_mode", lesson_mode, scorm12_regex.CMILessonMode)) {
+      if (check12ValidFormat(
+        this._cmi_element + ".lesson_mode",
+        lesson_mode,
+        scorm12_regex.CMILessonMode
+      )) {
         this._lesson_mode = lesson_mode;
       }
     }
