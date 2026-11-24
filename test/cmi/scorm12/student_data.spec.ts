@@ -69,7 +69,12 @@ describe("CMIStudentData Edge Cases", () => {
     });
 
     it("should accept valid time limit actions", () => {
-      const validActions = ["exit,message", "exit,no message", "continue,message", "continue,no message"];
+      const validActions = [
+        "exit,message",
+        "exit,no message",
+        "continue,message",
+        "continue,no message",
+      ];
 
       validActions.forEach((action) => {
         studentData.time_limit_action = action;
@@ -174,7 +179,7 @@ describe("CMIStudentData Edge Cases", () => {
       expect(json).toEqual({
         mastery_score: "",
         max_time_allowed: "",
-        time_limit_action: ""
+        time_limit_action: "",
       });
     });
 
@@ -187,7 +192,7 @@ describe("CMIStudentData Edge Cases", () => {
       expect(json).toEqual({
         mastery_score: "80",
         max_time_allowed: "01:00:00",
-        time_limit_action: "exit,message"
+        time_limit_action: "exit,message",
       });
     });
 
@@ -199,7 +204,7 @@ describe("CMIStudentData Edge Cases", () => {
       expect(json).toEqual({
         mastery_score: "75",
         max_time_allowed: "",
-        time_limit_action: ""
+        time_limit_action: "",
       });
     });
   });

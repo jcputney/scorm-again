@@ -1,4 +1,7 @@
-import { findPreventingActivationAncestor, validateConstrainedChoice } from "../validators/choice_constraint_validator";
+import {
+  findPreventingActivationAncestor,
+  validateConstrainedChoice,
+} from "../validators/choice_constraint_validator";
 import { Activity } from "../activity";
 import { ActivityTree } from "../activity_tree";
 import { SequencingProcess, SequencingRequestType } from "../sequencing_process";
@@ -44,7 +47,7 @@ export class NavigationRequestResult {
     terminationRequest: SequencingRequestType | null = null,
     sequencingRequest: SequencingRequestType | null = null,
     targetActivityId: string | null = null,
-    exception: string | null = null
+    exception: string | null = null,
   ) {
     this.valid = valid;
     this.terminationRequest = terminationRequest;
@@ -75,18 +78,16 @@ export class NavigationValidityService {
   private adlNav: ADLNav | null;
   private eventCallback: ((eventType: string, data?: any) => void) | null;
   private navigationLookAhead: NavigationLookAhead;
-  private getEffectiveHideLmsUiCallback:
-    | ((activity: Activity | null) => HideLmsUiItem[])
-    | null = null;
+  private getEffectiveHideLmsUiCallback: ((activity: Activity | null) => HideLmsUiItem[]) | null =
+    null;
   private getEffectiveAuxiliaryResourcesCallback:
-    | ((activity: Activity | null) => AuxiliaryResource[])
-    | null = null;
+    ((activity: Activity | null) => AuxiliaryResource[]) | null = null;
 
   constructor(
     activityTree: ActivityTree,
     sequencingProcess: SequencingProcess,
     adlNav: ADLNav | null = null,
-    eventCallback: ((eventType: string, data?: any) => void) | null = null
+    eventCallback: ((eventType: string, data?: any) => void) | null = null,
   ) {
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
@@ -99,7 +100,7 @@ export class NavigationValidityService {
    * Set callback to get effective hideLmsUi
    */
   public setGetEffectiveHideLmsUiCallback(
-    callback: (activity: Activity | null) => HideLmsUiItem[]
+    callback: (activity: Activity | null) => HideLmsUiItem[],
   ): void {
     this.getEffectiveHideLmsUiCallback = callback;
   }
@@ -128,7 +129,7 @@ export class NavigationValidityService {
    */
   public validateRequest(
     request: NavigationRequestType,
-    targetActivityId: string | null = null
+    targetActivityId: string | null = null,
   ): NavigationRequestResult {
     // Enhanced logging for debugging
     this.fireEvent("onNavigationRequestProcessing", { request, targetActivityId });
@@ -177,108 +178,73 @@ export class NavigationValidityService {
   /**
    * Validate START request
    */
-  private validateStartRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateStartRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (currentActivity !== null) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-1");
     }
-    return new NavigationRequestResult(
-      true,
-      null,
-      SequencingRequestType.START,
-      null
-    );
+    return new NavigationRequestResult(true, null, SequencingRequestType.START, null);
   }
 
   /**
    * Validate RESUME_ALL request
    */
-  private validateResumeRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateResumeRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (currentActivity !== null) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-2");
     }
     if (this.activityTree.suspendedActivity === null) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-3");
     }
-    return new NavigationRequestResult(
-      true,
-      null,
-      SequencingRequestType.RESUME_ALL,
-      null
-    );
+    return new NavigationRequestResult(true, null, SequencingRequestType.RESUME_ALL, null);
   }
 
   /**
    * Validate CONTINUE request
    */
-  private validateContinueRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateContinueRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-4");
     }
-    if (
-      !currentActivity.parent ||
-      !currentActivity.parent.sequencingControls.flow
-    ) {
+    if (!currentActivity.parent || !currentActivity.parent.sequencingControls.flow) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-5");
     }
 
     // Per NB.2.1 Step 3.2.1: Only terminate if current activity is active
-    const continueTerminationRequest = currentActivity.isActive
-      ? SequencingRequestType.EXIT
-      : null;
+    const continueTerminationRequest = currentActivity.isActive ? SequencingRequestType.EXIT : null;
 
     return new NavigationRequestResult(
       true,
       continueTerminationRequest,
       SequencingRequestType.CONTINUE,
-      null
+      null,
     );
   }
 
   /**
    * Validate PREVIOUS request
    */
-  private validatePreviousRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validatePreviousRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-6");
     }
-    if (
-      !currentActivity.parent ||
-      !currentActivity.parent.sequencingControls.flow
-    ) {
+    if (!currentActivity.parent || !currentActivity.parent.sequencingControls.flow) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-7");
     }
 
     // Enhanced Forward-Only Navigation Constraints - Check at multiple cluster levels
-    const forwardOnlyValidation =
-      this.validateForwardOnlyConstraints(currentActivity);
+    const forwardOnlyValidation = this.validateForwardOnlyConstraints(currentActivity);
     if (!forwardOnlyValidation.valid) {
-      return new NavigationRequestResult(
-        false,
-        null,
-        null,
-        null,
-        forwardOnlyValidation.exception
-      );
+      return new NavigationRequestResult(false, null, null, null, forwardOnlyValidation.exception);
     }
 
     // Per NB.2.1 Step 4.2.1.1: Only terminate if current activity is active
-    const previousTerminationRequest = currentActivity.isActive
-      ? SequencingRequestType.EXIT
-      : null;
+    const previousTerminationRequest = currentActivity.isActive ? SequencingRequestType.EXIT : null;
 
     return new NavigationRequestResult(
       true,
       previousTerminationRequest,
       SequencingRequestType.PREVIOUS,
-      null
+      null,
     );
   }
 
@@ -287,7 +253,7 @@ export class NavigationValidityService {
    */
   private validateChoiceRequest(
     currentActivity: Activity | null,
-    targetActivityId: string | null
+    targetActivityId: string | null,
   ): NavigationRequestResult {
     if (!targetActivityId) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-9");
@@ -298,18 +264,9 @@ export class NavigationValidityService {
     }
 
     // Enhanced Choice Path Validation
-    const choiceValidation = this.validateChoicePath(
-      currentActivity,
-      targetActivity
-    );
+    const choiceValidation = this.validateChoicePath(currentActivity, targetActivity);
     if (!choiceValidation.valid) {
-      return new NavigationRequestResult(
-        false,
-        null,
-        null,
-        null,
-        choiceValidation.exception
-      );
+      return new NavigationRequestResult(false, null, null, null, choiceValidation.exception);
     }
 
     // Per NB.2.1 Step 7.1.1.4: Only return EXIT if current activity is active
@@ -317,118 +274,71 @@ export class NavigationValidityService {
       true,
       currentActivity?.isActive ? SequencingRequestType.EXIT : null,
       SequencingRequestType.CHOICE,
-      targetActivityId
+      targetActivityId,
     );
   }
 
   /**
    * Validate JUMP request
    */
-  private validateJumpRequest(
-    targetActivityId: string | null
-  ): NavigationRequestResult {
+  private validateJumpRequest(targetActivityId: string | null): NavigationRequestResult {
     if (!targetActivityId) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-12");
     }
-    return new NavigationRequestResult(
-      true,
-      null,
-      SequencingRequestType.JUMP,
-      targetActivityId
-    );
+    return new NavigationRequestResult(true, null, SequencingRequestType.JUMP, targetActivityId);
   }
 
   /**
    * Validate EXIT request
    */
-  private validateExitRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateExitRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-13");
     }
     if (currentActivity === this.activityTree.root) {
-      return new NavigationRequestResult(
-        true,
-        SequencingRequestType.EXIT_ALL,
-        null,
-        null
-      );
+      return new NavigationRequestResult(true, SequencingRequestType.EXIT_ALL, null, null);
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.EXIT,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.EXIT, null, null);
   }
 
   /**
    * Validate EXIT_ALL request
    */
-  private validateExitAllRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateExitAllRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-14");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.EXIT_ALL,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.EXIT_ALL, null, null);
   }
 
   /**
    * Validate ABANDON request
    */
-  private validateAbandonRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateAbandonRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-15");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.ABANDON,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.ABANDON, null, null);
   }
 
   /**
    * Validate ABANDON_ALL request
    */
-  private validateAbandonAllRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateAbandonAllRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-16");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.ABANDON_ALL,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.ABANDON_ALL, null, null);
   }
 
   /**
    * Validate SUSPEND_ALL request
    */
-  private validateSuspendAllRequest(
-    currentActivity: Activity | null
-  ): NavigationRequestResult {
+  private validateSuspendAllRequest(currentActivity: Activity | null): NavigationRequestResult {
     if (!currentActivity) {
       return new NavigationRequestResult(false, null, null, null, "NB.2.1-17");
     }
-    return new NavigationRequestResult(
-      true,
-      SequencingRequestType.SUSPEND_ALL,
-      null,
-      null
-    );
+    return new NavigationRequestResult(true, SequencingRequestType.SUSPEND_ALL, null, null);
   }
 
   /**
@@ -440,7 +350,7 @@ export class NavigationValidityService {
    */
   public validateChoicePath(
     currentActivity: Activity | null,
-    targetActivity: Activity
+    targetActivity: Activity,
   ): { valid: boolean; exception: string | null } {
     // Check if target is hidden from choice or otherwise unavailable
     // Per NB.2.1 Step 7.1.1.1: Only check static properties here, not preconditions
@@ -465,10 +375,7 @@ export class NavigationValidityService {
     }
 
     if (currentActivity) {
-      const commonAncestor = this.findCommonAncestor(
-        currentActivity,
-        targetActivity
-      );
+      const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
       if (!commonAncestor) {
         return { valid: false, exception: "NB.2.1-11" };
       }
@@ -483,10 +390,7 @@ export class NavigationValidityService {
           node.sequencingControls &&
           node.sequencingControls.choiceExit === false
         ) {
-          if (
-            targetActivity !== node &&
-            !this.activityContains(node, targetActivity)
-          ) {
+          if (targetActivity !== node && !this.activityContains(node, targetActivity)) {
             return { valid: false, exception: "NB.2.1-11" };
           }
         }
@@ -497,7 +401,7 @@ export class NavigationValidityService {
       const constrainChoiceValidation = this.validateConstrainChoice(
         currentActivity,
         targetActivity,
-        commonAncestor
+        commonAncestor,
       );
       if (!constrainChoiceValidation.valid) {
         return constrainChoiceValidation;
@@ -507,7 +411,7 @@ export class NavigationValidityService {
       const choiceSetValidation = this.validateChoiceSet(
         currentActivity,
         targetActivity,
-        commonAncestor
+        commonAncestor,
       );
       if (!choiceSetValidation.valid) {
         return choiceSetValidation;
@@ -516,10 +420,7 @@ export class NavigationValidityService {
 
     // @spec SCORM 2004 SN 4th Ed. NB.2.1: choice control applies to the
     // target's immediate parent; higher ancestors govern their own child sets.
-    if (
-      targetActivity.parent &&
-      !targetActivity.parent.sequencingControls.choice
-    ) {
+    if (targetActivity.parent && !targetActivity.parent.sequencingControls.choice) {
       return { valid: false, exception: "NB.2.1-11" };
     }
 
@@ -565,7 +466,7 @@ export class NavigationValidityService {
   private validateConstrainChoice(
     currentActivity: Activity,
     targetActivity: Activity,
-    commonAncestor: Activity
+    commonAncestor: Activity,
   ): { valid: boolean; exception: string | null } {
     if (!validateConstrainedChoice(currentActivity, targetActivity)) {
       return { valid: false, exception: "NB.2.1-11" };
@@ -585,7 +486,7 @@ export class NavigationValidityService {
   private validateChoiceSet(
     _currentActivity: Activity,
     targetActivity: Activity,
-    commonAncestor: Activity
+    commonAncestor: Activity,
   ): { valid: boolean; exception: string | null } {
     // Check if target is within the valid choice set
     // Ensure the target is contained within the common ancestor's subtree
@@ -600,11 +501,7 @@ export class NavigationValidityService {
     // Per NB.2.1: Check availability, visibility, and precondition rules
     let node: Activity | null = targetActivity;
     while (node && node !== commonAncestor) {
-      if (
-        !node.isAvailable ||
-        node.isHiddenFromChoice ||
-        this.isActivityDisabled(node)
-      ) {
+      if (!node.isAvailable || node.isHiddenFromChoice || this.isActivityDisabled(node)) {
         return { valid: false, exception: "NB.2.1-11" };
       }
       node = node.parent;
@@ -645,10 +542,7 @@ export class NavigationValidityService {
    * @param {Activity} target - Target activity to find
    * @return {Activity | null} - Child activity containing target
    */
-  public findChildContaining(
-    parent: Activity,
-    target: Activity
-  ): Activity | null {
+  public findChildContaining(parent: Activity, target: Activity): Activity | null {
     for (const child of parent.children) {
       if (child === target) {
         return child;
@@ -680,10 +574,7 @@ export class NavigationValidityService {
   /**
    * Find common ancestor between two activities
    */
-  public findCommonAncestor(
-    activity1: Activity,
-    activity2: Activity
-  ): Activity | null {
+  public findCommonAncestor(activity1: Activity, activity2: Activity): Activity | null {
     // Get ancestors of activity1
     const ancestors1: Activity[] = [];
     let current: Activity | null = activity1;
@@ -714,7 +605,7 @@ export class NavigationValidityService {
   private validateAncestors(
     ancestor: Activity,
     currentActivity: Activity,
-    targetActivity: Activity
+    targetActivity: Activity,
   ): { valid: boolean; exception: string | null } {
     // @spec SCORM 2004 SN 4th Ed. NB.2.1: the target of a choice request may be the
     // common ancestor itself. Its parent's choice control governs that request; the
@@ -744,14 +635,11 @@ export class NavigationValidityService {
     }
 
     const traversalStopIndex = children.findIndex(
-      (child) => child?.sequencingControls.stopForwardTraversal
+      (child) => child?.sequencingControls.stopForwardTraversal,
     );
 
     // Current branch flagged stopForwardTraversal blocks moving past it
-    if (
-      currentTop.sequencingControls.stopForwardTraversal &&
-      targetIndex > currentIndex
-    ) {
+    if (currentTop.sequencingControls.stopForwardTraversal && targetIndex > currentIndex) {
       return { valid: false, exception: "NB.2.1-11" };
     }
 
@@ -774,10 +662,7 @@ export class NavigationValidityService {
           return { valid: false, exception: "NB.2.1-11" };
         }
 
-        if (
-          this.isActivityMandatory(between) &&
-          !this.isActivityCompleted(between)
-        ) {
+        if (this.isActivityMandatory(between) && !this.isActivityCompleted(between)) {
           return { valid: false, exception: "NB.2.1-11" };
         }
       }
@@ -841,9 +726,7 @@ export class NavigationValidityService {
    * @param {Activity} activity - Activity to evaluate
    * @return {string | null} - Rule result or null
    */
-  private evaluatePreConditionRulesForChoice(
-    activity: Activity
-  ): RuleActionType | string | null {
+  private evaluatePreConditionRulesForChoice(activity: Activity): RuleActionType | string | null {
     if (!activity.sequencingRules) {
       return null;
     }
@@ -893,10 +776,7 @@ export class NavigationValidityService {
     const choiceMap: Record<string, "true" | "false"> = {};
     const jumpMap: Record<string, "true" | "false"> = {};
     for (const act of allActivities) {
-      const choiceRes = this.validateRequest(
-        NavigationRequestType.CHOICE,
-        act.id
-      );
+      const choiceRes = this.validateRequest(NavigationRequestType.CHOICE, act.id);
       choiceMap[act.id] = choiceRes.valid ? "true" : "false";
       jumpMap[act.id] = this.predictJumpEnabled(act.id) ? "true" : "false";
     }

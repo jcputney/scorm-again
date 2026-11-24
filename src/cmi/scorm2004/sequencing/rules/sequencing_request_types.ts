@@ -42,7 +42,7 @@ export class SequencingResult {
     deliveryRequest: DeliveryRequestType = DeliveryRequestType.DO_NOT_DELIVER,
     targetActivity: Activity | null = null,
     exception: string | null = null,
-    endSequencingSession: boolean = false
+    endSequencingSession: boolean = false,
   ) {
     this.deliveryRequest = deliveryRequest;
     this.targetActivity = targetActivity;
@@ -65,7 +65,7 @@ export class FlowSubprocessResult {
     identifiedActivity: Activity | null,
     deliverable: boolean,
     exception: string | null = null,
-    endSequencingSession: boolean = false
+    endSequencingSession: boolean = false,
   ) {
     this.identifiedActivity = identifiedActivity;
     this.deliverable = deliverable;

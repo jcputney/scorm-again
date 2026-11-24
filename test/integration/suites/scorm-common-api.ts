@@ -7,7 +7,7 @@ import {
   initializeApi,
   setCmiValue,
   terminateApi,
-  waitForPageReady
+  waitForPageReady,
 } from "../helpers/scorm-common-helpers";
 
 export type WrapperConfig = {
@@ -27,10 +27,7 @@ export type ModuleConfig = {
  *
  * Note: This function should be called within an existing test.describe block
  */
-export function scormCommonApiTests(
-  wrapper: WrapperConfig,
-  module: ModuleConfig
-) {
+export function scormCommonApiTests(wrapper: WrapperConfig, module: ModuleConfig) {
   // Tests are added to the current describe block context
   test("should initialize API and load module", async ({ page }) => {
     // Listen for console errors
@@ -68,7 +65,7 @@ export function scormCommonApiTests(
       (err) =>
         !err.includes("404") &&
         !err.includes("favicon") &&
-        !err.includes("Failed to load resource")
+        !err.includes("Failed to load resource"),
     );
     // Log errors for debugging but don't fail on them if they're just resource loading issues
     if (criticalErrors.length > 0) {
@@ -112,20 +109,20 @@ export function scormCommonApiTests(
             setValue: api.LMSSetValue("cmi.invalid_element", "test"),
             errorCode: api.LMSGetLastError().toString(),
             errorString: api.LMSGetErrorString(api.LMSGetLastError().toString()),
-            diagnostic: api.LMSGetDiagnostic(api.LMSGetLastError().toString())
+            diagnostic: api.LMSGetDiagnostic(api.LMSGetLastError().toString()),
           };
         } else if (apiName === "API_1484_11") {
           results.invalidElement = {
             setValue: api.lmsSetValue("cmi.invalid_element", "test"),
             errorCode: api.lmsGetLastError().toString(),
             errorString: api.lmsGetErrorString(api.lmsGetLastError().toString()),
-            diagnostic: api.lmsGetDiagnostic(api.lmsGetLastError().toString())
+            diagnostic: api.lmsGetDiagnostic(api.lmsGetLastError().toString()),
           };
         }
 
         return results;
       },
-      { apiName: module.apiName }
+      { apiName: module.apiName },
     );
 
     // Verify invalid element error
@@ -182,9 +179,7 @@ export function scormCommonApiTests(
           results.validGetError = api.LMSGetLastError().toString();
           results.invalidGet = api.LMSGetValue("cmi.invalid_element");
           results.invalidGetError = api.LMSGetLastError().toString();
-          results.invalidGetErrorString = api.LMSGetErrorString(
-            results.invalidGetError
-          );
+          results.invalidGetErrorString = api.LMSGetErrorString(results.invalidGetError);
           results.validSet = api.LMSSetValue(setElement, "test");
           results.validSetError = api.LMSGetLastError().toString();
           results.invalidSet = api.LMSSetValue("cmi.invalid", "test");
@@ -207,7 +202,7 @@ export function scormCommonApiTests(
 
         return results;
       },
-      { apiName: module.apiName, validElement, setElement }
+      { apiName: module.apiName, validElement, setElement },
     );
 
     // Valid GetValue should succeed
@@ -234,7 +229,8 @@ export function scormCommonApiTests(
     // For SCORM 1.2, if the module initialized the API, there might be a persistent error
     // but a successful SetValue should clear it. However, if there's still an error,
     // it's likely a timing issue with module initialization
-    const expectedValidSetErrorCodes = module.apiName === "API_1484_11" ? ["0", "103"] : ["0", "101"];
+    const expectedValidSetErrorCodes =
+      module.apiName === "API_1484_11" ? ["0", "103"] : ["0", "101"];
     expect(expectedValidSetErrorCodes).toContain(errorCodeTests.validSetError);
 
     // Invalid SetValue should fail
@@ -305,7 +301,7 @@ export function scormCommonApiTests(
 
         return results;
       },
-      { apiName: module.apiName }
+      { apiName: module.apiName },
     );
 
     expect(diagnosticTests.diagnostic.length).toBeGreaterThan(0);
@@ -318,4 +314,3 @@ export function scormCommonApiTests(
     }
   });
 }
-

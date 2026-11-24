@@ -3,13 +3,13 @@ import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Exit Action Rules Subprocess (TB.2.1)", () => {

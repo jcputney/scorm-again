@@ -19,10 +19,7 @@ const SCORM2004_API_NAME = "API_1484_11" as const;
  *
  * Note: This function should be called within an existing test.describe block
  */
-export function scorm2004DataModelTests(
-  wrapper: WrapperConfig,
-  module: ModuleConfig
-) {
+export function scorm2004DataModelTests(wrapper: WrapperConfig, module: ModuleConfig) {
   // Tests are added to the current describe block context
   test("should handle data model interactions correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
@@ -37,25 +34,25 @@ export function scorm2004DataModelTests(
       // Test location
       results.location = {
         set: window.API_1484_11.lmsSetValue("cmi.location", "page-5"),
-        get: window.API_1484_11.lmsGetValue("cmi.location")
+        get: window.API_1484_11.lmsGetValue("cmi.location"),
       };
 
       // Test suspend data
       results.suspendData = {
         set: window.API_1484_11.lmsSetValue("cmi.suspend_data", "test_data_123"),
-        get: window.API_1484_11.lmsGetValue("cmi.suspend_data")
+        get: window.API_1484_11.lmsGetValue("cmi.suspend_data"),
       };
 
       // Test completion status
       results.completionStatus = {
         set: window.API_1484_11.lmsSetValue("cmi.completion_status", "incomplete"),
-        get: window.API_1484_11.lmsGetValue("cmi.completion_status")
+        get: window.API_1484_11.lmsGetValue("cmi.completion_status"),
       };
 
       // Test success status
       results.successStatus = {
         set: window.API_1484_11.lmsSetValue("cmi.success_status", "unknown"),
-        get: window.API_1484_11.lmsGetValue("cmi.success_status")
+        get: window.API_1484_11.lmsGetValue("cmi.success_status"),
       };
 
       // Test score
@@ -67,7 +64,7 @@ export function scorm2004DataModelTests(
         setMin: window.API_1484_11.lmsSetValue("cmi.score.min", "0"),
         getMin: window.API_1484_11.lmsGetValue("cmi.score.min"),
         setMax: window.API_1484_11.lmsSetValue("cmi.score.max", "100"),
-        getMax: window.API_1484_11.lmsGetValue("cmi.score.max")
+        getMax: window.API_1484_11.lmsGetValue("cmi.score.max"),
       };
 
       // Test session time (write-only, so we can set it but not read it directly)
@@ -75,7 +72,7 @@ export function scorm2004DataModelTests(
         set: window.API_1484_11.lmsSetValue("cmi.session_time", "PT5M30S"),
         // session_time is write-only in SCORM 2004, so GetValue will return empty or false
         getAttempt: window.API_1484_11.lmsGetValue("cmi.session_time"),
-        getError: window.API_1484_11.lmsGetLastError()
+        getError: window.API_1484_11.lmsGetLastError(),
       };
 
       return results;
@@ -127,25 +124,25 @@ export function scorm2004DataModelTests(
       // Test audio_level (0.0 to 1.0)
       results.audioLevel = {
         set: window.API_1484_11.lmsSetValue("cmi.learner_preference.audio_level", "0.75"),
-        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.audio_level")
+        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.audio_level"),
       };
 
       // Test audio_captioning (0 or 1, where 0=false, 1=true)
       results.audioCaptioning = {
         set: window.API_1484_11.lmsSetValue("cmi.learner_preference.audio_captioning", "1"),
-        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.audio_captioning")
+        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.audio_captioning"),
       };
 
       // Test delivery_speed (0.0 to 1.0)
       results.deliverySpeed = {
         set: window.API_1484_11.lmsSetValue("cmi.learner_preference.delivery_speed", "1.0"),
-        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.delivery_speed")
+        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.delivery_speed"),
       };
 
       // Test language (ISO 639 language code)
       results.language = {
         set: window.API_1484_11.lmsSetValue("cmi.learner_preference.language", "en-US"),
-        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.language")
+        get: window.API_1484_11.lmsGetValue("cmi.learner_preference.language"),
       };
 
       return results;
@@ -286,12 +283,10 @@ export function scorm2004DataModelTests(
       // Get children lists
       results.cmiChildren = window.API_1484_11.lmsGetValue("cmi._children");
       results.scoreChildren = window.API_1484_11.lmsGetValue("cmi.score._children");
-      results.interactionsChildren = window.API_1484_11.lmsGetValue(
-        "cmi.interactions._children"
-      );
+      results.interactionsChildren = window.API_1484_11.lmsGetValue("cmi.interactions._children");
       results.objectivesChildren = window.API_1484_11.lmsGetValue("cmi.objectives._children");
       results.commentsChildren = window.API_1484_11.lmsGetValue(
-        "cmi.comments_from_learner._children"
+        "cmi.comments_from_learner._children",
       );
 
       return results;
@@ -311,4 +306,3 @@ export function scorm2004DataModelTests(
     expect(childrenTests.interactionsChildren).toContain("type");
   });
 }
-

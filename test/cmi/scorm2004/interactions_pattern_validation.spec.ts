@@ -66,7 +66,9 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
         // Verbatim spec example: order_matters property delimiter, both records
         // omit the step_name ("[.]<answer>").
         correctResponse.pattern = "{order_matters=false}[.]drink coffee[,][.]eat cereal";
-        expect(correctResponse.pattern).toBe("{order_matters=false}[.]drink coffee[,][.]eat cereal");
+        expect(correctResponse.pattern).toBe(
+          "{order_matters=false}[.]drink coffee[,][.]eat cereal",
+        );
       });
 
       it("should accept a record with step_name only (empty step_answer)", () => {
@@ -316,12 +318,14 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
   });
 });
 
-
 describe("DMI correct response patterns", () => {
   it.each(["sequencing", "likert", "matching", "performance"])(
-    "%s rejects malformed identifier tokens", (type) => {
+    "%s rejects malformed identifier tokens",
+    (type) => {
       const response = new CMIInteractionsCorrectResponsesObject(type);
-      expect(() => { response.pattern = "{}{[]}{}{[]}{}"; }).toThrow(Scorm2004ValidationError);
+      expect(() => {
+        response.pattern = "{}{[]}{}{[]}{}";
+      }).toThrow(Scorm2004ValidationError);
     },
   );
   it.each([

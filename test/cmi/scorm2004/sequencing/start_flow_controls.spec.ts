@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -53,9 +53,7 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should succeed because root itself is deliverable (leaf)
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -247,9 +245,7 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should traverse to lesson1_1 as normal
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -276,9 +272,7 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should deliver first available lesson
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -308,9 +302,7 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should deliver one of the lessons (may be randomized)
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -340,9 +332,7 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - should deliver one of the lessons
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
@@ -400,9 +390,7 @@ describe("START Sequencing Request Process - Flow Controls", () => {
       sequencingProcess = new SequencingProcess(activityTree);
 
       // Execute
-      const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
-      );
+      const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
 
       // Verify - leaf activity should be deliverable regardless of flow setting
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);

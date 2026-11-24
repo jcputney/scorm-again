@@ -66,7 +66,7 @@ export class DeliveryValidator {
     activityTree: ActivityTree,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
     options?: { now?: () => Date },
-    ruleEngineProvider?: () => RuleEvaluationEngine
+    ruleEngineProvider?: () => RuleEvaluationEngine,
   ) {
     this.activityTree = activityTree;
     this.eventCallback = eventCallback;
@@ -161,9 +161,7 @@ export class DeliveryValidator {
    * @return {ConcurrentDeliveryResult} - Concurrency check result
    */
   public validateConcurrentDelivery(activity: Activity): ConcurrentDeliveryResult {
-    const contentDelivered = this.contentDeliveredGetter
-      ? this.contentDeliveredGetter()
-      : false;
+    const contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
 
     // Check if another delivery is currently in progress
     if (
@@ -243,7 +241,11 @@ export class DeliveryValidator {
    * @param {Activity} activity - The activity to check
    * @return {boolean} - True if activity is valid (not disabled, limits not violated)
    */
-  public checkActivity(activity: Activity, evaluationActivity = activity, emitEvent = true): boolean {
+  public checkActivity(
+    activity: Activity,
+    evaluationActivity = activity,
+    emitEvent = true,
+  ): boolean {
     // Retain the availability check in addition to the UP.5 rule checks.
     if (!activity.isAvailable) {
       return false;
@@ -251,9 +253,11 @@ export class DeliveryValidator {
 
     // UP.5 Step 1: Apply only Disabled rules so other actions cannot mask them.
     const disabledRules = activity.sequencingRules.preConditionRules.filter(
-      (rule) => rule.action === RuleActionType.DISABLED
+      (rule) => rule.action === RuleActionType.DISABLED,
     );
-    if (this.ruleEngineProvider().checkSequencingRules(evaluationActivity, disabledRules) !== null) {
+    if (
+      this.ruleEngineProvider().checkSequencingRules(evaluationActivity, disabledRules) !== null
+    ) {
       return false;
     }
 
@@ -284,12 +288,13 @@ export class DeliveryValidator {
     // limit conditions only apply to activities that will begin a new attempt, so they are not
     // violated by the attempt being continued (SB.2.6 Resume All, DB.2 step 5).
     if (activity.isActive || activity.isSuspended) {
-      if (emitEvent) this.fireEvent("onLimitConditionCheck", {
-        activity: activity,
-        result: true,
-        failureReason: "",
-        attemptInProgress: true,
-      });
+      if (emitEvent)
+        this.fireEvent("onLimitConditionCheck", {
+          activity: activity,
+          result: true,
+          failureReason: "",
+          attemptInProgress: true,
+        });
       return true;
     }
 
@@ -306,13 +311,13 @@ export class DeliveryValidator {
     if (result && activity.attemptAbsoluteDurationLimit) {
       const limitDuration = getDurationAsSeconds(
         activity.attemptAbsoluteDurationLimit,
-        scorm2004_regex.CMITimespan
+        scorm2004_regex.CMITimespan,
       );
       // Only check if there's an actual non-zero limit
       if (limitDuration > 0) {
         const currentDuration = getDurationAsSeconds(
           activity.attemptAbsoluteDurationValue || "PT0H0M0S",
-          scorm2004_regex.CMITimespan
+          scorm2004_regex.CMITimespan,
         );
         if (currentDuration >= limitDuration) {
           result = false;
@@ -326,13 +331,13 @@ export class DeliveryValidator {
     if (result && activity.activityAbsoluteDurationLimit) {
       const limitDuration = getDurationAsSeconds(
         activity.activityAbsoluteDurationLimit,
-        scorm2004_regex.CMITimespan
+        scorm2004_regex.CMITimespan,
       );
       // Only check if there's an actual non-zero limit
       if (limitDuration > 0) {
         const currentDuration = getDurationAsSeconds(
           activity.activityAbsoluteDurationValue || "PT0H0M0S",
-          scorm2004_regex.CMITimespan
+          scorm2004_regex.CMITimespan,
         );
         if (currentDuration >= limitDuration) {
           result = false;
@@ -362,19 +367,20 @@ export class DeliveryValidator {
     }
 
     // Fire limit condition check event
-    if (emitEvent) this.fireEvent("onLimitConditionCheck", {
-      activity: activity,
-      result: result,
-      failureReason: failureReason,
-      checks: {
-        attemptLimit: activity.attemptLimit,
-        attemptCount: activity.attemptCount,
-        attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
-        activityDurationLimit: activity.activityAbsoluteDurationLimit,
-        beginTimeLimit: activity.beginTimeLimit,
-        endTimeLimit: activity.endTimeLimit,
-      },
-    });
+    if (emitEvent)
+      this.fireEvent("onLimitConditionCheck", {
+        activity: activity,
+        result: result,
+        failureReason: failureReason,
+        checks: {
+          attemptLimit: activity.attemptLimit,
+          attemptCount: activity.attemptCount,
+          attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
+          activityDurationLimit: activity.activityAbsoluteDurationLimit,
+          beginTimeLimit: activity.beginTimeLimit,
+          endTimeLimit: activity.endTimeLimit,
+        },
+      });
 
     return result;
   }
@@ -407,10 +413,7 @@ export class DeliveryValidator {
     return activeActivities;
   }
 
-  private collectActiveActivities(
-    activity: Activity,
-    activeActivities: Activity[]
-  ): void {
+  private collectActiveActivities(activity: Activity, activeActivities: Activity[]): void {
     if (activity.isActive) {
       activeActivities.push(activity);
     }
@@ -472,19 +475,17 @@ export class DeliveryValidator {
       switch (resource) {
         case "video-codec":
           // Check if HTML5 video is supported
-          return !!(document.createElement("video").canPlayType);
+          return !!document.createElement("video").canPlayType;
 
         case "audio-codec":
           // Check if HTML5 audio is supported
-          return !!(document.createElement("audio").canPlayType);
+          return !!document.createElement("audio").canPlayType;
 
         case "flash-plugin":
           // Check for Flash plugin (legacy support)
           return (
             navigator.plugins &&
-            Array.from(navigator.plugins).some(
-              (plugin) => plugin.name === "Shockwave Flash"
-            )
+            Array.from(navigator.plugins).some((plugin) => plugin.name === "Shockwave Flash")
           );
 
         case "java-runtime":
@@ -602,9 +603,7 @@ export class DeliveryValidator {
     }
 
     // Check for maintenance mode (would be set by LMS)
-    return !!(
-      typeof window !== "undefined" && (window as any).scormMaintenanceMode
-    );
+    return !!(typeof window !== "undefined" && (window as any).scormMaintenanceMode);
   }
 
   /**
@@ -630,11 +629,7 @@ export class DeliveryValidator {
     }
 
     // Check for sequencing control dependencies
-    if (
-      activity.parent &&
-      activity.sequencingControls &&
-      !activity.sequencingControls.choiceExit
-    ) {
+    if (activity.parent && activity.sequencingControls && !activity.sequencingControls.choiceExit) {
       const siblings = activity.parent.children;
       if (siblings) {
         const activityIndex = siblings.indexOf(activity);
@@ -660,10 +655,7 @@ export class DeliveryValidator {
   /**
    * Check if prerequisite is satisfied
    */
-  public isPrerequisiteSatisfied(
-    prerequisiteId: string,
-    _activity: Activity
-  ): boolean {
+  public isPrerequisiteSatisfied(prerequisiteId: string, _activity: Activity): boolean {
     const prerequisite = this.activityTree.getActivity(prerequisiteId);
     if (!prerequisite) {
       return false;
@@ -686,10 +678,7 @@ export class DeliveryValidator {
           dependencies.push((objective as any).globalObjectiveID);
         }
 
-        if (
-          !(objective as any).satisfiedByMeasure &&
-          (objective as any).readNormalizedMeasure
-        ) {
+        if (!(objective as any).satisfiedByMeasure && (objective as any).readNormalizedMeasure) {
           dependencies.push(objective.id + "_measure");
         }
       }
@@ -730,10 +719,7 @@ export class DeliveryValidator {
       const globalObjective = globalObjectives[objectiveId];
 
       if (globalObjective) {
-        return (
-          globalObjective.satisfied === true &&
-          globalObjective.statusKnown === true
-        );
+        return globalObjective.satisfied === true && globalObjective.statusKnown === true;
       }
     }
 
@@ -745,10 +731,7 @@ export class DeliveryValidator {
         const globalObjective = globalObjectives[baseObjectiveId];
 
         if (globalObjective) {
-          return (
-            globalObjective.measureKnown === true &&
-            globalObjective.normalizedMeasure >= 0
-          );
+          return globalObjective.measureKnown === true && globalObjective.normalizedMeasure >= 0;
         }
       }
     }
@@ -757,8 +740,7 @@ export class DeliveryValidator {
     const referencedActivity = this.activityTree.getActivity(objectiveId);
     if (referencedActivity) {
       return (
-        referencedActivity.objectiveSatisfiedStatus &&
-        referencedActivity.objectiveMeasureStatus
+        referencedActivity.objectiveSatisfiedStatus && referencedActivity.objectiveMeasureStatus
       );
     }
 
@@ -775,8 +757,7 @@ export class DeliveryValidator {
         for (const rule of activity.sequencingRules.preConditionRules) {
           if (rule.conditions && rule.conditions.length > 0) {
             for (const condition of rule.conditions) {
-              const conditionType =
-                (condition as any).conditionType || condition.condition;
+              const conditionType = (condition as any).conditionType || condition.condition;
 
               switch (conditionType) {
                 case "activityProgressKnown":
@@ -785,10 +766,8 @@ export class DeliveryValidator {
 
                 case "objectiveStatusKnown":
                 case "objectiveSatisfied": {
-                  const objectiveId =
-                    (condition as any).referencedObjectiveID || activity.id;
-                  if (!this.isObjectiveDependencySatisfied(objectiveId))
-                    satisfied = false;
+                  const objectiveId = (condition as any).referencedObjectiveID || activity.id;
+                  if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
                   break;
                 }
 
@@ -823,18 +802,11 @@ export class DeliveryValidator {
         for (const rule of activity.sequencingRules.exitConditionRules) {
           if (rule.conditions && rule.conditions.length > 0) {
             for (const condition of rule.conditions) {
-              const conditionType =
-                (condition as any).conditionType || condition.condition;
+              const conditionType = (condition as any).conditionType || condition.condition;
 
-              if (
-                ["objectiveStatusKnown", "objectiveSatisfied"].includes(
-                  conditionType
-                )
-              ) {
-                const objectiveId =
-                  (condition as any).referencedObjectiveID || activity.id;
-                if (!this.isObjectiveDependencySatisfied(objectiveId))
-                  satisfied = false;
+              if (["objectiveStatusKnown", "objectiveSatisfied"].includes(conditionType)) {
+                const objectiveId = (condition as any).referencedObjectiveID || activity.id;
+                if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
               }
             }
           }

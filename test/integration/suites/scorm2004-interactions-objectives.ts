@@ -17,10 +17,7 @@ export type ModuleConfig = {
  *
  * Note: This function should be called within an existing test.describe block
  */
-export function scorm2004InteractionsObjectivesTests(
-  wrapper: WrapperConfig,
-  module: ModuleConfig
-) {
+export function scorm2004InteractionsObjectivesTests(wrapper: WrapperConfig, module: ModuleConfig) {
   // Tests are added to the current describe block context
   test("should handle interactions array correctly", async ({ page }) => {
     await page.goto(`${wrapper.path}?module=${module.path}`);
@@ -33,29 +30,20 @@ export function scorm2004InteractionsObjectivesTests(
       const results: any = {};
 
       // Create an interaction
-      results.createId = window.API_1484_11.lmsSetValue(
-        "cmi.interactions.0.id",
-        "interaction_1"
-      );
-      results.setType = window.API_1484_11.lmsSetValue(
-        "cmi.interactions.0.type",
-        "choice"
-      );
+      results.createId = window.API_1484_11.lmsSetValue("cmi.interactions.0.id", "interaction_1");
+      results.setType = window.API_1484_11.lmsSetValue("cmi.interactions.0.type", "choice");
       results.setTimestamp = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.timestamp",
-        new Date().toISOString()
+        new Date().toISOString(),
       );
       results.setLearnerResponse = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.learner_response",
-        "a"
+        "a",
       );
-      results.setResult = window.API_1484_11.lmsSetValue(
-        "cmi.interactions.0.result",
-        "correct"
-      );
+      results.setResult = window.API_1484_11.lmsSetValue("cmi.interactions.0.result", "correct");
       results.setCorrectResponse = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.correct_responses.0.pattern",
-        "a"
+        "a",
       );
 
       // Get interaction count (may return as number or string)
@@ -98,25 +86,19 @@ export function scorm2004InteractionsObjectivesTests(
       const results: any = {};
 
       // Create an objective
-      results.createId = window.API_1484_11.lmsSetValue(
-        "cmi.objectives.0.id",
-        "objective_1"
-      );
-      results.setScore = window.API_1484_11.lmsSetValue(
-        "cmi.objectives.0.score.raw",
-        "85"
-      );
+      results.createId = window.API_1484_11.lmsSetValue("cmi.objectives.0.id", "objective_1");
+      results.setScore = window.API_1484_11.lmsSetValue("cmi.objectives.0.score.raw", "85");
       results.setScoreScaled = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.score.scaled",
-        "0.85"
+        "0.85",
       );
       results.setSuccessStatus = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.success_status",
-        "passed"
+        "passed",
       );
       results.setCompletionStatus = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.completion_status",
-        "completed"
+        "completed",
       );
 
       // Get objective count
@@ -125,9 +107,7 @@ export function scorm2004InteractionsObjectivesTests(
       // Get objective data
       results.getId = window.API_1484_11.lmsGetValue("cmi.objectives.0.id");
       results.getScore = window.API_1484_11.lmsGetValue("cmi.objectives.0.score.raw");
-      results.getSuccessStatus = window.API_1484_11.lmsGetValue(
-        "cmi.objectives.0.success_status"
-      );
+      results.getSuccessStatus = window.API_1484_11.lmsGetValue("cmi.objectives.0.success_status");
 
       return results;
     });
@@ -162,29 +142,23 @@ export function scorm2004InteractionsObjectivesTests(
       // Add a comment
       results.setComment = window.API_1484_11.lmsSetValue(
         "cmi.comments_from_learner.0.comment",
-        "This is a test comment"
+        "This is a test comment",
       );
       results.setLocation = window.API_1484_11.lmsSetValue(
         "cmi.comments_from_learner.0.location",
-        "Page 1"
+        "Page 1",
       );
       results.setTimestamp = window.API_1484_11.lmsSetValue(
         "cmi.comments_from_learner.0.timestamp",
-        new Date().toISOString()
+        new Date().toISOString(),
       );
 
       // Get comment count
-      results.getCount = window.API_1484_11.lmsGetValue(
-        "cmi.comments_from_learner._count"
-      );
+      results.getCount = window.API_1484_11.lmsGetValue("cmi.comments_from_learner._count");
 
       // Get comment data
-      results.getComment = window.API_1484_11.lmsGetValue(
-        "cmi.comments_from_learner.0.comment"
-      );
-      results.getLocation = window.API_1484_11.lmsGetValue(
-        "cmi.comments_from_learner.0.location"
-      );
+      results.getComment = window.API_1484_11.lmsGetValue("cmi.comments_from_learner.0.comment");
+      results.getLocation = window.API_1484_11.lmsGetValue("cmi.comments_from_learner.0.location");
 
       return results;
     });
@@ -218,22 +192,22 @@ export function scorm2004InteractionsObjectivesTests(
       results.setType = window.API_1484_11.lmsSetValue("cmi.interactions.0.type", "choice");
       results.setTimestamp = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.timestamp",
-        new Date().toISOString()
+        new Date().toISOString(),
       );
       results.setLearnerResponse = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.learner_response",
-        "a"
+        "a",
       );
       results.setResult = window.API_1484_11.lmsSetValue("cmi.interactions.0.result", "correct");
       results.setWeighting = window.API_1484_11.lmsSetValue("cmi.interactions.0.weighting", "1.0");
       results.setLatency = window.API_1484_11.lmsSetValue("cmi.interactions.0.latency", "PT30S");
       results.setDescription = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.description",
-        "Test interaction description"
+        "Test interaction description",
       );
       results.setCorrectResponse = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.correct_responses.0.pattern",
-        "a"
+        "a",
       );
 
       // Get all fields
@@ -275,31 +249,31 @@ export function scorm2004InteractionsObjectivesTests(
       results.setId = window.API_1484_11.lmsSetValue("cmi.objectives.0.id", "objective_full");
       results.setDescription = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.description",
-        "Test objective description"
+        "Test objective description",
       );
       results.setScoreRaw = window.API_1484_11.lmsSetValue("cmi.objectives.0.score.raw", "90");
       results.setScoreScaled = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.score.scaled",
-        "0.9"
+        "0.9",
       );
       results.setSuccessStatus = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.success_status",
-        "passed"
+        "passed",
       );
       results.setCompletionStatus = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.completion_status",
-        "completed"
+        "completed",
       );
       results.setProgressMeasure = window.API_1484_11.lmsSetValue(
         "cmi.objectives.0.progress_measure",
-        "0.9"
+        "0.9",
       );
 
       // Get all fields
       results.getId = window.API_1484_11.lmsGetValue("cmi.objectives.0.id");
       results.getDescription = window.API_1484_11.lmsGetValue("cmi.objectives.0.description");
       results.getProgressMeasure = window.API_1484_11.lmsGetValue(
-        "cmi.objectives.0.progress_measure"
+        "cmi.objectives.0.progress_measure",
       );
 
       return results;
@@ -386,15 +360,13 @@ export function scorm2004InteractionsObjectivesTests(
       window.API_1484_11.lmsSetValue("cmi.interactions.0.type", "choice");
       results.setObjectiveId = window.API_1484_11.lmsSetValue(
         "cmi.interactions.0.objectives.0.id",
-        "objective_1"
+        "objective_1",
       );
 
       // Verify the link
-      results.getObjectiveId = window.API_1484_11.lmsGetValue(
-        "cmi.interactions.0.objectives.0.id"
-      );
+      results.getObjectiveId = window.API_1484_11.lmsGetValue("cmi.interactions.0.objectives.0.id");
       results.getObjectiveCount = window.API_1484_11.lmsGetValue(
-        "cmi.interactions.0.objectives._count"
+        "cmi.interactions.0.objectives._count",
       );
 
       return results;
@@ -405,4 +377,3 @@ export function scorm2004InteractionsObjectivesTests(
     expect(parseInt(linkingTests.getObjectiveCount, 10)).toBeGreaterThanOrEqual(1);
   });
 }
-

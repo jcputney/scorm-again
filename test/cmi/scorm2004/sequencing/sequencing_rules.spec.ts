@@ -582,7 +582,7 @@ describe("SequencingRules clocks", () => {
   );
 });
 
- describe("elapsed seconds hooks", () => {
+describe("elapsed seconds hooks", () => {
   it("uses an explicit hook for conditions and rules, with the static hook as fallback", () => {
     RuleCondition.setElapsedSecondsHook(() => 120);
     try {

@@ -4,7 +4,6 @@ import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_p
 import { CompletionStatus } from "../../../../src/constants/enums";
 
 describe("ActivityObjective Dirty Flag Tracking", () => {
-
   describe("initial state", () => {
     it("should not be dirty initially", () => {
       const objective = new ActivityObjective("test");
@@ -373,7 +372,7 @@ describe("Activity Objective Dirty Flag Tracking", () => {
         0.8, // normalizedMeasure
         0.5, // progressMeasure
         true, // progressMeasureStatus
-        CompletionStatus.COMPLETED
+        CompletionStatus.COMPLETED,
       );
 
       expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(true);
@@ -389,7 +388,7 @@ describe("Activity Objective Dirty Flag Tracking", () => {
         0, // normalizedMeasure - same as default
         0, // progressMeasure
         false, // progressMeasureStatus
-        CompletionStatus.UNKNOWN
+        CompletionStatus.UNKNOWN,
       );
 
       expect(activity.isObjectiveDirty("satisfiedStatus")).toBe(false);
@@ -401,14 +400,7 @@ describe("Activity Objective Dirty Flag Tracking", () => {
       const primaryObjective = new ActivityObjective("primary", { isPrimary: true });
       activity.primaryObjective = primaryObjective;
 
-      activity.setPrimaryObjectiveState(
-        true,
-        true,
-        0.9,
-        0.7,
-        true,
-        CompletionStatus.COMPLETED
-      );
+      activity.setPrimaryObjectiveState(true, true, 0.9, 0.7, true, CompletionStatus.COMPLETED);
 
       // Primary objective should have dirty flags set
       expect(primaryObjective.isDirty("satisfiedStatus")).toBe(true);
@@ -430,13 +422,15 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
     // Create objective with write permissions
     objective = new ActivityObjective("obj1", {
-      mapInfo: [{
-        targetObjectiveID: "global1",
-        writeSatisfiedStatus: true,
-        writeNormalizedMeasure: true,
-        readSatisfiedStatus: false,
-        readNormalizedMeasure: false
-      }]
+      mapInfo: [
+        {
+          targetObjectiveID: "global1",
+          writeSatisfiedStatus: true,
+          writeNormalizedMeasure: true,
+          readSatisfiedStatus: false,
+          readNormalizedMeasure: false,
+        },
+      ],
     });
 
     activity.addObjective(objective);
@@ -452,7 +446,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
         normalizedMeasure: 0.5,
         normalizedMeasureKnown: true,
         satisfiedByMeasure: false,
-        minNormalizedMeasure: 0.7
+        minNormalizedMeasure: 0.7,
       });
 
       // Set objective value but ensure it's not dirty
@@ -517,7 +511,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
         satisfiedStatusKnown: false,
         normalizedMeasure: 0.6,
         normalizedMeasureKnown: true,
-        satisfiedByMeasure: false
+        satisfiedByMeasure: false,
       });
 
       objective.normalizedMeasure = 0.85;
@@ -532,13 +526,15 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
     it("should handle multiple objectives with different dirty states", () => {
       const objective2 = new ActivityObjective("obj2", {
-        mapInfo: [{
-          targetObjectiveID: "global2",
-          writeSatisfiedStatus: true,
-          writeNormalizedMeasure: true,
-          readSatisfiedStatus: false,
-          readNormalizedMeasure: false
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global2",
+            writeSatisfiedStatus: true,
+            writeNormalizedMeasure: true,
+            readSatisfiedStatus: false,
+            readNormalizedMeasure: false,
+          },
+        ],
       });
       activity.addObjective(objective2);
 
@@ -578,10 +574,12 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
     it("should write completion status when dirty", () => {
       const objectiveWithCompletion = new ActivityObjective("obj3", {
-        mapInfo: [{
-          targetObjectiveID: "global3",
-          writeCompletionStatus: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global3",
+            writeCompletionStatus: true,
+          },
+        ],
       });
       activity.addObjective(objectiveWithCompletion);
 
@@ -597,10 +595,12 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
     it("should write progress measure when dirty", () => {
       const objectiveWithProgress = new ActivityObjective("obj4", {
-        mapInfo: [{
-          targetObjectiveID: "global4",
-          writeProgressMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global4",
+            writeProgressMeasure: true,
+          },
+        ],
       });
       activity.addObjective(objectiveWithProgress);
 
@@ -619,11 +619,13 @@ describe("Global Objective Sync with Dirty Flags", () => {
       const objectiveWithSBM = new ActivityObjective("obj5", {
         satisfiedByMeasure: true,
         minNormalizedMeasure: 0.7,
-        mapInfo: [{
-          targetObjectiveID: "global5",
-          writeNormalizedMeasure: true,
-          writeSatisfiedStatus: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global5",
+            writeNormalizedMeasure: true,
+            writeSatisfiedStatus: true,
+          },
+        ],
       });
       activity.addObjective(objectiveWithSBM);
 
@@ -655,25 +657,29 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
       // Activity 1 writes to global objective
       const obj1 = new ActivityObjective("obj1", {
-        mapInfo: [{
-          targetObjectiveID: "shared",
-          writeSatisfiedStatus: true,
-          writeNormalizedMeasure: true,
-          readSatisfiedStatus: false,
-          readNormalizedMeasure: false
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "shared",
+            writeSatisfiedStatus: true,
+            writeNormalizedMeasure: true,
+            readSatisfiedStatus: false,
+            readNormalizedMeasure: false,
+          },
+        ],
       });
       activity1.addObjective(obj1);
 
       // Activity 2 reads from global objective
       const obj2 = new ActivityObjective("obj2", {
-        mapInfo: [{
-          targetObjectiveID: "shared",
-          writeSatisfiedStatus: false,
-          writeNormalizedMeasure: false,
-          readSatisfiedStatus: true,
-          readNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "shared",
+            writeSatisfiedStatus: false,
+            writeNormalizedMeasure: false,
+            readSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+          },
+        ],
       });
       activity2.addObjective(obj2);
 
@@ -696,13 +702,15 @@ describe("Global Objective Sync with Dirty Flags", () => {
 
       // Objective that both reads and writes
       const obj = new ActivityObjective("obj1", {
-        mapInfo: [{
-          targetObjectiveID: "global",
-          writeSatisfiedStatus: true,
-          writeNormalizedMeasure: true,
-          readSatisfiedStatus: true,
-          readNormalizedMeasure: true
-        }]
+        mapInfo: [
+          {
+            targetObjectiveID: "global",
+            writeSatisfiedStatus: true,
+            writeNormalizedMeasure: true,
+            readSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+          },
+        ],
       });
       activity1.addObjective(obj);
 
@@ -713,7 +721,7 @@ describe("Global Objective Sync with Dirty Flags", () => {
         satisfiedStatusKnown: true,
         normalizedMeasure: 0.3,
         normalizedMeasureKnown: true,
-        satisfiedByMeasure: false
+        satisfiedByMeasure: false,
       });
 
       // Set local value (dirty)

@@ -101,10 +101,7 @@ export function compareScormTime(time1: string, time2: string): number {
  * @param maxTime Maximum allowed time
  * @returns true if currentTime >= maxTime
  */
-export function hasExceededTimeLimit(
-  currentTime: string,
-  maxTime: string,
-): boolean {
+export function hasExceededTimeLimit(currentTime: string, maxTime: string): boolean {
   return compareScormTime(currentTime, maxTime) >= 0;
 }
 

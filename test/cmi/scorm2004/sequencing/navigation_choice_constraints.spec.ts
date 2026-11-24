@@ -6,13 +6,13 @@ import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequ
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("OverallSequencingProcess choice constraints", () => {
@@ -65,7 +65,7 @@ describe("OverallSequencingProcess choice constraints", () => {
   });
 
   it("allows choice outside constrained branch", () => {
-      // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
+    // CM-16 Act2V2/Act3V1 and SB.2.9: common ancestor and above do not constrain choice.
     root.sequencingControls.constrainChoice = true;
 
     activityTree.currentActivity = leafA1;
@@ -121,7 +121,7 @@ describe("OverallSequencingProcess choice constraints", () => {
   });
 
   it("allows branch switch when preventActivation is set on ancestor", () => {
-      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
+    // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
     root.sequencingControls.preventActivation = true;
     activityTree.currentActivity = leafA1;
 
@@ -149,7 +149,7 @@ describe("OverallSequencingProcess choice constraints", () => {
   });
 
   it("allows sibling choice when preventActivation is set on cluster", () => {
-      // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
+    // CM-17a Act5V1 / CM-17b Act5V1: common active ancestor does not prevent sibling activation; activity state, not attempt count, gates inactive ancestors.
     clusterA.sequencingControls.preventActivation = true;
     activityTree.currentActivity = leafA1;
 

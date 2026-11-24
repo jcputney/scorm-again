@@ -27,10 +27,7 @@ import { ScoStateTracker } from "./sco_state_tracker";
  * Callback type for filtering available SCOs
  * Return true if the SCO should be available for navigation
  */
-export type ScoAvailabilityFilter = (
-  sco: ScoDefinition,
-  tracker: ScoStateTracker,
-) => boolean;
+export type ScoAvailabilityFilter = (sco: ScoDefinition, tracker: ScoStateTracker) => boolean;
 
 /**
  * Simple linear sequencer for SCORM 1.2 multi-SCO courses
@@ -54,9 +51,7 @@ export class Scorm12Sequencer {
     availabilityFilter?: ScoAvailabilityFilter,
   ) {
     // Sort by sequence index
-    this._scoList = [...scoList].sort(
-      (a, b) => a.sequenceIndex - b.sequenceIndex,
-    );
+    this._scoList = [...scoList].sort((a, b) => a.sequenceIndex - b.sequenceIndex);
     this._stateTracker = stateTracker;
     this._scoById = new Map(this._scoList.map((sco) => [sco.id, sco]));
     this._availabilityFilter = availabilityFilter;
@@ -94,9 +89,7 @@ export class Scorm12Sequencer {
       return this._getFirstAvailableSco();
     }
 
-    const currentIndex = this._scoList.findIndex(
-      (sco) => sco.id === currentScoId,
-    );
+    const currentIndex = this._scoList.findIndex((sco) => sco.id === currentScoId);
     if (currentIndex === -1) {
       return null;
     }
@@ -119,9 +112,7 @@ export class Scorm12Sequencer {
    * @returns Previous SCO definition or null if at beginning
    */
   getPreviousSco(currentScoId: string): ScoDefinition | null {
-    const currentIndex = this._scoList.findIndex(
-      (sco) => sco.id === currentScoId,
-    );
+    const currentIndex = this._scoList.findIndex((sco) => sco.id === currentScoId);
     if (currentIndex <= 0) {
       return null;
     }
@@ -162,9 +153,7 @@ export class Scorm12Sequencer {
    * Get all SCOs that have not been completed
    */
   getIncompleteScos(): ScoDefinition[] {
-    return this._scoList.filter(
-      (sco) => !this._stateTracker.isCompleted(sco.id),
-    );
+    return this._scoList.filter((sco) => !this._stateTracker.isCompleted(sco.id));
   }
 
   /**
@@ -196,10 +185,7 @@ export class Scorm12Sequencer {
    * @param exitValue The cmi.core.exit value from the SCO
    * @returns Navigation suggestion for the LMS
    */
-  processExitAction(
-    scoId: string,
-    exitValue: ExitAction | (string & {}),
-  ): NavigationSuggestion {
+  processExitAction(scoId: string, exitValue: ExitAction | (string & {})): NavigationSuggestion {
     const sco = this._scoById.get(scoId);
     const state = this._stateTracker.getScoState(scoId);
 
@@ -241,10 +227,7 @@ export class Scorm12Sequencer {
     // Check if any SCO was suspended
     for (const sco of this._scoList) {
       const state = this._stateTracker.getScoState(sco.id);
-      if (
-        state?.exitAction === "suspend" &&
-        state.lessonStatus === "incomplete"
-      ) {
+      if (state?.exitAction === "suspend" && state.lessonStatus === "incomplete") {
         if (this._isAvailable(sco)) {
           return sco;
         }
@@ -264,17 +247,13 @@ export class Scorm12Sequencer {
     percentage: number;
     currentIndex: number;
   } {
-    const completed = this._scoList.filter((sco) =>
-      this._stateTracker.isCompleted(sco.id),
-    ).length;
+    const completed = this._scoList.filter((sco) => this._stateTracker.isCompleted(sco.id)).length;
 
     return {
       completed,
       total: this._scoList.length,
       percentage:
-        this._scoList.length > 0
-          ? Math.round((completed / this._scoList.length) * 100)
-          : 0,
+        this._scoList.length > 0 ? Math.round((completed / this._scoList.length) * 100) : 0,
       currentIndex: -1, // LMS should track current SCO
     };
   }
@@ -306,10 +285,7 @@ export class Scorm12Sequencer {
     return null;
   }
 
-  private _handleNormalExit(
-    sco: ScoDefinition,
-    status: string,
-  ): NavigationSuggestion {
+  private _handleNormalExit(sco: ScoDefinition, status: string): NavigationSuggestion {
     // If failed, might want to retry
     if (status === "failed") {
       return {
@@ -343,10 +319,7 @@ export class Scorm12Sequencer {
     };
   }
 
-  private _handleTimeOut(
-    sco: ScoDefinition,
-    status: string,
-  ): NavigationSuggestion {
+  private _handleTimeOut(sco: ScoDefinition, status: string): NavigationSuggestion {
     // Check time limit action from manifest
     const action = sco.timeLimitAction ?? "continue,message";
 

@@ -68,10 +68,7 @@ describe("GlobalObjectiveSynchronizer tri-state regression", () => {
     expect(readerObjective.satisfiedStatusKnown).toBe(true);
     expect(readerObjective.progressStatus).toBe(true);
 
-    const notSatisfied = new RuleCondition(
-      RuleConditionType.SATISFIED,
-      RuleConditionOperator.NOT,
-    );
+    const notSatisfied = new RuleCondition(RuleConditionType.SATISFIED, RuleConditionOperator.NOT);
     notSatisfied.referencedObjective = "previous_sco_satisfied";
     const notObjectiveStatusKnown = new RuleCondition(
       RuleConditionType.OBJECTIVE_STATUS_KNOWN,

@@ -122,15 +122,15 @@ describe("Additional Sequencing Tests", () => {
             children: [
               {
                 id: "child1",
-                title: "Child Activity 1"
+                title: "Child Activity 1",
               },
               {
                 id: "child2",
-                title: "Child Activity 2"
-              }
-            ]
-          }
-        ]
+                title: "Child Activity 2",
+              },
+            ],
+          },
+        ],
       };
 
       // This would be handled by the API configuration methods

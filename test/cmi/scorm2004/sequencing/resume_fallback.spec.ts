@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -50,7 +50,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree,
       sequencingProcess,
       rollupProcess,
-      adlNav
+      adlNav,
     );
   });
 
@@ -61,9 +61,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.currentActivity = null;
 
       // Act: Attempt RESUME_ALL
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should fail gracefully with appropriate exception
       expect(result.valid).toBe(false);
@@ -93,11 +91,9 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
 
       // Act: RESUME_ALL fails, then START succeeds
       const resumeResult = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
+        NavigationRequestType.RESUME_ALL,
       );
-      const startResult = overallProcess.processNavigationRequest(
-        NavigationRequestType.START
-      );
+      const startResult = overallProcess.processNavigationRequest(NavigationRequestType.START);
 
       // Assert: RESUME_ALL should fail, START should succeed
       expect(resumeResult.valid).toBe(false);
@@ -114,9 +110,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       grandchild2.isAvailable = true;
 
       // Act: Attempt RESUME_ALL
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should still fail with no suspended activity
       expect(result.valid).toBe(false);
@@ -132,9 +126,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.currentActivity = null;
 
       // Act: Attempt RESUME_ALL
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should succeed and target the suspended activity
       expect(result.valid).toBe(true);
@@ -151,9 +143,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.currentActivity = null;
 
       // Act: Resume the suspended activity
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should succeed and clear suspended state from all ancestors
       expect(result.valid).toBe(true);
@@ -172,9 +162,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.currentActivity = null;
 
       // Act: Resume
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should resume to grandchild2, not grandchild1
       expect(result.valid).toBe(true);
@@ -211,13 +199,11 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
         deepTree,
         new SequencingProcess(deepTree),
         rollupProcess,
-        adlNav
+        adlNav,
       );
 
       // Act: Resume
-      const result = deepProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = deepProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should successfully resume deep activity
       expect(result.valid).toBe(true);
@@ -238,9 +224,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       grandchild2.isSuspended = true;
 
       // Act: Attempt RESUME_ALL
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should fail because current activity already exists
       expect(result.valid).toBe(false);
@@ -255,9 +239,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.suspendedActivity = grandchild1;
 
       // Act: Attempt RESUME_ALL
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should still fail - can't resume if current activity exists
       expect(result.valid).toBe(false);
@@ -294,9 +276,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       grandchild2.isSuspended = true;
 
       // Act: Attempt RESUME_ALL
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should still fail - presence of current activity is what matters
       expect(result.valid).toBe(false);
@@ -311,9 +291,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.suspendedActivity = null;
 
       // Act: Attempt RESUME_ALL
-      const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Assert: Should fail with no-suspended-activity exception
       expect(result.valid).toBe(false);
@@ -327,7 +305,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
 
       // Act: Suspend all
       const suspendResult = overallProcess.processNavigationRequest(
-        NavigationRequestType.SUSPEND_ALL
+        NavigationRequestType.SUSPEND_ALL,
       );
 
       // Verify suspend worked
@@ -340,7 +318,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
 
       // Act: Resume in new session
       const resumeResult = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
+        NavigationRequestType.RESUME_ALL,
       );
 
       // Assert: Should successfully resume
@@ -359,9 +337,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.currentActivity = null;
 
       // Act: Resume first activity
-      const resume1 = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const resume1 = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       // Verify first resume
       expect(resume1.valid).toBe(true);
@@ -372,9 +348,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.currentActivity = grandchild2;
       grandchild2.isActive = true;
 
-      const suspend2 = overallProcess.processNavigationRequest(
-        NavigationRequestType.SUSPEND_ALL
-      );
+      const suspend2 = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
 
       expect(suspend2.valid).toBe(true);
       expect(grandchild2.isSuspended).toBe(true);
@@ -385,9 +359,7 @@ describe("Resume Fallback Behavior (REQ-4.2.3)", () => {
       activityTree.currentActivity = null;
 
       // Resume second activity
-      const resume2 = overallProcess.processNavigationRequest(
-        NavigationRequestType.RESUME_ALL
-      );
+      const resume2 = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
 
       expect(resume2.valid).toBe(true);
       expect(resume2.targetActivity).toBe(grandchild2);

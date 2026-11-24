@@ -17,7 +17,11 @@ import { BaseCMI } from "../common/base_cmi";
 import { CMIArray } from "../common/array";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat } from "./validation";
-import { allowsBareDelimiters, splitDelimited, splitFirstDelimited } from "./interaction_delimiters";
+import {
+  allowsBareDelimiters,
+  splitDelimited,
+  splitFirstDelimited,
+} from "./interaction_delimiters";
 import {
   CorrectResponses,
   LearnerResponses,
@@ -858,10 +862,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
 
   set pattern(pattern: string) {
     // Allow an empty whole pattern for types that permit zero items or empty text
-    if (
-      EMPTY_CORRECT_PATTERN_TYPES.has(this._interactionType ?? "") &&
-      pattern === ""
-    ) {
+    if (EMPTY_CORRECT_PATTERN_TYPES.has(this._interactionType ?? "") && pattern === "") {
       this._pattern = "";
       return;
     }

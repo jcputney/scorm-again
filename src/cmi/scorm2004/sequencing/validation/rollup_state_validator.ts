@@ -111,8 +111,7 @@ export class RollupStateValidator {
       activity.scaledPassingScore !== null &&
       activity.successStatus !== "unknown"
     ) {
-      const expectedSatisfied =
-        activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
+      const expectedSatisfied = activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
       if (activity.objectiveSatisfiedStatus !== expectedSatisfied) {
         inconsistencies.push(
           `Activity ${activityId}: satisfaction status inconsistent with measure`,
@@ -178,10 +177,7 @@ export class RollupStateValidator {
 
       // If all contributing children are completed, parent should be completed
       if (completedChildren.length > 0 && incompleteChildren.length === 0) {
-        if (
-          activity.completionStatus !== "completed" &&
-          activity.rollupRules.rules.length === 0
-        ) {
+        if (activity.completionStatus !== "completed" && activity.rollupRules.rules.length === 0) {
           inconsistencies.push(
             `Activity ${activityId}: all children completed but parent is incomplete (no rollup rules to override)`,
           );

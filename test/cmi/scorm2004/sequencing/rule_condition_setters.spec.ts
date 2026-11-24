@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   RuleCondition,
   RuleConditionOperator,
-  RuleConditionType
+  RuleConditionType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 
@@ -108,11 +108,11 @@ describe("RuleCondition Setters", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        new Map([["threshold", 0.5]])
+        new Map([["threshold", 0.5]]),
       );
       const activity = {
         objectiveMeasureStatus: true,
-        objectiveNormalizedMeasure: 0.4
+        objectiveNormalizedMeasure: 0.4,
       } as any;
 
       // With threshold 0.5, evaluate should return false for measure 0.4

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -11,7 +11,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { CompletionStatus } from "../../../../src/constants/enums";
 
@@ -68,11 +68,7 @@ describe("Post-Condition Loop in Termination Request Process", () => {
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
 
-    overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
-    );
+    overallProcess = new OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess);
   });
 
   describe("Test 1: Single EXIT_PARENT cascade", () => {

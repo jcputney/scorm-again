@@ -50,10 +50,7 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
       });
 
       it("should accept complex URN with multiple segments", () => {
-        const activity = new Activity(
-          "urn:scorm:2004:activity:module1:lesson2",
-          "Activity"
-        );
+        const activity = new Activity("urn:scorm:2004:activity:module1:lesson2", "Activity");
         expect(activity.id).toBe("urn:scorm:2004:activity:module1:lesson2");
       });
 
@@ -303,7 +300,7 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
       it("should accept URN with complex specific part", () => {
         const activity = new Activity(
           "urn:example:path/to/resource?query=value#fragment",
-          "Activity"
+          "Activity",
         );
         expect(activity.id).toBe("urn:example:path/to/resource?query=value#fragment");
       });
@@ -316,42 +313,27 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
 
     describe("Special manifest ID scenarios", () => {
       it("should accept GUID-style identifiers", () => {
-        const activity = new Activity(
-          "550e8400-e29b-41d4-a716-446655440000",
-          "Activity"
-        );
+        const activity = new Activity("550e8400-e29b-41d4-a716-446655440000", "Activity");
         expect(activity.id).toBe("550e8400-e29b-41d4-a716-446655440000");
       });
 
       it("should accept reverse domain notation", () => {
-        const activity = new Activity(
-          "com.example.scorm.activity.lesson1",
-          "Activity"
-        );
+        const activity = new Activity("com.example.scorm.activity.lesson1", "Activity");
         expect(activity.id).toBe("com.example.scorm.activity.lesson1");
       });
 
       it("should accept hierarchical path identifiers", () => {
-        const activity = new Activity(
-          "course/module1/unit2/lesson3",
-          "Activity"
-        );
+        const activity = new Activity("course/module1/unit2/lesson3", "Activity");
         expect(activity.id).toBe("course/module1/unit2/lesson3");
       });
 
       it("should accept URL-encoded identifiers", () => {
-        const activity = new Activity(
-          "activity%20encoded%2Fvalue",
-          "Activity"
-        );
+        const activity = new Activity("activity%20encoded%2Fvalue", "Activity");
         expect(activity.id).toBe("activity%20encoded%2Fvalue");
       });
 
       it("should accept identifiers with query-like syntax", () => {
-        const activity = new Activity(
-          "activity?type=lesson&level=1",
-          "Activity"
-        );
+        const activity = new Activity("activity?type=lesson&level=1", "Activity");
         expect(activity.id).toBe("activity?type=lesson&level=1");
       });
     });
@@ -370,9 +352,7 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
       });
 
       it("should accept URN format objective IDs", () => {
-        const objective = new ActivityObjective(
-          "urn:objective:primary-goal"
-        );
+        const objective = new ActivityObjective("urn:objective:primary-goal");
         expect(objective.id).toBe("urn:objective:primary-goal");
       });
 
@@ -387,9 +367,7 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
       });
 
       it("should accept GUID-style objective IDs", () => {
-        const objective = new ActivityObjective(
-          "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-        );
+        const objective = new ActivityObjective("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
         expect(objective.id).toBe("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
       });
     });
@@ -447,7 +425,7 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
 
         // Should only store one instance (no duplicates)
         const allObjectives = activity.getAllObjectives();
-        const duplicates = allObjectives.filter(o => o.id === "duplicate-id");
+        const duplicates = allObjectives.filter((o) => o.id === "duplicate-id");
         expect(duplicates.length).toBe(1);
       });
     });
@@ -511,18 +489,9 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
     });
 
     it("should maintain activity references with complex IDs", () => {
-      const root = new Activity(
-        "com.example.course.module1",
-        "Module 1"
-      );
-      const lesson1 = new Activity(
-        "com.example.course.module1.lesson1",
-        "Lesson 1"
-      );
-      const lesson2 = new Activity(
-        "com.example.course.module1.lesson2",
-        "Lesson 2"
-      );
+      const root = new Activity("com.example.course.module1", "Module 1");
+      const lesson1 = new Activity("com.example.course.module1.lesson1", "Lesson 1");
+      const lesson2 = new Activity("com.example.course.module1.lesson2", "Lesson 2");
 
       root.addChild(lesson1);
       root.addChild(lesson2);
@@ -532,9 +501,9 @@ describe("Identifier Validation - URI-Safe Identifiers", () => {
 
       const allActivities = tree.getAllActivities();
       expect(allActivities).toHaveLength(3);
-      expect(allActivities.map(a => a.id)).toContain("com.example.course.module1");
-      expect(allActivities.map(a => a.id)).toContain("com.example.course.module1.lesson1");
-      expect(allActivities.map(a => a.id)).toContain("com.example.course.module1.lesson2");
+      expect(allActivities.map((a) => a.id)).toContain("com.example.course.module1");
+      expect(allActivities.map((a) => a.id)).toContain("com.example.course.module1.lesson1");
+      expect(allActivities.map((a) => a.id)).toContain("com.example.course.module1.lesson2");
     });
 
     it("should handle current activity assignment with URI-safe IDs", () => {

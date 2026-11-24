@@ -70,9 +70,8 @@ export class SequencingProcess {
   private constraintValidator: ChoiceConstraintValidator;
   private ruleEngine: RuleEvaluationEngine;
   private traversalService: FlowTraversalService;
-  private activityEvaluationCallback:
-    | ((activity: Activity, target: Activity) => Activity)
-    | null = null;
+  private activityEvaluationCallback: ((activity: Activity, target: Activity) => Activity) | null =
+    null;
 
   // Request handlers
   private flowHandler: FlowRequestHandler;
@@ -396,7 +395,10 @@ export class SequencingProcess {
           () => this.ruleEngine,
         );
         for (let activity: Activity | null = jumpTarget; activity; activity = activity.parent) {
-          const evaluationActivity = this.traversalService.getActivityForEvaluation(activity, jumpTarget);
+          const evaluationActivity = this.traversalService.getActivityForEvaluation(
+            activity,
+            jumpTarget,
+          );
           if (!validator.checkActivity(activity, evaluationActivity, false)) {
             return { valid: false, exception: "DB.1.1-3" };
           }

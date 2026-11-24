@@ -7,7 +7,7 @@ import {
   setCmiValue as setCmiValueCommon,
   setCmiValueFromModule as setCmiValueFromModuleCommon,
   verifyApiAccessibleFromModule as verifyApiAccessibleFromModuleCommon,
-  waitForModuleFrame as waitForModuleFrameCommon
+  waitForModuleFrame as waitForModuleFrameCommon,
 } from "./scorm-common-helpers";
 
 /**
@@ -44,7 +44,7 @@ export class CommitRequestTracker {
       url: request.url(),
       method: request.method(),
       postData: postData || {},
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -89,7 +89,7 @@ export async function setupCommitMocking(
     success?: boolean;
     delay?: number;
     errorCode?: number;
-  } = {}
+  } = {},
 ): Promise<void> {
   const { success = true, delay = 0, errorCode } = options;
 
@@ -102,18 +102,18 @@ export async function setupCommitMocking(
 
     const response = success
       ? {
-        result: "true",
-        errorCode: 0
-      }
+          result: "true",
+          errorCode: 0,
+        }
       : {
-        result: "false",
-        errorCode: errorCode || 101
-      };
+          result: "false",
+          errorCode: errorCode || 101,
+        };
 
     await route.fulfill({
       status: success ? 200 : 500,
       contentType: "application/json",
-      body: JSON.stringify(response)
+      body: JSON.stringify(response),
     });
   });
 }
@@ -123,20 +123,17 @@ export async function setupCommitMocking(
  */
 export async function configureApiForHttpCommits(
   page: Page,
-  commitUrl: string = "http://localhost:3000/api/commit"
+  commitUrl: string = "http://localhost:3000/api/commit",
 ): Promise<void> {
-  await page.evaluate(
-    (url) => {
-      if (window.API) {
-        (window.API as any).settings = {
-          ...(window.API as any).settings,
-          lmsCommitUrl: url,
-          useAsynchronousCommits: true
-        };
-      }
-    },
-    commitUrl
-  );
+  await page.evaluate((url) => {
+    if (window.API) {
+      (window.API as any).settings = {
+        ...(window.API as any).settings,
+        lmsCommitUrl: url,
+        useAsynchronousCommits: true,
+      };
+    }
+  }, commitUrl);
 }
 
 /**
@@ -148,7 +145,7 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
   await page.evaluate(() => {
     // RecordTest function to record quiz scores (SCORM 1.2)
     // Make it available on window (which is the parent for iframes)
-    (window as any).RecordTest = function(score: number) {
+    (window as any).RecordTest = function (score: number) {
       if (window.API) {
         window.API.LMSSetValue("cmi.core.score.raw", score.toString());
         window.API.LMSSetValue("cmi.core.score.min", "0");
@@ -164,14 +161,14 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
     };
 
     // RecordQuestion function to record individual question interactions (SCORM 1.2)
-    (window as any).RecordQuestion = function(
+    (window as any).RecordQuestion = function (
       id: string,
       text: string,
       type: string,
       learnerResponse: string,
       correctAnswer: string,
       wasCorrect: boolean,
-      objectiveId: string
+      objectiveId: string,
     ) {
       if (window.API) {
         // Find the next available interaction index
@@ -193,16 +190,16 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
         window.API.LMSSetValue(`cmi.interactions.${interactionIndex}.type`, type);
         window.API.LMSSetValue(
           `cmi.interactions.${interactionIndex}.student_response`,
-          learnerResponse
+          learnerResponse,
         );
         // SCORM 1.2 uses "correct"/"wrong" (not "incorrect")
         window.API.LMSSetValue(
           `cmi.interactions.${interactionIndex}.result`,
-          wasCorrect ? "correct" : "wrong"
+          wasCorrect ? "correct" : "wrong",
         );
         window.API.LMSSetValue(
           `cmi.interactions.${interactionIndex}.correct_responses.0.pattern`,
-          correctAnswer
+          correctAnswer,
         );
 
         // If there's an objective ID, link it
@@ -229,7 +226,7 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
           if (foundObjective) {
             window.API.LMSSetValue(
               `cmi.interactions.${interactionIndex}.objectives.0.id`,
-              objectiveId
+              objectiveId,
             );
           }
         }
@@ -244,7 +241,7 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
 export async function verifyQuizScore(
   page: Page,
   minScore: number = 0,
-  maxScore: number = 100
+  maxScore: number = 100,
 ): Promise<void> {
   const score = await getCmiValue(page, "cmi.core.score.raw");
   if (score) {
@@ -287,7 +284,7 @@ export async function verifyApiAccessibleFromModule(page: Page): Promise<boolean
 export async function setCmiValueFromModule(
   page: Page,
   element: string,
-  value: string
+  value: string,
 ): Promise<string> {
   return setCmiValueFromModuleCommon(page, SCORM12_API_NAME, element, value);
 }
@@ -297,7 +294,7 @@ export async function setCmiValueFromModule(
  */
 export async function waitForModuleFrame(
   page: Page,
-  timeout: number = 5000
+  timeout: number = 5000,
 ): Promise<FrameLocator> {
   await waitForModuleFrameCommon(page, timeout);
   return page.frameLocator("#moduleFrame");
@@ -312,7 +309,7 @@ export async function waitForModuleFrame(
  */
 export async function navigateThroughContentSCO(
   page: Page,
-  moduleFrame: FrameLocator
+  moduleFrame: FrameLocator,
 ): Promise<void> {
   // Wait for module to load
   await page.waitForTimeout(1000);
@@ -326,7 +323,9 @@ export async function navigateThroughContentSCO(
     attempts++;
 
     // Check if Next button exists and is enabled
-    const nextButton = moduleFrame.locator("input[type=\"button\"][value*=\"Next\"], button:has-text(\"Next\")");
+    const nextButton = moduleFrame.locator(
+      'input[type="button"][value*="Next"], button:has-text("Next")',
+    );
     const isVisible = await nextButton.isVisible({ timeout: 1000 }).catch(() => false);
     const isEnabled = isVisible ? await nextButton.isEnabled().catch(() => false) : false;
 
@@ -351,9 +350,7 @@ export async function navigateThroughContentSCO(
  * Complete a content SCO by navigating through all its pages
  * This lets the module's own code set completion_status and success_status
  */
-export async function completeContentSCO(
-  page: Page
-): Promise<void> {
+export async function completeContentSCO(page: Page): Promise<void> {
   const moduleFrame = await waitForModuleFrame(page);
   await navigateThroughContentSCO(page, moduleFrame);
 
@@ -374,10 +371,7 @@ async function getQuizContentFrame(page: Page, moduleFrame: FrameLocator): Promi
  * Answer quiz questions correctly by finding and clicking the correct answers
  * The assessment template marks correct answers with class "correctAnswer"
  */
-export async function answerQuizCorrectly(
-  page: Page,
-  moduleFrame: FrameLocator
-): Promise<void> {
+export async function answerQuizCorrectly(page: Page, moduleFrame: FrameLocator): Promise<void> {
   await page.waitForTimeout(2000); // Wait for quiz to fully render
 
   // Get the nested contentFrame that contains the quiz
@@ -392,7 +386,7 @@ export async function answerQuizCorrectly(
     try {
       // Within each correct answer div, find the input (radio button or text input)
       const correctDiv = correctAnswerDivs.nth(i);
-      const input = correctDiv.locator("input[type=\"radio\"], input[type=\"text\"]");
+      const input = correctDiv.locator('input[type="radio"], input[type="text"]');
 
       const inputType = await input.getAttribute("type").catch(() => null);
 
@@ -420,10 +414,7 @@ export async function answerQuizCorrectly(
  * Answer quiz questions incorrectly by finding and clicking wrong answers
  * This is used to test failure scenarios
  */
-export async function answerQuizIncorrectly(
-  page: Page,
-  moduleFrame: FrameLocator
-): Promise<void> {
+export async function answerQuizIncorrectly(page: Page, moduleFrame: FrameLocator): Promise<void> {
   await page.waitForTimeout(2000); // Wait for quiz to fully render
 
   // Get the nested contentFrame that contains the quiz
@@ -445,27 +436,27 @@ export async function answerQuizIncorrectly(
       if (answerCount > 0) {
         // Find the correct answer div (has class "correctAnswer")
         const correctAnswerDiv = questionDiv.locator("div.correctAnswer");
-        const correctExists = await correctAnswerDiv.count() > 0;
+        const correctExists = (await correctAnswerDiv.count()) > 0;
 
         if (correctExists) {
           // Find an incorrect answer (any answer div that's NOT the correct one)
           const incorrectAnswerDiv = questionDiv.locator("div.answer").first();
-          const incorrectExists = await incorrectAnswerDiv.count() > 0;
+          const incorrectExists = (await incorrectAnswerDiv.count()) > 0;
 
           if (incorrectExists) {
             // Click the first incorrect answer
-            const input = incorrectAnswerDiv.locator("input[type=\"radio\"]");
+            const input = incorrectAnswerDiv.locator('input[type="radio"]');
             await input.click({ timeout: 2000 });
           }
         } else {
           // No correct answer marked, just click the first answer
-          const firstInput = questionDiv.locator("input[type=\"radio\"]").first();
+          const firstInput = questionDiv.locator('input[type="radio"]').first();
           await firstInput.click({ timeout: 2000 });
         }
       } else {
         // For numeric questions, enter a wrong value
-        const textInput = questionDiv.locator("input[type=\"text\"]");
-        const inputExists = await textInput.count() > 0;
+        const textInput = questionDiv.locator('input[type="text"]');
+        const inputExists = (await textInput.count()) > 0;
         if (inputExists) {
           await textInput.fill("999");
         }
@@ -485,10 +476,10 @@ export async function answerQuizIncorrectly(
  */
 export async function exitScorm12Course(
   page: Page,
-  { preserveProgress = true }: { preserveProgress?: boolean } = {}
+  { preserveProgress = true }: { preserveProgress?: boolean } = {},
 ): Promise<void> {
   const moduleFrame = page.frameLocator("#moduleFrame");
-  const exitButton = moduleFrame.locator("button:has-text(\"Exit\"), input[value*=\"Exit\"]");
+  const exitButton = moduleFrame.locator('button:has-text("Exit"), input[value*="Exit"]');
 
   const isVisible = await exitButton.isVisible({ timeout: 3000 }).catch(() => false);
   if (!isVisible) {
@@ -526,7 +517,7 @@ export async function exitScorm12Course(
 export async function completeAssessmentSCO(
   page: Page,
   shouldPass: boolean = true,
-  passThreshold: number = 70
+  passThreshold: number = 70,
 ): Promise<{ score: number; lessonStatus: string | null }> {
   await injectQuizFunctions(page);
   const moduleFrame = await waitForModuleFrame(page);
@@ -542,7 +533,7 @@ export async function completeAssessmentSCO(
   // Submit the quiz (submit button is in the contentFrame)
   const contentFrame = await getQuizContentFrame(page, moduleFrame);
   const submitButton = contentFrame.locator(
-    "input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")"
+    'input[type="button"][value*="Submit"], button:has-text("Submit")',
   );
   const submitVisible = await submitButton.isVisible({ timeout: 2000 }).catch(() => false);
 
@@ -550,32 +541,32 @@ export async function completeAssessmentSCO(
     await submitButton.click();
 
     await Promise.race([
-      page.waitForFunction(
-        () => {
-          const api = (window as any).API;
-          if (!api) {
-            return false;
-          }
-          const scoreValue = api.LMSGetValue("cmi.core.score.raw");
-          return typeof scoreValue === "string" && scoreValue !== "";
-        },
-        { timeout: 15000 }
-      ).catch(() => null),
-      page.waitForFunction(
-        () => {
-          const api = (window as any).API;
-          if (!api) {
-            return false;
-          }
-          const status = api.LMSGetValue("cmi.core.lesson_status");
-          return (
-            typeof status === "string" &&
-            status !== "" &&
-            status !== "not attempted"
-          );
-        },
-        { timeout: 15000 }
-      ).catch(() => null)
+      page
+        .waitForFunction(
+          () => {
+            const api = (window as any).API;
+            if (!api) {
+              return false;
+            }
+            const scoreValue = api.LMSGetValue("cmi.core.score.raw");
+            return typeof scoreValue === "string" && scoreValue !== "";
+          },
+          { timeout: 15000 },
+        )
+        .catch(() => null),
+      page
+        .waitForFunction(
+          () => {
+            const api = (window as any).API;
+            if (!api) {
+              return false;
+            }
+            const status = api.LMSGetValue("cmi.core.lesson_status");
+            return typeof status === "string" && status !== "" && status !== "not attempted";
+          },
+          { timeout: 15000 },
+        )
+        .catch(() => null),
     ]);
   }
 
@@ -589,11 +580,11 @@ export function getWrapperConfigs(): Array<{ name: string; path: string }> {
   return [
     {
       name: "Standard",
-      path: "/test/integration/wrappers/scorm12-wrapper.html"
+      path: "/test/integration/wrappers/scorm12-wrapper.html",
     },
     {
       name: "ESM",
-      path: "/test/integration/wrappers/scorm12-wrapper-esm.html"
-    }
+      path: "/test/integration/wrappers/scorm12-wrapper-esm.html",
+    },
   ];
 }

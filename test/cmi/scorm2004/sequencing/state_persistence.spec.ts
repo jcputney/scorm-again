@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   NavigationRequestType,
-  OverallSequencingProcess
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
@@ -55,7 +55,7 @@ describe("State Persistence (Multi-Session Support)", () => {
       activityTree,
       sequencingProcess,
       rollupProcess,
-      adlNav
+      adlNav,
     );
   });
 
@@ -90,7 +90,9 @@ describe("State Persistence (Multi-Session Support)", () => {
     it("should capture suspended activity", () => {
       // Start and then suspend
       overallProcess.processNavigationRequest(NavigationRequestType.START);
-      const suspendResult = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+      const suspendResult = overallProcess.processNavigationRequest(
+        NavigationRequestType.SUSPEND_ALL,
+      );
 
       // Verify suspend was processed
       expect(suspendResult.valid).toBe(true);
@@ -278,7 +280,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         newSequencingProcess,
         newRollupProcess,
-        newAdlNav
+        newAdlNav,
       );
 
       // Restore state
@@ -320,7 +322,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -358,7 +360,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -393,7 +395,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -406,7 +408,7 @@ describe("State Persistence (Multi-Session Support)", () => {
     it("should reject incompatible state versions", () => {
       const invalidState = {
         version: "2.0",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       const result = overallProcess.restoreSequencingState(invalidState);
@@ -448,7 +450,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -481,7 +483,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -516,7 +518,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -534,7 +536,7 @@ describe("State Persistence (Multi-Session Support)", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.START);
 
       // One child may be hidden due to selection
-      const selectedCount = module1.children.filter(c => c.isAvailable).length;
+      const selectedCount = module1.children.filter((c) => c.isAvailable).length;
 
       const state = overallProcess.getSequencingState();
 
@@ -563,14 +565,14 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       newOverallProcess.restoreSequencingState(state);
 
       // Selection state should be restored
       expect(newModule1.sequencingControls.selectionCountStatus).toBe(true);
-      const restoredSelectedCount = newModule1.children.filter(c => c.isAvailable).length;
+      const restoredSelectedCount = newModule1.children.filter((c) => c.isAvailable).length;
       expect(restoredSelectedCount).toBe(selectedCount);
     });
   });
@@ -594,7 +596,9 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Continue to lesson2
       module1.sequencingControls.flow = true;
       lesson1.isActive = false;
-      const continueResult = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+      const continueResult = overallProcess.processNavigationRequest(
+        NavigationRequestType.CONTINUE,
+      );
 
       // Save state
       const state = overallProcess.getSequencingState();
@@ -625,7 +629,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       // Restore state
@@ -653,7 +657,9 @@ describe("State Persistence (Multi-Session Support)", () => {
       expect(lesson1.isActive).toBe(true);
 
       // Suspend while lesson1 is active
-      const suspendResult = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+      const suspendResult = overallProcess.processNavigationRequest(
+        NavigationRequestType.SUSPEND_ALL,
+      );
       expect(suspendResult.valid).toBe(true);
 
       // Verify suspension worked - suspended activity should be set
@@ -682,7 +688,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       const restoreResult = newOverallProcess.restoreSequencingState(state);
@@ -735,7 +741,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       expect(newOverallProcess.restoreSequencingState(state)).toBe(true);
@@ -769,7 +775,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       expect(newOverallProcess.restoreSequencingState(state)).toBe(true);
@@ -795,7 +801,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        new ADLNav()
+        new ADLNav(),
       );
 
       expect(newOverallProcess.restoreSequencingState(state)).toBe(true);
@@ -840,7 +846,7 @@ describe("State Persistence (Multi-Session Support)", () => {
         newActivityTree,
         new SequencingProcess(newActivityTree),
         new RollupProcess(),
-        newAdlNav
+        newAdlNav,
       );
 
       newOverallProcess.restoreSequencingState(state);

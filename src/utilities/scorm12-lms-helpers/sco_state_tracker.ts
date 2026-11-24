@@ -21,13 +21,7 @@
  * ```
  */
 
-import {
-  ScoState,
-  ScoScore,
-  LessonStatus,
-  ExitAction,
-  ScoStateChangeEvent,
-} from "./types";
+import { ScoState, ScoScore, LessonStatus, ExitAction, ScoStateChangeEvent } from "./types";
 import { addScormTime } from "./time_utilities";
 
 /**
@@ -117,10 +111,7 @@ export class ScoStateTracker {
         changedFields.push("sessionTime");
 
         // Accumulate total time
-        const newTotal = addScormTime(
-          state.totalTime,
-          cmiData.core.session_time,
-        );
+        const newTotal = addScormTime(state.totalTime, cmiData.core.session_time);
         if (newTotal !== state.totalTime) {
           state.totalTime = newTotal;
           changedFields.push("totalTime");
@@ -270,12 +261,8 @@ export class ScoStateTracker {
       this._states.set(state.id, {
         ...state,
         // Restore dates from serialization
-        firstLaunchTime: state.firstLaunchTime
-          ? new Date(state.firstLaunchTime)
-          : undefined,
-        lastAccessTime: state.lastAccessTime
-          ? new Date(state.lastAccessTime)
-          : undefined,
+        firstLaunchTime: state.firstLaunchTime ? new Date(state.firstLaunchTime) : undefined,
+        lastAccessTime: state.lastAccessTime ? new Date(state.lastAccessTime) : undefined,
       });
     }
   }
@@ -289,11 +276,7 @@ export class ScoStateTracker {
 
   // Private helpers
 
-  private _createDefaultState(
-    id: string,
-    title: string,
-    masteryScore?: number,
-  ): ScoState {
+  private _createDefaultState(id: string, title: string, masteryScore?: number): ScoState {
     return {
       id,
       title,

@@ -3,14 +3,14 @@ import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import {
   RuleActionType,
   RuleCondition,
   RuleConditionOperator,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 
@@ -46,7 +46,10 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
     it("should deliver a fresh activity when not completed evaluates to unknown", () => {
       // Add skip rule when not completed
       const skipRule = new SequencingRule(RuleActionType.SKIP);
-      const notCompletedCondition = new RuleCondition(RuleConditionType.COMPLETED, RuleConditionOperator.NOT);
+      const notCompletedCondition = new RuleCondition(
+        RuleConditionType.COMPLETED,
+        RuleConditionOperator.NOT,
+      );
       skipRule.addCondition(notCompletedCondition);
       childActivity1.sequencingRules.addPreConditionRule(skipRule);
 
@@ -60,7 +63,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       // Try to deliver activity - should not skip because not(unknown) is unknown
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child1"
+        "child1",
       );
 
       // Unknown rule result does not apply
@@ -82,7 +85,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       // Try to deliver activity - should fail due to disabled
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child2"
+        "child2",
       );
 
       // Should not deliver due to disabled rule
@@ -106,7 +109,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       // Try to deliver activity - should succeed
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child1"
+        "child1",
       );
 
       // Should deliver successfully
@@ -120,7 +123,10 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       // Add multiple pre-condition rules
       // First rule: skip if not attempted (will match)
       const skipRule = new SequencingRule(RuleActionType.SKIP);
-      const notAttemptedCondition = new RuleCondition(RuleConditionType.ATTEMPTED, RuleConditionOperator.NOT);
+      const notAttemptedCondition = new RuleCondition(
+        RuleConditionType.ATTEMPTED,
+        RuleConditionOperator.NOT,
+      );
       skipRule.addCondition(notAttemptedCondition);
       childActivity1.sequencingRules.addPreConditionRule(skipRule);
 
@@ -139,7 +145,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       // Try to deliver activity
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child1"
+        "child1",
       );
 
       // Should not deliver due to first (skip) rule
@@ -169,7 +175,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
 
       let result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child1"
+        "child1",
       );
 
       expect(result.deliveryRequest).toBe("deliver");
@@ -177,10 +183,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       // Test 2: Both completed and satisfied - should skip
       childActivity1.successStatus = SuccessStatus.PASSED;
 
-      result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CHOICE,
-        "child1"
-      );
+      result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CHOICE, "child1");
 
       expect(result.deliveryRequest).toBe("doNotDeliver");
     });
@@ -203,7 +206,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
 
       let result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child2"
+        "child2",
       );
 
       expect(result.deliveryRequest).toBe("doNotDeliver");
@@ -212,10 +215,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       childActivity2.completionStatus = CompletionStatus.INCOMPLETE;
       childActivity2.successStatus = SuccessStatus.UNKNOWN;
 
-      result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CHOICE,
-        "child2"
-      );
+      result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CHOICE, "child2");
 
       expect(result.deliveryRequest).toBe("deliver");
     });
@@ -240,7 +240,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       // Try to deliver activity
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child1"
+        "child1",
       );
 
       // Should not deliver due to limit condition (not pre-condition rule)
@@ -275,7 +275,7 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child1"
+        "child1",
       );
 
       // Should skip due to pre-condition (attempted)

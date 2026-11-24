@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   DeliveryRequestType,
   SequencingProcess,
-  SequencingRequestType
+  SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -10,7 +10,7 @@ import {
   RuleActionType,
   RuleCondition,
   RuleConditionType,
-  SequencingRule
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 function ruleWithConditions(
@@ -89,7 +89,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // lesson3 is disabled, should deliver lesson4
@@ -110,7 +110,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // lesson3 was attempted and has DISABLED rule, should deliver lesson4
@@ -131,7 +131,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // ATTEMPTED is false, so DISABLED does not apply
@@ -153,7 +153,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // lesson3 is completed and disabled, should deliver lesson4
@@ -174,7 +174,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // lesson3 is satisfied and disabled, should deliver lesson4
@@ -199,7 +199,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // NOT COMPLETED is true (activity is incomplete), so DISABLED applies
@@ -222,7 +222,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // NOT COMPLETED is false, so DISABLED does not apply
@@ -250,7 +250,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // Both conditions true, DISABLED applies
@@ -274,7 +274,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // One AND condition is false, so DISABLED does not apply
@@ -298,7 +298,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // lesson3 is skipped, should deliver lesson4
@@ -320,7 +320,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // COMPLETED is false, so SKIP does not apply
@@ -341,7 +341,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       // Try to directly choose disabled lesson3
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       // Direct choice to disabled activity should fail
@@ -359,7 +359,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       // Try to directly choose skipped lesson3
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "lesson3"
+        "lesson3",
       );
 
       // Direct choice to skipped activity should fail
@@ -370,11 +370,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
   describe("Objective measure condition types", () => {
     it("should skip activity when DISABLED rule has objectiveMeasureKnown condition and measure is known", () => {
       const params = new Map<string, any>();
-      const condition = new RuleCondition(
-        RuleConditionType.OBJECTIVE_MEASURE_KNOWN,
-        null,
-        params
-      );
+      const condition = new RuleCondition(RuleConditionType.OBJECTIVE_MEASURE_KNOWN, null, params);
       const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
@@ -387,7 +383,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // measure is known, should deliver lesson4
@@ -401,7 +397,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
@@ -415,7 +411,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // measure > 0.5, should deliver lesson4
@@ -429,7 +425,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        params
+        params,
       );
       const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
@@ -443,7 +439,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // measure <= 0.8, so DISABLED does not apply
@@ -457,7 +453,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN,
         null,
-        params
+        params,
       );
       const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
@@ -471,7 +467,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // measure < 0.6, should deliver lesson4
@@ -494,7 +490,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // progress is known, should deliver lesson4
@@ -515,7 +511,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // progress is unknown, so DISABLED does not apply
@@ -524,9 +520,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
     });
 
     it("should skip activity when DISABLED rule has attemptLimitExceeded condition and limit is exceeded", () => {
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED
-      );
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       const rule = ruleWithConditions(RuleActionType.DISABLED, condition);
       lesson3.sequencingRules.preConditionRules.push(rule);
 
@@ -539,7 +533,7 @@ describe("Rule Condition Evaluation during Choice Flow", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "module2"
+        "module2",
       );
 
       // attempt limit exceeded, should deliver lesson4
@@ -586,7 +580,9 @@ it("uses the process elapsed hook at construction and after replacement", () => 
     const target = new Activity("clock-target", "Target");
     root.addChild(target);
     const tree = new ActivityTree(root);
-    const process = new SequencingProcess(tree, null, null, null, { getAttemptElapsedSeconds: inside });
+    const process = new SequencingProcess(tree, null, null, null, {
+      getAttemptElapsedSeconds: inside,
+    });
     target.attemptAbsoluteDurationLimit = "PT60S";
     const rule = new SequencingRule(RuleActionType.HIDE_FROM_CHOICE);
     rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));

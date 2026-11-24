@@ -20,7 +20,7 @@ export type ScormApiName = "API" | "API_1484_11";
  */
 export async function waitForPageReady(
   page: Page,
-  networkIdleTimeout: number = 2000
+  networkIdleTimeout: number = 2000,
 ): Promise<void> {
   // Wait for DOM content to be loaded (reliable across browsers)
   await page.waitForLoadState("domcontentloaded");
@@ -52,12 +52,9 @@ export async function configureWrapper(page: Page, config: Record<string, any>):
  * Get the API object from window
  */
 export function getApiFromWindow(page: Page, apiName: ScormApiName): Promise<any> {
-  return page.evaluate(
-    (name) => {
-      return (window as any)[name];
-    },
-    apiName
-  );
+  return page.evaluate((name) => {
+    return (window as any)[name];
+  }, apiName);
 }
 
 /**
@@ -66,7 +63,7 @@ export function getApiFromWindow(page: Page, apiName: ScormApiName): Promise<any
 export async function getCmiValue(
   page: Page,
   apiName: ScormApiName,
-  element: string
+  element: string,
 ): Promise<string> {
   return await page.evaluate(
     ({ apiName, element }) => {
@@ -82,7 +79,7 @@ export async function getCmiValue(
       }
       throw new Error(`Unknown API name: ${apiName}`);
     },
-    { apiName, element }
+    { apiName, element },
   );
 }
 
@@ -93,7 +90,7 @@ export async function setCmiValue(
   page: Page,
   apiName: ScormApiName,
   element: string,
-  value: string
+  value: string,
 ): Promise<string> {
   return await page.evaluate(
     ({ apiName, element, value }) => {
@@ -109,7 +106,7 @@ export async function setCmiValue(
       }
       throw new Error(`Unknown API name: ${apiName}`);
     },
-    { apiName, element, value }
+    { apiName, element, value },
   );
 }
 
@@ -117,66 +114,57 @@ export async function setCmiValue(
  * Initialize the API (works for all SCORM versions)
  */
 export async function initializeApi(page: Page, apiName: ScormApiName): Promise<string> {
-  return await page.evaluate(
-    (name) => {
-      const api = (window as any)[name];
-      if (!api) {
-        return "false";
-      }
-      // Handle different method names
-      if (name === "API") {
-        return api.LMSInitialize("");
-      } else if (name === "API_1484_11") {
-        return api.lmsInitialize("");
-      }
+  return await page.evaluate((name) => {
+    const api = (window as any)[name];
+    if (!api) {
       return "false";
-    },
-    apiName
-  );
+    }
+    // Handle different method names
+    if (name === "API") {
+      return api.LMSInitialize("");
+    } else if (name === "API_1484_11") {
+      return api.lmsInitialize("");
+    }
+    return "false";
+  }, apiName);
 }
 
 /**
  * Terminate the API (works for all SCORM versions)
  */
 export async function terminateApi(page: Page, apiName: ScormApiName): Promise<string> {
-  return await page.evaluate(
-    (name) => {
-      const api = (window as any)[name];
-      if (!api) {
-        return "false";
-      }
-      // Handle different method names
-      if (name === "API") {
-        return api.LMSFinish("");
-      } else if (name === "API_1484_11") {
-        return api.lmsFinish("");
-      }
+  return await page.evaluate((name) => {
+    const api = (window as any)[name];
+    if (!api) {
       return "false";
-    },
-    apiName
-  );
+    }
+    // Handle different method names
+    if (name === "API") {
+      return api.LMSFinish("");
+    } else if (name === "API_1484_11") {
+      return api.lmsFinish("");
+    }
+    return "false";
+  }, apiName);
 }
 
 /**
  * Get the last error code
  */
 export async function getLastError(page: Page, apiName: ScormApiName): Promise<string> {
-  return await page.evaluate(
-    (name) => {
-      const api = (window as any)[name];
-      if (!api) {
-        return "0";
-      }
-      // Handle different method names
-      if (name === "API") {
-        return api.LMSGetLastError().toString();
-      } else if (name === "API_1484_11") {
-        return api.lmsGetLastError().toString();
-      }
+  return await page.evaluate((name) => {
+    const api = (window as any)[name];
+    if (!api) {
       return "0";
-    },
-    apiName
-  );
+    }
+    // Handle different method names
+    if (name === "API") {
+      return api.LMSGetLastError().toString();
+    } else if (name === "API_1484_11") {
+      return api.lmsGetLastError().toString();
+    }
+    return "0";
+  }, apiName);
 }
 
 /**
@@ -185,7 +173,7 @@ export async function getLastError(page: Page, apiName: ScormApiName): Promise<s
 export async function getErrorString(
   page: Page,
   apiName: ScormApiName,
-  errorCode: string
+  errorCode: string,
 ): Promise<string> {
   return await page.evaluate(
     ({ name, code }) => {
@@ -201,7 +189,7 @@ export async function getErrorString(
       }
       return "";
     },
-    { name: apiName, code: errorCode }
+    { name: apiName, code: errorCode },
   );
 }
 
@@ -211,7 +199,7 @@ export async function getErrorString(
 export async function getDiagnostic(
   page: Page,
   apiName: ScormApiName,
-  errorCode: string
+  errorCode: string,
 ): Promise<string> {
   return await page.evaluate(
     ({ name, code }) => {
@@ -227,7 +215,7 @@ export async function getDiagnostic(
       }
       return "";
     },
-    { name: apiName, code: errorCode }
+    { name: apiName, code: errorCode },
   );
 }
 
@@ -235,22 +223,19 @@ export async function getDiagnostic(
  * Commit data (works for all SCORM versions)
  */
 export async function commit(page: Page, apiName: ScormApiName): Promise<string> {
-  return await page.evaluate(
-    (name) => {
-      const api = (window as any)[name];
-      if (!api) {
-        return "false";
-      }
-      // Handle different method names
-      if (name === "API") {
-        return api.LMSCommit("");
-      } else if (name === "API_1484_11") {
-        return api.lmsCommit("");
-      }
+  return await page.evaluate((name) => {
+    const api = (window as any)[name];
+    if (!api) {
       return "false";
-    },
-    apiName
-  );
+    }
+    // Handle different method names
+    if (name === "API") {
+      return api.LMSCommit("");
+    } else if (name === "API_1484_11") {
+      return api.lmsCommit("");
+    }
+    return "false";
+  }, apiName);
 }
 
 /**
@@ -259,14 +244,12 @@ export async function commit(page: Page, apiName: ScormApiName): Promise<string>
 export async function ensureApiInitialized(
   page: Page,
   apiName: ScormApiName,
-  timeout: number = 5000
+  timeout: number = 5000,
 ): Promise<void> {
   // Wait for API to be available
-  await page.waitForFunction(
-    (name) => typeof (window as any)[name] !== "undefined",
-    apiName,
-    { timeout }
-  );
+  await page.waitForFunction((name) => typeof (window as any)[name] !== "undefined", apiName, {
+    timeout,
+  });
 
   // Always try to initialize - if already initialized, it will return "false" which is fine
   const initResult = await initializeApi(page, apiName);
@@ -282,18 +265,15 @@ export async function ensureApiInitialized(
  */
 export async function verifyApiAccessibleFromModule(
   page: Page,
-  apiName: ScormApiName
+  apiName: ScormApiName,
 ): Promise<boolean> {
-  return await page.evaluate(
-    (name) => {
-      const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
-      if (iframe?.contentWindow) {
-        return typeof iframe.contentWindow.parent?.window?.[name] !== "undefined";
-      }
-      return false;
-    },
-    apiName
-  );
+  return await page.evaluate((name) => {
+    const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
+    if (iframe?.contentWindow) {
+      return typeof iframe.contentWindow.parent?.window?.[name] !== "undefined";
+    }
+    return false;
+  }, apiName);
 }
 
 /**
@@ -303,7 +283,7 @@ export async function setCmiValueFromModule(
   page: Page,
   apiName: ScormApiName,
   element: string,
-  value: string
+  value: string,
 ): Promise<void> {
   await page.evaluate(
     ({ apiName, element, value }) => {
@@ -320,17 +300,14 @@ export async function setCmiValueFromModule(
         }
       }
     },
-    { apiName, element, value }
+    { apiName, element, value },
   );
 }
 
 /**
  * Wait for module frame to load
  */
-export async function waitForModuleFrame(
-  page: Page,
-  timeout: number = 5000
-): Promise<void> {
+export async function waitForModuleFrame(page: Page, timeout: number = 5000): Promise<void> {
   await page.waitForSelector("#moduleFrame", { state: "attached", timeout });
   await page.waitForTimeout(1000); // Give iframe time to load content
 }
@@ -342,11 +319,11 @@ export function getScorm2004WrapperConfigs() {
   return [
     {
       name: "Standard",
-      path: "/test/integration/wrappers/scorm2004-wrapper.html"
+      path: "/test/integration/wrappers/scorm2004-wrapper.html",
     },
     {
       name: "ESM",
-      path: "/test/integration/wrappers/scorm2004-wrapper-esm.html"
-    }
+      path: "/test/integration/wrappers/scorm2004-wrapper-esm.html",
+    },
   ];
 }

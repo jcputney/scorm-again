@@ -27,7 +27,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       });
     });
 
@@ -98,7 +98,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -109,7 +109,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(true);
@@ -124,7 +124,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -135,7 +135,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(false);
@@ -150,7 +150,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -161,7 +161,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(false);
@@ -170,13 +170,13 @@ describe("Rollup Status Capture and Compare", () => {
     it("should return true when normalizedMeasure differs within epsilon tolerance", () => {
       const status1 = {
         measureStatus: true,
-        normalizedMeasure: 0.750000,
+        normalizedMeasure: 0.75,
         objectiveProgressStatus: true,
         objectiveSatisfiedStatus: true,
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -187,7 +187,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(true);
@@ -202,7 +202,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -213,7 +213,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(false);
@@ -228,7 +228,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -239,7 +239,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(false);
@@ -254,7 +254,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -265,7 +265,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: false,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(false);
@@ -280,7 +280,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -291,7 +291,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: false,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(false);
@@ -306,7 +306,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: false,
         attemptCompletionStatus: false,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -317,7 +317,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: false,
         attemptCompletionStatus: false,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(true);
@@ -332,7 +332,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: false,
         attemptCompletionStatus: false,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -343,7 +343,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: false,
         attemptCompletionStatus: false,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(false);
@@ -359,7 +359,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -370,7 +370,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       // Should be true because the implementation uses < epsilon, not <= epsilon
@@ -388,18 +388,18 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
         measureStatus: true,
-        normalizedMeasure: 0.75 + (EPSILON * 0.99),
+        normalizedMeasure: 0.75 + EPSILON * 0.99,
         objectiveProgressStatus: true,
         objectiveSatisfiedStatus: true,
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       // Should be true because difference is less than epsilon
@@ -415,7 +415,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: false,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -426,7 +426,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: false,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(true);
@@ -441,7 +441,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       const status2 = {
@@ -452,7 +452,7 @@ describe("Rollup Status Capture and Compare", () => {
         attemptProgressStatus: true,
         attemptCompletionStatus: true,
         attemptCompletionAmount: 0,
-        attemptCompletionAmountStatus: false
+        attemptCompletionAmountStatus: false,
       };
 
       expect(Activity.compareRollupStatus(status1, status2)).toBe(true);

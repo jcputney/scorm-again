@@ -7,7 +7,7 @@ import {
   RollupConditionType,
   RollupConsiderationType,
   RollupRule,
-  RollupRules
+  RollupRules,
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
@@ -51,12 +51,12 @@ describe("Additional RollupRules Tests", () => {
 
         // Set satisfaction status but not measure status
         activity.objectiveSatisfiedStatus = true;
-        expect(statusCondition.evaluate(activity)).toBe(true);  // Status IS known
+        expect(statusCondition.evaluate(activity)).toBe(true); // Status IS known
         expect(measureCondition.evaluate(activity)).toBe(false); // Measure NOT known
 
         // Now set measure status
         activity.objectiveMeasureStatus = true;
-        expect(statusCondition.evaluate(activity)).toBe(true);  // Status still known
+        expect(statusCondition.evaluate(activity)).toBe(true); // Status still known
         expect(measureCondition.evaluate(activity)).toBe(true); // Measure now known
       });
 
@@ -64,7 +64,7 @@ describe("Additional RollupRules Tests", () => {
         const parameters = new Map([["threshold", 0.5]]);
         const condition = new RollupCondition(
           RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN,
-          parameters
+          parameters,
         );
         const activity = new Activity();
 
