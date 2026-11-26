@@ -32,6 +32,7 @@ export interface CMIDataForTransfer {
       max?: string;
     };
     progress_measure?: string;
+    progress_measure_was_set?: boolean;
   }>;
 }
 
@@ -428,7 +429,18 @@ export class RteDataTransferService {
       }
 
       // Transfer progress measure
-      if (cmiObjective.progress_measure && cmiObjective.progress_measure !== "") {
+      // @spec SCORM 2004 4th Ed. RTE 4.2.17 / SN 4.2.1.2 - an untouched
+      // launch-seeded primary row must not replace top-level progress. An explicit
+      // row write in this attempt takes precedence, including after a resumed launch.
+      const topLevelPrimaryProgressWasSet =
+        cmiData.progress_measure !== undefined && cmiData.progress_measure !== "";
+      if (
+        cmiObjective.progress_measure &&
+        cmiObjective.progress_measure !== "" &&
+        (cmiObjective.progress_measure_was_set === true ||
+          !isPrimaryObjective ||
+          !topLevelPrimaryProgressWasSet)
+      ) {
         const progressMeasure = parseFloat(cmiObjective.progress_measure);
         if (!isNaN(progressMeasure)) {
           activityObjective.progressMeasure = progressMeasure;
@@ -450,6 +462,12 @@ export class RteDataTransferService {
         // values must become the activity's primary objective state before
         // UP.4 End Attempt auto-satisfaction or mapped global writes run.
         activityObjective.applyToActivity(activity);
+        // @spec SCORM 2004 4th Ed. SN 3.14 / 4.2.1.2 - write maps copy the
+        // terminating attempt's completion, evaluated using its own threshold.
+        // Read maps must not re-evaluate that stored objective value at delivery.
+        if (activity.completedByMeasure) {
+          activityObjective.completionStatus = activity.completionStatus as CompletionStatus;
+        }
 
         if (hasSuccessStatus) {
           activity.successStatus = successStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
