@@ -412,7 +412,7 @@ export class FlowTraversalService {
    * @return {boolean} - True when the Skipped rule set applies
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - evaluates only the Skipped sequencing rule set before cluster descent.
    */
-  private checkSkippedRuleSet(activity: Activity): boolean {
+  public checkSkippedRuleSet(activity: Activity): boolean {
     const skippedRules = activity.sequencingRules.preConditionRules.filter(
       (rule) => rule.action === RuleActionType.SKIP,
     );
@@ -433,7 +433,7 @@ export class FlowTraversalService {
    * @param {Activity} activity - The activity to check
    * @return {boolean} - True if activity can be delivered
    */
-  public checkActivityProcess(activity: Activity): boolean {
+  public checkActivityProcess(activity: Activity, ignoreSkip: boolean = false): boolean {
     // Check availability
     if (!activity.isAvailable) {
       return false;
@@ -445,9 +445,21 @@ export class FlowTraversalService {
     }
 
     // Check pre-condition rules
-    const deliveryCheck = this.ruleEngine.canDeliverActivity(
-      this.getActivityForEvaluation(activity),
-    );
+    const evaluationActivity = this.getActivityForEvaluation(activity);
+    // @spec SN Book: SB.2.9 / SB.2.9.1 - explicitly choosing a cluster bypasses
+    // its own Skip rule, while Disabled and limit conditions still refuse it.
+    const deliveryCheck = ignoreSkip
+      ? {
+          canDeliver:
+            this.ruleEngine.checkSequencingRules(
+              evaluationActivity,
+              activity.sequencingRules.preConditionRules.filter(
+                (rule) => rule.action === RuleActionType.DISABLED,
+              ),
+            ) !== RuleActionType.DISABLED,
+          wasSkipped: false,
+        }
+      : this.ruleEngine.canDeliverActivity(evaluationActivity);
     activity.wasSkipped = deliveryCheck.wasSkipped;
 
     return deliveryCheck.canDeliver;

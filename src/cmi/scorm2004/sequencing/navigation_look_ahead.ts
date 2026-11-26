@@ -242,8 +242,12 @@ export class NavigationLookAhead {
       // Uses simpler check for backward navigation (reviewing previously visited content)
       for (let i = currentIndex - 1; i >= 0; i--) {
         const sibling = siblings[i];
-        if (sibling && this.isActivityPotentiallyDeliverableBackward(sibling)) {
-          return true;
+        if (sibling) {
+          const deliverable = this.isActivityPotentiallyDeliverableBackward(sibling);
+          // @spec SN Book: SB.2.2 - a blocked candidate stops flow; only Skip
+          // permits searching earlier candidates (ADL CM-04b).
+          if (deliverable === null) return false;
+          if (deliverable) return true;
         }
       }
     }
@@ -321,12 +325,20 @@ export class NavigationLookAhead {
   /**
    * Check if activity is potentially deliverable for backward navigation (Previous)
    * @param {Activity} activity - Activity to check
-   * @return {boolean} - True if potentially deliverable
+   * @return {boolean | null} - True if deliverable, false to continue past Skip, null if blocked
    * @spec SN Book: UP.2 (Sequencing Rules Check Process) - evaluates preconditions to exclude skipped and disabled backward flow candidates.
    * @spec SN Book: SB.2.2 (Flow Activity Traversal Subprocess) - stopForwardTraversal does not block backward traversal.
    * @private
    */
-  private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean {
+  private isActivityPotentiallyDeliverableBackward(
+    activity: Activity,
+    forward: boolean = false,
+  ): boolean | null {
+    // @spec SN Book: SB.2.2-1 - Flow=false on the candidate's parent
+    // blocks traversal, including when the candidate is inside another cluster.
+    if (activity.parent && !activity.parent.sequencingControls.flow) {
+      return null;
+    }
     // Visibility and hidden-from-choice only affect choice presentation. Flow
     // navigation can still deliver the activity.
     if (!activity.isAvailable) {
@@ -335,27 +347,39 @@ export class NavigationLookAhead {
 
     // Previous targets have settled state, so their preconditions can be checked.
     // Continue is predicted before End Attempt, which can change its next target's state.
-    const preConditionResult = activity.sequencingRules.evaluatePreConditionRules(
-      activity,
-      this.sequencingProcess.now,
-      this.sequencingProcess.getAttemptElapsedSecondsHook,
-    );
-    if (
-      preConditionResult === RuleActionType.SKIP ||
-      preConditionResult === RuleActionType.DISABLED
-    ) {
-      return false;
-    }
+    const matches = (action: RuleActionType) =>
+      activity.sequencingRules.preConditionRules.some(
+        (rule) =>
+          rule.action === action &&
+          rule.evaluate(
+            activity,
+            this.sequencingProcess.now,
+            this.sequencingProcess.getAttemptElapsedSecondsHook,
+          ),
+      );
+    // UP.2 is applied separately to each action's rule set (SB.2.2).
+    if (matches(RuleActionType.SKIP)) return false;
+    if (forward && activity.sequencingControls.stopForwardTraversal) return null;
+    if (matches(RuleActionType.DISABLED)) return null;
 
     if (activity.children.length === 0) {
       return true;
     }
 
-    // For clusters, check if any child is potentially deliverable
-    for (const child of activity.children) {
-      if (this.isActivityPotentiallyDeliverableBackward(child)) {
-        return true;
-      }
+    // SB.2.1 reverses backward entry into a forwardOnly cluster to Forward.
+    const childForward = forward || activity.sequencingControls.forwardOnly;
+    // Flow traverses the children left after selection and randomization (SR.1/SR.2).
+    const children = activity.getAvailableChildren();
+    for (
+      let i = childForward ? 0 : children.length - 1;
+      childForward ? i < children.length : i >= 0;
+      i += childForward ? 1 : -1
+    ) {
+      const child = children[i];
+      if (!child) continue;
+      const deliverable = this.isActivityPotentiallyDeliverableBackward(child, childForward);
+      if (deliverable === null) return null;
+      if (deliverable) return true;
     }
 
     return false;

@@ -356,6 +356,13 @@ export class SequencingProcess {
         if (!choiceValidation.valid) {
           return choiceValidation;
         }
+        if (targetActivity.children.length > 0) {
+          const prediction = this.choiceHandler.predictClusterChoice(targetActivity);
+          return {
+            valid: prediction.deliveryRequest === DeliveryRequestType.DELIVER,
+            exception: prediction.exception,
+          };
+        }
         if (!this.traversalService.canDeliver(targetActivity)) {
           return { valid: false, exception: "SB.2.9-6" };
         }
